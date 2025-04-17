@@ -1,7 +1,7 @@
 ## Luan Martins
 
-As a Software Engineer with a strong foundation in both backend and frontend development, I thrive in dynamic environments where versatility and specialization are key. I have successfully contributed to both traditional web applications and blockchain technologies. 
+This used to be an AI-assisted description of me. But I realized how cringe it was and opted for speaking from the heart.
 
-A graduate with Magna Cum Laude honors in Computer Science from the Federal University of Rio de Janeiro, I am driven by a passion for continuous learning and a commitment to delivering high-quality solutions. 
+Most of my work is proprietary, and I still haven't ventured into the Open Source world. So what you'll see here are my basic personal projects and studies.
 
-Fluent in English and with a growing proficiency in French, I am eager to expand my professional horizons and make impactful contributions to innovative projects.
+I would like to highlight the Agora project, which is a full solution for the UFRJ's debate society, SDUFRJ. It is a platform that challenged me in all aspects: UI, API, database and even domain hosting.
