@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* Lifeline ships dark: styles; they apply only under a .dark class, which this site never sets. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * The identity (brand/README.md) on a light ground: a pale Klein tint
+ * behind, Klein-navy ink, Klein itself for accents. Every shade below is
+ * mixed from --ground, so changing that one value retunes the page.
+ *
+ * Lifeline paints itself in zinc, so the zinc ramp is redefined in the
+ * same family — the component stays untouched and still reads as ours.
+ */
+:root {
+  --ground: #d6e2ff;
+}
+
+@theme inline {
+  --color-klein: #002fa7;
+  --color-klein-claro: #85a7ff;
+  --color-paper: #f4f5f7;
+  --color-navy: #001447;
+
+  --color-ground: var(--ground);
+  --color-ink: var(--color-navy);
+  --color-muted: color-mix(in oklab, var(--color-navy) 72%, var(--ground));
+  --color-line: color-mix(in oklab, var(--color-klein) 22%, var(--ground));
+
+  --color-black: var(--color-navy);
+
+  --color-zinc-200: color-mix(in oklab, var(--color-klein) 14%, var(--ground));
+  --color-zinc-300: color-mix(in oklab, var(--color-klein) 42%, var(--ground));
+  --color-zinc-400: color-mix(in oklab, var(--color-klein) 58%, var(--ground));
+  --color-zinc-500: color-mix(in oklab, var(--color-navy) 82%, var(--ground));
+  --color-zinc-600: var(--color-klein);
+  --color-zinc-700: var(--color-navy);
+
+  --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    @apply bg-ground font-sans text-ink antialiased;
+    color-scheme: light;
+  }
+  ::selection {
+    @apply bg-klein text-paper;
+  }
+}
+
+.lifeline-typeset {
+  --lifeline-font: var(--font-sans);
+  font-family: var(--lifeline-font);
+}
+
+/* Lifeline — intro animation plumbing */
+@keyframes lifeline-rail-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes lifeline-marker-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes lifeline-labels-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lifeline-rail-intro {
+  transform: scaleX(var(--lifeline-intro-progress, 0));
+  transform-origin: left center;
+}
+
+.lifeline-rail-intro-vertical {
+  transform: scaleY(var(--lifeline-intro-progress, 0));
+  transform-origin: top center;
+}
+
+.lifeline-marker-intro {
+  opacity: 0;
+  animation: lifeline-marker-in var(--lifeline-marker-fade-ms, 420ms) cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.lifeline-labels-intro {
+  opacity: 0;
+  animation: lifeline-labels-in var(--lifeline-labels-ms, 600ms) cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.lifeline-labels.is-pinned {
+  z-index: 20;
+}
