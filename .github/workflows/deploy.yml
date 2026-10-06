@@ -1,0 +1,58 @@
+name: Deploy
+
+# Pull requests build both sites; a push to main also publishes them.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    env:
+      PUBLISH: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+
+      - name: Build
+        run: |
+          pnpm build && mv out out-pt
+          pnpm build:en && mv out out-en
+
+      - if: env.PUBLISH == 'true'
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      # Hashed assets never change; pages are re-fetched by browsers and
+      # held by CloudFront until the invalidation below.
+      - name: Publish
+        if: env.PUBLISH == 'true'
+        env:
+          BUCKET: ${{ vars.SITE_BUCKET }}
+        run: |
+          for locale in pt en; do
+            aws s3 sync "out-$locale/_next/static" "s3://$BUCKET/$locale/_next/static" \
+              --cache-control "public, max-age=31536000, immutable"
+            aws s3 sync "out-$locale" "s3://$BUCKET/$locale" --delete --exclude "_next/static/*" \
+              --cache-control "public, max-age=0, s-maxage=31536000, must-revalidate"
+          done
+          aws cloudfront create-invalidation --distribution-id "${{ vars.DISTRIBUTION_PT }}" --paths "/*"
+          aws cloudfront create-invalidation --distribution-id "${{ vars.DISTRIBUTION_EN }}" --paths "/*"
