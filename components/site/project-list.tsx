@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react"
+import { LanguageBadge } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
 import type { Project } from "@/content/projects"
 import { UI, localize, type L10n } from "@/lib/site"
@@ -20,7 +21,10 @@ export function ProjectList({
             const body = (
               <>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-medium text-klein tracking-[-0.02em]">{localize(project.name)}</h2>
+                  <h2 className="flex items-center gap-3 text-2xl font-medium text-klein tracking-[-0.02em]">
+                    {localize(project.name)}
+                    {project.language && <LanguageBadge language={project.language} />}
+                  </h2>
                   <p className="max-w-[34rem] text-[15px] leading-[1.6] text-ink">
                     {localize(project.summary)}
                   </p>

@@ -106,3 +106,20 @@
 .lifeline-labels.is-pinned {
   z-index: 20;
 }
+
+/* A rank's name in its metal (--rank): shaded, with a bright band that only shows while the gradient slides past. */
+.rank-metal {
+  background-image: linear-gradient(
+    100deg,
+    var(--rank) 0%,
+    color-mix(in oklab, var(--rank) 70%, var(--color-navy)) 30%,
+    var(--rank) 44%,
+    color-mix(in oklab, var(--rank) 30%, white) 50%,
+    var(--rank) 56%,
+    color-mix(in oklab, var(--rank) 70%, var(--color-navy)) 70%,
+    var(--rank) 100%
+  );
+  background-size: 300% 100%;
+  background-clip: text;
+  color: transparent;
+}
