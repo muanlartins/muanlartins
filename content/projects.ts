@@ -1,4 +1,6 @@
-import type { L10n } from "@/lib/site"
+import rocketLeague from "@/content/rocket-league"
+import { roadmapPath } from "@/lib/roadmap"
+import type { L10n, Locale } from "@/lib/site"
 
 /**
  * The content page: one entry per project, newest first. A project with
@@ -9,6 +11,8 @@ export interface Project {
   name: L10n
   summary: L10n
   href?: string
+  /** Set when it's only in one language; the other site marks it. */
+  language?: Locale
 }
 
 export const page = {
@@ -19,13 +23,13 @@ export const page = {
   },
 }
 
-export const projects: Project[] = [
-  // {
-  //   id: "rocket-league",
-  //   name: { pt: "Rocket League", en: "Rocket League" },
-  //   summary: {
-  //     pt: "TODO: do que se trata o projeto.",
-  //     en: "TODO: what the project is about.",
-  //   },
-  // },
-]
+/** Each roadmap gets a page at /conteudo/<id>, with one page per topic. */
+export const roadmaps = [rocketLeague]
+
+export const projects: Project[] = roadmaps.map((roadmap) => ({
+  id: roadmap.id,
+  name: roadmap.title,
+  summary: roadmap.description,
+  href: roadmapPath(roadmap),
+  language: roadmap.language,
+}))
