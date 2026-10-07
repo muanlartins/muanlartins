@@ -3,13 +3,14 @@
 import { useState } from "react"
 import { Play } from "lucide-react"
 import { ComingSoon } from "@/components/site/coming-soon"
-import { LOCALE, UI } from "@/lib/site"
+import { LOCALE, UI, type Locale } from "@/lib/site"
 
 /**
  * A YouTube video that costs nothing until it's played: the thumbnail
- * stands in for the player, and the iframe only loads on click.
+ * stands in for the player, and the iframe only loads on click. A video
+ * in the other `language` asks YouTube for captions in this site's.
  */
-export function YouTubeVideo({ id, title }: { id: string; title: string }) {
+export function YouTubeVideo({ id, title, language = LOCALE }: { id: string; title: string; language?: Locale }) {
   const [playing, setPlaying] = useState(false)
   const frame = "relative aspect-video w-full overflow-hidden rounded-md bg-klein"
 
@@ -17,6 +18,10 @@ export function YouTubeVideo({ id, title }: { id: string; title: string }) {
 
   if (playing) {
     const params = new URLSearchParams({ autoplay: "1", rel: "0", hl: LOCALE })
+    if (language !== LOCALE) {
+      params.set("cc_load_policy", "1")
+      params.set("cc_lang_pref", LOCALE)
+    }
     return (
       <div className={frame}>
         <iframe
