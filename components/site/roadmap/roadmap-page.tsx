@@ -1,4 +1,4 @@
-import { Play } from "lucide-react"
+import { Clock, Play } from "lucide-react"
 import { LanguageNotice } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
 import { ClearProgress } from "@/components/site/roadmap/clear-progress"
@@ -7,6 +7,7 @@ import { TopicStatus } from "@/components/site/roadmap/topic-status"
 import { YouTubeVideo } from "@/components/site/youtube-video"
 import { ranksOf, roadmapPath, type Entry, type Roadmap } from "@/lib/roadmap"
 import { UI, localize } from "@/lib/site"
+import { cn } from "@/lib/utils"
 
 export function RoadmapPage({ roadmap }: { roadmap: Roadmap }) {
   const title = localize(roadmap.title)
@@ -69,23 +70,36 @@ function RankTopics({ roadmap, entries }: { roadmap: Roadmap; entries: Entry[] }
               .filter((entry) => entry.pillar === pillar)
               .map(({ topic, concept }) => {
                 const title = localize(topic.title)
+                // Topics still waiting for their video are drawn as a draft.
                 return (
                   <li
                     key={topic.id}
-                    className="group flex flex-wrap items-center gap-x-4 gap-y-3 rounded-md border border-line bg-paper/70 px-4 py-3 backdrop-blur-sm transition-colors hover:border-klein"
+                    className={cn(
+                      "group flex flex-wrap items-center gap-x-4 gap-y-3 rounded-md border px-4 py-3 backdrop-blur-sm transition-colors hover:border-klein",
+                      topic.video ? "border-line bg-paper/70" : "border-dashed border-zinc-300 bg-paper/30",
+                    )}
                   >
                     <a href={roadmapPath(roadmap, topic)} className="min-w-0 flex-1 basis-48">
-                      <span className="block text-[16px] font-medium leading-snug text-ink group-hover:text-klein">
+                      <span
+                        className={cn(
+                          "block text-[16px] font-medium leading-snug group-hover:text-klein",
+                          topic.video ? "text-ink" : "text-muted",
+                        )}
+                      >
                         {title}
                       </span>
-                      <span className="block text-[13px] text-muted">
-                        {localize(concept.name)} ·{" "}
+                      <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] text-muted">
+                        {localize(concept.name)}
+                        <span aria-hidden>·</span>
                         {topic.video ? (
-                          <>
-                            <Play aria-hidden className="inline h-3 w-3 fill-klein text-klein" /> {UI.video}
-                          </>
+                          <span className="inline-flex items-center gap-1">
+                            <Play aria-hidden className="h-3 w-3 fill-klein text-klein" /> {UI.video}
+                          </span>
                         ) : (
-                          UI.videoSoon
+                          <span className="inline-flex items-center gap-1 rounded-full bg-zinc-200/80 px-2 py-0.5 text-[11px] font-medium uppercase tracking-[0.06em] text-zinc-500">
+                            <Clock aria-hidden className="h-3 w-3" />
+                            {UI.videoSoon}
+                          </span>
                         )}
                       </span>
                     </a>
