@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
+  LANGUAGE_LABEL,
   OTHER_LOCALE,
   SECTIONS,
   UI,
@@ -21,7 +22,10 @@ function currentSection(pathname: string): Section {
 }
 
 export function SiteHeader() {
-  const current = currentSection(usePathname())
+  const pathname = usePathname()
+  const current = currentSection(pathname)
+  // Pages under a section keep the same path in both languages.
+  const subpath = current === "personal" ? "" : pathname.slice(sectionPath(current).length)
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-xl">
@@ -53,13 +57,13 @@ export function SiteHeader() {
             </Link>
           ))}
           <a
-            href={sectionUrl(current, OTHER_LOCALE)}
+            href={sectionUrl(current, OTHER_LOCALE) + subpath}
             hrefLang={OTHER_LOCALE}
             aria-label={UI.switchLanguage}
             title={UI.switchLanguage}
             className="rounded-sm border border-line px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted transition-colors hover:border-klein hover:text-klein"
           >
-            {OTHER_LOCALE}
+            {LANGUAGE_LABEL[OTHER_LOCALE]}
           </a>
         </div>
       </nav>

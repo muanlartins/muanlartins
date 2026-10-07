@@ -48,6 +48,9 @@ export const LINKS = [
 
 export const HTML_LANG: Record<Locale, string> = { pt: "pt-BR", en: "en" }
 
+/** How the language switch and badges name each language: Brazilian Portuguese is "BR". */
+export const LANGUAGE_LABEL: Record<Locale, string> = { pt: "BR", en: "EN" }
+
 /** A string written in both languages. Content files use it everywhere. */
 export interface L10n {
   pt: string
@@ -94,4 +97,32 @@ export const UI = localize({
   playVideo: { pt: "Assistir ao vídeo", en: "Play video" },
   videoSoon: { pt: "Vídeo em breve", en: "Video coming soon" },
   soon: { pt: "Em breve", en: "Coming soon" },
+  status: {
+    none: { pt: "Não comecei", en: "Not started" },
+    practicing: { pt: "Treinando", en: "Practicing" },
+    done: { pt: "Concluído", en: "Done" },
+  },
+  completed: { pt: "concluídos", en: "done" },
+  /** Above the ranks: what the statuses mean and where they're kept. */
+  statusHint: {
+    pt: "Marque cada tópico como Treinando enquanto pratica e Concluído quando já sai natural no jogo. Concluir os tópicos de um rank leva a bola até o próximo. Fica salvo neste navegador.",
+    en: "Mark each topic Practicing while you drill it and Done once it comes naturally in games. Finishing a rank's topics rolls the ball on to the next one. It's saved in this browser.",
+  },
+  rankUp: { pt: "Subiu para", en: "Ranked up to" },
+  clearProgress: { pt: "Apagar progresso", en: "Clear progress" },
+  confirmClear: { pt: "Apagar tudo? Clique de novo", en: "Clear everything? Click again" },
+  roadmapDone: { pt: "Roteiro concluído!", en: "Roadmap complete!" },
+  video: { pt: "Vídeo", en: "Video" },
+  /** Under a roadmap of a game made by others. */
+  credits: {
+    pt: "Rocket League e os emblemas de rank são da Psyonix/Epic Games; este site não é oficial nem afiliado. Modelos 3D do Octane e da bola por Jako (CC BY 4.0).",
+    en: "Rocket League and its rank emblems belong to Psyonix/Epic Games; this site is unofficial and not affiliated. Octane and ball 3D models by Jako (CC BY 4.0).",
+  },
+  /** Shown when a page's videos and texts are in the other language. */
+  otherLanguage: {
+    pt: "Os vídeos e textos daqui estão em inglês. Para legendas em português, ative as legendas (CC) e escolha Configurações → Legendas → Traduzir automaticamente → Português.",
+    en: "The videos and texts here are in Brazilian Portuguese. For English subtitles, turn on captions (CC), then pick Settings → Subtitles → Auto-translate → English.",
+  },
+  previous: { pt: "Anterior", en: "Previous" },
+  next: { pt: "Próximo", en: "Next" },
 })
