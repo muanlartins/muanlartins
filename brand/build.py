@@ -230,6 +230,41 @@ def webcam(width=3840, height=2160, side="left"):
     return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}{placed(lockup(height=mark_height, background=None), x0, y0)}', width, height)
 
 
+def thumbnail(lines, series="Fundamentos do Rocket League", width=1280, height=720):
+    """A video thumbnail: the lockup up top, and the title as large as it fits, bottom left, under the
+    series' name. The lattice fades out behind the text."""
+    margin = height * 0.09
+    mark_height = height * 0.075
+    w, h = lockup_size(mark_height)
+    pad = mark_height * 0.35
+    x0, y0 = margin - pad, margin - pad
+    shaped = [wordmark(line, weight=700, size=100) for line in lines]
+    size = min(200, 100 * (width - 2 * margin) / max(tw for _, tw, _, _ in shaped))
+    leading = size * 1.02
+    label_size = height * 0.055
+    label, label_width, _, _ = wordmark(series, size=label_size)
+    bottom = height - margin
+    top = bottom - leading * (len(lines) - 1) - size * 0.72 - label_size * 1.6
+    text = f'<path transform="translate({margin:.1f} {top + label_size * 0.72:.1f})" d="{label}" fill="{KLEIN_LIGHT}"/>'
+    for i, (d, _, _, _) in enumerate(shaped):
+        text += f'<path transform="translate({margin:.1f} {bottom - leading * (len(lines) - 1 - i):.1f}) scale({size / 100:.4f})" d="{d}" fill="{PAPER}"/>'
+    block = max(label_width, *(tw * size / 100 for _, tw, _, _ in shaped))
+    holes = [(margin + block / 2, (top + bottom) / 2, block * 0.8, (bottom - top) * 1.1),
+             (x0 + w / 2, y0 + h / 2, w * 0.75, h * 1.2)]
+    grid = lattice(width, height, mark_height, x0, y0, holes, step=2)
+    return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}'
+               f'{placed(lockup(height=mark_height, background=None), x0, y0)}{text}', width, height)
+
+
+# One per video, named after its topic's id on the site's roadmap.
+THUMBNAILS = {
+    "rocket-league-intro": ["Introdução"],
+    "inputs": ["Inputs", "do jogo"],
+    "camera": ["Cam e", "ball cam"],
+    "contact": ["Acertando", "a bola"],
+}
+
+
 def banner_preview(src, out, width=2560, height=1440):
     """The banner with YouTube's crops drawn on: TV (all), desktop (full-width strip), safe strip."""
     sw, sh = BANNER_SAFE
@@ -343,6 +378,9 @@ if __name__ == "__main__":
         png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-3840x2160.png", 3840)
         png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-1920x1080.png", 1920)
     png("small/mark-small.svg", "youtube/watermark-150.png", 150)
+    for name, lines in THUMBNAILS.items():
+        write(f"youtube/thumbnails/{name}.svg", thumbnail(lines))
+        png(f"youtube/thumbnails/{name}.svg", f"youtube/thumbnails/{name}.png", 1280)
 
     site_assets()
     print("klein light", KLEIN_LIGHT)
