@@ -163,18 +163,22 @@ def og(width=1200, height=630, mark_height=150):
     return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{inner}', width, height)
 
 
-# YouTube shows all 2560×1440 only on TVs; this centred strip is what every device keeps.
-BANNER_SAFE = (1546, 423)
-
-
-def banner(width=2560, height=1440, mark_height=190, lattice=KLEIN_LIGHT):
-    """YouTube channel art: the lockup in the safe strip, on the 45° lattice the mark is drawn on,
-    aligned so its strokes run along the lattice lines. The lattice fades out around the lockup."""
-    inner = lockup(height=mark_height, background=None)
+def placed(inner, x, y):
+    """A lockup() moved to (x, y) inside a larger SVG."""
     w, h = (float(v) for v in inner.split('viewBox="0 0 ')[1].split('"')[0].split())
-    x0, y0 = (width - w) / 2, (height - h) / 2
-    inner = inner.replace(f'width="{w:.0f}" height="{h:.0f}"', f'x="{x0:.1f}" y="{y0:.1f}" width="{w:.1f}" height="{h:.1f}"')
+    return inner.replace(f'width="{w:.0f}" height="{h:.0f}"', f'x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}"')
 
+
+def lockup_size(mark_height):
+    inner = lockup(height=mark_height, background=None)
+    return tuple(float(v) for v in inner.split('viewBox="0 0 ')[1].split('"')[0].split())
+
+
+def lattice(width, height, mark_height, x0, y0, holes, color=KLEIN_LIGHT, step=1):
+    """The 45° lattice the mark is drawn on, aligned with a lockup of `mark_height` at (x0, y0) so its
+    lines run along the mark's strokes. It fades out inside each hole, an ellipse (cx, cy, rx, ry):
+    hidden up to 45% of the way out, back in full at the edge. `step` spaces the lines that many lattice
+    units apart, for a coarser grid when the lockup is small for the frame."""
     # Same placement lockup() gives the mark (fit="box", fill=1.0), so lattice point (x, y) lands on
     # pixel (ox + x·u, oy − y·u): lines x + y = k and x − y = k pass through every corner of the mark.
     pts = LUAN + LUAN_TURNED
@@ -185,19 +189,45 @@ def banner(width=2560, height=1440, mark_height=190, lattice=KLEIN_LIGHT):
     oy = y0 + pad + mark_height / 2 + (min(ys) + max(ys)) / 2 * u
     reach = (width + height) / u
     lines = []
-    for k in range(-int(reach) - 1, int(reach) + 2):
+    for k in range(-(int(reach) // step + 1) * step, int(reach) + 2, step):
         # x + y = k runs down-right on screen, x − y = k up-right; both cross row y = 0 at x = k.
         lines.append(f"M{ox + k * u - height:.1f} {oy - height:.1f}L{ox + k * u + height:.1f} {oy + height:.1f}")
         lines.append(f"M{ox + k * u - height:.1f} {oy + height:.1f}L{ox + k * u + height:.1f} {oy - height:.1f}")
+    defs, cuts = [], []
+    for i, (cx, cy, rx, ry) in enumerate(holes):
+        defs.append(f'<radialGradient id="fade{i}" cx="{cx:.1f}" cy="{cy:.1f}" r="{rx:.0f}" '
+                    f'gradientTransform="translate({cx:.1f} {cy:.1f}) scale(1 {ry / rx:.3f}) translate({-cx:.1f} {-cy:.1f})" '
+                    f'gradientUnits="userSpaceOnUse"><stop offset="0.45" stop-color="#000"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>')
+        cuts.append(f'<rect width="{width}" height="{height}" fill="url(#fade{i})"/>')
+    defs.append(f'<mask id="lat"><rect width="{width}" height="{height}" fill="#fff"/>{"".join(cuts)}</mask>')
+    return (f'<defs>{"".join(defs)}</defs><path d="{"".join(lines)}" mask="url(#lat)" fill="none" stroke="{color}" '
+            f'stroke-opacity="0.22" stroke-width="{u * step * 0.045:.2f}"/>')
+
+
+# YouTube shows all 2560×1440 only on TVs; this centred strip is what every device keeps.
+BANNER_SAFE = (1546, 423)
+
+
+def banner(width=2560, height=1440, mark_height=190):
+    """YouTube channel art: the lockup in the safe strip, on the lattice, which fades out around it."""
+    w, h = lockup_size(mark_height)
+    x0, y0 = (width - w) / 2, (height - h) / 2
     sw, sh = BANNER_SAFE
-    fade = (f'<radialGradient id="fade" cx="{width / 2}" cy="{height / 2}" r="{sw * 0.62:.0f}" '
-            f'gradientTransform="translate({width / 2} {height / 2}) scale(1 {sh * 1.5 / sw:.3f}) translate({-width / 2} {-height / 2})" '
-            f'gradientUnits="userSpaceOnUse"><stop offset="0.45" stop-color="#000"/><stop offset="1" stop-color="#fff"/></radialGradient>'
-            f'<mask id="lat"><rect width="{width}" height="{height}" fill="#fff"/>'
-            f'<rect width="{width}" height="{height}" fill="url(#fade)"/></mask>')
-    grid = (f'<path d="{"".join(lines)}" mask="url(#lat)" fill="none" stroke="{lattice}" '
-            f'stroke-opacity="0.22" stroke-width="{u * 0.045:.2f}"/>')
-    return svg(f'<defs>{fade}</defs><rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}{inner}', width, height)
+    grid = lattice(width, height, mark_height, x0, y0, [(width / 2, height / 2, sw * 0.62, sw * 0.62 * sh * 1.5 / sw)])
+    return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}{placed(lockup(height=mark_height, background=None), x0, y0)}', width, height)
+
+
+def webcam(width=3840, height=2160, side="left"):
+    """A virtual background for the camera: the banner's look with the lockup up in a corner, since the
+    middle is where the person sits. The lattice fades out behind them and around the lockup."""
+    mark_height = height * 0.085
+    w, h = lockup_size(mark_height)
+    margin = height * 0.045
+    x0 = margin if side == "left" else width - w - margin
+    y0 = margin
+    holes = [(width / 2, height * 0.8, width * 0.36, height * 0.75), (x0 + w / 2, y0 + h / 2, w * 0.75, h * 1.2)]
+    grid = lattice(width, height, mark_height, x0, y0, holes, step=2)
+    return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}{placed(lockup(height=mark_height, background=None), x0, y0)}', width, height)
 
 
 def banner_preview(src, out, width=2560, height=1440):
@@ -308,6 +338,10 @@ if __name__ == "__main__":
     banner_preview("youtube/banner-2560x1440.png", "youtube/banner-crops.svg")
     png("youtube/banner-crops.svg", "youtube/banner-crops.png", 1280)
     (ROOT / "youtube/profile-800.png").write_bytes((ROOT / "logo/avatar-800.png").read_bytes())
+    for side in ("left", "right"):
+        write(f"webcam/webcam-{side}.svg", webcam(side=side))
+        png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-3840x2160.png", 3840)
+        png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-1920x1080.png", 1920)
     png("small/mark-small.svg", "youtube/watermark-150.png", 150)
 
     site_assets()

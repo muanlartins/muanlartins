@@ -41,6 +41,7 @@ The website extends this into a ramp of Klein tints (see `app/globals.css`).
 | `youtube/profile-800.png` | YouTube profile picture (YouTube crops it to a circle). |
 | `youtube/watermark-150.png` | Video watermark: the small drawing, on Klein so it reads over any footage. |
 | `youtube/banner-2560x1440.png` | YouTube banner: the lockup on the mark's 45° lattice, lined up with its strokes. `banner-crops.png` shows what TVs, desktops and phones keep. |
+| `webcam/webcam-{left,right}-{1920x1080,3840x2160}.png` | Webcam background: the banner's look with the lockup in a top corner, and the lattice faded out where you sit. Pick the side your head isn't on. |
 | `brand-board.png` | Everything above on one page. |
 | `explorations/` | How it got here — see its README. |
 
