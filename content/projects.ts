@@ -1,4 +1,5 @@
 import rocketLeague from "@/content/rocket-league"
+import { rlr } from "@/content/rlr"
 import { roadmapPath } from "@/lib/roadmap"
 import type { L10n, Locale } from "@/lib/site"
 
@@ -26,10 +27,13 @@ export const page = {
 /** Each roadmap gets a page at /conteudo/<id>, with one page per topic. */
 export const roadmaps = [rocketLeague]
 
-export const projects: Project[] = roadmaps.map((roadmap) => ({
-  id: roadmap.id,
-  name: roadmap.title,
-  summary: roadmap.description,
-  href: roadmapPath(roadmap),
-  language: roadmap.language,
-}))
+export const projects: Project[] = [
+  rlr,
+  ...roadmaps.map((roadmap) => ({
+    id: roadmap.id,
+    name: roadmap.title,
+    summary: roadmap.description,
+    href: roadmapPath(roadmap),
+    language: roadmap.language,
+  })),
+]

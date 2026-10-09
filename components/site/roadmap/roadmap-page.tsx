@@ -1,4 +1,4 @@
-import { Clock, Play } from "lucide-react"
+import { ArrowUpRight, Clock, Play } from "lucide-react"
 import { LanguageNotice } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
 import { ClearProgress } from "@/components/site/roadmap/clear-progress"
@@ -20,6 +20,25 @@ export function RoadmapPage({ roadmap }: { roadmap: Roadmap }) {
           <YouTubeVideo id={roadmap.video} title={title} language={roadmap.language} />
         </div>
       </PageIntro>
+
+      {roadmap.tools && (
+        <div className="mt-12 space-y-3">
+          {roadmap.tools.map((tool) => (
+            <a
+              key={tool.href}
+              href={tool.href}
+              className="group flex items-start justify-between gap-6 rounded-md border border-line bg-paper/70 px-5 py-4 backdrop-blur-sm transition-colors hover:border-klein"
+            >
+              <div className="space-y-1">
+                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted">{UI.tool}</p>
+                <h2 className="text-xl font-medium text-klein tracking-[-0.02em]">{localize(tool.name)}</h2>
+                <p className="max-w-[34rem] text-[14px] leading-[1.6] text-ink">{localize(tool.summary)}</p>
+              </div>
+              <ArrowUpRight className="h-5 w-5 shrink-0 text-muted transition-colors group-hover:text-klein" />
+            </a>
+          ))}
+        </div>
+      )}
 
       <section className="mt-16">
         <div className="flex flex-wrap items-start justify-between gap-4">
