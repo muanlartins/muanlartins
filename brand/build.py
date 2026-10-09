@@ -262,6 +262,15 @@ THUMBNAILS = {
     "inputs": ["Inputs", "do jogo"],
     "camera": ["Cam e", "ball cam"],
     "contact": ["Acertando", "a bola"],
+    "turning": ["Curvas", "e drift"],
+    "supersonic": ["Supersônico"],
+    "jump": ["Pulo e", "pulo duplo"],
+    "flips": ["Tipos", "de flip"],
+    "landing": ["Caindo sobre", "as rodas"],
+    "shooting": ["Chutando", "no gol"],
+    "pushing": ["Conduzindo", "a bola"],
+    "kickoff": ["Logística", "do kickoff"],
+    "attack-defense": ["Ataque", "e defesa"],
 }
 
 
