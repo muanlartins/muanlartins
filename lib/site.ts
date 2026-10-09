@@ -97,6 +97,7 @@ export const UI = localize({
   playVideo: { pt: "Assistir ao vídeo", en: "Play video" },
   videoSoon: { pt: "Vídeo em breve", en: "Video coming soon" },
   soon: { pt: "Em breve", en: "Coming soon" },
+  tool: { pt: "Ferramenta", en: "Tool" },
   status: {
     none: { pt: "Não comecei", en: "Not started" },
     practicing: { pt: "Treinando", en: "Practicing" },

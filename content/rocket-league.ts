@@ -1,3 +1,4 @@
+import { rlr } from "@/content/rlr"
 import { roadmap } from "@/lib/roadmap"
 
 /**
@@ -18,6 +19,7 @@ export default roadmap({
   },
   language: "pt",
   video: "DaY857Usc80",
+  tools: [rlr],
   ranks: [
     {
       id: "unranked",

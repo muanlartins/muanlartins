@@ -61,6 +61,8 @@ export interface Roadmap {
   language: Locale
   /** The introduction video, in that language. Empty shows "coming soon". */
   video: string
+  /** Apps that go with it, shown under the introduction. */
+  tools?: { name: L10n; summary: L10n; href: string }[]
   /** Lowest first. Only ranks with topics show. */
   ranks: Rank[]
   pillars: Pillar[]
