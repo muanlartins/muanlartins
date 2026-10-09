@@ -89,8 +89,8 @@ Resources:
         SigningProtocol: sigv4
 
   # Next exports /profissional as profissional.html; www and trailing
-  # slashes redirect to the one canonical URL, except /rlr, whose pages
-  # live under /rlr/.
+  # slashes redirect to the one canonical URL. RLR's pages, under /rlr/,
+  # go to GitHub Pages as they are, after the www redirect.
   UrlFunction:
     Type: AWS::CloudFront::Function
     Properties:
@@ -111,6 +111,7 @@ Resources:
 
           if (host.startsWith("www.")) return redirect("https://" + host.slice(4) + uri)
           if (uri === "/rlr") return redirect("/rlr/")
+          if (uri.startsWith("/rlr/")) return request
           if (uri.length > 1 && uri.endsWith("/")) return redirect(uri.slice(0, -1))
 
           if (uri === "/") request.uri = "/index.html"
@@ -161,6 +162,9 @@ Resources:
             Compress: true
             CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
             ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03 # Managed-SecurityHeadersPolicy
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt UrlFunction.FunctionMetadata.FunctionARN
         CustomErrorResponses:
           - ErrorCode: 404
             ResponseCode: 404
@@ -209,6 +213,9 @@ Resources:
             Compress: true
             CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
             ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03 # Managed-SecurityHeadersPolicy
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt UrlFunction.FunctionMetadata.FunctionARN
         CustomErrorResponses:
           - ErrorCode: 404
             ResponseCode: 404
