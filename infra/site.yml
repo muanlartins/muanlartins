@@ -2,8 +2,9 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
   muanlartins.com.br (pt) and muanlartins.com (en): one private S3 bucket
   holding both static builds, one CloudFront distribution per domain, and the
-  role GitHub Actions assumes to deploy. Create in us-east-1, where CloudFront
-  certificates must live.
+  role GitHub Actions assumes to deploy. Both domains also serve RLR, the
+  replay player, at /rlr/ from its own GitHub Pages site. Create in us-east-1,
+  where CloudFront certificates must live.
 
 Parameters:
   ZoneIdPt:
@@ -88,7 +89,8 @@ Resources:
         SigningProtocol: sigv4
 
   # Next exports /profissional as profissional.html; www and trailing
-  # slashes redirect to the one canonical URL.
+  # slashes redirect to the one canonical URL, except /rlr, whose pages
+  # live under /rlr/.
   UrlFunction:
     Type: AWS::CloudFront::Function
     Properties:
@@ -108,6 +110,7 @@ Resources:
           var uri = request.uri
 
           if (host.startsWith("www.")) return redirect("https://" + host.slice(4) + uri)
+          if (uri === "/rlr") return redirect("/rlr/")
           if (uri.length > 1 && uri.endsWith("/")) return redirect(uri.slice(0, -1))
 
           if (uri === "/") request.uri = "/index.html"
@@ -136,6 +139,11 @@ Resources:
             OriginAccessControlId: !Ref OriginAccessControl
             S3OriginConfig:
               OriginAccessIdentity: ""
+          - Id: rlr
+            DomainName: muanlartins.github.io
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
         DefaultCacheBehavior:
           TargetOriginId: site
           ViewerProtocolPolicy: redirect-to-https
@@ -145,6 +153,14 @@ Resources:
           FunctionAssociations:
             - EventType: viewer-request
               FunctionARN: !GetAtt UrlFunction.FunctionMetadata.FunctionARN
+        # RLR as GitHub Pages serves it (github.com/muanlartins/rlr).
+        CacheBehaviors:
+          - PathPattern: /rlr/*
+            TargetOriginId: rlr
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
+            ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03 # Managed-SecurityHeadersPolicy
         CustomErrorResponses:
           - ErrorCode: 404
             ResponseCode: 404
@@ -171,6 +187,11 @@ Resources:
             OriginAccessControlId: !Ref OriginAccessControl
             S3OriginConfig:
               OriginAccessIdentity: ""
+          - Id: rlr
+            DomainName: muanlartins.github.io
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
         DefaultCacheBehavior:
           TargetOriginId: site
           ViewerProtocolPolicy: redirect-to-https
@@ -180,6 +201,14 @@ Resources:
           FunctionAssociations:
             - EventType: viewer-request
               FunctionARN: !GetAtt UrlFunction.FunctionMetadata.FunctionARN
+        # RLR as GitHub Pages serves it (github.com/muanlartins/rlr).
+        CacheBehaviors:
+          - PathPattern: /rlr/*
+            TargetOriginId: rlr
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # Managed-CachingOptimized
+            ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03 # Managed-SecurityHeadersPolicy
         CustomErrorResponses:
           - ErrorCode: 404
             ResponseCode: 404

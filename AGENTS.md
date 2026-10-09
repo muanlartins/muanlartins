@@ -79,4 +79,6 @@ A push to `main` releases both sites: CI lints, builds both locales and syncs th
 
 Hosting is Luan's personal AWS account (stack `muanlartins-site` from `infra/site.yml`, which he applies in the console). CI reaches it through GitHub OIDC with the repository variables `AWS_ROLE_ARN`, `SITE_BUCKET`, `DISTRIBUTION_PT` and `DISTRIBUTION_EN`. AWS credentials on a local machine may belong to another account: never use them for this site.
 
+Both distributions also send `/rlr/*` to RLR, the replay player, on GitHub Pages (`muanlartins/rlr`, released by its own pushes); `/rlr` redirects to `/rlr/`.
+
 A release costs well under a cent. Every build changes every page (Next.js embeds a random build id), so syncing only changed files would save little.
