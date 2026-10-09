@@ -30,7 +30,6 @@ export function RoadmapPage({ roadmap }: { roadmap: Roadmap }) {
               className="group flex items-start justify-between gap-6 rounded-md border border-line bg-paper/70 px-5 py-4 backdrop-blur-sm transition-colors hover:border-klein"
             >
               <div className="space-y-1">
-                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-muted">{UI.tool}</p>
                 <h2 className="text-xl font-medium text-klein tracking-[-0.02em]">{localize(tool.name)}</h2>
                 <p className="max-w-[34rem] text-[14px] leading-[1.6] text-ink">{localize(tool.summary)}</p>
               </div>
