@@ -181,6 +181,17 @@ Há flips quase cosméticos e outros surpreendentemente fortes, como o musty fli
 
 Por agora, basta saber o quanto essa mecânica é rica, e usá-la muito.`,
             },
+            {
+              id: "dont-jump",
+              rank: "bronze",
+              title: { pt: "Não pule sempre", en: "Don't always jump" },
+              video: "A0j1jBHi-Ew",
+              text: `No ar, você não consegue dar meia-volta. Um pulo e um flip para a frente na bola levam você muito além dela, e voltar demora. Um toque sutil, ou um pulo pequeno, deixa você pronto para voltar logo.
+
+O boost permite algumas manobras no ar, mas a ideia vale: sair do chão é perder o controle do carro. E se você não cair sobre as quatro rodas, como em Caindo sobre as rodas, ainda perde tempo se ajeitando. No chão, você pode pegar a bola, fazer curva e frear; no ar, suas opções dependem do boost, e sem boost não sobra nenhuma.
+
+Num kickoff de 1v1 dá para ver a diferença: com um flip na bola, o carro vai longe e o adversário chega nela antes; com um pulo simples, o carro já está pronto para voltar na bola e agir.`,
+            },
             { id: "flip-cancel", rank: "silver", title: { pt: "Flip cancel", en: "Flip cancel" } },
             { id: "half-flip", rank: "gold", title: { pt: "Half flip", en: "Half flip" } },
           ],
@@ -333,7 +344,19 @@ Todo mundo quer chutar a bola, mas é preciso saber se é hora de defender, pert
           id: "positioning",
           name: { pt: "Posicionamento", en: "Positioning" },
           topics: [
-            { id: "positions", rank: "bronze", title: { pt: "Entendendo as posições", en: "Understanding positions" } },
+            {
+              id: "positions",
+              rank: "bronze",
+              title: { pt: "Entendendo as posições", en: "Understanding positions" },
+              video: "20wfB43uHJI",
+              text: `No 1v1, só existe você: atacante, meio-campo e zagueiro ao mesmo tempo. Depois do kickoff, com a bola no seu campo, você não pode ir buscar boost no campo do adversário: o seu gol fica aberto, e ele tem todo o tempo do mundo para levar a bola até lá, sem nem precisar chutar forte. Com a bola longe, dá para pegar boost; com ela perto do seu gol, o certo é voltar direto para defender ou tirá-la para o lado.
+
+Com duas ou três pessoas no time, as posições se dividem. Todo mundo gosta de atacar, de ir atrás da bola, mas alguém precisa saber que é o responsável por proteger o gol: o último homem. Se a bola espirra, é ele quem tem de tirá-la, não quem a deixou espirrar.
+
+Nada impede o defensor de avançar também, como um time de futebol que vai todo para o ataque, mas é um risco. Por isso vale saber quais são as posições e quando você está saindo da sua. Se quem atacou ficou sem boost depois da jogada, quem precisa pensar na defesa agora é o outro: pegar boost e se preparar para defender, ou jogar a bola para o canto, longe do gol. Essa troca é o assunto do próximo tópico, a rotação.
+
+No 3v3, com mais carros, dá até para ter um goleiro fixo, que não é o ideal, enquanto os outros dois atacam juntos. Aí entra o passe: em vez de chutar, um toque para o lado deixa o colega na posição de chutar. Só lembre que, se todo mundo avançar e o adversário fizer uma boa defesa, a bola pode voltar direto para o seu gol.`,
+            },
             { id: "push-and-retreat", rank: "silver", title: { pt: "Avanço e recuo", en: "Pushing up and falling back" } },
             { id: "covering", rank: "gold", title: { pt: "Compensando a posição do time", en: "Covering for your team" } },
           ],
@@ -342,8 +365,32 @@ Todo mundo quer chutar a bola, mas é preciso saber se é hora de defender, pert
           id: "rotation",
           name: { pt: "Rotação", en: "Rotation" },
           topics: [
-            { id: "rotation", rank: "bronze", title: { pt: "Conceito de rotação", en: "What rotation is" } },
-            { id: "self-control", rank: "bronze", title: { pt: "Exercendo o auto-controle", en: "Holding back" } },
+            {
+              id: "rotation",
+              rank: "bronze",
+              title: { pt: "Conceito de rotação", en: "What rotation is" },
+              video: "VCKhqjZd_4E",
+              text: `No futebol, cada jogador tem uma posição fixa: goleiro, zagueiro, volante, atacante. No Rocket League, não: você veste o chapéu da posição de que o jogo precisa naquele momento.
+
+Depois do kickoff, quem foi na bola fica sem boost e fora de posição, na frente da bola, sem ter como atacar. Quem esperava atrás sabe o que fazer: pega boost e vai na bola, virando o primeiro homem. Quem foi no kickoff passa pelos pads, enche o boost e volta para defender como segundo homem. Os papéis se invertem, e quando a bola espirrar de novo, invertem outra vez. Esse vai e volta é a rotação.
+
+Não existe regra fixa; depende de sentir onde está a bola e se vale chegar mais perto. Se um adversário vacilou e foi buscar boost longe, o time tem a chance de um 2 contra 1: o segundo homem pode subir para atrapalhar o defensor com um bump ou uma demolição, esperar um passe, ou ficar seguro, pronto para o rebote se a defesa espirrar a bola.
+
+Faz parte da rotação deixar os outros jogarem. Quando os dois do mesmo time vão juntos na bola, sem saber quem é o primeiro e quem é o segundo, ela pode espirrar para o lado errado, e o adversário que teve paciência faz o gol. Esperar a sua vez de tocar na bola é o assunto do próximo tópico.`,
+            },
+            {
+              id: "self-control",
+              rank: "bronze",
+              title: { pt: "Exercendo o autocontrole", en: "Holding back" },
+              video: "fvESkRwYGQU",
+              text: `Você não precisa ir na bola o tempo todo. Ela espirra muito, ainda mais nos níveis mais baixos, e isso vai de Bronze até Platina e Diamante. Quem está mais perto aproveita, mas se você está sempre colado na bola, ela sempre espirra para longe de você.
+
+Quando todo mundo vai na bola ao mesmo tempo, o jogo vira uma bagunça: cada um só empurra a bola, e o gol sai para quem dá a sorte de um toque ir na direção certa.
+
+Exercer o autocontrole é, quando você é o segundo homem, esperar a disputa acontecer, ver para onde a bola vai e só então ir nela, com tempo para fazer alguma coisa: chutar no gol, ou conduzir com calma até alguém se aproximar.
+
+Isso pesa ainda mais jogando sozinho, com desconhecidos que vão todos atrás da bola. É chato esperar, porque todo mundo quer jogar e fazer gol, mas essas janelas aparecem de tempos em tempos, e é preciso estar pronto para aproveitá-las. Quem só corre atrás da bola como mais um nunca aprende a controlá-la, e perde essas oportunidades.`,
+            },
             { id: "back-post", rank: "silver", title: { pt: "Voltando pelo segundo pau", en: "Rotating back post" } },
             { id: "rotation-styles", rank: "gold", title: { pt: "Rotações agressivas e defensivas", en: "Aggressive and defensive rotations" } },
           ],
@@ -352,16 +399,27 @@ Todo mundo quer chutar a bola, mas é preciso saber se é hora de defender, pert
           id: "boost",
           name: { pt: "Boost", en: "Boost" },
           topics: [
-            { id: "boost-pads", rank: "bronze", title: { pt: "Onde pegar boost", en: "Where to get boost" } },
+            {
+              id: "boost-pads",
+              rank: "bronze",
+              title: { pt: "Onde pegar boost", en: "Where to get boost" },
+              video: "QcbiAMvP7KM",
+              text: `O boost é o recurso mais importante do jogo: é o que leva você até a bola e faz as jogadas. Com o tanque vazio, o carro não consegue acelerar, chutar forte nem desviar de ninguém.
+
+Os boosts grandes, nos cantos e nas laterais do campo, dão 100 e voltam depois de um tempo. Depois do kickoff, quem gastou boost costuma ir buscar um deles. Mas o campo também tem vários pads pequenos, que dão 12 cada, e vale traçar o caminho até a bola passando por cima deles de propósito, em vez de desviar. Num caminho só, dá para pegar uns 36.
+
+Você não precisa estar sempre de tanque cheio. Gastar 20 e atravessar o campo atrás de um boost grande é um erro: eles ficam nos cantos por uma razão, e ir até lá deixa o meio aberto.
+
+O 1v1 mostra bem isso. Não é o modo mais jogado, porque tudo é responsabilidade sua e os gols frustram, mas ensina muito: com a bola no seu campo, ir buscar boost no canto dá o gol ao adversário, mesmo que ele só pegue um pad no caminho. Os grandes estão nos cantos de propósito, e os pequenos estão no meio para o empurrão de que você precisa para chegar na bola.`,
+            },
             { id: "small-pads", rank: "silver", title: { pt: "Fazendo bom uso dos pads", en: "Making good use of the pads" } },
-            { id: "big-boost", rank: "gold", title: { pt: "Auto-controle do grande boost", en: "Restraint with big boost" } },
+            { id: "big-boost", rank: "gold", title: { pt: "Autocontrole do grande boost", en: "Restraint with big boost" } },
           ],
         },
         {
           id: "challenges",
           name: { pt: "Disputas", en: "Challenges" },
           topics: [
-            { id: "dont-jump", rank: "bronze", title: { pt: "Não pule sempre", en: "Don't always jump" } },
             { id: "when-to-go", rank: "silver", title: { pt: "Saber quando ir", en: "Knowing when to go" } },
             { id: "challenge-intent", rank: "gold", title: { pt: "Disputando com intenção", en: "Challenging with intent" } },
           ],
@@ -370,7 +428,6 @@ Todo mundo quer chutar a bola, mas é preciso saber se é hora de defender, pert
           id: "defense",
           name: { pt: "Defesa", en: "Defense" },
           topics: [
-            { id: "own-goals", rank: "bronze", title: { pt: "Evitando gol contra", en: "Avoiding own goals" } },
             { id: "clearing", rank: "silver", title: { pt: "Tirando a bola", en: "Clearing the ball" } },
             { id: "saves", rank: "gold", title: { pt: "Defesas básicas", en: "Basic saves" } },
           ],
@@ -379,6 +436,19 @@ Todo mundo quer chutar a bola, mas é preciso saber se é hora de defender, pert
           id: "attack",
           name: { pt: "Ataque", en: "Attack" },
           topics: [
+            {
+              id: "common-attack",
+              rank: "bronze",
+              title: { pt: "O ataque mais comum", en: "The most common attack" },
+              video: "M_7GaoHF-Ww",
+              text: `Um dos ataques mais comuns, que todo mundo usa no começo e por muito tempo, porque funciona: um atacante leva a bola pela lateral e passa pelo defensor, a curva do canto do campo devolve a bola para a frente do gol, e o colega que esperava ali completa.
+
+É o momento que cria caráter na defesa: de dentro do gol, chute a bola para fora de novo. Começa uma disputa entre você e o atacante; se a bola passar por ele, quem esperava na frente do gol já não tem o que completar, e o seu time pode contra-atacar.
+
+Esse lance também ensina a evitar gol contra. Na frente da bola, no caminho dela, o único toque que você consegue dar é para onde o carro aponta. Esperando a bola de frente, entre ela e o seu gol, ela pode bater no seu carro, você pode errar o flip, ou o atacante pode desviá-la em você, e é gol contra. Para defender, chegue na bola por trás, apontando para longe do seu gol; nunca o contrário.
+
+O mesmo vale no ataque: se você foi parar perto do gol adversário e o seu colega vem chutar, saia da frente. Quem tem o melhor ângulo é quem está atrás da bola, não quem está do lado dela. A posição em relação à bola importa, e a distância também, que é o embalo para chutar forte.`,
+            },
             { id: "choosing-attack", rank: "silver", title: { pt: "Escolhendo o ataque", en: "Choosing your attack" } },
             { id: "rebounds", rank: "gold", title: { pt: "Rebotes", en: "Rebounds" } },
           ],
@@ -387,7 +457,17 @@ Todo mundo quer chutar a bola, mas é preciso saber se é hora de defender, pert
           id: "team",
           name: { pt: "Equipe", en: "Team" },
           topics: [
-            { id: "quick-chat", rank: "bronze", title: { pt: "Aprendendo os quick chats", en: "Learning the quick chats" } },
+            {
+              id: "quick-chat",
+              rank: "bronze",
+              title: { pt: "Aprendendo os quick chats", en: "Learning the quick chats" },
+              video: "oZnp5biHSow",
+              text: `Os quick chats (bate-papo rápido) são o jeito de falar com o time sem digitar, e vale aprender o que cada um diz e onde fica. Eles comunicam o que importa na partida: quem vai no kickoff, o que você está fazendo.
+
+No controle, o direcional abre o bate-papo rápido, e cada direção é uma categoria. A da esquerda são os elogios, que também servem para provocar depois de uma defesa ruim. Para cima ficam os de jogo, como avisar que a bola é sua ou que você precisa de boost, ou seja, que está indo pegar boost em vez de ir na bola. Para a direita, reações sem importância; para baixo, desculpas, para quando você deixa passar um gol, e o colega educado responde que não tem problema.
+
+Nas configurações, na parte do chat, dá para trocar a mensagem de cada opção e montar o que você quer comunicar. Isso ajuda principalmente jogando com desconhecidos; com um amigo em chamada de voz, no Discord, por exemplo, é irrelevante.`,
+            },
           ],
         },
         {

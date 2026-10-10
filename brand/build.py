@@ -230,16 +230,36 @@ def webcam(width=3840, height=2160, side="left"):
     return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}{placed(lockup(height=mark_height, background=None), x0, y0)}', width, height)
 
 
-def thumbnail(lines, series="Fundamentos do Rocket League", width=1280, height=720):
+# The roadmap's ranks (content/rocket-league.ts): name and colour. youtube/thumbnails/ranks/<id>.png is the in-game emblem of division I.
+RANKS = {
+    "unranked": ("Unranked", "#5f6675"),
+    "bronze": ("Bronze", "#a8683a"),
+    "silver": ("Prata", "#7d8799"),
+    "gold": ("Ouro", "#c39a1c"),
+    "platinum": ("Platina", "#3aa7b5"),
+    "diamond": ("Diamante", "#3d6fe0"),
+    "champion": ("Campeão", "#8a4bd1"),
+}
+
+
+def lighten(color, lightness):
+    h, _, s = colorsys.rgb_to_hls(*(int(color[i:i + 2], 16) / 255 for i in (1, 3, 5)))
+    return "#%02X%02X%02X" % tuple(round(c * 255) for c in colorsys.hls_to_rgb(h, lightness, s))
+
+
+def thumbnail(lines, rank=None, series="Fundamentos do Rocket League", width=1280, height=720):
     """A video thumbnail: the lockup up top, and the title as large as it fits, bottom left, under the
-    series' name. The lattice fades out behind the text."""
+    series' name. A topic's rank adds its name to the label and its emblem on the right, glowing in the
+    rank's colour. The lattice fades out behind the text and the emblem."""
     margin = height * 0.09
     mark_height = height * 0.075
     w, h = lockup_size(mark_height)
     pad = mark_height * 0.35
     x0, y0 = margin - pad, margin - pad
+    side = height * 0.5 if rank else 0
+    ex, ey = width - margin - side / 2, height * 0.36
     shaped = [wordmark(line, weight=700, size=100) for line in lines]
-    size = min(200, 100 * (width - 2 * margin) / max(tw for _, tw, _, _ in shaped))
+    size = min(200, 100 * (width - 2 * margin - side * 1.1) / max(tw for _, tw, _, _ in shaped))
     leading = size * 1.02
     label_size = height * 0.055
     label, label_width, _, _ = wordmark(series, size=label_size)
@@ -251,26 +271,44 @@ def thumbnail(lines, series="Fundamentos do Rocket League", width=1280, height=7
     block = max(label_width, *(tw * size / 100 for _, tw, _, _ in shaped))
     holes = [(margin + block / 2, (top + bottom) / 2, block * 0.8, (bottom - top) * 1.1),
              (x0 + w / 2, y0 + h / 2, w * 0.75, h * 1.2)]
+    art = ""
+    if rank:
+        name, color = RANKS[rank]
+        holes.append((ex, ey, side * 0.9, side * 0.9))
+        art = (f'<defs><radialGradient id="glow" cx="{ex:.1f}" cy="{ey:.1f}" r="{side:.0f}" gradientUnits="userSpaceOnUse">'
+               f'<stop offset="0" stop-color="{color}" stop-opacity="0.95"/><stop offset="0.4" stop-color="{color}" stop-opacity="0.55"/>'
+               f'<stop offset="1" stop-color="{color}" stop-opacity="0"/></radialGradient></defs>'
+               f'<rect width="{width}" height="{height}" fill="url(#glow)"/>'
+               f'<image href="ranks/{rank}.png" x="{ex - side / 2:.1f}" y="{ey - side / 2:.1f}" width="{side:.1f}" height="{side:.1f}" preserveAspectRatio="xMidYMid meet"/>')
+        tag, tag_width, _, _ = wordmark(name.upper(), weight=700, size=label_size)
+        text += f'<path transform="translate({margin:.1f} {top - label_size * 0.5:.1f})" d="{tag}" fill="{lighten(color, 0.66)}"/>'
     grid = lattice(width, height, mark_height, x0, y0, holes, step=2)
-    return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}'
+    return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{art}{grid}'
                f'{placed(lockup(height=mark_height, background=None), x0, y0)}{text}', width, height)
 
 
-# One per video, named after its topic's id on the site's roadmap.
+# One per video, named after its topic's id on the site's roadmap, with the topic's rank.
 THUMBNAILS = {
-    "rocket-league-intro": ["Introdução"],
-    "inputs": ["Inputs", "do jogo"],
-    "camera": ["Cam e", "ball cam"],
-    "contact": ["Acertando", "a bola"],
-    "turning": ["Curvas", "e drift"],
-    "supersonic": ["Supersônico"],
-    "jump": ["Pulo e", "pulo duplo"],
-    "flips": ["Tipos", "de flip"],
-    "landing": ["Caindo sobre", "as rodas"],
-    "shooting": ["Chutando", "no gol"],
-    "pushing": ["Conduzindo", "a bola"],
-    "kickoff": ["Logística", "do kickoff"],
-    "attack-defense": ["Ataque", "e defesa"],
+    "rocket-league-intro": (None, ["Introdução"]),
+    "inputs": ("unranked", ["Inputs", "do jogo"]),
+    "camera": ("unranked", ["Cam e", "ball cam"]),
+    "contact": ("unranked", ["Acertando", "a bola"]),
+    "turning": ("bronze", ["Curvas", "e drift"]),
+    "supersonic": ("bronze", ["Supersônico"]),
+    "jump": ("bronze", ["Pulo e", "pulo duplo"]),
+    "flips": ("bronze", ["Tipos", "de flip"]),
+    "dont-jump": ("bronze", ["Não pule", "sempre"]),
+    "landing": ("bronze", ["Caindo sobre", "as rodas"]),
+    "shooting": ("bronze", ["Chutando", "no gol"]),
+    "pushing": ("bronze", ["Conduzindo", "a bola"]),
+    "kickoff": ("bronze", ["Logística", "do kickoff"]),
+    "attack-defense": ("bronze", ["Ataque", "e defesa"]),
+    "positions": ("bronze", ["Entendendo", "as posições"]),
+    "rotation": ("bronze", ["Conceito", "de rotação"]),
+    "self-control": ("bronze", ["Exercendo o", "autocontrole"]),
+    "boost-pads": ("bronze", ["Onde pegar", "boost"]),
+    "common-attack": ("bronze", ["O ataque", "mais comum"]),
+    "quick-chat": ("bronze", ["Aprendendo os", "quick chats"]),
 }
 
 
@@ -387,8 +425,8 @@ if __name__ == "__main__":
         png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-3840x2160.png", 3840)
         png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-1920x1080.png", 1920)
     png("small/mark-small.svg", "youtube/watermark-150.png", 150)
-    for name, lines in THUMBNAILS.items():
-        write(f"youtube/thumbnails/{name}.svg", thumbnail(lines))
+    for name, (rank, lines) in THUMBNAILS.items():
+        write(f"youtube/thumbnails/{name}.svg", thumbnail(lines, rank))
         png(f"youtube/thumbnails/{name}.svg", f"youtube/thumbnails/{name}.png", 1280)
 
     site_assets()
