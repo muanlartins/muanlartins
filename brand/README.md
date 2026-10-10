@@ -41,7 +41,8 @@ The website extends this into a ramp of Klein tints (see `app/globals.css`).
 | `youtube/profile-800.png` | YouTube profile picture (YouTube crops it to a circle). |
 | `youtube/watermark-150.png` | Video watermark: the small drawing, on Klein so it reads over any footage. |
 | `youtube/banner-2560x1440.png` | YouTube banner: the lockup on the mark's 45° lattice, lined up with its strokes. `banner-crops.png` shows what TVs, desktops and phones keep. |
-| `youtube/thumbnails/<topic>.png` | Video thumbnails (1280×720): the series' name over the topic's title, on the lattice. One per entry in `THUMBNAILS` in `build.py`, named after the topic's id on the site. |
+| `youtube/thumbnails/<topic>.png` | Video thumbnails (1280×720): the topic's rank and the series' name over its title, on the lattice, with the rank's emblem glowing in its colour on the right. One per entry in `THUMBNAILS` in `build.py`, named after the topic's id on the site. |
+| `youtube/thumbnails/ranks/<rank>.png` | The in-game emblem of each rank's division I (Psyonix's art, from `github.com/manucabral/rocket-league-rank-viewer`), for the thumbnails. It sits next to them because `rsvg-convert` only loads images from the SVG's folder or below. |
 | `webcam/webcam-{left,right}-{1920x1080,3840x2160}.png` | Webcam background: the banner's look with the lockup in a top corner, and the lattice faded out where you sit. Pick the side your head isn't on. |
 | `brand-board.png` | Everything above on one page. |
 | `explorations/` | How it got here — see its README. |
