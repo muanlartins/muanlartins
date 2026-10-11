@@ -106,7 +106,19 @@ Com a ball cam, a câmera aponta sempre para a bola, e você nunca a perde de vi
 
 Não é uma escolha estética: cada uma ajuda em umas jogadas e atrapalha em outras. O caminho é saber usar as duas e trocar conforme a situação.`,
             },
-            { id: "deadzone", rank: "silver", title: { pt: "Deadzone e sensibilidade", en: "Deadzone and sensitivity" } },
+            {
+              id: "deadzone",
+              rank: "silver",
+              title: { pt: "Deadzone e sensibilidade", en: "Deadzone and sensitivity" },
+              video: "xh07eF7Y7tw",
+              text: `A zona morta (deadzone) do controle é o quanto você precisa mover o analógico para o jogo considerar que ele se moveu numa direção. Um controle bom tem precisão fina sobre a direção e sobre o quanto você vira.
+
+A sensibilidade da direção é outra coisa: quanto maior, menos você precisa virar o analógico para chegar à curva máxima das rodas. Ela não faz o carro virar mais nem dá vantagem; só muda o quanto do analógico você usa. Eu uso 1,8, no chão e no ar.
+
+A zona morta que mais importa é a do desvio (dodge deadzone): o quanto o analógico precisa sair do centro para o segundo pulo virar um flip em vez de um pulo duplo. Para começar a voar, você pula, aponta o carro para cima puxando o analógico para trás e pula de novo, tudo muito rápido. Com essa zona morta baixa, o analógico ainda inclinado transforma o segundo pulo num flip para trás: o carro não sai do lugar e a bola passa por cima. Acontece com muita gente, e é frustrante.
+
+A solução é aumentá-la. Eu uso 0,6; dependendo do controle, teste 0,6 ou 0,7. Isso não deixa você imune ao flip para trás, nem deveria, porque às vezes você quer dar um. O resto é prática, que vem com o voo, mais à frente.`,
+            },
           ],
         },
         {
@@ -143,7 +155,25 @@ Como é o limite, uma bola mais rápida que o supersônico não tem como ser alc
 
 O ideal é se mover pelo campo perto dessa velocidade, para estar presente em todo lugar, mas sem andar sem intenção. Posicionamento vem mais à frente, na parte de estratégia.`,
             },
-            { id: "walls", rank: "silver", title: { pt: "Paredes", en: "Walls" } },
+            {
+              id: "walls",
+              rank: "silver",
+              title: { pt: "Paredes", en: "Walls" },
+              video: "LwQXFN5BvZg",
+              text: `Até aqui não havia motivo para ir à parede: quem começa a subir costuma ficar parado nela como uma aranha, sem saber o que fazer. No Prata, ela passa a fazer parte do jogo.
+
+A arena é curva. Nos cantos, a parede faz um ângulo diferente dos 90° das paredes retas, e a junção com o chão e com o teto é arredondada, como uma rampa de skate: a bola sobe por ela, e você também.
+
+Na parede, o objetivo não é sair voando. É conseguir chegar numa bola chutada forte para a lateral e defendê-la ali, porque muitas vezes esperar no chão não basta. O difícil é achar a altura da bola, que às vezes vem descolada da parede e pede um pulo, pequeno ou grande.
+
+O jogo tem gravidade: parado na parede, o carro escorrega para baixo, mas acelerando ele não cai. O ângulo do bico ao pular também muda tudo. Subindo com o bico para cima, o pulo sai alto; com o bico para baixo, você sai de cabeça para baixo; de lado, já sai caindo. Em geral, deixe o bico um pouco para cima.
+
+Para treinar, use o pacote Basic Wall Clears (70F1-3753-10A1-BA21), que achei no Prejump (prejump.com), um site com vários pacotes de treino para buscar. Ele é indicado para o Prata e trata de defesa na parede, e os três primeiros chutes são os que mais importam. A bola corre para a parede e você tem que tirá-la, sempre do centro do gol para fora. O quique na parede é imprevisível: acelere para pegar a bola colada na parede, ou pule. Use a ball cam e mantenha o bico um pouco para cima. Se precisar pular, um pulo simples, já se preparando para cair direito, no chão ou na parede: pulos e pulos duplos demais deixam você perdido no ar quando deveria estar voltando para a posição.
+
+Um bom clear manda a bola para longe, o mais na lateral possível, e não para o meio, onde o atacante deles espera. Acertar a bola de baixo para cima a manda longe; de cima para baixo, ela fica fácil para o colega pegar, e aí é um passe, não uma defesa.
+
+Por último, dá para esperar a bola na parede e bater nela logo que ela quica, aproveitando o impulso do quique para devolvê-la com força, para cima ou para o lado. É uma técnica avançada, que nem jogadores de Diamante fazem sempre, mas o pacote serve para praticar.`,
+            },
             { id: "momentum", rank: "gold", title: { pt: "Mantendo a velocidade", en: "Keeping your speed" } },
           ],
         },
@@ -192,7 +222,19 @@ O boost permite algumas manobras no ar, mas a ideia vale: sair do chão é perde
 
 Num kickoff de 1v1 dá para ver a diferença: com um flip na bola, o carro vai longe e o adversário chega nela antes; com um pulo simples, o carro já está pronto para voltar na bola e agir.`,
             },
-            { id: "flip-cancel", rank: "silver", title: { pt: "Flip cancel", en: "Flip cancel" } },
+            {
+              id: "flip-cancel",
+              rank: "silver",
+              title: { pt: "Flip cancel", en: "Flip cancel" },
+              video: "OaXwxHqUHjA",
+              text: `O flip cancel, ou cancelar o flip, é o começo de várias outras mecânicas de flip. É simples o bastante para conhecer agora, e dá até para brincar com ele.
+
+Logo depois de um flip para trás, vire o analógico para a frente: o carro, que já girava para trás, para no meio da cambalhota, de barriga para cima. O mesmo vale para o flip para a frente, com o analógico para trás; para os lados, não funciona. Tudo depende do timing: o ideal é cancelar imediatamente depois do segundo pulo. Atrasado, o carro gira demais, afunda o bico e o cancelamento não sai.
+
+De barriga para cima, com boost, dá para andar de cabeça para baixo e bater na bola como num skate, com as direções invertidas: a tartaruguinha, que os profissionais adoram usar para humilhar alguém.
+
+O uso de verdade vem nas mecânicas seguintes. No half flip, depois do cancelamento você gira o carro e sai andando na direção oposta. O speed flip tem outro cancelamento, que mantém a traseira do carro virada para trás para o boost empurrar durante o flip inteiro e ganhar velocidade.`,
+            },
             { id: "half-flip", rank: "gold", title: { pt: "Half flip", en: "Half flip" } },
           ],
         },
@@ -474,7 +516,19 @@ Nas configurações, na parte do chat, dá para trocar a mensagem de cada opçã
           id: "demos",
           name: { pt: "Demolições", en: "Demolitions" },
           topics: [
-            { id: "demos", rank: "bronze", title: { pt: "Mecânica de demolição", en: "How demolitions work" } },
+            {
+              id: "demos",
+              rank: "bronze",
+              title: { pt: "Mecânica de demolição", en: "How demolitions work" },
+              video: "NAbbaWE4QzE",
+              text: `Quando dois carros se encostam, um empurra o outro. Uma batida de bico no adversário é o bump: ele toma uma pancada e muitas vezes perde o controle do carro.
+
+Quanto mais rápido você vai, mais forte é o bump. No supersônico, a batida vira uma demolição (demo): o outro carro é destruído e fica alguns segundos fora do jogo. Ser demolido irrita todo mundo, mas é uma mecânica do jogo, e um recurso importante.
+
+Tirar um adversário do lance, mesmo por poucos segundos, decide jogadas. Num ataque deles, você não precisa ir na bola: sem atacante, não tem ataque. No ataque mais comum, com a bola vindo pela lateral para o meio, demolir o defensor deles deixa o gol aberto: sem defensor, não tem defesa. No 1v1, tirar o adversário costuma deixar o gol vazio.
+
+A demolição é para quando você não tem nada mais importante para fazer na bola: use esse tempo livre para tirar o defensor e deixar o colega fazer o gol. Só não troque a defesa por uma demolição, nem o contrário.`,
+            },
             { id: "bumps", rank: "silver", title: { pt: "Bumps", en: "Bumps" } },
             { id: "avoiding-demos", rank: "gold", title: { pt: "Evitando demolição", en: "Avoiding demos" } },
           ],
