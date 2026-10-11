@@ -518,8 +518,8 @@ Nas configurações, na parte do chat, dá para trocar a mensagem de cada opçã
           topics: [
             {
               id: "demos",
-              rank: "bronze",
-              title: { pt: "Mecânica de demolição", en: "How demolitions work" },
+              rank: "silver",
+              title: { pt: "Demolição e bump", en: "Demolitions and bumps" },
               video: "NAbbaWE4QzE",
               text: `Quando dois carros se encostam, um empurra o outro. Uma batida de bico no adversário é o bump: ele toma uma pancada e muitas vezes perde o controle do carro.
 
@@ -529,7 +529,6 @@ Tirar um adversário do lance, mesmo por poucos segundos, decide jogadas. Num at
 
 A demolição é para quando você não tem nada mais importante para fazer na bola: use esse tempo livre para tirar o defensor e deixar o colega fazer o gol. Só não troque a defesa por uma demolição, nem o contrário.`,
             },
-            { id: "bumps", rank: "silver", title: { pt: "Bumps", en: "Bumps" } },
             { id: "avoiding-demos", rank: "gold", title: { pt: "Evitando demolição", en: "Avoiding demos" } },
           ],
         },
