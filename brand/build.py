@@ -309,7 +309,7 @@ THUMBNAILS = {
     "boost-pads": ("bronze", ["Onde pegar", "boost"]),
     "common-attack": ("bronze", ["O ataque", "mais comum"]),
     "quick-chat": ("bronze", ["Aprendendo os", "quick chats"]),
-    "demos": ("bronze", ["Mecânica de", "demolição"]),
+    "demos": ("silver", ["Demolição", "e bump"]),
     "deadzone": ("silver", ["Deadzone e", "sensibilidade"]),
     "walls": ("silver", ["Paredes"]),
     "flip-cancel": ("silver", ["Flip", "cancel"]),
