@@ -317,6 +317,11 @@ THUMBNAILS = {
     "low-aerial": ("silver", ["Aéreo", "baixo"]),
     "power-shot": ("silver", ["Chute", "forte"]),
     "first-touch": ("silver", ["Amortecendo", "a bola"]),
+    "watching-players": ("silver", ["Observando os", "jogadores"]),
+    "push-and-retreat": ("silver", ["Avanço e", "recuo"]),
+    "back-post": ("silver", ["Voltando pelo", "segundo pau"]),
+    "when-to-go": ("silver", ["Quando fazer", "o challenge"]),
+    "clearing": ("silver", ["Tirando", "a bola"]),
 }
 
 

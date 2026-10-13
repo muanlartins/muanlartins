@@ -433,7 +433,19 @@ Se a disputa espirra a bola para o canto, o jogo vira. O laranja que esperava pa
 
 Todo mundo quer chutar a bola, mas é preciso saber se é hora de defender, perto do seu gol, ou de atacar. Uma regra ajuda: a bola traça uma linha no campo. Atrás dela, não dá para defender, só atacar; para defender, você precisa estar entre a bola e o seu gol. A posição dos carros também conta: com os azuis longe e os laranjas perto da bola, ela é do laranja, e o laranja ataca.`,
             },
-            { id: "watching-players", rank: "silver", title: { pt: "Observando os jogadores", en: "Watching the players" } },
+            {
+              id: "watching-players",
+              rank: "silver",
+              title: { pt: "Observando os jogadores", en: "Watching the players" },
+              video: "cyA_8mvoGqc",
+              text: `Este tópico é uma partida comentada ao vivo, para mostrar como o que você faz deve se adaptar ao que os outros estão fazendo. Quanto mais jogadores em campo, mais isso vale, e a regra geral é esperar a sua vez.
+
+Antes de decidir, olhe para os carros, não só para a bola. Com um adversário vindo e o outro na defesa, há espaço para levar a bola ao ataque; se o seu colega já está na frente, o seu lugar é atrás dele, esperando onde a bola pode sobrar. Quando o ataque deles vem, é hora de recuar. E quando um adversário está longe, mas não tão longe, você tem uma abertura.
+
+As decisões erradas também ensinam. Ir no defensor adversário em vez de ir na bola pode deixar o seu gol aberto, sem tempo de o colega voltar. Um challenge com o flip para o meio do campo, e não para fora, é o que faz a bola espirrar para dentro do seu próprio gol: parece azar, mas é mais culpa de quem disputou. Do outro lado, o último homem adversário que desafia uma bola que não ia pegar entrega o gol.
+
+Jogar mais recuado, no erro dos outros, é um estilo; dá para jogar mais agressivo e jogar bem. O que não muda é ler para onde a jogada pode ir: um defensor apontado para o centro do campo só consegue tirar a bola para um lado, e quem fica nesse lado recebe praticamente um passe do adversário. E, sem comunicação, você nem sempre sabe o que o seu colega pretende; na dúvida, deixe a bola com quem está nela.`,
+            },
             { id: "bounce-prediction", rank: "gold", title: { pt: "Previsão básica de bounce", en: "Predicting bounces" } },
           ],
         },
@@ -454,7 +466,19 @@ Nada impede o defensor de avançar também, como um time de futebol que vai todo
 
 No 3v3, com mais carros, dá até para ter um goleiro fixo, que não é o ideal, enquanto os outros dois atacam juntos. Aí entra o passe: em vez de chutar, um toque para o lado deixa o colega na posição de chutar. Só lembre que, se todo mundo avançar e o adversário fizer uma boa defesa, a bola pode voltar direto para o seu gol.`,
             },
-            { id: "push-and-retreat", rank: "silver", title: { pt: "Avanço e recuo", en: "Pushing up and falling back" } },
+            {
+              id: "push-and-retreat",
+              rank: "silver",
+              title: { pt: "Avanço e recuo", en: "Pushing up and falling back" },
+              video: "GgKo3hmHelY",
+              text: `Mais uma partida comentada, agora focada nos momentos de avançar para cima da bola e de recuar. Eu recuo mais do que avanço: prefiro perder uma chance de gol a fazer um ataque ruim e levar o contra-ataque. Contra jogadores bons, os dois lados têm razão, porque se você não faz o gol, eles fazem.
+
+Avance quando a bola e o ataque são do seu time: depois de um kickoff ganho, quando o adversário erra, quando o colega dá um bom passe pelo meio. Recue quando você está sem boost, quando é o último homem e a bola pode espirrar, ou quando o adversário tem a bola e o boost. Recuar não é parar: dá para acompanhar o atacante de longe, na shadow defense, esperando o toque dele para disputar.
+
+No ataque, jogar a bola para o meio, na direção do gol, cria chances: o colega pode completar, ou a defesa pode errar. Mas cada avanço abre espaço para o contra-ataque, e quando você está de frente para a bola, no caminho dela, é mais um atacante do que um defensor.
+
+A rotação não para, mas a intenção precisa estar clara: girar o carro para trás mostra que você está voltando, e girar para a frente mostra que está indo. Mesmo voltando, dá para ajudar sem só se enfiar no gol: tirar um atacante do lance com um bump ou jogar a bola para fora.`,
+            },
             { id: "covering", rank: "gold", title: { pt: "Compensando a posição do time", en: "Covering for your team" } },
           ],
         },
@@ -488,7 +512,19 @@ Exercer o autocontrole é, quando você é o segundo homem, esperar a disputa ac
 
 Isso pesa ainda mais jogando sozinho, com desconhecidos que vão todos atrás da bola. É chato esperar, porque todo mundo quer jogar e fazer gol, mas essas janelas aparecem de tempos em tempos, e é preciso estar pronto para aproveitá-las. Quem só corre atrás da bola como mais um nunca aprende a controlá-la, e perde essas oportunidades.`,
             },
-            { id: "back-post", rank: "silver", title: { pt: "Voltando pelo segundo pau", en: "Rotating back post" } },
+            {
+              id: "back-post",
+              rank: "silver",
+              title: { pt: "Voltando pelo segundo pau", en: "Rotating back post" },
+              video: "a8SxTWoWzG8",
+              text: `Quando um ataque passa por você e a bola corre pela lateral em direção ao seu campo, o caminho mais curto até ela é uma reta. Se não há tempo, é isso mesmo: vá direto e tente desviar a bola. Mas, com tempo, ir reto é um erro.
+
+Chegando na bola pela frente, olhando para ela, você fica na mesma posição do atacante: o único toque que consegue dar é para onde o carro aponta, ou seja, na direção do seu próprio gol. Para defender de verdade, faça uma curva aberta por fora, pegando boost no caminho, e pare no segundo pau, a trave do lado oposto ao de onde vem a bola.
+
+Fique ali virado para o jogo, não para o gol. O carro acelera fácil com o boost, mas dá ré com dificuldade: com a bola vindo para o seu canto, basta uma ré curta; com ela indo para o outro lado, você antecipa o chute e já sai com boost para defender. Isso só funciona se você estiver no segundo pau em relação à bola.
+
+O resto é gato e rato: conforme a defesa melhora, o ataque também melhora, com chutes altos no canto ou a bola no capô para um flick, e quem defende escolhe entre disputar e recuar para ver o chute. Quando o seu ataque dá errado e a bola escorre pelo outro lado, é a mesma situação, espelhada: curva aberta, segundo pau e espera.`,
+            },
             { id: "rotation-styles", rank: "gold", title: { pt: "Rotações agressivas e defensivas", en: "Aggressive and defensive rotations" } },
           ],
         },
@@ -509,7 +545,6 @@ Você não precisa estar sempre de tanque cheio. Gastar 20 e atravessar o campo 
 
 O 1v1 mostra bem isso. Não é o modo mais jogado, porque tudo é responsabilidade sua e os gols frustram, mas ensina muito: com a bola no seu campo, ir buscar boost no canto dá o gol ao adversário, mesmo que ele só pegue um pad no caminho. Os grandes estão nos cantos de propósito, e os pequenos estão no meio para o empurrão de que você precisa para chegar na bola.`,
             },
-            { id: "small-pads", rank: "silver", title: { pt: "Fazendo bom uso dos pads", en: "Making good use of the pads" } },
             { id: "big-boost", rank: "gold", title: { pt: "Autocontrole do grande boost", en: "Restraint with big boost" } },
           ],
         },
@@ -517,7 +552,19 @@ O 1v1 mostra bem isso. Não é o modo mais jogado, porque tudo é responsabilida
           id: "challenges",
           name: { pt: "Disputas", en: "Challenges" },
           topics: [
-            { id: "when-to-go", rank: "silver", title: { pt: "Saber quando ir", en: "Knowing when to go" } },
+            {
+              id: "when-to-go",
+              rank: "silver",
+              title: { pt: "Quando fazer o challenge", en: "When to challenge" },
+              video: "HmYt-PMX9NI",
+              text: `Disputar a bola, o challenge, é decidir quando ir para cima dela contra um adversário. Se não há ninguém por perto, a bola é sua e você sempre pode ir. O problema são os outros jogadores, inclusive o seu colega, que também pode querer a bola.
+
+A regra principal: quem está mais perto da bola tem o primeiro toque, e com ele o domínio da jogada. Use o nome em cima do carro do adversário para ter noção da distância. Se ele está bem mais perto e vê você vindo, tem tempo de sobra para chutar a bola por cima de você. Com a distância parecida, é um 50/50: os dois podem ganhar, e o resultado depende do ângulo, da força e de vários outros fatores.
+
+Quando você é o mais perto, pode carregar a bola e, quando o adversário vier, desviá-la dele para ganhar a disputa. E não fique parado com medo numa bola que é claramente sua: com o adversário longe, chute no canto. A direção para onde ele aponta também conta: perto, mas de costas para a bola, ele precisa virar com um half flip ou esperar você se afastar dela, e às vezes dá para passar a bola por cima dele.
+
+Quem não tem o primeiro toque não pode se arriscar a deixar a bola passar: se ela passa por você, quem está com ela conduz com tranquilidade, e você volta pelo segundo pau. Depois de cada disputa, pergunte se deveria ter ido; esse senso de distância vem com o jogo.`,
+            },
             { id: "challenge-intent", rank: "gold", title: { pt: "Disputando com intenção", en: "Challenging with intent" } },
           ],
         },
@@ -525,7 +572,19 @@ O 1v1 mostra bem isso. Não é o modo mais jogado, porque tudo é responsabilida
           id: "defense",
           name: { pt: "Defesa", en: "Defense" },
           topics: [
-            { id: "clearing", rank: "silver", title: { pt: "Tirando a bola", en: "Clearing the ball" } },
+            {
+              id: "clearing",
+              rank: "silver",
+              title: { pt: "Tirando a bola", en: "Clearing the ball" },
+              video: "lSWaqcThmzk",
+              text: `Para treinar a defesa de dentro do gol, use o pacote Saves (2E23-ABD5-20C6-DBD4), do Prejump (prejump.com). O que mais importa não é salvar a bola de qualquer jeito, e sim para onde você a manda, como e com que recursos.
+
+Uma defesa ruim deixa a bola fraca, rasteira e no meio, um contra-ataque fácil. Uma boa a manda longe, para onde você escolheu. Numa bola que chega forte e direto em você, há muita liberdade: angular o carro para mandá-la para o centro ou para um lado, pingá-la por cima com o capô, usar um flip para jogá-la no canto onde está o seu colega, esperar ela quicar, ou até dominá-la. Numa bola lenta, as opções diminuem; não saia acelerando, porque você passa da bola. Tenha calma e só então tire, ou venha de ré, pule para trás ou faça um half flip.
+
+O que decide uma defesa é o ângulo, a posição e o boost. Com um aéreo baixo, você alcança o travessão. De frente para a bola, como um goleiro tradicional, dá para ir para os lados, mas não muito, e uma bola no canto pode ser impossível de pegar.
+
+Lembre dos princípios: de dentro do gol para fora, e do centro para as laterais. Sempre que puder, desvie a bola para o lado, não para o meio do campo. E, vindo de fora, cuidado para não passar da bola: passou por baixo ou por cima dela, você não volta a tempo.`,
+            },
             { id: "saves", rank: "gold", title: { pt: "Defesas básicas", en: "Basic saves" } },
           ],
         },
@@ -546,7 +605,6 @@ Esse lance também ensina a evitar gol contra. Na frente da bola, no caminho del
 
 O mesmo vale no ataque: se você foi parar perto do gol adversário e o seu colega vem chutar, saia da frente. Quem tem o melhor ângulo é quem está atrás da bola, não quem está do lado dela. A posição em relação à bola importa, e a distância também, que é o embalo para chutar forte.`,
             },
-            { id: "choosing-attack", rank: "silver", title: { pt: "Escolhendo o ataque", en: "Choosing your attack" } },
             { id: "rebounds", rank: "gold", title: { pt: "Rebotes", en: "Rebounds" } },
           ],
         },
