@@ -257,7 +257,6 @@ Caindo da parede de lado, é preciso girar o carro no próprio eixo, com o rolam
 
 Somado aos flips, cair bem é o que mantém o controle da sua velocidade, depois de um flip, da parede ou de qualquer coisa.`,
             },
-            { id: "wall-recovery", rank: "silver", title: { pt: "Saindo da parede", en: "Coming off the wall" } },
             { id: "aerial-recovery", rank: "gold", title: { pt: "Recuperando depois do aéreo", en: "Recovering after an aerial" } },
           ],
         },
@@ -265,7 +264,19 @@ Somado aos flips, cair bem é o que mantém o controle da sua velocidade, depois
           id: "aerials",
           name: { pt: "Jogo aéreo", en: "Aerials" },
           topics: [
-            { id: "low-aerial", rank: "silver", title: { pt: "Aéreo baixo", en: "Low aerials" } },
+            {
+              id: "low-aerial",
+              rank: "silver",
+              title: { pt: "Aéreo baixo", en: "Low aerials" },
+              video: "aUh-jb0j6TQ",
+              text: `O aéreo depende do boost: é ele que controla o carro no ar, e por isso é um recurso tão importante. No começo, basta um pulo simples e virar o carro com a traseira para baixo, apontando o boost para o chão. Acelerando assim, você já está voando.
+
+O aéreo baixo vai até mais ou menos a altura do travessão. A vantagem é que nele ainda dá para usar o segundo pulo: o prazo, visto em Pulo e pulo duplo, acaba antes de você chegar lá no alto, mas num aéreo baixo ele ainda vale. Teste até que altura você consegue dar um flip na bola; é mais alto do que muita gente lembra.
+
+Aperte o boost primeiro, antes mesmo de pular, para ele ficar ligado o voo inteiro. Deixando para apertar depois de apontar o carro, você começa a subir já caindo. E cuidado com a velocidade de saída, porque o carro mantém no ar a velocidade que tinha no chão. Rápido demais, a bola passa por cima da sua cabeça e você fica tentando voltar nela; nesse caso, é melhor descer e começar de novo. Freie antes de sair: metade do aéreo é o ponto de partida.
+
+Na bola, bater com o bico dá força; com o capô, um toque direcionado; com as quatro rodas, o toque mais fraco que existe. Às vezes também é preciso dosar o boost, para não passar da bola e chegar nela na hora certa.`,
+            },
             { id: "high-aerial", rank: "gold", title: { pt: "Aéreo alto", en: "High aerials" } },
             { id: "aerial-touch", rank: "gold", title: { pt: "Direcionando o toque no ar", en: "Aiming your touch in the air" } },
           ],
@@ -304,9 +315,36 @@ Para praticar, o Treinamento personalizado tem, nos destaques, os pacotes da Psy
 
 Os erros mais comuns são bater com a traseira do carro no fim do flip e fazer o flip para o lado errado. De lado, o chute sai bem mais fraco que de bico. Se estiver se sentindo corajoso, ajuste o carro no ar com o rolamento aéreo, como em Caindo sobre as rodas, para bater com a quina.`,
             },
-            { id: "power-shot", rank: "silver", title: { pt: "Chute forte", en: "Power shots" } },
-            { id: "aim", rank: "silver", title: { pt: "Mira: cantos e altura", en: "Aim: corners and height" } },
-            { id: "wall-shots", rank: "gold", title: { pt: "Chutes da parede", en: "Shots off the wall" } },
+            {
+              id: "power-shot",
+              rank: "silver",
+              title: { pt: "Chute forte", en: "Power shots" },
+              video: "FEQ2LAd1ino",
+              text: `O chute forte (power shot) é o chute de gol aberto: sem ninguém para defender, você precisa acertar, e com força.
+
+Tudo está na soma das velocidades. Dois carros na mesma direção, um a 20 e outro a 30 por hora, batem como se estivessem a 10; de frente, como se estivessem a 50. Com a bola é igual: se ela vem para a esquerda, bater nela da esquerda para a direita soma as duas velocidades e o chute sai forte, enquanto bater na mesma direção em que ela já vai tira a força.
+
+Primeiro, acerte a bola em cheio, com consistência. Depois, mire: o quanto você abre o carro antes de chegar decide o ângulo, para o canto ou para o meio. Com o gol aberto, jogue seguro e mire mais no meio; com um defensor, mire no canto e chute forte, para ele não ter tempo de reagir. Quanto mais perto do supersônico na hora da pancada, melhor.
+
+Bata com o bico, não com o capô, senão a bola amortece e sai devagar. Um pulinho no fim da pancada pega a bola no meio em vez de por baixo, e o flip ajuda a corrigir a direção e dá ainda mais força, mas a pancada no chão é a principal.
+
+Com a bola quicando, espere ela começar a subir. Descendo, ela tem velocidade para baixo e o chute sai fraco; subindo, ela já ganha altura sozinha, e toda a sua força vai para a frente. Pule para pegar o meio da bola, sem chegar em cima dela. Com a bola vindo na sua direção, bata com a quina do carro, como numa trivela, e ela sai para o lado.
+
+Os bons jogadores fazem esse básico com muita consistência, e é por isso que podem pensar nas coisas mais complicadas.`,
+            },
+            {
+              id: "wall-shots",
+              rank: "silver",
+              title: { pt: "Chutes da parede", en: "Shots off the wall" },
+              video: "6-5wW1KsJ4c",
+              text: `Na parede, o campo gira 90°. Com o carro e a bola na parede da esquerda, o "para cima" da parede é a sua direita, se você pensar no chão; na parede da direita, é o contrário. É essa mistura das duas perspectivas, a da parede e a do chão, que confunde tanto.
+
+Pela perspectiva da parede, vale o mesmo que no chão. Chegando por baixo da bola, ela sobe pela parede, ou seja, vai para a direita, e quanto mais embaixo você pegar, mais para lá ela vai. Pulando, você acerta o centro dela; pulando bem alto, acerta o topo, e ela vai para a esquerda. De baixo para cima, a bola sai alta e para longe da parede; de cima para baixo, ela desce para o chão.
+
+No começo, o objetivo é só acertar a bola em cheio, com o capô. Com mais prática, chegue com bastante velocidade e dê um pulo bem no fim do contato, para ganhar potência sem perder a direção. Pulando antes, a bola vai para onde você não quer.
+
+Quando a bola está descolada da parede, não tem jeito: é preciso pular. Prefira o pulo simples e, para cair, gire o carro 90° até as quatro rodas apontarem para o chão, como em Caindo sobre as rodas. Sair da parede assim também é um bom treino de voo, que vem a seguir.`,
+            },
             { id: "bouncing", rank: "gold", title: { pt: "Bola quicando", en: "Bouncing balls" } },
             { id: "crossing", rank: "gold", title: { pt: "Cruzamento", en: "Crossing" } },
           ],
@@ -330,7 +368,19 @@ O segredo é saber a velocidade e a direção da bola e onde você está em rela
 
 Acelerar com boost, frear, passar à frente da bola, cortar, pular, dar um flip: é assim que se conduz. Levar a bola no capô vem depois e é difícil; por agora, o que vale é brincar com a bola.`,
             },
-            { id: "first-touch", rank: "silver", title: { pt: "Amortecendo a bola", en: "Cushioning the ball" } },
+            {
+              id: "first-touch",
+              rank: "silver",
+              title: { pt: "Amortecendo a bola", en: "Cushioning the ball" },
+              video: "gNxUPo9Vn_Q",
+              text: `Amortecer a bola no capô é o começo da criatividade no jogo pelo chão. Nem sempre é preciso fazer um aéreo ou esperar a bola no ar: sem ninguém por perto, o que você quer é a posse, o domínio da bola.
+
+O exercício é acelerar e frear acompanhando a velocidade da bola até ela pousar no capô. Freando cedo demais, ela quica para a frente; acelerado demais, ela fica para trás. Tire a ball cam e acompanhe a sombra da bola. Quando ela vem na sua direção, a ball cam pode ajudar, e dá para alternar entre as duas.
+
+Onde a bola encosta no carro decide para onde ela vai: na traseira, ela cai para trás; no bico, vai para a frente com força; numa quina, para o lado. Com esse conforto, uma bola que vinha pelo ar vira uma bola no seu capô, e dali saem jogadas como o flick, mais à frente.
+
+Não achei um pacote de treino específico para isso. Qualquer pacote de aéreo serve, porque o que importa é a bola chegando em velocidades e direções diferentes.`,
+            },
             { id: "hood-dribble", rank: "gold", title: { pt: "Carregando a bola no capô", en: "Carrying the ball on your hood" } },
           ],
         },
@@ -351,7 +401,6 @@ A logística é chegar com velocidade máxima: gaste o boost e faça um ou dois 
 
 Depois do primeiro toque, aconteça o que acontecer, pegue boost e volte para a sua área. Sai muito gol no kickoff, então fique atento a quem joga com você: se o seu colega vai na bola, venha atrás dele para cobrir.`,
             },
-            { id: "speed-kickoff", rank: "silver", title: { pt: "Kickoff rápido", en: "Fast kickoffs" } },
             { id: "kickoff-intent", rank: "gold", title: { pt: "Kickoff com intenção", en: "Kickoffs with intent" } },
           ],
         },

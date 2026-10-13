@@ -313,6 +313,10 @@ THUMBNAILS = {
     "deadzone": ("silver", ["Deadzone e", "sensibilidade"]),
     "walls": ("silver", ["Paredes"]),
     "flip-cancel": ("silver", ["Flip", "cancel"]),
+    "wall-shots": ("silver", ["Chutes da", "parede"]),
+    "low-aerial": ("silver", ["Aéreo", "baixo"]),
+    "power-shot": ("silver", ["Chute", "forte"]),
+    "first-touch": ("silver", ["Amortecendo", "a bola"]),
 }
 
 
