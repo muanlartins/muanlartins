@@ -275,7 +275,9 @@ O aéreo baixo vai até mais ou menos a altura do travessão. A vantagem é que 
 
 Aperte o boost primeiro, antes mesmo de pular, para ele ficar ligado o voo inteiro. Deixando para apertar depois de apontar o carro, você começa a subir já caindo. E cuidado com a velocidade de saída, porque o carro mantém no ar a velocidade que tinha no chão. Rápido demais, a bola passa por cima da sua cabeça e você fica tentando voltar nela; nesse caso, é melhor descer e começar de novo. Freie antes de sair: metade do aéreo é o ponto de partida.
 
-Na bola, bater com o bico dá força; com o capô, um toque direcionado; com as quatro rodas, o toque mais fraco que existe. Às vezes também é preciso dosar o boost, para não passar da bola e chegar nela na hora certa.`,
+Na bola, bater com o bico dá força; com o capô, um toque direcionado; com as quatro rodas, o toque mais fraco que existe. Às vezes também é preciso dosar o boost, para não passar da bola e chegar nela na hora certa.
+
+Para treinar, use os pacotes Aerial Class 1, 2 e 3 (7FD9-54FB-1CDB-E23F, 9343-1F3A-605A-EF63 e 6418-F477-6032-0C8E), do Prejump (prejump.com). Eles têm chutes de várias alturas, distâncias e dificuldades; no começo, fique nos primeiros chutes do primeiro pacote.`,
             },
             { id: "high-aerial", rank: "gold", title: { pt: "Aéreo alto", en: "High aerials" } },
             { id: "aerial-touch", rank: "gold", title: { pt: "Direcionando o toque no ar", en: "Aiming your touch in the air" } },
@@ -330,6 +332,8 @@ Bata com o bico, não com o capô, senão a bola amortece e sai devagar. Um puli
 
 Com a bola quicando, espere ela começar a subir. Descendo, ela tem velocidade para baixo e o chute sai fraco; subindo, ela já ganha altura sozinha, e toda a sua força vai para a frente. Pule para pegar o meio da bola, sem chegar em cima dela. Com a bola vindo na sua direção, bata com a quina do carro, como numa trivela, e ela sai para o lado.
 
+Para treinar, use o pacote Powershots (7028-5E10-88EF-E83E), do Prejump (prejump.com). A bola só entra se você acertar de primeira, e não é preciso fazer todos os chutes: dá para repetir o mesmo, ou espelhá-lo.
+
 Os bons jogadores fazem esse básico com muita consistência, e é por isso que podem pensar nas coisas mais complicadas.`,
             },
             {
@@ -343,7 +347,9 @@ Pela perspectiva da parede, vale o mesmo que no chão. Chegando por baixo da bol
 
 No começo, o objetivo é só acertar a bola em cheio, com o capô. Com mais prática, chegue com bastante velocidade e dê um pulo bem no fim do contato, para ganhar potência sem perder a direção. Pulando antes, a bola vai para onde você não quer.
 
-Quando a bola está descolada da parede, não tem jeito: é preciso pular. Prefira o pulo simples e, para cair, gire o carro 90° até as quatro rodas apontarem para o chão, como em Caindo sobre as rodas. Sair da parede assim também é um bom treino de voo, que vem a seguir.`,
+Quando a bola está descolada da parede, não tem jeito: é preciso pular. Prefira o pulo simples e, para cair, gire o carro 90° até as quatro rodas apontarem para o chão, como em Caindo sobre as rodas. Sair da parede assim também é um bom treino de voo, que vem a seguir.
+
+Para treinar, use o pacote Wall Shots (9F6D-4387-4C57-2E4B), que achei no Prejump (prejump.com).`,
             },
             { id: "bouncing", rank: "gold", title: { pt: "Bola quicando", en: "Bouncing balls" } },
             { id: "crossing", rank: "gold", title: { pt: "Cruzamento", en: "Crossing" } },
@@ -379,7 +385,7 @@ O exercício é acelerar e frear acompanhando a velocidade da bola até ela pous
 
 Onde a bola encosta no carro decide para onde ela vai: na traseira, ela cai para trás; no bico, vai para a frente com força; numa quina, para o lado. Com esse conforto, uma bola que vinha pelo ar vira uma bola no seu capô, e dali saem jogadas como o flick, mais à frente.
 
-Não achei um pacote de treino específico para isso. Qualquer pacote de aéreo serve, porque o que importa é a bola chegando em velocidades e direções diferentes.`,
+Não achei um pacote de treino específico para isso. Qualquer pacote de aéreo serve, como o Aerial Class 1 (7FD9-54FB-1CDB-E23F), do Prejump (prejump.com), porque o que importa é a bola chegando em velocidades e direções diferentes.`,
             },
             { id: "hood-dribble", rank: "gold", title: { pt: "Carregando a bola no capô", en: "Carrying the ball on your hood" } },
           ],
