@@ -87,6 +87,17 @@ Câmera. O analógico direito olha em volta, e apertá-lo mostra a visão trasei
 
 Rolamento aéreo (air roll). No ar, virar para os lados gira o carro como no chão. Segurando o botão do drift, ou o de rolamento aéreo se você configurou um, ele passa a rolar no próprio eixo. Serve para ajeitar o carro antes de bater na bola, com a quina, por exemplo, e para girar enquanto voa.`,
             },
+            {
+              id: "keyboard-or-controller",
+              rank: "gold",
+              title: { pt: "Teclado e mouse ou controle", en: "Keyboard and mouse or controller" },
+              video: "LR_autfcOvI",
+              text: `Eu troquei o controle pelo teclado e mouse por causa do half flip: no controle, eu simplesmente não conseguia fazê-lo direito. Pesquisei sobre zona morta, sobre a qualidade do controle e sobre a minha precisão no analógico, sem resolver.
+
+O controle tem uma vantagem clara: o analógico usa os 360 graus, e dá para dosar o quanto você vira. No teclado, você fica preso a quatro direções e às diagonais entre elas, sem nada no meio. A pergunta é se essa precisão faz falta. Em jogos de direção, como o Trackmania, ela costuma fazer, e mesmo lá há quem configure teclas extras para calibrar a curva. No Rocket League, com o boost e os voos, não sei o quanto ela pesa; tem gente que faz até o speed flip no teclado.
+
+No fim, é uma questão de conforto. Não acho que um dos dois tenha vantagem decisiva. A grande maioria joga no controle, e alguns jogadores de teclado se sentem limitados. Mas, para mecânicas como o half flip, eu tive mais controle no teclado e mouse do que no controle.`,
+            },
           ],
         },
         {
@@ -174,7 +185,21 @@ Um bom clear manda a bola para longe, o mais na lateral possível, e não para o
 
 Por último, dá para esperar a bola na parede e bater nela logo que ela quica, aproveitando o impulso do quique para devolvê-la com força, para cima ou para o lado. É uma técnica avançada, que nem jogadores de Diamante fazem sempre, mas o pacote serve para praticar.`,
             },
-            { id: "momentum", rank: "gold", title: { pt: "Mantendo a velocidade", en: "Keeping your speed" } },
+            {
+              id: "momentum",
+              rank: "gold",
+              title: { pt: "Mantendo a velocidade", en: "Keeping your speed" },
+              video: "o-JWolu3iAM",
+              text: `Manter a velocidade é um conceito que já apareceu em outros tópicos e fica cada vez mais importante conforme você entende melhor o jogo. Ele junta a recuperação e a movimentação.
+
+Já vimos que, saindo da parede ou de uma jogada, o ideal é cair nas quatro rodas: assim o carro segue para a frente, e uma queda torta faz você demorar e perder toda a velocidade. Também vimos que o máximo é o supersônico, e que uma curva brusca joga essa velocidade fora, enquanto uma curva suave perde menos.
+
+A ideia é parar de jogar a velocidade fora. Passou da bola e precisa voltar? Frear, virar e voltar custa caro. Na maioria das voltas, depois de bater na bola, faça uma curva aberta, pegue boost no caminho e mantenha o embalo. O difícil é o ir e voltar: chegar na jogada com velocidade e saber aproveitá-la na retomada.
+
+O conceito também vale para os outros. Se um adversário acabou de passar por você e errou a bola, ele não volta num passe de mágica, e essa é a sua chance de ir para cima dela.
+
+Não achei um pacote de treino bom para isso; é mais uma introdução ao que vem a seguir. O half flip é a mecânica que mais aproveita a ideia, e a shadow defense, no Platina, também faz bom uso dela.`,
+            },
           ],
         },
         {
@@ -235,7 +260,19 @@ De barriga para cima, com boost, dá para andar de cabeça para baixo e bater na
 
 O uso de verdade vem nas mecânicas seguintes. No half flip, depois do cancelamento você gira o carro e sai andando na direção oposta. O speed flip tem outro cancelamento, que mantém a traseira do carro virada para trás para o boost empurrar durante o flip inteiro e ganhar velocidade.`,
             },
-            { id: "half-flip", rank: "gold", title: { pt: "Half flip", en: "Half flip" } },
+            {
+              id: "half-flip",
+              rank: "gold",
+              title: { pt: "Half flip", en: "Half flip" },
+              video: "aYQ9-d1bhGM",
+              text: `O half flip é o jeito de virar o carro para o lado oposto sem perder a velocidade. Ele junta o que já vimos: um flip para trás, o flip cancel e o rolamento aéreo (air roll). É uma mecânica que pede precisão, e por isso eu troquei o controle pelo teclado e mouse: no teclado, a direção não tem as pequenas variações do analógico.
+
+Comece com um flip para trás e repare na velocidade que o carro ganha. Logo depois, cancele o flip, empurrando o analógico para a frente. O tempo importa: no ponto certo, o carro para de barriga para cima, com o teto voltado para o chão; tarde demais, ele afunda o bico e completa a cambalhota; cedo demais, ele não chega a ficar de barriga para cima.
+
+De barriga para cima, gire o carro no próprio eixo com o rolamento aéreo. Em Configurações › Controles, dá para pôr o rolamento para a direita e para a esquerda em botões próprios, e aí basta apertar um deles. Bem feito, o carro cai nas quatro rodas, já virado para o outro lado e com a velocidade que tinha. Compare com uma curva ou uma derrapada a partir da ré: você para e perde tudo. Dois flips para trás seguidos de um half flip chegam até o supersônico.
+
+Para treinar, use o pacote Do a half flip! (05A4-631B-C3DB-A894), do Prejump (prejump.com). Os chutes começam de costas para a bola; de ré ou com uma curva normal, você não chega a tempo em vários deles, e os melhores para praticar são o terceiro e o quarto. A ideia não é dar um jeito de pegar a bola, é praticar o half flip. E lembre: o boost só empurra o carro para a frente, então quanto antes você estiver de frente, antes pode usá-lo.`,
+            },
           ],
         },
         {
@@ -279,8 +316,21 @@ Na bola, bater com o bico dá força; com o capô, um toque direcionado; com as 
 
 Para treinar, use os pacotes Aerial Class 1, 2 e 3 (7FD9-54FB-1CDB-E23F, 9343-1F3A-605A-EF63 e 6418-F477-6032-0C8E), do Prejump (prejump.com). Eles têm chutes de várias alturas, distâncias e dificuldades; no começo, fique nos primeiros chutes do primeiro pacote.`,
             },
-            { id: "high-aerial", rank: "gold", title: { pt: "Aéreo alto", en: "High aerials" } },
-            { id: "aerial-touch", rank: "gold", title: { pt: "Direcionando o toque no ar", en: "Aiming your touch in the air" } },
+            {
+              id: "high-aerial",
+              rank: "gold",
+              title: { pt: "Aéreo alto", en: "High aerials" },
+              video: "C8Tjtgk2bys",
+              text: `No aéreo baixo, um pulo e um flip bastam. Com a bola perto do teto, a subida demora, e o prazo do segundo pulo acaba antes de você chegar lá. O aéreo alto é o mesmo voo, com mais boost: aponte o carro para cima e acelere até a altura da bola.
+
+No ar, sem atrito, o carro mantém a velocidade que tinha quando saiu do chão. Vindo rápido para a frente e acelerando só para cima, você continua indo para a frente; vindo de ré, continua indo para trás, mesmo que pouco. Por isso, o começo do voo decide quase tudo. Se ele começou ruim, o problema não é o ajuste no meio do caminho, é a saída. Antes de voar, veja para onde a bola vai e onde você quer encontrá-la, e saia na direção desse ponto.
+
+Como o segundo pulo não serve para um flip lá em cima, use-o para subir mais rápido: boost, pulo, carro apontado para cima e, logo em seguida, o segundo pulo, um empurrãozinho a mais que faz diferença.
+
+Para treinar, use os pacotes Aerial Class 1, 2 e 3 (7FD9-54FB-1CDB-E23F, 9343-1F3A-605A-EF63 e 6418-F477-6032-0C8E), do Prejump (prejump.com); os chutes mais altos são os mais difíceis, e o terceiro pacote é bem puxado. No começo, você vai chegar atrasado ou passar da bola: dose o boost para chegar na hora certa. Depois, mire no gol: bata no lado da bola oposto ao de onde quer mandá-la, de cima para baixo para um chute para baixo, e com o bico para um toque forte. Com as rodas, o toque amortece a bola. Também não é preciso pegar a bola no ponto mais alto: esperar ela cair um pouco pode facilitar.
+
+Força não é a preocupação agora; o que importa é acertar a bola com direção e intenção, e se acostumar a voar. Quanto melhor você lê a subida da bola, melhor o seu posicionamento, e isso se treina jogando partidas, não adivinhando no treino. Inclinar o carro para chutar melhor é uma camada a mais, para quando chegarmos aos ajustes finos do aéreo.`,
+            },
           ],
         },
         {
@@ -351,8 +401,6 @@ Quando a bola está descolada da parede, não tem jeito: é preciso pular. Prefi
 
 Para treinar, use o pacote Wall Shots (9F6D-4387-4C57-2E4B), que achei no Prejump (prejump.com).`,
             },
-            { id: "bouncing", rank: "gold", title: { pt: "Bola quicando", en: "Bouncing balls" } },
-            { id: "crossing", rank: "gold", title: { pt: "Cruzamento", en: "Crossing" } },
           ],
         },
         {
@@ -387,7 +435,7 @@ Onde a bola encosta no carro decide para onde ela vai: na traseira, ela cai para
 
 Não achei um pacote de treino específico para isso. Qualquer pacote de aéreo serve, como o Aerial Class 1 (7FD9-54FB-1CDB-E23F), do Prejump (prejump.com), porque o que importa é a bola chegando em velocidades e direções diferentes.`,
             },
-            { id: "hood-dribble", rank: "gold", title: { pt: "Carregando a bola no capô", en: "Carrying the ball on your hood" } },
+            { id: "hood-dribble", rank: "platinum", title: { pt: "Carregando a bola no capô", en: "Carrying the ball on your hood" } },
           ],
         },
         {
@@ -407,7 +455,7 @@ A logística é chegar com velocidade máxima: gaste o boost e faça um ou dois 
 
 Depois do primeiro toque, aconteça o que acontecer, pegue boost e volte para a sua área. Sai muito gol no kickoff, então fique atento a quem joga com você: se o seu colega vai na bola, venha atrás dele para cobrir.`,
             },
-            { id: "kickoff-intent", rank: "gold", title: { pt: "Kickoff com intenção", en: "Kickoffs with intent" } },
+            { id: "kickoff-intent", rank: "platinum", title: { pt: "Kickoff com intenção", en: "Kickoffs with intent" } },
           ],
         },
       ],
