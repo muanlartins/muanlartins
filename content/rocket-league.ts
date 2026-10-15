@@ -294,7 +294,6 @@ Caindo da parede de lado, é preciso girar o carro no próprio eixo, com o rolam
 
 Somado aos flips, cair bem é o que mantém o controle da sua velocidade, depois de um flip, da parede ou de qualquer coisa.`,
             },
-            { id: "aerial-recovery", rank: "gold", title: { pt: "Recuperando depois do aéreo", en: "Recovering after an aerial" } },
           ],
         },
         {
