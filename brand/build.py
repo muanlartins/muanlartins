@@ -322,6 +322,10 @@ THUMBNAILS = {
     "back-post": ("silver", ["Voltando pelo", "segundo pau"]),
     "when-to-go": ("silver", ["Quando fazer", "o challenge"]),
     "clearing": ("silver", ["Tirando", "a bola"]),
+    "keyboard-or-controller": ("gold", ["Teclado e mouse", "ou controle"]),
+    "momentum": ("gold", ["Mantendo a", "velocidade"]),
+    "half-flip": ("gold", ["Half flip"]),
+    "high-aerial": ("gold", ["Aéreo", "alto"]),
 }
 
 
