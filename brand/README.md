@@ -43,6 +43,7 @@ The website extends this into a ramp of Klein tints (see `app/globals.css`).
 | `youtube/banner-2560x1440.png` | YouTube banner: the lockup on the mark's 45° lattice, lined up with its strokes. `banner-crops.png` shows what TVs, desktops and phones keep. |
 | `youtube/thumbnails/<topic>.png` | Video thumbnails (1280×720): the topic's rank and the series' name over its title, on the lattice, with the rank's emblem glowing in its colour on the right. One per entry in `THUMBNAILS` in `build.py`, named after the topic's id on the site. |
 | `youtube/thumbnails/ranks/<rank>.png` | The in-game emblem of each rank's division I (Psyonix's art, from `github.com/manucabral/rocket-league-rank-viewer`), for the thumbnails. It sits next to them because `rsvg-convert` only loads images from the SVG's folder or below. |
+| `twitch/profile-800.png`, `twitch/banner-1200x480.png`, `twitch/offline-1920x1080.png` | Twitch profile picture, profile banner and the player's offline image. Twitch shows the banner behind the player, so it is only the lattice; accent colour is Klein. |
 | `webcam/webcam-{left,right}-{1920x1080,3840x2160}.png` | Webcam background: the banner's look with the lockup in a top corner, and the lattice faded out where you sit. Pick the side your head isn't on. |
 | `brand-board.png` | Everything above on one page. |
 | `explorations/` | How it got here — see its README. |

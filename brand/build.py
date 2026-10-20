@@ -208,13 +208,19 @@ def lattice(width, height, mark_height, x0, y0, holes, color=KLEIN_LIGHT, step=1
 BANNER_SAFE = (1546, 423)
 
 
-def banner(width=2560, height=1440, mark_height=190):
-    """YouTube channel art: the lockup in the safe strip, on the lattice, which fades out around it."""
+def banner(width=2560, height=1440, mark_height=190, safe=BANNER_SAFE):
+    """Channel art: the lockup centred in the `safe` area, on the lattice, which fades out around it."""
     w, h = lockup_size(mark_height)
     x0, y0 = (width - w) / 2, (height - h) / 2
-    sw, sh = BANNER_SAFE
+    sw, sh = safe
     grid = lattice(width, height, mark_height, x0, y0, [(width / 2, height / 2, sw * 0.62, sw * 0.62 * sh * 1.5 / sw)])
     return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}{placed(lockup(height=mark_height, background=None), x0, y0)}', width, height)
+
+
+def pattern(width, height, mark_height):
+    """Just the lattice on Klein, for backgrounds whose middle something else covers (Twitch puts the
+    player over its profile banner)."""
+    return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{lattice(width, height, mark_height, 0, 0, [])}', width, height)
 
 
 def webcam(width=3840, height=2160, side="left"):
@@ -437,6 +443,13 @@ if __name__ == "__main__":
     banner_preview("youtube/banner-2560x1440.png", "youtube/banner-crops.svg")
     png("youtube/banner-crops.svg", "youtube/banner-crops.png", 1280)
     (ROOT / "youtube/profile-800.png").write_bytes((ROOT / "logo/avatar-800.png").read_bytes())
+    # Twitch: profile banner (1200×480, behind the player, so no lockup) and the player's offline image (1920×1080).
+    (ROOT / "twitch").mkdir(exist_ok=True)
+    (ROOT / "twitch/profile-800.png").write_bytes((ROOT / "logo/avatar-800.png").read_bytes())
+    write("twitch/banner-1200x480.svg", pattern(1200, 480, 100))
+    png("twitch/banner-1200x480.svg", "twitch/banner-1200x480.png", 1200)
+    write("twitch/offline-1920x1080.svg", banner(1920, 1080, 160, (1300, 500)))
+    png("twitch/offline-1920x1080.svg", "twitch/offline-1920x1080.png", 1920)
     for side in ("left", "right"):
         write(f"webcam/webcam-{side}.svg", webcam(side=side))
         png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-3840x2160.png", 3840)
