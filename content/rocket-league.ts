@@ -200,6 +200,7 @@ O conceito também vale para os outros. Se um adversário acabou de passar por v
 
 Não achei um pacote de treino bom para isso; é mais uma introdução ao que vem a seguir. O half flip é a mecânica que mais aproveita a ideia, e a shadow defense, no Platina, também faz bom uso dela.`,
             },
+            { id: "shadow-defense", rank: "platinum", title: { pt: "Shadow defense", en: "Shadow defense" } },
           ],
         },
         {
@@ -330,6 +331,7 @@ Para treinar, use os pacotes Aerial Class 1, 2 e 3 (7FD9-54FB-1CDB-E23F, 9343-1F
 
 Força não é a preocupação agora; o que importa é acertar a bola com direção e intenção, e se acostumar a voar. Quanto melhor você lê a subida da bola, melhor o seu posicionamento, e isso se treina jogando partidas, não adivinhando no treino. Inclinar o carro para chutar melhor é uma camada a mais, para quando chegarmos aos ajustes finos do aéreo.`,
             },
+            { id: "air-dribble", rank: "diamond", title: { pt: "Air dribble", en: "Air dribble" } },
           ],
         },
         {
@@ -434,7 +436,7 @@ Onde a bola encosta no carro decide para onde ela vai: na traseira, ela cai para
 
 Não achei um pacote de treino específico para isso. Qualquer pacote de aéreo serve, como o Aerial Class 1 (7FD9-54FB-1CDB-E23F), do Prejump (prejump.com), porque o que importa é a bola chegando em velocidades e direções diferentes.`,
             },
-            { id: "hood-dribble", rank: "platinum", title: { pt: "Carregando a bola no capô", en: "Carrying the ball on your hood" } },
+            { id: "hood-dribble", rank: "diamond", title: { pt: "Carregando a bola no capô", en: "Carrying the ball on your hood" } },
           ],
         },
         {
@@ -572,7 +574,6 @@ Fique ali virado para o jogo, não para o gol. O carro acelera fácil com o boos
 
 O resto é gato e rato: conforme a defesa melhora, o ataque também melhora, com chutes altos no canto ou a bola no capô para um flick, e quem defende escolhe entre disputar e recuar para ver o chute. Quando o seu ataque dá errado e a bola escorre pelo outro lado, é a mesma situação, espelhada: curva aberta, segundo pau e espera.`,
             },
-            { id: "rotation-styles", rank: "gold", title: { pt: "Rotações agressivas e defensivas", en: "Aggressive and defensive rotations" } },
           ],
         },
         {
@@ -592,7 +593,6 @@ Você não precisa estar sempre de tanque cheio. Gastar 20 e atravessar o campo 
 
 O 1v1 mostra bem isso. Não é o modo mais jogado, porque tudo é responsabilidade sua e os gols frustram, mas ensina muito: com a bola no seu campo, ir buscar boost no canto dá o gol ao adversário, mesmo que ele só pegue um pad no caminho. Os grandes estão nos cantos de propósito, e os pequenos estão no meio para o empurrão de que você precisa para chegar na bola.`,
             },
-            { id: "big-boost", rank: "gold", title: { pt: "Autocontrole do grande boost", en: "Restraint with big boost" } },
           ],
         },
         {
@@ -612,7 +612,6 @@ Quando você é o mais perto, pode carregar a bola e, quando o adversário vier,
 
 Quem não tem o primeiro toque não pode se arriscar a deixar a bola passar: se ela passa por você, quem está com ela conduz com tranquilidade, e você volta pelo segundo pau. Depois de cada disputa, pergunte se deveria ter ido; esse senso de distância vem com o jogo.`,
             },
-            { id: "challenge-intent", rank: "gold", title: { pt: "Disputando com intenção", en: "Challenging with intent" } },
           ],
         },
         {
@@ -632,7 +631,6 @@ O que decide uma defesa é o ângulo, a posição e o boost. Com um aéreo baixo
 
 Lembre dos princípios: de dentro do gol para fora, e do centro para as laterais. Sempre que puder, desvie a bola para o lado, não para o meio do campo. E, vindo de fora, cuidado para não passar da bola: passou por baixo ou por cima dela, você não volta a tempo.`,
             },
-            { id: "saves", rank: "gold", title: { pt: "Defesas básicas", en: "Basic saves" } },
           ],
         },
         {
