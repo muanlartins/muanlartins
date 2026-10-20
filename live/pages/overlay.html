@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Overlay · muanlartins</title>
+    <link rel="stylesheet" href="/assets/brand.css" />
+    <!--
+      OBS: add a Browser source with this URL at 1920×1080. It is transparent
+      until a Pix arrives. Add ?voz=1 to have messages read aloud (needs
+      "Control audio via OBS" on the source to be heard on stream).
+    -->
+    <style>
+      html,
+      body {
+        background: transparent;
+        overflow: hidden;
+      }
+      body {
+        width: 100vw;
+        height: 100vh;
+      }
+      /*
+       * The alert: a Klein card on the lattice that wipes in along the mark's
+       * 45° diagonal, holds while the message can be read, and wipes out the
+       * same way.
+       */
+      .alert {
+        position: absolute;
+        left: 64px;
+        bottom: 64px;
+        width: 720px;
+        display: grid;
+        grid-template-columns: 88px 1fr;
+        gap: 28px;
+        align-items: start;
+        padding: 32px 36px;
+        border-radius: 10px;
+        background: var(--lattice), var(--klein);
+        color: var(--paper);
+        /* Hidden behind a hard 45° edge that starts past the bottom-right corner. */
+        --edge: linear-gradient(135deg, #000 50%, transparent 50%);
+        -webkit-mask: var(--edge) 100% 100% / 300% 300% no-repeat;
+        mask: var(--edge) 100% 100% / 300% 300% no-repeat;
+      }
+      .alert.in {
+        animation: wipe-in 0.7s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+      }
+      .alert.out {
+        animation: wipe-out 0.6s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+      }
+      .alert img {
+        width: 88px;
+        height: 88px;
+      }
+      .who {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+      .who b {
+        font-weight: 600;
+      }
+      .value {
+        color: var(--klein-claro);
+        white-space: nowrap;
+      }
+      .message {
+        margin: 14px 0 0;
+        font-size: 26px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+      }
+      .message:empty {
+        display: none;
+      }
+      @keyframes wipe-in {
+        to {
+          -webkit-mask-position: 0 0;
+          mask-position: 0 0;
+        }
+      }
+      @keyframes wipe-out {
+        from {
+          -webkit-mask-position: 0 0;
+          mask-position: 0 0;
+        }
+        to {
+          -webkit-mask-position: 100% 100%;
+          mask-position: 100% 100%;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .alert.in,
+        .alert.out {
+          animation-duration: 0.01s;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const voice = new URLSearchParams(location.search).has("voz")
+      const brl = (cents) => (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      const queue = []
+      let showing = false
+
+      function card(alert) {
+        const el = document.createElement("section")
+        el.className = "alert"
+        el.innerHTML = `<img src="/assets/mark.svg" alt="" /><div><p class="who"></p><p class="message"></p></div>`
+        const who = el.querySelector(".who")
+        const name = document.createElement("b")
+        name.textContent = alert.nickname ?? "Alguém"
+        const value = document.createElement("span")
+        value.className = "value"
+        value.textContent = brl(alert.cents)
+        who.append(name, " mandou ", value)
+        el.querySelector(".message").textContent = alert.message ?? ""
+        return el
+      }
+
+      function speak(alert) {
+        if (!voice || !("speechSynthesis" in window)) return Promise.resolve()
+        const text = `${alert.nickname ?? "Alguém"} mandou ${brl(alert.cents)}. ${alert.message ?? ""}`
+        const utterance = new SpeechSynthesisUtterance(text)
+        utterance.lang = "pt-BR"
+        return new Promise((resolve) => {
+          utterance.onend = utterance.onerror = resolve
+          speechSynthesis.speak(utterance)
+        })
+      }
+
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+      async function next() {
+        if (showing || !queue.length) return
+        showing = true
+        const alert = queue.shift()
+        const el = card(alert)
+        document.body.append(el)
+        el.classList.add("in")
+        const reading = 5000 + (alert.message ?? "").length * 60
+        await Promise.all([sleep(Math.min(reading, 15000)), speak(alert)])
+        el.classList.replace("in", "out")
+        await sleep(700)
+        el.remove()
+        showing = false
+        next()
+      }
+
+      function connect() {
+        const events = new EventSource("/api/events")
+        events.addEventListener("alert", (event) => {
+          queue.push(JSON.parse(event.data))
+          next()
+        })
+      }
+      connect()
+    </script>
+  </body>
+</html>

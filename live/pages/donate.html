@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pix na live · muanlartins</title>
+    <link rel="icon" href="/assets/mark.svg" />
+    <link rel="stylesheet" href="/assets/brand.css" />
+    <style>
+      body {
+        min-height: 100dvh;
+        background: var(--ground);
+        color: var(--navy);
+      }
+      main {
+        max-width: 30rem;
+        margin: 0 auto;
+        padding: 40px 16px 64px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 17px;
+        font-weight: 500;
+        margin-bottom: 40px;
+      }
+      header img {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: var(--klein);
+        padding: 4px;
+      }
+      h1 {
+        font-size: 40px;
+        line-height: 1.05;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        color: var(--klein);
+        margin: 0 0 12px;
+      }
+      .lead {
+        font-size: 17px;
+        line-height: 1.6;
+        margin: 0 0 32px;
+      }
+      form {
+        display: grid;
+        gap: 20px;
+      }
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .hint {
+        font-weight: 400;
+        color: var(--muted);
+      }
+      input,
+      textarea {
+        font: inherit;
+        font-size: 17px;
+        color: var(--navy);
+        background: color-mix(in oklab, var(--paper) 70%, var(--ground));
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 12px 14px;
+      }
+      input:focus,
+      textarea:focus {
+        border-color: var(--klein);
+        outline: none;
+        box-shadow: 0 0 0 3px rgb(0 47 167 / 0.15);
+      }
+      textarea {
+        resize: vertical;
+        min-height: 96px;
+      }
+      .amount {
+        position: relative;
+      }
+      .amount span {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        translate: 0 -50%;
+        color: var(--muted);
+        font-size: 17px;
+      }
+      .amount input {
+        width: 100%;
+        padding-left: 44px;
+        font-size: 28px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+      }
+      .check {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-weight: 400;
+        line-height: 1.5;
+      }
+      .check input {
+        width: 18px;
+        height: 18px;
+        margin: 2px 0 0;
+        accent-color: var(--klein);
+      }
+      button {
+        font: inherit;
+        font-size: 17px;
+        font-weight: 500;
+        border: 0;
+        border-radius: 6px;
+        padding: 14px 18px;
+        background: var(--klein);
+        color: var(--paper);
+        cursor: pointer;
+      }
+      button:hover {
+        background: var(--navy);
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: wait;
+      }
+      .error {
+        color: #b3261e;
+        font-size: 15px;
+        margin: 0;
+        min-height: 1em;
+      }
+
+      /* The Pix: a Klein card on the lattice, the QR on paper so any camera reads it. */
+      .pix {
+        display: none;
+        border-radius: 8px;
+        background: var(--lattice), var(--klein);
+        color: var(--paper);
+        padding: 24px;
+      }
+      .pix.shown {
+        display: block;
+      }
+      .pix .value {
+        font-size: 44px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        margin: 0;
+      }
+      .pix .to {
+        color: var(--klein-claro);
+        margin: 4px 0 20px;
+        font-size: 15px;
+      }
+      .qr {
+        background: var(--paper);
+        border-radius: 6px;
+        padding: 16px;
+        aspect-ratio: 1;
+      }
+      .qr svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .copy {
+        width: 100%;
+        margin-top: 16px;
+        background: var(--paper);
+        color: var(--klein);
+      }
+      .copy:hover {
+        background: var(--ground);
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 20px 0 0;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+      .status::before {
+        content: "";
+        flex: none;
+        width: 10px;
+        height: 10px;
+        rotate: 45deg;
+        background: var(--klein-claro);
+        animation: pulse 1.4s ease-in-out infinite;
+      }
+      .status.paid::before {
+        background: var(--paper);
+        animation: none;
+      }
+      .note {
+        color: var(--klein-claro);
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 12px 0 0;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .status::before {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header><img src="/assets/mark.svg" alt="" />muanlartins</header>
+
+      <!-- TODO(Luan): rewrite the copy on this page in your voice. -->
+      <h1>Pix na live</h1>
+      <p class="lead">Sua mensagem aparece na tela assim que o Pix cai.</p>
+
+      <form id="form" novalidate>
+        <label>
+          Apelido
+          <span class="hint">Como você vai aparecer na live.</span>
+          <input name="nickname" maxlength="32" autocomplete="nickname" required />
+        </label>
+        <label>
+          Mensagem <span class="hint">Opcional, até 200 caracteres.</span>
+          <textarea name="message" maxlength="200"></textarea>
+        </label>
+        <label>
+          Valor
+          <div class="amount"><span>R$</span><input name="amount" inputmode="decimal" placeholder="5,00" required /></div>
+        </label>
+        <label class="check">
+          <input type="checkbox" name="wall" />
+          <span>Quero aparecer no mural de apoiadores do site, com apelido, valor e mensagem.</span>
+        </label>
+        <p class="error" id="error" role="alert"></p>
+        <button id="submit">Gerar Pix</button>
+      </form>
+
+      <section class="pix" id="pix" aria-live="polite">
+        <p class="value" id="value"></p>
+        <p class="to">Pix para muanlartins</p>
+        <div class="qr" id="qr"></div>
+        <button class="copy" id="copy" type="button">Copiar Pix copia e cola</button>
+        <p class="status" id="status">Esperando o Pix…</p>
+        <p class="note" id="note">Pague exatamente esse valor. Com outro valor, a mensagem pode demorar a aparecer.</p>
+      </section>
+    </main>
+
+    <script>
+      const form = document.getElementById("form")
+      const error = document.getElementById("error")
+      const submit = document.getElementById("submit")
+      const brl = (cents) => (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      let code = ""
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault()
+        error.textContent = ""
+        submit.disabled = true
+        const data = new FormData(form)
+        const res = await fetch("/api/donations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nickname: data.get("nickname"),
+            message: data.get("message"),
+            amount: data.get("amount"),
+            wall: data.get("wall") === "on",
+          }),
+        }).catch(() => null)
+        submit.disabled = false
+        const body = await res?.json().catch(() => null)
+        if (!res?.ok) {
+          error.textContent = body?.error ?? "Não deu para gerar o Pix. Tente de novo."
+          return
+        }
+        code = body.code
+        document.getElementById("value").textContent = brl(body.cents)
+        document.getElementById("qr").innerHTML = body.qr
+        form.hidden = true
+        document.getElementById("pix").classList.add("shown")
+        wait(body.id)
+      })
+
+      document.getElementById("copy").addEventListener("click", async (event) => {
+        await navigator.clipboard.writeText(code)
+        event.target.textContent = "Copiado"
+        setTimeout(() => (event.target.textContent = "Copiar Pix copia e cola"), 2000)
+      })
+
+      async function wait(id) {
+        const status = document.getElementById("status")
+        for (;;) {
+          await new Promise((resolve) => setTimeout(resolve, 3000))
+          const body = await fetch(`/api/donations/${id}`).then((r) => r.json()).catch(() => null)
+          if (body?.status === "paid") {
+            status.textContent = "Pix recebido. Sua mensagem foi para a live."
+            status.classList.add("paid")
+            document.getElementById("note").hidden = true
+            return
+          }
+          if (body?.status === "expired") {
+            status.textContent = "O Pix ainda não apareceu por aqui. Se você já pagou, ele vai para a live assim que for conferido."
+            return
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

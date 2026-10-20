@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Estúdio · muanlartins</title>
+    <link rel="icon" href="/assets/mark.svg" />
+    <link rel="stylesheet" href="/assets/brand.css" />
+    <style>
+      body {
+        background: var(--ground);
+        color: var(--navy);
+      }
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 24px 64px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        gap: 32px;
+        align-items: start;
+      }
+      @media (max-width: 960px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+      h1 {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+        font-size: 22px;
+        font-weight: 500;
+      }
+      h1 img {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: var(--klein);
+        padding: 4px;
+      }
+      h2 {
+        font-size: 13px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--klein);
+        margin: 0 0 12px;
+      }
+      section + section {
+        margin-top: 36px;
+      }
+      .empty {
+        color: var(--muted);
+        margin: 0;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 64px 96px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: baseline;
+        padding: 12px 0;
+        border-top: 1px solid var(--line);
+        font-size: 15px;
+      }
+      .row.hidden .text {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+      .time,
+      .status {
+        color: var(--muted);
+        font-size: 13px;
+        font-variant-numeric: tabular-nums;
+      }
+      .value {
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+      .text b {
+        font-weight: 500;
+      }
+      .text p {
+        margin: 4px 0 0;
+        overflow-wrap: anywhere;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: end;
+      }
+      .unmatched .row {
+        background: color-mix(in oklab, var(--paper) 55%, var(--ground));
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        grid-template-columns: 64px 96px minmax(0, 1fr);
+      }
+      .unmatched .actions {
+        grid-column: 1 / -1;
+        justify-content: start;
+      }
+      button,
+      select,
+      input {
+        font: inherit;
+        font-size: 14px;
+        color: var(--navy);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 6px 10px;
+        background: var(--paper);
+      }
+      button {
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--klein);
+      }
+      button.primary {
+        background: var(--klein);
+        border-color: var(--klein);
+        color: var(--paper);
+      }
+      select {
+        min-width: 0;
+        max-width: 100%;
+      }
+      .tag {
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: var(--line);
+        margin-left: 6px;
+      }
+      .preview {
+        aspect-ratio: 16 / 9;
+        border-radius: 8px;
+        overflow: hidden;
+        background: repeating-conic-gradient(#1d2333 0 25%, #262d40 0 50%) 0 0 / 24px 24px;
+      }
+      .preview iframe {
+        width: 1920px;
+        height: 1080px;
+        border: 0;
+        transform-origin: 0 0;
+      }
+      .test {
+        display: grid;
+        gap: 8px;
+      }
+      .test input {
+        width: 100%;
+      }
+      .test p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1><img src="/assets/mark.svg" alt="" />Estúdio</h1>
+
+      <div>
+        <section class="unmatched">
+          <h2>Pix sem par</h2>
+          <div id="unmatched"></div>
+        </section>
+        <section>
+          <h2>Doações</h2>
+          <div id="donations"></div>
+        </section>
+      </div>
+
+      <aside>
+        <section>
+          <h2>Overlay</h2>
+          <div class="preview" id="preview"><iframe src="/overlay" title="Overlay"></iframe></div>
+        </section>
+        <section class="test">
+          <h2>Testar sem dinheiro</h2>
+          <input id="test-text" value="Fulano de Tal te enviou um Pix de R$ 5,00 creditado na sua conta final ***00000-0." />
+          <button id="test" type="button">Simular Pix recebido</button>
+          <p>Faz de conta que o celular avisou deste Pix. Ele paga a doação esperando esse valor, ou entra em Pix sem par.</p>
+        </section>
+      </aside>
+    </main>
+
+    <script>
+      const brl = (cents) => (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      const time = (iso) => new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+      const STATUS = { pending: "esperando", paid: "pago", expired: "expirou" }
+      let state = { unmatched: [], donations: [] }
+
+      const post = (path, body) =>
+        fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+
+      function el(tag, props = {}, ...children) {
+        const node = Object.assign(document.createElement(tag), props)
+        node.append(...children.filter((child) => child !== undefined && child !== null))
+        return node
+      }
+
+      function button(label, onclick, primary) {
+        return el("button", { type: "button", textContent: label, className: primary ? "primary" : "", onclick })
+      }
+
+      function render() {
+        const unmatched = document.getElementById("unmatched")
+        unmatched.replaceChildren(
+          ...(state.unmatched.length
+            ? state.unmatched.map(unmatchedRow)
+            : [el("p", { className: "empty", textContent: "Nenhum. Cada Pix encontrou sua doação." })]),
+        )
+        const donations = document.getElementById("donations")
+        donations.replaceChildren(
+          ...(state.donations.length
+            ? state.donations.map(donationRow)
+            : [el("p", { className: "empty", textContent: "Nenhuma doação ainda." })]),
+        )
+      }
+
+      function unmatchedRow(payment) {
+        // Donations still unpaid, closest amount first.
+        const candidates = state.donations
+          .filter((d) => d.status !== "paid")
+          .sort((a, b) => Math.abs(a.cents - payment.cents) - Math.abs(b.cents - payment.cents))
+        const select = el(
+          "select",
+          {},
+          ...candidates.map((d) => el("option", { value: d.id, textContent: `${d.nickname} · ${brl(d.cents)} · ${time(d.createdAt)}` })),
+        )
+        return el(
+          "div",
+          { className: "row" },
+          el("span", { className: "time", textContent: time(payment.receivedAt) }),
+          el("span", { className: "value", textContent: brl(payment.cents) }),
+          el("span", { className: "text" }, el("b", { textContent: payment.payer })),
+          el(
+            "div",
+            { className: "actions" },
+            candidates.length ? select : undefined,
+            candidates.length
+              ? button("Vincular e alertar", () => post("/api/link", { paymentId: payment.id, donationId: select.value }), true)
+              : undefined,
+            button("Alertar como anônimo", () => post("/api/settle", { paymentId: payment.id, as: "anonymous" })),
+            button("Ignorar", () => post("/api/settle", { paymentId: payment.id, as: "dismissed" })),
+          ),
+        )
+      }
+
+      function donationRow(donation) {
+        return el(
+          "div",
+          { className: `row${donation.hidden ? " hidden" : ""}` },
+          el("span", { className: "time", textContent: time(donation.createdAt) }),
+          el("span", { className: "value", textContent: brl(donation.cents) }),
+          el(
+            "span",
+            { className: "text" },
+            el("b", { textContent: donation.nickname }),
+            el("span", { className: "tag", textContent: STATUS[donation.status] }),
+            donation.wall ? el("span", { className: "tag", textContent: "mural" }) : undefined,
+            donation.message ? el("p", { textContent: donation.message }) : undefined,
+          ),
+          el(
+            "div",
+            { className: "actions" },
+            donation.status === "paid" ? button("Repetir alerta", () => post("/api/replay", { donationId: donation.id })) : undefined,
+            donation.wall
+              ? button(donation.hidden ? "Mostrar no mural" : "Esconder do mural", () =>
+                  post("/api/hide", { donationId: donation.id, hidden: !donation.hidden }),
+                )
+              : undefined,
+          ),
+        )
+      }
+
+      async function refresh() {
+        state = await fetch("/api/state").then((r) => r.json())
+        render()
+      }
+
+      document.getElementById("test").addEventListener("click", () =>
+        post("/api/test", { text: document.getElementById("test-text").value }),
+      )
+
+      const preview = document.getElementById("preview")
+      new ResizeObserver(() => {
+        preview.querySelector("iframe").style.transform = `scale(${preview.clientWidth / 1920})`
+      }).observe(preview)
+
+      new EventSource("/api/events").addEventListener("update", refresh)
+      refresh()
+    </script>
+  </body>
+</html>

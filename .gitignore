@@ -44,3 +44,7 @@ next-env.d.ts
 /brand/.venv
 __pycache__/
 /.next-en/
+
+# live/: donations and payers stay on this machine
+/live/data/
+!/live/.env.example

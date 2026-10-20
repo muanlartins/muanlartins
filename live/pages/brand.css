@@ -1,0 +1,48 @@
+/* The identity (brand/README.md), shared by the donation page, the overlay and the studio. */
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/assets/space-grotesk.ttf") format("truetype");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+:root {
+  --klein: #002fa7;
+  --klein-claro: #85a7ff;
+  --paper: #f4f5f7;
+  --navy: #001447;
+  --ground: #d6e2ff;
+  --line: color-mix(in oklab, var(--klein) 22%, var(--ground));
+  --muted: color-mix(in oklab, var(--navy) 72%, var(--ground));
+  --unit: 24px;
+  /* The mark's 45° lattice, as a background. */
+  --lattice: repeating-linear-gradient(45deg, transparent 0 calc(var(--unit) * 0.707 - 1px), rgb(133 167 255 / 0.22) 0 calc(var(--unit) * 0.707)),
+    repeating-linear-gradient(-45deg, transparent 0 calc(var(--unit) * 0.707 - 1px), rgb(133 167 255 / 0.22) 0 calc(var(--unit) * 0.707));
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--klein);
+  color: var(--paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--klein);
+  outline-offset: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
