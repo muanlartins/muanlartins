@@ -123,3 +123,24 @@
   background-clip: text;
   color: transparent;
 }
+
+/* The 404's digits draw themselves once, stroke by stroke. */
+@keyframes draw-stroke {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.draw-stroke {
+  stroke-dasharray: 1;
+  animation: draw-stroke 0.9s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-stroke {
+    animation: none;
+  }
+}
