@@ -43,13 +43,6 @@
         letter-spacing: -0.03em;
         line-height: 1.1;
       }
-      .site {
-        margin: 0 0 6px;
-        color: var(--klein-claro);
-        font-size: 24px;
-        font-weight: 500;
-        white-space: nowrap;
-      }
       .side {
         position: absolute;
         left: 1392px;
@@ -80,7 +73,6 @@
           <p class="eyebrow">Agora</p>
           <p class="topic" id="topic">Rocket League</p>
         </div>
-        <p class="site">muanlartins.com.br</p>
       </div>
       <aside class="side">
         <p class="eyebrow">Chat</p>
@@ -89,8 +81,9 @@
     </main>
     <script src="stream.js"></script>
     <script>
-      frame(document.querySelector(".hole"), { band: 16, fill: "#001447" })
-      plate(document.getElementById("plate"), ["muanlartins"])
+      const border = frame(document.querySelector(".hole"), { band: 16, fill: "#001447" })
+      const attention = plate(document.getElementById("plate"), `muanlartins<span class="accent">.com.br</span>`)
+      alternate(20, attention, border.trace)
       if (params.get("topico")) document.getElementById("topic").textContent = params.get("topico")
       chat(document.getElementById("chat"))
     </script>

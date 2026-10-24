@@ -23,6 +23,9 @@ const CHANNEL = (params.get("canal") || "muanlartins").toLowerCase()
  * is 2 × band, the most that still covers the camera's corners, which OBS
  * draws square underneath. On the Klein ground, `fill` darkens the band to navy
  * so it still reads as a frame.
+ *
+ * The returned element has trace(): the band lights up, Branco and Klein claro
+ * each drawing half of it from one of the cut corners, then fades.
  */
 function frame(hole, { band = 12, fill = "#002fa7" } = {}) {
   const w = hole.offsetWidth
@@ -53,6 +56,15 @@ function frame(hole, { band = 12, fill = "#002fa7" } = {}) {
       )
       .join("")
 
+  // The trace's half-laps start at the cut corners: the band's centre line, begun at the top-left cut,
+  // reaches the bottom-right one exactly halfway round (pathLength 1000 → 500).
+  const m = (cut + innerCut) / 2
+  const [x0, y0, x1, y1] = [-t / 2, -t / 2, w + t / 2, h + t / 2]
+  const lap = `M${x0} ${y0 + m}L${x0 + m} ${y0}H${x1}V${y1 - m}L${x1 - m} ${y1}H${x0}Z`
+  const trace = (color, start) =>
+    `<path class="trace" d="${lap}" pathLength="1000" fill="none" stroke="${color}" stroke-width="${t}"
+      stroke-dasharray="0 1000" stroke-dashoffset="${-start}" opacity="0"/>`
+
   const uid = `f${Math.random().toString(36).slice(2, 8)}`
   const el = document.createElement("div")
   el.className = "frame"
@@ -68,32 +80,44 @@ function frame(hole, { band = 12, fill = "#002fa7" } = {}) {
     <g clip-path="url(#${uid}c)">
       <rect x="${-t}" y="${-t}" width="${w + 2 * t}" height="${h + 2 * t}" fill="url(#${uid}l)"/>
       ${streak("#f4f5f7", 0)}${streak("#85a7ff", -500)}
+      ${trace("#f4f5f7", 0)}${trace("#85a7ff", 500)}
     </g>
     <path d="${inner}" fill="none" stroke="#85a7ff" stroke-opacity="0.7" stroke-width="1.5"/>
   </svg>`
   hole.after(el)
+  el.trace = () => {
+    for (const path of el.querySelectorAll(".trace"))
+      path.animate(
+        [
+          { strokeDasharray: "0 1000", opacity: 1, easing: "cubic-bezier(0.65, 0, 0.35, 1)" },
+          { strokeDasharray: "500 1000", opacity: 1, offset: 0.55 },
+          { strokeDasharray: "500 1000", opacity: 0 },
+        ],
+        { duration: 1800 },
+      )
+  }
   return el
 }
 
 /**
  * The name plate: the small mark and a line of text, on the frame's bottom
- * edge. With more than one line, it swaps to the next every `every` seconds.
+ * edge. Returns attention(), which wipes the line out and back in.
  */
-function plate(el, lines, { every = 20 } = {}) {
+function plate(el, html) {
   el.classList.add("plate")
-  el.innerHTML = `<img src="/brand/mark-small-clear.svg" alt=""><span class="line"></span>`
+  el.innerHTML = `<img src="/brand/mark-small-clear.svg" alt=""><span class="line">${html}</span>`
   const line = el.querySelector(".line")
-  let i = 0
-  line.innerHTML = lines[0]
-  if (lines.length < 2) return
-  setInterval(() => {
-    i = (i + 1) % lines.length
+  return () => {
     line.classList.remove("swap")
     void line.offsetWidth
     line.classList.add("swap")
-    // Swap the text while the line is wiped out (45% → 55% of the animation).
-    setTimeout(() => (line.innerHTML = lines[i]), 350)
-  }, every * 1000)
+  }
+}
+
+/** Runs `actions` in turn, one every `seconds`: the overlays' now-and-then movement. */
+function alternate(seconds, ...actions) {
+  let i = 0
+  setInterval(() => actions[i++ % actions.length](), seconds * 1000)
 }
 
 /**
@@ -280,4 +304,4 @@ function demo(show) {
 }
 
 // What the pages call.
-Object.assign(window, { params, frame, plate, mark, drawCopy, chat })
+Object.assign(window, { params, frame, plate, alternate, mark, drawCopy, chat })
