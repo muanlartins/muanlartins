@@ -62,7 +62,7 @@ The overlays for OBS are web pages in `public/stream/`, served with the site at 
 
 The camera frame is a Klein band with its top-left and bottom-right corners cut at 45° (the mark's 180° symmetry), lined with the lattice. Two streaks, Branco and Klein claro, the mark's two copies, run around it half a lap apart. A name plate with the small mark and `muanlartins.com.br` sits on its bottom edge. Every 5 s, in turn, something moves to catch the eye: the plate's line wipes out and back in, or a sheen crosses the band at 45°, from one cut corner to the other. On the Klein ground of `conversa.html` the band is navy, to read as a frame.
 
-The chat is Twitch's, read anonymously over IRC (`?canal=`, default `muanlartins`), with emotes, without commands (`!…`) or bots, and with moderation deletes applied. `?demo` fills it with sample messages, to set scenes up offline.
+The chat is Twitch's, read anonymously over IRC (`?canal=`, default `muanlartins`). It opens with the last 20 messages, from `recent-messages.robotty.de` (Twitch's IRC keeps no history), so reloading a source doesn't empty it. It shows emotes, without commands (`!…`) or bots, and with moderation deletes applied. `?demo` fills it with sample messages, to set scenes up offline.
 
 The transition: two Klein panels close in from opposite corners along the lattice, one turned 180° from the other, each led by a streak of its copy's colour that stretches with its speed. The screen is covered while the mark draws itself, then the panels pull back into the centre line and take the mark with them.
 
