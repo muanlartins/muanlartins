@@ -39,13 +39,16 @@
       const hole = document.querySelector(".hole")
       hole.classList.toggle("right", params.get("lado") === "direita")
       hole.classList.toggle("top", params.get("altura") === "cima")
-      frame(hole, { band: BAND })
+      const border = frame(hole, { band: BAND })
 
       // The plate straddles the frame's bottom edge, flush with its left side.
       const tab = document.getElementById("plate")
-      plate(tab, ["muanlartins", `muanlartins<span class="accent">.com.br</span>`])
+      const attention = plate(tab, `muanlartins<span class="accent">.com.br</span>`)
       tab.style.left = `${hole.offsetLeft - BAND}px`
       tab.style.top = `${hole.offsetTop + hole.offsetHeight + BAND - 26}px`
+
+      // Every 20 s, in turn: the plate's line wipes, or the frame lights up.
+      alternate(20, attention, border.trace)
     </script>
   </body>
 </html>

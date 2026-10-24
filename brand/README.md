@@ -60,7 +60,7 @@ The overlays for OBS are web pages in `public/stream/`, served with the site at 
 | `intervalo.html` | Começando, Já volto, Fim | `?tela=comecando` (default; `?minutos=5` counts down), `?tela=volto`, `?tela=fim`. `?titulo=` replaces the headline, `?chat=0` hides the chat. |
 | `transicao.html` → `transicao.webm` | Transition | The stinger. OBS plays stingers from video files only, so `twitch/transicao.mjs` renders the page frame by frame into a VP9 WebM with transparency. Transition point: 600 ms. |
 
-The camera frame is a Klein band with its top-left and bottom-right corners cut at 45° (the mark's 180° symmetry), lined with the lattice. Two streaks, Branco and Klein claro, the mark's two copies, run around it half a lap apart. A name plate with the small mark sits on its bottom edge. On the Klein ground of `conversa.html` the band is navy, to read as a frame.
+The camera frame is a Klein band with its top-left and bottom-right corners cut at 45° (the mark's 180° symmetry), lined with the lattice. Two streaks, Branco and Klein claro, the mark's two copies, run around it half a lap apart. A name plate with the small mark and `muanlartins.com.br` sits on its bottom edge. Every 20 s, in turn, something moves to catch the eye: the plate's line wipes out and back in, or the band lights up, Branco and Klein claro each drawing half of it from one of the cut corners. On the Klein ground of `conversa.html` the band is navy, to read as a frame.
 
 The chat is Twitch's, read anonymously over IRC (`?canal=`, default `muanlartins`), with emotes, without commands (`!…`) or bots, and with moderation deletes applied. `?demo` fills it with sample messages, to set scenes up offline.
 
