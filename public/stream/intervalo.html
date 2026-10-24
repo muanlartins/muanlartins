@@ -8,8 +8,9 @@
       OBS: Browser source, 1920×1080, on its own. The screen before, during a
       break in and after the stream:
         ?tela=comecando (default) · ?tela=volto · ?tela=fim
-      ?minutos=5 counts down on the "comecando" screen; ?titulo= replaces the
-      headline; ?chat=0 hides the chat; ?canal= and ?demo as in conversa.html.
+      ?minutos=5 counts down on the "comecando" screen; ?titulo= and ?rotulo=
+      replace the headline and the label above it; ?chat=0 hides the chat;
+      ?canal= and ?demo as in conversa.html.
     -->
     <style>
       .center {
@@ -115,7 +116,7 @@
         fim: { eyebrow: "Fim da live", title: "Valeu por assistir!" },
       }
       const screen = SCREENS[params.get("tela")] || SCREENS.comecando
-      document.getElementById("eyebrow").textContent = screen.eyebrow
+      document.getElementById("eyebrow").textContent = params.get("rotulo") || screen.eyebrow
       document.getElementById("title").textContent = params.get("titulo") || screen.title
 
       if (params.get("chat") === "0") {
