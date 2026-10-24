@@ -7,7 +7,8 @@
     <!--
       OBS: Browser source, 1920×1080, above the camera. The camera fills the
       hole, 1280×720 at (64, 64); the Twitch chat runs down the right.
-      ?topico= sets the line under the camera; ?canal= the chat's channel
+      ?topico= sets the line under the camera and ?rotulo= the label above it
+      (default "Agora"); ?canal= the chat's channel
       (default muanlartins); ?demo fills the chat with sample messages.
     -->
     <style>
@@ -70,7 +71,7 @@
       <div id="plate"></div>
       <div class="below">
         <div>
-          <p class="eyebrow">Agora</p>
+          <p class="eyebrow" id="label">Agora</p>
           <p class="topic" id="topic">Rocket League</p>
         </div>
       </div>
@@ -85,6 +86,7 @@
       const attention = plate(document.getElementById("plate"), `muanlartins<span class="accent">.com.br</span>`)
       alternate(5, attention, border.glint)
       if (params.get("topico")) document.getElementById("topic").textContent = params.get("topico")
+      if (params.get("rotulo")) document.getElementById("label").textContent = params.get("rotulo")
       chat(document.getElementById("chat"))
     </script>
   </body>

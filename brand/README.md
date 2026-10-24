@@ -56,8 +56,8 @@ The overlays for OBS are web pages in `public/stream/`, served with the site at 
 | Page | Scene | What |
 |---|---|---|
 | `jogo.html` | Jogo, Jogo + chat | Transparent; the camera frame, 480×270 at (44, 740), bottom left, clear of the boost meter and the scoreboard. `?lado=direita` and `?altura=cima` move it to (1396, 740) or (44, 44). `?chat=1` adds the chat on the other side, 420×640 at (1456, 96), above the boost meter; there messages leave after 45 s. |
-| `conversa.html` | Conversa | The camera large, 1280×720 at (64, 64), the chat down the right and a line under the camera (`?topico=`). |
-| `intervalo.html` | Começando, Já volto, Fim | `?tela=comecando` (default; `?minutos=5` counts down), `?tela=volto`, `?tela=fim`. `?titulo=` replaces the headline, `?chat=0` hides the chat. |
+| `conversa.html` | Conversa | The camera large, 1280×720 at (64, 64), the chat down the right and a line under the camera (`?topico=`, with `?rotulo=` for the label above it, "Agora" by default). |
+| `intervalo.html` | Começando, Já volto, Fim | `?tela=comecando` (default; `?minutos=5` counts down), `?tela=volto`, `?tela=fim`. `?titulo=` and `?rotulo=` replace the headline and the label above it, `?chat=0` hides the chat. |
 | `transicao.html` → `transicao.webm` | Transition | The stinger. OBS plays stingers from video files only, so `twitch/transicao.mjs` renders the page frame by frame into a VP9 WebM with transparency. Transition point: 600 ms. |
 
 The camera frame is a Klein band with its top-left and bottom-right corners cut at 45° (the mark's 180° symmetry), lined with the lattice. Two streaks, Branco and Klein claro, the mark's two copies, run around it half a lap apart. A name plate with the small mark and `muanlartins.com.br` sits on its bottom edge. Every 5 s, in turn, something moves to catch the eye: the plate's line wipes out and back in, or a sheen crosses the band at 45°, from one cut corner to the other. On the Klein ground of `conversa.html` the band is navy, to read as a frame.
