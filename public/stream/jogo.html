@@ -9,7 +9,9 @@
       except for the camera frame. The camera goes under it, 480×270 at
       (44, 740): bottom left, clear of Rocket League's boost meter and
       scoreboard. ?lado=direita moves it to the right, ?altura=cima to the top
-      (the positions are in brand/README.md).
+      (the positions are in brand/README.md). ?chat=1 adds the Twitch chat on
+      the other side, above the boost meter (?canal= and ?demo as in
+      conversa.html).
     -->
     <style>
       .hole {
@@ -26,12 +28,27 @@
       .hole.top {
         top: 44px;
       }
+      .game-chat {
+        top: 96px;
+        right: 44px;
+        width: 420px;
+        height: 640px;
+      }
+      .game-chat.left {
+        right: auto;
+        left: 44px;
+      }
+      /* Over the game the cards need more ground to read on any arena. */
+      .game-chat .message {
+        background: rgb(0 20 71 / 0.82);
+      }
     </style>
   </head>
   <body>
     <main class="stage">
       <div class="hole"></div>
       <div id="plate"></div>
+      <div class="game-chat" id="chat" hidden></div>
     </main>
     <script src="stream.js"></script>
     <script>
@@ -47,8 +64,16 @@
       tab.style.left = `${hole.offsetLeft - BAND}px`
       tab.style.top = `${hole.offsetTop + hole.offsetHeight + BAND - 26}px`
 
-      // Every 20 s, in turn: the plate's line wipes, or the frame lights up.
-      alternate(20, attention, border.trace)
+      // Every 5 s, in turn: the plate's line wipes, or the frame catches the light.
+      alternate(5, attention, border.glint)
+
+      // Opposite the camera; messages leave after 45 s so a quiet chat leaves the game clear.
+      if (params.get("chat") === "1") {
+        const box = document.getElementById("chat")
+        box.hidden = false
+        box.classList.toggle("left", params.get("lado") === "direita")
+        chat(box, { keep: 45, max: 10 })
+      }
     </script>
   </body>
 </html>
