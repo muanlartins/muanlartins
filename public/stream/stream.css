@@ -1,0 +1,244 @@
+/*
+ * The stream overlays (brand/README.md, "Stream"): OBS browser sources, laid
+ * out at 1920×1080 and scaled to the source's size by stream.js. Same identity as the site and the channel art: Klein ground, the
+ * mark's 45° lattice, Branco ink, Klein claro accents, Space Grotesk.
+ */
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("space-grotesk.ttf") format("truetype");
+  font-weight: 300 700;
+  font-display: block;
+}
+
+:root {
+  --klein: #002fa7;
+  --klein-claro: #85a7ff;
+  --paper: #f4f5f7;
+  --navy: #001447;
+  /* One lattice cell, as in the 404 and the channel art. */
+  --unit: 24px;
+  --lattice-line: rgb(133 167 255 / 0.22);
+  --ease: cubic-bezier(0.65, 0, 0.35, 1);
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
+
+body {
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  color: var(--paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* A 1920×1080 canvas, so pages lay out in the same pixels OBS composes in. */
+.stage {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  transform-origin: 0 0;
+}
+
+/*
+ * The lattice as a background: hairlines at ±45°, one every --unit. It drifts
+ * one cell along the diagonal every 12 s, slow enough to read as texture and
+ * enough to show the stream isn't frozen.
+ */
+.ground {
+  position: absolute;
+  inset: 0;
+  background: var(--klein);
+}
+.ground::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--unit) * -2);
+  background:
+    repeating-linear-gradient(45deg, transparent 0 calc(var(--unit) * 0.7071 - 1px), var(--lattice-line) 0 calc(var(--unit) * 0.7071)),
+    repeating-linear-gradient(-45deg, transparent 0 calc(var(--unit) * 0.7071 - 1px), var(--lattice-line) 0 calc(var(--unit) * 0.7071));
+  animation: drift 12s linear infinite;
+}
+@keyframes drift {
+  to {
+    transform: translate(var(--unit), var(--unit));
+  }
+}
+
+/* --- The camera frame (stream.js, frame()) -------------------------------- */
+
+/*
+ * A Klein band around the camera, cut at 45° on two opposite corners like the
+ * mark's 180° symmetry. Two light streaks run around it, half a lap apart:
+ * Branco and Klein claro, the mark's two copies.
+ */
+.frame {
+  position: absolute;
+  pointer-events: none;
+}
+.frame svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.frame .streak {
+  animation: lap var(--lap, 9s) linear infinite;
+}
+@keyframes lap {
+  from {
+    stroke-dashoffset: var(--from);
+  }
+  to {
+    stroke-dashoffset: calc(var(--from) - 1000);
+  }
+}
+
+/*
+ * The name plate: a Klein tab on the frame's bottom edge, its right side cut
+ * at 45°. It wipes in along that diagonal and swaps its line now and then.
+ */
+.plate {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 72px 0 14px;
+  background: var(--klein);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 52px) 100%, 0 100%);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  animation: wipe-in 0.8s var(--ease) 0.4s both;
+}
+.plate img {
+  width: 40px;
+  height: 40px;
+}
+.plate .line {
+  display: inline-block;
+}
+.plate .line.swap {
+  animation: swap 0.7s var(--ease);
+}
+.plate .accent {
+  color: var(--klein-claro);
+}
+@keyframes wipe-in {
+  from {
+    clip-path: polygon(0 0, 0 0, -52px 100%, 0 100%);
+  }
+}
+@keyframes swap {
+  0% {
+    clip-path: inset(0 0 0 0);
+  }
+  45% {
+    clip-path: inset(0 0 0 100%);
+  }
+  55% {
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* --- Chat (stream.js, chat()) -------------------------------------------- */
+
+.chat {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+  overflow: hidden;
+  /* Old messages fade out at the top instead of being cut. */
+  -webkit-mask: linear-gradient(to bottom, transparent, #000 96px);
+  mask: linear-gradient(to bottom, transparent, #000 96px);
+}
+.message {
+  flex: none;
+  padding: 12px 16px 13px;
+  background: rgb(0 20 71 / 0.55);
+  border-left: 4px solid var(--klein-claro);
+  font-size: 22px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  animation: wipe-in-message 0.5s var(--ease) both;
+}
+.message.broadcaster {
+  border-left-color: var(--paper);
+}
+.message.out {
+  animation: fade-out 0.6s var(--ease) both;
+}
+.message .name {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--klein-claro);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.message.broadcaster .name {
+  color: var(--paper);
+}
+.message .name img {
+  width: 20px;
+  height: 20px;
+  margin-right: 6px;
+  vertical-align: -4px;
+}
+.message .emote {
+  height: 1.5em;
+  vertical-align: -0.38em;
+  margin: 0 1px;
+}
+.message.action .text {
+  font-style: italic;
+  color: var(--klein-claro);
+}
+@keyframes wipe-in-message {
+  from {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    transform: translateY(12px);
+  }
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+
+/* --- Type ----------------------------------------------------------------- */
+
+.eyebrow {
+  margin: 0;
+  color: var(--klein-claro);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
