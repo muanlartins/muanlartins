@@ -155,8 +155,8 @@ function drawCopy(paths, progress) {
 }
 
 /**
- * Twitch chat, read anonymously over IRC (no login, read-only). New messages
- * come in at the bottom; with `keep`, each fades out after that many seconds.
+ * Twitch chat, read anonymously over IRC (no login, read-only), opening with
+ * the last 20 messages (history() below). New messages come in at the bottom; with `keep`, each fades out after that many seconds.
  * Commands (!…) and the usual bots are left out. ?demo fills it with sample
  * messages to set the scene up offline.
  */
@@ -166,6 +166,8 @@ function chat(box, { keep = 0, max = 40 } = {}) {
 
   function show({ id, user, name, text, emotes, broadcaster, action }) {
     if (bots.has(user) || text.startsWith("!")) return
+    // The history and the live connection can both bring the same message.
+    if (id && box.querySelector(`[data-id="${CSS.escape(id)}"]`)) return
     const el = document.createElement("div")
     el.className = "message"
     el.classList.toggle("broadcaster", broadcaster)
@@ -231,26 +233,8 @@ function chat(box, { keep = 0, max = 40 } = {}) {
     }
     ws.onmessage = ({ data }) => {
       for (const line of data.split("\r\n")) {
-        if (!line) continue
-        const { tags, prefix, command, trailing } = parseIrc(line)
-        if (command === "PING") ws.send(`PONG :${trailing}`)
-        else if (command === "PRIVMSG") {
-          const action = trailing.startsWith("\u0001ACTION ") && trailing.endsWith("\u0001")
-          show({
-            id: tags.id,
-            user: prefix.split("!")[0],
-            name: tags["display-name"] || prefix.split("!")[0],
-            text: action ? trailing.slice(8, -1) : trailing,
-            emotes: tags.emotes,
-            broadcaster: (tags.badges || "").includes("broadcaster/"),
-            action,
-          })
-        } else if (command === "CLEARMSG") {
-          box.querySelectorAll(`[data-id="${CSS.escape(tags["target-msg-id"] || "")}"]`).forEach(remove)
-        } else if (command === "CLEARCHAT") {
-          const selector = trailing ? `[data-user="${CSS.escape(trailing)}"]` : ".message"
-          box.querySelectorAll(selector).forEach(remove)
-        }
+        if (line.startsWith("PING")) ws.send(`PONG :${parseIrc(line).trailing}`)
+        else if (line) handle(line)
       }
     }
     ws.onclose = () => {
@@ -258,7 +242,48 @@ function chat(box, { keep = 0, max = 40 } = {}) {
       delay = Math.min(delay * 2, 30000)
     }
   }
+
+  function apply(line) {
+    const { tags, prefix, command, trailing } = parseIrc(line)
+    if (command === "PRIVMSG") {
+      const action = trailing.startsWith("\u0001ACTION ") && trailing.endsWith("\u0001")
+      show({
+        id: tags.id,
+        user: prefix.split("!")[0],
+        name: tags["display-name"] || prefix.split("!")[0],
+        text: action ? trailing.slice(8, -1) : trailing,
+        emotes: tags.emotes,
+        broadcaster: (tags.badges || "").includes("broadcaster/"),
+        action,
+      })
+    } else if (command === "CLEARMSG") {
+      box.querySelectorAll(`[data-id="${CSS.escape(tags["target-msg-id"] || "")}"]`).forEach(remove)
+    } else if (command === "CLEARCHAT") {
+      const selector = trailing ? `[data-user="${CSS.escape(trailing)}"]` : ".message"
+      box.querySelectorAll(selector).forEach(remove)
+    }
+  }
+
+  // Live lines that arrive while the history loads wait for it, so the order holds.
+  let waiting = []
+  const handle = (line) => (waiting ? waiting.push(line) : apply(line))
+  history()
+    .catch(() => {})
+    .finally(() => {
+      const live = waiting
+      waiting = null
+      live.forEach(apply)
+    })
   connect()
+
+  // The last messages before the page loaded, so it opens like Twitch's own chat. Twitch's IRC has no
+  // history; recent-messages.robotty.de keeps it, already without what moderators removed. If it's
+  // down or slow, the chat just starts empty.
+  async function history() {
+    const url = `https://recent-messages.robotty.de/api/v2/recent-messages/${CHANNEL}?limit=20&hide_moderation_messages=true&hide_moderated_messages=true`
+    const { messages = [] } = await (await fetch(url, { signal: AbortSignal.timeout(5000) })).json()
+    messages.forEach(apply)
+  }
 }
 
 function parseIrc(line) {
@@ -280,8 +305,10 @@ function parseIrc(line) {
     rest = rest.slice(space + 1)
   }
   const colon = rest.indexOf(" :")
-  const trailing = colon < 0 ? "" : rest.slice(colon + 2)
-  const [command] = (colon < 0 ? rest : rest.slice(0, colon)).split(" ")
+  const [command, ...middle] = (colon < 0 ? rest : rest.slice(0, colon)).split(" ")
+  // The last parameter can come without its colon when it has no spaces: Twitch always sends the colon,
+  // the history service doesn't ("PRIVMSG #canal oi"). The first parameter is the channel.
+  const trailing = colon < 0 ? (middle.length > 1 ? middle[middle.length - 1] : "") : rest.slice(colon + 2)
   return { tags, prefix, command, trailing }
 }
 
