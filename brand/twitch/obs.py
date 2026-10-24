@@ -14,8 +14,6 @@ SITE = "https://muanlartins.com.br/stream"
 STINGER = sys.argv[1] if len(sys.argv) > 1 else "C:/Users/muanl/Documents/muanlartins-obs/transicao.webm"
 # Rocket League's window, matched by executable (priority 2) so a title change doesn't lose it.
 ROCKET_LEAGUE = "Rocket League (64-bit, DX11, Cooked):LaunchUnrealUWindowsClient:RocketLeague.exe"
-# RLR, the replay player, in Brave, matched by title (priority 1): every Brave window shares the executable.
-RLR = "RLR - Brave:Chrome_WidgetWin_1:brave.exe"
 CAMERA = "Camera (NVIDIA Broadcast):"
 MIC = "{0.0.1.00000000}.{1bd84196-0816-4f00-8c22-a2b3950b995a}"
 # OBS's base canvas. The overlays are laid out at 1920×1080 and scale themselves to it.
@@ -61,11 +59,11 @@ def scene(name, *items):
 
 game = source("game_capture", "Rocket League", {"capture_mode": "window", "window": ROCKET_LEAGUE, "priority": 2,
                                                 "capture_cursor": False, "allow_transparency": False})
-replay = source("window_capture", "RLR", {"window": RLR, "priority": 1, "cursor": True})
 # Stays on between scenes, so switching to one with the camera doesn't wait for it to start.
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,
                                          "deactivate_when_not_showing": False})
 game_overlay = browser("Overlay · Jogo", "jogo.html")
+game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1")
 chat_overlay = browser("Overlay · Conversa", "conversa.html")
 # Restarts when shown, so the countdown starts over each time the scene goes live.
 starting = browser("Tela · Começando", "intervalo.html?tela=comecando&minutos=5", restart=True)
@@ -76,13 +74,14 @@ end = browser("Tela · Fim", "intervalo.html?tela=fim")
 scenes = [
     scene("Começando", (starting, {})),
     scene("Jogo", (game, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}), (game_overlay, {})),
+    scene("Jogo + chat", (game, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}),
+          (game_chat_overlay, {})),
     scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (chat_overlay, {})),
-    scene("Replay", (replay, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}), (game_overlay, {})),
     scene("Já volto", (back, {})),
     scene("Fim", (end, {})),
 ]
-# The game and the replay fill the screen keeping their aspect ratio rather than cropping.
-for captured in (scenes[1], scenes[3]):
+# The game fills the screen keeping its aspect ratio rather than cropping.
+for captured in (scenes[1], scenes[2]):
     captured["settings"]["items"][0]["bounds_type"] = BOUNDS_SCALE_INNER
     captured["settings"]["items"][0]["bounds_crop"] = False
 
@@ -95,7 +94,7 @@ collection = {
     "current_scene": "Começando",
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
-    "sources": scenes + [game, replay, camera, game_overlay, chat_overlay, starting, back, end],
+    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, starting, back, end],
     "groups": [],
     "DesktopAudioDevice1": source("wasapi_output_capture", "Áudio do computador", {"device_id": "default"}),
     "AuxAudioDevice1": source("wasapi_input_capture", "Microfone", {"device_id": MIC}),

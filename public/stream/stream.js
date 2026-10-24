@@ -24,8 +24,8 @@ const CHANNEL = (params.get("canal") || "muanlartins").toLowerCase()
  * draws square underneath. On the Klein ground, `fill` darkens the band to navy
  * so it still reads as a frame.
  *
- * The returned element has trace(): the band lights up, Branco and Klein claro
- * each drawing half of it from one of the cut corners, then fades.
+ * The returned element has glint(), to catch the eye now and then: a sheen
+ * crossing the band at 45°, from the top-left cut to the bottom-right one.
  */
 function frame(hole, { band = 12, fill = "#002fa7" } = {}) {
   const w = hole.offsetWidth
@@ -56,14 +56,9 @@ function frame(hole, { band = 12, fill = "#002fa7" } = {}) {
       )
       .join("")
 
-  // The trace's half-laps start at the cut corners: the band's centre line, begun at the top-left cut,
-  // reaches the bottom-right one exactly halfway round (pathLength 1000 → 500).
-  const m = (cut + innerCut) / 2
-  const [x0, y0, x1, y1] = [-t / 2, -t / 2, w + t / 2, h + t / 2]
-  const lap = `M${x0} ${y0 + m}L${x0 + m} ${y0}H${x1}V${y1 - m}L${x1 - m} ${y1}H${x0}Z`
-  const trace = (color, start) =>
-    `<path class="trace" d="${lap}" pathLength="1000" fill="none" stroke="${color}" stroke-width="${t}"
-      stroke-dasharray="0 1000" stroke-dashoffset="${-start}" opacity="0"/>`
+  // The glint's sheen runs along x + y = constant, SHEEN px across, in a rect that slides along the diagonal.
+  const SHEEN = 90
+  const reach = w + h + 4 * t
 
   const uid = `f${Math.random().toString(36).slice(2, 8)}`
   const el = document.createElement("div")
@@ -75,27 +70,34 @@ function frame(hole, { band = 12, fill = "#002fa7" } = {}) {
         <path d="M0 0L12 12M0 12L12 0" stroke="#85a7ff" stroke-opacity="0.3" stroke-width="1"/>
       </pattern>
       <clipPath id="${uid}c"><path d="${outer}${inner}" clip-rule="evenodd"/></clipPath>
+      <linearGradient id="${uid}g" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${SHEEN}" y2="${SHEEN}">
+        <stop offset="0" stop-color="#f4f5f7" stop-opacity="0"/>
+        <stop offset="0.5" stop-color="#f4f5f7" stop-opacity="0.9"/>
+        <stop offset="1" stop-color="#f4f5f7" stop-opacity="0"/>
+      </linearGradient>
     </defs>
     <path d="${outer}${inner}" fill="${fill}" fill-rule="evenodd"/>
     <g clip-path="url(#${uid}c)">
       <rect x="${-t}" y="${-t}" width="${w + 2 * t}" height="${h + 2 * t}" fill="url(#${uid}l)"/>
       ${streak("#f4f5f7", 0)}${streak("#85a7ff", -500)}
-      ${trace("#f4f5f7", 0)}${trace("#85a7ff", 500)}
+      <rect class="glint" x="${-reach}" y="${-reach}" width="${2 * reach}" height="${2 * reach}" fill="url(#${uid}g)"/>
     </g>
     <path d="${inner}" fill="none" stroke="#85a7ff" stroke-opacity="0.7" stroke-width="1.5"/>
   </svg>`
   hole.after(el)
-  el.trace = () => {
-    for (const path of el.querySelectorAll(".trace"))
-      path.animate(
-        [
-          { strokeDasharray: "0 1000", opacity: 1, easing: "cubic-bezier(0.65, 0, 0.35, 1)" },
-          { strokeDasharray: "500 1000", opacity: 1, offset: 0.55 },
-          { strokeDasharray: "500 1000", opacity: 0 },
-        ],
-        { duration: 1800 },
-      )
-  }
+
+  // The sheen spans x + y = SHEEN ± SHEEN, moved by 2 × the translation. The band runs from the top-left
+  // cut, x + y = 0, to the bottom-right one, x + y = w + h: start wholly before it and end wholly past it.
+  const glint = el.querySelector(".glint")
+  const from = -SHEEN - t
+  const to = (w + h) / 2 + t
+  // At rest it waits off the band, where the animation starts and returns to.
+  glint.style.transform = `translate(${from}px, ${from}px)`
+  el.glint = () =>
+    glint.animate([{ transform: `translate(${from}px, ${from}px)` }, { transform: `translate(${to}px, ${to}px)` }], {
+      duration: 1300,
+      easing: "cubic-bezier(0.65, 0, 0.35, 1)",
+    })
   return el
 }
 
