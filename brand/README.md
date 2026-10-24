@@ -45,8 +45,34 @@ The website extends this into a ramp of Klein tints (see `app/globals.css`).
 | `youtube/thumbnails/ranks/<rank>.png` | The in-game emblem of each rank's division I (Psyonix's art, from `github.com/manucabral/rocket-league-rank-viewer`), for the thumbnails. It sits next to them because `rsvg-convert` only loads images from the SVG's folder or below. |
 | `twitch/profile-800.png`, `twitch/banner-1200x480.png`, `twitch/offline-1920x1080.png` | Twitch profile picture, profile banner and the player's offline image. Twitch shows the banner behind the player, so it is only the lattice; accent colour is Klein. |
 | `webcam/webcam-{left,right}-{1920x1080,3840x2160}.png` | Webcam background: the banner's look with the lockup in a top corner, and the lattice faded out where you sit. Pick the side your head isn't on. |
+| `twitch/obs.py`, `twitch/transicao.mjs` | The stream's OBS scene collection and the renderer of its transition. See "Stream" below. |
 | `brand-board.png` | Everything above on one page. |
 | `explorations/` | How it got here — see its README. |
+
+## Stream
+
+The overlays for OBS are web pages in `public/stream/`, served with the site at `muanlartins.com.br/stream/`, so OBS loads them by URL and a release updates them. They're laid out at 1920×1080 and scale themselves to the browser source's size (the OBS canvas is 2560×1440). Pixel positions below are in 1920×1080; on the canvas, multiply by 4/3.
+
+| Page | Scene | What |
+|---|---|---|
+| `jogo.html` | Jogo, Replay | Transparent; the camera frame, 480×270 at (44, 740), bottom left, clear of the boost meter and the scoreboard. `?lado=direita` and `?altura=cima` move it to (1396, 740) or (44, 44). |
+| `conversa.html` | Conversa | The camera large, 1280×720 at (64, 64), the chat down the right and a line under the camera (`?topico=`). |
+| `intervalo.html` | Começando, Já volto, Fim | `?tela=comecando` (default; `?minutos=5` counts down), `?tela=volto`, `?tela=fim`. `?titulo=` replaces the headline, `?chat=0` hides the chat. |
+| `transicao.html` → `transicao.webm` | Transition | The stinger. OBS plays stingers from video files only, so `twitch/transicao.mjs` renders the page frame by frame into a VP9 WebM with transparency. Transition point: 600 ms. |
+
+The camera frame is a Klein band with its top-left and bottom-right corners cut at 45° (the mark's 180° symmetry), lined with the lattice. Two streaks, Branco and Klein claro, the mark's two copies, run around it half a lap apart. A name plate with the small mark sits on its bottom edge. On the Klein ground of `conversa.html` the band is navy, to read as a frame.
+
+The chat is Twitch's, read anonymously over IRC (`?canal=`, default `muanlartins`), with emotes, without commands (`!…`) or bots, and with moderation deletes applied. `?demo` fills it with sample messages, to set scenes up offline.
+
+The transition: two Klein panels close in from opposite corners along the lattice, one turned 180° from the other, each led by a streak of its copy's colour that stretches with its speed. The screen is covered while the mark draws itself, then the panels pull back into the centre line and take the mark with them.
+
+To set OBS up, import the scene collection (Scene Collection → Import):
+
+```bash
+python3 brand/twitch/obs.py "C:/Users/muanl/Documents/muanlartins-obs/transicao.webm" > muanlartins.json
+```
+
+The argument is where `transicao.webm` sits on the streaming machine. The canvas size and the devices (camera, microphone, the windows of Rocket League and RLR) are constants at the top of `obs.py`. To re-render the transition after changing the page: `CHROME=/path/to/chrome node brand/twitch/transicao.mjs` (needs ffmpeg and `playwright-core`).
 
 ## Rules of thumb
 

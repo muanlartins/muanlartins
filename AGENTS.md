@@ -41,6 +41,7 @@ Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand token
 - `components/site/`: the site's own components; `components/site/roadmap/` is the roadmap. `components/ui/` holds vendored registry components (the Aceternity timeline), adapted. `components/lifeline/` is vendored too.
 - `lib/`: `site.ts` (locales, sections, UI strings), `roadmap.ts` (roadmap types and ordering), `progress.ts` (saved progress), `air-roll.ts` (car physics).
 - `public/models/`, `public/ranks/`: 3D models and rank emblems (credits below).
+- `public/stream/`: the Twitch overlays, plain HTML pages that OBS loads by URL (see "Stream" in `brand/README.md`).
 - `brand/build.py` regenerates logos, site icons and YouTube art.
 - `infra/site.yml` and `.github/workflows/deploy.yml`: hosting and release.
 

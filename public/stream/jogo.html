@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Jogo · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: Browser source, 1920×1080, above the game capture. Transparent
+      except for the camera frame. The camera goes under it, 480×270 at
+      (44, 740): bottom left, clear of Rocket League's boost meter and
+      scoreboard. ?lado=direita moves it to the right, ?altura=cima to the top
+      (the positions are in brand/README.md).
+    -->
+    <style>
+      .hole {
+        position: absolute;
+        width: 480px;
+        height: 270px;
+        left: 44px;
+        top: 740px;
+      }
+      .hole.right {
+        left: auto;
+        right: 44px;
+      }
+      .hole.top {
+        top: 44px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <div class="hole"></div>
+      <div id="plate"></div>
+    </main>
+    <script src="stream.js"></script>
+    <script>
+      const BAND = 12
+      const hole = document.querySelector(".hole")
+      hole.classList.toggle("right", params.get("lado") === "direita")
+      hole.classList.toggle("top", params.get("altura") === "cima")
+      frame(hole, { band: BAND })
+
+      // The plate straddles the frame's bottom edge, flush with its left side.
+      const tab = document.getElementById("plate")
+      plate(tab, ["muanlartins", `muanlartins<span class="accent">.com.br</span>`])
+      tab.style.left = `${hole.offsetLeft - BAND}px`
+      tab.style.top = `${hole.offsetTop + hole.offsetHeight + BAND - 26}px`
+    </script>
+  </body>
+</html>

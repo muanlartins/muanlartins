@@ -360,6 +360,8 @@ def site_assets():
     (SITE / "public" / "brand" / "mark-on-klein.svg").write_text((ROOT / "logo/mark-on-klein.svg").read_text())
     (SITE / "public" / "brand" / "mark-small.svg").write_text((ROOT / "small/mark-small.svg").read_text())
     (SITE / "public" / "brand" / "mark-small-clear.svg").write_text((ROOT / "small/mark-small-clear.svg").read_text())
+    # The stream overlays (public/stream/) load the font from beside them.
+    (SITE / "public" / "stream" / "space-grotesk.ttf").write_bytes(FONT.read_bytes())
 
 
 LABEL_LEFT = 'font-family="Helvetica Neue, Arial" font-size="22" fill="#4A5060"'

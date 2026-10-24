@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Conversa · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: Browser source, 1920×1080, above the camera. The camera fills the
+      hole, 1280×720 at (64, 64); the Twitch chat runs down the right.
+      ?topico= sets the line under the camera; ?canal= the chat's channel
+      (default muanlartins); ?demo fills the chat with sample messages.
+    -->
+    <style>
+      .ground {
+        /* Everything but the camera's hole. */
+        clip-path: path(evenodd, "M0 0H1920V1080H0Z M64 64H1344V784H64Z");
+      }
+      .hole {
+        position: absolute;
+        left: 64px;
+        top: 64px;
+        width: 1280px;
+        height: 720px;
+      }
+      #plate {
+        left: 48px;
+        top: 774px;
+      }
+      .below {
+        position: absolute;
+        left: 64px;
+        top: 872px;
+        width: 1280px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 48px;
+      }
+      .topic {
+        margin: 8px 0 0;
+        font-size: 52px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+      }
+      .site {
+        margin: 0 0 6px;
+        color: var(--klein-claro);
+        font-size: 24px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .side {
+        position: absolute;
+        left: 1392px;
+        top: 64px;
+        width: 464px;
+        height: 952px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .side .eyebrow {
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgb(133 167 255 / 0.4);
+      }
+      #chat {
+        position: relative;
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <div class="ground"></div>
+      <div class="hole"></div>
+      <div id="plate"></div>
+      <div class="below">
+        <div>
+          <p class="eyebrow">Agora</p>
+          <p class="topic" id="topic">Rocket League</p>
+        </div>
+        <p class="site">muanlartins.com.br</p>
+      </div>
+      <aside class="side">
+        <p class="eyebrow">Chat</p>
+        <div id="chat"></div>
+      </aside>
+    </main>
+    <script src="stream.js"></script>
+    <script>
+      frame(document.querySelector(".hole"), { band: 16, fill: "#001447" })
+      plate(document.getElementById("plate"), ["muanlartins"])
+      if (params.get("topico")) document.getElementById("topic").textContent = params.get("topico")
+      chat(document.getElementById("chat"))
+    </script>
+  </body>
+</html>
