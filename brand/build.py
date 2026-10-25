@@ -332,6 +332,10 @@ THUMBNAILS = {
     "momentum": ("gold", ["Mantendo a", "velocidade"]),
     "half-flip": ("gold", ["Half flip"]),
     "high-aerial": ("gold", ["Aéreo", "alto"]),
+    "covering": ("gold", ["Compensando a", "posição do time"]),
+    "rebounds": ("gold", ["Rebotes"]),
+    "bounce-prediction": ("platinum", ["Previsão", "de bounce"]),
+    "shadow-defense": ("platinum", ["Shadow", "defense"]),
 }
 
 
