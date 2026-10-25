@@ -200,7 +200,21 @@ O conceito também vale para os outros. Se um adversário acabou de passar por v
 
 Não achei um pacote de treino bom para isso; é mais uma introdução ao que vem a seguir. O half flip é a mecânica que mais aproveita a ideia, e a shadow defense, no Platina, também faz bom uso dela.`,
             },
-            { id: "shadow-defense", rank: "platinum", title: { pt: "Shadow defense", en: "Shadow defense" } },
+            {
+              id: "shadow-defense",
+              rank: "platinum",
+              title: { pt: "Shadow defense", en: "Shadow defense" },
+              video: "KnOiDnlEPpM",
+              text: `A shadow defense é, para mim, o jeito de defender nos níveis mais avançados. É difícil, principalmente dependendo da bola, mas leva a sua defesa para outro patamar. Normalmente a gente defende de frente para a bola, saindo do gol para chutá-la contra o atacante. Funciona, mas dá muito espaço para ele driblar.
+
+Na shadow defense, você acompanha a bola vindo do campo deles para o seu, virado para o seu próprio gol, e escolhe a hora de interceptar: tirar a bola para o lado, cavar e seguir com a jogada, ou entrar perto do gol e sair carregando a bola. Num duelo 1v1, mesmo numa partida 2v2 ou 3v3, você não quer ficar enfiado no gol: quer acompanhar o atacante, indo para a esquerda quando ele vai para a esquerda e para a direita quando ele vai para a direita.
+
+O difícil é o ângulo. A bola vem das suas costas, e a setinha da bola não dá informação suficiente: use a ball cam e se acostume com ela vindo de trás. Se a bola vier muito alta, mande-a no travessão ou tire-a para o canto. Você vai bater com o bico no gol e chegar curto na bola muitas vezes; cuidado também para não tirá-la fraquinha, perto do gol.
+
+Com a bola vindo rápida e alta, acompanhe-a pelo chão com boost antes de subir: no chão você acelera mais rápido do que voando, e saindo voando direto você não chega na bola. É o que vimos em manter a velocidade.
+
+Para treinar, use o pacote Shadow Defense 101 (6726-51F1-6B0D-9540), do Prejump (prejump.com), com chutes de várias velocidades e alturas. O importante é ficar confortável interceptando a bola.`,
+            },
           ],
         },
         {
@@ -456,7 +470,6 @@ A logística é chegar com velocidade máxima: gaste o boost e faça um ou dois 
 
 Depois do primeiro toque, aconteça o que acontecer, pegue boost e volte para a sua área. Sai muito gol no kickoff, então fique atento a quem joga com você: se o seu colega vai na bola, venha atrás dele para cobrir.`,
             },
-            { id: "kickoff-intent", rank: "platinum", title: { pt: "Kickoff com intenção", en: "Kickoffs with intent" } },
           ],
         },
       ],
@@ -495,7 +508,21 @@ As decisões erradas também ensinam. Ir no defensor adversário em vez de ir na
 
 Jogar mais recuado, no erro dos outros, é um estilo; dá para jogar mais agressivo e jogar bem. O que não muda é ler para onde a jogada pode ir: um defensor apontado para o centro do campo só consegue tirar a bola para um lado, e quem fica nesse lado recebe praticamente um passe do adversário. E, sem comunicação, você nem sempre sabe o que o seu colega pretende; na dúvida, deixe a bola com quem está nela.`,
             },
-            { id: "bounce-prediction", rank: "gold", title: { pt: "Previsão básica de bounce", en: "Predicting bounces" } },
+            {
+              id: "bounce-prediction",
+              rank: "platinum",
+              title: { pt: "Previsão de bounce", en: "Predicting bounces" },
+              video: "eswE5M_wBis",
+              text: `Para disputar a bola, você precisa saber onde ela vai estar. Ler o quique (bounce) é física básica: como na sinuca, a bola sai de uma superfície no mesmo ângulo em que chegou, fazendo um V. No Rocket League há ainda a gravidade: indo para o lado e para cima, a bola cai naturalmente. O treino mostra a trajetória tracejada, mas não se guie por ela; no jogo ela não existe, e é na sua cabeça que você tem que imaginar o caminho.
+
+O primeiro nível de leitura é esperar a bola chegar ao chão e acertá-la, de preferência com a ball cam. O problema é o adversário: se você espera porque não sabe para onde a bola vai, ele pode chegar antes, subir e cortá-la, e o toque é dele. Por isso, um olho na bola e outro no adversário: a distância e a velocidade dele dizem se ele chega primeiro, e às vezes ele só finge que vai subir.
+
+Quem chega primeiro disputa a bola. Esperar mais dá um toque melhor, com a bola no meio do campo e força para o gol, mas arrisca o adversário chegar antes; o jogo é o equilíbrio entre os dois. Sem ninguém disputando, receber a bola no carro e conduzi-la costuma valer mais do que um chute.
+
+Na defesa, a leitura muda o lugar do toque. Um atacante vindo junto com a bola vai chutar na primeira brecha, então tire a bola antes dele, o mais perto possível da borda do gol, fechando o ângulo dele mesmo que o toque não saia perfeito.
+
+Para treinar, use os pacotes Sidewall bounce reading (D51D-9918-4A84-609F), só com bolas pela lateral, e Bounce Reads (DF13-7661-D094-0BDF), com leituras mais complicadas, como quiques de defesa e no canto do gol, que é curvo; os dois estão no Prejump (prejump.com). Nas configurações de controles, lá embaixo, há um comando para sortear os chutes, que no teclado não vem configurado: com ele, o pacote alterna chutes aleatórios, e você não decora a sequência.`,
+            },
           ],
         },
         {
@@ -528,7 +555,19 @@ No ataque, jogar a bola para o meio, na direção do gol, cria chances: o colega
 
 A rotação não para, mas a intenção precisa estar clara: girar o carro para trás mostra que você está voltando, e girar para a frente mostra que está indo. Mesmo voltando, dá para ajudar sem só se enfiar no gol: tirar um atacante do lance com um bump ou jogar a bola para fora.`,
             },
-            { id: "covering", rank: "gold", title: { pt: "Compensando a posição do time", en: "Covering for your team" } },
+            {
+              id: "covering",
+              rank: "gold",
+              title: { pt: "Compensando a posição do time", en: "Covering for your team" },
+              video: "BQPnK-7p8fQ",
+              text: `Mais uma partida comentada, agora sobre compensar a posição do time. Jogando com um amigo, vocês combinam quem faz o quê. Com um desconhecido, sem comunicação, você reage ao que ele faz: se ele vai no kickoff, você fica atrás; se ele vai na bola, você cobre o que ele deixou para trás; se ele não foi, a bola é sua.
+
+A tendência das pessoas é gostar muito da bola. Por isso, na maioria das vezes, compensar é jogar mais recuado: esperar os rebotes, cuidar da defesa e atacar só nas janelas em que dá para ir e voltar a tempo. Se o colega é passivo, faça o contrário e seja você o agressivo. Isso é bem mais raro, e muita gente prefere jogar agressivo e aproveitar as janelas; é uma questão de estilo.
+
+Leia com quem e contra quem você está jogando. Um colega que vai em toda bola não vai mudar em cinco minutos de partida, e você provavelmente nem cai com ele de novo, mas esses cinco minutos valem os seus pontos. Não adianta querer consertá-lo nem descontar a frustração: você controla o que você faz, não o que ele faz. A paciência compensa, e de vez em quando a bola sobra para você, na posição e no ângulo certos, justamente porque você esperou.
+
+O que está nas suas mãos é aproveitar as janelas que aparecem, sem um ataque malfeito nem uma defesa ruim. Quando um gol entra, olhe primeiro para o seu erro, que é o único que você pode corrigir.`,
+            },
           ],
         },
         {
@@ -650,7 +689,19 @@ Esse lance também ensina a evitar gol contra. Na frente da bola, no caminho del
 
 O mesmo vale no ataque: se você foi parar perto do gol adversário e o seu colega vem chutar, saia da frente. Quem tem o melhor ângulo é quem está atrás da bola, não quem está do lado dela. A posição em relação à bola importa, e a distância também, que é o embalo para chutar forte.`,
             },
-            { id: "rebounds", rank: "gold", title: { pt: "Rebotes", en: "Rebounds" } },
+            {
+              id: "rebounds",
+              rank: "gold",
+              title: { pt: "Rebotes", en: "Rebounds" },
+              video: "krG2KOIY1WA",
+              text: `O rebote é a bola que volta depois de um chute, da parede, da tabela ou do goleiro, como no futebol. Pegar o rebote é esperar essa segunda chance e colocar a bola no gol de novo. Ele está em Estratégia, e não em Mecânica, porque o que decide é ler onde a bola vai estar: é uma previsão de bounce mais um chute bem colocado.
+
+O rebote aéreo, depois de um chute forte, é o mais difícil, e não é o primeiro a aprender. O mais comum é o rebote da parede.
+
+Uma dica de mecânica: em vez do flip para a frente, use o flip na diagonal logo antes do contato. Mesmo errando o centro da bola, ele ajusta a trajetória do carro. Para mandar a bola para a esquerda, jogue o carro para a direita e toque nela pelo lado direito, como na sinuca. Você perde um pouco de força, mas a diagonal é bem melhor do que o flip lateral; só cuidado para acertar a bola com o capô, não com o bico. O flip não salva um pulo muito errado, e, com a mira já certa, pode estragá-la.
+
+Para treinar, use o pacote Rebound Consistency (E744-D5FC-64A7-037F), do Prejump (prejump.com), com chutes na tabela e saindo da parede, uns mais longe, mais aéreos e mais laterais que outros.`,
+            },
           ],
         },
         {
@@ -687,7 +738,6 @@ Tirar um adversário do lance, mesmo por poucos segundos, decide jogadas. Num at
 
 A demolição é para quando você não tem nada mais importante para fazer na bola: use esse tempo livre para tirar o defensor e deixar o colega fazer o gol. Só não troque a defesa por uma demolição, nem o contrário.`,
             },
-            { id: "avoiding-demos", rank: "gold", title: { pt: "Evitando demolição", en: "Avoiding demos" } },
           ],
         },
       ],
