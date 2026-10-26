@@ -27,7 +27,20 @@ export const page = {
 /** Each roadmap gets a page at /conteudo/<id>, with one page per topic. */
 export const roadmaps = [rocketLeague]
 
+/** The commented 2v2 ranked series: a YouTube playlist, not a page here. */
+const commented2v2 = {
+  id: "2v2-comentado",
+  name: { pt: "Rocket League 2v2 Comentado", en: "Rocket League 2v2, commented" },
+  summary: {
+    pt: "Partidas ranqueadas de 2v2, rumo ao Champion, comentando o que eu estou pensando em cada jogada.",
+    en: "Ranked 2v2 matches on the way to Champion, saying what I'm thinking on every play.",
+  },
+  href: "https://www.youtube.com/playlist?list=PLf2PbBfB1o0A",
+  language: "pt",
+} satisfies Project
+
 export const projects: Project[] = [
+  commented2v2,
   rlr,
   ...roadmaps.map((roadmap) => ({
     id: roadmap.id,
