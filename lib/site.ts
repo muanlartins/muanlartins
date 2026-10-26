@@ -41,6 +41,8 @@ export function sectionFromSlug(slug: string): Section | undefined {
  * these accounts and this site are the same person.
  */
 export const LINKS = [
+  { label: "YouTube", href: "https://www.youtube.com/@muanlartins" },
+  { label: "Twitch", href: "https://www.twitch.tv/muanlartins" },
   { label: "LinkedIn", href: "https://www.linkedin.com/in/muanlartins" },
   { label: "Instagram", href: "https://www.instagram.com/muanlartins" },
   { label: "GitHub", href: "https://github.com/muanlartins" },

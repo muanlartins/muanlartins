@@ -5,7 +5,7 @@ export function SiteFooter() {
     <footer className="border-t border-line">
       <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-[13px] text-muted">
         <p>© {new Date().getFullYear()} Luan Martins · muanlartins</p>
-        <ul className="flex gap-5">
+        <ul className="flex flex-wrap gap-x-5 gap-y-2 text-[14px] text-ink">
           {LINKS.map((link) => (
             <li key={link.href}>
               <a href={link.href} rel="me" className="transition-colors hover:text-klein">
