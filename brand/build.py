@@ -236,7 +236,7 @@ def webcam(width=3840, height=2160, side="left"):
     return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}{placed(lockup(height=mark_height, background=None), x0, y0)}', width, height)
 
 
-# The roadmap's ranks (content/rocket-league.ts): name and colour. youtube/thumbnails/ranks/<id>.png is the in-game emblem of division I.
+# The roadmap's ranks (content/rocket-league.ts): name and colour. youtube/thumbnails/ranks/<id>.png is the in-game emblem of tier I.
 RANKS = {
     "unranked": ("Unranked", "#5f6675"),
     "bronze": ("Bronze", "#a8683a"),
@@ -336,6 +336,61 @@ THUMBNAILS = {
     "rebounds": ("gold", ["Rebotes"]),
     "bounce-prediction": ("platinum", ["Previsão", "de bounce"]),
     "shadow-defense": ("platinum", ["Shadow", "defense"]),
+}
+
+
+def episode_thumbnail(number, rank, tier, width=1280, height=720):
+    """A 2v2 comentado episode: the frame of thumbnail() (lockup, lattice, emblem glowing on the right),
+    around "2v2" as large as it fits, its two 2s in the mark's two colours, one per player, and the
+    episode's number on a Branco plate cut at 45° like the stream's camera frame. The rank and tier
+    are where the episode was played, with that tier's emblem."""
+    margin = height * 0.09
+    mark_height = height * 0.075
+    w, h = lockup_size(mark_height)
+    pad = mark_height * 0.35
+    x0, y0 = margin - pad, margin - pad
+    side = height * 0.5
+    ex, ey = width - margin - side / 2, height * 0.36
+    glyphs = [wordmark(c, weight=700, size=100) for c in "2v2"]
+    num, num_width, _, _ = wordmark(f"{number:02d}", weight=700, size=100)
+    plate_size = 0.42
+    gap = 12
+    hero_width = sum(tw for _, tw, _, _ in glyphs) + gap + num_width * plate_size + 2 * 18
+    size = min(330, 100 * (width - 2 * margin - side * 1.05) / hero_width)
+    s = size / 100
+    label_size = height * 0.055
+    bottom = height - margin
+    cap = size * 0.70
+    top = bottom - cap - label_size * 1.6
+    name, color = RANKS[rank]
+    tag, _, _, _ = wordmark(f"{name.upper()} {tier}", weight=700, size=label_size)
+    label, label_width, _, _ = wordmark("Partidas comentadas", size=label_size)
+    text = (f'<path transform="translate({margin:.1f} {top - label_size * 0.5:.1f})" d="{tag}" fill="{lighten(color, 0.66)}"/>'
+            f'<path transform="translate({margin:.1f} {top + label_size * 0.72:.1f})" d="{label}" fill="{KLEIN_LIGHT}"/>')
+    x = margin
+    for (d, tw, _, _), fill in zip(glyphs, (PAPER, klein_tint(0.6), KLEIN_LIGHT)):
+        text += f'<path transform="translate({x:.1f} {bottom:.1f}) scale({s:.4f})" d="{d}" fill="{fill}"/>'
+        x += tw * s
+    ph, pw = cap * 0.52, (num_width * plate_size + 36) * s
+    px, py, cut = x + gap * s, bottom - ph, cap * 0.52 * 0.28
+    text += (f'<path d="M{px + cut:.1f} {py:.1f}H{px + pw:.1f}V{py + ph - cut:.1f}L{px + pw - cut:.1f} {py + ph:.1f}H{px:.1f}V{py + cut:.1f}Z" fill="{PAPER}"/>'
+             f'<path transform="translate({px + 18 * s:.1f} {py + ph * 0.5 + 70 * plate_size * s * 0.5:.1f}) scale({plate_size * s:.4f})" d="{num}" fill="{KLEIN}"/>')
+    block = max(label_width, px + pw - margin)
+    holes = [(margin + block / 2, (top + bottom) / 2, block * 0.8, (bottom - top) * 1.1),
+             (x0 + w / 2, y0 + h / 2, w * 0.75, h * 1.2), (ex, ey, side * 0.9, side * 0.9)]
+    art = (f'<defs><radialGradient id="glow" cx="{ex:.1f}" cy="{ey:.1f}" r="{side:.0f}" gradientUnits="userSpaceOnUse">'
+           f'<stop offset="0" stop-color="{color}" stop-opacity="0.95"/><stop offset="0.4" stop-color="{color}" stop-opacity="0.55"/>'
+           f'<stop offset="1" stop-color="{color}" stop-opacity="0"/></radialGradient></defs>'
+           f'<rect width="{width}" height="{height}" fill="url(#glow)"/>'
+           f'<image href="ranks/{rank}-{tier}.png" x="{ex - side / 2:.1f}" y="{ey - side / 2:.1f}" width="{side:.1f}" height="{side:.1f}" preserveAspectRatio="xMidYMid meet"/>')
+    grid = lattice(width, height, mark_height, x0, y0, holes, step=2)
+    return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{art}{grid}'
+               f'{placed(lockup(height=mark_height, background=None), x0, y0)}{text}', width, height)
+
+
+# One per episode of 2v2 comentado: the rank and tier it was played at.
+EPISODES = {
+    1: ("diamond", 2),
 }
 
 
@@ -464,6 +519,9 @@ if __name__ == "__main__":
     for name, (rank, lines) in THUMBNAILS.items():
         write(f"youtube/thumbnails/{name}.svg", thumbnail(lines, rank))
         png(f"youtube/thumbnails/{name}.svg", f"youtube/thumbnails/{name}.png", 1280)
+    for number, (rank, tier) in EPISODES.items():
+        write(f"youtube/thumbnails/2v2-{number:02d}.svg", episode_thumbnail(number, rank, tier))
+        png(f"youtube/thumbnails/2v2-{number:02d}.svg", f"youtube/thumbnails/2v2-{number:02d}.png", 1280)
 
     site_assets()
     print("klein light", KLEIN_LIGHT)
