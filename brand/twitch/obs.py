@@ -1,10 +1,12 @@
 """Writes the OBS scene collection for the stream: the overlays in public/stream/ as browser sources,
 laid out with the camera and the game, and transicao.webm as the stinger.
 
-    python3 brand/twitch/obs.py [stinger path] > muanlartins.json
+    python3 brand/twitch/obs.py [stinger path] [alerts URL] > muanlartins.json
 
 The stinger path is where transicao.webm sits on the streaming machine (OBS plays stingers from local
-files only). Import with Scene Collection → Import. Devices and the canvas below are Luan's OBS setup.
+files only). The alerts URL is the Twitch Alerts Box's browser source (Creator Dashboard → Alerts →
+Copy); it carries a token, so it is passed in rather than kept here, and without it the scenes have no
+alerts. Import with Scene Collection → Import. Devices and the canvas below are Luan's OBS setup.
 """
 import json
 import sys
@@ -12,6 +14,7 @@ import uuid
 
 SITE = "https://muanlartins.com.br/stream"
 STINGER = sys.argv[1] if len(sys.argv) > 1 else "C:/Users/muanl/Documents/muanlartins-obs/transicao.webm"
+ALERTS = sys.argv[2] if len(sys.argv) > 2 else None
 # Rocket League's window, matched by executable (priority 2) so a title change doesn't lose it.
 ROCKET_LEAGUE = "Rocket League (64-bit, DX11, Cooked):LaunchUnrealUWindowsClient:RocketLeague.exe"
 CAMERA = "Camera (NVIDIA Broadcast):"
@@ -69,14 +72,23 @@ chat_overlay = browser("Overlay · Conversa", "conversa.html")
 starting = browser("Tela · Começando", "intervalo.html?tela=comecando&minutos=5", restart=True)
 back = browser("Tela · Já volto", "intervalo.html?tela=volto")
 end = browser("Tela · Fim", "intervalo.html?tela=fim")
+# Twitch's Alerts Box, drawn by brand/twitch/alertas/: a band 168 px tall, centred in the source.
+ALERTS_SIZE = (1100, 200)
+alerts = ALERTS and source("browser_source", "Alertas", {"url": ALERTS, "width": ALERTS_SIZE[0], "height": ALERTS_SIZE[1],
+                                                         "fps_custom": True, "fps": 60, "restart_when_active": False,
+                                                         "shutdown": False, "css": ""})
+# In the game, centred under the scoreboard; in Conversa, under the camera.
+alerts_in_game = [(alerts, {"pos": (410, 130), "bounds": ALERTS_SIZE})] if alerts else []
+alerts_in_talk = [(alerts, {"pos": (154, 800), "bounds": ALERTS_SIZE})] if alerts else []
 
 # Hole positions match jogo.html and conversa.html.
 scenes = [
     scene("Começando", (starting, {})),
-    scene("Jogo", (game, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}), (game_overlay, {})),
+    scene("Jogo", (game, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}), (game_overlay, {}),
+          *alerts_in_game),
     scene("Jogo + chat", (game, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}),
-          (game_chat_overlay, {})),
-    scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (chat_overlay, {})),
+          (game_chat_overlay, {}), *alerts_in_game),
+    scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (chat_overlay, {}), *alerts_in_talk),
     scene("Já volto", (back, {})),
     scene("Fim", (end, {})),
 ]
@@ -94,7 +106,7 @@ collection = {
     "current_scene": "Começando",
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
-    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, starting, back, end],
+    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, starting, back, end] + ([alerts] if alerts else []),
     "groups": [],
     "DesktopAudioDevice1": source("wasapi_output_capture", "Áudio do computador", {"device_id": "default"}),
     "AuxAudioDevice1": source("wasapi_input_capture", "Microfone", {"device_id": MIC}),

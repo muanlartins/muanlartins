@@ -1,0 +1,117 @@
+/* Space Grotesk (Latin) from Google Fonts: Twitch's sanitizer keeps @font-face, not @import. */
+@font-face {
+  font-family: "Space Grotesk";
+  font-weight: 300 700;
+  font-display: block;
+  src: url("https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4C_k3HqU.woff2") format("woff2");
+}
+
+html {
+  overflow: hidden;
+}
+
+/* Twitch adds .playing for the alert's duration (7 s). */
+.alert_outer-container {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  font-family: "Space Grotesk", sans-serif;
+  color: #f4f5f7;
+  -webkit-font-smoothing: antialiased;
+}
+.alert_outer-container.playing {
+  animation:
+    wipe 0.9s cubic-bezier(0.65, 0, 0.35, 1) both,
+    leave 7s linear forwards;
+}
+
+/* The camera frame's band: Klein, cut at 45° on two opposite corners. */
+.faixa {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  height: 168px;
+  padding: 0 80px 0 40px;
+  background: #002fa7;
+  clip-path: polygon(48px 0, 100% 0, 100% calc(100% - 48px), calc(100% - 48px) 100%, 0 100%, 0 48px);
+  overflow: hidden;
+}
+.faixa::before {
+  content: "";
+  position: absolute;
+  inset: -48px;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 calc(24px * 0.7071 - 1px), rgb(133 167 255 / 0.22) 0 calc(24px * 0.7071)),
+    repeating-linear-gradient(-45deg, transparent 0 calc(24px * 0.7071 - 1px), rgb(133 167 255 / 0.22) 0 calc(24px * 0.7071));
+  animation: drift 12s linear infinite;
+}
+/* A sheen crosses the band at 45°, from one cut corner to the other. */
+.faixa::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent 42%, rgb(133 167 255 / 0.45) 50%, transparent 58%);
+  transform: translateX(-100%);
+}
+.playing .faixa::after {
+  animation: sheen 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.7s both;
+}
+
+.marca {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  flex: none;
+}
+.texto {
+  position: relative;
+  min-width: 0;
+}
+.rotulo {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #85a7ff;
+}
+.nome {
+  max-width: 760px;
+  margin: 6px 0 0;
+  overflow: hidden;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@keyframes wipe {
+  from {
+    clip-path: polygon(0 0, 0 0, -200px 100%, -200px 100%);
+  }
+  to {
+    clip-path: polygon(0 0, calc(100% + 200px) 0, 100% 100%, -200px 100%);
+  }
+}
+@keyframes leave {
+  0%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes sheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes drift {
+  to {
+    transform: translate(24px, 24px);
+  }
+}

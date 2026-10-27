@@ -5,6 +5,7 @@ import os
 import subprocess
 from pathlib import Path
 
+import segno
 import uharfbuzz as hb
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.pens.transformPen import TransformPen
@@ -394,6 +395,42 @@ EPISODES = {
 }
 
 
+def panel_shape(width, height, cut):
+    """The stream's camera frame as a closed path: top-left and bottom-right corners cut at 45°."""
+    return f"M{cut} 0H{width}V{height - cut}L{width - cut} {height}H0V{cut}Z"
+
+
+def panel(title, width=640, height=200, below=""):
+    """A Twitch panel (shown at 320 px wide, drawn at 2×): the small mark and `title` on Klein, on the
+    lattice, cut like the camera frame. `below` is markup drawn under the title row, inside the shape."""
+    cut = 40
+    m = 104
+    d, _, xh, _ = wordmark(title, size=84)
+    shape = panel_shape(width, height, cut)
+    body = (f'<defs><clipPath id="panel"><path d="{shape}"/></clipPath></defs>'
+            f'<path d="{shape}" fill="{KLEIN}"/>'
+            f'<g clip-path="url(#panel)">{lattice(width, height, m, 0, 0, [], step=2)}</g>'
+            f'<svg x="44" y="48" width="{m}" height="{m}" viewBox="0 0 256 256">{mark(**SMALL, background=None, uid="p")}</svg>'
+            f'<path transform="translate({44 + m + 28} {100 + xh / 2:.1f})" d="{d}" fill="{PAPER}"/>{below}')
+    return svg(body, width, height)
+
+
+def pix_panel(brcode, width=640):
+    """The Pix panel: panel() with the QR code for `brcode` (the bank's "copia e cola" text) in Klein
+    on a Branco plate cut like the frame, with the four-module quiet zone scanners need."""
+    rows = list(segno.make(brcode, error="m", micro=False).matrix)
+    plate = width - 2 * 44
+    cell = plate / (len(rows) + 8)
+    q = 4 * cell
+    px, py = 44, 200
+    modules = "".join(f"M{px + q + x * cell:.2f} {py + q + y * cell:.2f}h{cell:.2f}v{cell:.2f}h{-cell:.2f}Z"
+                      for y, row in enumerate(rows) for x, dark in enumerate(row) if dark)
+    plate_shape = panel_shape(plate, plate, 28)
+    below = (f'<path transform="translate({px} {py})" d="{plate_shape}" fill="{PAPER}"/>'
+             f'<path d="{modules}" fill="{KLEIN}" shape-rendering="crispEdges"/>')
+    return panel("Pix", width, py + plate + 44, below)
+
+
 def banner_preview(src, out, width=2560, height=1440):
     """The banner with YouTube's crops drawn on: TV (all), desktop (full-width strip), safe strip."""
     sw, sh = BANNER_SAFE
@@ -522,6 +559,14 @@ if __name__ == "__main__":
     for number, (rank, tier) in EPISODES.items():
         write(f"youtube/thumbnails/2v2-{number:02d}.svg", episode_thumbnail(number, rank, tier))
         png(f"youtube/thumbnails/2v2-{number:02d}.svg", f"youtube/thumbnails/2v2-{number:02d}.png", 1280)
+    # Twitch panels, under the player. The Pix one carries the bank's QR code, so it is drawn only when
+    # PIX_BRCODE (the "copia e cola" text) is set, and git ignores it: the key stays out of this public repo.
+    for name in ("Roadmap", "YouTube", "Regras"):
+        write(f"twitch/paineis/{name.lower()}.svg", panel(name))
+        png(f"twitch/paineis/{name.lower()}.svg", f"twitch/paineis/{name.lower()}.png", 640)
+    if os.environ.get("PIX_BRCODE"):
+        write("twitch/paineis/pix.svg", pix_panel(os.environ["PIX_BRCODE"]))
+        png("twitch/paineis/pix.svg", "twitch/paineis/pix.png", 640)
 
     site_assets()
     print("klein light", KLEIN_LIGHT)
