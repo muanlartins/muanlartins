@@ -342,7 +342,7 @@ THUMBNAILS = {
 
 def episode_thumbnail(number, rank, tier, width=1280, height=720):
     """A 2v2 comentado episode: the frame of thumbnail() (lockup, lattice, emblem glowing on the right),
-    around "2v2" as large as it fits, its two 2s in the mark's two colours, one per player, and the
+    around "2v2" as large as it fits, both 2s in Branco and the v in a Klein tint, and the
     episode's number on a Branco plate cut at 45° like the stream's camera frame. The rank and tier
     are where the episode was played, with that tier's emblem."""
     margin = height * 0.09
@@ -369,7 +369,7 @@ def episode_thumbnail(number, rank, tier, width=1280, height=720):
     text = (f'<path transform="translate({margin:.1f} {top - label_size * 0.5:.1f})" d="{tag}" fill="{lighten(color, 0.66)}"/>'
             f'<path transform="translate({margin:.1f} {top + label_size * 0.72:.1f})" d="{label}" fill="{KLEIN_LIGHT}"/>')
     x = margin
-    for (d, tw, _, _), fill in zip(glyphs, (PAPER, klein_tint(0.6), KLEIN_LIGHT)):
+    for (d, tw, _, _), fill in zip(glyphs, (PAPER, klein_tint(0.6), PAPER)):
         text += f'<path transform="translate({x:.1f} {bottom:.1f}) scale({s:.4f})" d="{d}" fill="{fill}"/>'
         x += tw * s
     ph, pw = cap * 0.52, (num_width * plate_size + 36) * s
