@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Partidas · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: a custom browser dock (Docks → Custom Browser Docks), for Luan only.
+      It reads each match from Rocket League's Stats API (ws://127.0.0.1:49124;
+      PacketSendRate above 0 in TAGame\Config\DefaultStatsAPI.ini), keeps the
+      sessions in the dock's own storage and sends the rank and the day's record
+      to the overlays through obs-websocket (obs-browser's emit_event), where
+      jogo.html draws them on the camera frame. "Publicar" writes each session
+      to content/matches/ in the repository, which the site reads.
+
+      The game can't tell the rank, so it's set here, per mode. The OBS
+      websocket password and the GitHub token (fine-grained, Contents read and
+      write on muanlartins/muanlartins only) are kept in the dock's storage;
+      #obs=<password> in the URL fills the first one.
+    -->
+    <style>
+      html,
+      body {
+        overflow: auto;
+        background: var(--navy);
+      }
+      body {
+        padding: 14px;
+        font-size: 15px;
+        line-height: 1.35;
+      }
+      h2 {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 18px 0 8px;
+        color: var(--klein-claro);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      h2:first-child {
+        margin-top: 0;
+      }
+      .status {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 14px;
+        color: rgb(244 245 247 / 0.6);
+        font-size: 12px;
+      }
+      .status span::before {
+        content: "";
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background: rgb(244 245 247 / 0.3);
+      }
+      .status .on::before {
+        background: var(--klein-claro);
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .rank-row img {
+        width: 44px;
+        height: 44px;
+      }
+      select,
+      input,
+      button {
+        font: inherit;
+        font-size: 14px;
+        color: var(--paper);
+        background: rgb(0 47 167 / 0.45);
+        border: 1px solid rgb(133 167 255 / 0.4);
+        padding: 6px 9px;
+      }
+      select option {
+        background: var(--navy);
+      }
+      button {
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--klein-claro);
+      }
+      button.primary {
+        background: var(--klein);
+        border-color: var(--klein);
+      }
+      .tabs button[aria-pressed="true"] {
+        background: var(--klein);
+        border-color: var(--klein-claro);
+      }
+      .today {
+        font-size: 30px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .today .accent {
+        color: var(--klein-claro);
+      }
+      .today small {
+        margin-left: 6px;
+        color: var(--klein-claro);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .matches li {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 4px 10px;
+        padding: 7px 8px 7px 10px;
+        margin-bottom: 4px;
+        background: rgb(0 47 167 / 0.35);
+        border-left: 3px solid var(--klein-claro);
+      }
+      .matches li.loss {
+        border-left-color: rgb(244 245 247 / 0.35);
+      }
+      .matches li.off {
+        opacity: 0.45;
+      }
+      .matches .result {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .matches .detail {
+        color: rgb(244 245 247 / 0.75);
+        font-size: 13px;
+      }
+      .matches .actions {
+        display: flex;
+        gap: 4px;
+      }
+      .matches .actions button {
+        padding: 2px 7px;
+        font-size: 12px;
+      }
+      .note {
+        color: rgb(244 245 247 / 0.55);
+        font-size: 12px;
+      }
+      details {
+        margin-top: 18px;
+      }
+      summary {
+        cursor: pointer;
+        color: var(--klein-claro);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      label {
+        display: block;
+        margin: 10px 0 4px;
+        font-size: 13px;
+      }
+      details input {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Partidas</h2>
+    <p class="status"><span id="game">Rocket League</span><span id="obs">OBS</span><span id="site"></span></p>
+
+    <h2>Modo</h2>
+    <div class="row tabs" id="modes"></div>
+
+    <h2>Ranque</h2>
+    <div class="row rank-row">
+      <img id="emblem" alt="" />
+      <select id="tier"></select>
+      <select id="division"></select>
+    </div>
+
+    <h2>Hoje <span id="session-date"></span></h2>
+    <p class="today" id="today"></p>
+    <div class="row">
+      <button id="add-win">+ Vitória</button>
+      <button id="add-loss">+ Derrota</button>
+      <label class="row note"><input type="checkbox" id="show" /> mostrar na live</label>
+    </div>
+
+    <h2>Sessão <span id="count"></span></h2>
+    <ul class="matches" id="matches"></ul>
+    <p class="note" id="empty">Nenhuma partida ainda. Elas entram sozinhas quando cada uma termina.</p>
+
+    <h2>Site</h2>
+    <div class="row">
+      <button class="primary" id="publish">Publicar sessões</button>
+      <button id="new-session">Nova sessão</button>
+    </div>
+    <p class="note" id="publish-note"></p>
+
+    <details>
+      <summary>Configurações</summary>
+      <label for="obs-password">Senha do servidor WebSocket do OBS</label>
+      <input type="password" id="obs-password" autocomplete="off" />
+      <label for="token">Token do GitHub (só Contents deste repositório)</label>
+      <input type="password" id="token" autocomplete="off" />
+      <p class="note" id="me"></p>
+    </details>
+
+    <script src="stream.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id)
+      const REPO = "muanlartins/muanlartins"
+      const FOLDER = "content/matches"
+      // Rocket League's playlist ids. Ranked ones count by default; the rest is listed but left out.
+      const PLAYLISTS = {
+        1: "Casual 1v1", 2: "Casual 2v2", 3: "Casual 3v3", 4: "Casual 4v4", 6: "Partida privada",
+        10: "1v1", 11: "2v2", 13: "3v3", 61: "4v4", 27: "Hoops", 28: "Rumble", 29: "Dropshot", 30: "Snow Day",
+        34: "Torneio", 63: "Heatseeker",
+      }
+      const RANKED = new Set([10, 11, 13, 61, 27, 28, 29, 30])
+      const MODES = ["1v1", "2v2", "3v3"]
+      // After this long without a match, the next one starts a new session (a new stream).
+      const SESSION_GAP_MS = 6 * 3600 * 1000
+
+      // --- State, kept in the dock's storage --------------------------------------------------------
+      // ?demo plays fake matches into its own storage, so the real sessions stay untouched.
+      const KEY = params.has("demo") ? "partidas:demo" : "partidas:v1"
+      const state = Object.assign(
+        { mode: "3v3", ranks: {}, sessions: [], show: true, me: null, obsPassword: "", token: "" },
+        JSON.parse(localStorage.getItem(KEY) || "{}"),
+      )
+      const save = () => localStorage.setItem(KEY, JSON.stringify(state))
+      const hash = new URLSearchParams(location.hash.slice(1))
+      if (hash.get("obs")) state.obsPassword = hash.get("obs")
+      save()
+
+      const pad = (n) => String(n).padStart(2, "0")
+      const sessionId = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`
+      function newSession() {
+        const now = new Date()
+        // Sessions that never got a match or a rank are dropped; published ones are kept for a month.
+        const month = Date.now() - 30 * 86400 * 1000
+        state.sessions = state.sessions.filter((s) => (s.matches.length || s.ranks.length) && (s.dirty || Date.parse(s.start) > month))
+        state.sessions.push({ id: sessionId(now), start: now.toISOString(), matches: [], ranks: [], dirty: false })
+        save()
+      }
+      const current = () => {
+        const last = state.sessions[state.sessions.length - 1]
+        const lastAt = last && (last.matches.length ? last.matches[last.matches.length - 1].at : last.start)
+        if (!last || Date.now() - Date.parse(lastAt) > SESSION_GAP_MS) newSession()
+        return state.sessions[state.sessions.length - 1]
+      }
+
+      /** The session's record in a mode: wins, losses and the streak of wins it ends with. */
+      function record(session, mode) {
+        const counted = session.matches.filter((m) => m.counted && m.mode === mode)
+        let streak = 0
+        for (const m of [...counted].reverse()) {
+          if (m.result !== "win") break
+          streak++
+        }
+        return {
+          wins: counted.filter((m) => m.result === "win").length,
+          losses: counted.filter((m) => m.result === "loss").length,
+          streak,
+        }
+      }
+
+      // --- Screen ------------------------------------------------------------------------------------
+      for (const [id, name] of RANKS) $("tier").append(new Option(name, id))
+      DIVISIONS.forEach((n, i) => $("division").append(new Option(`Divisão ${n}`, i + 1)))
+      for (const mode of MODES) {
+        const button = document.createElement("button")
+        button.textContent = mode
+        button.onclick = () => ((state.mode = mode), save(), render())
+        $("modes").append(button)
+      }
+
+      function render() {
+        const session = current()
+        const rank = state.ranks[state.mode] || { tier: "unranked", division: 1 }
+        $("modes").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.textContent === state.mode)))
+        $("tier").value = rank.tier
+        $("division").value = rank.division
+        $("division").hidden = !hasDivisions(rank.tier)
+        $("emblem").src = `/ranks/${rank.tier}.webp`
+        const { wins, losses, streak } = record(session, state.mode)
+        $("today").innerHTML = `${wins}V <span class="accent">·</span> ${losses}D${streak >= 2 ? `<small>${streak} seguidas</small>` : ""}`
+        $("session-date").textContent = new Date(session.start).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+        $("show").checked = state.show
+        $("count").textContent = session.matches.length || ""
+        $("empty").hidden = session.matches.length > 0
+        $("matches").replaceChildren(...[...session.matches].reverse().map((m) => matchItem(session, m)))
+        const pending = state.sessions.filter((s) => s.dirty).length
+        $("site").textContent = pending ? `${pending} sessão(ões) a publicar` : "Site em dia"
+        $("site").className = pending ? "" : "on"
+        $("obs-password").value = state.obsPassword
+        $("token").value = state.token
+        $("me").textContent = state.me ? `Você no jogo: ${state.me.name}` : "Você no jogo: descobre na primeira partida."
+        broadcast()
+      }
+
+      function matchItem(session, m) {
+        const li = document.createElement("li")
+        li.className = `${m.result}${m.counted ? "" : " off"}`
+        const time = new Date(m.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+        const me = m.me ? `${m.me.goals}G ${m.me.assists}A ${m.me.saves}D ${m.me.shots}C` : "sem estatísticas"
+        const score = m.score ? ` ${m.score[0]}–${m.score[1]}${m.overtime ? " (prorrogação)" : ""}` : ""
+        li.innerHTML = `<span class="result">${m.result === "win" ? "V" : "D"}</span>
+          <span><span>${m.mode}${score}</span><br><span class="detail">${time} · ${me}${m.left ? " · saiu antes" : ""}</span></span>
+          <span class="actions"><button data-act="count">${m.counted ? "conta" : "não conta"}</button><button data-act="flip">V/D</button><button data-act="remove">✕</button></span>`
+        li.querySelector('[data-act="count"]').onclick = () => edit(session, () => (m.counted = !m.counted))
+        li.querySelector('[data-act="flip"]').onclick = () => edit(session, () => (m.result = m.result === "win" ? "loss" : "win"))
+        li.querySelector('[data-act="remove"]').onclick = () => edit(session, () => session.matches.splice(session.matches.indexOf(m), 1))
+        return li
+      }
+
+      function edit(session, change) {
+        change()
+        session.dirty = true
+        save()
+        render()
+      }
+
+      function setRank() {
+        const rank = { tier: $("tier").value, division: Number($("division").value) }
+        state.ranks[state.mode] = rank
+        const session = current()
+        session.ranks.push({ at: new Date().toISOString(), mode: state.mode, ...rank })
+        session.dirty = true
+        save()
+        render()
+      }
+      $("tier").onchange = setRank
+      $("division").onchange = setRank
+      $("show").onchange = () => ((state.show = $("show").checked), save(), render())
+      $("obs-password").onchange = () => ((state.obsPassword = $("obs-password").value), save(), obs.close())
+      $("token").onchange = () => ((state.token = $("token").value.trim()), save())
+      $("new-session").onclick = () => (newSession(), render())
+      const manual = (result) => () => {
+        const session = current()
+        edit(session, () =>
+          session.matches.push({ id: `manual-${Date.now()}`, at: new Date().toISOString(), mode: state.mode, ranked: true, result, counted: true, rank: state.ranks[state.mode] || null }),
+        )
+      }
+      $("add-win").onclick = manual("win")
+      $("add-loss").onclick = manual("loss")
+
+      // --- Rocket League's Stats API -----------------------------------------------------------------
+      // The game sends UpdateState several times a second and events as they happen. Who you are isn't
+      // in it: you're the player the camera follows most (Game.Target), remembered across matches.
+      let match = null
+      const finished = new Set()
+      const playerKey = (p) => p.PrimaryId || p.Name
+
+      function onGame(raw) {
+        let message
+        try {
+          message = JSON.parse(raw)
+        } catch {
+          return
+        }
+        const event = message.Event
+        let data = message.Data || {}
+        if (typeof data === "string") data = JSON.parse(data)
+        const guid = data.MatchGuid
+        if (guid && finished.has(guid)) return
+        if (guid && (!match || match.guid !== guid)) match = { guid, votes: {}, players: [], teams: [], started: false }
+
+        if (event === "UpdateState" && match) {
+          const game = data.Game || {}
+          if (Array.isArray(data.Players)) match.players = data.Players
+          if (Array.isArray(game.Teams)) match.teams = game.Teams
+          if (Number(game.PlaylistId) > 0) match.playlist = Number(game.PlaylistId)
+          match.overtime = !!game.bOvertime
+          const target = game.bHasTarget && !game.bReplay && game.Target
+          const seen = target && match.players.find((p) => p.Name === target.Name && p.TeamNum === target.TeamNum)
+          if (seen) match.votes[playerKey(seen)] = (match.votes[playerKey(seen)] || 0) + 1
+          if (match.playlist && PLAYLISTS[match.playlist] && MODES.includes(PLAYLISTS[match.playlist]) && state.mode !== PLAYLISTS[match.playlist]) {
+            state.mode = PLAYLISTS[match.playlist]
+            save()
+            render()
+          }
+        } else if (event === "RoundStarted" || event === "CountdownBegin") {
+          if (match) match.started = true
+        } else if (event === "MatchEnded" && match) {
+          finish(data.WinnerTeamNum)
+        } else if (event === "MatchDestroyed" && match) {
+          // Leaving a ranked match before it ends counts as a loss in the game, so it does here too.
+          if (match.started && RANKED.has(match.playlist)) finish(null)
+          match = null
+        }
+      }
+
+      function me() {
+        const players = match.players
+        const known = state.me && players.find((p) => playerKey(p) === state.me.key)
+        if (known) return known
+        const [key] = Object.entries(match.votes).sort((a, b) => b[1] - a[1])[0] || []
+        const voted = players.find((p) => playerKey(p) === key)
+        if (voted) {
+          state.me = { key, name: voted.Name }
+          save()
+        }
+        return voted
+      }
+
+      function finish(winner) {
+        const self = me()
+        if (!self) return
+        const team = self.TeamNum
+        const stats = (p) => ({ score: p.Score, goals: p.Goals, assists: p.Assists, saves: p.Saves, shots: p.Shots, touches: p.Touches, demos: p.Demos })
+        const goals = (n) => (match.teams.find((t) => t.TeamNum === n) || {}).Score ?? 0
+        const size = Math.max(...[0, 1].map((n) => match.players.filter((p) => p.TeamNum === n).length))
+        const mode = PLAYLISTS[match.playlist] || `${size}v${size}`
+        const left = winner !== 0 && winner !== 1
+        // A match left early stays open: if it's rejoined, its real end replaces the loss.
+        if (!left) finished.add(match.guid)
+        const session = current()
+        const existing = session.matches.find((m) => m.id === match.guid)
+        const entry = {
+          id: match.guid,
+          at: new Date().toISOString(),
+          mode,
+          playlist: match.playlist ?? null,
+          ranked: RANKED.has(match.playlist),
+          result: !left && winner === team ? "win" : "loss",
+          left,
+          score: [goals(team), goals(1 - team)],
+          overtime: match.overtime,
+          me: stats(self),
+          // Teammates by their numbers only: the site is public, their names stay out of it.
+          mates: match.players.filter((p) => p.TeamNum === team && p !== self).map(stats),
+          rank: state.ranks[mode] || null,
+          counted: RANKED.has(match.playlist),
+        }
+        if (existing) Object.assign(existing, entry)
+        else session.matches.push(entry)
+        session.dirty = true
+        save()
+        render()
+      }
+
+      let gameConnected = false
+      function connectGame() {
+        const ws = new WebSocket("ws://127.0.0.1:49124")
+        ws.onopen = () => ((gameConnected = true), status())
+        ws.onmessage = ({ data }) => onGame(data)
+        ws.onerror = () => ws.close()
+        ws.onclose = () => {
+          gameConnected = false
+          match = null
+          status()
+          setTimeout(connectGame, 3000)
+        }
+      }
+
+      // --- OBS: obs-websocket, to reach the overlays -------------------------------------------------
+      let obs = { close() {} }
+      let obsReady = false
+      const sha256 = async (text) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))))
+      function connectObs() {
+        const ws = new WebSocket("ws://127.0.0.1:4455")
+        obs = ws
+        ws.onmessage = async ({ data }) => {
+          const { op, d } = JSON.parse(data)
+          if (op === 0) {
+            const identify = { rpcVersion: 1, eventSubscriptions: 0 }
+            if (d.authentication) {
+              const { challenge, salt } = d.authentication
+              identify.authentication = await sha256((await sha256(state.obsPassword + salt)) + challenge)
+            }
+            ws.send(JSON.stringify({ op: 1, d: identify }))
+          } else if (op === 2) {
+            obsReady = true
+            status()
+            broadcast()
+          }
+        }
+        ws.onerror = () => ws.close()
+        ws.onclose = () => {
+          obsReady = false
+          status()
+          setTimeout(connectObs, 3000)
+        }
+      }
+
+      let requests = 0
+      function broadcast() {
+        if (!obsReady) return
+        const rank = state.ranks[state.mode]
+        const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, ...record(current(), state.mode) }
+        obs.send(JSON.stringify({
+          op: 6,
+          d: {
+            requestType: "CallVendorRequest",
+            requestId: String(++requests),
+            requestData: { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-partidas", event_data: detail } },
+          },
+        }))
+      }
+      // Overlays that load later (a scene switch, OBS starting) get the state within a few seconds.
+      setInterval(broadcast, 5000)
+
+      function status() {
+        $("game").className = gameConnected ? "on" : ""
+        $("game").textContent = gameConnected ? "Rocket League conectado" : "Rocket League fechado"
+        $("obs").className = obsReady ? "on" : ""
+        $("obs").textContent = obsReady ? "OBS conectado" : "OBS sem conexão"
+      }
+
+      // --- Publishing: one JSON file per session, in the repository the site is built from -----------
+      $("publish").onclick = async () => {
+        const pending = state.sessions.filter((s) => s.dirty)
+        if (!state.token) return ($("publish-note").textContent = "Falta o token do GitHub, em Configurações.")
+        if (!pending.length) return ($("publish-note").textContent = "Nada novo para publicar.")
+        $("publish").disabled = true
+        try {
+          for (const session of pending) {
+            await publish(session)
+            session.dirty = false
+            save()
+          }
+          $("publish-note").textContent = "Publicado. O site se atualiza em uns 2 minutos."
+        } catch (error) {
+          $("publish-note").textContent = `Não deu para publicar: ${error.message}`
+        }
+        $("publish").disabled = false
+        render()
+      }
+
+      async function publish(session) {
+        const matches = session.matches.filter((m) => m.counted).map(({ counted, ...m }) => m)
+        const body = { id: session.id, start: session.start, end: matches.length ? matches[matches.length - 1].at : session.start, matches, ranks: session.ranks }
+        const path = `${FOLDER}/${session.id}.json`
+        const api = `https://api.github.com/repos/${REPO}/contents/${path}`
+        const headers = { Authorization: `Bearer ${state.token}`, Accept: "application/vnd.github+json" }
+        const found = await fetch(api, { headers })
+        const sha = found.ok ? (await found.json()).sha : undefined
+        const bytes = new TextEncoder().encode(JSON.stringify(body, null, 2) + "\n")
+        const response = await fetch(api, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify({
+            message: `Record the ranked session of ${session.id.slice(0, 10)}`,
+            content: btoa(String.fromCharCode(...bytes)),
+            sha,
+          }),
+        })
+        if (!response.ok) throw new Error((await response.json()).message || response.status)
+      }
+
+      render()
+      status()
+      if (params.has("demo")) {
+        // Plays a match through the same path as the game's messages.
+        const players = [
+          { Name: "muanlartins", PrimaryId: "Epic|me|0", TeamNum: 0, Score: 420, Goals: 2, Assists: 1, Saves: 3, Shots: 4, Touches: 30, Demos: 1 },
+          { Name: "mate1", PrimaryId: "Epic|a|0", TeamNum: 0, Score: 300, Goals: 1, Assists: 0, Saves: 1, Shots: 2, Touches: 20, Demos: 0 },
+          { Name: "mate2", PrimaryId: "Epic|b|0", TeamNum: 0, Score: 250, Goals: 0, Assists: 2, Saves: 2, Shots: 1, Touches: 18, Demos: 0 },
+          { Name: "opp", PrimaryId: "Epic|c|0", TeamNum: 1, Score: 200, Goals: 1, Assists: 0, Saves: 1, Shots: 3, Touches: 15, Demos: 0 },
+        ]
+        const send = (Event, Data) => onGame(JSON.stringify({ Event, Data: JSON.stringify(Data) }))
+        let n = 0
+        setInterval(() => {
+          const MatchGuid = `demo-${n++}`
+          send("MatchCreated", { MatchGuid })
+          send("RoundStarted", { MatchGuid })
+          send("UpdateState", { MatchGuid, Players: players, Game: { PlaylistId: 13, bHasTarget: true, Target: { Name: "muanlartins", TeamNum: 0 }, Teams: [{ TeamNum: 0, Score: 3 }, { TeamNum: 1, Score: n % 3 ? 1 : 4 }] } })
+          send("MatchEnded", { MatchGuid, WinnerTeamNum: n % 3 ? 0 : 1 })
+          send("MatchDestroyed", { MatchGuid })
+        }, 4000)
+      } else connectGame()
+      connectObs()
+    </script>
+  </body>
+</html>

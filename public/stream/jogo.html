@@ -11,7 +11,8 @@
       scoreboard. ?lado=direita moves it to the right, ?altura=cima to the top
       (the positions are in brand/README.md). ?chat=1 adds the Twitch chat on
       the other side, above the boost meter (?canal= and ?demo as in
-      conversa.html).
+      conversa.html). The rank and the day's record sit on the frame's top edge
+      while the "Partidas" dock (partidas.html) sends them.
     -->
     <style>
       .hole {
@@ -48,6 +49,7 @@
     <main class="stage">
       <div class="hole"></div>
       <div id="plate"></div>
+      <div id="record"></div>
       <div class="game-chat" id="chat" hidden></div>
     </main>
     <script src="stream.js"></script>
@@ -66,6 +68,9 @@
 
       // Every 5 s, in turn: the plate's line wipes, or the frame catches the light.
       alternate(5, attention, border.glint)
+
+      // The rank and the day's record, from the "Partidas" dock; hidden until it sends them.
+      recordPlate(document.getElementById("record"), hole, BAND)
 
       // Opposite the camera; messages leave after 45 s so a quiet chat leaves the game clear.
       if (params.get("chat") === "1") {
