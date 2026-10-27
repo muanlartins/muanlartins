@@ -19,18 +19,22 @@ ALERTS = sys.argv[2] if len(sys.argv) > 2 else None
 ROCKET_LEAGUE = "Rocket League (64-bit, DX11, Cooked):LaunchUnrealUWindowsClient:RocketLeague.exe"
 CAMERA = "Camera (NVIDIA Broadcast):"
 MIC = "{0.0.1.00000000}.{1bd84196-0816-4f00-8c22-a2b3950b995a}"
-# OBS's base canvas. The overlays are laid out at 1920×1080 and scale themselves to it.
-CANVAS = (2560, 1440)
+# OBS's base canvas, the size of Luan's monitor and of the stream. The overlays are laid out at 1920×1080 and
+# scale themselves to it.
+CANVAS = (1920, 1080)
 K = CANVAS[0] / 1920
 
 # OBS enums: alignment flags (left 1, right 2, top 4, bottom 8) and bounds types.
 TOP_LEFT = 5
+# Audio tracks, recorded side by side for editing: everything, the microphone alone, the game alone.
+TRACK_ALL, TRACK_MIC, TRACK_GAME = 1, 2, 4
+MONITOR_AND_OUTPUT = 2
 BOUNDS_NONE, BOUNDS_SCALE_INNER, BOUNDS_SCALE_OUTER = 0, 2, 3
 
 
 def source(kind, name, settings, **extra):
     return {"id": kind, "versioned_id": kind, "name": name, "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, name)),
-            "settings": settings, "enabled": True, "flags": 0, "mixers": 255, "volume": 1.0, "balance": 0.5,
+            "settings": settings, "enabled": True, "flags": 0, "mixers": TRACK_ALL, "volume": 1.0, "balance": 0.5,
             "muted": False, "monitoring_type": 0, "sync": 0, "hotkeys": {}, "private_settings": {}, **extra}
 
 
@@ -61,7 +65,8 @@ def scene(name, *items):
 
 
 game = source("game_capture", "Rocket League", {"capture_mode": "window", "window": ROCKET_LEAGUE, "priority": 2,
-                                                "capture_cursor": False, "allow_transparency": False})
+                                                "capture_cursor": False, "allow_transparency": False,
+                                                "capture_audio": True}, mixers=TRACK_ALL | TRACK_GAME)
 # Stays on between scenes, so switching to one with the camera doesn't wait for it to start.
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,
                                          "deactivate_when_not_showing": False})
@@ -76,10 +81,23 @@ end = browser("Tela · Fim", "intervalo.html?tela=fim")
 ALERTS_SIZE = (1100, 200)
 alerts = ALERTS and source("browser_source", "Alertas", {"url": ALERTS, "width": ALERTS_SIZE[0], "height": ALERTS_SIZE[1],
                                                          "fps_custom": True, "fps": 60, "restart_when_active": False,
-                                                         "shutdown": False, "css": ""})
+                                                         "shutdown": False, "css": "", "reroute_audio": True},
+                                                monitoring_type=MONITOR_AND_OUTPUT)
 # In the game, centred under the scoreboard; in Conversa, under the camera.
 alerts_in_game = [(alerts, {"pos": (410, 130), "bounds": ALERTS_SIZE})] if alerts else []
 alerts_in_talk = [(alerts, {"pos": (154, 800), "bounds": ALERTS_SIZE})] if alerts else []
+
+# The game's sound comes with its capture. The rest of the computer is captured app by app, not as desktop audio,
+# which would carry the game a second time; each has its own fader.
+apps = [source("wasapi_process_output_capture", name, {"window": window, "priority": 2})
+        for name, window in (("Discord", "Discord:Chrome_WidgetWin_1:Discord.exe"),
+                             ("Navegador", "Brave:Chrome_WidgetWin_1:brave.exe"))]
+mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=TRACK_ALL | TRACK_MIC, filters=[
+    # Noise is already removed by NVIDIA Broadcast, which the microphone goes through.
+    source("compressor_filter", "Compressor", {"ratio": 4.0, "threshold": -18.0, "attack_time": 6, "release_time": 60,
+                                               "output_gain": 0.0}),
+    source("limiter_filter", "Limitador", {"threshold": -1.0, "release_time": 60}),
+])
 
 # Hole positions match jogo.html and conversa.html.
 scenes = [
@@ -92,6 +110,9 @@ scenes = [
     scene("Já volto", (back, {})),
     scene("Fim", (end, {})),
 ]
+for each in scenes:
+    each["settings"]["items"] += [item(app, each["settings"]["id_counter"] + n + 1) for n, app in enumerate(apps)]
+    each["settings"]["id_counter"] += len(apps)
 # The game fills the screen keeping its aspect ratio rather than cropping.
 for captured in (scenes[1], scenes[2]):
     captured["settings"]["items"][0]["bounds_type"] = BOUNDS_SCALE_INNER
@@ -106,10 +127,9 @@ collection = {
     "current_scene": "Começando",
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
-    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, starting, back, end] + ([alerts] if alerts else []),
+    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, starting, back, end] + apps + ([alerts] if alerts else []),
     "groups": [],
-    "DesktopAudioDevice1": source("wasapi_output_capture", "Áudio do computador", {"device_id": "default"}),
-    "AuxAudioDevice1": source("wasapi_input_capture", "Microfone", {"device_id": MIC}),
+    "AuxAudioDevice1": mic,
     "transitions": [stinger],
     "current_transition": "muanlartins",
     "transition_duration": 1300,

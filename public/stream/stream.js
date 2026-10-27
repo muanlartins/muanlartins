@@ -5,7 +5,7 @@ const params = new URLSearchParams(location.search)
 const SVG = "http://www.w3.org/2000/svg"
 
 // Pages are laid out at 1920×1080 and scaled to the browser source's width, so
-// they stay sharp on a 1440p canvas (2560×1440, ×4/3).
+// they stay sharp on any canvas size.
 const stage = document.querySelector(".stage")
 if (stage) {
   const fit = () => (stage.style.transform = `scale(${innerWidth / 1920})`)

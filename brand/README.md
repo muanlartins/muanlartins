@@ -54,7 +54,7 @@ The website extends this into a ramp of Klein tints (see `app/globals.css`).
 
 ## Stream
 
-The overlays for OBS are web pages in `public/stream/`, served with the site at `muanlartins.com.br/stream/`, so OBS loads them by URL and a release updates them. They're laid out at 1920×1080 and scale themselves to the browser source's size (the OBS canvas is 2560×1440). Pixel positions below are in 1920×1080; on the canvas, multiply by 4/3.
+The overlays for OBS are web pages in `public/stream/`, served with the site at `muanlartins.com.br/stream/`, so OBS loads them by URL and a release updates them. They're laid out at 1920×1080 and scale themselves to the browser source's size. Pixel positions below are in 1920×1080, the size of the OBS canvas and of the stream.
 
 | Page | Scene | What |
 |---|---|---|
@@ -77,7 +77,9 @@ To set OBS up, import the scene collection (Scene Collection → Import):
 python3 brand/twitch/obs.py "C:/Users/muanl/Documents/muanlartins-obs/transicao.webm" "<Alerts Box URL>" > muanlartins.json
 ```
 
-The first argument is where `transicao.webm` sits on the streaming machine; the second, the Alerts Box's browser source URL (Alerts → Copy, kept out of the repo since it carries a token), adds it as "Alertas", 1100×200, centred under the scoreboard in Jogo and Jogo + chat and under the camera in Conversa. The canvas size and the devices (camera, microphone, Rocket League's window) are constants at the top of `obs.py`. To re-render the transition after changing the page: `CHROME=/path/to/chrome node brand/twitch/transicao.mjs` (needs ffmpeg and `playwright-core`).
+The first argument is where `transicao.webm` sits on the streaming machine; the second, the Alerts Box's browser source URL (Alerts → Copy, kept out of the repo since it carries a token), adds it as "Alertas", 1100×200, centred under the scoreboard in Jogo and Jogo + chat and under the camera in Conversa. The canvas size and the devices (camera, microphone, Rocket League's window) are constants at the top of `obs.py`.
+
+The sound is split so each part has its own fader and its own track in recordings: track 1 has everything, 2 the microphone, 3 the game. The game's sound comes with its capture; Discord and the browser are captured app by app, since desktop audio would carry the game a second time. The microphone goes through NVIDIA Broadcast for noise, then a compressor and a limiter. The alerts play through OBS and the headphones. To re-render the transition after changing the page: `CHROME=/path/to/chrome node brand/twitch/transicao.mjs` (needs ffmpeg and `playwright-core`).
 
 ## Rules of thumb
 
