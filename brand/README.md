@@ -45,6 +45,8 @@ The website extends this into a ramp of Klein tints (see `app/globals.css`).
 | `youtube/thumbnails/2v2-<episode>.png` | 2v2 comentado thumbnails (1280×720): the same frame around a giant "2v2", its two 2s in the mark's two colours (one per player), with the episode's number on a Branco plate cut at 45° like the stream's camera frame. The rank and tier are where the episode was played. One per entry in `EPISODES` in `build.py`. |
 | `youtube/thumbnails/ranks/<rank>.png` | The in-game emblem of each rank's tier I, and `<rank>-<tier>.png` for the other tiers the 2v2 episodes need (Psyonix's art, from `github.com/manucabral/rocket-league-rank-viewer`), for the thumbnails. It sits next to them because `rsvg-convert` only loads images from the SVG's folder or below. |
 | `twitch/profile-800.png`, `twitch/banner-1200x480.png`, `twitch/offline-1920x1080.png` | Twitch profile picture, profile banner and the player's offline image. Twitch shows the banner behind the player, so it is only the lattice; accent colour is Klein. |
+| `twitch/paineis/<panel>.png` | The channel's panels under the player (640 px wide, Twitch shows them at 320): the small mark and the panel's name on Klein, on the lattice, cut like the camera frame. `pix.png` adds the Pix QR code on a Branco plate; it holds the Pix key, so `build.py` draws it only when `PIX_BRCODE` (the bank's "copia e cola" text) is set, and git ignores it. |
+| `twitch/alertas/alerta.{html,css}` | The stream's follow and raid alerts, pasted into Twitch's Alerts Box (custom HTML/CSS). See "Stream" below. |
 | `webcam/webcam-{left,right}-{1920x1080,3840x2160}.png` | Webcam background: the banner's look with the lockup in a top corner, and the lattice faded out where you sit. Pick the side your head isn't on. |
 | `twitch/obs.py`, `twitch/transicao.mjs` | The stream's OBS scene collection and the renderer of its transition. See "Stream" below. |
 | `brand-board.png` | Everything above on one page. |
@@ -67,13 +69,15 @@ The chat is Twitch's, read anonymously over IRC (`?canal=`, default `muanlartins
 
 The transition: two Klein panels close in from opposite corners along the lattice, one turned 180° from the other, each led by a streak of its copy's colour that stretches with its speed. The screen is covered while the mark draws itself, then the panels pull back into the centre line and take the mark with them.
 
+The alerts are Twitch's own (Creator Dashboard → Alerts, "Alerts Box 1"), not a page here: Twitch knows the events, and mods can replay or skip an alert from the activity feed. Each variant runs `twitch/alertas/alerta.html` and `alerta.css` in custom HTML/CSS mode, with `{rotulo}` replaced by its label ("Novo seguidor"; "Raid · {amount} chegando"), for 7 s. It's a Klein band like the camera frame that wipes in along the diagonal while a sheen crosses it, the mark and a Klein claro label over the name. Twitch strips `@import` and scripts, so the font is an `@font-face` from Google Fonts. Subs, gifts and bits still use Twitch's default look, as the channel can't receive them before Affiliate.
+
 To set OBS up, import the scene collection (Scene Collection → Import):
 
 ```bash
-python3 brand/twitch/obs.py "C:/Users/muanl/Documents/muanlartins-obs/transicao.webm" > muanlartins.json
+python3 brand/twitch/obs.py "C:/Users/muanl/Documents/muanlartins-obs/transicao.webm" "<Alerts Box URL>" > muanlartins.json
 ```
 
-The argument is where `transicao.webm` sits on the streaming machine. The canvas size and the devices (camera, microphone, Rocket League's window) are constants at the top of `obs.py`. To re-render the transition after changing the page: `CHROME=/path/to/chrome node brand/twitch/transicao.mjs` (needs ffmpeg and `playwright-core`).
+The first argument is where `transicao.webm` sits on the streaming machine; the second, the Alerts Box's browser source URL (Alerts → Copy, kept out of the repo since it carries a token), adds it as "Alertas", 1100×200, centred under the scoreboard in Jogo and Jogo + chat and under the camera in Conversa. The canvas size and the devices (camera, microphone, Rocket League's window) are constants at the top of `obs.py`. To re-render the transition after changing the page: `CHROME=/path/to/chrome node brand/twitch/transicao.mjs` (needs ffmpeg and `playwright-core`).
 
 ## Rules of thumb
 

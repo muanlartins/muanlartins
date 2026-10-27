@@ -44,3 +44,6 @@ next-env.d.ts
 /brand/.venv
 __pycache__/
 /.next-en/
+
+# The Twitch Pix panel holds the Pix key (brand/build.py, PIX_BRCODE).
+brand/twitch/paineis/pix.*
