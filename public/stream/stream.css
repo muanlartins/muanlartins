@@ -146,6 +146,31 @@ body {
     clip-path: polygon(0 0, 0 0, -52px 100%, 0 100%);
   }
 }
+/* The record plate (stream.js, recordPlate()): the name plate turned 180°, on the frame's top edge. */
+.plate.turned {
+  padding: 0 14px 0 66px;
+  clip-path: polygon(52px 0, 100% 0, 100% 100%, 0 100%);
+  font-size: 22px;
+  animation-name: wipe-in-turned;
+}
+.plate.turned .rank {
+  font-weight: 600;
+}
+.plate.turned .rank small {
+  color: var(--klein-claro);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.plate.turned .line {
+  padding-left: 12px;
+  border-left: 2px solid rgb(133 167 255 / 0.5);
+}
+@keyframes wipe-in-turned {
+  from {
+    clip-path: polygon(100% 0, 100% 0, 100% 100%, calc(100% + 52px) 100%);
+  }
+}
 @keyframes swap {
   0% {
     clip-path: inset(0 0 0 0);

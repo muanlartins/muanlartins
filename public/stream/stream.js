@@ -116,6 +116,69 @@ function plate(el, html) {
   }
 }
 
+/** Rocket League's ranks, as the emblems in /ranks/ are named. Divisions (I–IV) don't apply to the first and last. */
+const RANKS = [
+  ["unranked", "Sem ranque"],
+  ...["bronze", "silver", "gold", "platinum", "diamond", "champion", "grand-champion"].flatMap((tier, t) =>
+    ["I", "II", "III"].map((n, i) => [
+      `${tier}-${i + 1}`,
+      `${["Bronze", "Prata", "Ouro", "Platina", "Diamante", "Campeão", "Grande Campeão"][t]} ${n}`,
+    ]),
+  ),
+  ["supersonic-legend", "Lenda Supersônica"],
+]
+const DIVISIONS = ["I", "II", "III", "IV"]
+const rankName = (tier) => (RANKS.find(([id]) => id === tier) || [, tier])[1]
+const hasDivisions = (tier) => tier !== "unranked" && tier !== "supersonic-legend"
+
+/**
+ * The record plate: the rank of the mode being played and the day's wins and
+ * losses, on the frame's top edge, flush right, the name plate turned 180°.
+ * It shows what the "Partidas" dock (partidas.html) sends through OBS
+ * (obs-browser's emit_event), and hides when nothing has come for a minute.
+ */
+function recordPlate(el, hole, band) {
+  el.classList.add("plate", "turned")
+  el.hidden = true
+  el.innerHTML = `<img alt=""><span class="rank"></span><span class="line"></span>`
+  const [emblem, rank, line] = el.children
+  const place = () => {
+    el.style.left = `${hole.offsetLeft + hole.offsetWidth + band - el.offsetWidth}px`
+    el.style.top = `${hole.offsetTop - band - 26}px`
+  }
+  let state, lines = [], shown = 0, heard = 0
+  const write = (text) => {
+    line.classList.remove("swap")
+    void line.offsetWidth
+    line.classList.add("swap")
+    // The swap wipes the line out at 45% of its 0.7 s; the new text goes in then.
+    setTimeout(() => ((line.innerHTML = text), place()), 315)
+  }
+  addEventListener("muanlartins-partidas", ({ detail }) => {
+    heard = Date.now()
+    const before = JSON.stringify(state)
+    state = detail
+    if (JSON.stringify(state) === before) return
+    const { show, mode, tier, division, wins, losses, streak } = state
+    el.hidden = !show || (!tier && !wins && !losses)
+    emblem.hidden = !tier
+    if (tier) emblem.src = `/ranks/${tier}.webp`
+    rank.innerHTML = tier
+      ? `${rankName(tier)}${hasDivisions(tier) && division ? ` <small>div ${DIVISIONS[division - 1]}</small>` : ""}`
+      : mode
+    lines = [`Hoje ${wins}V <span class="accent">·</span> ${losses}D`]
+    if (streak >= 2) lines.push(`${streak} vitórias seguidas`)
+    line.innerHTML = lines[0]
+    shown = 0
+    place()
+  })
+  // Every 5 s, when the day has a streak to tell, the line swaps between the record and the streak.
+  setInterval(() => {
+    if (lines.length > 1) write(lines[(shown = (shown + 1) % lines.length)])
+    if (Date.now() - heard > 60000) el.hidden = true
+  }, 5000)
+}
+
 /** Runs `actions` in turn, one every `seconds`: the overlays' now-and-then movement. */
 function alternate(seconds, ...actions) {
   let i = 0
@@ -333,4 +396,4 @@ function demo(show) {
 }
 
 // What the pages call.
-Object.assign(window, { params, frame, plate, alternate, mark, drawCopy, chat })
+Object.assign(window, { params, frame, plate, recordPlate, RANKS, DIVISIONS, rankName, hasDivisions, alternate, mark, drawCopy, chat })
