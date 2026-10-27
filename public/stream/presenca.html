@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Presença · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: a custom browser dock (Docks → Custom Browser Docks), for Luan only,
+      never a source on the stream. Who is in the chat right now, and who just
+      came or left, from Twitch's IRC membership events: only viewers logged in
+      with the chat open, about 10 s late, and the usual bots left out. A soft
+      tone plays when someone arrives (?som=0 turns it off); ?canal= as in the
+      overlays, ?demo for sample people.
+    -->
+    <style>
+      html,
+      body {
+        overflow: auto;
+        background: var(--navy);
+      }
+      body {
+        padding: 14px;
+        font-size: 15px;
+        line-height: 1.35;
+      }
+      .eyebrow-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 0 0 8px;
+        color: var(--klein-claro);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .count {
+        color: var(--paper);
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        text-transform: none;
+      }
+      ul {
+        margin: 0 0 18px;
+        padding: 0;
+        list-style: none;
+      }
+      .people li {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 7px 10px;
+        margin-bottom: 4px;
+        background: rgb(0 47 167 / 0.45);
+        border-left: 3px solid var(--klein);
+        transition: background 1.2s var(--ease), border-color 1.2s var(--ease);
+      }
+      /* Arrived in the last minute: lit up like the frame's streak. */
+      .people li.fresh {
+        background: var(--klein);
+        border-color: var(--klein-claro);
+      }
+      .people .name {
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .tag {
+        color: var(--klein-claro);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      .log li {
+        display: flex;
+        gap: 10px;
+        padding: 3px 0;
+        color: rgb(244 245 247 / 0.75);
+        font-size: 13px;
+      }
+      .log time {
+        color: rgb(133 167 255 / 0.8);
+        font-variant-numeric: tabular-nums;
+      }
+      .log .left {
+        opacity: 0.6;
+      }
+      .empty {
+        color: rgb(244 245 247 / 0.55);
+        font-size: 13px;
+      }
+      .status {
+        color: rgb(244 245 247 / 0.45);
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="eyebrow-row"><span>No chat agora</span><span class="count" id="count">0</span></p>
+    <ul class="people" id="people"></ul>
+    <p class="empty" id="empty">Ninguém logado no chat por enquanto. Quem assiste deslogado não aparece aqui.</p>
+    <p class="eyebrow-row"><span>Movimento</span></p>
+    <ul class="log" id="log"></ul>
+    <p class="status" id="status">Conectando…</p>
+    <script src="stream.js"></script>
+    <script>
+      // Accounts that sit in every channel's chat, plus the chat bots.
+      const BOTS = new Set([
+        "nightbot", "streamelements", "streamlabs", "moobot", "fossabot", "wizebot", "sery_bot", "soundalerts",
+        "commanderroot", "lurxx", "drapsnatt", "anotherttvviewer", "aliceydra", "kattah", "d0nk7", "01ella",
+        "regressz", "electricallongboard", "smallstreamersdccommunity", "streamstickers", "pokemoncommunitygame",
+        "kofistreambot", "tangiabot", "own3d", "frostytoolsdotcom", "creatisbot", "blerp", "streamholics",
+      ])
+      // Twitch sends who was already there as JOINs over the first seconds; those don't count as arrivals.
+      const SETTLE_MS = 15000
+      const FRESH_MS = 60000
+      const LOG_MAX = 30
+
+      const present = new Map() // login → { name, since }
+      const $ = (id) => document.getElementById(id)
+      let connectedAt = 0
+
+      // Who has been here before, kept in the dock's own storage, to tell a first visit from a return.
+      const SEEN_KEY = `presenca:${CHANNEL}`
+      const seen = new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || "[]"))
+      const remember = (login) => {
+        if (seen.has(login)) return
+        seen.add(login)
+        localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]))
+      }
+
+      const clock = (t) => new Date(t).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+      const ago = (t) => {
+        const minutes = Math.floor((Date.now() - t) / 60000)
+        return minutes < 1 ? "agora" : minutes < 60 ? `há ${minutes} min` : `há ${Math.floor(minutes / 60)} h`
+      }
+
+      function render() {
+        const list = [...present.entries()].sort((a, b) => b[1].since - a[1].since)
+        $("count").textContent = list.length
+        $("empty").hidden = list.length > 0
+        $("people").replaceChildren(
+          ...list.map(([login, { name, since }]) => {
+            const li = document.createElement("li")
+            li.classList.toggle("fresh", Date.now() - since < FRESH_MS)
+            const label = document.createElement("span")
+            label.className = "name"
+            label.textContent = name
+            const tag = document.createElement("span")
+            tag.className = "tag"
+            tag.textContent = login === CHANNEL ? "você" : ago(since)
+            li.append(label, tag)
+            return li
+          }),
+        )
+      }
+      setInterval(render, 15000)
+
+      function log(text, left = false) {
+        const li = document.createElement("li")
+        li.classList.toggle("left", left)
+        const time = document.createElement("time")
+        time.textContent = clock(Date.now())
+        const what = document.createElement("span")
+        what.textContent = text
+        li.append(time, what)
+        $("log").prepend(li)
+        while ($("log").children.length > LOG_MAX) $("log").lastChild.remove()
+      }
+
+      function arrive(login, name = login) {
+        if (BOTS.has(login) || login.startsWith("justinfan") || present.has(login)) return
+        const settling = Date.now() - connectedAt < SETTLE_MS
+        present.set(login, { name, since: settling ? Date.now() - FRESH_MS : Date.now() })
+        if (!settling && login !== CHANNEL) {
+          log(`${name} entrou${seen.has(login) ? "" : " · primeira vez"}`)
+          chime()
+        }
+        remember(login)
+        render()
+      }
+
+      function leave(login) {
+        const who = present.get(login)
+        if (!who) return
+        present.delete(login)
+        if (login !== CHANNEL) log(`${who.name} saiu`, true)
+        render()
+      }
+
+      // Two soft notes, a fourth apart: noticeable over the game without being an alert.
+      let audio
+      function chime() {
+        if (params.get("som") === "0") return
+        audio ??= new AudioContext()
+        ;[0, 0.14].forEach((delay, i) => {
+          const osc = audio.createOscillator()
+          const gain = audio.createGain()
+          const at = audio.currentTime + delay
+          osc.frequency.value = i ? 880 : 660
+          gain.gain.setValueAtTime(0, at)
+          gain.gain.linearRampToValueAtTime(0.12, at + 0.02)
+          gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.5)
+          osc.connect(gain).connect(audio.destination)
+          osc.start(at)
+          osc.stop(at + 0.55)
+        })
+      }
+
+      function apply(line) {
+        const { tags, prefix, command, trailing } = parseIrc(line)
+        const login = prefix.split("!")[0]
+        if (command === "JOIN") arrive(login)
+        else if (command === "PART") leave(login)
+        // Someone who talks is there, even before their JOIN arrives; and now we know their display name.
+        else if (command === "PRIVMSG") {
+          arrive(login, tags["display-name"] || login)
+          const who = present.get(login)
+          if (who && tags["display-name"]) who.name = tags["display-name"]
+        } else if (command === "353") trailing.split(" ").forEach((name) => name && arrive(name))
+      }
+
+      let delay = 1000
+      function connect() {
+        const ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443")
+        ws.onopen = () => {
+          delay = 1000
+          connectedAt = Date.now()
+          present.clear()
+          ws.send("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership")
+          ws.send("PASS SCHMOOPIIE")
+          ws.send(`NICK justinfan${Math.floor(10000 + Math.random() * 80000)}`)
+          ws.send(`JOIN #${CHANNEL}`)
+          $("status").textContent = `Conectado ao chat de ${CHANNEL}.`
+          render()
+        }
+        ws.onmessage = ({ data }) => {
+          for (const line of data.split("\r\n")) {
+            if (line.startsWith("PING")) ws.send(`PONG :${parseIrc(line).trailing}`)
+            else if (line) apply(line)
+          }
+        }
+        ws.onclose = () => {
+          $("status").textContent = "Sem conexão com o chat, tentando de novo…"
+          setTimeout(connect, delay)
+          delay = Math.min(delay * 2, 30000)
+        }
+      }
+
+      if (params.has("demo")) {
+        connectedAt = Date.now() - SETTLE_MS
+        ;["rafa_rl", "giovana_gc", "tiagoboost"].forEach((name) => arrive(name))
+        $("status").textContent = "Demonstração."
+        const extras = ["platinadinho", "lucas_ssl", "nova_pessoa"]
+        let i = 0
+        setInterval(() => {
+          const name = extras[i % extras.length]
+          present.has(name) ? leave(name) : arrive(name)
+          i++
+        }, 6000)
+      } else connect()
+    </script>
+  </body>
+</html>
