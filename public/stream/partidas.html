@@ -307,6 +307,7 @@
         $("tier").value = rank.tier
         $("division").value = rank.division
         $("division").hidden = !hasDivisions(rank.tier)
+        $("tier").title = $("division").title = "Mudou de ranque ou de divisão? Troque aqui."
         $("mmr").value = rank.mmr ?? ""
         $("emblem").src = `/ranks/${rank.tier}.webp`
         const { wins, losses, streak, points } = record(session, state.mode)
@@ -332,7 +333,7 @@
         const me = m.me ? `${m.me.goals}G ${m.me.assists}A ${m.me.saves}D ${m.me.shots}C` : "sem estatísticas"
         const score = m.score ? ` ${m.score[0]}–${m.score[1]}${m.overtime ? " (prorrogação)" : ""}` : ""
         li.innerHTML = `<span class="result">${m.result === "win" ? "V" : "D"}</span>
-          <span><span>${m.mode}${score}</span><br><span class="detail">${time} · ${me}${m.left ? " · saiu antes" : ""}</span></span>
+          <span><span>${m.mode}${score}${m.points != null ? ` · ${m.points > 0 ? "+" : ""}${m.points} pts` : ""}</span><br><span class="detail">${time} · ${me}${m.left ? " · saiu antes" : ""}</span></span>
           <span class="actions"><button data-act="count">${m.counted ? "conta" : "não conta"}</button><button data-act="flip">V/D</button><button data-act="remove">✕</button></span>`
         li.querySelector('[data-act="count"]').onclick = () => edit(session, () => (m.counted = !m.counted))
         li.querySelector('[data-act="flip"]').onclick = () => edit(session, () => (m.result = m.result === "win" ? "loss" : "win"))
@@ -350,8 +351,15 @@
       function setRank() {
         const mmr = $("mmr").value === "" ? null : Number($("mmr").value)
         const rank = { tier: $("tier").value, division: Number($("division").value), mmr }
+        const before = state.ranks[state.mode]?.mmr
         state.ranks[state.mode] = rank
         const session = current()
+        // Points typed in after a match are that match's gain or loss: the game shows them only then.
+        const last = session.matches.filter((m) => m.mode === state.mode).at(-1)
+        if (mmr != null && before != null && mmr !== before && last && last.points == null && Date.now() - Date.parse(last.at) < 20 * 60000) {
+          last.points = mmr - before
+          last.mmr = mmr
+        }
         session.ranks.push({ at: new Date().toISOString(), mode: state.mode, ...rank })
         session.dirty = true
         save()
