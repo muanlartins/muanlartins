@@ -25,8 +25,8 @@ export default game({
   id: "rocket-league",
   title: { pt: "Rocket League", en: "Rocket League" },
   description: {
-    pt: "Evoluir no Rocket League com o método científico, uma técnica por vídeo.",
-    en: "Getting better at Rocket League with the scientific method, one technique per video.",
+    pt: "Evoluir no Rocket League com o método científico.",
+    en: "Getting better at Rocket League with the scientific method.",
   },
   intro: {
     pt: `TODO: a ideia do canal, em poucas linhas. Por que Rocket League, e o que é evoluir com o método científico: escolher uma técnica, treinar, medir.
