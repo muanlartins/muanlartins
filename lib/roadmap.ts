@@ -52,7 +52,7 @@ export interface Pillar {
 }
 
 export interface Roadmap {
-  /** The URL: /conteudo/<id>. */
+  /** Its game's id (lib/game.ts), which holds it at /conteudo/<id>/fundamentals. */
   id: string
   title: L10n
   /** The paragraph under the title; also the summary on the content page. */
@@ -116,6 +116,7 @@ export function findTopic(roadmap: Roadmap, id: string) {
   }
 }
 
+/** A roadmap lives in its game (lib/game.ts): the roadmap at /conteudo/<id>/fundamentals, each topic at /conteudo/<id>/<topic>. */
 export function roadmapPath(roadmap: Roadmap, topic?: Topic) {
-  return `${sectionPath("content")}/${roadmap.id}${topic ? `/${topic.id}` : ""}`
+  return `${sectionPath("content")}/${roadmap.id}/${topic ? topic.id : "fundamentals"}`
 }

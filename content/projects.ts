@@ -1,7 +1,5 @@
-import rocketLeague from "@/content/rocket-league"
-import { ranked } from "@/content/ranked"
-import { rlr } from "@/content/rlr"
-import { roadmapPath } from "@/lib/roadmap"
+import rocketLeagueHome from "@/content/rocket-league-home"
+import { gamePath } from "@/lib/game"
 import type { L10n, Locale } from "@/lib/site"
 
 /**
@@ -25,30 +23,13 @@ export const page = {
   },
 }
 
-/** Each roadmap gets a page at /conteudo/<id>, with one page per topic. */
-export const roadmaps = [rocketLeague]
+/** Each game gets a home at /conteudo/<id>, with its roadmap, its ranked record and its links (lib/game.ts). */
+export const games = [rocketLeagueHome]
 
-/** The commented 2v2 ranked series: a YouTube playlist, not a page here. */
-const commented2v2 = {
-  id: "2v2-comentado",
-  name: { pt: "Rocket League 2v2 Comentado", en: "Rocket League 2v2, commented" },
-  summary: {
-    pt: "Partidas ranqueadas de 2v2, rumo ao Champion, comentando o que eu estou pensando em cada jogada.",
-    en: "Ranked 2v2 matches on the way to Champion, saying what I'm thinking on every play.",
-  },
-  href: "https://www.youtube.com/playlist?list=PLf2PbBfB1o0A",
-  language: "pt",
-} satisfies Project
-
-export const projects: Project[] = [
-  ranked,
-  commented2v2,
-  rlr,
-  ...roadmaps.map((roadmap) => ({
-    id: roadmap.id,
-    name: roadmap.title,
-    summary: roadmap.description,
-    href: roadmapPath(roadmap),
-    language: roadmap.language,
-  })),
-]
+export const projects: Project[] = games.map((game) => ({
+  id: game.id,
+  name: game.title,
+  summary: game.description,
+  href: gamePath(game),
+  language: game.roadmap.language,
+}))
