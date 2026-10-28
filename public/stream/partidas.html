@@ -457,11 +457,15 @@
         if (typeof data === "string") data = JSON.parse(data)
         const guid = data.MatchGuid
         if (guid && finished.has(guid)) return
-        if (guid && (!match || match.guid !== guid)) match = { guid, votes: {}, players: [], teams: [], started: false }
+        if (guid && (!match || match.guid !== guid)) match = { guid, votes: {}, players: [], roster: {}, teams: [], started: false }
 
         if (event === "UpdateState" && match) {
           const game = data.Game || {}
-          if (Array.isArray(data.Players)) match.players = data.Players
+          if (Array.isArray(data.Players)) {
+            match.players = data.Players
+            // Players who quit drop out of the updates; their last numbers stay in the roster.
+            for (const p of data.Players) match.roster[playerKey(p)] = p
+          }
           if (Array.isArray(game.Teams)) match.teams = game.Teams
           if (Number(game.PlaylistId) > 0) match.playlist = Number(game.PlaylistId)
           match.overtime = !!game.bOvertime
@@ -503,7 +507,8 @@
         const team = self.TeamNum
         const stats = (p) => ({ score: p.Score, goals: p.Goals, assists: p.Assists, saves: p.Saves, shots: p.Shots, touches: p.Touches, demos: p.Demos })
         const goals = (n) => (match.teams.find((t) => t.TeamNum === n) || {}).Score ?? 0
-        const size = Math.max(...[0, 1].map((n) => match.players.filter((p) => p.TeamNum === n).length))
+        const everyone = Object.values(match.roster)
+        const size = Math.max(...[0, 1].map((n) => everyone.filter((p) => p.TeamNum === n).length))
         const mode = PLAYLISTS[match.playlist] || `${size}v${size}`
         const left = winner !== 0 && winner !== 1
         // A match left early stays open: if it's rejoined, its real end replaces the loss.
@@ -522,7 +527,7 @@
           overtime: match.overtime,
           me: stats(self),
           // Teammates by their numbers only: the site is public, their names stay out of it.
-          mates: match.players.filter((p) => p.TeamNum === team && p !== self).map(stats),
+          mates: everyone.filter((p) => p.TeamNum === team && playerKey(p) !== playerKey(self)).map(stats),
           rank: state.ranks[mode] || null,
           counted: RANKED.has(match.playlist),
         }
