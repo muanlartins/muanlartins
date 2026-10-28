@@ -132,8 +132,8 @@ const rankName = (tier) => (RANKS.find(([id]) => id === tier) || [, tier])[1]
 const hasDivisions = (tier) => tier !== "unranked" && tier !== "supersonic-legend"
 
 /**
- * The record plate: the rank of the mode being played and the day's wins and
- * losses, on the frame's top edge, flush right, the name plate turned 180°.
+ * The record plate: the rank of the mode being played, with its points (MMR)
+ * under it, and the day's wins and losses, on the frame's top edge, flush right, the name plate turned 180°.
  * It shows what the "Partidas" dock (partidas.html) sends through OBS
  * (obs-browser's emit_event), and hides when nothing has come for a minute.
  */
@@ -159,15 +159,16 @@ function recordPlate(el, hole, band) {
     const before = JSON.stringify(state)
     state = detail
     if (JSON.stringify(state) === before) return
-    const { show, mode, tier, division, wins, losses, streak } = state
+    const { show, mode, tier, division, mmr, wins, losses, streak, points } = state
     el.hidden = !show || (!tier && !wins && !losses)
     emblem.hidden = !tier
     if (tier) emblem.src = `/ranks/${tier}.webp`
-    rank.innerHTML = tier
-      ? `${rankName(tier)}${hasDivisions(tier) && division ? ` <small>div ${DIVISIONS[division - 1]}</small>` : ""}`
-      : mode
+    rank.innerHTML =
+      (tier ? `${rankName(tier)}${hasDivisions(tier) && division ? ` <small>div ${DIVISIONS[division - 1]}</small>` : ""}` : mode) +
+      (mmr != null ? `<span class="points">${mmr} pts</span>` : "")
     lines = [`Hoje ${wins}V <span class="accent">·</span> ${losses}D`]
     if (streak >= 2) lines.push(`${streak} vitórias seguidas`)
+    if (points) lines.push(`${points > 0 ? "+" : ""}${points} pts hoje`)
     line.innerHTML = lines[0]
     shown = 0
     place()
