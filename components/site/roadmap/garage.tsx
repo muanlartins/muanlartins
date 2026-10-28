@@ -95,7 +95,7 @@ function Octane({ color, metal }: { color: string; metal: boolean }) {
 }
 
 /** The body's paint; the rest of the car keeps its own materials. */
-function findPaint(car: Object3D) {
+export function findPaint(car: Object3D) {
   let paint: MeshPhysicalMaterial | undefined
   car.traverse((part) => {
     const material = (part as Mesh).material as MeshPhysicalMaterial | undefined

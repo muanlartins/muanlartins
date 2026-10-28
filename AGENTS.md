@@ -36,10 +36,10 @@ Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand token
 
 ## Layout
 
-- `content/`: everything Luan edits. `personal.ts` and `professional.ts` (Lifeline timelines), `projects.ts` (the content page), `rocket-league.ts` (the roadmap).
-- `content/matches/`: ranked sessions, one JSON file each, published by the stream's "Partidas" dock (`public/stream/partidas.html`) with Luan's GitHub token. Each publish is a push to `main`, so a release. `/conteudo/ranked` (`app/[section]/ranked/`, `lib/ranked.ts`) reads them at build time, one tab per mode.
-- `app/`: routes. `[section]/[project]/` serves a roadmap and its topic pages.
-- `components/site/`: the site's own components; `components/site/roadmap/` is the roadmap. `components/ui/` holds vendored registry components (the Aceternity timeline), adapted. `components/lifeline/` is vendored too.
+- `content/`: everything Luan edits. `personal.ts` and `professional.ts` (Lifeline timelines), `projects.ts` (the content page: one entry per game), `rocket-league-home.ts` (Rocket League's home: intro, ranked copy, links), `rocket-league.ts` (the roadmap).
+- `content/matches/`: ranked sessions, one JSON file each, published by the stream's "Partidas" dock (`public/stream/partidas.html`) with Luan's GitHub token. Each publish is a push to `main`, so a release. `/conteudo/rocket-league/ranked` (`components/site/ranked/`, `lib/ranked.ts`) reads them at build time, one tab per mode.
+- `app/`: routes. `[section]/[project]/` serves a game (`lib/game.ts`): its home, `/fundamentals` (the roadmap), `/ranked` and each topic at `/<topic>`, with the game's side menu from its `layout.tsx`. The content section stays game-agnostic; a game's pages live under it.
+- `components/site/`: the site's own components; `components/site/game/` is a game's home and menu (the Octane on a turntable, the ball bouncing), `components/site/roadmap/` the roadmap, `components/site/ranked/` the ranked record. `components/ui/` holds vendored registry components (the Aceternity timeline), adapted. `components/lifeline/` is vendored too.
 - `lib/`: `site.ts` (locales, sections, UI strings), `roadmap.ts` (roadmap types and ordering), `progress.ts` (saved progress), `air-roll.ts` (car physics).
 - `public/models/`, `public/ranks/`: 3D models and rank emblems (credits below).
 - `public/stream/`: the Twitch overlays, plain HTML pages that OBS loads by URL (see "Stream" in `brand/README.md`).
@@ -48,7 +48,7 @@ Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand token
 
 ## The Rocket League roadmap
 
-A usaco.guide-style path at `/conteudo/rocket-league`. `content/rocket-league.ts` holds ranks → pillars (Mecânica, Estratégia) → concepts → topics. Each topic is tagged with the rank where not knowing it starts costing games, and gets its own page and video (`video`: a YouTube id; without one the topic is drawn as a draft, "Vídeo em breve"). Never rename a topic's `id`: it is its URL and its saved progress.
+A usaco.guide-style path at `/conteudo/rocket-league/fundamentals`, inside Rocket League's home. `content/rocket-league.ts` holds ranks → pillars (Mecânica, Estratégia) → concepts → topics. Each topic is tagged with the rank where not knowing it starts costing games, and gets its own page and video (`video`: a YouTube id; without one the topic is drawn as a draft, "Vídeo em breve"). Never rename a topic's `id`: it is its URL and its saved progress. `fundamentals` and `ranked` are taken by the game's pages; the build refuses a topic with either id.
 
 Luan plans topics and tracks recording in an Obsidian note outside the repo (`- [ ] Rank · Topic`; `#gravando` = recorded, editing; `[x]` = published). The note is the source of truth for what exists; this file follows it.
 
