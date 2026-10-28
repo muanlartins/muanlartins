@@ -12,6 +12,7 @@ import {
   type RankInfo,
 } from "@/components/site/ranked/format"
 import { PointsChart } from "@/components/site/ranked/points-chart"
+import { BallBackdrop } from "@/components/site/roadmap/ball-backdrop"
 import { MODES, STATS, summarize, type Match, type Mode, type PlayerStats, type Session, type Standing } from "@/lib/ranked"
 import { UI, localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -119,6 +120,7 @@ export function RankedPage({
 
   return (
     <>
+      <BallBackdrop />
       <PageIntro title={title} description={description} />
 
       <div role="tablist" aria-label={T.modes} className="mt-12 flex gap-2">
@@ -178,7 +180,7 @@ export function RankedPage({
                   {[...summary.days].reverse().map((day) => (
                     <tr key={day.date} className="border-b border-line/60">
                       <td className="py-2.5 pr-4">{shortDate(day.date)}</td>
-                      <td className="py-2.5 pr-4">
+                      <td className="whitespace-nowrap py-2.5 pr-4">
                         {day.wins}
                         {T.W} · {day.losses}
                         {T.L}
