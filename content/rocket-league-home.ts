@@ -18,8 +18,7 @@ const commented2v2 = {
 /**
  * Rocket League's home at /conteudo/rocket-league, with the roadmap, the
  * ranked record, RLR and the commented series around it.
- * TODO(Luan): the description and intro are placeholders taken from the
- * channel's pitch; rewrite them in your voice.
+ * The intro follows the Twitch bio.
  */
 export default game({
   id: "rocket-league",
@@ -29,12 +28,8 @@ export default game({
     en: "Getting better at Rocket League with the scientific method.",
   },
   intro: {
-    pt: `TODO: a ideia do canal, em poucas linhas. Por que Rocket League, e o que é evoluir com o método científico: escolher uma técnica, treinar, medir.
-
-TODO: onde acompanhar. Os vídeos saem no YouTube, em português, e as ranqueadas são ao vivo na Twitch.`,
-    en: `TODO: the channel's idea in a few lines. Why Rocket League, and what improving with the scientific method means: pick a technique, drill it, measure it.
-
-TODO: where to follow along. Videos come out on YouTube, in Brazilian Portuguese, and the ranked games are live on Twitch.`,
+    pt: "Medindo o que funciona em cada técnica, em vídeos no YouTube e ao vivo na Twitch. Aqui ficam os fundamentos do jogo, organizados por rank, e o registro das minhas ranqueadas.",
+    en: "Measuring what works in each technique, in videos on YouTube and live on Twitch. Here are the game's fundamentals, organized by rank, and the record of my ranked games.",
   },
   roadmap: rocketLeague,
   ranked: {
