@@ -37,6 +37,7 @@ Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand token
 ## Layout
 
 - `content/`: everything Luan edits. `personal.ts` and `professional.ts` (Lifeline timelines), `projects.ts` (the content page), `rocket-league.ts` (the roadmap).
+- `content/matches/`: ranked sessions, one JSON file each, published by the stream's "Partidas" dock (`public/stream/partidas.html`) with Luan's GitHub token. Each publish is a push to `main`, so a release. `/conteudo/ranked` (`app/[section]/ranked/`, `lib/ranked.ts`) reads them at build time, one tab per mode.
 - `app/`: routes. `[section]/[project]/` serves a roadmap and its topic pages.
 - `components/site/`: the site's own components; `components/site/roadmap/` is the roadmap. `components/ui/` holds vendored registry components (the Aceternity timeline), adapted. `components/lifeline/` is vendored too.
 - `lib/`: `site.ts` (locales, sections, UI strings), `roadmap.ts` (roadmap types and ordering), `progress.ts` (saved progress), `air-roll.ts` (car physics).
