@@ -132,8 +132,8 @@ const rankName = (tier) => (RANKS.find(([id]) => id === tier) || [, tier])[1]
 const hasDivisions = (tier) => tier !== "unranked" && tier !== "supersonic-legend"
 
 /**
- * The record plate: the rank of the mode being played, with its points (MMR)
- * under it, and the day's wins and losses, on the frame's top edge, flush right, the name plate turned 180°.
+ * The record plate: the rank of the mode being played, with the mode and its
+ * points (MMR) under it, and the day's wins and losses in that mode, on the frame's top edge, flush right, the name plate turned 180°.
  * It shows what the "Partidas" dock (partidas.html) sends through OBS
  * (obs-browser's emit_event), and hides when nothing has come for a minute.
  */
@@ -164,8 +164,8 @@ function recordPlate(el, hole, band) {
     emblem.hidden = !tier
     if (tier) emblem.src = `/ranks/${tier}.webp`
     rank.innerHTML =
-      (tier ? `${rankName(tier)}${hasDivisions(tier) && division ? ` <small>div ${DIVISIONS[division - 1]}</small>` : ""}` : mode) +
-      (mmr != null ? `<span class="points">${mmr} pts</span>` : "")
+      (tier ? `${rankName(tier)}${hasDivisions(tier) && division ? ` <small>div ${DIVISIONS[division - 1]}</small>` : ""}` : "") +
+      `<span class="points">Ranqueada ${mode}${mmr != null ? ` · ${mmr} pts` : ""}</span>`
     lines = [`Hoje ${wins}V <span class="accent">·</span> ${losses}D`]
     if (streak >= 2) lines.push(`${streak} vitórias seguidas`)
     if (points) lines.push(`${points > 0 ? "+" : ""}${points} pts hoje`)
