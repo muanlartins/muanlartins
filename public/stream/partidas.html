@@ -14,7 +14,8 @@
       to content/matches/ in the repository, which the site reads.
 
       The game can't tell the rank or the points (MMR), so they're set here, per
-      mode. The OBS
+      mode; after each ranked match a card asks for the points, as the total or
+      the gain (+9), and gives them to that match. The OBS
       websocket password and the GitHub token (fine-grained, Contents read and
       write on muanlartins/muanlartins only) are kept in the dock's storage;
       #obs=<password> in the URL fills the first one.
@@ -100,6 +101,25 @@
         background: var(--klein);
         border-color: var(--klein);
       }
+      /* After a ranked match: the card asking for the points, until they're typed in or skipped. */
+      .after {
+        margin: 0 0 6px;
+        padding: 10px 12px 12px;
+        background: var(--klein);
+        border-left: 3px solid var(--klein-claro);
+      }
+      .after p {
+        margin: 0 0 8px;
+        font-weight: 600;
+      }
+      .after input {
+        width: 130px;
+      }
+      .after .note {
+        margin: 8px 0 0;
+        font-weight: 400;
+        color: rgb(244 245 247 / 0.75);
+      }
       .tabs button[aria-pressed="true"] {
         background: var(--klein);
         border-color: var(--klein-claro);
@@ -182,6 +202,16 @@
   <body>
     <h2>Partidas</h2>
     <p class="status"><span id="game">Rocket League</span><span id="obs">OBS</span><span id="site"></span></p>
+
+    <form class="after" id="after" hidden>
+      <p><span id="after-result"></span> · Pontos agora?</p>
+      <div class="row">
+        <input id="after-mmr" inputmode="numeric" autocomplete="off" placeholder="1041 ou +9" />
+        <button class="primary">Salvar</button>
+        <button type="button" id="after-skip">Pular</button>
+      </div>
+      <p class="note">O total, ou só o que ganhou ou perdeu (+9, -7). Mudou de divisão ou de ranque? Troque também em Ranque.</p>
+    </form>
 
     <h2>Modo</h2>
     <div class="row tabs" id="modes"></div>
@@ -322,6 +352,12 @@
         $("site").className = pending ? "" : "on"
         $("obs-password").value = state.obsPassword
         $("token").value = state.token
+        const awaiting = session.matches.find((m) => m.id === state.awaiting && m.points == null)
+        $("after").hidden = !awaiting
+        if (awaiting) {
+          const score = awaiting.score ? ` ${awaiting.score[0]}–${awaiting.score[1]}` : ""
+          $("after-result").textContent = `${awaiting.result === "win" ? "Vitória" : "Derrota"}${score} no ${awaiting.mode}`
+        }
         $("me").textContent = state.me ? `Você no jogo: ${state.me.name}` : "Você no jogo: descobre na primeira partida."
         broadcast()
       }
@@ -354,17 +390,38 @@
         const before = state.ranks[state.mode]?.mmr
         state.ranks[state.mode] = rank
         const session = current()
-        // Points typed in after a match are that match's gain or loss: the game shows them only then.
-        const last = session.matches.filter((m) => m.mode === state.mode).at(-1)
-        if (mmr != null && before != null && mmr !== before && last && last.points == null && Date.now() - Date.parse(last.at) < 20 * 60000) {
-          last.points = mmr - before
-          last.mmr = mmr
-        }
+        const awaiting = session.matches.find((m) => m.id === state.awaiting && m.mode === state.mode)
+        if (awaiting && mmr != null && before != null && mmr !== before) settle(awaiting, mmr - before, mmr)
         session.ranks.push({ at: new Date().toISOString(), mode: state.mode, ...rank })
         session.dirty = true
         save()
         render()
       }
+
+      // Points typed in after a match are that match's gain or loss: the game shows them only then.
+      function settle(match, points, mmr) {
+        match.points = points
+        if (mmr != null) match.mmr = mmr
+        state.awaiting = null
+      }
+      $("after").onsubmit = (event) => {
+        event.preventDefault()
+        const session = current()
+        const match = session.matches.find((m) => m.id === state.awaiting)
+        const typed = $("after-mmr").value.trim().replace(",", ".")
+        if (!match || !/^[+-]?\d+$/.test(typed)) return
+        const rank = state.ranks[match.mode] || { tier: "unranked", division: 1, mmr: null }
+        const relative = /^[+-]/.test(typed)
+        const mmr = relative ? (rank.mmr != null ? rank.mmr + Number(typed) : null) : Number(typed)
+        settle(match, relative ? Number(typed) : rank.mmr != null ? mmr - rank.mmr : null, mmr)
+        if (mmr != null) {
+          state.ranks[match.mode] = { ...rank, mmr }
+          session.ranks.push({ at: new Date().toISOString(), mode: match.mode, ...state.ranks[match.mode] })
+        }
+        $("after-mmr").value = ""
+        edit(session, () => {})
+      }
+      $("after-skip").onclick = () => ((state.awaiting = null), save(), render())
       $("tier").onchange = setRank
       $("division").onchange = setRank
       $("mmr").onchange = setRank
@@ -469,6 +526,8 @@
           rank: state.ranks[mode] || null,
           counted: RANKED.has(match.playlist),
         }
+        // Ranked matches ask for the points (the card on top), until the next one ends.
+        if (entry.counted) state.awaiting = entry.id
         if (existing) Object.assign(existing, entry)
         else session.matches.push(entry)
         session.dirty = true
