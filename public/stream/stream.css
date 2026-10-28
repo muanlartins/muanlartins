@@ -155,6 +155,15 @@ body {
 }
 .plate.turned .rank {
   font-weight: 600;
+  line-height: 1.05;
+}
+.plate.turned .rank .points {
+  display: block;
+  color: var(--klein-claro);
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 .plate.turned .rank small {
   color: var(--klein-claro);

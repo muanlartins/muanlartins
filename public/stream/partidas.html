@@ -13,7 +13,8 @@
       jogo.html draws them on the camera frame. "Publicar" writes each session
       to content/matches/ in the repository, which the site reads.
 
-      The game can't tell the rank, so it's set here, per mode. The OBS
+      The game can't tell the rank or the points (MMR), so they're set here, per
+      mode. The OBS
       websocket password and the GitHub token (fine-grained, Contents read and
       write on muanlartins/muanlartins only) are kept in the dock's storage;
       #obs=<password> in the URL fills the first one.
@@ -68,6 +69,9 @@
         flex-wrap: wrap;
         align-items: center;
         gap: 8px;
+      }
+      #mmr {
+        width: 90px;
       }
       .rank-row img {
         width: 44px;
@@ -187,6 +191,7 @@
       <img id="emblem" alt="" />
       <select id="tier"></select>
       <select id="division"></select>
+      <input type="number" id="mmr" min="0" step="1" placeholder="pontos" title="Pontos (MMR)" />
     </div>
 
     <h2>Hoje <span id="session-date"></span></h2>
@@ -252,7 +257,7 @@
         // Sessions that never got a match or a rank are dropped; published ones are kept for a month.
         const month = Date.now() - 30 * 86400 * 1000
         state.sessions = state.sessions.filter((s) => (s.matches.length || s.ranks.length) && (s.dirty || Date.parse(s.start) > month))
-        state.sessions.push({ id: sessionId(now), start: now.toISOString(), matches: [], ranks: [], dirty: false })
+        state.sessions.push({ id: sessionId(now), start: now.toISOString(), startRanks: structuredClone(state.ranks), matches: [], ranks: [], dirty: false })
         save()
       }
       const current = () => {
@@ -262,8 +267,15 @@
         return state.sessions[state.sessions.length - 1]
       }
 
-      /** The session's record in a mode: wins, losses and the streak of wins it ends with. */
+      /**
+       * The session's record in a mode: wins, losses, the streak of wins it ends with and the points
+       * (MMR) gained since the session began, from the points set before or during it.
+       */
       function record(session, mode) {
+        const changes = session.ranks.filter((r) => r.mode === mode && r.mmr != null)
+        const first = session.startRanks?.[mode]?.mmr ?? changes[0]?.mmr
+        const now = state.ranks[mode]?.mmr
+        const points = first != null && now != null ? now - first : 0
         const counted = session.matches.filter((m) => m.counted && m.mode === mode)
         let streak = 0
         for (const m of [...counted].reverse()) {
@@ -274,6 +286,7 @@
           wins: counted.filter((m) => m.result === "win").length,
           losses: counted.filter((m) => m.result === "loss").length,
           streak,
+          points,
         }
       }
 
@@ -294,9 +307,10 @@
         $("tier").value = rank.tier
         $("division").value = rank.division
         $("division").hidden = !hasDivisions(rank.tier)
+        $("mmr").value = rank.mmr ?? ""
         $("emblem").src = `/ranks/${rank.tier}.webp`
-        const { wins, losses, streak } = record(session, state.mode)
-        $("today").innerHTML = `${wins}V <span class="accent">·</span> ${losses}D${streak >= 2 ? `<small>${streak} seguidas</small>` : ""}`
+        const { wins, losses, streak, points } = record(session, state.mode)
+        $("today").innerHTML = `${wins}V <span class="accent">·</span> ${losses}D${streak >= 2 ? `<small>${streak} seguidas</small>` : ""}${points ? `<small>${points > 0 ? "+" : ""}${points} pts</small>` : ""}`
         $("session-date").textContent = new Date(session.start).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
         $("show").checked = state.show
         $("count").textContent = session.matches.length || ""
@@ -334,7 +348,8 @@
       }
 
       function setRank() {
-        const rank = { tier: $("tier").value, division: Number($("division").value) }
+        const mmr = $("mmr").value === "" ? null : Number($("mmr").value)
+        const rank = { tier: $("tier").value, division: Number($("division").value), mmr }
         state.ranks[state.mode] = rank
         const session = current()
         session.ranks.push({ at: new Date().toISOString(), mode: state.mode, ...rank })
@@ -344,6 +359,7 @@
       }
       $("tier").onchange = setRank
       $("division").onchange = setRank
+      $("mmr").onchange = setRank
       $("show").onchange = () => ((state.show = $("show").checked), save(), render())
       $("obs-password").onchange = () => ((state.obsPassword = $("obs-password").value), save(), obs.close())
       $("token").onchange = () => ((state.token = $("token").value.trim()), save())
@@ -500,7 +516,7 @@
       function broadcast() {
         if (!obsReady) return
         const rank = state.ranks[state.mode]
-        const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, ...record(current(), state.mode) }
+        const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, ...record(current(), state.mode) }
         obs.send(JSON.stringify({
           op: 6,
           d: {
@@ -542,7 +558,7 @@
 
       async function publish(session) {
         const matches = session.matches.filter((m) => m.counted).map(({ counted, ...m }) => m)
-        const body = { id: session.id, start: session.start, end: matches.length ? matches[matches.length - 1].at : session.start, matches, ranks: session.ranks }
+        const body = { id: session.id, start: session.start, end: matches.length ? matches[matches.length - 1].at : session.start, startRanks: session.startRanks ?? {}, matches, ranks: session.ranks }
         const path = `${FOLDER}/${session.id}.json`
         const api = `https://api.github.com/repos/${REPO}/contents/${path}`
         const headers = { Authorization: `Bearer ${state.token}`, Accept: "application/vnd.github+json" }
