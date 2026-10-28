@@ -1,4 +1,5 @@
 import rocketLeague from "@/content/rocket-league"
+import { ranked } from "@/content/ranked"
 import { rlr } from "@/content/rlr"
 import { roadmapPath } from "@/lib/roadmap"
 import type { L10n, Locale } from "@/lib/site"
@@ -40,6 +41,7 @@ const commented2v2 = {
 } satisfies Project
 
 export const projects: Project[] = [
+  ranked,
   commented2v2,
   rlr,
   ...roadmaps.map((roadmap) => ({
