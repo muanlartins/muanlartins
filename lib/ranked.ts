@@ -58,13 +58,9 @@ export interface Session {
   ranks: (Standing & { at: string; mode: string })[]
 }
 
-export interface Day {
+export interface Day extends DayRecord {
   /** YYYY-MM-DD in TIME_ZONE. */
   date: string
-  wins: number
-  losses: number
-  /** Net points from the matches that have them. */
-  points: number
   end?: Standing
 }
 
@@ -95,6 +91,23 @@ export const dayOf = (at: string) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" }).format(
     new Date(at),
   )
+
+export interface DayRecord {
+  wins: number
+  losses: number
+  /** Net points from the matches that have them. */
+  points: number
+}
+
+/** A day's ranked matches in every mode: wins, losses and net points. */
+export function dayRecord(sessions: Session[], date: string): DayRecord {
+  const matches = sessions.flatMap((session) => session.matches).filter((match) => dayOf(match.at) === date)
+  return {
+    wins: matches.filter((match) => match.result === "win").length,
+    losses: matches.filter((match) => match.result === "loss").length,
+    points: matches.reduce((total, match) => total + (match.points ?? 0), 0),
+  }
+}
 
 const mean = (values: number[]) => (values.length ? values.reduce((a, b) => a + b, 0) / values.length : undefined)
 

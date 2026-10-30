@@ -16,13 +16,15 @@ export interface MenuItem {
 /**
  * A game's pages. Wide screens get a column in the left margin that follows
  * the page down, with a ball rolling to the page being read; narrower ones a
- * row of tabs above it. Topic pages count as the roadmap's.
+ * row of tabs above it. A page under another counts as that one's (a live
+ * as the lives'), and topic pages as the roadmap's.
  */
 export function GameMenu({ title, home, items }: { title: string; home: string; items: MenuItem[] }) {
   const pathname = usePathname().replace(/\/$/, "")
   const own = items.filter((item) => !item.away)
   const active =
     own.find((item) => item.href === pathname) ??
+    own.find((item) => item.href !== home && pathname.startsWith(`${item.href}/`)) ??
     (pathname.startsWith(`${home}/`) ? own.find((item) => item.href.endsWith("/fundamentals")) : undefined)
 
   return (

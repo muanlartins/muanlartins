@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-28",
+  "video": "7vcv2ZNd-Z4",
+  "summary": {
+    "pt": "Começa no 3v3 ranqueado e passa para o 2v2 com um parceiro: uma derrota, sete vitórias seguidas e a subida de Diamante 2 para Diamante 3, fechando com uma derrota.",
+    "en": "It starts in ranked 3v3 and moves to 2v2 with a partner: a loss, seven wins in a row and the climb from Diamond 2 to Diamond 3, closing with a loss."
+  },
+  "chapters": [
+    { "at": "0:00", "title": { "pt": "3v3 ranqueado", "en": "Ranked 3v3" } },
+    { "at": "17:00", "title": { "pt": "Formando a dupla do 2v2", "en": "Finding a 2v2 partner" } },
+    { "at": "27:00", "match": "5B2FC9A611F1D2F81775B0B36D034FCF" },
+    { "at": "33:08", "match": "40BB812C11F1D2F935C3F9A551CD5D38" },
+    { "at": "40:13", "match": "3C38CB7211F1D2FAF916DD996E3E0D8C" },
+    { "at": "47:42", "match": "4B7EEC0A11F1D2FB15ABCA987925C4DE" },
+    { "at": "54:27", "match": "3BDB3B6811F1D2FC0ED417893C855769" },
+    { "at": "1:02:22", "match": "5D6C478011F1D2FD1AFCC394D6D201EF" },
+    { "at": "1:09:32", "match": "5ACCFC7611F1D2FECC8D4DAA6DA7A09C" },
+    { "at": "1:15:25", "match": "26534AF811F1D2FF9BD82098B6670E51" },
+    { "at": "1:17:54", "match": "A8C54BEE11F1D2FF5288DDA7C25E20E3" },
+    { "at": "1:26:15", "title": { "pt": "Fim", "en": "The end" } }
+  ]
+}
