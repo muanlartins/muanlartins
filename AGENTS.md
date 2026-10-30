@@ -46,6 +46,7 @@ Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand token
 - `public/stream/`: the Twitch overlays, plain HTML pages that OBS loads by URL (see "Stream" in `brand/README.md`).
 - `brand/build.py` regenerates logos, site icons and YouTube art.
 - `infra/site.yml` and `.github/workflows/deploy.yml`: hosting and release.
+- `handoff/`: the plan and the Mac pilot (Pix alerts, voices, crowd, captions) handed to the Windows session that runs the stream. Start there.
 
 ## The Rocket League roadmap
 
