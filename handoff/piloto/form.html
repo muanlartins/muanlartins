@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pix na live</title>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root { --klein: #002fa7; --branco: #f4f5f7; --claro: #85a7ff; --fundo: #00227a; }
+* { box-sizing: border-box; }
+body {
+  margin: 0; min-height: 100vh; padding: 32px 16px 48px;
+  font-family: "Space Grotesk", sans-serif; color: var(--branco); -webkit-font-smoothing: antialiased;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 calc(24px * 0.7071 - 1px), rgb(133 167 255 / 0.12) 0 calc(24px * 0.7071)),
+    repeating-linear-gradient(-45deg, transparent 0 calc(24px * 0.7071 - 1px), rgb(133 167 255 / 0.12) 0 calc(24px * 0.7071)),
+    var(--klein);
+}
+main { max-width: 440px; margin: 0 auto; }
+.topo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.topo img { width: 40px; height: 40px; }
+.topo span { font-weight: 500; letter-spacing: 0.02em; }
+h1 { margin: 0 0 6px; font-size: 40px; line-height: 1; letter-spacing: -0.03em; }
+.sub { margin: 0 0 28px; color: var(--claro); }
+.cartao {
+  padding: 24px; background: var(--fundo);
+  clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+}
+label { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--claro); }
+input, textarea {
+  width: 100%; margin-bottom: 20px; padding: 12px 14px; border: 1px solid rgb(133 167 255 / 0.4); border-radius: 0;
+  background: rgb(0 0 0 / 0.2); color: var(--branco); font: inherit; font-size: 17px;
+}
+input:focus, textarea:focus, button:focus-visible { outline: 2px solid var(--claro); outline-offset: 2px; }
+textarea { min-height: 96px; resize: vertical; }
+select {
+  flex: 1; min-width: 0; padding: 12px 14px; border: 1px solid rgb(133 167 255 / 0.4); border-radius: 0;
+  background: rgb(0 0 0 / 0.2); color: var(--branco); font: inherit; font-size: 17px;
+}
+select option { color: #000; }
+.linha-voz { display: flex; gap: 8px; margin-bottom: 20px; }
+.secundario { padding: 0 18px; border: 1px solid var(--claro); background: none; color: var(--branco); font: inherit; font-size: 16px; cursor: pointer; }
+.secundario:disabled { opacity: 0.6; cursor: wait; }
+.contador { margin: -14px 0 20px; text-align: right; font-size: 13px; color: var(--claro); }
+.valores { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.valores button { flex: 1 0 64px; padding: 10px 0; border: 1px solid var(--claro); background: none; color: var(--branco); font: inherit; font-size: 16px; cursor: pointer; }
+.valores button[aria-pressed="true"] { background: var(--branco); color: var(--klein); border-color: var(--branco); font-weight: 700; }
+.principal {
+  width: 100%; padding: 16px; border: 0; background: var(--branco); color: var(--klein);
+  font: inherit; font-size: 18px; font-weight: 700; cursor: pointer;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+.principal:disabled { opacity: 0.6; cursor: wait; }
+.erro { margin: 12px 0 0; color: #ffb4b4; }
+.qr { display: grid; place-items: center; padding: 16px; background: #fff; margin-bottom: 20px; }
+.qr svg { width: 100%; max-width: 280px; height: auto; display: block; }
+.valor { margin: 0 0 4px; font-size: 44px; font-weight: 700; letter-spacing: -0.03em; }
+.nota { margin: 0 0 20px; color: var(--claro); font-size: 15px; line-height: 1.45; }
+.codigo { width: 100%; min-height: 0; height: 64px; font-size: 12px; word-break: break-all; margin-bottom: 12px; }
+.estado { display: flex; align-items: center; gap: 10px; margin-top: 20px; font-size: 15px; }
+.ponto { width: 10px; height: 10px; background: var(--claro); animation: pulso 1.2s ease-in-out infinite; }
+@keyframes pulso { 50% { opacity: 0.25; } }
+.feito h2 { margin: 0 0 8px; font-size: 32px; letter-spacing: -0.02em; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { .ponto { animation: none; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="topo"><img src="https://muanlartins.com.br/brand/mark-small-clear.svg" alt=""><span>muanlartins</span></div>
+
+  <section id="passo-form">
+    <h1>Mande um Pix na live</h1>
+    <p class="sub">Sua mensagem aparece na tela assim que o Pix chegar.</p>
+    <form class="cartao" id="form">
+      <label for="nome">Seu nome na tela</label>
+      <input id="nome" maxlength="25" autocomplete="nickname" placeholder="Em branco aparece como Anônimo">
+      <label for="mensagem">Mensagem</label>
+      <textarea id="mensagem" maxlength="200" placeholder="Opcional"></textarea>
+      <p class="contador"><span id="usados">0</span>/200</p>
+      <label for="voz">Voz que lê a mensagem</label>
+      <div class="linha-voz">
+        <select id="voz"></select>
+        <button type="button" class="secundario" id="ouvir">Ouvir</button>
+      </div>
+      <label id="rotulo-valor">Valor</label>
+      <div class="valores" role="group" aria-labelledby="rotulo-valor">
+        <button type="button" data-valor="1" aria-pressed="true">R$ 1</button>
+        <button type="button" data-valor="5" aria-pressed="false">R$ 5</button>
+        <button type="button" data-valor="10" aria-pressed="false">R$ 10</button>
+        <button type="button" data-valor="20" aria-pressed="false">R$ 20</button>
+      </div>
+      <button class="principal" id="gerar">Gerar Pix</button>
+      <p class="erro" id="erro" hidden></p>
+    </form>
+  </section>
+
+  <section id="passo-pagar" hidden>
+    <h1>Pague este valor exato</h1>
+    <p class="sub">Se tiver centavos, são eles que identificam o seu Pix. Assim sua mensagem sai com o seu nome.</p>
+    <div class="cartao">
+      <div class="qr" id="qr"></div>
+      <p class="valor" id="valor"></p>
+      <p class="nota">Leia o QR no app do seu banco, ou copie o código e use “Pix copia e cola”. O valor já vem preenchido. Válido por <span id="restante">15:00</span>.</p>
+      <textarea class="codigo" id="codigo" readonly></textarea>
+      <button class="principal" id="copiar">Copiar código Pix</button>
+      <p class="estado"><span class="ponto"></span><span>Esperando o Pix chegar…</span></p>
+    </div>
+  </section>
+
+  <section id="passo-feito" class="feito" hidden>
+    <div class="cartao">
+      <h2>Recebido!</h2>
+      <p class="nota">Sua mensagem já está na live. Valeu demais!</p>
+    </div>
+  </section>
+
+  <section id="passo-expirou" hidden>
+    <div class="cartao">
+      <h2>O tempo acabou</h2>
+      <p class="nota">Se você já pagou, o Pix aparece na live do mesmo jeito, só que sem a sua mensagem. Para mandar a mensagem, gere um Pix novo.</p>
+      <button class="principal" onclick="location.reload()">Gerar outro Pix</button>
+    </div>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const passo = (id) => ["passo-form", "passo-pagar", "passo-feito", "passo-expirou"].forEach((p) => ($(p).hidden = p !== id));
+let valor = "1";
+
+document.querySelectorAll(".valores button").forEach((b) =>
+  b.addEventListener("click", () => {
+    valor = b.dataset.valor;
+    document.querySelectorAll(".valores button").forEach((o) => o.setAttribute("aria-pressed", o === b));
+  }),
+);
+fetch("/vozes").then((r) => r.json()).then((vozes) => Object.entries(vozes).forEach(([id, nome]) => $("voz").append(new Option(nome, id))));
+$("ouvir").addEventListener("click", async () => {
+  $("ouvir").disabled = true;
+  try {
+    const { audio } = await fetch("/ouvir", { method: "POST", body: JSON.stringify(dados()) }).then((r) => r.json());
+    await new Audio(audio).play();
+  } finally {
+    $("ouvir").disabled = false;
+  }
+});
+const dados = () => ({ nome: $("nome").value, mensagem: $("mensagem").value, valor, voz: $("voz").value });
+$("mensagem").addEventListener("input", (e) => ($("usados").textContent = e.target.value.length));
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("gerar").disabled = true;
+  $("erro").hidden = true;
+  try {
+    const r = await fetch("/reservar", { method: "POST", body: JSON.stringify(dados()) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.erro);
+    mostrar(j);
+  } catch (err) {
+    $("erro").textContent = err.message || "Não deu para gerar o Pix. Tente de novo.";
+    $("erro").hidden = false;
+    $("gerar").disabled = false;
+  }
+});
+
+function mostrar({ id, valor, brcode, expira }) {
+  const qr = qrcode(0, "M");
+  qr.addData(brcode);
+  qr.make();
+  $("qr").innerHTML = qr.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+  $("valor").textContent = "R$ " + valor;
+  $("codigo").value = brcode;
+  passo("passo-pagar");
+
+  const relogio = setInterval(() => {
+    const s = Math.max(0, Math.round((expira - Date.now()) / 1000));
+    $("restante").textContent = Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+  }, 1000);
+  const vigia = setInterval(async () => {
+    const j = await fetch("/reserva?id=" + id).then((r) => r.json()).catch(() => ({}));
+    if (j.pago || j.expirada) {
+      clearInterval(vigia);
+      clearInterval(relogio);
+      passo(j.pago ? "passo-feito" : "passo-expirou");
+    }
+  }, 2000);
+}
+
+// The pilot is served over plain http on the LAN, where navigator.clipboard is unavailable.
+$("copiar").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText($("codigo").value);
+  } catch {
+    $("codigo").select();
+    document.execCommand("copy");
+  }
+  $("copiar").textContent = "Código copiado";
+  setTimeout(() => ($("copiar").textContent = "Copiar código Pix"), 2500);
+});
+</script>
+</body>
+</html>

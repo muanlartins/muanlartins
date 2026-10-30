@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controles do piloto</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400..700&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; padding: 24px 16px; background: #002fa7; color: #f4f5f7; font-family: "Space Grotesk", sans-serif; }
+main { max-width: 440px; margin: 0 auto; }
+h1 { margin: 0 0 4px; font-size: 28px; }
+p { margin: 0 0 20px; color: #85a7ff; }
+h2 { margin: 24px 0 10px; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #85a7ff; }
+.grade { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+button { padding: 16px 8px; border: 0; background: #f4f5f7; color: #002fa7; font: 700 16px "Space Grotesk", sans-serif; cursor: pointer; }
+button.sec { background: none; color: #f4f5f7; border: 1px solid #85a7ff; font-weight: 500; }
+button:focus-visible { outline: 2px solid #85a7ff; outline-offset: 2px; }
+#ultimo { margin-top: 20px; min-height: 1.4em; font-size: 15px; color: #f4f5f7; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Simular a partida</h1>
+  <p>No lugar da API do Rocket League. A torcida reage em /torcida.</p>
+  <h2>Jogo</h2>
+  <div class="grade">
+    <button data-tipo="gol">Gol nosso</button>
+    <button data-tipo="gol-dedicado">Gol dedicado</button>
+    <button class="sec" data-tipo="gol-deles">Gol deles</button>
+    <button class="sec" data-tipo="defesa">Defesa</button>
+  </div>
+  <h2>Chat</h2>
+  <div class="grade">
+    <button class="sec" data-tipo="chegada">Alguém chegou</button>
+    <button class="sec" data-tipo="chegada-patrono">Patrocinador chegou</button>
+    <button class="sec" data-tipo="saida">Alguém saiu</button>
+  </div>
+  <p id="ultimo" aria-live="polite"></p>
+</main>
+<script>
+document.querySelectorAll("[data-tipo]").forEach((b) =>
+  b.addEventListener("click", async () => {
+    const r = await fetch("/simular?tipo=" + b.dataset.tipo, { method: "POST" }).then((r) => r.json());
+    document.getElementById("ultimo").textContent =
+      b.textContent + (r.velocidade ? ` · ${r.velocidade} km/h` : "") + (r.dedicado ? ` · para ${r.dedicado}` : "") + (r.nome && !r.velocidade ? ` · ${r.nome}` : "");
+  }),
+);
+</script>
+</body>
+</html>

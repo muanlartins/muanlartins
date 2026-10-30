@@ -403,12 +403,12 @@ def episode_thumbnail(number, rank, tier):
 
 
 def live_thumbnail(day, rank=None, tier=None):
-    """A Twitch live's VOD: "Live" with the v in a Klein tint like 2v2's, and the day on the plate. A live
-    that climbed shows the rank and tier it reached."""
+    """A Twitch live's VOD: "Live" in Branco, and the day on the plate. A live that climbed shows the rank
+    and tier it reached."""
     if not rank:
-        return plated_thumbnail([("Li", PAPER), ("v", klein_tint(0.6)), ("e", PAPER)], day, "Rocket League")
+        return plated_thumbnail([("Live", PAPER)], day, "Rocket League")
     name, color = RANKS[rank]
-    return plated_thumbnail([("Li", PAPER), ("v", klein_tint(0.6)), ("e", PAPER)], day, "Rocket League",
+    return plated_thumbnail([("Live", PAPER)], day, "Rocket League",
                             (f"{name.upper()} {tier}", color), (f"ranks/{rank}-{tier}.png", color))
 
 

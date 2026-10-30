@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     "brand/**",
     // Vendored from evilrabbit/lifeline; upstream code, linted upstream.
     "components/lifeline/**",
+    // The Mac pilot handed to the Windows session: reference, not site code.
+    "handoff/**",
   ]),
 ]);
 

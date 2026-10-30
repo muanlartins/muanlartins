@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Torcida</title>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=block" rel="stylesheet">
+<!--
+  The virtual crowd: who is watching, standing on a stand at the bottom centre of the game scene, clear of the
+  camera frame (bottom left) and Rocket League's boost meter (bottom right). Patrons stand in front, ordered by Σ,
+  with their rank emblem on the chest; everyone else behind. It reacts to the game: a wave and confetti on our goal,
+  a slump on theirs, a cheer on a save. ?fundo=1 puts a frame of a real stream behind it, to judge placement.
+-->
+<style>
+:root {
+  --klein: #002fa7; --claro: #85a7ff; --branco: #f4f5f7; --navy: #001447;
+  --ease: cubic-bezier(0.65, 0, 0.35, 1);
+  --lattice: rgb(133 167 255 / 0.22);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+body { font-family: "Space Grotesk", sans-serif; color: var(--branco); -webkit-font-smoothing: antialiased; }
+.stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; }
+.stage.fundo { background: url(/fundo.jpg) center / cover; }
+
+/* The stand: a Klein band cut at 45° on its ends, lined with the lattice, a Klein claro hairline on top. */
+.torcida { position: absolute; left: 596px; width: 960px; bottom: 0; height: 132px; }
+.arquibancada {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
+  background: var(--klein);
+  clip-path: polygon(34px 0, calc(100% - 34px) 0, 100% 100%, 0 100%);
+  overflow: hidden;
+}
+.arquibancada::before {
+  content: ""; position: absolute; inset: -48px;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 calc(24px * 0.7071 - 1px), var(--lattice) 0 calc(24px * 0.7071)),
+    repeating-linear-gradient(-45deg, transparent 0 calc(24px * 0.7071 - 1px), var(--lattice) 0 calc(24px * 0.7071));
+  animation: drift 12s linear infinite;
+}
+.arquibancada::after { content: ""; position: absolute; left: 34px; right: 34px; top: 0; height: 2px; background: var(--claro); }
+.contagem {
+  position: absolute; left: 46px; bottom: 7px; z-index: 3;
+  font-size: 14px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--claro);
+}
+.contagem b { color: var(--branco); font-weight: 700; margin-left: 6px; }
+@keyframes drift { to { transform: translate(24px, 24px); } }
+
+/* Two rows standing on the stand. The back row is everyone; the front row, patrons. */
+/* Three rows, packed and overlapping like a real stand: the top row small and dim, patrons big in front. */
+.fileira { position: absolute; left: 150px; right: 24px; display: flex; justify-content: center; align-items: flex-end; }
+.fileira.alta { bottom: 46px; z-index: 0; justify-content: space-evenly; }
+.fileira.tras { bottom: 28px; z-index: 1; justify-content: space-evenly; }
+.fileira.frente { bottom: 18px; gap: 6px; z-index: 2; }
+.alta .fa { margin: 0 -3px; }
+.tras .fa { margin: 0 -2px; }
+
+/* A fan, drawn on the mark's lattice: a diamond head, a body with 45° shoulders, arms that only show to cheer. */
+.fa { position: relative; width: 28px; height: 42px; flex: none; color: var(--claro); transform-origin: 50% 100%; translate: 0 var(--alt, 0px); }
+.alta .fa { width: 24px; height: 36px; }
+.frente .fa { width: 40px; height: 60px; color: var(--branco); }
+.fa svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.fa .corpo { fill: currentColor; }
+.alta .fa { opacity: 0.5; }
+.tras .fa { opacity: 0.78; }
+.fa .corpo { fill: color-mix(in srgb, currentColor calc(100% - var(--tom, 0%)), var(--klein)); }
+.fa .bracos { stroke: currentColor; stroke-width: 3; stroke-linecap: square; opacity: 0; transform-origin: 12px 16px; transform: scaleY(0.2); transition: opacity 0.15s, transform 0.25s var(--ease); }
+.fa .emblema { position: absolute; left: 50%; top: 48%; width: 26px; height: 26px; translate: -50% 0; }
+.fa .inicial { position: absolute; left: 0; right: 0; top: 44%; text-align: center; font-size: 13px; font-weight: 700; color: var(--klein); }
+
+/* Idle: everyone breathes a little, out of step. */
+.fa .vivo { position: absolute; inset: 0; animation: respira 3.2s ease-in-out infinite; animation-delay: var(--atraso, 0s); }
+@keyframes respira { 50% { transform: translateY(-1.5px); } }
+
+/* Arriving: runs in from the right edge and hops into place. */
+.fa.chegando { animation: chega 1.1s var(--ease) both; }
+@keyframes chega {
+  0% { transform: translateX(var(--de, 400px)); opacity: 0; }
+  60% { transform: translateX(0); opacity: 1; }
+  75% { transform: translateY(-10px); }
+  100% { transform: none; }
+}
+.fa.saindo { animation: sai 0.6s var(--ease) forwards; }
+@keyframes sai { to { transform: translateY(20px); opacity: 0; } }
+
+/* Our goal: a wave along the stands, left to right, arms up. */
+.festa .fa .bracos { opacity: 1; transform: none; }
+.festa .fa { animation: pula 0.5s var(--ease) calc(var(--i) * 28ms) 4 alternate; }
+@keyframes pula { to { transform: translateY(-18px); } }
+
+/* Their goal: everyone slumps and dims for a moment. */
+.luto .fa { animation: murcha 3s var(--ease) calc(var(--i) * 12ms) both; }
+@keyframes murcha { 15%, 75% { transform: translateY(6px) scaleY(0.88); filter: brightness(0.55); } }
+
+/* A save: a quick single cheer. */
+.defesa .fa .bracos { opacity: 1; transform: none; }
+.defesa .fa { animation: pula 0.28s var(--ease) calc(var(--i) * 10ms) 2 alternate; }
+
+/* The fan a goal is dedicated to steps forward, bigger, with a plate. */
+.fa.dedicado { z-index: 5; animation: destaque 5.5s var(--ease) both !important; }
+@keyframes destaque { 10%, 85% { transform: translateY(-34px) scale(1.7); } }
+
+/* Confetti: little lattice diamonds in the mark's two colours. */
+.confete { position: absolute; width: 9px; height: 9px; rotate: 45deg; pointer-events: none; z-index: 4; animation: confete var(--t) cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
+@keyframes confete {
+  0% { transform: translate(0, 0); opacity: 1; }
+  45% { transform: translate(calc(var(--dx) * 0.6), var(--sobe)); opacity: 1; }
+  100% { transform: translate(var(--dx), 40px); opacity: 0; }
+}
+
+/* The banner over the stand on a goal: the stream's plate, Klein, cut at 45°. */
+.faixa {
+  position: absolute; left: 50%; bottom: 150px; z-index: 6; translate: -50% 0;
+  display: flex; align-items: baseline; gap: 18px; padding: 14px 44px 16px;
+  background: var(--klein); white-space: nowrap;
+  clip-path: polygon(22px 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%, 0 22px);
+  animation: faixa 4.8s var(--ease) both;
+}
+.faixa strong { font-size: 54px; line-height: 1; font-weight: 700; letter-spacing: -0.02em; }
+.faixa span { font-size: 26px; font-weight: 500; color: var(--claro); }
+.faixa.dedicatoria { bottom: 236px; background: var(--branco); color: var(--klein); padding: 10px 30px 12px; animation-delay: 0.4s; }
+.faixa.dedicatoria strong { font-size: 32px; }
+.faixa.dedicatoria span { color: var(--klein); font-size: 20px; }
+@keyframes faixa {
+  0% { clip-path: polygon(0 0, 0 0, -60px 100%, -60px 100%); }
+  12%, 88% { clip-path: polygon(0 0, calc(100% + 60px) 0, 100% 100%, -60px 100%); }
+  100% { clip-path: polygon(calc(100% + 60px) 0, calc(100% + 60px) 0, 100% 100%, 100% 100%); }
+}
+
+/* Live captions: what Luan says, above the stand. The line still being heard is Klein claro; a finished line, Branco. */
+.legenda {
+  position: absolute; left: 50%; bottom: 150px; translate: -50% 0; z-index: 5; max-width: 1000px; margin: 0;
+  padding: 10px 22px 12px; background: rgb(0 20 71 / 0.86); text-align: center;
+  font-size: 30px; font-weight: 500; line-height: 1.3; letter-spacing: -0.005em;
+  transition: opacity 0.4s;
+}
+.legenda[data-vazia] { opacity: 0; }
+.legenda .parcial { color: var(--claro); }
+.som { position: fixed; right: 16px; top: 12px; margin: 0; padding: 8px 14px; background: var(--branco); color: var(--klein); font: 600 15px "Space Grotesk", sans-serif; z-index: 10; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fa .vivo, .arquibancada::before { animation: none; }
+}
+</style>
+</head>
+<body>
+<p class="som" hidden>Som desligado: clique na página para ativar</p>
+<main class="stage">
+  <p class="legenda" data-vazia aria-live="polite"><span class="feita"></span> <span class="parcial"></span></p>
+  <section class="torcida" aria-label="Torcida">
+    <div class="fileira alta"></div>
+    <div class="fileira tras"></div>
+    <div class="fileira frente"></div>
+    <div class="arquibancada"></div>
+    <p class="contagem">Torcida<b>0</b></p>
+  </section>
+</main>
+<script>
+const params = new URLSearchParams(location.search);
+const stage = document.querySelector(".stage");
+stage.classList.toggle("fundo", params.get("fundo") === "1");
+const escala = () => (stage.style.transform = `scale(${Math.min(innerWidth / 1920, innerHeight / 1080)})`);
+addEventListener("resize", escala);
+escala();
+
+const torcida = document.querySelector(".torcida");
+const alta = document.querySelector(".alta");
+const tras = document.querySelector(".tras");
+const frente = document.querySelector(".frente");
+const MAX_TRAS = 26, MAX_FRENTE = 14;
+const pessoas = new Map();
+
+const FIGURA = `<svg viewBox="0 0 24 36" aria-hidden="true">
+  <g class="bracos"><path d="M5 18 L-1 8"/><path d="M19 18 L25 8"/></g>
+  <path class="corpo" d="M12 0 L18.5 6.5 L12 13 L5.5 6.5 Z"/>
+  <path class="corpo" d="M7 14 H17 L22 19 V36 H2 V19 Z"/>
+</svg>`;
+
+function desenhar(p, chegando) {
+  const el = document.createElement("div");
+  el.className = "fa" + (chegando ? " chegando" : "");
+  el.title = p.nome;
+  el.innerHTML = `<div class="vivo">${FIGURA}</div>`;
+  el.querySelector(".vivo").style.setProperty("--atraso", `${-Math.random() * 3}s`);
+  el.style.setProperty("--alt", `${Math.round((Math.random() - 0.5) * 6)}px`);
+  el.style.setProperty("--tom", `${Math.round(Math.random() * 22)}%`);
+  if (p.rank) {
+    const img = new Image();
+    img.className = "emblema";
+    img.src = `https://muanlartins.com.br/ranks/${p.rank}.webp`;
+    img.alt = "";
+    el.querySelector(".vivo").append(img);
+  }
+  return el;
+}
+
+// Patrons in front by Σ, the rest behind by arrival; past the room each row has, a "+N" in the count.
+function arrumar(novo) {
+  const todos = [...pessoas.values()];
+  const pat = todos.filter((p) => p.rank).sort((a, b) => b.sigma - a.sigma).slice(0, MAX_FRENTE);
+  const resto = todos.filter((p) => !pat.includes(p)).slice(-MAX_TRAS * 2);
+  for (const [fila, lista] of [[frente, pat], [tras, resto.filter((_, i) => i % 2 === 0)], [alta, resto.filter((_, i) => i % 2 === 1)]]) {
+    const ids = lista.map((p) => p.id);
+    [...fila.children].forEach((el) => !ids.includes(el.dataset.id) && !el.classList.contains("saindo") && el.remove());
+    lista.forEach((p, i) => {
+      let el = fila.querySelector(`[data-id="${p.id}"]`);
+      if (!el) {
+        el = desenhar(p, p.id === novo);
+        el.dataset.id = p.id;
+      }
+      fila.append(el);
+    });
+  }
+  [...torcida.querySelectorAll(".fa")]
+    .sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left)
+    .forEach((el, i) => el.style.setProperty("--i", i));
+  document.querySelector(".contagem b").textContent = pessoas.size;
+}
+
+function estado(lista) {
+  pessoas.clear();
+  lista.forEach((p) => pessoas.set(p.id, p));
+  arrumar();
+}
+
+function momento(classe, ms) {
+  torcida.classList.remove("festa", "luto", "defesa");
+  void torcida.offsetWidth;
+  torcida.classList.add(classe);
+  clearTimeout(momento.t);
+  momento.t = setTimeout(() => torcida.classList.remove(classe), ms);
+}
+
+function confete() {
+  for (let i = 0; i < 70; i++) {
+    const c = document.createElement("i");
+    c.className = "confete";
+    c.style.left = `${80 + Math.random() * 800}px`;
+    c.style.bottom = "30px";
+    c.style.background = Math.random() < 0.5 ? "var(--branco)" : "var(--claro)";
+    c.style.setProperty("--dx", `${(Math.random() - 0.5) * 260}px`);
+    c.style.setProperty("--sobe", `${-140 - Math.random() * 200}px`);
+    c.style.setProperty("--t", `${1.6 + Math.random() * 1.4}s`);
+    torcida.append(c);
+    setTimeout(() => c.remove(), 3200);
+  }
+}
+
+function faixa(texto, detalhe, extra = "") {
+  const f = document.createElement("div");
+  f.className = "faixa " + extra;
+  f.innerHTML = "<strong></strong><span></span>";
+  f.firstChild.textContent = texto;
+  f.lastChild.textContent = detalhe ?? "";
+  if (!detalhe) f.lastChild.remove();
+  torcida.append(f);
+  setTimeout(() => f.remove(), 5400);
+}
+
+const acoes = {
+  gol({ nosso, velocidade, dedicado }) {
+    if (!nosso) return momento("luto", 3200);
+    momento("festa", 2400);
+    confete();
+    faixa("GOOOL!", velocidade ? `${velocidade} km/h` : "");
+    if (dedicado) {
+      const el = torcida.querySelector(`[data-id="${dedicado.id}"]`);
+      el?.classList.add("dedicado");
+      setTimeout(() => el?.classList.remove("dedicado"), 5600);
+      faixa(`Esse gol é do ${dedicado.nome}!`, "", "dedicatoria");
+    }
+  },
+  defesa: () => momento("defesa", 700),
+  chegada({ pessoa }) {
+    pessoas.set(pessoa.id, pessoa);
+    arrumar(pessoa.id);
+  },
+  saida({ id }) {
+    const el = torcida.querySelector(`[data-id="${id}"]`);
+    pessoas.delete(id);
+    if (!el) return arrumar();
+    el.classList.add("saindo");
+    setTimeout(() => (el.remove(), arrumar()), 600);
+  },
+  estado: ({ lista }) => estado(lista),
+};
+
+// Sound: Chrome waits for a click on the page; OBS doesn't.
+const ctx = new AudioContext();
+const aviso = document.querySelector(".som");
+const estadoSom = () => (aviso.hidden = ctx.state === "running");
+ctx.onstatechange = estadoSom;
+estadoSom();
+addEventListener("click", () => ctx.resume());
+async function tocar(url) {
+  const buf = await ctx.decodeAudioData(await (await fetch(url)).arrayBuffer());
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx.destination);
+  src.start();
+}
+
+const fonte = new EventSource("/events");
+fonte.addEventListener("torcida", (e) => {
+  const ev = JSON.parse(e.data);
+  acoes[ev.tipo]?.(ev);
+});
+fonte.addEventListener("narracao", (e) => tocar(JSON.parse(e.data).audio).catch(() => {}));
+// Shows the last finished line plus the one being heard; clears 4 s after speech stops.
+const legenda = document.querySelector(".legenda");
+fonte.addEventListener("legenda", (e) => {
+  const { texto, final } = JSON.parse(e.data);
+  if (final) {
+    legenda.querySelector(".feita").textContent = texto;
+    legenda.querySelector(".parcial").textContent = "";
+  } else legenda.querySelector(".parcial").textContent = texto;
+  delete legenda.dataset.vazia;
+  clearTimeout(legenda.t);
+  legenda.t = setTimeout(() => {
+    legenda.dataset.vazia = "";
+    legenda.querySelector(".feita").textContent = "";
+  }, 4000);
+});
+fetch("/torcida/estado").then((r) => r.json()).then(estado);
+</script>
+</body>
+</html>

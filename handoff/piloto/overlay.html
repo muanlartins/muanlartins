@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Pix piloto</title>
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=block" rel="stylesheet">
+<style>
+body { margin: 0; background: #1b1d22; min-height: 100vh; }
+.faixa:has(.mensagem:not(:empty)) { height: auto; min-height: 168px; padding-block: 28px; }
+.mensagem { max-width: 760px; margin: 12px 0 0; font-size: 30px; font-weight: 400; line-height: 1.25; }
+.mensagem:empty { display: none; }
+.som { position: fixed; right: 16px; bottom: 12px; margin: 0; padding: 8px 14px; background: #f4f5f7; color: #002fa7; font: 600 15px "Space Grotesk", sans-serif; }
+.som[hidden] { display: none; }
+.recebidos { position: fixed; left: 16px; right: 16px; bottom: 40px; margin: 0; padding: 0; list-style: none; font: 15px/1.5 "Space Grotesk", sans-serif; color: #f4f5f7; }
+.recebidos li { opacity: 0.85; }
+.recebidos b { color: #85a7ff; font-weight: 500; }
+.dica { position: fixed; bottom: 12px; left: 16px; font: 14px "Space Grotesk", sans-serif; color: #85a7ff; }
+.alert_outer-container { position: fixed; top: 40px; left: 0; right: 0; visibility: hidden; }
+.alert_outer-container.playing { visibility: visible; }
+/* From brand/twitch/alertas/alerta.css, the Twitch alerts' band. */
+html {
+  overflow: hidden;
+}
+
+/* Twitch adds .playing for the alert's duration (7 s). */
+.alert_outer-container {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  font-family: "Space Grotesk", sans-serif;
+  color: #f4f5f7;
+  -webkit-font-smoothing: antialiased;
+}
+.alert_outer-container.playing {
+  animation:
+    wipe 0.9s cubic-bezier(0.65, 0, 0.35, 1) both,
+    leave 7s linear forwards;
+}
+
+/* The camera frame's band: Klein, cut at 45° on two opposite corners. */
+.faixa {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  height: 168px;
+  padding: 0 80px 0 40px;
+  background: #002fa7;
+  clip-path: polygon(48px 0, 100% 0, 100% calc(100% - 48px), calc(100% - 48px) 100%, 0 100%, 0 48px);
+  overflow: hidden;
+}
+.faixa::before {
+  content: "";
+  position: absolute;
+  inset: -48px;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 calc(24px * 0.7071 - 1px), rgb(133 167 255 / 0.22) 0 calc(24px * 0.7071)),
+    repeating-linear-gradient(-45deg, transparent 0 calc(24px * 0.7071 - 1px), rgb(133 167 255 / 0.22) 0 calc(24px * 0.7071));
+  animation: drift 12s linear infinite;
+}
+/* A sheen crosses the band at 45°, from one cut corner to the other. */
+.faixa::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent 42%, rgb(133 167 255 / 0.45) 50%, transparent 58%);
+  transform: translateX(-100%);
+}
+.playing .faixa::after {
+  animation: sheen 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.7s both;
+}
+
+.marca {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  flex: none;
+}
+.texto {
+  position: relative;
+  min-width: 0;
+}
+.rotulo {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #85a7ff;
+}
+.nome {
+  max-width: 760px;
+  margin: 6px 0 0;
+  overflow: hidden;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@keyframes wipe {
+  from {
+    clip-path: polygon(0 0, 0 0, -200px 100%, -200px 100%);
+  }
+  to {
+    clip-path: polygon(0 0, calc(100% + 200px) 0, 100% 100%, -200px 100%);
+  }
+}
+@keyframes leave {
+  0%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes sheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes drift {
+  to {
+    transform: translate(24px, 24px);
+  }
+}
+</style>
+</head>
+<body>
+<div class="alert_outer-container">
+  <div class="faixa">
+    <img class="marca" src="https://muanlartins.com.br/brand/mark-small-clear.svg" alt="">
+    <div class="texto">
+      <p class="rotulo">Pix</p>
+      <p class="nome">—</p>
+      <p class="mensagem"></p>
+    </div>
+  </div>
+</div>
+<p class="som">Som desligado: clique em qualquer lugar da página para ativar</p>
+<ul class="recebidos"></ul>
+<p class="dica">Piloto do Pix. Abaixo, tudo o que o celular mandou. Clique uma vez na página para liberar o som (o OBS não precisa disso).</p>
+<script>
+const alerta = document.querySelector(".alert_outer-container");
+const fila = [];
+let tocando = false;
+// Chrome only plays sound after a click on the page (OBS doesn't need it). Chime and voice share one AudioContext,
+// so a single click unlocks both, and the page says so while it's locked.
+const ctx = new AudioContext();
+const aviso = document.querySelector(".som");
+const estadoSom = () => (aviso.hidden = ctx.state === "running");
+ctx.onstatechange = estadoSom;
+estadoSom();
+addEventListener("click", () => ctx.resume());
+
+async function voz(url) {
+  const buf = await ctx.decodeAudioData(await (await fetch(url)).arrayBuffer());
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.connect(ctx.destination);
+  src.start();
+}
+
+function som() {
+  [784, 1175].forEach((f, i) => {
+    const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + i * 0.14;
+    o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    o.connect(g).connect(ctx.destination);
+    o.start(t);
+    o.stop(t + 0.5);
+  });
+}
+
+function proximo() {
+  const pix = fila.shift();
+  if (!pix) return (tocando = false);
+  tocando = true;
+  alerta.querySelector(".rotulo").textContent = "Pix · R$ " + pix.valor;
+  alerta.querySelector(".nome").textContent = pix.nome;
+  alerta.querySelector(".mensagem").textContent = pix.mensagem ?? "";
+  const segundos = Math.min(20, 7 + (pix.mensagem?.length ?? 0) * 0.07);
+  alerta.style.animationDuration = `0.9s, ${segundos}s`;
+  alerta.classList.remove("playing");
+  void alerta.offsetWidth;
+  alerta.classList.add("playing");
+  som();
+  if (pix.audio) setTimeout(() => voz(pix.audio).catch(() => {}), 900);
+  setTimeout(() => { alerta.classList.remove("playing"); setTimeout(proximo, 600); }, segundos * 1000);
+}
+
+const lista = document.querySelector(".recebidos");
+const fonte = new EventSource("/events");
+fonte.addEventListener("bruto", (e) => {
+  const r = JSON.parse(e.data);
+  const li = document.createElement("li");
+  li.innerHTML = "<b></b> ";
+  li.firstChild.textContent = new Date(r.at).toLocaleTimeString("pt-BR") + (r.dup ? " · repetida" : r.abaixo ? " · Pix R$ " + r.valor + " abaixo do mínimo, sem faixa" : r.valor ? " · Pix " + r.nome + " R$ " + r.valor + (r.reserva ? " · com formulário" : " · sem formulário") : " · chegou, sem valor");
+  li.append("“" + r.texto + "”");
+  lista.prepend(li);
+  while (lista.children.length > 8) lista.lastChild.remove();
+});
+fonte.onmessage = (e) => {
+  fila.push(JSON.parse(e.data));
+  if (!tocando) proximo();
+};
+</script>
+</body>
+</html>
