@@ -17,7 +17,7 @@ const commented2v2 = {
 
 /**
  * Rocket League's home at /conteudo/rocket-league, with the roadmap, the
- * ranked record, RLR and the commented series around it.
+ * ranked record, the lives, RLR and the commented series around it.
  * The intro follows the Twitch bio.
  */
 export default game({
@@ -37,6 +37,14 @@ export default game({
     description: {
       pt: "Meu ranque, meus pontos e cada partida ranqueada das lives, em 1v1, 2v2 e 3v3.",
       en: "My rank, my points and every ranked match from the streams, in 1v1, 2v2 and 3v3.",
+    },
+  },
+  // TODO(Luan): rewrite in your voice.
+  lives: {
+    title: { pt: "Lives", en: "Streams" },
+    description: {
+      pt: "As lives da Twitch na íntegra: ao vivo aqui mesmo quando estou no ar e, depois, cada uma com capítulos, as partidas e a transcrição do que eu falei.",
+      en: "The Twitch streams in full: live right here while I'm on air and, afterwards, each one with chapters, the matches and a transcript of what I said.",
     },
   },
   links: [rlr, commented2v2],

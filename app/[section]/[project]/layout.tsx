@@ -8,7 +8,7 @@ const LABELS = localize({
   fundamentals: { pt: "Fundamentos", en: "Fundamentals" },
 })
 
-/** Every page of a game shares its menu: home, roadmap, ranked record, and links elsewhere. */
+/** Every page of a game shares its menu: home, roadmap, ranked record, lives, and links elsewhere. */
 export default async function GameLayout({ children, params }: LayoutProps<"/[section]/[project]">) {
   const { project } = await params
   const game = games.find((game) => game.id === project)
@@ -18,6 +18,7 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
     { label: LABELS.home, href: gamePath(game) },
     { label: LABELS.fundamentals, href: gamePath(game, "fundamentals") },
     ...(game.ranked ? [{ label: localize(game.ranked.title), href: gamePath(game, "ranked") }] : []),
+    ...(game.lives ? [{ label: localize(game.lives.title), href: gamePath(game, "lives") }] : []),
     ...game.links.flatMap((link) => (link.href ? [{ label: localize(link.name), href: link.href, away: true }] : [])),
   ]
 

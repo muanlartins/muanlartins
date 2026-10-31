@@ -340,20 +340,20 @@ THUMBNAILS = {
 }
 
 
-def episode_thumbnail(number, rank, tier, width=1280, height=720):
-    """A 2v2 comentado episode: the frame of thumbnail() (lockup, lattice, emblem glowing on the right),
-    around "2v2" as large as it fits, both 2s in Branco and the v in a Klein tint, and the
-    episode's number on a Branco plate cut at 45° like the stream's camera frame. The rank and tier
-    are where the episode was played, with that tier's emblem."""
+def plated_thumbnail(hero, plate, label, tag=None, emblem=None, width=1280, height=720):
+    """A series thumbnail: the frame of thumbnail() (lockup, lattice, an optional emblem glowing on the
+    right) around a hero word as large as it fits, each piece in its own fill, and a short text on a
+    Branco plate cut at 45° like the stream's camera frame. `tag` is (text, colour) above the label;
+    `emblem` is (image, colour)."""
     margin = height * 0.09
     mark_height = height * 0.075
     w, h = lockup_size(mark_height)
     pad = mark_height * 0.35
     x0, y0 = margin - pad, margin - pad
-    side = height * 0.5
+    side = height * 0.5 if emblem else 0
     ex, ey = width - margin - side / 2, height * 0.36
-    glyphs = [wordmark(c, weight=700, size=100) for c in "2v2"]
-    num, num_width, _, _ = wordmark(f"{number:02d}", weight=700, size=100)
+    glyphs = [wordmark(piece, weight=700, size=100) for piece, _ in hero]
+    num, num_width, _, _ = wordmark(plate, weight=700, size=100)
     plate_size = 0.42
     gap = 12
     hero_width = sum(tw for _, tw, _, _ in glyphs) + gap + num_width * plate_size + 2 * 18
@@ -363,13 +363,14 @@ def episode_thumbnail(number, rank, tier, width=1280, height=720):
     bottom = height - margin
     cap = size * 0.70
     top = bottom - cap - label_size * 1.6
-    name, color = RANKS[rank]
-    tag, _, _, _ = wordmark(f"{name.upper()} {tier}", weight=700, size=label_size)
-    label, label_width, _, _ = wordmark("Partidas comentadas", size=label_size)
-    text = (f'<path transform="translate({margin:.1f} {top - label_size * 0.5:.1f})" d="{tag}" fill="{lighten(color, 0.66)}"/>'
-            f'<path transform="translate({margin:.1f} {top + label_size * 0.72:.1f})" d="{label}" fill="{KLEIN_LIGHT}"/>')
+    label_path, label_width, _, _ = wordmark(label, size=label_size)
+    text = ""
+    if tag:
+        tag_path, _, _, _ = wordmark(tag[0], weight=700, size=label_size)
+        text += f'<path transform="translate({margin:.1f} {top - label_size * 0.5:.1f})" d="{tag_path}" fill="{lighten(tag[1], 0.66)}"/>'
+    text += f'<path transform="translate({margin:.1f} {top + label_size * 0.72:.1f})" d="{label_path}" fill="{KLEIN_LIGHT}"/>'
     x = margin
-    for (d, tw, _, _), fill in zip(glyphs, (PAPER, klein_tint(0.6), PAPER)):
+    for (d, tw, _, _), (_, fill) in zip(glyphs, hero):
         text += f'<path transform="translate({x:.1f} {bottom:.1f}) scale({s:.4f})" d="{d}" fill="{fill}"/>'
         x += tw * s
     ph, pw = cap * 0.52, (num_width * plate_size + 36) * s
@@ -378,20 +379,48 @@ def episode_thumbnail(number, rank, tier, width=1280, height=720):
              f'<path transform="translate({px + 18 * s:.1f} {py + ph * 0.5 + 70 * plate_size * s * 0.5:.1f}) scale({plate_size * s:.4f})" d="{num}" fill="{KLEIN}"/>')
     block = max(label_width, px + pw - margin)
     holes = [(margin + block / 2, (top + bottom) / 2, block * 0.8, (bottom - top) * 1.1),
-             (x0 + w / 2, y0 + h / 2, w * 0.75, h * 1.2), (ex, ey, side * 0.9, side * 0.9)]
-    art = (f'<defs><radialGradient id="glow" cx="{ex:.1f}" cy="{ey:.1f}" r="{side:.0f}" gradientUnits="userSpaceOnUse">'
-           f'<stop offset="0" stop-color="{color}" stop-opacity="0.95"/><stop offset="0.4" stop-color="{color}" stop-opacity="0.55"/>'
-           f'<stop offset="1" stop-color="{color}" stop-opacity="0"/></radialGradient></defs>'
-           f'<rect width="{width}" height="{height}" fill="url(#glow)"/>'
-           f'<image href="ranks/{rank}-{tier}.png" x="{ex - side / 2:.1f}" y="{ey - side / 2:.1f}" width="{side:.1f}" height="{side:.1f}" preserveAspectRatio="xMidYMid meet"/>')
+             (x0 + w / 2, y0 + h / 2, w * 0.75, h * 1.2)]
+    art = ""
+    if emblem:
+        image, color = emblem
+        holes.append((ex, ey, side * 0.9, side * 0.9))
+        art = (f'<defs><radialGradient id="glow" cx="{ex:.1f}" cy="{ey:.1f}" r="{side:.0f}" gradientUnits="userSpaceOnUse">'
+               f'<stop offset="0" stop-color="{color}" stop-opacity="0.95"/><stop offset="0.4" stop-color="{color}" stop-opacity="0.55"/>'
+               f'<stop offset="1" stop-color="{color}" stop-opacity="0"/></radialGradient></defs>'
+               f'<rect width="{width}" height="{height}" fill="url(#glow)"/>'
+               f'<image href="{image}" x="{ex - side / 2:.1f}" y="{ey - side / 2:.1f}" width="{side:.1f}" height="{side:.1f}" preserveAspectRatio="xMidYMid meet"/>')
     grid = lattice(width, height, mark_height, x0, y0, holes, step=2)
     return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{art}{grid}'
                f'{placed(lockup(height=mark_height, background=None), x0, y0)}{text}', width, height)
 
 
+def episode_thumbnail(number, rank, tier):
+    """A 2v2 comentado episode: "2v2" with the v in a Klein tint, the episode's number on the plate, and
+    the rank and tier where it was played, with that tier's emblem."""
+    name, color = RANKS[rank]
+    return plated_thumbnail([("2", PAPER), ("v", klein_tint(0.6)), ("2", PAPER)], f"{number:02d}", "Partidas comentadas",
+                            (f"{name.upper()} {tier}", color), (f"ranks/{rank}-{tier}.png", color))
+
+
+def live_thumbnail(day, rank=None, tier=None):
+    """A Twitch live's VOD: "Live" in Branco, and the day on the plate. A live that climbed shows the rank
+    and tier it reached."""
+    if not rank:
+        return plated_thumbnail([("Live", PAPER)], day, "Rocket League")
+    name, color = RANKS[rank]
+    return plated_thumbnail([("Live", PAPER)], day, "Rocket League",
+                            (f"{name.upper()} {tier}", color), (f"ranks/{rank}-{tier}.png", color))
+
+
 # One per episode of 2v2 comentado: the rank and tier it was played at.
 EPISODES = {
     1: ("diamond", 2),
+}
+
+# One per Twitch live uploaded as a VOD, by date: the rank and tier it reached, if it climbed.
+LIVES = {
+    "2026-10-27": (None, None),
+    "2026-10-28": ("diamond", 3),
 }
 
 
@@ -559,6 +588,9 @@ if __name__ == "__main__":
     for number, (rank, tier) in EPISODES.items():
         write(f"youtube/thumbnails/2v2-{number:02d}.svg", episode_thumbnail(number, rank, tier))
         png(f"youtube/thumbnails/2v2-{number:02d}.svg", f"youtube/thumbnails/2v2-{number:02d}.png", 1280)
+    for date, (rank, tier) in LIVES.items():
+        write(f"youtube/thumbnails/live-{date}.svg", live_thumbnail(f"{date[8:]}/{date[5:7]}", rank, tier))
+        png(f"youtube/thumbnails/live-{date}.svg", f"youtube/thumbnails/live-{date}.png", 1280)
     # Twitch panels, under the player. The Pix one carries the bank's QR code, so it is drawn only when
     # PIX_BRCODE (the "copia e cola" text) is set, and git ignores it: the key stays out of this public repo.
     for name in ("Roadmap", "YouTube", "Regras"):
