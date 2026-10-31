@@ -174,8 +174,14 @@ and UI polish still to do.
   roadmap on the site, following and commenting on YouTube.
 - **Rank = permission tier:** high ranks are few and sensible and get more freedom (e.g. a soundboard); misuse
   means a talk or a demotion.
-- Twitch login on the site for identity and dedup. A profile page per fan (moments they were there, hours,
-  badges and achievements, their custom alert look); no shareable card ("brega").
+- **Viewer profile on the site**, with Twitch login for identity and dedup. It shows what they've done (moments
+  they were there, hours watched, Σ, rank, badges and achievements) and is where they customize how they appear
+  on stream:
+  - **their fan in the torcida** (`torcida.html` draws every fan the same way today, so the look must come from
+    the profile);
+  - **their Pix/donate banner**, so every alert differs by sender.
+
+  Higher ranks unlock more options, the same rule as the rest of the permission tiers. No shareable card ("brega").
 - Names in the credits of the live's "Fim" scene and of videos. End-of-live stats on "Fim" (rankings of the
   live's viewers).
 - **Weighted roulette** (odds by Σ) picks the "patrocinador" of a short, match, play or replay; **replay
