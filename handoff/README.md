@@ -140,6 +140,13 @@ and UI polish still to do.
 - **Form** (the site's `/pix`): the name to show (≤ 25), a message (≤ 200), a voice with an "Ouvir" preview, the
   amount (presets R$ 1/5/10/20, **minimum R$ 1**), and when to show it (**now, or between matches**: the
   sender's choice).
+- **Voice message (11-03):** instead of typing, the viewer can **record audio right in the page** (MediaRecorder,
+  record / listen / redo before paying; cap it at about the 200-character message, ~15 s). It uploads with the
+  reservation, and whisper (`-l pt -mc 0`, as for the lives) transcribes it at once; **the transcript is the
+  message** on the band while the recording itself plays instead of the TTS. Normalize loudness (EBU R128) so no
+  clip blasts the stream. The word filter runs on the transcript. RVC converts speech to speech, so the chosen
+  voice can be applied to the recording too ("your own voice" stays the default). Keep the audio only until the
+  alert has played; the mural keeps the transcript. The pilot's `form.html` has no recording yet.
 - **Cents trick:** reserve the **lowest free cents** starting at ,00 for 15 min ("não explorar os viewers"); a
   value frees when its Pix arrives or it expires. The page builds our own static BRCode (EMV, field 54 = amount,
   CRC16) matching the bank's QR byte for byte, so the viewer never types cents. The form polls its reservation
