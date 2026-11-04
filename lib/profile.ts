@@ -22,7 +22,6 @@ export type Choice = Record<string, unknown>
 export interface Fan {
   cor: string
   detalhe: string
-  corpo: string
   cabeca: string
   roupa: string
   numero: number
@@ -35,7 +34,6 @@ export interface Fan {
 /** window.Torcedor, from /stream/torcedor.js. */
 export interface Torcedor {
   CORES: string[]
-  CORPOS: string[]
   CABECAS: string[]
   ROUPAS: string[]
   ACESSORIOS: string[]

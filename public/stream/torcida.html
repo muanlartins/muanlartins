@@ -810,7 +810,7 @@
         // Half of them chose their look on the site.
         const um = (lista) => lista[Math.floor(Math.random() * lista.length)]
         nomes.forEach((n, i) => i % 2 && escolhas.set(n.toLowerCase(), {
-          corpo: um(Torcedor.CORPOS), cabeca: um(Torcedor.CABECAS), roupa: um(Torcedor.ROUPAS), acessorio: um(Torcedor.ACESSORIOS),
+          cabeca: um(Torcedor.CABECAS), roupa: um(Torcedor.ROUPAS), acessorio: um(Torcedor.ACESSORIOS),
           comemoracao: um(Torcedor.COMEMORACOES), frase: um(["bora Luan!", "chegueeei", "hoje sobe!"]),
           stickers: { gol: [um(Torcedor.STICKERS.slice(0, 12)), um(Torcedor.STICKERS.slice(0, 12))], contra: [um(Torcedor.STICKERS.slice(12))] },
         }))

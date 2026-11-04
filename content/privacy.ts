@@ -39,8 +39,8 @@ export const privacy = {
           en: "If you sign in with Twitch at https://muanlartins.com/profile, Twitch tells the site only your username and account number. The site asks for nothing else: no email, followers or messages.",
         },
         {
-          pt: "Fica guardado, na Amazon Web Services, o seu nome de usuário e o torcedor que você montou (cores, corpo, roupa, acessório, comemoração, grito de chegada e stickers), para ele aparecer na arquibancada da live quando você está no chat. Quem vê a live vê o seu torcedor com o seu nome, como já vê o seu nome no chat.",
-          en: "Stored, on Amazon Web Services, are your username and the fan you built (colors, body, outfit, accessory, celebration, arrival shout and stickers), so it can stand in the live's crowd while you're in the chat. Whoever watches the live sees your fan with your name, as they already see your name in the chat.",
+          pt: "Fica guardado, na Amazon Web Services, o seu nome de usuário e o torcedor que você montou (cores, cabeça, roupa, acessório, comemoração, grito de chegada e stickers), para ele aparecer na arquibancada da live quando você está no chat. Quem vê a live vê o seu torcedor com o seu nome, como já vê o seu nome no chat.",
+          en: "Stored, on Amazon Web Services, are your username and the fan you built (colors, head, outfit, accessory, celebration, arrival shout and stickers), so it can stand in the live's crowd while you're in the chat. Whoever watches the live sees your fan with your name, as they already see your name in the chat.",
         },
         {
           pt: "O acesso da Twitch fica só no seu navegador. Para apagar o seu torcedor, use “Apagar meu torcedor” no perfil; para cortar o acesso, use “Sair” ou desconecte o app em https://www.twitch.tv/settings/connections",
