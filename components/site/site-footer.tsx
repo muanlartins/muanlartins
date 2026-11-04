@@ -1,10 +1,16 @@
-import { LINKS } from "@/lib/site"
+import Link from "next/link"
+import { LINKS, UI, privacySlug } from "@/lib/site"
 
 export function SiteFooter() {
   return (
     <footer className="border-t border-line">
       <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-[13px] text-muted">
-        <p>© {new Date().getFullYear()} Luan Martins · muanlartins</p>
+        <p>
+          © {new Date().getFullYear()} Luan Martins · muanlartins ·{" "}
+          <Link href={`/${privacySlug()}`} className="transition-colors hover:text-klein">
+            {UI.privacy}
+          </Link>
+        </p>
         <ul className="flex flex-wrap gap-x-5 gap-y-2 text-[14px] text-ink">
           {LINKS.map((link) => (
             <li key={link.href}>
