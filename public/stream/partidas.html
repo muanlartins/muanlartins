@@ -23,7 +23,8 @@
       of each match's events (touches with their speed, goals, shots, saves,
       demos, crossbar hits), published next to the session as
       <session>.events.json, with players as roles (me, mate1, opp2), never names.
-      Goals and our saves go to the crowd (torcida.html) as they happen.
+      Goals and our saves go to the crowd (torcida.html) as they happen, and
+      whether the narrator speaks on goals (off until switched on: it tires).
       When a match ends it cuts to Conversa, and back to the game scene when the
       next one loads ("Trocar de cena sozinho").
 
@@ -228,6 +229,7 @@
   </head>
   <body>
     <p class="status"><span id="game">Rocket League</span><span id="obs">OBS</span><span id="air" hidden></span><span id="site"></span></p>
+    <label class="check"><input type="checkbox" id="narrador" /> Galvão narrando os gols</label>
 
     <h2>Ranque <span class="row tabs" id="modes"></span></h2>
     <div class="row rank-row">
@@ -294,7 +296,7 @@
       // ?demo plays fake matches into its own storage, so the real sessions stay untouched.
       const KEY = params.has("demo") ? "partidas:demo" : "partidas:v1"
       const state = Object.assign(
-        { mode: "3v3", ranks: {}, sessions: [], show: true, autoScene: true, me: null, obsPassword: "", token: "" },
+        { mode: "3v3", ranks: {}, sessions: [], show: true, autoScene: true, narrador: false, me: null, obsPassword: "", token: "" },
         JSON.parse(localStorage.getItem(KEY) || "{}"),
       )
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
@@ -378,6 +380,7 @@
         $("session-date").textContent = new Date(session.start).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
         $("show").checked = state.show
         $("auto-scene").checked = state.autoScene
+        $("narrador").checked = state.narrador
         $("count").textContent = session.matches.length || ""
         $("empty").hidden = session.matches.length > 0
         $("matches").replaceChildren(...[...session.matches].reverse().map((m) => matchItem(session, m)))
@@ -445,6 +448,7 @@
       $("mmr").onkeydown = (event) => event.key === "Escape" && ($("mmr").blur(), render())
       $("show").onchange = () => ((state.show = $("show").checked), save(), render())
       $("auto-scene").onchange = () => ((state.autoScene = $("auto-scene").checked), save())
+      $("narrador").onchange = () => ((state.narrador = $("narrador").checked), save(), broadcast())
       $("obs-password").onchange = () => ((state.obsPassword = $("obs-password").value), save(), obs.close())
       $("token").onchange = () => ((state.token = $("token").value.trim()), save())
       $("new-session").onclick = () => (newSession(), render())
@@ -700,6 +704,7 @@
         const rank = state.ranks[state.mode]
         const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, ...record(current(), state.mode) }
         emit("muanlartins-partidas", detail)
+        emit("muanlartins-torcida", { tipo: "narrador", ligado: state.narrador })
       }
       /** An event for the overlays: obs-browser dispatches it on every browser source's window. */
       function emit(name, detail) {
