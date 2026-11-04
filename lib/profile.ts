@@ -7,10 +7,9 @@
 import { ORIGIN, profileSlug } from "@/lib/site"
 
 /** The Twitch app (dev.twitch.tv/console); its redirect URLs are /perfil and /profile on both sites and localhost. */
-export const TWITCH_CLIENT_ID = process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID ?? ""
-/** The profile API; empty until the stack has it, and then the page can't save yet. Both can be set in the
- * environment to try the page against a local stand-in. */
-export const PROFILE_API = process.env.NEXT_PUBLIC_PROFILE_API ?? ""
+export const TWITCH_CLIENT_ID = process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID ?? "dploislenvijye1obbcm5dqxcxu5y1"
+/** The profile API. Both can be set in the environment to try the page against a local stand-in. */
+export const PROFILE_API = process.env.NEXT_PUBLIC_PROFILE_API ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
 
 const TOKEN_KEY = "twitch:token"
 const STATE_KEY = "twitch:state"

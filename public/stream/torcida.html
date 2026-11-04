@@ -413,7 +413,7 @@
       // --- How each fan looks: what they chose on their profile on the site, or the default (torcedor.js) ---
       // The profile API (infra/site.yml) answers for the whole stand at once; it's asked again when people
       // arrive and every two minutes, so a change made on the site shows up during the live.
-      const API = params.get("api") ?? ""
+      const API = params.get("api") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
       const escolhas = new Map() // login → what they chose
       const aparencia = (login) => Torcedor.normalizar(escolhas.get(login), login)
       // Someone who just arrived shouts their phrase, once their choices come in.
