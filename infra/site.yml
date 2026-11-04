@@ -3,7 +3,9 @@ Description: >-
   muanlartins.com.br (pt) and muanlartins.com (en): one private S3 bucket
   holding both static builds, one CloudFront distribution per domain, and the
   role GitHub Actions assumes to deploy. Both domains also serve RLR, the
-  replay player, at /rlr/ from its own GitHub Pages site. Create in us-east-1,
+  replay player, at /rlr/ from its own GitHub Pages site. The viewers'
+  profiles (how their fan looks in the stream's crowd) live in a DynamoDB
+  table behind a small HTTP API, signed in with Twitch. Create in us-east-1,
   where CloudFront certificates must live.
 
 Parameters:
@@ -22,6 +24,11 @@ Parameters:
     AllowedValues: ["true", "false"]
     Default: "true"
     Description: '"false" if the account already trusts token.actions.githubusercontent.com'
+
+  TwitchClientId:
+    Type: String
+    Default: ""
+    Description: Client ID of the Twitch app the profile page signs in with (dev.twitch.tv/console)
 
 Conditions:
   CreateOidcProvider: !Equals [!Ref CreateGitHubOidcProvider, "true"]
@@ -282,7 +289,146 @@ Resources:
                   - !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionPt}
                   - !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionEn}
 
+  # --- Viewer profiles: /perfil on the site saves each viewer's fan; the stream's crowd reads them ---------
+
+  Torcedores:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{ AttributeName: login, AttributeType: S }]
+      KeySchema: [{ AttributeName: login, KeyType: HASH }]
+
+  PerfilRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns: [arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole]
+      Policies:
+        - PolicyName: torcedores
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:DeleteItem, dynamodb:BatchGetItem]
+                Resource: !GetAtt Torcedores.Arn
+
+  # GET /torcedores?logins=a,b is public: the looks of whoever is in the stand. GET, PUT and DELETE /eu
+  # take the viewer's Twitch token, checked with Twitch on each call; what's saved is only what the
+  # fan looks like, under their login, and the overlay ignores anything it doesn't know.
+  Perfil:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Role: !GetAtt PerfilRole.Arn
+      MemorySize: 256
+      Timeout: 10
+      Environment:
+        Variables:
+          TABLE: !Ref Torcedores
+          TWITCH_CLIENT_ID: !Ref TwitchClientId
+      Code:
+        ZipFile: |
+          const { DynamoDBClient } = require("@aws-sdk/client-dynamodb")
+          const { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand, BatchGetCommand } = require("@aws-sdk/lib-dynamodb")
+          const db = DynamoDBDocumentClient.from(new DynamoDBClient({}))
+          const T = process.env.TABLE
+          const ID = /^[a-z0-9-]{1,16}$/
+          const COR = /^#[0-9a-f]{6}$/
+          const LOGIN = /^[a-z0-9_]{1,25}$/
+          const EMOJI = /^\p{Extended_Pictographic}[\p{Extended_Pictographic}\p{Emoji_Modifier}\u200d\ufe0f]*$/u
+          const out = (statusCode, body) => ({ statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+
+          // Who is calling: their Twitch token, issued to this site's app.
+          async function quem(headers) {
+            const token = (headers.authorization || "").replace(/^Bearer /, "")
+            if (!token) return null
+            const r = await fetch("https://id.twitch.tv/oauth2/validate", { headers: { Authorization: "OAuth " + token } })
+            if (!r.ok) return null
+            const v = await r.json()
+            return v.client_id === process.env.TWITCH_CLIENT_ID && LOGIN.test(v.login) ? v : null
+          }
+
+          // Only the shape of each choice is checked; torcedor.js knows the options and drops the rest.
+          function limpa(a) {
+            const o = {}
+            if (!a || typeof a !== "object") return o
+            for (const k of ["corpo", "cabeca", "roupa", "acessorio", "comemoracao"]) if (ID.test(a[k])) o[k] = a[k]
+            for (const k of ["cor", "detalhe"]) if (typeof a[k] === "string" && COR.test(a[k].toLowerCase())) o[k] = a[k].toLowerCase()
+            if (Number.isInteger(a.numero) && a.numero >= 0 && a.numero <= 99) o.numero = a.numero
+            if (typeof a.frase === "string") o.frase = [...a.frase.replace(/\s+/g, " ").trim()].slice(0, 30).join("").trim()
+            const st = (l) => (Array.isArray(l) ? l.filter((e) => typeof e === "string" && e.length <= 16 && EMOJI.test(e)).slice(0, 3) : [])
+            if (a.stickers && typeof a.stickers === "object") o.stickers = { gol: st(a.stickers.gol), contra: st(a.stickers.contra) }
+            return o
+          }
+
+          exports.handler = async (event) => {
+            const metodo = event.requestContext.http.method
+            const caminho = event.rawPath
+            if (metodo === "GET" && caminho === "/torcedores") {
+              const logins = [...new Set((event.queryStringParameters?.logins || "").toLowerCase().split(","))].filter((l) => LOGIN.test(l)).slice(0, 100)
+              if (!logins.length) return out(200, {})
+              const r = await db.send(new BatchGetCommand({ RequestItems: { [T]: { Keys: logins.map((login) => ({ login })) } } }))
+              return out(200, Object.fromEntries((r.Responses?.[T] || []).map((i) => [i.login, i.aparencia])))
+            }
+            if (caminho !== "/eu") return out(404, {})
+            const v = await quem(event.headers || {})
+            if (!v) return out(401, { erro: "Entre com a Twitch de novo." })
+            const Key = { login: v.login }
+            if (metodo === "GET") {
+              const r = await db.send(new GetCommand({ TableName: T, Key }))
+              return out(200, { login: v.login, aparencia: r.Item?.aparencia ?? null })
+            }
+            if (metodo === "PUT") {
+              let corpo = event.body || "{}"
+              if (event.isBase64Encoded) corpo = Buffer.from(corpo, "base64").toString()
+              let aparencia
+              try { aparencia = limpa(JSON.parse(corpo)) } catch { return out(400, {}) }
+              await db.send(new PutCommand({ TableName: T, Item: { login: v.login, id: v.user_id, aparencia, em: new Date().toISOString() } }))
+              return out(200, { login: v.login, aparencia })
+            }
+            if (metodo === "DELETE") {
+              await db.send(new DeleteCommand({ TableName: T, Key }))
+              return out(200, { login: v.login, aparencia: null })
+            }
+            return out(405, {})
+          }
+
+  PerfilApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub ${AWS::StackName}-perfil
+      ProtocolType: HTTP
+      Target: !GetAtt Perfil.Arn
+      CorsConfiguration:
+        AllowOrigins:
+          - https://muanlartins.com.br
+          - https://muanlartins.com
+          - http://localhost:3000
+          - http://localhost:3001
+          - http://localhost:8130
+        AllowMethods: [GET, PUT, DELETE]
+        AllowHeaders: [authorization, content-type]
+        MaxAge: 3600
+
+  PerfilApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref Perfil
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PerfilApi}/*
+
 Outputs:
+  PerfilApiUrl:
+    Value: !GetAtt PerfilApi.ApiEndpoint
   DeployRoleArn:
     Value: !GetAtt DeployRole.Arn
   Bucket:

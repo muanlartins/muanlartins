@@ -47,6 +47,17 @@ export function privacyUrl(locale: Locale = LOCALE) {
   return `${ORIGINS[locale]}/${PRIVACY_SLUGS[locale]}`
 }
 
+/** The viewer's profile: for now, their fan in the stream's crowd. Twitch sends sign-ins back to it. */
+const PROFILE_SLUGS: Record<Locale, string> = { pt: "perfil", en: "profile" }
+
+export function profileSlug(locale: Locale = LOCALE) {
+  return PROFILE_SLUGS[locale]
+}
+
+export function profileUrl(locale: Locale = LOCALE) {
+  return `${ORIGINS[locale]}/${PROFILE_SLUGS[locale]}`
+}
+
 /**
  * Your profiles elsewhere. They show in the footer and tell Google that
  * these accounts and this site are the same person.

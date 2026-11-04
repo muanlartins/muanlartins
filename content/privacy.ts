@@ -18,8 +18,8 @@ export const privacy = {
       title: { pt: "Este site", en: "This site" },
       paragraphs: [
         {
-          pt: "Não tem login, cookies próprios nem ferramentas de análise, e não coleta dados pessoais.",
-          en: "It has no login, no cookies of its own and no analytics, and it collects no personal data.",
+          pt: "Não tem cookies próprios nem ferramentas de análise. O único login é opcional: entrar com a Twitch no perfil, para montar o seu torcedor da live (abaixo).",
+          en: "It has no cookies of its own and no analytics. The only sign-in is optional: Twitch, on the profile page, to build your fan for the live (below).",
         },
         {
           pt: "O progresso que você marca no roteiro fica salvo só neste navegador e nunca sai dele. Para apagar, use “Apagar progresso” ou limpe os dados do site.",
@@ -28,6 +28,23 @@ export const privacy = {
         {
           pt: "A hospedagem (Amazon Web Services) recebe dados técnicos de cada acesso, como o endereço IP, só para entregar as páginas.",
           en: "The hosting (Amazon Web Services) receives technical data from each visit, such as the IP address, only to deliver the pages.",
+        },
+      ],
+    },
+    {
+      title: { pt: "Perfil e a torcida da live", en: "Profile and the live's crowd" },
+      paragraphs: [
+        {
+          pt: "Se você entra com a Twitch em https://muanlartins.com.br/perfil, a Twitch informa ao site só o seu nome de usuário e o seu número de conta. O site não pede acesso a mais nada: nem e-mail, nem seguidores, nem mensagens.",
+          en: "If you sign in with Twitch at https://muanlartins.com/profile, Twitch tells the site only your username and account number. The site asks for nothing else: no email, followers or messages.",
+        },
+        {
+          pt: "Fica guardado, na Amazon Web Services, o seu nome de usuário e o torcedor que você montou (cores, corpo, roupa, acessório, comemoração, grito de chegada e stickers), para ele aparecer na arquibancada da live quando você está no chat. Quem vê a live vê o seu torcedor com o seu nome, como já vê o seu nome no chat.",
+          en: "Stored, on Amazon Web Services, are your username and the fan you built (colors, body, outfit, accessory, celebration, arrival shout and stickers), so it can stand in the live's crowd while you're in the chat. Whoever watches the live sees your fan with your name, as they already see your name in the chat.",
+        },
+        {
+          pt: "O acesso da Twitch fica só no seu navegador. Para apagar o seu torcedor, use “Apagar meu torcedor” no perfil; para cortar o acesso, use “Sair” ou desconecte o app em https://www.twitch.tv/settings/connections",
+          en: "The Twitch access stays in your browser only. To delete your fan, use “Delete my fan” on the profile; to cut the access, use “Sign out” or disconnect the app at https://www.twitch.tv/settings/connections",
         },
       ],
     },
