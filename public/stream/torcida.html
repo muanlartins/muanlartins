@@ -16,13 +16,14 @@
       It reacts to the game as the "Partidas" dock sends it (partidas.html,
       through obs-browser's emit_event): our goal is a wave, confetti, the
       speed, and a goal dedicated to someone drawn from the stand; theirs, a
-      slump; our saves, a cheer. Viewers move their own fan from the chat:
-      !pula, !danca, !ola. Each fan's look comes from their login for now; the
+      slump; our saves, a cheer. What a viewer says in the chat shows in a
+      balloon over their fan for a few seconds (three at most at once); they
+      move their own fan with !pula, !danca, !ola. Each fan's look comes from their login for now; the
       profile on the site will set it.
 
       ?canal= as in the overlays. ?demo fills the stand with sample people and
       plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça,
-      p pula, n dança, o ola, j chega alguém, s sai alguém.
+      p pula, n dança, o ola, m mensagem, j chega alguém, s sai alguém.
     -->
     <style>
       .torcida {
@@ -164,6 +165,49 @@
         max-width: none;
         background: var(--paper);
         color: var(--klein);
+      }
+
+      /* What a fan says in the chat, for a few seconds, in a balloon over the whole stand (so it never
+         hides behind a row), its tail pointing down at them, whose name lights up. Branco, Klein ink. */
+      .fala {
+        position: absolute;
+        z-index: 55;
+        width: max-content;
+        max-width: 260px;
+        padding: 6px 12px 8px;
+        background: var(--paper);
+        color: var(--klein);
+        font-size: 17px;
+        font-weight: 500;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+        animation: fala-entra 0.35s var(--ease) both;
+      }
+      .fala::after {
+        content: "";
+        position: absolute;
+        left: var(--ponta, 50%);
+        top: 100%;
+        width: 12px;
+        height: 8px;
+        translate: -50% 0;
+        background: var(--paper);
+        clip-path: polygon(0 0, 100% 0, 50% 100%);
+      }
+      .fala.some {
+        animation: fala-sai 0.4s var(--ease) both;
+      }
+      @keyframes fala-entra {
+        from {
+          opacity: 0;
+          transform: translateY(8px) scale(0.9);
+        }
+      }
+      @keyframes fala-sai {
+        to {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
       }
 
       /* Arriving: runs in from the right and hops into place. Leaving: sinks away. */
@@ -378,6 +422,10 @@
       // !pula and !danca once every 8 s per person; one !ola at a time for the whole stand.
       const ESPERA_MS = 8000
       const OLA_MS = 15000
+      // Chat balloons: 5 s each, at most three at once (a new one pushes out the oldest), cut at 80 characters.
+      const FALA_MS = 5000
+      const FALAS = 3
+      const FALA_MAX = 80
 
       const pessoas = new Map() // login → { login, nome, desde, el }
       let conectouEm = 0
@@ -441,7 +489,10 @@
         el.querySelector(".vivo").style.setProperty("--atraso", `${-Math.random() * 3}s`)
         el.addEventListener("animationend", (e) => {
           if (e.target === el) el.classList.remove("chegando")
-          else if (e.target.classList.contains("pose")) el.classList.remove("pula", "danca", "ola", "dedicado", "foco")
+          else if (e.target.classList.contains("pose")) {
+            el.classList.remove("pula", "danca", "ola", "dedicado")
+            if (!falas.some((f) => f.p.el === el)) el.classList.remove("foco")
+          }
         })
         torcida.append(el)
         return el
@@ -589,6 +640,48 @@
           }
         },
       }
+      // Balloons sit just over the highest row in use; one that would overlap another goes on top of it.
+      const falas = [] // { el, p }
+      function falar(p, texto) {
+        if (!p?.el) return
+        falas.filter((f) => f.p === p).forEach(calar)
+        const el = document.createElement("span")
+        el.className = "fala"
+        const chars = Array.from(texto.trim())
+        el.textContent = chars.length > FALA_MAX ? chars.slice(0, FALA_MAX - 1).join("") + "…" : chars.join("")
+        torcida.append(el)
+        const fileiras = Math.min(FILEIRAS.length, Math.ceil(pessoas.size / POR_FILEIRA))
+        const { s, base } = FILEIRAS[Math.max(0, fileiras - 1)]
+        const x = Number(p.el.style.getPropertyValue("--x"))
+        const w = el.offsetWidth
+        const left = Math.min(Math.max(x - w / 2, 0), 960 - w)
+        let bottom = base + 60 * s + 30
+        for (const outra of falas.filter((f) => !f.saindo)) {
+          const o = outra.el
+          if (left < o.offsetLeft + o.offsetWidth + 6 && o.offsetLeft < left + w + 6) bottom = Math.max(bottom, parseFloat(o.style.bottom) + o.offsetHeight + 12)
+        }
+        el.style.left = `${left}px`
+        el.style.bottom = `${bottom}px`
+        el.style.setProperty("--ponta", `${x - left}px`)
+        p.el.classList.add("foco")
+        const fala = { el, p }
+        falas.push(fala)
+        const ativas = falas.filter((f) => !f.saindo)
+        if (ativas.length > FALAS) calar(ativas[0])
+        setTimeout(() => calar(fala), FALA_MS)
+      }
+      function calar(fala) {
+        if (fala.saindo) return
+        fala.saindo = true
+        fala.el.classList.add("some")
+        setTimeout(() => {
+          fala.el.remove()
+          falas.splice(falas.indexOf(fala), 1)
+          const el = fala.p.el
+          if (el && !falas.some((f) => f.p === fala.p) && !el.matches(".pula, .danca, .ola, .dedicado")) el.classList.remove("foco")
+        }, 400)
+      }
+
       function mexer(p, classe) {
         p.el.classList.remove("pula", "danca", "ola")
         void p.el.offsetWidth
@@ -618,6 +711,7 @@
         else if (command === "PRIVMSG") {
           chegar(login, tags["display-name"] || login)
           if (trailing.startsWith("!")) comando(login, trailing)
+          else falar(pessoas.get(login), trailing.replace(/^\u0001ACTION (.*)\u0001$/, "$1"))
         } else if (command === "353") trailing.split(" ").forEach((name) => name && chegar(name))
       }
 
@@ -639,6 +733,8 @@
           "kickoff_king", "ceci_rl", "manomenezes", "zeroboost", "Ana_Ceiling", "otto_dribla", "jujuflick", "PedroDemo"]
         nomes.slice(0, 12).forEach((n) => chegar(n.toLowerCase(), n))
         conectouEm = Date.now() - ASSENTANDO_MS
+        const FRASES = ["boa noite!!", "que golaço", "GG", "esse half flip foi limpo demais",
+          "qual a sensibilidade do teu controle?", "bora subir pro diamante 3 hoje", "kkkkkkk", "salvou demais"]
         const say = (login, text) => apply(`@display-name=${login} :${login}!${login}@x PRIVMSG #${CHANNEL} :${text}`)
         const random = () => [...pessoas.keys()][Math.floor(Math.random() * pessoas.size)]
         const keys = {
@@ -654,10 +750,11 @@
             chegar(novo.toLowerCase(), novo)
           },
           s: () => sair(random()),
+          m: () => say(random(), FRASES[Math.floor(Math.random() * FRASES.length)]),
         }
         addEventListener("keydown", (e) => keys[e.key]?.())
         if (params.get("demo") === "parado") return
-        const roteiro = "gpjnodcsgejpn"
+        const roteiro = "gmpjmnomdcmsgejmpn"
         let i = 0
         setInterval(() => keys[roteiro[i++ % roteiro.length]](), 6000)
       }
