@@ -103,8 +103,9 @@ spectator-only: it works while playing.
 Steps 2–4 and the captions can run from a script instead of Studio:
 
 - **Google Cloud:** project `muanlartins` on Luan's personal Google account (no organization). YouTube Data API
-  v3 is enabled. OAuth client "Windows", type **Desktop app**. The consent screen is External, in **Testing**,
-  and Luan's own account is the only test user.
+  v3 is enabled. OAuth client "Windows", type **Desktop app**. The consent screen is External and **in
+  production** (unverified), with home page muanlartins.com.br and privacy policy `/privacidade` (the site's
+  `content/privacy.ts`: keep its YouTube section true to what the scripts do).
 - **Credentials:** Luan brings the client JSON (`client_secret_….json`) from the Mac. Keep it **outside the repo**,
   e.g. `%USERPROFILE%\.config\muanlartins\youtube-client.json`, and the token next to it. Never commit either, and
   never print the secret.
@@ -115,9 +116,8 @@ Steps 2–4 and the captions can run from a script instead of Studio:
   browser.
 - **Scope:** `https://www.googleapis.com/auth/youtube.force-ssl` alone (videos, thumbnails, playlists,
   captions).
-- **Testing means the token dies after 7 days:** redo the first run weekly. To end that, the app must be
-  published to production. The console blocks publishing until the branding has a home page and a privacy policy
-  link, so it needs a privacy page on the site (Luan's call, below).
+- **The refresh token doesn't expire** (production), unless it's revoked or goes about six months unused. If a
+  call answers `invalid_grant`, redo the first run.
 - **What the API does:** `videos.update` (title, description, tags, category, language, privacy),
   `thumbnails.set`, `playlistItems.insert` (the "Rocket League ao vivo" playlist) and `captions.insert` (the
   whisper SRT as pt-BR captions). The default quota is 10,000 units a day, plenty for a live a day.
@@ -263,6 +263,4 @@ A throwaway from the Mac, kept as reference for the Windows build. Nothing here 
 - Delete the 27/10 VOD now or later.
 - The copy on the `lives` branch (he is rewriting it).
 - Celebrity voices: go or not, given the rights risk.
-- YouTube API in production (no weekly re-login): needs a privacy policy page on the site and its link in the
-  consent screen's branding.
 - Twitch Affiliate: channel points rewards, sub badges, emotes and alert variants are designed but wait for it.
