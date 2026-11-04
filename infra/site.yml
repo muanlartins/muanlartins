@@ -372,6 +372,8 @@ Resources:
           exports.handler = async (event) => {
             const metodo = event.requestContext.http.method
             const caminho = event.rawPath
+            // The $default route takes the browser's preflight too; API Gateway adds the CORS headers.
+            if (metodo === "OPTIONS") return { statusCode: 204 }
             if (metodo === "GET" && caminho === "/torcedores") {
               const logins = [...new Set((event.queryStringParameters?.logins || "").toLowerCase().split(","))].filter((l) => LOGIN.test(l)).slice(0, 100)
               if (!logins.length) return out(200, {})
