@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Torcida · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: Browser source, 1920×1080, over the game in Jogo and Jogo + chat. The
+      crowd: a stand at the bottom centre, clear of the camera frame (bottom
+      left) and Rocket League's boost meter (bottom right), with one fan for
+      each viewer logged in to the chat (Twitch's membership events, as in
+      presenca.html: only who has the chat open, about 10 s late), their name
+      over them. Ten to a row; the first rows are who has been here longest
+      (by Σ, once it exists), each row behind smaller.
+
+      It reacts to the game as the "Partidas" dock sends it (partidas.html,
+      through obs-browser's emit_event): our goal is a wave, confetti, the
+      speed, and a goal dedicated to someone drawn from the stand; theirs, a
+      slump; our saves, a cheer. Viewers move their own fan from the chat:
+      !pula, !danca, !ola. Each fan's look comes from their login for now; the
+      profile on the site will set it.
+
+      ?canal= as in the overlays. ?demo fills the stand with sample people and
+      plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça,
+      p pula, n dança, o ola, j chega alguém, s sai alguém.
+    -->
+    <style>
+      .torcida {
+        position: absolute;
+        left: 596px;
+        width: 960px;
+        bottom: 0;
+        height: 220px;
+      }
+
+      /* The stand: a Klein band cut at 45° on its ends, lined with the lattice, a Klein claro hairline on top. */
+      .arquibancada {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 34px;
+        background: var(--klein);
+        clip-path: polygon(34px 0, calc(100% - 34px) 0, 100% 100%, 0 100%);
+        overflow: hidden;
+      }
+      .arquibancada::before {
+        content: "";
+        position: absolute;
+        inset: -48px;
+        background:
+          repeating-linear-gradient(45deg, transparent 0 calc(var(--unit) * 0.7071 - 1px), var(--lattice-line) 0 calc(var(--unit) * 0.7071)),
+          repeating-linear-gradient(-45deg, transparent 0 calc(var(--unit) * 0.7071 - 1px), var(--lattice-line) 0 calc(var(--unit) * 0.7071));
+        animation: drift 12s linear infinite;
+      }
+      .arquibancada::after {
+        content: "";
+        position: absolute;
+        left: 34px;
+        right: 34px;
+        top: 0;
+        height: 2px;
+        background: var(--klein-claro);
+      }
+      .contagem {
+        position: absolute;
+        left: 42px;
+        right: 42px;
+        bottom: 8px;
+        z-index: 50;
+        margin: 0;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--klein-claro);
+      }
+      .contagem b {
+        color: var(--paper);
+        font-weight: 700;
+        margin-left: 6px;
+      }
+      .contagem .convite {
+        letter-spacing: 0.04em;
+        text-transform: none;
+        color: var(--paper);
+      }
+
+      /*
+       * A fan, drawn on the mark's lattice: a head, a body with 45° shoulders, arms that show to cheer.
+       * Placed by the script (left, bottom, --s for its row's size); three layers so moves don't fight:
+       * .fa arrives and leaves, .pose does the moves, .vivo breathes.
+       */
+      .fa {
+        --s: 1;
+        position: absolute;
+        width: calc(40px * var(--s));
+        height: calc(60px * var(--s));
+        margin-left: calc(-20px * var(--s));
+        transition:
+          left 0.8s var(--ease),
+          bottom 0.8s var(--ease),
+          width 0.8s var(--ease),
+          height 0.8s var(--ease),
+          margin 0.8s var(--ease);
+      }
+      .pose {
+        position: absolute;
+        inset: 0;
+        transform-origin: 50% 100%;
+      }
+      .vivo {
+        position: absolute;
+        inset: 0;
+        animation: respira 3.2s ease-in-out infinite;
+        animation-delay: var(--atraso, 0s);
+      }
+      @keyframes respira {
+        50% {
+          transform: translateY(-1.5px);
+        }
+      }
+      .fa svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+      .fa .contorno {
+        stroke: var(--navy);
+        stroke-width: 1.2;
+        stroke-linejoin: round;
+        paint-order: stroke;
+      }
+      .fa .bracos path {
+        stroke: var(--cor);
+        stroke-width: 3;
+        stroke-linecap: square;
+      }
+      .fa .bracos {
+        opacity: 0;
+        transform-origin: 12px 18px;
+        transform: scaleY(0.2);
+        transition:
+          opacity 0.15s,
+          transform 0.25s var(--ease);
+      }
+
+      /* The name over each fan; cut short in the stand, whole while its fan is the one moving. */
+      .nome {
+        position: absolute;
+        left: 50%;
+        bottom: calc(100% + 3px);
+        translate: -50% 0;
+        max-width: 84px;
+        padding: 1px 5px 2px;
+        background: rgb(0 20 71 / 0.78);
+        font-size: max(11px, 13px * var(--s));
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .fa.atras .nome {
+        color: var(--klein-claro);
+        font-weight: 500;
+      }
+      .fa.foco {
+        z-index: 40 !important;
+      }
+      .fa.foco .nome {
+        max-width: none;
+        background: var(--paper);
+        color: var(--klein);
+      }
+
+      /* Arriving: runs in from the right and hops into place. Leaving: sinks away. */
+      .fa.chegando {
+        animation: chega 1.1s var(--ease) both;
+      }
+      @keyframes chega {
+        0% {
+          transform: translateX(var(--de, 400px));
+          opacity: 0;
+        }
+        60% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        75% {
+          transform: translateY(-10px);
+        }
+      }
+      .fa.saindo {
+        animation: sai 0.6s var(--ease) forwards;
+      }
+      @keyframes sai {
+        to {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+      }
+
+      /* Our goal: a wave along the stand, left to right, arms up. */
+      .festa .bracos,
+      .defesa .bracos,
+      .pula .bracos,
+      .ola .bracos {
+        opacity: 1;
+        transform: none;
+      }
+      .festa .pose {
+        animation: pula 0.5s var(--ease) calc(var(--x) * 0.7ms) 4 alternate;
+      }
+      @keyframes pula {
+        to {
+          transform: translateY(-18px);
+        }
+      }
+      /* Their goal: everyone slumps and dims for a moment. */
+      .luto .pose {
+        animation: murcha 3s var(--ease) calc(var(--x) * 0.3ms) both;
+      }
+      @keyframes murcha {
+        15%,
+        75% {
+          transform: translateY(6px) scaleY(0.88);
+          filter: brightness(0.55);
+        }
+      }
+      /* A save: a quick cheer. */
+      .defesa .pose {
+        animation: pula 0.28s var(--ease) calc(var(--x) * 0.25ms) 2 alternate;
+      }
+
+      /* From the chat. !pula: three jumps. !danca: a sway, arms taking turns. !ola: a wave out from them. */
+      .fa.pula .pose {
+        animation: pula 0.35s var(--ease) 6 alternate;
+      }
+      .fa.danca .pose {
+        animation: danca 0.9s ease-in-out 4;
+      }
+      @keyframes danca {
+        25% {
+          transform: rotate(-9deg) translateY(-4px);
+        }
+        75% {
+          transform: rotate(9deg) translateY(-4px);
+        }
+      }
+      .fa.danca .bracos {
+        opacity: 1;
+        animation: bracos 0.9s steps(1) 4;
+      }
+      @keyframes bracos {
+        0% {
+          transform: scaleY(1) scaleX(1);
+        }
+        50% {
+          transform: scaleY(1) scaleX(-1);
+        }
+      }
+      .fa.ola .pose {
+        animation: pula 0.32s var(--ease) var(--atraso-ola, 0ms) 2 alternate both;
+      }
+
+      /* The fan a goal is dedicated to steps forward, bigger. */
+      .fa.dedicado .pose {
+        animation: destaque 5.5s var(--ease) both;
+      }
+      @keyframes destaque {
+        10%,
+        85% {
+          transform: translateY(-34px) scale(1.7);
+        }
+      }
+
+      /* Confetti: little lattice diamonds in the mark's two colours. */
+      .confete {
+        position: absolute;
+        width: 9px;
+        height: 9px;
+        rotate: 45deg;
+        z-index: 45;
+        animation: confete var(--t) cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+      }
+      @keyframes confete {
+        0% {
+          transform: translate(0, 0);
+          opacity: 1;
+        }
+        45% {
+          transform: translate(calc(var(--dx) * 0.6), var(--sobe));
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--dx), 40px);
+          opacity: 0;
+        }
+      }
+
+      /* The banner over the stand: the stream's plate, Klein, cut at 45°. */
+      .faixa {
+        position: absolute;
+        left: 50%;
+        bottom: 230px;
+        z-index: 60;
+        translate: -50% 0;
+        display: flex;
+        align-items: baseline;
+        gap: 18px;
+        padding: 14px 44px 16px;
+        background: var(--klein);
+        white-space: nowrap;
+        clip-path: polygon(22px 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%, 0 22px);
+        animation: faixa 4.8s var(--ease) both;
+      }
+      .faixa strong {
+        font-size: 54px;
+        line-height: 1;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .faixa span {
+        font-size: 26px;
+        font-weight: 500;
+        color: var(--klein-claro);
+      }
+      .faixa.dedicatoria {
+        bottom: 316px;
+        background: var(--paper);
+        color: var(--klein);
+        padding: 10px 30px 12px;
+        animation-delay: 0.4s;
+      }
+      .faixa.dedicatoria strong {
+        font-size: 32px;
+      }
+      @keyframes faixa {
+        0% {
+          clip-path: polygon(0 0, 0 0, -60px 100%, -60px 100%);
+        }
+        12%,
+        88% {
+          clip-path: polygon(0 0, calc(100% + 60px) 0, 100% 100%, -60px 100%);
+        }
+        100% {
+          clip-path: polygon(calc(100% + 60px) 0, calc(100% + 60px) 0, 100% 100%, 100% 100%);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .vivo,
+        .arquibancada::before {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <section class="torcida" id="torcida" aria-label="Torcida">
+        <div class="arquibancada"></div>
+        <p class="contagem"><span>Torcida<b id="total">0</b></span><span class="convite" id="convite">Entre no chat e apareça aqui</span></p>
+      </section>
+    </main>
+    <script src="stream.js"></script>
+    <script>
+      const torcida = document.getElementById("torcida")
+      const $ = (id) => document.getElementById(id)
+
+      // The rows: ten fans each, like bleachers: each row behind smaller and higher, its heads above the
+      // names in front, half a place to the side so it shows between the heads in front. Past the last
+      // row, the count says how many more.
+      const POR_FILEIRA = 10
+      const FILEIRAS = [
+        { s: 1, base: 22 },
+        { s: 0.8, base: 76 },
+        { s: 0.66, base: 120 },
+        { s: 0.55, base: 158 },
+      ]
+      const MARGEM = 40
+      const LARGURA = 960 - 2 * MARGEM
+      // Twitch sends who was already there as JOINs over the first seconds; they all arrive at once, unanimated.
+      const ASSENTANDO_MS = 15000
+      // !pula and !danca once every 8 s per person; one !ola at a time for the whole stand.
+      const ESPERA_MS = 8000
+      const OLA_MS = 15000
+
+      const pessoas = new Map() // login → { login, nome, desde, el }
+      let conectouEm = 0
+      let vistos = new Set()
+
+      // --- How a fan looks -------------------------------------------------------------------------
+      // For now, from their login, so everyone looks different and always the same; the profile on the
+      // site will set these same fields.
+      const CORES = ["#f4f5f7", "#85a7ff", "#ffd23f", "#ff6b57", "#3ddc97", "#c792ea", "#ff9f43", "#4dd4ff"]
+      const CABECAS = ["losango", "redonda", "quadrada"]
+      const ROUPAS = ["lisa", "listra", "faixa"]
+      const ACESSORIOS = [null, null, "bone", "cachecol", "bandeira"]
+
+      function hash(text) {
+        let h = 2166136261
+        for (const c of text) h = Math.imul(h ^ c.codePointAt(0), 16777619)
+        return h >>> 0
+      }
+      function aparencia(login) {
+        let h = hash(login)
+        const pick = (list) => {
+          const item = list[h % list.length]
+          h = (Math.floor(h / list.length) ^ hash(String(h))) >>> 0
+          return item
+        }
+        const cor = pick(CORES)
+        const outras = CORES.filter((c) => c !== cor)
+        return { cor, detalhe: pick(outras), cabeca: pick(CABECAS), roupa: pick(ROUPAS), acessorio: pick(ACESSORIOS) }
+      }
+
+      const CABECA = {
+        losango: `<path class="contorno" d="M12 0 L18.5 6.5 L12 13 L5.5 6.5 Z"/>`,
+        redonda: `<circle class="contorno" cx="12" cy="6.5" r="6"/>`,
+        quadrada: `<rect class="contorno" x="6.5" y="1" width="11" height="11"/>`,
+      }
+      const ROUPA = {
+        lisa: "",
+        listra: `<rect x="2.6" y="23" width="18.8" height="4"/>`,
+        faixa: `<path d="M7 14.6 H11 L21.4 25 V29 Z"/>`,
+      }
+      const ACESSORIO = {
+        bone: `<path class="contorno" d="M6.5 2.5 L8 -1.5 H16 L17.5 2.5 Z M17 2.5 H22.5 V3.8 H17 Z"/>`,
+        cachecol: `<path class="contorno" d="M6.5 12.6 H17.5 V15.6 H6.5 Z M13.5 15.6 H16.5 V22 H13.5 Z"/>`,
+        bandeira: `<path d="M21 34 L27 2" stroke="var(--paper)" stroke-width="1.2"/><path class="contorno" d="M27 2 L35 5.5 L26.2 9.5 Z"/>`,
+      }
+
+      function figura({ cor, detalhe, cabeca, roupa, acessorio }) {
+        return `<svg viewBox="0 0 24 36" aria-hidden="true" style="--cor:${cor}">
+          <g class="bracos"><path d="M5 18 L-1 8"/><path d="M19 18 L25 8"/></g>
+          <g fill="${cor}">${CABECA[cabeca]}<path class="contorno" d="M7 14 H17 L22 19 V36 H2 V19 Z"/></g>
+          <g fill="${detalhe}">${ROUPA[roupa]}${acessorio ? ACESSORIO[acessorio] : ""}</g>
+        </svg>`
+      }
+
+      // --- The stand -------------------------------------------------------------------------------
+      function desenhar(p, chegando) {
+        const el = document.createElement("div")
+        el.className = "fa" + (chegando ? " chegando" : "")
+        el.innerHTML = `<div class="pose"><span class="nome"></span><div class="vivo">${figura(aparencia(p.login))}</div></div>`
+        el.querySelector(".nome").textContent = p.nome
+        el.querySelector(".vivo").style.setProperty("--atraso", `${-Math.random() * 3}s`)
+        el.addEventListener("animationend", (e) => {
+          if (e.target === el) el.classList.remove("chegando")
+          else if (e.target.classList.contains("pose")) el.classList.remove("pula", "danca", "ola", "dedicado", "foco")
+        })
+        torcida.append(el)
+        return el
+      }
+
+      // Who has been here longest stands in front (by Σ, once it exists); each takes the next place.
+      function arrumar() {
+        const lista = [...pessoas.values()].sort((a, b) => a.desde - b.desde)
+        const cabem = POR_FILEIRA * FILEIRAS.length
+        lista.forEach((p, i) => {
+          const fila = Math.floor(i / POR_FILEIRA)
+          if (fila >= FILEIRAS.length) {
+            p.el?.remove()
+            p.el = null
+            return
+          }
+          const { s, base } = FILEIRAS[fila]
+          const naFila = Math.min(POR_FILEIRA, lista.length - fila * POR_FILEIRA)
+          const passo = LARGURA / POR_FILEIRA
+          // Each row is centred; rows behind shift half a place so they show between the ones in front.
+          const x = MARGEM + LARGURA / 2 + (i % POR_FILEIRA - (naFila - 1) / 2) * passo + (fila % 2 ? passo / 2 : 0)
+          p.el ??= desenhar(p, Date.now() - conectouEm > ASSENTANDO_MS)
+          p.el.style.left = `${x}px`
+          p.el.style.bottom = `${base}px`
+          p.el.style.zIndex = 30 - fila
+          p.el.style.setProperty("--s", s)
+          p.el.style.setProperty("--x", Math.round(x))
+          p.el.classList.toggle("atras", fila > 0)
+        })
+        const fora = Math.max(0, lista.length - cabem)
+        $("total").textContent = lista.length + (fora ? ` · +${fora} atrás` : "")
+        $("convite").hidden = lista.length > 0
+      }
+
+      function chegar(login, nome = login) {
+        if (BOTS.has(login) || login.startsWith("justinfan") || login === CHANNEL) return
+        vistos.add(login)
+        const p = pessoas.get(login)
+        if (p) {
+          if (nome !== login && p.nome !== nome) {
+            p.nome = nome
+            p.el?.querySelector(".nome").replaceChildren(nome)
+          }
+          return
+        }
+        pessoas.set(login, { login, nome, desde: Date.now() })
+        arrumar()
+      }
+
+      function sair(login) {
+        const p = pessoas.get(login)
+        if (!p) return
+        pessoas.delete(login)
+        const el = p.el
+        if (!el) return arrumar()
+        el.classList.add("saindo")
+        setTimeout(() => (el.remove(), arrumar()), 600)
+      }
+
+      // --- Moments ---------------------------------------------------------------------------------
+      function momento(classe, ms) {
+        torcida.querySelectorAll(".fa").forEach((el) => el.classList.remove("pula", "danca", "ola", "foco"))
+        torcida.classList.remove("festa", "luto", "defesa")
+        void torcida.offsetWidth
+        torcida.classList.add(classe)
+        clearTimeout(momento.t)
+        momento.t = setTimeout(() => torcida.classList.remove(classe), ms)
+      }
+
+      function confete() {
+        for (let i = 0; i < 70; i++) {
+          const c = document.createElement("i")
+          c.className = "confete"
+          c.style.left = `${80 + Math.random() * 800}px`
+          c.style.bottom = "30px"
+          c.style.background = Math.random() < 0.5 ? "var(--paper)" : "var(--klein-claro)"
+          c.style.setProperty("--dx", `${(Math.random() - 0.5) * 260}px`)
+          c.style.setProperty("--sobe", `${-160 - Math.random() * 220}px`)
+          c.style.setProperty("--t", `${1.6 + Math.random() * 1.4}s`)
+          torcida.append(c)
+          setTimeout(() => c.remove(), 3200)
+        }
+      }
+
+      function faixa(texto, detalhe, extra = "") {
+        const f = document.createElement("div")
+        f.className = "faixa " + extra
+        const strong = document.createElement("strong")
+        strong.textContent = texto
+        f.append(strong)
+        if (detalhe) {
+          const span = document.createElement("span")
+          span.textContent = detalhe
+          f.append(span)
+        }
+        torcida.append(f)
+        setTimeout(() => f.remove(), 5400)
+      }
+
+      // A goal is dedicated to someone in the stand, everyone with the same odds (by Σ, once it exists).
+      function dedicar() {
+        const lista = [...pessoas.values()].filter((p) => p.el)
+        if (!lista.length) return
+        const p = lista[Math.floor(Math.random() * lista.length)]
+        setTimeout(() => {
+          p.el?.classList.add("dedicado", "foco")
+          setTimeout(() => p.el?.classList.remove("dedicado", "foco"), 5600)
+          faixa(`Esse gol é do ${p.nome}!`, "", "dedicatoria")
+        }, 2400)
+      }
+
+      const jogo = {
+        gol({ nosso, kmh }) {
+          if (!nosso) return momento("luto", 3300)
+          momento("festa", 2500)
+          confete()
+          faixa("GOOOL!", kmh ? `${kmh} km/h` : "")
+          dedicar()
+        },
+        defesa({ epica }) {
+          momento("defesa", 800)
+          if (epica) faixa("DEFESAÇA!")
+        },
+      }
+      addEventListener("muanlartins-torcida", ({ detail }) => jogo[detail?.tipo]?.(detail))
+
+      // --- From the chat ---------------------------------------------------------------------------
+      const vez = new Map()
+      let ultimaOla = 0
+      const COMANDOS = {
+        pula(p) {
+          mexer(p, "pula")
+        },
+        danca(p) {
+          mexer(p, "danca")
+        },
+        ola(p) {
+          if (Date.now() - ultimaOla < OLA_MS) return
+          ultimaOla = Date.now()
+          const x0 = Number(p.el.style.getPropertyValue("--x"))
+          p.el.classList.add("foco")
+          for (const { el } of pessoas.values()) {
+            if (!el) continue
+            el.style.setProperty("--atraso-ola", `${Math.abs(Number(el.style.getPropertyValue("--x")) - x0) * 1.4}ms`)
+            el.classList.remove("ola")
+            void el.offsetWidth
+            el.classList.add("ola")
+          }
+        },
+      }
+      function mexer(p, classe) {
+        p.el.classList.remove("pula", "danca", "ola")
+        void p.el.offsetWidth
+        p.el.classList.add(classe, "foco")
+      }
+      function comando(login, texto) {
+        const nome = texto
+          .trim()
+          .split(/\s/)[0]
+          .slice(1)
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/\p{M}/gu, "")
+        const p = pessoas.get(login)
+        if (!COMANDOS[nome] || !p?.el || torcida.matches(".festa, .luto")) return
+        if (nome !== "ola" && Date.now() - (vez.get(login) || 0) < ESPERA_MS) return
+        vez.set(login, Date.now())
+        COMANDOS[nome](p)
+      }
+
+      function apply(line) {
+        const { tags, prefix, command, trailing } = parseIrc(line)
+        const login = prefix.split("!")[0]
+        if (command === "JOIN") chegar(login)
+        else if (command === "PART") sair(login)
+        // Someone who talks is there, even before their JOIN arrives; and now we know their display name.
+        else if (command === "PRIVMSG") {
+          chegar(login, tags["display-name"] || login)
+          if (trailing.startsWith("!")) comando(login, trailing)
+        } else if (command === "353") trailing.split(" ").forEach((name) => name && chegar(name))
+      }
+
+      if (params.has("demo")) demo()
+      else
+        irc(apply, {
+          membership: true,
+          // On reconnecting, Twitch lists who is there again; whoever it doesn't list left meanwhile.
+          onStatus(connected) {
+            if (!connected) return
+            conectouEm = Date.now()
+            vistos = new Set()
+            setTimeout(() => [...pessoas.keys()].filter((login) => !vistos.has(login)).forEach(sair), ASSENTANDO_MS)
+          },
+        })
+
+      function demo() {
+        const nomes = ["rafa_rl", "Giovana_GC", "tiagoboost", "platinadinho", "lucas_ssl", "bia.aerial", "DuduFlip",
+          "kickoff_king", "ceci_rl", "manomenezes", "zeroboost", "Ana_Ceiling", "otto_dribla", "jujuflick", "PedroDemo"]
+        nomes.slice(0, 12).forEach((n) => chegar(n.toLowerCase(), n))
+        conectouEm = Date.now() - ASSENTANDO_MS
+        const say = (login, text) => apply(`@display-name=${login} :${login}!${login}@x PRIVMSG #${CHANNEL} :${text}`)
+        const random = () => [...pessoas.keys()][Math.floor(Math.random() * pessoas.size)]
+        const keys = {
+          g: () => jogo.gol({ nosso: true, kmh: 80 + Math.round(Math.random() * 60) }),
+          c: () => jogo.gol({ nosso: false }),
+          d: () => jogo.defesa({}),
+          e: () => jogo.defesa({ epica: true }),
+          p: () => say(random(), "!pula"),
+          n: () => say(random(), "!dança"),
+          o: () => say(random(), "!ola"),
+          j: () => {
+            const novo = nomes.find((n) => !pessoas.has(n.toLowerCase())) || `pessoa${pessoas.size}`
+            chegar(novo.toLowerCase(), novo)
+          },
+          s: () => sair(random()),
+        }
+        addEventListener("keydown", (e) => keys[e.key]?.())
+        if (params.get("demo") === "parado") return
+        const roteiro = "gpjnodcsgejpn"
+        let i = 0
+        setInterval(() => keys[roteiro[i++ % roteiro.length]](), 6000)
+      }
+    </script>
+  </body>
+</html>

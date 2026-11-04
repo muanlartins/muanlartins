@@ -80,6 +80,8 @@ camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_vide
 game_overlay = browser("Overlay · Jogo", "jogo.html")
 game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1")
 chat_overlay = browser("Overlay · Conversa", "conversa.html")
+# The crowd, over the game overlay; the dock sends it the goals and saves.
+crowd = browser("Torcida", "torcida.html")
 # Restarts when shown, so the countdown starts over each time the scene goes live.
 starting = browser("Tela · Começando", "intervalo.html?tela=comecando&minutos=5", restart=True)
 back = browser("Tela · Já volto", "intervalo.html?tela=volto")
@@ -110,9 +112,9 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=TRA
 scenes = [
     scene("Começando", (starting, {})),
     scene("Jogo", (game, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}), (game_overlay, {}),
-          *alerts_in_game),
+          (crowd, {}), *alerts_in_game),
     scene("Jogo + chat", (game, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}),
-          (game_chat_overlay, {}), *alerts_in_game),
+          (game_chat_overlay, {}), (crowd, {}), *alerts_in_game),
     scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (chat_overlay, {}), *alerts_in_talk),
     scene("Já volto", (back, {})),
     scene("Fim", (end, {})),
@@ -134,7 +136,7 @@ collection = {
     "current_scene": "Começando",
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
-    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, starting, back, end] + apps + ([alerts] if alerts else []),
+    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, crowd, starting, back, end] + apps + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
     "transitions": [stinger],

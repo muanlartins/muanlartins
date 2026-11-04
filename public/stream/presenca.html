@@ -105,13 +105,6 @@
     <p class="status" id="status">Conectando…</p>
     <script src="stream.js"></script>
     <script>
-      // Accounts that sit in every channel's chat, plus the chat bots.
-      const BOTS = new Set([
-        "nightbot", "streamelements", "streamlabs", "moobot", "fossabot", "wizebot", "sery_bot", "soundalerts",
-        "commanderroot", "lurxx", "drapsnatt", "anotherttvviewer", "aliceydra", "kattah", "d0nk7", "01ella",
-        "regressz", "electricallongboard", "smallstreamersdccommunity", "streamstickers", "pokemoncommunitygame",
-        "kofistreambot", "tangiabot", "own3d", "frostytoolsdotcom", "creatisbot", "blerp", "streamholics",
-      ])
       // Twitch sends who was already there as JOINs over the first seconds; those don't count as arrivals.
       const SETTLE_MS = 15000
       const FRESH_MS = 60000
@@ -221,31 +214,18 @@
         } else if (command === "353") trailing.split(" ").forEach((name) => name && arrive(name))
       }
 
-      let delay = 1000
       function connect() {
-        const ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443")
-        ws.onopen = () => {
-          delay = 1000
-          connectedAt = Date.now()
-          present.clear()
-          ws.send("CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership")
-          ws.send("PASS SCHMOOPIIE")
-          ws.send(`NICK justinfan${Math.floor(10000 + Math.random() * 80000)}`)
-          ws.send(`JOIN #${CHANNEL}`)
-          $("status").textContent = `Conectado ao chat de ${CHANNEL}.`
-          render()
-        }
-        ws.onmessage = ({ data }) => {
-          for (const line of data.split("\r\n")) {
-            if (line.startsWith("PING")) ws.send(`PONG :${parseIrc(line).trailing}`)
-            else if (line) apply(line)
-          }
-        }
-        ws.onclose = () => {
-          $("status").textContent = "Sem conexão com o chat, tentando de novo…"
-          setTimeout(connect, delay)
-          delay = Math.min(delay * 2, 30000)
-        }
+        irc(apply, {
+          membership: true,
+          onStatus(connected) {
+            if (connected) {
+              connectedAt = Date.now()
+              present.clear()
+              render()
+            }
+            $("status").textContent = connected ? `Conectado ao chat de ${CHANNEL}.` : "Sem conexão com o chat, tentando de novo…"
+          },
+        })
       }
 
       if (params.has("demo")) {

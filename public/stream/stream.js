@@ -226,10 +226,9 @@ function drawCopy(paths, progress) {
  */
 function chat(box, { keep = 0, max = 40 } = {}) {
   box.classList.add("chat")
-  const bots = new Set(["nightbot", "streamelements", "streamlabs", "moobot", "fossabot", "wizebot", "sery_bot"])
 
   function show({ id, user, name, text, emotes, broadcaster, action }) {
-    if (bots.has(user) || text.startsWith("!")) return
+    if (BOTS.has(user) || text.startsWith("!")) return
     // The history and the live connection can both bring the same message.
     if (id && box.querySelector(`[data-id="${CSS.escape(id)}"]`)) return
     const el = document.createElement("div")
@@ -285,28 +284,6 @@ function chat(box, { keep = 0, max = 40 } = {}) {
 
   if (params.has("demo")) return demo(show)
 
-  let delay = 1000
-  function connect() {
-    const ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443")
-    ws.onopen = () => {
-      delay = 1000
-      ws.send("CAP REQ :twitch.tv/tags twitch.tv/commands")
-      ws.send("PASS SCHMOOPIIE")
-      ws.send(`NICK justinfan${Math.floor(10000 + Math.random() * 80000)}`)
-      ws.send(`JOIN #${CHANNEL}`)
-    }
-    ws.onmessage = ({ data }) => {
-      for (const line of data.split("\r\n")) {
-        if (line.startsWith("PING")) ws.send(`PONG :${parseIrc(line).trailing}`)
-        else if (line) handle(line)
-      }
-    }
-    ws.onclose = () => {
-      setTimeout(connect, delay)
-      delay = Math.min(delay * 2, 30000)
-    }
-  }
-
   function apply(line) {
     const { tags, prefix, command, trailing } = parseIrc(line)
     if (command === "PRIVMSG") {
@@ -338,7 +315,7 @@ function chat(box, { keep = 0, max = 40 } = {}) {
       waiting = null
       live.forEach(apply)
     })
-  connect()
+  irc(handle)
 
   // The last messages before the page loaded, so it opens like Twitch's own chat. Twitch's IRC has no
   // history; recent-messages.robotty.de keeps it, already without what moderators removed. If it's
@@ -348,6 +325,47 @@ function chat(box, { keep = 0, max = 40 } = {}) {
     const { messages = [] } = await (await fetch(url, { signal: AbortSignal.timeout(5000) })).json()
     messages.forEach(apply)
   }
+}
+
+// Accounts that sit in every channel's chat, plus the chat bots: never shown, never in the crowd.
+const BOTS = new Set([
+  "nightbot", "streamelements", "streamlabs", "moobot", "fossabot", "wizebot", "sery_bot", "soundalerts",
+  "commanderroot", "lurxx", "drapsnatt", "anotherttvviewer", "aliceydra", "kattah", "d0nk7", "01ella",
+  "regressz", "electricallongboard", "smallstreamersdccommunity", "streamstickers", "pokemoncommunitygame",
+  "kofistreambot", "tangiabot", "own3d", "frostytoolsdotcom", "creatisbot", "blerp", "streamholics",
+])
+
+/**
+ * The channel's chat, read anonymously, reconnecting with backoff: each line goes to `apply`. With
+ * `membership`, Twitch also sends who joins and leaves (only viewers logged in with the chat open, in
+ * batches about 10 s late) and, on connecting, who is already there (353). `onStatus(connected)` follows
+ * the connection.
+ */
+function irc(apply, { membership = false, onStatus = () => {} } = {}) {
+  let delay = 1000
+  function connect() {
+    const ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443")
+    ws.onopen = () => {
+      delay = 1000
+      ws.send(`CAP REQ :twitch.tv/tags twitch.tv/commands${membership ? " twitch.tv/membership" : ""}`)
+      ws.send("PASS SCHMOOPIIE")
+      ws.send(`NICK justinfan${Math.floor(10000 + Math.random() * 80000)}`)
+      ws.send(`JOIN #${CHANNEL}`)
+      onStatus(true)
+    }
+    ws.onmessage = ({ data }) => {
+      for (const line of data.split("\r\n")) {
+        if (line.startsWith("PING")) ws.send(`PONG :${parseIrc(line).trailing}`)
+        else if (line) apply(line)
+      }
+    }
+    ws.onclose = () => {
+      onStatus(false)
+      setTimeout(connect, delay)
+      delay = Math.min(delay * 2, 30000)
+    }
+  }
+  connect()
 }
 
 function parseIrc(line) {
@@ -397,4 +415,4 @@ function demo(show) {
 }
 
 // What the pages call.
-Object.assign(window, { params, frame, plate, recordPlate, RANKS, DIVISIONS, rankName, hasDivisions, alternate, mark, drawCopy, chat })
+Object.assign(window, { params, frame, plate, recordPlate, RANKS, DIVISIONS, rankName, hasDivisions, alternate, mark, drawCopy, chat, BOTS, irc, parseIrc })
