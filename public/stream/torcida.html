@@ -26,7 +26,8 @@
       on this PC (?narrador= its address, ?narrador=0 for none); OBS sends this
       source's sound to the stream only, never to the recording.
 
-      ?canal= as in the overlays. ?demo fills the stand with sample people and
+      ?canal= as in the overlays. The channel itself stays out of the stand
+      (Luan is on camera); ?eu lets it in, to see your own fan. ?demo fills the stand with sample people and
       plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça,
       p pula, n dança, o ola, m mensagem, j chega alguém, s sai alguém.
     -->
@@ -532,7 +533,7 @@
       }
 
       function chegar(login, nome = login) {
-        if (BOTS.has(login) || login.startsWith("justinfan") || login === CHANNEL) return
+        if (BOTS.has(login) || login.startsWith("justinfan") || (login === CHANNEL && !params.has("eu"))) return
         vistos.add(login)
         const p = pessoas.get(login)
         if (p) {
