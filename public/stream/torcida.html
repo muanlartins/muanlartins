@@ -26,8 +26,7 @@
       on this PC (?narrador= its address, ?narrador=0 for none); OBS sends this
       source's sound to the stream only, never to the recording.
 
-      ?canal= as in the overlays. The channel itself stays out of the stand
-      (Luan is on camera); ?eu lets it in, to see your own fan. ?demo fills the stand with sample people and
+      ?canal= as in the overlays. The channel stands with its viewers. ?demo fills the stand with sample people and
       plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça,
       p pula, n dança, o ola, m mensagem, j chega alguém, s sai alguém.
     -->
@@ -117,8 +116,8 @@
           transform: translateY(-1.5px);
         }
       }
-      /* The name over each fan, still while they move; cut short in the stand, whole while its fan is
-         the one moving. */
+      /* The name over each fan, still while they move; a long one shrinks to fit its place, then is cut
+         short, and is whole while its fan is the one moving. */
       .nome {
         position: absolute;
         z-index: 1;
@@ -145,6 +144,7 @@
       }
       .fa.foco .nome {
         max-width: none;
+        font-size: max(11px, 13px * var(--s)) !important;
         background: var(--paper);
         color: var(--klein);
       }
@@ -526,20 +526,32 @@
           p.el.style.bottom = `${base}px`
           p.el.style.zIndex = 30 - fila
           p.el.style.setProperty("--s", s)
+          caber(p.el.querySelector(".nome"))
           p.el.style.setProperty("--x", Math.round(x))
           p.el.classList.toggle("atras", fila > 0)
         })
         $("convite").hidden = lista.length > 0
       }
 
+      // A long name gets smaller before it gets cut: down to 10px, then the ellipsis.
+      function caber(nome) {
+        nome.style.fontSize = ""
+        const cabe = (nome.clientWidth - 10) / (nome.scrollWidth - 10)
+        if (cabe < 1) nome.style.fontSize = `${Math.max(10, Math.floor(parseFloat(getComputedStyle(nome).fontSize) * cabe * 2) / 2)}px`
+      }
+      document.fonts.ready.then(arrumar)
+
       function chegar(login, nome = login) {
-        if (BOTS.has(login) || login.startsWith("justinfan") || (login === CHANNEL && !params.has("eu"))) return
+        if (BOTS.has(login) || login.startsWith("justinfan")) return
         vistos.add(login)
         const p = pessoas.get(login)
         if (p) {
           if (nome !== login && p.nome !== nome) {
             p.nome = nome
-            p.el?.querySelector(".nome").replaceChildren(nome)
+            if (p.el) {
+              p.el.querySelector(".nome").replaceChildren(nome)
+              caber(p.el.querySelector(".nome"))
+            }
           }
           return
         }
