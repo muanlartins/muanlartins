@@ -26,8 +26,8 @@ K = CANVAS[0] / 1920
 
 # OBS enums: alignment flags (left 1, right 2, top 4, bottom 8) and bounds types.
 TOP_LEFT = 5
-# Audio tracks, recorded side by side for editing: everything, the microphone alone, the game alone.
-TRACK_ALL, TRACK_MIC, TRACK_GAME = 1, 2, 4
+# Audio tracks, recorded side by side for editing: everything, the microphone alone, the game alone, Discord alone.
+TRACK_ALL, TRACK_MIC, TRACK_GAME, TRACK_DISCORD = 1, 2, 4, 8
 MONITOR_AND_OUTPUT = 2
 BOUNDS_NONE, BOUNDS_SCALE_INNER, BOUNDS_SCALE_OUTER = 0, 2, 3
 
@@ -68,8 +68,15 @@ game = source("game_capture", "Rocket League", {"capture_mode": "window", "windo
                                                 "capture_cursor": False, "allow_transparency": False,
                                                 "capture_audio": True}, mixers=TRACK_ALL | TRACK_GAME)
 # Stays on between scenes, so switching to one with the camera doesn't wait for it to start.
+# It also goes to a file of its own at native resolution while recording (the Source Record plugin), with the
+# microphone for syncing it to the main recording.
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,
-                                         "deactivate_when_not_showing": False})
+                                         "deactivate_when_not_showing": False}, filters=[
+    source("source_record_filter", "Gravar câmera", {
+        "record_mode": 3, "path": "C:\\Users\\muanl\\Videos", "filename_formatting": "%CCYY-%MM-%DD %hh-%mm-%ss câmera",
+        "rec_format": "mkv", "encoder": "nvenc", "rate_control": "CQP", "cqp": 18, "keyint_sec": 2, "preset2": "p5",
+        "profile": "high", "different_audio": True, "audio_source": "Microfone"}),
+])
 game_overlay = browser("Overlay · Jogo", "jogo.html")
 game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1")
 chat_overlay = browser("Overlay · Conversa", "conversa.html")
@@ -89,9 +96,9 @@ alerts_in_talk = [(alerts, {"pos": (154, 800), "bounds": ALERTS_SIZE})] if alert
 
 # The game's sound comes with its capture. The rest of the computer is captured app by app, not as desktop audio,
 # which would carry the game a second time; each has its own fader.
-apps = [source("wasapi_process_output_capture", name, {"window": window, "priority": 2})
-        for name, window in (("Discord", "Discord:Chrome_WidgetWin_1:Discord.exe"),
-                             ("Navegador", "Brave:Chrome_WidgetWin_1:brave.exe"))]
+apps = [source("wasapi_process_output_capture", name, {"window": window, "priority": 2}, mixers=mixers)
+        for name, window, mixers in (("Discord", "Discord:Chrome_WidgetWin_1:Discord.exe", TRACK_ALL | TRACK_DISCORD),
+                                     ("Navegador", "Brave:Chrome_WidgetWin_1:brave.exe", TRACK_ALL))]
 mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=TRACK_ALL | TRACK_MIC, filters=[
     # Noise is already removed by NVIDIA Broadcast, which the microphone goes through.
     source("compressor_filter", "Compressor", {"ratio": 4.0, "threshold": -18.0, "attack_time": 6, "release_time": 60,
