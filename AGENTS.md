@@ -45,6 +45,7 @@ Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand token
 - `public/models/`, `public/ranks/`: 3D models and rank emblems (credits below).
 - `public/stream/`: the Twitch overlays, plain HTML pages that OBS loads by URL (see "Stream" in `brand/README.md`).
 - `brand/build.py` regenerates logos, site icons and YouTube art.
+- `scripts/youtube.py`: the channel's YouTube through the Data API (a live's video after it's uploaded in Studio: title, description with chapters, thumbnail, playlist, captions). Its OAuth client and token live outside the repo, in `%USERPROFILE%\.config\muanlartins`.
 - `infra/site.yml` and `.github/workflows/deploy.yml`: hosting and release.
 - `handoff/`: the plan and the Mac pilot (Pix alerts, voices, crowd, captions) handed to the Windows session that runs the stream. Start there.
 

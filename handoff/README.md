@@ -100,7 +100,10 @@ spectator-only: it works while playing.
 
 ### YouTube through the API (set up 11-04)
 
-Steps 2–4 and the captions can run from a script instead of Studio:
+Steps 2–4 and the captions run from `scripts/youtube.py` (built 11-04; `scripts/.venv` via `uv venv` +
+`uv pip install -r scripts/requirements.txt`): `live <date>` sets title, description (summary, links, chapters
+from `content/lives/<date>.json`), tags, Gaming, pt-BR, unlisted, the thumbnail from `brand/`, the playlist and
+the transcript as captions; `--dry-run` only shows them. Both earlier VODs were redone with it. Setup:
 
 - **Google Cloud:** project `muanlartins` on Luan's personal Google account (no organization). YouTube Data API
   v3 is enabled. OAuth client "Windows", type **Desktop app**. The consent screen is External and **in
