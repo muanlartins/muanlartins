@@ -158,9 +158,10 @@ function recordPlate(el, hole, band) {
     heard = Date.now()
     const before = JSON.stringify(state)
     state = detail
-    if (JSON.stringify(state) === before) return
     const { show, mode, tier, division, mmr, wins, losses, streak, points } = state
+    // Set on every message, so the plate comes back after a silence hid it, even with nothing new.
     el.hidden = !show || (!tier && !wins && !losses)
+    if (JSON.stringify(state) === before) return
     emblem.hidden = !tier
     if (tier) emblem.src = `/ranks/${tier}.webp`
     rank.innerHTML =
