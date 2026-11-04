@@ -23,6 +23,7 @@
       of each match's events (touches with their speed, goals, shots, saves,
       demos, crossbar hits), published next to the session as
       <session>.events.json, with players as roles (me, mate1, opp2), never names.
+      Goals and our saves go to the crowd (torcida.html) as they happen.
       When a match ends it cuts to Conversa, and back to the game scene when the
       next one loads ("Trocar de cena sozinho").
 
@@ -515,7 +516,17 @@
           match = null
         } else if (match?.start) {
           logEvent(event, data)
+          cheer(event, data)
         }
+      }
+
+      // --- The crowd (torcida.html): our goals, theirs and our saves, as they happen -----------------
+      function cheer(event, data) {
+        const team = match.players.length ? me()?.TeamNum : undefined
+        if (team == null) return
+        if (event === "GoalScored") emit("muanlartins-torcida", { tipo: "gol", nosso: data.Scorer?.TeamNum === team, kmh: kmh(data.GoalSpeed) })
+        else if (event === "StatfeedEvent" && (data.EventName === "Save" || data.EventName === "EpicSave") && data.MainTarget?.TeamNum === team)
+          emit("muanlartins-torcida", { tipo: "defesa", epica: data.EventName === "EpicSave" })
       }
 
       // --- The match's log: what happened, when, by whom -------------------------------------------
@@ -688,7 +699,11 @@
         if (!obsReady) return
         const rank = state.ranks[state.mode]
         const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, ...record(current(), state.mode) }
-        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-partidas", event_data: detail } })
+        emit("muanlartins-partidas", detail)
+      }
+      /** An event for the overlays: obs-browser dispatches it on every browser source's window. */
+      function emit(name, detail) {
+        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: name, event_data: detail } })
       }
       // Overlays that load later (a scene switch, OBS starting) get the state within a few seconds.
       setInterval(broadcast, 5000)
