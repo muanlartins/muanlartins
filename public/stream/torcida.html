@@ -62,30 +62,18 @@
         height: 2px;
         background: var(--klein-claro);
       }
-      .contagem {
+      /* While the stand is empty, a line on it says how to get in. */
+      .convite {
         position: absolute;
-        left: 42px;
-        right: 42px;
+        left: 0;
+        right: 0;
         bottom: 8px;
         z-index: 50;
         margin: 0;
-        display: flex;
-        justify-content: space-between;
+        text-align: center;
         font-size: 14px;
         font-weight: 500;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--klein-claro);
-      }
-      .contagem b {
-        color: var(--paper);
-        font-weight: 700;
-        margin-left: 6px;
-      }
-      .contagem .convite {
         letter-spacing: 0.04em;
-        text-transform: none;
-        color: var(--paper);
       }
 
       /*
@@ -365,7 +353,7 @@
     <main class="stage">
       <section class="torcida" id="torcida" aria-label="Torcida">
         <div class="arquibancada"></div>
-        <p class="contagem"><span>Torcida<b id="total">0</b></span><span class="convite" id="convite">Entre no chat e apareça aqui</span></p>
+        <p class="convite" id="convite">Entre no chat e apareça aqui</p>
       </section>
     </main>
     <script src="stream.js"></script>
@@ -375,7 +363,7 @@
 
       // The rows: ten fans each, like bleachers: each row behind smaller and higher, its heads above the
       // names in front, half a place to the side so it shows between the heads in front. Past the last
-      // row, the count says how many more.
+      // row, the rest wait off the stand for a place.
       const POR_FILEIRA = 10
       const FILEIRAS = [
         { s: 1, base: 22 },
@@ -462,7 +450,6 @@
       // Who has been here longest stands in front (by Σ, once it exists); each takes the next place.
       function arrumar() {
         const lista = [...pessoas.values()].sort((a, b) => a.desde - b.desde)
-        const cabem = POR_FILEIRA * FILEIRAS.length
         lista.forEach((p, i) => {
           const fila = Math.floor(i / POR_FILEIRA)
           if (fila >= FILEIRAS.length) {
@@ -483,8 +470,6 @@
           p.el.style.setProperty("--x", Math.round(x))
           p.el.classList.toggle("atras", fila > 0)
         })
-        const fora = Math.max(0, lista.length - cabem)
-        $("total").textContent = lista.length + (fora ? ` · +${fora} atrás` : "")
         $("convite").hidden = lista.length > 0
       }
 
