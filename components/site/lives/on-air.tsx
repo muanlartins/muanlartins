@@ -7,10 +7,9 @@ import { CHANNEL, TWITCH, useLive } from "@/lib/twitch"
 
 const T = localize({
   now: { pt: "Ao vivo agora", en: "Live now" },
-  // TODO(Luan): rewrite in your voice.
   offline: {
-    pt: "Fora do ar agora. Quando eu entrar ao vivo, a live aparece aqui.",
-    en: "Offline right now. When I go live, the stream shows up here.",
+    pt: "Não estou ao vivo agora. Quando eu estiver, a live aparece aqui.",
+    en: "Not live right now. When I am, the stream shows up here.",
   },
   twitch: { pt: "Abrir na Twitch", en: "Open on Twitch" },
 })
