@@ -36,6 +36,17 @@ export function sectionFromSlug(slug: string): Section | undefined {
   return SECTIONS.find((section) => SLUGS[LOCALE][section] === slug)
 }
 
+/** The privacy policy sits beside the sections; Google's consent screen for the channel's YouTube tools links to it. */
+const PRIVACY_SLUGS: Record<Locale, string> = { pt: "privacidade", en: "privacy" }
+
+export function privacySlug(locale: Locale = LOCALE) {
+  return PRIVACY_SLUGS[locale]
+}
+
+export function privacyUrl(locale: Locale = LOCALE) {
+  return `${ORIGINS[locale]}/${PRIVACY_SLUGS[locale]}`
+}
+
 /**
  * Your profiles elsewhere. They show in the footer and tell Google that
  * these accounts and this site are the same person.
@@ -96,6 +107,7 @@ export const UI = localize({
     content: { pt: "Conteúdo", en: "Content" },
   },
   switchLanguage: { pt: "English", en: "Português" },
+  privacy: { pt: "Privacidade", en: "Privacy" },
   /** The 404 page. */
   notFound: {
     title: { pt: "Nada por aqui", en: "Nothing here" },
