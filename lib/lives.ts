@@ -1,7 +1,7 @@
 import type { L10n } from "@/lib/site"
 
 /**
- * The Twitch lives, kept whole as unlisted YouTube videos: one file per
+ * The channel's Twitch lives, kept whole as unlisted YouTube videos: one file per
  * live in content/lives/ (<date>.json), and its transcript beside it
  * (<date>.transcript.json, [seconds, text] lines), both read at build
  * time by lib/lives-files.ts. A chapter is a stretch of the video, either
@@ -18,6 +18,8 @@ export interface Chapter {
 export interface Live {
   /** YYYY-MM-DD, in Luan's time; also its URL. */
   date: string
+  /** The game played, by its id in content/projects.ts. */
+  game?: string
   /** The YouTube video. */
   video: string
   summary: L10n

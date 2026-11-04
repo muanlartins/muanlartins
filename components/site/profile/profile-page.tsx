@@ -3,6 +3,7 @@
 import Script from "next/script"
 import { useRef, useState, type ReactNode } from "react"
 import { PageIntro } from "@/components/site/page-intro"
+import { FanView } from "@/components/site/profile/fan-view"
 import { profile } from "@/content/profile"
 import {
   canSave,
@@ -23,25 +24,6 @@ import { cn } from "@/lib/utils"
 const text = localize(profile)
 type Status = "idle" | "saving" | "saved" | "erased" | "error" | "expired"
 type Option = "cabeca" | "roupa" | "acessorio" | "comemoracao"
-
-declare global {
-  interface Window {
-    Torcedor?: Torcedor
-  }
-}
-
-/** A fan drawn by torcedor.js; `move` plays a celebration (torcedor.css). */
-function FanView({ T, fan, className, move }: { T: Torcedor; fan: Fan; className?: string; move?: string }) {
-  return (
-    <div
-      className={cn("torcedor relative", move, className)}
-      data-comemoracao={fan.comemoracao}
-      style={{ ["--cor" as string]: fan.cor }}
-    >
-      <div className="pose absolute inset-0" dangerouslySetInnerHTML={{ __html: T.figura(fan) }} />
-    </div>
-  )
-}
 
 function Group({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (

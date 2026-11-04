@@ -4,14 +4,15 @@ import { LanguageBadge } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
 import { RoadmapProgress, ShowroomStage } from "@/components/site/game/game-home-client"
 import { divisionOf, longDate, tierOf, type RankInfo } from "@/components/site/ranked/format"
+import { channel } from "@/content/channel"
+import { channelPath } from "@/lib/channel"
 import { gamePath, type Game } from "@/lib/game"
 import type { Live } from "@/lib/lives"
 import { MODES, summarize, type Mode, type Session } from "@/lib/ranked"
 import { entries } from "@/lib/roadmap"
-import { LINKS, UI, localize } from "@/lib/site"
+import { UI, localize } from "@/lib/site"
 
 const T = localize({
-  channel: { pt: "Onde acompanhar", en: "Where to follow" },
   explore: { pt: "Por aqui", en: "In here" },
   videos: { pt: "vídeos", en: "videos" },
   topics: { pt: "tópicos", en: "topics" },
@@ -21,12 +22,10 @@ const T = localize({
   drag: { pt: "Arraste para girar", en: "Drag to spin" },
 })
 
-/** Where the channel lives: the profiles that carry it. */
-const CHANNEL = LINKS.filter((link) => link.label === "YouTube" || link.label === "Twitch")
-
 /**
- * A game's home: what it's about, the car on a turntable, where to follow,
- * and a card for each of its pages with a glimpse of what's in it.
+ * A game's home: what it's about, the car on a turntable, and a card for
+ * each of its pages with a glimpse of what's in it, and for its lives on the
+ * channel.
  */
 export function GameHome({
   game,
@@ -36,7 +35,7 @@ export function GameHome({
 }: {
   game: Game
   sessions: Session[]
-  /** Newest first. */
+  /** The game's lives on the channel, newest first. */
   lives: Live[]
   ranks: RankInfo[]
 }) {
@@ -67,24 +66,6 @@ export function GameHome({
         ))}
       </div>
 
-      <section className="mt-14">
-        <h2 className="text-[12px] font-medium uppercase tracking-[0.12em] text-muted">{T.channel}</h2>
-        <div className="mt-4 flex flex-wrap gap-3">
-          {CHANNEL.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              target="_blank"
-              rel="noreferrer"
-              className="group flex items-center gap-2 rounded-md border border-line bg-paper/70 px-4 py-2.5 text-[15px] font-medium text-ink transition-colors hover:border-klein hover:text-klein"
-            >
-              {link.label}
-              <ArrowUpRight className="h-4 w-4 text-muted transition-colors group-hover:text-klein" />
-            </a>
-          ))}
-        </div>
-      </section>
-
       <section className="mt-16">
         <h2 className="text-[12px] font-medium uppercase tracking-[0.12em] text-muted">{T.explore}</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -105,13 +86,11 @@ export function GameHome({
             </Card>
           )}
 
-          {game.lives && (
-            <Card href={gamePath(game, "lives")} title={localize(game.lives.title)} summary={localize(game.lives.description)} language="pt">
-              {lives[0] && (
-                <p className="text-[13px] text-muted">
-                  {T.latestLive}: {longDate(lives[0].date)}
-                </p>
-              )}
+          {lives[0] && (
+            <Card href={channelPath("lives")} title={localize(channel.lives.title)} summary={localize(channel.lives.description)} language="pt">
+              <p className="text-[13px] text-muted">
+                {T.latestLive}: {longDate(lives[0].date)}
+              </p>
             </Card>
           )}
 

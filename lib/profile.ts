@@ -30,6 +30,12 @@ export interface Fan {
   stickers: { gol: string[]; contra: string[] }
 }
 
+declare global {
+  interface Window {
+    Torcedor?: Torcedor
+  }
+}
+
 /** window.Torcedor, from /stream/torcedor.js. */
 export interface Torcedor {
   CORES: string[]

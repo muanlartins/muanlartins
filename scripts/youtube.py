@@ -70,11 +70,12 @@ def playlists(_):
 
 # --- A live's video ---------------------------------------------------------------------------------
 
-SITE = "https://muanlartins.com.br/conteudo/rocket-league"
+SITE = "https://muanlartins.com.br"
+GAME = f"{SITE}/conteudo/rocket-league"
 LINKS = [
-    ("Esta live no site, com cada partida e a transcrição", f"{SITE}/lives/{{date}}"),
-    ("Minhas ranqueadas", f"{SITE}/ranked"),
-    ("Os fundamentos, organizados por rank", f"{SITE}/fundamentals"),
+    ("Esta live no site, com cada partida e a transcrição", f"{SITE}/canal/lives/{{date}}"),
+    ("Minhas ranqueadas", f"{GAME}/ranked"),
+    ("Os fundamentos, organizados por rank", f"{GAME}/fundamentals"),
     ("Os fundamentos em vídeo", "https://www.youtube.com/playlist?list=PLPogzmM3roPc"),
     ("Ao vivo na Twitch", "https://www.twitch.tv/muanlartins"),
 ]
