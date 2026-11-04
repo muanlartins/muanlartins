@@ -80,23 +80,33 @@ spectator-only: it works while playing.
 
 ## 3. After each live
 
-1. Upload the recording to YouTube as **unlisted**, playlist "Rocket League ao vivo", not for kids, no altered
-   content, language pt-BR.
-2. Title "Rocket League ao vivo (<rank reached, if it climbed>) - DD/MM/YYYY".
-3. Thumbnail: add the date to `LIVES` in `brand/build.py` (with the rank and tier reached, or `(None, None)`),
-   run `brand/.venv/bin/python brand/build.py`, upload `brand/youtube/thumbnails/live-<date>.png`. "Live" is all
-   Branco; tier emblems not yet in `youtube/thumbnails/ranks/` come from manucabral's repo
-   (`overlay/ranks/s4-N.png`: trim, 480 px PNG).
-4. Description: a short summary; links to the ranked page, Twitch, the Fundamentos playlist and the roadmap;
-   chapters (≥ 10 s apart); `#RocketLeague #RocketLeagueAoVivo`. Tags: rocket league, ao vivo, ranqueada, the
-   modes, pt-br, brasil, muanlartins.
-5. Transcribe locally: `whisper-cli -m ggml-large-v3-turbo-q5_0.bin -l pt -mc 0 -osrt` on 16 kHz mono audio of
-   the mic track. **`-mc 0` is required**: without it whisper loops on silence ("Se inscreva no canal…").
-   Clean it like the Mac did: drop segments ≥ 25 s, the classic hallucinations and repeats, and replace friends'
-   names with "—". Save as `content/lives/<date>.transcript.json` (`[seconds, text]` lines).
-6. Write `content/lives/<date>.json`: `video`, `summary` (`{pt, en}`), `chapters` (`at` as "h:mm:ss"; `title`
-   or `match`: a match id from that day's session).
-7. Commit and ask Luan before pushing.
+Scripted on 11-04; one command per step, from the repo, after Luan uploads the recording in Studio:
+
+1. `scripts/.venv/bin/python scripts/live.py <date>`: finds the day's recording (from the dock's `outputs`, else
+   the largest file in Videos named for the day; its start is second 0 of the VOD), transcribes the Microfone
+   track (Windows ffmpeg + whisper.cpp on CUDA, `-l pt -mc 0 --vad`, ~2 min for 1h30), cleans it
+   (hallucinations, repeats, usernames with digits, friends' names from `%USERPROFILE%\.config\muanlartins\nomes.txt`
+   become "—"), writes `content/lives/<date>.transcript.json` and `<date>.json` (chapters: each ranked match from
+   its start, "Começo" and "Fim"; a summary drafted from the numbers, for Luan to rewrite), adds the day to
+   `LIVES` in `brand/build.py` (the rank and tier reached, if it climbed) and draws the thumbnail. Existing files
+   are kept; `--force` redoes them.
+2. Luan uploads the recording to YouTube in Studio (the API can't: see below) and gives the id;
+   `live.py <date> --video <id>` stores it.
+3. `scripts/.venv/bin/python scripts/youtube.py live <date>` (`--dry-run` first): title "Rocket League ao vivo
+   (<rank reached>) - DD/MM/YYYY", description (summary; links to the live's page, ranked, the roadmap, the
+   Fundamentos playlist, Twitch; chapters; `#RocketLeague #RocketLeagueAoVivo`), tags, Gaming, pt-BR, unlisted,
+   not for kids, no altered content, the thumbnail, the playlist "Rocket League ao vivo" and the transcript as
+   captions.
+4. Commit and ask Luan before pushing.
+
+Tools on the stream PC, outside the repo: whisper.cpp (CUDA 12.4 build, models `ggml-large-v3-turbo-q5_0.bin` and
+`ggml-silero-v5.1.2.bin`) in `%LOCALAPPDATA%\Programs\whisper`, ffmpeg in `%LOCALAPPDATA%\Programs\ffmpeg`
+(WSL's own ffmpeg reads the recordings across the drive ten times slower), `uv` and `resvg` in `~/.local/bin`
+(`brand/build.py` uses resvg when librsvg isn't there). Tier emblems not yet in `youtube/thumbnails/ranks/` come
+from manucabral's repo (`overlay/ranks/s4-N.png`: trim, 480 px PNG).
+
+The 28/10 chapters made by hand were 31 s early; frames checked on 11-04 (a match's end at 40:44, not 40:13), so
+the VOD is the recording from its first second, and the dock's clock lines up with it.
 
 ### YouTube through the API (set up 11-04)
 

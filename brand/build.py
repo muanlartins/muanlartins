@@ -2,6 +2,7 @@ import colorsys
 import itertools
 import math
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -145,7 +146,11 @@ def write(path, content):
 
 
 def png(src, out, width):
-    subprocess.run(["rsvg-convert", "-w", str(width), str(ROOT / src), "-o", str(ROOT / out)], check=True)
+    # librsvg on the Mac; resvg on the stream PC (no root there), which draws these the same (SSIM 0.995).
+    if shutil.which("rsvg-convert"):
+        subprocess.run(["rsvg-convert", "-w", str(width), str(ROOT / src), "-o", str(ROOT / out)], check=True)
+    else:
+        subprocess.run(["resvg", "-w", str(width), str(ROOT / src), str(ROOT / out)], check=True)
 
 
 def circle_png(src, out, width):

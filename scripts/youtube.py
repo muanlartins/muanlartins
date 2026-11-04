@@ -11,14 +11,11 @@ The OAuth client and the token live outside the repository, in %USERPROFILE%\\.c
 """
 
 import argparse
-import ast
 import json
 import re
-import subprocess
 import sys
 import webbrowser
 from io import BytesIO
-from pathlib import Path
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -26,22 +23,12 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseUpload
 
-ROOT = Path(__file__).resolve().parent.parent
+from content import LIVES, ROOT, brand_tables, clock, matches_by_id, seconds
+from windows import CONFIG
+
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
 
-def config_dir() -> Path:
-    """Windows' %USERPROFILE%\\.config\\muanlartins, also from WSL."""
-    try:
-        profile = subprocess.run(["cmd.exe", "/c", "echo %USERPROFILE%"], capture_output=True, text=True,
-                                 cwd="/mnt/c", check=True).stdout.strip()
-        home = Path(subprocess.run(["wslpath", profile], capture_output=True, text=True, check=True).stdout.strip())
-    except (OSError, subprocess.CalledProcessError):
-        home = Path.home()
-    return home / ".config" / "muanlartins"
-
-
-CONFIG = config_dir()
 CLIENT = CONFIG / "youtube-client.json"
 TOKEN = CONFIG / "youtube-token.json"
 
@@ -98,38 +85,6 @@ GAMING = "20"
 CAPTION_NAME = "Português (transcrição)"
 
 
-def brand_tables():
-    """RANKS and LIVES from brand/build.py, read without running it: the title says what the thumbnail shows."""
-    tables = {}
-    for node in ast.parse((ROOT / "brand" / "build.py").read_text()).body:
-        if isinstance(node, ast.Assign) and getattr(node.targets[0], "id", "") in ("RANKS", "LIVES"):
-            tables[node.targets[0].id] = ast.literal_eval(node.value)
-    return tables["RANKS"], tables["LIVES"]
-
-
-def seconds(at: str) -> int:
-    total = 0
-    for part in at.split(":"):
-        total = total * 60 + int(part)
-    return total
-
-
-def clock(total: float) -> str:
-    h, rest = divmod(int(total), 3600)
-    m, s = divmod(rest, 60)
-    return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
-
-
-def matches_by_id():
-    found = {}
-    for path in sorted((ROOT / "content" / "matches").glob("*.json")):
-        if path.name.endswith(".events.json"):
-            continue
-        for match in json.loads(path.read_text())["matches"]:
-            found[match["id"]] = match
-    return found
-
-
 def chapter_title(chapter, matches):
     if "title" in chapter:
         return chapter["title"]["pt"]
@@ -158,7 +113,7 @@ def chapters(live, matches):
 
 def describe(date):
     """Title, description and tags of a live's video, from content/lives/<date>.json and brand/build.py."""
-    live = json.loads((ROOT / "content" / "lives" / f"{date}.json").read_text())
+    live = json.loads((LIVES / f"{date}.json").read_text())
     ranks, lives = brand_tables()
     rank, tier = lives.get(date, (None, None))
     year, month, day = date.split("-")
@@ -201,7 +156,7 @@ def live(args):
     record, title, description, tags = describe(args.date)
     video_id = record["video"]
     thumbnail = ROOT / "brand" / "youtube" / "thumbnails" / f"live-{args.date}.png"
-    transcript = ROOT / "content" / "lives" / f"{args.date}.transcript.json"
+    transcript = LIVES / f"{args.date}.transcript.json"
     print(f"Vídeo {video_id}\n\n{title}\n\n{description}\n\nTags: {', '.join(tags)}\n")
     if args.dry_run:
         return
