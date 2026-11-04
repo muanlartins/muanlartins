@@ -78,6 +78,14 @@
       .status .live::before {
         background: #ff5a5a;
       }
+      .twin {
+        margin: 0;
+        padding: 6px 10px;
+        background: #ff5a5a;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+      }
       .row {
         display: flex;
         flex-wrap: wrap;
@@ -229,6 +237,7 @@
   </head>
   <body>
     <p class="status"><span id="game">Rocket League</span><span id="obs">OBS</span><span id="air" hidden></span><span id="site"></span></p>
+    <p class="twin" id="twin" hidden>Outra cópia deste painel está aberta (no navegador?). Feche uma: as duas mandam placar e gols para a live.</p>
     <label class="check"><input type="checkbox" id="narrador" /> Galvão narrando os gols</label>
 
     <h2>Ranque <span class="row tabs" id="modes"></span></h2>
@@ -287,8 +296,6 @@
       const TALK_SCENE = "Conversa"
       // Seconds of the end screen the stream sees before cutting to the talk.
       const CUT_AFTER_S = 6
-      // The Stats API's speeds are in unreal units a second; this makes them km/h.
-      const KMH = 0.036
       // Logs of published sessions older than this leave the dock's storage (they're in the repository).
       const LOG_DAYS = 3
 
@@ -508,7 +515,10 @@
             match.started = true
             // The match starts at its first countdown: that's where its chapter in the VOD begins.
             match.start ??= Date.now()
-            if (event === "RoundStarted") note("kickoff")
+            if (event === "RoundStarted") {
+              note("kickoff")
+              match.inPlay = true
+            }
           }
         } else if (event === "MatchEnded" && match) {
           note("end")
@@ -528,6 +538,10 @@
       function cheer(event, data) {
         const team = match.players.length ? me()?.TeamNum : undefined
         if (team == null) return
+        // One goal a round, while the ball is in play: the goal's replay sends GoalScored again, which
+        // the stand took for a goal of theirs at the next kickoff.
+        if (event === "GoalScored" && !match.inPlay) return
+        if (event === "GoalScored") match.inPlay = false
         if (event === "GoalScored") emit("muanlartins-torcida", { tipo: "gol", nosso: data.Scorer?.TeamNum === team, kmh: kmh(data.GoalSpeed) })
         else if (event === "StatfeedEvent" && (data.EventName === "Save" || data.EventName === "EpicSave") && data.MainTarget?.TeamNum === team)
           emit("muanlartins-torcida", { tipo: "defesa", epica: data.EventName === "EpicSave" })
@@ -537,7 +551,8 @@
       // Times are seconds from the match's start; players are kept by name and team until the match
       // ends, then become roles, so no name leaves the dock.
       const who = (p) => (p && p.Name != null ? { name: p.Name, team: p.TeamNum } : null)
-      const kmh = (speed) => (Number.isFinite(speed) ? Math.round(speed * KMH) : null)
+      // The Stats API's speeds are already km/h.
+      const kmh = (speed) => (Number.isFinite(speed) ? Math.round(speed) : null)
       const at = (v) => (v && Number.isFinite(v.X) ? [Math.round(v.X), Math.round(v.Y), Math.round(v.Z)] : undefined)
       function note(type, fields = {}) {
         if (!match?.start) return
@@ -653,7 +668,10 @@
       let requests = 0
       const pending = new Map()
       // Event subscriptions: Outputs (stream and recording starting and stopping).
+      const GENERAL = 1 << 0
       const OUTPUTS = 1 << 6
+      const DOCK = crypto.randomUUID()
+      let otherDock = 0
       const sha256 = async (text) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))))
       function connectObs() {
         const ws = new WebSocket("ws://127.0.0.1:4455")
@@ -661,7 +679,7 @@
         ws.onmessage = async ({ data }) => {
           const { op, d } = JSON.parse(data)
           if (op === 0) {
-            const identify = { rpcVersion: 1, eventSubscriptions: OUTPUTS }
+            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | OUTPUTS }
             if (d.authentication) {
               const { challenge, salt } = d.authentication
               identify.authentication = await sha256((await sha256(state.obsPassword + salt)) + challenge)
@@ -673,6 +691,10 @@
             broadcast()
             catchUp()
           } else if (op === 5) {
+            if (d.eventType === "CustomEvent" && d.eventData?.partidas && d.eventData.partidas !== DOCK) {
+              otherDock = Date.now()
+              status()
+            }
             const kind = { StreamStateChanged: "stream", RecordStateChanged: "record" }[d.eventType]
             if (kind) output(kind, d.eventData)
           } else if (op === 7) {
@@ -705,6 +727,8 @@
         const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, ...record(current(), state.mode) }
         emit("muanlartins-partidas", detail)
         emit("muanlartins-torcida", { tipo: "narrador", ligado: state.narrador })
+        // Tells any other copy of this dock that this one is open.
+        request("BroadcastCustomEvent", { eventData: { partidas: DOCK } })
       }
       /** An event for the overlays: obs-browser dispatches it on every browser source's window. */
       function emit(name, detail) {
@@ -782,7 +806,9 @@
         $("air").hidden = !open.length
         $("air").className = open.includes("stream") ? "live" : "on"
         $("air").textContent = open.includes("stream") ? (open.includes("record") ? "Ao vivo e gravando" : "Ao vivo, sem gravar") : "Gravando"
+        $("twin").hidden = Date.now() - otherDock > 15000
       }
+      setInterval(status, 5000)
 
       // --- Publishing: one JSON file per session, in the repository the site is built from -----------
       // The session goes to <id>.json; its matches' logs, which only editing needs, to <id>.events.json.
@@ -858,9 +884,9 @@
           send("CountdownBegin", { MatchGuid })
           send("RoundStarted", { MatchGuid })
           send("UpdateState", { MatchGuid, Players: players, Game: { PlaylistId: 13, bHasTarget: true, Target: { Name: "muanlartins", TeamNum: 0 }, Teams: [{ TeamNum: 0, Score: 3 }, { TeamNum: 1, Score: n % 3 ? 1 : 4 }] } })
-          send("BallHit", { MatchGuid, Players: [{ Name: "muanlartins", Shortcut: 1, TeamNum: 0 }], Ball: { PreHitSpeed: 900, PostHitSpeed: 2800, Location: { X: 10, Y: 2000, Z: 93 } } })
+          send("BallHit", { MatchGuid, Players: [{ Name: "muanlartins", Shortcut: 1, TeamNum: 0 }], Ball: { PreHitSpeed: 32, PostHitSpeed: 101, Location: { X: 10, Y: 2000, Z: 93 } } })
           send("StatfeedEvent", { MatchGuid, EventName: "Shot", MainTarget: { Name: "mate1", Shortcut: 2, TeamNum: 0 } })
-          send("GoalScored", { MatchGuid, GoalSpeed: 2700, Scorer: { Name: "muanlartins", Shortcut: 1, TeamNum: 0 }, Assister: { Name: "mate1", Shortcut: 2, TeamNum: 0 }, BallLastTouch: { Player: { Name: "muanlartins", Shortcut: 1, TeamNum: 0 }, Speed: 2700 }, ImpactLocation: { X: 0, Y: 5120, Z: 300 } })
+          send("GoalScored", { MatchGuid, GoalSpeed: 97, Scorer: { Name: "muanlartins", Shortcut: 1, TeamNum: 0 }, Assister: { Name: "mate1", Shortcut: 2, TeamNum: 0 }, BallLastTouch: { Player: { Name: "muanlartins", Shortcut: 1, TeamNum: 0 }, Speed: 97 }, ImpactLocation: { X: 0, Y: 5120, Z: 300 } })
           send("MatchEnded", { MatchGuid, WinnerTeamNum: n % 3 ? 0 : 1 })
           send("MatchDestroyed", { MatchGuid })
         }, 4000)

@@ -18,7 +18,10 @@ export const profile = {
   signOut: { pt: "Sair", en: "Sign out" },
   save: { pt: "Salvar", en: "Save" },
   saving: { pt: "Salvando…", en: "Saving…" },
-  saved: { pt: "Salvo. Na próxima live você aparece assim.", en: "Saved. You'll look like this in the next live." },
+  saved: {
+    pt: "Salvo. Se a live estiver no ar, em até 2 minutos você aparece assim na arquibancada.",
+    en: "Saved. If the live is on, you'll look like this in the stand within 2 minutes.",
+  },
   unsaved: { pt: "Alterações não salvas", en: "Unsaved changes" },
   error: { pt: "Não deu para falar com o servidor. Tente de novo.", en: "Couldn't reach the server. Try again." },
   expired: { pt: "Sua sessão da Twitch expirou. Entre de novo para salvar.", en: "Your Twitch session expired. Sign in again to save." },
