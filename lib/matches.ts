@@ -2,11 +2,14 @@ import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import type { Session } from "@/lib/ranked"
 
-/** Every published session (content/matches/*.json), oldest first. Read at build time. */
+/**
+ * Every published session (content/matches/*.json), oldest first. Read at build time. Each session's
+ * match logs (<id>.events.json) are for editing the lives, not the site.
+ */
 export function sessions(): Session[] {
   const folder = join(process.cwd(), "content", "matches")
   return readdirSync(folder)
-    .filter((file) => file.endsWith(".json"))
+    .filter((file) => file.endsWith(".json") && !file.endsWith(".events.json"))
     .sort()
     .map((file) => JSON.parse(readFileSync(join(folder, file), "utf8")) as Session)
 }
