@@ -31,6 +31,9 @@ export interface PlayerStats {
 
 export interface Match {
   id: string
+  /** The first countdown: where the match's chapter of the VOD begins. Missing on older matches. */
+  start?: string | null
+  /** The end. */
   at: string
   mode: string
   result: "win" | "loss"
@@ -56,6 +59,16 @@ export interface Session {
   matches: Match[]
   /** Every rank set in the dock during the session. */
   ranks: (Standing & { at: string; mode: string })[]
+  /** The stream and the recording, as OBS started and stopped them. Missing on older sessions. */
+  outputs?: Output[]
+}
+
+export interface Output {
+  kind: "stream" | "record"
+  start: string
+  end?: string
+  /** The recording's file name. */
+  file?: string
 }
 
 export interface Day extends DayRecord {

@@ -14,11 +14,21 @@
       to content/matches/ in the repository, which the site reads.
 
       The game can't tell the rank or the points (MMR), so they're set here, per
-      mode; after each ranked match a card asks for the points, as the total or
-      the gain (+9), and gives them to that match. The OBS
-      websocket password and the GitHub token (fine-grained, Contents read and
-      write on muanlartins/muanlartins only) are kept in the dock's storage;
-      #obs=<password> in the URL fills the first one.
+      mode. After a ranked match the points field lights up: typing the total,
+      or the gain (+9), gives the difference to that match. Nothing asks.
+
+      Behind the screen it keeps the clock of everything a live is edited from:
+      when the stream and the recording start and stop (so a VOD second is
+      wall clock minus the recording's start), when each match starts, and a log
+      of each match's events (touches with their speed, goals, shots, saves,
+      demos, crossbar hits), published next to the session as
+      <session>.events.json, with players as roles (me, mate1, opp2), never names.
+      When a match ends it cuts to Conversa, and back to the game scene when the
+      next one loads ("Trocar de cena sozinho").
+
+      The OBS websocket password and the GitHub token (fine-grained, Contents
+      read and write on muanlartins/muanlartins only) are kept in the dock's
+      storage; #obs=<password> in the URL fills the first one.
     -->
     <style>
       html,
@@ -43,13 +53,11 @@
         letter-spacing: 0.12em;
         text-transform: uppercase;
       }
-      h2:first-child {
-        margin-top: 0;
-      }
       .status {
         display: flex;
         flex-wrap: wrap;
         gap: 4px 14px;
+        margin: 0;
         color: rgb(244 245 247 / 0.6);
         font-size: 12px;
       }
@@ -65,18 +73,26 @@
       .status .on::before {
         background: var(--klein-claro);
       }
+      .status .live::before {
+        background: #ff5a5a;
+      }
       .row {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         gap: 8px;
       }
-      #mmr {
-        width: 90px;
-      }
       .rank-row img {
         width: 44px;
         height: 44px;
+      }
+      #mmr {
+        width: 96px;
+      }
+      /* After a ranked match: the points are this match's to give. */
+      #mmr.ask {
+        border-color: var(--klein-claro);
+        box-shadow: 0 0 0 2px rgb(133 167 255 / 0.45);
       }
       select,
       input,
@@ -87,6 +103,9 @@
         background: rgb(0 47 167 / 0.45);
         border: 1px solid rgb(133 167 255 / 0.4);
         padding: 6px 9px;
+      }
+      input::placeholder {
+        color: rgb(244 245 247 / 0.5);
       }
       select option {
         background: var(--navy);
@@ -101,30 +120,19 @@
         background: var(--klein);
         border-color: var(--klein);
       }
-      /* After a ranked match: the card asking for the points, until they're typed in or skipped. */
-      .after {
-        margin: 0 0 6px;
-        padding: 10px 12px 12px;
-        background: var(--klein);
-        border-left: 3px solid var(--klein-claro);
+      .tabs {
+        gap: 4px;
       }
-      .after p {
-        margin: 0 0 8px;
-        font-weight: 600;
-      }
-      .after input {
-        width: 130px;
-      }
-      .after .note {
-        margin: 8px 0 0;
-        font-weight: 400;
-        color: rgb(244 245 247 / 0.75);
+      .tabs button {
+        padding: 3px 9px;
+        font-size: 13px;
       }
       .tabs button[aria-pressed="true"] {
         background: var(--klein);
         border-color: var(--klein-claro);
       }
       .today {
+        margin: 0;
         font-size: 30px;
         font-weight: 600;
         letter-spacing: -0.01em;
@@ -148,7 +156,7 @@
         grid-template-columns: auto 1fr auto;
         align-items: center;
         gap: 4px 10px;
-        padding: 7px 8px 7px 10px;
+        padding: 6px 8px 6px 10px;
         margin-bottom: 4px;
         background: rgb(0 47 167 / 0.35);
         border-left: 3px solid var(--klein-claro);
@@ -163,24 +171,33 @@
         font-size: 18px;
         font-weight: 600;
       }
+      .matches .ask {
+        color: var(--klein-claro);
+      }
       .matches .detail {
         color: rgb(244 245 247 / 0.75);
         font-size: 13px;
       }
+      /* Fixing a match is rare: its buttons show on hover. */
       .matches .actions {
         display: flex;
         gap: 4px;
+        visibility: hidden;
+      }
+      .matches li:hover .actions {
+        visibility: visible;
       }
       .matches .actions button {
         padding: 2px 7px;
         font-size: 12px;
       }
       .note {
+        margin: 6px 0 0;
         color: rgb(244 245 247 / 0.55);
         font-size: 12px;
       }
       details {
-        margin-top: 18px;
+        margin-top: 22px;
       }
       summary {
         cursor: pointer;
@@ -189,62 +206,57 @@
         letter-spacing: 0.12em;
         text-transform: uppercase;
       }
+      details .row {
+        margin-top: 10px;
+      }
       label {
         display: block;
         margin: 10px 0 4px;
         font-size: 13px;
       }
-      details input {
+      label.check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 10px 0 0;
+      }
+      details input:not([type="checkbox"]) {
         width: 100%;
       }
     </style>
   </head>
   <body>
-    <h2>Partidas</h2>
-    <p class="status"><span id="game">Rocket League</span><span id="obs">OBS</span><span id="site"></span></p>
+    <p class="status"><span id="game">Rocket League</span><span id="obs">OBS</span><span id="air" hidden></span><span id="site"></span></p>
 
-    <form class="after" id="after" hidden>
-      <p><span id="after-result"></span> · Pontos agora?</p>
-      <div class="row">
-        <input id="after-mmr" inputmode="numeric" autocomplete="off" placeholder="1041 ou +9" />
-        <button class="primary">Salvar</button>
-        <button type="button" id="after-skip">Pular</button>
-      </div>
-      <p class="note">O total, ou só o que ganhou ou perdeu (+9, -7). Mudou de divisão ou de ranque? Troque também em Ranque.</p>
-    </form>
-
-    <h2>Modo</h2>
-    <div class="row tabs" id="modes"></div>
-
-    <h2>Ranque</h2>
+    <h2>Ranque <span class="row tabs" id="modes"></span></h2>
     <div class="row rank-row">
       <img id="emblem" alt="" />
-      <select id="tier"></select>
-      <select id="division"></select>
-      <input type="number" id="mmr" min="0" step="1" placeholder="pontos" title="Pontos (MMR)" />
+      <select id="tier" title="Mudou de ranque? Troque aqui."></select>
+      <select id="division" title="Mudou de divisão? Troque aqui."></select>
+      <input id="mmr" inputmode="numeric" autocomplete="off" title="Pontos: o total, ou o que ganhou ou perdeu (+9, -7)" />
     </div>
 
     <h2>Hoje <span id="session-date"></span></h2>
     <p class="today" id="today"></p>
-    <div class="row">
-      <button id="add-win">+ Vitória</button>
-      <button id="add-loss">+ Derrota</button>
-      <label class="row note"><input type="checkbox" id="show" /> mostrar na live</label>
-    </div>
 
-    <h2>Sessão <span id="count"></span></h2>
+    <h2>Partidas <span id="count"></span></h2>
     <ul class="matches" id="matches"></ul>
     <p class="note" id="empty">Nenhuma partida ainda. Elas entram sozinhas quando cada uma termina.</p>
 
     <h2>Site</h2>
-    <div class="row">
-      <button class="primary" id="publish">Publicar sessões</button>
-      <button id="new-session">Nova sessão</button>
-    </div>
+    <button class="primary" id="publish">Publicar sessões</button>
     <p class="note" id="publish-note"></p>
 
     <details>
-      <summary>Configurações</summary>
+      <summary>Mais</summary>
+      <div class="row">
+        <button id="add-win">+ Vitória</button>
+        <button id="add-loss">+ Derrota</button>
+        <button id="new-session">Nova sessão</button>
+      </div>
+      <p class="note">Para uma partida que o jogo não mandou, no modo selecionado.</p>
+      <label class="check"><input type="checkbox" id="show" /> Mostrar ranque e placar na live</label>
+      <label class="check"><input type="checkbox" id="auto-scene" /> Trocar de cena sozinho (Conversa no fim da partida, o jogo na próxima)</label>
       <label for="obs-password">Senha do servidor WebSocket do OBS</label>
       <input type="password" id="obs-password" autocomplete="off" />
       <label for="token">Token do GitHub (só Contents deste repositório)</label>
@@ -267,12 +279,21 @@
       const MODES = ["1v1", "2v2", "3v3"]
       // After this long without a match, the next one starts a new session (a new stream).
       const SESSION_GAP_MS = 6 * 3600 * 1000
+      // OBS scenes: where a match is played, and where the talk between matches happens.
+      const GAME_SCENES = ["Jogo", "Jogo + chat"]
+      const TALK_SCENE = "Conversa"
+      // Seconds of the end screen the stream sees before cutting to the talk.
+      const CUT_AFTER_S = 6
+      // The Stats API's speeds are in unreal units a second; this makes them km/h.
+      const KMH = 0.036
+      // Logs of published sessions older than this leave the dock's storage (they're in the repository).
+      const LOG_DAYS = 3
 
       // --- State, kept in the dock's storage --------------------------------------------------------
       // ?demo plays fake matches into its own storage, so the real sessions stay untouched.
       const KEY = params.has("demo") ? "partidas:demo" : "partidas:v1"
       const state = Object.assign(
-        { mode: "3v3", ranks: {}, sessions: [], show: true, me: null, obsPassword: "", token: "" },
+        { mode: "3v3", ranks: {}, sessions: [], show: true, autoScene: true, me: null, obsPassword: "", token: "" },
         JSON.parse(localStorage.getItem(KEY) || "{}"),
       )
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
@@ -284,16 +305,21 @@
       const sessionId = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`
       function newSession() {
         const now = new Date()
-        // Sessions that never got a match or a rank are dropped; published ones are kept for a month.
+        // Sessions that never got a match, a rank or a stream are dropped; published ones are kept for a month.
         const month = Date.now() - 30 * 86400 * 1000
-        state.sessions = state.sessions.filter((s) => (s.matches.length || s.ranks.length) && (s.dirty || Date.parse(s.start) > month))
-        state.sessions.push({ id: sessionId(now), start: now.toISOString(), startRanks: structuredClone(state.ranks), matches: [], ranks: [], dirty: false })
+        state.sessions = state.sessions.filter((s) => (s.matches.length || s.ranks.length || s.outputs?.length) && (s.dirty || Date.parse(s.start) > month))
+        const old = Date.now() - LOG_DAYS * 86400 * 1000
+        for (const s of state.sessions) if (!s.dirty && Date.parse(s.start) < old) for (const m of s.matches) delete m.log
+        state.sessions.push({ id: sessionId(now), start: now.toISOString(), startRanks: structuredClone(state.ranks), outputs: [], matches: [], ranks: [], dirty: false })
         save()
       }
       const current = () => {
         const last = state.sessions[state.sessions.length - 1]
         const lastAt = last && (last.matches.length ? last.matches[last.matches.length - 1].at : last.start)
-        if (!last || Date.now() - Date.parse(lastAt) > SESSION_GAP_MS) newSession()
+        // Sessions from before the dock followed OBS's outputs.
+        if (last) last.outputs ??= []
+        const airing = last?.outputs.some((o) => !o.end)
+        if (!last || (!airing && Date.now() - Date.parse(lastAt) > SESSION_GAP_MS)) newSession()
         return state.sessions[state.sessions.length - 1]
       }
 
@@ -330,6 +356,9 @@
         $("modes").append(button)
       }
 
+      /** The ranked match whose points haven't been given yet, in the mode on screen. */
+      const awaiting = (session) => session.matches.find((m) => m.id === state.awaiting && m.mode === state.mode && m.points == null)
+
       function render() {
         const session = current()
         const rank = state.ranks[state.mode] || { tier: "unranked", division: 1 }
@@ -337,13 +366,17 @@
         $("tier").value = rank.tier
         $("division").value = rank.division
         $("division").hidden = !hasDivisions(rank.tier)
-        $("tier").title = $("division").title = "Mudou de ranque ou de divisão? Troque aqui."
-        $("mmr").value = rank.mmr ?? ""
         $("emblem").src = `/ranks/${rank.tier}.webp`
+        // Waiting for points: the field empties and says what it holds, so typing doesn't start by erasing.
+        const ask = awaiting(session)
+        $("mmr").classList.toggle("ask", !!ask)
+        if (document.activeElement !== $("mmr")) $("mmr").value = ask ? "" : (rank.mmr ?? "")
+        $("mmr").placeholder = ask ? (rank.mmr != null ? `${rank.mmr} → ?` : "pontos ou +9") : "pontos"
         const { wins, losses, streak, points } = record(session, state.mode)
         $("today").innerHTML = `${wins}V <span class="accent">·</span> ${losses}D${streak >= 2 ? `<small>${streak} seguidas</small>` : ""}${points ? `<small>${points > 0 ? "+" : ""}${points} pts</small>` : ""}`
         $("session-date").textContent = new Date(session.start).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
         $("show").checked = state.show
+        $("auto-scene").checked = state.autoScene
         $("count").textContent = session.matches.length || ""
         $("empty").hidden = session.matches.length > 0
         $("matches").replaceChildren(...[...session.matches].reverse().map((m) => matchItem(session, m)))
@@ -352,12 +385,6 @@
         $("site").className = pending ? "" : "on"
         $("obs-password").value = state.obsPassword
         $("token").value = state.token
-        const awaiting = session.matches.find((m) => m.id === state.awaiting && m.points == null)
-        $("after").hidden = !awaiting
-        if (awaiting) {
-          const score = awaiting.score ? ` ${awaiting.score[0]}–${awaiting.score[1]}` : ""
-          $("after-result").textContent = `${awaiting.result === "win" ? "Vitória" : "Derrota"}${score} no ${awaiting.mode}`
-        }
         $("me").textContent = state.me ? `Você no jogo: ${state.me.name}` : "Você no jogo: descobre na primeira partida."
         broadcast()
       }
@@ -368,9 +395,10 @@
         const time = new Date(m.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
         const me = m.me ? `${m.me.goals}G ${m.me.assists}A ${m.me.saves}D ${m.me.shots}C` : "sem estatísticas"
         const score = m.score ? ` ${m.score[0]}–${m.score[1]}${m.overtime ? " (prorrogação)" : ""}` : ""
+        const points = m.points != null ? ` · ${m.points > 0 ? "+" : ""}${m.points} pts` : m.id === state.awaiting ? ` · <span class="ask">pts?</span>` : ""
         li.innerHTML = `<span class="result">${m.result === "win" ? "V" : "D"}</span>
-          <span><span>${m.mode}${score}${m.points != null ? ` · ${m.points > 0 ? "+" : ""}${m.points} pts` : ""}</span><br><span class="detail">${time} · ${me}${m.left ? " · saiu antes" : ""}</span></span>
-          <span class="actions"><button data-act="count">${m.counted ? "conta" : "não conta"}</button><button data-act="flip">V/D</button><button data-act="remove">✕</button></span>`
+          <span><span>${m.mode}${score}${points}</span><br><span class="detail">${time} · ${me}${m.left ? " · saiu antes" : ""}</span></span>
+          <span class="actions"><button data-act="count" title="Conta no site?">${m.counted ? "conta" : "não conta"}</button><button data-act="flip" title="Trocar vitória e derrota">V/D</button><button data-act="remove" title="Apagar">✕</button></span>`
         li.querySelector('[data-act="count"]').onclick = () => edit(session, () => (m.counted = !m.counted))
         li.querySelector('[data-act="flip"]').onclick = () => edit(session, () => (m.result = m.result === "win" ? "loss" : "win"))
         li.querySelector('[data-act="remove"]').onclick = () => edit(session, () => session.matches.splice(session.matches.indexOf(m), 1))
@@ -384,48 +412,38 @@
         render()
       }
 
+      /**
+       * The rank row changed. Points are typed as the total or as the change (+9, -7); right after a
+       * ranked match, the difference is that match's.
+       */
       function setRank() {
-        const mmr = $("mmr").value === "" ? null : Number($("mmr").value)
-        const rank = { tier: $("tier").value, division: Number($("division").value), mmr }
-        const before = state.ranks[state.mode]?.mmr
+        const session = current()
+        const before = state.ranks[state.mode]?.mmr ?? null
+        const typed = $("mmr").value.trim().replace("−", "-")
+        const ask = awaiting(session)
+        if (typed && !/^[+-]?\d+$/.test(typed)) return render()
+        const change = /^[+-]/.test(typed) ? Number(typed) : null
+        const mmr = typed === "" ? (ask ? before : null) : change != null ? (before != null ? before + change : null) : Number(typed)
+        const rank = { tier: $("tier").value, division: Number($("division").value), mmr: change != null && mmr == null ? before : mmr }
         state.ranks[state.mode] = rank
-        const session = current()
-        const awaiting = session.matches.find((m) => m.id === state.awaiting && m.mode === state.mode)
-        if (awaiting && mmr != null && before != null && mmr !== before) settle(awaiting, mmr - before, mmr)
-        session.ranks.push({ at: new Date().toISOString(), mode: state.mode, ...rank })
-        session.dirty = true
-        save()
-        render()
-      }
-
-      // Points typed in after a match are that match's gain or loss: the game shows them only then.
-      function settle(match, points, mmr) {
-        match.points = points
-        if (mmr != null) match.mmr = mmr
-        state.awaiting = null
-      }
-      $("after").onsubmit = (event) => {
-        event.preventDefault()
-        const session = current()
-        const match = session.matches.find((m) => m.id === state.awaiting)
-        const typed = $("after-mmr").value.trim().replace(",", ".")
-        if (!match || !/^[+-]?\d+$/.test(typed)) return
-        const rank = state.ranks[match.mode] || { tier: "unranked", division: 1, mmr: null }
-        const relative = /^[+-]/.test(typed)
-        const mmr = relative ? (rank.mmr != null ? rank.mmr + Number(typed) : null) : Number(typed)
-        settle(match, relative ? Number(typed) : rank.mmr != null ? mmr - rank.mmr : null, mmr)
-        if (mmr != null) {
-          state.ranks[match.mode] = { ...rank, mmr }
-          session.ranks.push({ at: new Date().toISOString(), mode: match.mode, ...state.ranks[match.mode] })
+        if (ask) {
+          const points = change ?? (typed && before != null && mmr !== before ? mmr - before : null)
+          if (points != null) {
+            ask.points = points
+            if (rank.mmr != null) ask.mmr = rank.mmr
+            state.awaiting = null
+          }
         }
-        $("after-mmr").value = ""
+        session.ranks.push({ at: new Date().toISOString(), mode: state.mode, ...rank })
+        $("mmr").blur()
         edit(session, () => {})
       }
-      $("after-skip").onclick = () => ((state.awaiting = null), save(), render())
       $("tier").onchange = setRank
       $("division").onchange = setRank
       $("mmr").onchange = setRank
+      $("mmr").onkeydown = (event) => event.key === "Escape" && ($("mmr").blur(), render())
       $("show").onchange = () => ((state.show = $("show").checked), save(), render())
+      $("auto-scene").onchange = () => ((state.autoScene = $("auto-scene").checked), save())
       $("obs-password").onchange = () => ((state.obsPassword = $("obs-password").value), save(), obs.close())
       $("token").onchange = () => ((state.token = $("token").value.trim()), save())
       $("new-session").onclick = () => (newSession(), render())
@@ -457,7 +475,10 @@
         if (typeof data === "string") data = JSON.parse(data)
         const guid = data.MatchGuid
         if (guid && finished.has(guid)) return
-        if (guid && (!match || match.guid !== guid)) match = { guid, votes: {}, players: [], roster: {}, teams: [], started: false }
+        if (guid && (!match || match.guid !== guid)) {
+          match = { guid, votes: {}, players: [], roster: {}, teams: [], started: false, start: null, log: [] }
+          backToGame()
+        }
 
         if (event === "UpdateState" && match) {
           const game = data.Game || {}
@@ -478,14 +499,69 @@
             render()
           }
         } else if (event === "RoundStarted" || event === "CountdownBegin") {
-          if (match) match.started = true
+          if (match) {
+            match.started = true
+            // The match starts at its first countdown: that's where its chapter in the VOD begins.
+            match.start ??= Date.now()
+            if (event === "RoundStarted") note("kickoff")
+          }
         } else if (event === "MatchEnded" && match) {
+          note("end")
           finish(data.WinnerTeamNum)
+          cutToTalk()
         } else if (event === "MatchDestroyed" && match) {
           // Leaving a ranked match before it ends counts as a loss in the game, so it does here too.
           if (match.started && RANKED.has(match.playlist)) finish(null)
           match = null
+        } else if (match?.start) {
+          logEvent(event, data)
         }
+      }
+
+      // --- The match's log: what happened, when, by whom -------------------------------------------
+      // Times are seconds from the match's start; players are kept by name and team until the match
+      // ends, then become roles, so no name leaves the dock.
+      const who = (p) => (p && p.Name != null ? { name: p.Name, team: p.TeamNum } : null)
+      const kmh = (speed) => (Number.isFinite(speed) ? Math.round(speed * KMH) : null)
+      const at = (v) => (v && Number.isFinite(v.X) ? [Math.round(v.X), Math.round(v.Y), Math.round(v.Z)] : undefined)
+      function note(type, fields = {}) {
+        if (!match?.start) return
+        match.log.push({ t: Math.round((Date.now() - match.start) / 10) / 100, type, ...fields })
+      }
+      function logEvent(event, data) {
+        if (event === "BallHit") {
+          const ball = data.Ball || {}
+          note("hit", { by: who(data.Players?.[0]), kmh: kmh(ball.PostHitSpeed), before: kmh(ball.PreHitSpeed), at: at(ball.Location) })
+        } else if (event === "GoalScored") {
+          note("goal", {
+            by: who(data.Scorer),
+            assist: who(data.Assister),
+            last: who(data.BallLastTouch?.Player),
+            kmh: kmh(data.GoalSpeed),
+            at: at(data.ImpactLocation),
+          })
+        } else if (event === "CrossbarHit") {
+          note("crossbar", { last: who(data.BallLastTouch?.Player), kmh: kmh(data.BallSpeed), at: at(data.BallLocation) })
+        } else if (event === "StatfeedEvent") {
+          // Shot, Save, EpicSave, Demolish, Goal, Assist, Clear, Center, AerialGoal, …
+          note("stat", { name: data.EventName, by: who(data.MainTarget), target: who(data.SecondaryTarget) })
+        } else if (event === "GoalReplayStart" || event === "GoalReplayEnd") {
+          note(event === "GoalReplayStart" ? "replay" : "replay-end")
+        }
+      }
+      /** The log with each player as a role: me, mate1…, opp1…, by their order in the roster. */
+      function anonymized(self) {
+        const roles = new Map()
+        let mates = 0
+        let opps = 0
+        for (const p of Object.values(match.roster)) {
+          const role = p === self || playerKey(p) === playerKey(self) ? "me" : p.TeamNum === self.TeamNum ? `mate${++mates}` : `opp${++opps}`
+          roles.set(`${p.Name}|${p.TeamNum}`, role)
+        }
+        const role = (ref) => (ref ? (roles.get(`${ref.name}|${ref.team}`) ?? (ref.team === self.TeamNum ? "mate" : "opp")) : undefined)
+        return match.log.map(({ by, assist, last, target, ...entry }) =>
+          Object.fromEntries(Object.entries({ ...entry, by: role(by), assist: role(assist), last: role(last), target: role(target) }).filter(([, v]) => v != null)),
+        )
       }
 
       function me() {
@@ -517,6 +593,7 @@
         const existing = session.matches.find((m) => m.id === match.guid)
         const entry = {
           id: match.guid,
+          start: match.start ? new Date(match.start).toISOString() : null,
           at: new Date().toISOString(),
           mode,
           playlist: match.playlist ?? null,
@@ -530,8 +607,9 @@
           mates: everyone.filter((p) => p.TeamNum === team && playerKey(p) !== playerKey(self)).map(stats),
           rank: state.ranks[mode] || null,
           counted: RANKED.has(match.playlist),
+          log: anonymized(self),
         }
-        // Ranked matches ask for the points (the card on top), until the next one ends.
+        // Ranked matches light up the points field, until the next one ends.
         if (entry.counted) state.awaiting = entry.id
         if (existing) Object.assign(existing, entry)
         else session.matches.push(entry)
@@ -554,9 +632,13 @@
         }
       }
 
-      // --- OBS: obs-websocket, to reach the overlays -------------------------------------------------
+      // --- OBS: obs-websocket, to reach the overlays, follow the outputs and switch scenes -----------
       let obs = { close() {} }
       let obsReady = false
+      let requests = 0
+      const pending = new Map()
+      // Event subscriptions: Outputs (stream and recording starting and stopping).
+      const OUTPUTS = 1 << 6
       const sha256 = async (text) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))))
       function connectObs() {
         const ws = new WebSocket("ws://127.0.0.1:4455")
@@ -564,7 +646,7 @@
         ws.onmessage = async ({ data }) => {
           const { op, d } = JSON.parse(data)
           if (op === 0) {
-            const identify = { rpcVersion: 1, eventSubscriptions: 0 }
+            const identify = { rpcVersion: 1, eventSubscriptions: OUTPUTS }
             if (d.authentication) {
               const { challenge, salt } = d.authentication
               identify.authentication = await sha256((await sha256(state.obsPassword + salt)) + challenge)
@@ -574,48 +656,123 @@
             obsReady = true
             status()
             broadcast()
+            catchUp()
+          } else if (op === 5) {
+            const kind = { StreamStateChanged: "stream", RecordStateChanged: "record" }[d.eventType]
+            if (kind) output(kind, d.eventData)
+          } else if (op === 7) {
+            pending.get(d.requestId)?.(d.requestStatus.result ? (d.responseData ?? {}) : null)
+            pending.delete(d.requestId)
           }
         }
         ws.onerror = () => ws.close()
         ws.onclose = () => {
           obsReady = false
+          for (const resolve of pending.values()) resolve(null)
+          pending.clear()
           status()
           setTimeout(connectObs, 3000)
         }
       }
+      /** An obs-websocket request; resolves with its response data, or null if it failed. */
+      function request(requestType, requestData) {
+        if (!obsReady) return Promise.resolve(null)
+        const requestId = String(++requests)
+        return new Promise((resolve) => {
+          pending.set(requestId, resolve)
+          obs.send(JSON.stringify({ op: 6, d: { requestType, requestId, requestData } }))
+        })
+      }
 
-      let requests = 0
       function broadcast() {
         if (!obsReady) return
         const rank = state.ranks[state.mode]
         const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, ...record(current(), state.mode) }
-        obs.send(JSON.stringify({
-          op: 6,
-          d: {
-            requestType: "CallVendorRequest",
-            requestId: String(++requests),
-            requestData: { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-partidas", event_data: detail } },
-          },
-        }))
+        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-partidas", event_data: detail } })
       }
       // Overlays that load later (a scene switch, OBS starting) get the state within a few seconds.
       setInterval(broadcast, 5000)
+
+      // Stream and recording: when each starts and stops, on the session's clock. A VOD second is the
+      // wall clock minus its recording's start.
+      function output(kind, { outputState, outputPath }) {
+        if (params.has("demo")) return
+        const started = outputState === "OBS_WEBSOCKET_OUTPUT_STARTED"
+        const stopped = outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED"
+        if (!started && !stopped) return
+        let session = current()
+        // A new stream after one that ended is a new session.
+        if (started && kind === "stream" && session.outputs.some((o) => o.kind === "stream" && o.end)) {
+          newSession()
+          session = current()
+        }
+        const open = session.outputs.findLast((o) => o.kind === kind && !o.end)
+        if (started && !open) session.outputs.push({ kind, start: new Date().toISOString() })
+        if (stopped && open) {
+          open.end = new Date().toISOString()
+          if (outputPath) open.file = outputPath.split(/[\\/]/).pop()
+        }
+        session.dirty = true
+        save()
+        status()
+      }
+      // The dock may open after the stream started: the start is now minus how long it's been on.
+      async function catchUp() {
+        for (const [kind, type] of [["stream", "GetStreamStatus"], ["record", "GetRecordStatus"]]) {
+          const status = await request(type)
+          if (!status || params.has("demo")) continue
+          const session = current()
+          const open = session.outputs.findLast((o) => o.kind === kind && !o.end)
+          if (status.outputActive && !open) {
+            session.outputs.push({ kind, start: new Date(Date.now() - status.outputDuration).toISOString() })
+            session.dirty = true
+          } else if (!status.outputActive && open) {
+            open.end = new Date().toISOString()
+            session.dirty = true
+          }
+        }
+        save()
+        status()
+      }
+
+      // Scenes: the end of a match cuts to the talk; the next match brings back the scene it left.
+      let leftScene = null
+      async function cutToTalk() {
+        if (!state.autoScene || params.has("demo")) return
+        await new Promise((resolve) => setTimeout(resolve, CUT_AFTER_S * 1000))
+        const scene = (await request("GetCurrentProgramScene"))?.sceneName
+        if (!GAME_SCENES.includes(scene)) return
+        leftScene = scene
+        request("SetCurrentProgramScene", { sceneName: TALK_SCENE })
+      }
+      async function backToGame() {
+        if (!leftScene || !state.autoScene) return
+        const scene = (await request("GetCurrentProgramScene"))?.sceneName
+        // Only if it's still where the dock left it: a scene picked by hand stays.
+        if (scene === TALK_SCENE) request("SetCurrentProgramScene", { sceneName: leftScene })
+        leftScene = null
+      }
 
       function status() {
         $("game").className = gameConnected ? "on" : ""
         $("game").textContent = gameConnected ? "Rocket League conectado" : "Rocket League fechado"
         $("obs").className = obsReady ? "on" : ""
         $("obs").textContent = obsReady ? "OBS conectado" : "OBS sem conexão"
+        const open = (current().outputs ?? []).filter((o) => !o.end).map((o) => o.kind)
+        $("air").hidden = !open.length
+        $("air").className = open.includes("stream") ? "live" : "on"
+        $("air").textContent = open.includes("stream") ? (open.includes("record") ? "Ao vivo e gravando" : "Ao vivo, sem gravar") : "Gravando"
       }
 
       // --- Publishing: one JSON file per session, in the repository the site is built from -----------
+      // The session goes to <id>.json; its matches' logs, which only editing needs, to <id>.events.json.
       $("publish").onclick = async () => {
-        const pending = state.sessions.filter((s) => s.dirty)
-        if (!state.token) return ($("publish-note").textContent = "Falta o token do GitHub, em Configurações.")
-        if (!pending.length) return ($("publish-note").textContent = "Nada novo para publicar.")
+        const dirty = state.sessions.filter((s) => s.dirty)
+        if (!state.token) return ($("publish-note").textContent = "Falta o token do GitHub, em Mais.")
+        if (!dirty.length) return ($("publish-note").textContent = "Nada novo para publicar.")
         $("publish").disabled = true
         try {
-          for (const session of pending) {
+          for (const session of dirty) {
             await publish(session)
             session.dirty = false
             save()
@@ -629,23 +786,37 @@
       }
 
       async function publish(session) {
-        const matches = session.matches.filter((m) => m.counted).map(({ counted, ...m }) => m)
-        const body = { id: session.id, start: session.start, end: matches.length ? matches[matches.length - 1].at : session.start, startRanks: session.startRanks ?? {}, matches, ranks: session.ranks }
-        const path = `${FOLDER}/${session.id}.json`
+        const counted = session.matches.filter((m) => m.counted)
+        const matches = counted.map(({ counted, log, ...m }) => m)
+        const body = {
+          id: session.id,
+          start: session.start,
+          end: matches.length ? matches[matches.length - 1].at : session.start,
+          startRanks: session.startRanks ?? {},
+          outputs: session.outputs ?? [],
+          matches,
+          ranks: session.ranks,
+        }
+        await put(`${FOLDER}/${session.id}.json`, body, `Record the ranked session of ${session.id.slice(0, 10)}`)
+        // Logs dropped from storage stay as they were published.
+        const logged = counted.filter((m) => m.log?.length)
+        if (logged.length) {
+          const events = { id: session.id, matches: logged.map((m) => ({ id: m.id, start: m.start, log: m.log })) }
+          await put(`${FOLDER}/${session.id}.events.json`, events, `Record the match events of ${session.id.slice(0, 10)}`, false)
+        }
+      }
+
+      async function put(path, value, message, pretty = true) {
         const api = `https://api.github.com/repos/${REPO}/contents/${path}`
         const headers = { Authorization: `Bearer ${state.token}`, Accept: "application/vnd.github+json" }
         const found = await fetch(api, { headers })
         const sha = found.ok ? (await found.json()).sha : undefined
-        const bytes = new TextEncoder().encode(JSON.stringify(body, null, 2) + "\n")
-        const response = await fetch(api, {
-          method: "PUT",
-          headers,
-          body: JSON.stringify({
-            message: `Record the ranked session of ${session.id.slice(0, 10)}`,
-            content: btoa(String.fromCharCode(...bytes)),
-            sha,
-          }),
-        })
+        // The log is one event per line: readable, and a tenth of the size of indenting it.
+        const text = pretty ? JSON.stringify(value, null, 2) : JSON.stringify(value).replace(/\},\{"t"/g, '},\n{"t"')
+        const bytes = new TextEncoder().encode(text + "\n")
+        let binary = ""
+        for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+        const response = await fetch(api, { method: "PUT", headers, body: JSON.stringify({ message, content: btoa(binary), sha }) })
         if (!response.ok) throw new Error((await response.json()).message || response.status)
       }
 
@@ -664,8 +835,12 @@
         setInterval(() => {
           const MatchGuid = `demo-${n++}`
           send("MatchCreated", { MatchGuid })
+          send("CountdownBegin", { MatchGuid })
           send("RoundStarted", { MatchGuid })
           send("UpdateState", { MatchGuid, Players: players, Game: { PlaylistId: 13, bHasTarget: true, Target: { Name: "muanlartins", TeamNum: 0 }, Teams: [{ TeamNum: 0, Score: 3 }, { TeamNum: 1, Score: n % 3 ? 1 : 4 }] } })
+          send("BallHit", { MatchGuid, Players: [{ Name: "muanlartins", Shortcut: 1, TeamNum: 0 }], Ball: { PreHitSpeed: 900, PostHitSpeed: 2800, Location: { X: 10, Y: 2000, Z: 93 } } })
+          send("StatfeedEvent", { MatchGuid, EventName: "Shot", MainTarget: { Name: "mate1", Shortcut: 2, TeamNum: 0 } })
+          send("GoalScored", { MatchGuid, GoalSpeed: 2700, Scorer: { Name: "muanlartins", Shortcut: 1, TeamNum: 0 }, Assister: { Name: "mate1", Shortcut: 2, TeamNum: 0 }, BallLastTouch: { Player: { Name: "muanlartins", Shortcut: 1, TeamNum: 0 }, Speed: 2700 }, ImpactLocation: { X: 0, Y: 5120, Z: 300 } })
           send("MatchEnded", { MatchGuid, WinnerTeamNum: n % 3 ? 0 : 1 })
           send("MatchDestroyed", { MatchGuid })
         }, 4000)
