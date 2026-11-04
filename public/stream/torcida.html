@@ -21,6 +21,10 @@
       move their own fan with !pula, !danca, !ola. Each fan's look comes from their login for now; the
       profile on the site will set it.
 
+      Goals are narrated in the narrator's voice by scripts/narrador.py, running
+      on this PC (?narrador= its address, ?narrador=0 for none); OBS sends this
+      source's sound to the stream only, never to the recording.
+
       ?canal= as in the overlays. ?demo fills the stand with sample people and
       plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça,
       p pula, n dança, o ola, m mensagem, j chega alguém, s sai alguém.
@@ -590,10 +594,11 @@
       }
 
       // A goal is dedicated to someone in the stand, everyone with the same odds (by Σ, once it exists).
-      function dedicar() {
+      function sortear() {
         const lista = [...pessoas.values()].filter((p) => p.el)
-        if (!lista.length) return
-        const p = lista[Math.floor(Math.random() * lista.length)]
+        return lista.length ? lista[Math.floor(Math.random() * lista.length)] : null
+      }
+      function dedicar(p) {
         setTimeout(() => {
           p.el?.classList.add("dedicado", "foco")
           setTimeout(() => p.el?.classList.remove("dedicado", "foco"), 5600)
@@ -601,13 +606,71 @@
         }, 2400)
       }
 
+      // --- The narrator (scripts/narrador.py, on this PC): goals in the narrator's voice ---------------
+      // OBS routes this source's sound to the stream's track only, never to the recording. The openers
+      // are rendered when the page loads, so they play at once; the rest (the speed, the dedication)
+      // renders while the opener plays. Without the narrator running, goals are just silent.
+      const NARRADOR = params.get("narrador") ?? "http://127.0.0.1:8788"
+      const ABERTURAS = [
+        "Olha o que ele fez! É gol! É gol do Luan!",
+        "Haja coração, amigo! É gol do Luan!",
+        "Vai que é sua, Luan! E é gol!",
+        "Que pancada! É gol, é gol, é gol do Luan!",
+      ]
+      const CONTRA = ["Ih, amigo... tomou. Bola pra frente, Luan.", "Não dá pra acreditar. Gol deles.", "Acontece. Respira e vamos pra cima!"]
+      const som = new AudioContext()
+      const prontas = new Map() // line → AudioBuffer
+      function voz(texto) {
+        if (NARRADOR === "0") return Promise.resolve(null)
+        if (prontas.has(texto)) return Promise.resolve(prontas.get(texto))
+        return fetch(`${NARRADOR}/falar`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ texto }) })
+          .then((r) => (r.ok ? r.arrayBuffer() : null))
+          .then((dados) => dados && som.decodeAudioData(dados))
+          .then((buffer) => (buffer && prontas.set(texto, buffer), buffer))
+          .catch(() => null)
+      }
+      // The openers, now and whenever the narrator comes up later.
+      const preparar = () => [...ABERTURAS, ...CONTRA].filter((t) => !prontas.has(t)).forEach(voz)
+      preparar()
+      setInterval(preparar, 30000)
+
+      let narrando = Promise.resolve()
+      function narrar(...partes) {
+        narrando = narrando.then(async () => {
+          for (const parte of partes) {
+            const buffer = await parte
+            if (!buffer) continue
+            await new Promise((fim) => {
+              const fonte = som.createBufferSource()
+              fonte.buffer = buffer
+              fonte.connect(som.destination)
+              fonte.onended = fim
+              fonte.start()
+            })
+          }
+        })
+      }
+      const pick = (lista) => lista[Math.floor(Math.random() * lista.length)]
+      // Logins read better without their dots and underscores: "bia.aerial" → "bia aerial".
+      const falado = (nome) => nome.replace(/[._-]+/g, " ").trim()
+      function narrarGol(kmh, dedicado) {
+        const velocidade = kmh ? (kmh >= 100 ? `${kmh} quilômetros por hora, que bomba!` : `A bola entrou a ${kmh} quilômetros por hora!`) : ""
+        const resto = [velocidade, dedicado && `Esse gol é do ${falado(dedicado.nome)}!`].filter(Boolean).join(" ")
+        narrar(voz(pick(ABERTURAS)), resto && voz(resto))
+      }
+
       const jogo = {
         gol({ nosso, kmh }) {
-          if (!nosso) return momento("luto", 3300)
+          if (!nosso) {
+            narrar(voz(pick(CONTRA)))
+            return momento("luto", 3300)
+          }
           momento("festa", 2500)
           confete()
           faixa("GOOOL!", kmh ? `${kmh} km/h` : "")
-          dedicar()
+          const dedicado = sortear()
+          if (dedicado) dedicar(dedicado)
+          narrarGol(kmh, dedicado)
         },
         defesa({ epica }) {
           momento("defesa", 800)
