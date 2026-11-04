@@ -39,12 +39,11 @@ export default game({
       en: "My rank, my points and every ranked match from the streams, in 1v1, 2v2 and 3v3.",
     },
   },
-  // TODO(Luan): rewrite in your voice.
   lives: {
     title: { pt: "Lives", en: "Streams" },
     description: {
-      pt: "As lives da Twitch na íntegra: ao vivo aqui mesmo quando estou no ar e, depois, cada uma com capítulos, as partidas e a transcrição do que eu falei.",
-      en: "The Twitch streams in full: live right here while I'm on air and, afterwards, each one with chapters, the matches and a transcript of what I said.",
+      pt: "As lives da Twitch, inteiras. Quando estou no ar, dá para assistir aqui mesmo; depois, cada live fica com capítulos, as partidas e a transcrição do que eu falei.",
+      en: "The Twitch streams, in full. While I'm on air you can watch right here; afterwards, each stream keeps its chapters, the matches and a transcript of what I said.",
     },
   },
   links: [rlr, commented2v2],
