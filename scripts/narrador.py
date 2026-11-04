@@ -29,6 +29,8 @@ APPLIO = Path.home() / ".local" / "share" / "applio"
 VOZ = Path.home() / ".local" / "share" / "muanlartins" / "vozes" / "galvao" / "x" / "Download"
 MODEL, INDEX = VOZ / "Galvao.pth", VOZ / "added_IVF392_Flat_nprobe_1_Galvao_v2.index"
 TTS = "pt-BR-AntonioNeural"
+# RVC comes out hot (peaks well over full scale); every line is brought to the same peak, under the alerts.
+PICO = 0.7
 CACHE = Path.home() / ".cache" / "muanlartins" / "narrador"
 PORT = 8788
 # The overlay is served by the site; Chrome asks before a public page reaches a local address.
@@ -37,6 +39,8 @@ ORIGINS = {"https://muanlartins.com.br", "https://muanlartins.com", "http://loca
 os.chdir(APPLIO)
 sys.path.insert(0, str(APPLIO))
 import edge_tts  # noqa: E402
+import numpy as np  # noqa: E402
+import soundfile as sf  # noqa: E402
 from rvc.infer.infer import VoiceConverter  # noqa: E402
 
 converter = VoiceConverter()
@@ -55,7 +59,9 @@ def falar(texto: str) -> Path:
             converter.convert_audio(audio_input_path=str(base), audio_output_path=str(Path(tmp) / "voz.wav"),
                                     model_path=str(MODEL), index_path=str(INDEX), pitch=0, f0_method="rmvpe",
                                     index_rate=0.5, protect=0.33, export_format="WAV")
-        (Path(tmp) / "voz.wav").replace(saida)
+        voz, taxa = sf.read(Path(tmp) / "voz.wav", dtype="float32")
+        sf.write(Path(tmp) / "pronta.wav", voz * (PICO / max(float(np.abs(voz).max()), 1e-6)), taxa, subtype="PCM_16")
+        (Path(tmp) / "pronta.wav").replace(saida)
     return saida
 
 
