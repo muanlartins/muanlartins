@@ -1,5 +1,7 @@
 "use client"
 
+import { Play } from "lucide-react"
+import Link from "next/link"
 import { useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react"
 import { PageIntro } from "@/components/site/page-intro"
 import {
@@ -11,6 +13,7 @@ import {
   time,
   type RankInfo,
 } from "@/components/site/ranked/format"
+import { MatchResult } from "@/components/site/ranked/match-result"
 import { PointsChart } from "@/components/site/ranked/points-chart"
 import { BallBackdrop } from "@/components/site/roadmap/ball-backdrop"
 import { MODES, STATS, summarize, type Match, type Mode, type PlayerStats, type Session, type Standing } from "@/lib/ranked"
@@ -72,6 +75,7 @@ const T = localize({
     en: "Score, points won or lost, the total after, and my goals · assists · saves.",
   },
   showAll: { pt: "Mostrar todas", en: "Show all" },
+  onLive: { pt: "na live", en: "on stream" },
   empty: {
     pt: "Nenhuma partida ranqueada de {mode} publicada ainda.",
     en: "No ranked {mode} matches published yet.",
@@ -93,11 +97,16 @@ export function RankedPage({
   description,
   sessions,
   ranks,
+  moments,
+  livesPath,
 }: {
   title: string
   description: string
   sessions: Session[]
   ranks: RankInfo[]
+  /** Matches a live has a chapter for: where to watch them. */
+  moments: Record<string, { date: string; at: number }>
+  livesPath: string
 }) {
   const hash = useSyncExternalStore(subscribe, readHash, () => "")
   // Without a hash, the mode of the latest match.
@@ -203,7 +212,7 @@ export function RankedPage({
             )}
 
             <Section title={T.list} hint={T.listHint}>
-              <Matches matches={[...summary.matches].reverse()} />
+              <Matches matches={[...summary.matches].reverse()} moments={moments} livesPath={livesPath} />
             </Section>
           </>
         )}
@@ -363,7 +372,15 @@ function Averages({ me, mates }: { me: PlayerStats; mates?: PlayerStats }) {
   )
 }
 
-function Matches({ matches }: { matches: Match[] }) {
+function Matches({
+  matches,
+  moments,
+  livesPath,
+}: {
+  matches: Match[]
+  moments: Record<string, { date: string; at: number }>
+  livesPath: string
+}) {
   const [all, setAll] = useState(false)
   const shown = all ? matches : matches.slice(0, SHOWN)
 
@@ -371,29 +388,25 @@ function Matches({ matches }: { matches: Match[] }) {
     <>
       <ul className="divide-y divide-line/60 border-y border-line">
         {shown.map((match) => {
-          const win = match.result === "win"
+          const moment = moments[match.id]
           return (
             <li key={match.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-[14px] tabular-nums">
-              <span
-                className={cn(
-                  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-[13px] font-semibold",
-                  win ? "bg-klein text-paper" : "border border-zinc-300 text-muted",
-                )}
-              >
-                {win ? T.W : T.L}
-              </span>
-              <span className="w-12 font-medium text-ink">{match.score ? `${match.score[0]}–${match.score[1]}` : "–"}</span>
-              <span className="w-10 text-right text-ink">{match.points != null ? signed(match.points) : ""}</span>
-              <span className="w-12 text-right text-muted">{match.mmr ?? ""}</span>
-              {match.me && (
-                <span className="text-muted">
-                  {match.me.goals} · {match.me.assists} · {match.me.saves}
+              <MatchResult match={match} />
+              <span className="ml-auto flex items-center gap-3 text-[13px] text-muted">
+                <span>
+                  {[match.overtime && T.overtime, match.left && T.left].filter(Boolean).join(" · ")}
+                  {(match.overtime || match.left) && " · "}
+                  {shortDate(match.at)} {time(match.at)}
                 </span>
-              )}
-              <span className="ml-auto text-[13px] text-muted">
-                {[match.overtime && T.overtime, match.left && T.left].filter(Boolean).join(" · ")}
-                {(match.overtime || match.left) && " · "}
-                {shortDate(match.at)} {time(match.at)}
+                {moment && (
+                  <Link
+                    href={`${livesPath}/${moment.date}#t=${moment.at}`}
+                    className="flex items-center gap-1 rounded-sm border border-line px-2 py-0.5 text-ink transition-colors hover:border-klein hover:text-klein"
+                  >
+                    <Play className="h-3 w-3 fill-current" />
+                    {T.onLive}
+                  </Link>
+                )}
               </span>
             </li>
           )

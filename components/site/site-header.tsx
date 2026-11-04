@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { LiveBadge } from "@/components/site/lives/live-badge"
 import { cn } from "@/lib/utils"
 import {
   LANGUAGE_LABEL,
@@ -21,7 +22,8 @@ function currentSection(pathname: string): Section {
   )
 }
 
-export function SiteHeader() {
+/** `lives`: the lives page, where the "live" pill leads while the channel is on air. */
+export function SiteHeader({ lives }: { lives?: string }) {
   const pathname = usePathname()
   const current = currentSection(pathname)
   // Pages under a section keep the same path in both languages.
@@ -43,6 +45,7 @@ export function SiteHeader() {
         </Link>
 
         <div className="flex items-center gap-5 text-[14px] sm:gap-7">
+          {lives && <LiveBadge href={lives} />}
           {SECTIONS.map((section) => (
             <Link
               key={section}

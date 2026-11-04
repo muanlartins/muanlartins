@@ -1,23 +1,68 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Play } from "lucide-react"
 import { ComingSoon } from "@/components/site/coming-soon"
 import { LOCALE, UI, type Locale } from "@/lib/site"
+
+/** A jump to a second of the video; `n` counts the jumps, so the same second twice still jumps. */
+export interface Seek {
+  at: number
+  n: number
+}
+
+const EMBED = "https://www.youtube-nocookie.com"
 
 /**
  * A YouTube video that costs nothing until it's played: the thumbnail
  * stands in for the player, and the iframe only loads on click. A video
  * in the other `language` asks YouTube for captions in this site's.
+ * `start` is where playing begins; `seek` jumps there, starting the
+ * player if it isn't yet.
  */
-export function YouTubeVideo({ id, title, language = LOCALE }: { id: string; title: string; language?: Locale }) {
+export function YouTubeVideo({
+  id,
+  title,
+  language = LOCALE,
+  start = 0,
+  seek,
+}: {
+  id: string
+  title: string
+  language?: Locale
+  start?: number
+  seek?: Seek
+}) {
   const [playing, setPlaying] = useState(false)
+  const [from, setFrom] = useState(start)
+  const [seen, setSeen] = useState({ start, seek })
+  const frameRef = useRef<HTMLIFrameElement>(null)
   const frame = "relative aspect-video w-full overflow-hidden rounded-md bg-klein"
+
+  // A new start moves where the thumbnail plays from; a jump before the player exists loads it at that second.
+  if (start !== seen.start || seek !== seen.seek) {
+    setSeen({ start, seek })
+    if (!playing && start !== seen.start) setFrom(start)
+    if (!playing && seek && seek !== seen.seek) {
+      setFrom(seek.at)
+      setPlaying(true)
+    }
+  }
+
+  // Once it exists, the player takes commands by message (YouTube's iframe API, without its script).
+  useEffect(() => {
+    const player = frameRef.current?.contentWindow
+    if (!seek || !player) return
+    for (const [func, args] of [["seekTo", [seek.at, true]], ["playVideo", []]] as const) {
+      player.postMessage(JSON.stringify({ event: "command", func, args }), EMBED)
+    }
+  }, [seek])
 
   if (!id) return <ComingSoon label={UI.videoSoon} />
 
   if (playing) {
-    const params = new URLSearchParams({ autoplay: "1", rel: "0", hl: LOCALE })
+    const params = new URLSearchParams({ autoplay: "1", rel: "0", hl: LOCALE, enablejsapi: "1", origin: window.location.origin })
+    if (from) params.set("start", String(Math.floor(from)))
     if (language !== LOCALE) {
       params.set("cc_load_policy", "1")
       params.set("cc_lang_pref", LOCALE)
@@ -25,7 +70,8 @@ export function YouTubeVideo({ id, title, language = LOCALE }: { id: string; tit
     return (
       <div className={frame}>
         <iframe
-          src={`https://www.youtube-nocookie.com/embed/${id}?${params}`}
+          ref={frameRef}
+          src={`${EMBED}/embed/${id}?${params}`}
           title={title}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen

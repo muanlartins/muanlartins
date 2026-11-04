@@ -96,12 +96,12 @@ export const UI = localize({
     content: { pt: "Conteúdo", en: "Content" },
   },
   switchLanguage: { pt: "English", en: "Português" },
-  /** The 404 page. TODO(Luan): rewrite in your voice. */
+  /** The 404 page. */
   notFound: {
-    title: { pt: "Página não encontrada", en: "Page not found" },
+    title: { pt: "Nada por aqui", en: "Nothing here" },
     text: {
-      pt: "Este endereço não existe ou mudou de lugar. Escolha uma seção para continuar.",
-      en: "This address doesn't exist or has moved. Pick a section to keep going.",
+      pt: "Este endereço não existe ou mudou de lugar. Escolha uma seção lá em cima para continuar.",
+      en: "This address doesn't exist or has moved. Pick a section up top to keep going.",
     },
   },
   playVideo: { pt: "Assistir ao vídeo", en: "Play video" },
