@@ -610,7 +610,10 @@
       // OBS routes this source's sound to the stream's track only, never to the recording. The openers
       // are rendered when the page loads, so they play at once; the rest (the speed, the dedication)
       // renders while the opener plays. Without the narrator running, goals are just silent.
+      // The dock switches it on and off.
       const NARRADOR = params.get("narrador") ?? "http://127.0.0.1:8788"
+      // On only while the dock's "Galvão narrando os gols" is on (it says so every few seconds); always in the demo.
+      let narradorLigado = params.has("demo")
       const ABERTURAS = [
         "Olha o que ele fez! É gol! É gol do Luan!",
         "Haja coração, amigo! É gol do Luan!",
@@ -636,6 +639,7 @@
 
       let narrando = Promise.resolve()
       function narrar(...partes) {
+        if (!narradorLigado) return
         narrando = narrando.then(async () => {
           for (const parte of partes) {
             const buffer = await parte
@@ -671,6 +675,9 @@
           const dedicado = sortear()
           if (dedicado) dedicar(dedicado)
           narrarGol(kmh, dedicado)
+        },
+        narrador({ ligado }) {
+          narradorLigado = !!ligado
         },
         defesa({ epica }) {
           momento("defesa", 800)
