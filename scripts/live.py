@@ -269,7 +269,8 @@ def main():
     if page.exists() and not args.force:
         print(f"{page.relative_to(ROOT)} já existe: mantida.")
     else:
-        live = {"date": args.date, "video": args.video or "", "summary": summary(day),
+        # The lives are Rocket League's for now; a live of another game sets its id by hand.
+        live = {"date": args.date, "game": "rocket-league", "video": args.video or "", "summary": summary(day),
                 "chapters": chapters(day, start, length)}
         write_live(page, live)
         print(f"Página: {len(live['chapters'])} capítulos em {page.relative_to(ROOT)}. O resumo é um rascunho.")

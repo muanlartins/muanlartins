@@ -43,7 +43,7 @@ export function SiteHeader({ lives }: { lives?: string }) {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-xl">
-      <nav className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between gap-6 px-6">
+      <nav className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between gap-3 px-6 sm:gap-6">
         <Link
           href="/"
           aria-label="muanlartins"
@@ -56,7 +56,8 @@ export function SiteHeader({ lives }: { lives?: string }) {
           </span>
         </Link>
 
-        <div className="flex items-center gap-5 text-[14px] sm:gap-7">
+        {/* Four sections don't fit a phone: there the mark is the way home, and "Pessoal" steps out. */}
+        <div className="flex items-center gap-3 text-[13px] sm:gap-7 sm:text-[14px]">
           {lives && <LiveBadge href={lives} />}
           {SECTIONS.map((section) => (
             <Link
@@ -66,6 +67,7 @@ export function SiteHeader({ lives }: { lives?: string }) {
               className={cn(
                 "transition-colors hover:text-klein",
                 section === current && !onPrivacy && !onProfile ? "text-klein" : "text-muted",
+                section === "personal" && "hidden sm:inline",
               )}
             >
               {UI.sections[section]}

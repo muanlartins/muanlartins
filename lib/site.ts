@@ -5,7 +5,7 @@
  */
 
 export type Locale = "pt" | "en"
-export type Section = "personal" | "professional" | "content"
+export type Section = "personal" | "professional" | "content" | "channel"
 
 export const LOCALE: Locale = process.env.NEXT_PUBLIC_LOCALE === "en" ? "en" : "pt"
 export const OTHER_LOCALE: Locale = LOCALE === "pt" ? "en" : "pt"
@@ -17,11 +17,11 @@ const ORIGINS: Record<Locale, string> =
 
 export const ORIGIN = ORIGINS[LOCALE]
 
-export const SECTIONS: Section[] = ["personal", "professional", "content"]
+export const SECTIONS: Section[] = ["personal", "professional", "content", "channel"]
 
 const SLUGS: Record<Locale, Record<Section, string>> = {
-  pt: { personal: "", professional: "profissional", content: "conteudo" },
-  en: { personal: "", professional: "professional", content: "content" },
+  pt: { personal: "", professional: "profissional", content: "conteudo", channel: "canal" },
+  en: { personal: "", professional: "professional", content: "content", channel: "channel" },
 }
 
 export function sectionPath(section: Section, locale: Locale = LOCALE) {
@@ -116,6 +116,7 @@ export const UI = localize({
     personal: { pt: "Pessoal", en: "Personal" },
     professional: { pt: "Profissional", en: "Professional" },
     content: { pt: "Conteúdo", en: "Content" },
+    channel: { pt: "Canal", en: "Channel" },
   },
   switchLanguage: { pt: "English", en: "Português" },
   privacy: { pt: "Privacidade", en: "Privacy" },

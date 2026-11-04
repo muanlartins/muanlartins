@@ -4,8 +4,8 @@ import { LanguageNotice } from "@/components/site/language-badge"
 import { LiveViewer } from "@/components/site/lives/live-viewer"
 import { PageIntro } from "@/components/site/page-intro"
 import { longDate } from "@/components/site/ranked/format"
-import { BallBackdrop } from "@/components/site/roadmap/ball-backdrop"
-import { gamePath, type Game } from "@/lib/game"
+import { channel } from "@/content/channel"
+import { channelPath } from "@/lib/channel"
 import { seconds, type Line, type Live } from "@/lib/lives"
 import type { Match, Session } from "@/lib/ranked"
 import { LOCALE, localize } from "@/lib/site"
@@ -17,12 +17,10 @@ const T = localize({
 
 /** One live: the video, its chapters with the day's ranked matches, and what was said. */
 export function LivePage({
-  game,
   live,
   lines,
   sessions,
 }: {
-  game: Game
   live: Live
   lines: Line[]
   sessions: Session[]
@@ -34,13 +32,12 @@ export function LivePage({
     const label = chapter.title ? localize(chapter.title) : `${T.match} ${++played}${match ? ` · ${match.mode}` : ""}`
     return { at: seconds(chapter.at), label, match }
   })
-  const title = `${localize(game.lives!.title)} · ${longDate(live.date)}`
+  const title = `${localize(channel.lives.title)} · ${longDate(live.date)}`
 
   return (
     <>
-      <BallBackdrop />
       <Link
-        href={gamePath(game, "lives")}
+        href={channelPath("lives")}
         className="mb-6 inline-flex items-center gap-1.5 text-[14px] text-muted transition-colors hover:text-klein"
       >
         <ArrowLeft className="h-4 w-4" />

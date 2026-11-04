@@ -6,16 +6,17 @@ import { useLive } from "@/lib/twitch"
 
 const T = localize({ live: { pt: "Ao vivo", en: "Live" } })
 
-/** In the header while the channel is live on Twitch: a pulsing pill to the lives page, where the stream plays. */
+/** In the header while the channel is live on Twitch: a pulsing pill to the lives page, where the stream plays. On a phone, just the dot. */
 export function LiveBadge({ href }: { href: string }) {
   if (!useLive()) return null
   return (
     <Link
       href={href}
+      aria-label={T.live}
       className="flex items-center gap-1.5 rounded-sm bg-klein px-2 py-1 text-[11px] font-medium uppercase leading-none tracking-[0.08em] text-paper transition-opacity hover:opacity-85"
     >
       <Pulse />
-      {T.live}
+      <span className="hidden sm:inline">{T.live}</span>
     </Link>
   )
 }
