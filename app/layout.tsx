@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import { Space_Grotesk } from "next/font/google"
 import { SiteFooter } from "@/components/site/site-footer"
 import { SiteHeader } from "@/components/site/site-header"
+import { games } from "@/content/projects"
+import { gamePath } from "@/lib/game"
 import { HTML_LANG, LINKS, LOCALE, ORIGIN } from "@/lib/site"
 import "./globals.css"
 
@@ -25,6 +27,10 @@ const person = {
   sameAs: LINKS.map((link) => link.href),
 }
 
+// Where the header's "live" pill leads: the first game with a lives page, where the stream plays.
+const withLives = games.find((game) => game.lives)
+const livesHref = withLives && gamePath(withLives, "lives")
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang={HTML_LANG[LOCALE]} className={spaceGrotesk.variable}>
@@ -33,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(person) }}
         />
-        <SiteHeader />
+        <SiteHeader lives={livesHref} />
         <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-24 pt-32">{children}</main>
         <SiteFooter />
       </body>

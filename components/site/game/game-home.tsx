@@ -3,8 +3,9 @@ import type { ReactNode } from "react"
 import { LanguageBadge } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
 import { RoadmapProgress, ShowroomStage } from "@/components/site/game/game-home-client"
-import { divisionOf, tierOf, type RankInfo } from "@/components/site/ranked/format"
+import { divisionOf, longDate, tierOf, type RankInfo } from "@/components/site/ranked/format"
 import { gamePath, type Game } from "@/lib/game"
+import type { Live } from "@/lib/lives"
 import { MODES, summarize, type Mode, type Session } from "@/lib/ranked"
 import { entries } from "@/lib/roadmap"
 import { LINKS, UI, localize } from "@/lib/site"
@@ -16,6 +17,7 @@ const T = localize({
   topics: { pt: "tópicos", en: "topics" },
   points: { pt: "pts", en: "pts" },
   noRank: { pt: "Nenhuma partida publicada ainda.", en: "No matches published yet." },
+  latestLive: { pt: "Última", en: "Latest" },
   drag: { pt: "Arraste para girar", en: "Drag to spin" },
 })
 
@@ -26,7 +28,18 @@ const CHANNEL = LINKS.filter((link) => link.label === "YouTube" || link.label ==
  * A game's home: what it's about, the car on a turntable, where to follow,
  * and a card for each of its pages with a glimpse of what's in it.
  */
-export function GameHome({ game, sessions, ranks }: { game: Game; sessions: Session[]; ranks: RankInfo[] }) {
+export function GameHome({
+  game,
+  sessions,
+  lives,
+  ranks,
+}: {
+  game: Game
+  sessions: Session[]
+  /** Newest first. */
+  lives: Live[]
+  ranks: RankInfo[]
+}) {
   const paragraphs = localize(game.intro).split(/\n\s*\n/)
   const topics = entries(game.roadmap)
   const videos = topics.filter(({ topic }) => topic.video).length
@@ -88,6 +101,16 @@ export function GameHome({ game, sessions, ranks }: { game: Game; sessions: Sess
                 <RankLine tier={standing.tier} ranks={ranks} mode={mode!} division={divisionOf(standing)} mmr={standing.mmr} />
               ) : (
                 <p className="text-[13px] text-muted">{T.noRank}</p>
+              )}
+            </Card>
+          )}
+
+          {game.lives && (
+            <Card href={gamePath(game, "lives")} title={localize(game.lives.title)} summary={localize(game.lives.description)} language="pt">
+              {lives[0] && (
+                <p className="text-[13px] text-muted">
+                  {T.latestLive}: {longDate(lives[0].date)}
+                </p>
               )}
             </Card>
           )}

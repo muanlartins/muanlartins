@@ -36,7 +36,29 @@ const timeFormat = new Intl.DateTimeFormat(HTML_LANG[LOCALE], { timeZone: TIME_Z
 
 /** 28/10 (10/28 in English), in Luan's time. A day key (YYYY-MM-DD) works too. */
 export function shortDate(at: string) {
-  return dateFormat.format(new Date(/^\d{4}-\d{2}-\d{2}$/.test(at) ? `${at}T12:00:00-03:00` : at))
+  return dateFormat.format(/^\d{4}-\d{2}-\d{2}$/.test(at) ? noon(at) : new Date(at))
+}
+
+/** Midday of a day key in Luan's time, so no time zone moves it to another day. */
+const noon = (day: string) => new Date(`${day}T12:00:00-03:00`)
+
+const fullFormat = new Intl.DateTimeFormat(HTML_LANG[LOCALE], { timeZone: TIME_ZONE, day: "2-digit", month: "2-digit", year: "numeric" })
+const longFormat = new Intl.DateTimeFormat(HTML_LANG[LOCALE], { timeZone: TIME_ZONE, day: "numeric", month: "long", year: "numeric" })
+const weekdayFormat = new Intl.DateTimeFormat(HTML_LANG[LOCALE], { timeZone: TIME_ZONE, weekday: "long" })
+
+/** A day key (YYYY-MM-DD) as 28/10/2026 (10/28/2026 in English). */
+export function fullDate(day: string) {
+  return fullFormat.format(noon(day))
+}
+
+/** A day key as "28 de outubro de 2026" / "October 28, 2026". */
+export function longDate(day: string) {
+  return longFormat.format(noon(day))
+}
+
+/** A day key as its weekday: "quarta-feira" / "Wednesday". */
+export function weekday(day: string) {
+  return weekdayFormat.format(noon(day))
 }
 
 export function time(at: string) {
