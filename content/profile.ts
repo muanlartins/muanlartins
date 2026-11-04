@@ -39,7 +39,6 @@ export const profile = {
     colors: { pt: "Cores", en: "Colors" },
     color: { pt: "Corpo", en: "Body" },
     detail: { pt: "Detalhe", en: "Detail" },
-    body: { pt: "Corpo", en: "Body" },
     head: { pt: "Cabeça", en: "Head" },
     outfit: { pt: "Roupa", en: "Outfit" },
     number: { pt: "Número", en: "Number" },
@@ -64,13 +63,6 @@ export const profile = {
     otherEmoji: { pt: "Outro emoji", en: "Other emoji" },
   },
   options: {
-    corpo: {
-      normal: { pt: "Normal", en: "Regular" },
-      largo: { pt: "Largo", en: "Wide" },
-      magro: { pt: "Magro", en: "Slim" },
-      alto: { pt: "Alto", en: "Tall" },
-      baixo: { pt: "Baixo", en: "Short" },
-    },
     cabeca: {
       losango: { pt: "Losango", en: "Diamond" },
       redonda: { pt: "Redonda", en: "Round" },

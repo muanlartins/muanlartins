@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils"
 
 const text = localize(profile)
 type Status = "idle" | "saving" | "saved" | "erased" | "error" | "expired"
-type Option = "corpo" | "cabeca" | "roupa" | "acessorio" | "comemoracao"
+type Option = "cabeca" | "roupa" | "acessorio" | "comemoracao"
 
 declare global {
   interface Window {
@@ -179,7 +179,6 @@ export function ProfilePage() {
   }
 
   const options: { key: Option; title: string; list: (T: Torcedor) => string[]; hint?: string }[] = [
-    { key: "corpo", title: text.groups.body, list: (T) => T.CORPOS },
     { key: "cabeca", title: text.groups.head, list: (T) => T.CABECAS },
     { key: "roupa", title: text.groups.outfit, list: (T) => T.ROUPAS },
     { key: "acessorio", title: text.groups.accessory, list: (T) => T.ACESSORIOS },

@@ -360,7 +360,7 @@ Resources:
           function limpa(a) {
             const o = {}
             if (!a || typeof a !== "object") return o
-            for (const k of ["corpo", "cabeca", "roupa", "acessorio", "comemoracao"]) if (ID.test(a[k])) o[k] = a[k]
+            for (const k of ["cabeca", "roupa", "acessorio", "comemoracao"]) if (ID.test(a[k])) o[k] = a[k]
             for (const k of ["cor", "detalhe"]) if (typeof a[k] === "string" && COR.test(a[k].toLowerCase())) o[k] = a[k].toLowerCase()
             if (Number.isInteger(a.numero) && a.numero >= 0 && a.numero <= 99) o.numero = a.numero
             if (typeof a.frase === "string") o.frase = [...a.frase.replace(/\s+/g, " ").trim()].slice(0, 30).join("").trim()

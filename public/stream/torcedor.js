@@ -9,7 +9,6 @@
     "#f4f5f7", "#85a7ff", "#4dd4ff", "#3ddc97", "#b5e853", "#ffd23f",
     "#ff9f43", "#ff6b57", "#ff5c9a", "#c792ea", "#c08b5c", "#9aa3b5",
   ]
-  const CORPOS = ["normal", "largo", "magro", "alto", "baixo"]
   const CABECAS = ["losango", "redonda", "quadrada", "hexagono", "triangulo"]
   const ROUPAS = ["lisa", "listra", "faixa", "meio", "numero"]
   const ACESSORIOS = ["nenhum", "bone", "cachecol", "bandeira", "coroa", "oculos", "fone", "cartola"]
@@ -39,7 +38,6 @@
     return {
       cor,
       detalhe: pick(CORES.filter((c) => c !== cor)),
-      corpo: "normal",
       cabeca: pick(CABECAS.slice(0, 3)),
       roupa: pick(ROUPAS.slice(0, 3)),
       numero: h % 100,
@@ -60,7 +58,6 @@
     const de = (lista, chave) => lista.includes(escolha[chave]) && (a[chave] = escolha[chave])
     de(CORES, "cor")
     de(CORES, "detalhe")
-    de(CORPOS, "corpo")
     de(CABECAS, "cabeca")
     de(ROUPAS, "roupa")
     de(ACESSORIOS, "acessorio")
@@ -98,24 +95,18 @@
     fone: `<path d="M5.4 7.5 A6.6 6.6 0 0 1 18.6 7.5" fill="none" stroke-width="1.6" stroke="currentColor"/><path class="contorno" d="M3.9 5.8 H6.6 V10.6 H3.9 Z M17.4 5.8 H20.1 V10.6 H17.4 Z"/>`,
     cartola: `<path class="contorno" d="M7.8 1.6 V-5.6 H16.2 V1.6 Z M5 1.6 H19 V3.2 H5 Z"/>`,
   }
-  // Each body is the same drawing, stretched from the feet.
-  const CORPO = { normal: [1, 1], largo: [1.2, 1], magro: [0.82, 1], alto: [1, 1.12], baixo: [1.06, 0.86] }
-
   /** The fan as SVG, 24×36 units, feet at the bottom; arms show only while cheering (.bracos). */
   function figura(aparencia) {
-    const { cor, detalhe, corpo, cabeca, roupa, numero, acessorio } = aparencia
-    const [sx, sy] = CORPO[corpo] || CORPO.normal
+    const { cor, detalhe, cabeca, roupa, numero, acessorio } = aparencia
     return `<svg viewBox="0 0 24 36" aria-hidden="true" style="--cor:${cor}; color:${detalhe}">
-      <g transform="translate(12 36) scale(${sx} ${sy}) translate(-12 -36)">
-        <g class="bracos"><path d="M5 18 L-1 8"/><path d="M19 18 L25 8"/></g>
-        <g fill="${cor}">${CABECA[cabeca] || CABECA.losango}<path class="contorno" d="M7 14 H17 L22 19 V36 H2 V19 Z"/></g>
-        <g fill="${detalhe}">${(ROUPA[roupa] || ROUPA.lisa)(numero)}${ACESSORIO[acessorio] ?? ""}</g>
-      </g>
+      <g class="bracos"><path d="M5 18 L-1 8"/><path d="M19 18 L25 8"/></g>
+      <g fill="${cor}">${CABECA[cabeca] || CABECA.losango}<path class="contorno" d="M7 14 H17 L22 19 V36 H2 V19 Z"/></g>
+      <g fill="${detalhe}">${(ROUPA[roupa] || ROUPA.lisa)(numero)}${ACESSORIO[acessorio] ?? ""}</g>
     </svg>`
   }
 
   window.Torcedor = {
-    CORES, CORPOS, CABECAS, ROUPAS, ACESSORIOS, COMEMORACOES, STICKERS, FRASE_MAX, STICKERS_MAX,
+    CORES, CABECAS, ROUPAS, ACESSORIOS, COMEMORACOES, STICKERS, FRASE_MAX, STICKERS_MAX,
     padrao, normalizar, figura, umEmoji,
   }
 })()
