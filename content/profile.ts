@@ -1,0 +1,106 @@
+/**
+ * The viewer's profile at /perfil (/profile): for now, their fan in the stream's crowd. The options
+ * themselves are in public/stream/torcedor.js; these are their names.
+ */
+export const profile = {
+  title: { pt: "Perfil", en: "Profile" },
+  description: {
+    pt: "Monte o seu torcedor. Quando você está no chat da live, ele aparece na arquibancada com o seu nome, comemora os gols do seu jeito e solta os seus stickers.",
+    en: "Build your fan. While you're in the live chat, they stand in the crowd with your name, celebrate goals your way and throw your stickers.",
+  },
+  signIn: { pt: "Entrar com a Twitch", en: "Sign in with Twitch" },
+  signInNote: {
+    pt: "Só para saber o seu nome na Twitch, que é o nome do torcedor. O site não vê mais nada da sua conta. Dá para montar antes e entrar só para salvar.",
+    en: "Only to know your Twitch name, which is your fan's name. The site sees nothing else of your account. You can build first and sign in just to save.",
+  },
+  signedInAs: { pt: "Você é", en: "You're" },
+  you: { pt: "você", en: "you" },
+  signOut: { pt: "Sair", en: "Sign out" },
+  save: { pt: "Salvar", en: "Save" },
+  saving: { pt: "Salvando…", en: "Saving…" },
+  saved: { pt: "Salvo. Na próxima live você aparece assim.", en: "Saved. You'll look like this in the next live." },
+  unsaved: { pt: "Alterações não salvas", en: "Unsaved changes" },
+  error: { pt: "Não deu para falar com o servidor. Tente de novo.", en: "Couldn't reach the server. Try again." },
+  expired: { pt: "Sua sessão da Twitch expirou. Entre de novo para salvar.", en: "Your Twitch session expired. Sign in again to save." },
+  reset: { pt: "Voltar ao padrão", en: "Back to default" },
+  erase: { pt: "Apagar meu torcedor", en: "Delete my fan" },
+  confirmErase: { pt: "Apagar mesmo? Clique de novo", en: "Delete for real? Click again" },
+  erased: { pt: "Apagado. Na live você volta ao torcedor padrão.", en: "Deleted. In the live you're back to the default fan." },
+  soon: {
+    pt: "Salvar ainda não está ligado: dá para montar e ver, e logo dá para salvar.",
+    en: "Saving isn't on yet: you can build and preview, and soon save.",
+  },
+  preview: {
+    goal: { pt: "Ver no nosso gol", en: "See on our goal" },
+    against: { pt: "Ver no gol deles", en: "See on their goal" },
+    arrive: { pt: "Ver chegando", en: "See arriving" },
+  },
+  groups: {
+    colors: { pt: "Cores", en: "Colors" },
+    color: { pt: "Corpo", en: "Body" },
+    detail: { pt: "Detalhe", en: "Detail" },
+    body: { pt: "Corpo", en: "Body" },
+    head: { pt: "Cabeça", en: "Head" },
+    outfit: { pt: "Roupa", en: "Outfit" },
+    number: { pt: "Número", en: "Number" },
+    accessory: { pt: "Acessório", en: "Accessory" },
+    celebration: { pt: "Comemoração", en: "Celebration" },
+    celebrationHint: {
+      pt: "O que o seu torcedor faz quando sai gol nosso.",
+      en: "What your fan does when we score.",
+    },
+    phrase: { pt: "Grito de chegada", en: "Arrival shout" },
+    phraseHint: {
+      pt: "Aparece num balão quando você chega na arquibancada.",
+      en: "Shows in a balloon when you arrive in the crowd.",
+    },
+    stickers: { pt: "Stickers", en: "Stickers" },
+    stickersHint: {
+      pt: "Até 3 em cada. Saem voando do seu torcedor.",
+      en: "Up to 3 each. They fly out of your fan.",
+    },
+    onGoal: { pt: "No nosso gol", en: "On our goal" },
+    onAgainst: { pt: "No gol deles", en: "On their goal" },
+    otherEmoji: { pt: "Outro emoji", en: "Other emoji" },
+  },
+  options: {
+    corpo: {
+      normal: { pt: "Normal", en: "Regular" },
+      largo: { pt: "Largo", en: "Wide" },
+      magro: { pt: "Magro", en: "Slim" },
+      alto: { pt: "Alto", en: "Tall" },
+      baixo: { pt: "Baixo", en: "Short" },
+    },
+    cabeca: {
+      losango: { pt: "Losango", en: "Diamond" },
+      redonda: { pt: "Redonda", en: "Round" },
+      quadrada: { pt: "Quadrada", en: "Square" },
+      hexagono: { pt: "Hexágono", en: "Hexagon" },
+      triangulo: { pt: "Triângulo", en: "Triangle" },
+    },
+    roupa: {
+      lisa: { pt: "Lisa", en: "Plain" },
+      listra: { pt: "Listra", en: "Stripe" },
+      faixa: { pt: "Faixa", en: "Sash" },
+      meio: { pt: "Meio a meio", en: "Half and half" },
+      numero: { pt: "Com número", en: "Numbered" },
+    },
+    acessorio: {
+      nenhum: { pt: "Nenhum", en: "None" },
+      bone: { pt: "Boné", en: "Cap" },
+      cachecol: { pt: "Cachecol", en: "Scarf" },
+      bandeira: { pt: "Bandeira", en: "Flag" },
+      coroa: { pt: "Coroa", en: "Crown" },
+      oculos: { pt: "Óculos", en: "Glasses" },
+      fone: { pt: "Fone", en: "Headset" },
+      cartola: { pt: "Cartola", en: "Top hat" },
+    },
+    comemoracao: {
+      pula: { pt: "Pula", en: "Jumps" },
+      danca: { pt: "Dança", en: "Dances" },
+      gira: { pt: "Gira", en: "Spins" },
+      acena: { pt: "Balança", en: "Sways" },
+      bananeira: { pt: "Bananeira", en: "Handstand" },
+    },
+  },
+}

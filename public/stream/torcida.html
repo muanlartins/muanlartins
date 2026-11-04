@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <title>Torcida · muanlartins</title>
     <link rel="stylesheet" href="stream.css" />
+    <link rel="stylesheet" href="torcedor.css" />
     <!--
       OBS: Browser source, 1920×1080, over the game in Jogo and Jogo + chat. The
       crowd: a stand at the bottom centre, clear of the camera frame (bottom
@@ -115,38 +116,14 @@
           transform: translateY(-1.5px);
         }
       }
-      .fa svg {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        overflow: visible;
-      }
-      .fa .contorno {
-        stroke: var(--navy);
-        stroke-width: 1.2;
-        stroke-linejoin: round;
-        paint-order: stroke;
-      }
-      .fa .bracos path {
-        stroke: var(--cor);
-        stroke-width: 3;
-        stroke-linecap: square;
-      }
-      .fa .bracos {
-        opacity: 0;
-        transform-origin: 12px 18px;
-        transform: scaleY(0.2);
-        transition:
-          opacity 0.15s,
-          transform 0.25s var(--ease);
-      }
-
-      /* The name over each fan; cut short in the stand, whole while its fan is the one moving. */
+      /* The name over each fan, still while they move; cut short in the stand, whole while its fan is
+         the one moving. */
       .nome {
         position: absolute;
+        z-index: 1;
         left: 50%;
-        bottom: calc(100% + 3px);
+        /* Clear of the tallest accessories (a top hat, a crown). */
+        bottom: calc(100% + 9px * var(--s));
         translate: -50% 0;
         max-width: 84px;
         padding: 1px 5px 2px;
@@ -241,16 +218,13 @@
         }
       }
 
-      /* Our goal: a wave along the stand, left to right, arms up. */
-      .festa .bracos,
+      /* Our goal: each fan's own celebration (torcedor.css), rippling along the stand. A save, a chat
+         command: arms up. */
       .defesa .bracos,
       .pula .bracos,
       .ola .bracos {
         opacity: 1;
         transform: none;
-      }
-      .festa .pose {
-        animation: pula 0.5s var(--ease) calc(var(--x) * 0.7ms) 4 alternate;
       }
       @keyframes pula {
         to {
@@ -305,7 +279,7 @@
       }
 
       /* The fan a goal is dedicated to steps forward, bigger. */
-      .fa.dedicado .pose {
+      .torcida .fa.dedicado .pose {
         animation: destaque 5.5s var(--ease) both;
       }
       @keyframes destaque {
@@ -405,6 +379,7 @@
       </section>
     </main>
     <script src="stream.js"></script>
+    <script src="torcedor.js"></script>
     <script>
       const torcida = document.getElementById("torcida")
       const $ = (id) => document.getElementById(id)
@@ -435,60 +410,88 @@
       let conectouEm = 0
       let vistos = new Set()
 
-      // --- How a fan looks -------------------------------------------------------------------------
-      // For now, from their login, so everyone looks different and always the same; the profile on the
-      // site will set these same fields.
-      const CORES = ["#f4f5f7", "#85a7ff", "#ffd23f", "#ff6b57", "#3ddc97", "#c792ea", "#ff9f43", "#4dd4ff"]
-      const CABECAS = ["losango", "redonda", "quadrada"]
-      const ROUPAS = ["lisa", "listra", "faixa"]
-      const ACESSORIOS = [null, null, "bone", "cachecol", "bandeira"]
+      // --- How each fan looks: what they chose on their profile on the site, or the default (torcedor.js) ---
+      // The profile API (infra/site.yml) answers for the whole stand at once; it's asked again when people
+      // arrive and every two minutes, so a change made on the site shows up during the live.
+      const API = params.get("api") ?? ""
+      const escolhas = new Map() // login → what they chose
+      const aparencia = (login) => Torcedor.normalizar(escolhas.get(login), login)
+      // Someone who just arrived shouts their phrase, once their choices come in.
+      const GRITO_MS = 30000
 
-      function hash(text) {
-        let h = 2166136261
-        for (const c of text) h = Math.imul(h ^ c.codePointAt(0), 16777619)
-        return h >>> 0
+      let pedido
+      function pedirEscolhas() {
+        clearTimeout(pedido)
+        pedido = setTimeout(async () => {
+          const logins = [...pessoas.keys()]
+          if (!API || !logins.length) return
+          try {
+            for (let i = 0; i < logins.length; i += 100) {
+              const lote = logins.slice(i, i + 100)
+              const resposta = await fetch(`${API}/torcedores?logins=${lote.join(",")}`)
+              if (!resposta.ok) return
+              const achadas = await resposta.json()
+              for (const login of lote) {
+                const agora = achadas[login] ?? null
+                if (JSON.stringify(agora) !== JSON.stringify(escolhas.get(login) ?? null)) {
+                  agora ? escolhas.set(login, agora) : escolhas.delete(login)
+                  vestir(pessoas.get(login))
+                }
+                gritar(pessoas.get(login))
+              }
+            }
+          } catch {
+            // Offline or the API down: everyone keeps the look they have.
+          }
+        }, 1500)
       }
-      function aparencia(login) {
-        let h = hash(login)
-        const pick = (list) => {
-          const item = list[h % list.length]
-          h = (Math.floor(h / list.length) ^ hash(String(h))) >>> 0
-          return item
+      setInterval(pedirEscolhas, 120000)
+
+      function vestir(p) {
+        if (!p?.el) return
+        const a = aparencia(p.login)
+        p.el.dataset.comemoracao = a.comemoracao
+        p.el.querySelector(".vivo").innerHTML = Torcedor.figura(a)
+      }
+      function gritar(p) {
+        if (!p?.el || !p.chegou || p.gritou || Date.now() - p.chegou > GRITO_MS) return
+        const { frase } = aparencia(p.login)
+        if (!frase) return
+        p.gritou = true
+        falar(p, frase)
+      }
+
+      // On a goal, each fan throws their stickers: a few from each, at most STICKERS on screen.
+      const STICKERS = 36
+      function soltarStickers(quando) {
+        const todos = []
+        for (const p of pessoas.values()) {
+          if (!p.el) continue
+          for (const emoji of aparencia(p.login).stickers[quando]) todos.push([p, emoji])
         }
-        const cor = pick(CORES)
-        const outras = CORES.filter((c) => c !== cor)
-        return { cor, detalhe: pick(outras), cabeca: pick(CABECAS), roupa: pick(ROUPAS), acessorio: pick(ACESSORIOS) }
-      }
-
-      const CABECA = {
-        losango: `<path class="contorno" d="M12 0 L18.5 6.5 L12 13 L5.5 6.5 Z"/>`,
-        redonda: `<circle class="contorno" cx="12" cy="6.5" r="6"/>`,
-        quadrada: `<rect class="contorno" x="6.5" y="1" width="11" height="11"/>`,
-      }
-      const ROUPA = {
-        lisa: "",
-        listra: `<rect x="2.6" y="23" width="18.8" height="4"/>`,
-        faixa: `<path d="M7 14.6 H11 L21.4 25 V29 Z"/>`,
-      }
-      const ACESSORIO = {
-        bone: `<path class="contorno" d="M6.5 2.5 L8 -1.5 H16 L17.5 2.5 Z M17 2.5 H22.5 V3.8 H17 Z"/>`,
-        cachecol: `<path class="contorno" d="M6.5 12.6 H17.5 V15.6 H6.5 Z M13.5 15.6 H16.5 V22 H13.5 Z"/>`,
-        bandeira: `<path d="M21 34 L27 2" stroke="var(--paper)" stroke-width="1.2"/><path class="contorno" d="M27 2 L35 5.5 L26.2 9.5 Z"/>`,
-      }
-
-      function figura({ cor, detalhe, cabeca, roupa, acessorio }) {
-        return `<svg viewBox="0 0 24 36" aria-hidden="true" style="--cor:${cor}">
-          <g class="bracos"><path d="M5 18 L-1 8"/><path d="M19 18 L25 8"/></g>
-          <g fill="${cor}">${CABECA[cabeca]}<path class="contorno" d="M7 14 H17 L22 19 V36 H2 V19 Z"/></g>
-          <g fill="${detalhe}">${ROUPA[roupa]}${acessorio ? ACESSORIO[acessorio] : ""}</g>
-        </svg>`
+        todos.sort(() => Math.random() - 0.5)
+        for (const [p, emoji] of todos.slice(0, STICKERS)) {
+          const el = document.createElement("span")
+          el.className = "sticker"
+          el.textContent = emoji
+          el.style.left = `${p.el.style.getPropertyValue("--x")}px`
+          el.style.bottom = `${parseFloat(p.el.style.bottom) + p.el.offsetHeight}px`
+          el.style.setProperty("--dx", `${(Math.random() - 0.5) * 120}px`)
+          el.style.setProperty("--sobe", `${-120 - Math.random() * 160}px`)
+          el.style.setProperty("--espera", `${Math.random() * 1.4}s`)
+          el.style.setProperty("--t", `${2 + Math.random()}s`)
+          torcida.append(el)
+          setTimeout(() => el.remove(), 4500)
+        }
       }
 
       // --- The stand -------------------------------------------------------------------------------
       function desenhar(p, chegando) {
         const el = document.createElement("div")
-        el.className = "fa" + (chegando ? " chegando" : "")
-        el.innerHTML = `<div class="pose"><span class="nome"></span><div class="vivo">${figura(aparencia(p.login))}</div></div>`
+        el.className = "fa torcedor" + (chegando ? " chegando" : "")
+        if (chegando) p.chegou = Date.now()
+        el.dataset.comemoracao = aparencia(p.login).comemoracao
+        el.innerHTML = `<span class="nome"></span><div class="pose"><div class="vivo">${Torcedor.figura(aparencia(p.login))}</div></div>`
         el.querySelector(".nome").textContent = p.nome
         el.querySelector(".vivo").style.setProperty("--atraso", `${-Math.random() * 3}s`)
         el.addEventListener("animationend", (e) => {
@@ -541,6 +544,7 @@
         }
         pessoas.set(login, { login, nome, desde: Date.now() })
         arrumar()
+        pedirEscolhas()
       }
 
       function sair(login) {
@@ -667,9 +671,11 @@
         gol({ nosso, kmh }) {
           if (!nosso) {
             narrar(voz(pick(CONTRA)))
+            soltarStickers("contra")
             return momento("luto", 3300)
           }
-          momento("festa", 2500)
+          momento("festa", 3000)
+          soltarStickers("gol")
           confete()
           faixa("GOOOL!", kmh ? `${kmh} km/h` : "")
           const dedicado = sortear()
@@ -801,6 +807,13 @@
       function demo() {
         const nomes = ["rafa_rl", "Giovana_GC", "tiagoboost", "platinadinho", "lucas_ssl", "bia.aerial", "DuduFlip",
           "kickoff_king", "ceci_rl", "manomenezes", "zeroboost", "Ana_Ceiling", "otto_dribla", "jujuflick", "PedroDemo"]
+        // Half of them chose their look on the site.
+        const um = (lista) => lista[Math.floor(Math.random() * lista.length)]
+        nomes.forEach((n, i) => i % 2 && escolhas.set(n.toLowerCase(), {
+          corpo: um(Torcedor.CORPOS), cabeca: um(Torcedor.CABECAS), roupa: um(Torcedor.ROUPAS), acessorio: um(Torcedor.ACESSORIOS),
+          comemoracao: um(Torcedor.COMEMORACOES), frase: um(["bora Luan!", "chegueeei", "hoje sobe!"]),
+          stickers: { gol: [um(Torcedor.STICKERS.slice(0, 12)), um(Torcedor.STICKERS.slice(0, 12))], contra: [um(Torcedor.STICKERS.slice(12))] },
+        }))
         nomes.slice(0, 12).forEach((n) => chegar(n.toLowerCase(), n))
         conectouEm = Date.now() - ASSENTANDO_MS
         const FRASES = ["boa noite!!", "que golaço", "GG", "esse half flip foi limpo demais",
@@ -818,6 +831,7 @@
           j: () => {
             const novo = nomes.find((n) => !pessoas.has(n.toLowerCase())) || `pessoa${pessoas.size}`
             chegar(novo.toLowerCase(), novo)
+            setTimeout(() => gritar(pessoas.get(novo.toLowerCase())), 1200)
           },
           s: () => sair(random()),
           m: () => say(random(), FRASES[Math.floor(Math.random() * FRASES.length)]),

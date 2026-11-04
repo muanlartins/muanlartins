@@ -1,0 +1,169 @@
+/*
+ * A fan (torcedor.js): the drawing and the goal celebrations, shared by the crowd overlay (torcida.html)
+ * and the profile page. The element is .torcedor with data-comemoracao, holding .pose (the moves) around
+ * the SVG; it celebrates inside a stand with .festa (delayed by --x, so it ripples along the stand) or
+ * on its own with .comemora.
+ */
+.torcedor svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.torcedor .contorno {
+  stroke: #001447;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+.torcedor .bracos path {
+  stroke: var(--cor);
+  stroke-width: 3;
+  stroke-linecap: square;
+}
+.torcedor .bracos {
+  opacity: 0;
+  transform-origin: 12px 18px;
+  transform: scaleY(0.2);
+  transition:
+    opacity 0.15s,
+    transform 0.25s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.torcedor .pose {
+  transform-origin: 50% 100%;
+}
+:is(.festa .torcedor, .torcedor.comemora) {
+  --onda: calc(var(--x, 0) * 0.7ms);
+}
+:is(.festa .torcedor, .torcedor.comemora) .bracos {
+  opacity: 1;
+  transform: none;
+}
+
+/* pula: four jumps. */
+:is(.festa .torcedor, .torcedor.comemora)[data-comemoracao="pula"] .pose {
+  animation: t-pula 0.5s cubic-bezier(0.65, 0, 0.35, 1) var(--onda) 4 alternate;
+}
+@keyframes t-pula {
+  to {
+    transform: translateY(-18px);
+  }
+}
+/* danca: a sway, arms taking turns. */
+:is(.festa .torcedor, .torcedor.comemora)[data-comemoracao="danca"] .pose {
+  animation: t-danca 0.8s ease-in-out var(--onda) 3;
+}
+:is(.festa .torcedor, .torcedor.comemora)[data-comemoracao="danca"] .bracos {
+  animation: t-bracos 0.8s steps(1) var(--onda) 3;
+}
+@keyframes t-danca {
+  25% {
+    transform: rotate(-10deg) translateY(-5px);
+  }
+  75% {
+    transform: rotate(10deg) translateY(-5px);
+  }
+}
+@keyframes t-bracos {
+  50% {
+    transform: scaleX(-1);
+  }
+}
+/* gira: two spins in the air. */
+:is(.festa .torcedor, .torcedor.comemora)[data-comemoracao="gira"] .pose {
+  transform-origin: 50% 55%;
+  animation: t-gira 1.1s cubic-bezier(0.65, 0, 0.35, 1) var(--onda) 2;
+}
+@keyframes t-gira {
+  50% {
+    transform: translateY(-16px) rotate(180deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* acena: waves from side to side, arms up. */
+:is(.festa .torcedor, .torcedor.comemora)[data-comemoracao="acena"] .pose {
+  animation: t-acena 0.3s ease-in-out var(--onda) 8 alternate;
+}
+@keyframes t-acena {
+  from {
+    transform: translateX(-3px) rotate(-7deg);
+  }
+  to {
+    transform: translateX(3px) rotate(7deg);
+  }
+}
+/* bananeira: a handstand, held, and back. */
+:is(.festa .torcedor, .torcedor.comemora)[data-comemoracao="bananeira"] .pose {
+  transform-origin: 50% 50%;
+  animation: t-bananeira 2.2s cubic-bezier(0.65, 0, 0.35, 1) var(--onda) both;
+}
+@keyframes t-bananeira {
+  20%,
+  80% {
+    transform: translateY(-22%) rotate(180deg);
+  }
+}
+
+/* On the profile page's preview: their goal (a slump) and arriving (a hop). */
+.torcedor.lamenta .pose {
+  animation: t-murcha 2.6s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+@keyframes t-murcha {
+  15%,
+  75% {
+    transform: translateY(6px) scaleY(0.88);
+    filter: brightness(0.6);
+  }
+}
+.torcedor.chega .pose {
+  animation: t-chega 0.9s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+@keyframes t-chega {
+  0% {
+    transform: translateX(120px);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  75% {
+    transform: translateY(-12px);
+  }
+}
+
+/* Stickers: the emojis a fan throws on a goal, rising from them and fading. */
+.sticker {
+  position: absolute;
+  z-index: 46;
+  font-size: 24px;
+  line-height: 1;
+  pointer-events: none;
+  animation: t-sticker var(--t, 2.2s) cubic-bezier(0.2, 0.7, 0.3, 1) var(--espera, 0s) both;
+}
+@keyframes t-sticker {
+  0% {
+    transform: translate(-50%, 0) scale(0.4);
+    opacity: 0;
+  }
+  15% {
+    transform: translate(-50%, -20px) scale(1);
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx, 0px)), var(--sobe, -140px)) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .torcedor .pose {
+    animation: none !important;
+  }
+}

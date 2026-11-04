@@ -11,6 +11,8 @@ import {
   UI,
   privacySlug,
   privacyUrl,
+  profileSlug,
+  profileUrl,
   sectionPath,
   sectionUrl,
   type Section,
@@ -30,8 +32,14 @@ export function SiteHeader({ lives }: { lives?: string }) {
   const current = currentSection(pathname)
   // Pages under a section keep the same path in both languages.
   const subpath = current === "personal" ? "" : pathname.slice(sectionPath(current).length)
-  const onPrivacy = pathname.replace(/\/$/, "") === `/${privacySlug()}`
-  const otherLanguage = onPrivacy ? privacyUrl(OTHER_LOCALE) : sectionUrl(current, OTHER_LOCALE) + subpath
+  const page = pathname.replace(/\/$/, "")
+  const onPrivacy = page === `/${privacySlug()}`
+  const onProfile = page === `/${profileSlug()}`
+  const otherLanguage = onPrivacy
+    ? privacyUrl(OTHER_LOCALE)
+    : onProfile
+      ? profileUrl(OTHER_LOCALE)
+      : sectionUrl(current, OTHER_LOCALE) + subpath
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-xl">
@@ -54,10 +62,10 @@ export function SiteHeader({ lives }: { lives?: string }) {
             <Link
               key={section}
               href={sectionPath(section)}
-              aria-current={section === current && !onPrivacy ? "page" : undefined}
+              aria-current={section === current && !onPrivacy && !onProfile ? "page" : undefined}
               className={cn(
                 "transition-colors hover:text-klein",
-                section === current && !onPrivacy ? "text-klein" : "text-muted",
+                section === current && !onPrivacy && !onProfile ? "text-klein" : "text-muted",
               )}
             >
               {UI.sections[section]}
