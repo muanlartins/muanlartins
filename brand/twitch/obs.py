@@ -27,14 +27,17 @@ K = CANVAS[0] / 1920
 # OBS enums: alignment flags (left 1, right 2, top 4, bottom 8) and bounds types.
 TOP_LEFT = 5
 # Audio tracks, recorded side by side for editing: everything, the microphone alone, the game alone, Discord alone.
-TRACK_ALL, TRACK_MIC, TRACK_GAME, TRACK_DISCORD = 1, 2, 4, 8
+# Track 5, "Live", is what the stream sends: everything plus the goal narrator, which stays out of the recording.
+# (The profile streams track 5 and records 1 to 4: Settings → Output → Streaming/Recording.)
+TRACK_ALL, TRACK_MIC, TRACK_GAME, TRACK_DISCORD, TRACK_LIVE = 1, 2, 4, 8, 16
+EVERYWHERE = TRACK_ALL | TRACK_LIVE
 MONITOR_AND_OUTPUT = 2
 BOUNDS_NONE, BOUNDS_SCALE_INNER, BOUNDS_SCALE_OUTER = 0, 2, 3
 
 
 def source(kind, name, settings, **extra):
     return {"id": kind, "versioned_id": kind, "name": name, "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, name)),
-            "settings": settings, "enabled": True, "flags": 0, "mixers": TRACK_ALL, "volume": 1.0, "balance": 0.5,
+            "settings": settings, "enabled": True, "flags": 0, "mixers": EVERYWHERE, "volume": 1.0, "balance": 0.5,
             "muted": False, "monitoring_type": 0, "sync": 0, "hotkeys": {}, "private_settings": {}, **extra}
 
 
@@ -66,7 +69,7 @@ def scene(name, *items):
 
 game = source("game_capture", "Rocket League", {"capture_mode": "window", "window": ROCKET_LEAGUE, "priority": 2,
                                                 "capture_cursor": False, "allow_transparency": False,
-                                                "capture_audio": True}, mixers=TRACK_ALL | TRACK_GAME)
+                                                "capture_audio": True}, mixers=EVERYWHERE | TRACK_GAME)
 # Stays on between scenes, so switching to one with the camera doesn't wait for it to start.
 # It also goes to a file of its own at native resolution while recording (the Source Record plugin), with the
 # microphone for syncing it to the main recording.
@@ -80,8 +83,11 @@ camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_vide
 game_overlay = browser("Overlay · Jogo", "jogo.html")
 game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1")
 chat_overlay = browser("Overlay · Conversa", "conversa.html")
-# The crowd, over the game overlay; the dock sends it the goals and saves.
+# The crowd, over the game overlay; the dock sends it the goals and saves. Its sound is the goal narrator: on the
+# stream only, and in Luan's headphones.
 crowd = browser("Torcida", "torcida.html")
+crowd["settings"]["reroute_audio"] = True
+crowd.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
 # Restarts when shown, so the countdown starts over each time the scene goes live.
 starting = browser("Tela · Começando", "intervalo.html?tela=comecando&minutos=5", restart=True)
 back = browser("Tela · Já volto", "intervalo.html?tela=volto")
@@ -99,9 +105,9 @@ alerts_in_talk = [(alerts, {"pos": (154, 800), "bounds": ALERTS_SIZE})] if alert
 # The game's sound comes with its capture. The rest of the computer is captured app by app, not as desktop audio,
 # which would carry the game a second time; each has its own fader.
 apps = [source("wasapi_process_output_capture", name, {"window": window, "priority": 2}, mixers=mixers)
-        for name, window, mixers in (("Discord", "Discord:Chrome_WidgetWin_1:Discord.exe", TRACK_ALL | TRACK_DISCORD),
-                                     ("Navegador", "Brave:Chrome_WidgetWin_1:brave.exe", TRACK_ALL))]
-mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=TRACK_ALL | TRACK_MIC, filters=[
+        for name, window, mixers in (("Discord", "Discord:Chrome_WidgetWin_1:Discord.exe", EVERYWHERE | TRACK_DISCORD),
+                                     ("Navegador", "Brave:Chrome_WidgetWin_1:brave.exe", EVERYWHERE))]
+mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVERYWHERE | TRACK_MIC, filters=[
     # Noise is already removed by NVIDIA Broadcast, which the microphone goes through.
     source("compressor_filter", "Compressor", {"ratio": 4.0, "threshold": -18.0, "attack_time": 6, "release_time": 60,
                                                "output_gain": 0.0}),

@@ -45,7 +45,7 @@ Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand token
 - `public/models/`, `public/ranks/`: 3D models and rank emblems (credits below).
 - `public/stream/`: the Twitch overlays, plain HTML pages that OBS loads by URL (see "Stream" in `brand/README.md`).
 - `brand/build.py` regenerates logos, site icons and YouTube art.
-- `scripts/`: after a live, `live.py` writes its page (`content/lives/`: whisper transcript, chapters from the dock's times, a draft summary) and thumbnail, and `youtube.py` sets its video through the Data API (title, description with chapters, thumbnail, playlist, captions) once it's uploaded in Studio. The OAuth client, token and the friends' names kept out of transcripts live outside the repo, in `%USERPROFILE%\.config\muanlartins`.
+- `scripts/`: after a live, `live.py` writes its page (`content/lives/`: whisper transcript, chapters from the dock's times, a draft summary) and thumbnail, and `youtube.py` sets its video through the Data API (title, description with chapters, thumbnail, playlist, captions) once it's uploaded in Studio. The OAuth client, token and the friends' names kept out of transcripts live outside the repo, in `%USERPROFILE%\.config\muanlartins`. `narrador.py` is the goal narrator's voice for the crowd overlay (edge-tts → Applio's RVC on the GPU, in WSL, started at Windows login); Applio and the voice model live outside the repo, in `~/.local/share`.
 - `infra/site.yml` and `.github/workflows/deploy.yml`: hosting and release.
 - `handoff/`: the plan and the Mac pilot (Pix alerts, voices, crowd, captions) handed to the Windows session that runs the stream. Start there.
 
