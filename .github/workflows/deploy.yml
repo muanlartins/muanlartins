@@ -63,3 +63,9 @@ jobs:
         run: |
           (cd infra/pix && zip -q -r ../../pix.zip . -x '*.test.*')
           aws lambda update-function-code --function-name "${{ vars.PIX_FUNCTION }}" --zip-file fileb://pix.zip > /dev/null
+      # The Σ function (infra/sigma), the same way: off until its name (the stack's output SigmaFunction) is set.
+      - name: Publish the Σ function
+        if: env.PUBLISH == 'true' && vars.SIGMA_FUNCTION != ''
+        run: |
+          (cd infra/sigma && zip -q -r ../../sigma.zip . -x '*.test.*')
+          aws lambda update-function-code --function-name "${{ vars.SIGMA_FUNCTION }}" --zip-file fileb://sigma.zip > /dev/null

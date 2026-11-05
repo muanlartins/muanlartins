@@ -1,13 +1,16 @@
+import { Flame } from "lucide-react"
+import { BadgeGrid } from "@/components/site/profile/badges"
 import { profile } from "@/content/profile"
 import type { Sigma, SigmaStats } from "@/lib/profile"
 import { LOCALE, localize } from "@/lib/site"
+import { cn } from "@/lib/utils"
 
 const text = localize(profile.sigma)
 const number = (n: number) => n.toLocaleString(LOCALE === "pt" ? "pt-BR" : "en")
 
 /**
  * The viewer's Σ: what it is, and once signed in, their total as a Rocket League rank with the way to the
- * next one, and what earned it.
+ * next one, their run of lives in a row, and their badges.
  */
 export function SigmaPanel({ S, login, stats }: { S: Sigma; login: string; stats: SigmaStats | null | undefined }) {
   const total = stats?.sigma ?? 0
@@ -41,19 +44,17 @@ export function SigmaPanel({ S, login, stats }: { S: Sigma; login: string; stats
               {rank.ate === null ? text.top : `${number(rank.ate - total)} Σ ${text.toNext} ${rank.proximo}`}
             </p>
           </div>
-          <dl className="flex flex-wrap gap-x-8 gap-y-2 text-[14px]">
-            {[
-              [number(Math.floor(stats.minutos / 60)), text.hours],
-              [number(stats.lives), text.lives],
-              [number(stats.sequencia), text.streak],
-            ].map(([value, label]) => (
-              <div key={label} className="flex items-baseline gap-1.5">
-                <dt className="sr-only">{label}</dt>
-                <dd className="text-lg font-medium text-ink tabular-nums">{value}</dd>
-                <span className="text-muted">{label}</span>
-              </div>
-            ))}
-          </dl>
+          <div className="flex items-center gap-3 rounded-md border border-line bg-paper/60 px-4 py-3">
+            <Flame className={cn("h-8 w-8 shrink-0", stats.sequencia ? "text-[#ff7a1a]" : "text-muted")} strokeWidth={2} />
+            <div>
+              <p className="text-[15px] text-ink">
+                <strong className="text-xl font-medium tabular-nums">{number(stats.sequencia)}</strong> {text.streakNow}
+              </p>
+              <p className="text-[13px] text-muted">{stats.sequencia ? text.streakKeep : text.streakStart}</p>
+            </div>
+          </div>
+          <h3 className="pt-2 text-[12px] font-medium uppercase tracking-[0.12em] text-muted">{text.badges}</h3>
+          <BadgeGrid badges={S.medalhas(stats, LOCALE)} />
         </div>
       )}
     </section>

@@ -224,6 +224,10 @@ from the start (plus two plain TTS voices and the viewer's own recorded voice).
 a year of lives); the stand orders by Σ with emblems; the dedication is weighed by a log of Σ; the profile shows
 Σ, rank and progress; any colour unlocks at Ouro I. Lifetime total only, seasons later. See AGENTS.md.
 
+**Built 11-05:** badges for hours watched, lives watched, the longest run of lives in a row and reais sent by Pix
+(that one seen only by its owner), each in eight levels, with the current run shown Duolingo-style; on the profile and
+the mural. The Σ API's code moved to `infra/sigma/` and ships with each push.
+
 **Luan's ideas for what comes next (11-04):**
 - Pix: **10 Σ per real** may be fair against 1 Σ a minute (to decide with Live Pix).
 - Past the top rank, **badges**: total donated, total watched, and so on.

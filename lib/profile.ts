@@ -46,7 +46,24 @@ export interface SigmaStats {
   sigma: number
   minutos: number
   lives: number
+  /** Lives in a row now: 0 once a live was missed. */
   sequencia: number
+  /** Their longest run. */
+  recorde: number
+  /** Cents sent by Pix: only in their own (GET /eu). */
+  doado?: number
+}
+
+/** A badge for some stats (sigma.js). */
+export interface Badge {
+  id: "horas" | "lives" | "seguidas" | "doado"
+  nome: string
+  valor: number
+  nivel: number
+  niveis: number
+  marco: number
+  proximo: number | null
+  progresso: number
 }
 
 /** A rank for a Σ total, in one game (sigma.js). */
@@ -64,17 +81,33 @@ export interface Sigma {
   ranque(sigma?: number, lingua?: "pt" | "en"): Rank
   peso(sigma?: number): number
   COR_LIVRE: number
+  medalhas(stats: Partial<SigmaStats>, lingua?: "pt" | "en"): Badge[]
 }
 
-/** Someone's Σ, or nothing yet: they haven't been in a live since Σ started. */
-export async function loadSigma(login: string): Promise<SigmaStats | null> {
+// A viewer whose first Σ came from a Pix has no minutes, lives or streak yet.
+const complete = (stats: Partial<SigmaStats>): SigmaStats => ({ sigma: 0, minutos: 0, lives: 0, sequencia: 0, recorde: 0, ...stats })
+
+/** Several viewers' Σ, by login (the public side: no Pix). A login missing hasn't been in a live since Σ started. */
+export async function loadSigmas(logins: string[]): Promise<Record<string, SigmaStats>> {
+  const unique = [...new Set(logins)]
+  const found: Record<string, SigmaStats> = {}
+  for (let i = 0; i < unique.length; i += 100) {
+    const response = await fetch(`${SIGMA_API}/sigmas?logins=${unique.slice(i, i + 100).map(encodeURIComponent).join(",")}`)
+    if (!response.ok) throw new Error(String(response.status))
+    for (const [login, stats] of Object.entries((await response.json()) as Record<string, Partial<SigmaStats>>)) found[login] = complete(stats)
+  }
+  return found
+}
+
+/** The signed-in viewer's own Σ, with what they sent by Pix; the public one if the Σ API can't say. */
+export async function loadMySigma(token: string, login: string): Promise<SigmaStats | null> {
   if (!SIGMA_API || !login) return null
-  const response = await fetch(`${SIGMA_API}/sigmas?logins=${encodeURIComponent(login)}`)
-  if (!response.ok) throw new Error(String(response.status))
-  const found = (await response.json()) as Record<string, Partial<SigmaStats>>
-  const stats = found[login]
-  // A viewer whose first Σ came from a Pix has no minutes, lives or streak yet.
-  return stats ? { sigma: 0, minutos: 0, lives: 0, sequencia: 0, ...stats } : null
+  const response = await fetch(`${SIGMA_API}/eu`, { headers: { authorization: `Bearer ${token}` } })
+  if (response.ok) {
+    const { stats } = (await response.json()) as { stats: Partial<SigmaStats> | null }
+    return stats ? complete(stats) : null
+  }
+  return (await loadSigmas([login]))[login] ?? null
 }
 
 /** window.Torcedor, from /stream/torcedor.js. */

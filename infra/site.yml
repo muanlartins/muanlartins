@@ -312,10 +312,12 @@ Resources:
                 Resource:
                   - !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionPt}
                   - !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionEn}
-              # The Pix function's code lives in infra/pix and ships with each push, like the site.
+              # The Pix and Σ functions' code lives in infra/pix and infra/sigma and ships with each push, like the site.
               - Effect: Allow
                 Action: lambda:UpdateFunctionCode
-                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-pix
+                Resource:
+                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-pix
+                  - !GetAtt Sigma.Arn
 
   # --- Viewer profiles: /perfil on the site saves each viewer's fan; the stream's crowd reads them ---------
 
@@ -495,11 +497,9 @@ Resources:
                 Action: [dynamodb:BatchGetItem, dynamodb:UpdateItem]
                 Resource: !GetAtt Sigmas.Arn
 
-  # GET /sigmas?logins=a,b is public: each one's Σ, minutes watched, lives and streak. POST /presenca comes
-  # from the crowd overlay once a minute while the stream is on, with who's in the chat and the key: each
-  # gets 1 Σ a minute (once, however many calls), and on their first minute of a live 10 Σ plus 5 for each
-  # live in a row before it, up to 50. A live is a day, in Luan's time; the item "#canal" keeps the last
-  # two, which is how a streak knows it wasn't broken.
+  # The code is infra/sigma/index.mjs (its header tells the whole story: GET /sigmas, GET /eu, POST /presenca);
+  # CI deploys it into this function on every push to main. The code below is the first version, before badges:
+  # CloudFormation leaves the deployed code alone as long as this block doesn't change, so don't edit it.
   Sigma:
     Type: AWS::Lambda::Function
     Properties:
@@ -512,6 +512,7 @@ Resources:
         Variables:
           TABLE: !Ref Sigmas
           CHAVE: !Ref SigmaChave
+          TWITCH_CLIENT_ID: !Ref TwitchClientId
       Code:
         ZipFile: |
           const { DynamoDBClient } = require("@aws-sdk/client-dynamodb")
@@ -587,7 +588,7 @@ Resources:
           - http://localhost:3001
           - http://localhost:8130
         AllowMethods: [GET, POST]
-        AllowHeaders: [content-type, x-chave]
+        AllowHeaders: [authorization, content-type, x-chave]
         MaxAge: 3600
 
   SigmaApiPermission:
@@ -707,6 +708,8 @@ Outputs:
     Value: !GetAtt PerfilApi.ApiEndpoint
   SigmaApiUrl:
     Value: !GetAtt SigmaApi.ApiEndpoint
+  SigmaFunction:
+    Value: !Ref Sigma
   PixApiUrl:
     Value: !GetAtt PixApi.ApiEndpoint
   PixFunction:
