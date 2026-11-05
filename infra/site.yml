@@ -456,6 +456,15 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PerfilApi}/*
 
+  # Each API is public, so each caps its requests: past the limit API Gateway answers 429 without calling
+  # (or billing) the function.
+  PerfilApiLimite:
+    Type: AWS::ApiGatewayV2::ApiGatewayManagedOverrides
+    Properties:
+      ApiId: !Ref PerfilApi
+      Stage:
+        DefaultRouteSettings: { ThrottlingRateLimit: 20, ThrottlingBurstLimit: 40 }
+
   # --- Σ: the viewers' points, one total each, earned in the lives and never spent ------------------------
 
   Sigmas:
@@ -589,6 +598,13 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${SigmaApi}/*
 
+  SigmaApiLimite:
+    Type: AWS::ApiGatewayV2::ApiGatewayManagedOverrides
+    Properties:
+      ApiId: !Ref SigmaApi
+      Stage:
+        DefaultRouteSettings: { ThrottlingRateLimit: 20, ThrottlingBurstLimit: 40 }
+
   # --- Live Pix: /pix on the site reserves a value, the phone forwards the bank's notification, the stream
   # shows what's paid. The code is infra/pix/index.mjs (its header tells the whole story); CI deploys it into
   # this function on every push to main, so the code below is only what answers until the first deploy. --
@@ -677,6 +693,14 @@ Resources:
       FunctionName: !Ref PixFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PixApi}/*
+
+  # Higher: every viewer paying polls their reservation every 2 s. /reservar also caps each IP (index.mjs).
+  PixApiLimite:
+    Type: AWS::ApiGatewayV2::ApiGatewayManagedOverrides
+    Properties:
+      ApiId: !Ref PixApi
+      Stage:
+        DefaultRouteSettings: { ThrottlingRateLimit: 50, ThrottlingBurstLimit: 100 }
 
 Outputs:
   PerfilApiUrl:
