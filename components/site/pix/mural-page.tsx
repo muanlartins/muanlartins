@@ -4,10 +4,11 @@ import Script from "next/script"
 import { useEffect, useState } from "react"
 import { PageIntro } from "@/components/site/page-intro"
 import { GoalBar } from "@/components/site/pix/goal-bar"
+import { BadgeChips } from "@/components/site/profile/badges"
 import { FanView } from "@/components/site/profile/fan-view"
 import { mural as muralCopy } from "@/content/pix"
 import { loadMural, PIX_API, reais, type Goal, type Mural, type MuralPix } from "@/lib/pix"
-import { loadFans, type Choice, type Torcedor } from "@/lib/profile"
+import { loadFans, loadSigmas, type Choice, type Sigma, type SigmaStats, type Torcedor } from "@/lib/profile"
 import { LOCALE, localize, PIX_SLUG } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
@@ -28,13 +29,20 @@ function Face({ p, T, fans }: { p: MuralPix; T: Torcedor | null; fans: Record<st
   )
 }
 
-function Supporters({ list, T, fans }: { list: MuralPix[]; T: Torcedor | null; fans: Record<string, Choice> | null }) {
+interface Look {
+  T: Torcedor | null
+  fans: Record<string, Choice> | null
+  S: Sigma | null
+  sigmas: Record<string, SigmaStats>
+}
+
+function Supporters({ list, look: { T, fans, S, sigmas } }: { list: MuralPix[]; look: Look }) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
       {list.map((p) => (
         <li key={p.em} className="flex gap-3 rounded-md border border-line bg-paper/70 px-3 py-3">
           {/* Wider than the fan: a flag or a cap reaches past its sides. */}
-          <div className="flex w-16 shrink-0 justify-center">
+          <div className="flex w-[76px] shrink-0 justify-start pl-1">
             <Face p={p} T={T} fans={fans} />
           </div>
           <div className="min-w-0 space-y-1">
@@ -42,6 +50,7 @@ function Supporters({ list, T, fans }: { list: MuralPix[]; T: Torcedor | null; f
               <strong className="font-medium break-words text-ink">{p.nome || text.anonymous}</strong>
               <span className="text-klein tabular-nums">R$ {reais(p.centavos)}</span>
             </p>
+            {S && p.login && sigmas[p.login] && <BadgeChips badges={S.medalhas(sigmas[p.login], LOCALE)} streak={sigmas[p.login].sequencia} />}
             <p className="text-[12px] text-muted">{day(p.em)}</p>
             {p.mensagem && <p className="text-[14px] leading-[1.55] break-words text-ink">{p.mensagem}</p>}
           </div>
@@ -51,7 +60,7 @@ function Supporters({ list, T, fans }: { list: MuralPix[]; T: Torcedor | null; f
   )
 }
 
-function GoalCard({ goal, current, T, fans }: { goal: Goal; current?: boolean; T: Torcedor | null; fans: Record<string, Choice> | null }) {
+function GoalCard({ goal, current, look }: { goal: Goal; current?: boolean; look: Look }) {
   const reached = goal.arrecadado >= goal.alvo
   const unnamed = goal.pix - goal.apoiadores.length
   return (
@@ -70,7 +79,7 @@ function GoalCard({ goal, current, T, fans }: { goal: Goal; current?: boolean; T
       <div className="space-y-3">
         <p className={heading}>{text.supporters}</p>
         {goal.apoiadores.length ? (
-          <Supporters list={goal.apoiadores} T={T} fans={fans} />
+          <Supporters list={goal.apoiadores} look={look} />
         ) : (
           <p className="text-[15px] text-muted">{text.noneYet}</p>
         )}
@@ -89,6 +98,9 @@ export function MuralPage() {
   const [mural, setMural] = useState<Mural | null>(null)
   const [T, setT] = useState<Torcedor | null>(null)
   const [fans, setFans] = useState<Record<string, Choice> | null>(null)
+  const [S, setS] = useState<Sigma | null>(null)
+  const [sigmas, setSigmas] = useState<Record<string, SigmaStats>>({})
+  const look = { T, fans, S, sigmas }
 
   useEffect(() => {
     if (!PIX_API) return
@@ -98,7 +110,10 @@ export function MuralPage() {
         const all = [...(m.meta ? [m.meta] : []), ...m.metas].flatMap((g) => g.apoiadores).concat(m.pix)
         const logins = all.flatMap((p) => (p.login ? [p.login] : []))
         // Without the profile API, every signed-in sender still gets the fan their login gives them.
-        if (logins.length) loadFans(logins).then(setFans, () => setFans({}))
+        if (logins.length) {
+          loadFans(logins).then(setFans, () => setFans({}))
+          loadSigmas(logins).then(setSigmas, () => {})
+        }
       })
       .catch(() => {})
   }, [])
@@ -109,6 +124,7 @@ export function MuralPage() {
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
       <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />
+      <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />
       <PageIntro title={text.title} description={text.description}>
         {PIX_API && (
           <a href={`/${PIX_SLUG}`} className="inline-block rounded-sm bg-klein px-5 py-3 text-[17px] font-medium text-paper transition-opacity hover:opacity-90">
@@ -124,14 +140,14 @@ export function MuralPage() {
           <>
             <div className="space-y-4">
               <h2 className={heading}>{text.goalNow}</h2>
-              {mural.meta ? <GoalCard goal={mural.meta} current T={T} fans={fans} /> : <p className="text-[15px] text-muted">{text.noGoal}</p>}
+              {mural.meta ? <GoalCard goal={mural.meta} current look={look} /> : <p className="text-[15px] text-muted">{text.noGoal}</p>}
             </div>
 
             {mural.metas.length > 0 && (
               <div className="space-y-4">
                 <h2 className={heading}>{text.goalsBefore}</h2>
                 {mural.metas.map((g) => (
-                  <GoalCard key={g.desde} goal={g} T={T} fans={fans} />
+                  <GoalCard key={g.desde} goal={g} look={look} />
                 ))}
               </div>
             )}
@@ -139,7 +155,7 @@ export function MuralPage() {
             {mural.pix.length > 0 && (
               <div className="space-y-4">
                 <h2 className={heading}>{text.outside}</h2>
-                <Supporters list={mural.pix} T={T} fans={fans} />
+                <Supporters list={mural.pix} look={look} />
               </div>
             )}
 

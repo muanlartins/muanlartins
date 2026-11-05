@@ -1,5 +1,5 @@
 // Σ, the channel's points: one total per viewer, earned in the lives and never spent or lost. Each game
-// shows it as its own ranks. Shared by the crowd overlay (torcida.html) and the profile page on the site,
+// shows it as its own ranks; badges show the rest of what a viewer has done. Shared by the crowd overlay (torcida.html) and the profile page on the site,
 // like torcedor.js; the Σ API (infra/site.yml) keeps the totals. Plain script, no build: sets window.Sigma.
 
 ;(() => {
@@ -40,5 +40,30 @@
   // From Ouro I on, a fan may wear any colour, not only the palette.
   const COR_LIVRE = 370
 
-  window.Sigma = { RL, ranque, peso, COR_LIVRE }
+  // Badges: what a viewer has done, each in eight levels, past any rank. Watching (hours, lives), coming back
+  // (their longest run of lives in a row, Duolingo-style; the run going now is `sequencia`) and Pix sent
+  // (reais, only on their own profile: GET /eu). A level is the highest mark reached; nothing is ever lost.
+  const MEDALHAS = [
+    { id: "horas", valor: (s) => Math.floor((s.minutos ?? 0) / 60), marcos: [1, 5, 10, 25, 50, 100, 250, 500] },
+    { id: "lives", valor: (s) => s.lives ?? 0, marcos: [1, 3, 10, 25, 50, 100, 200, 365] },
+    { id: "seguidas", valor: (s) => Math.max(s.recorde ?? 0, s.sequencia ?? 0), marcos: [2, 3, 5, 10, 20, 30, 50, 100] },
+    { id: "doado", valor: (s) => Math.floor((s.doado ?? 0) / 100), marcos: [1, 10, 25, 50, 100, 250, 500, 1000] },
+  ]
+  const MEDALHA_NOMES = {
+    pt: { horas: "Horas assistidas", lives: "Lives assistidas", seguidas: "Lives seguidas", doado: "Reais em Pix" },
+    en: { horas: "Hours watched", lives: "Lives watched", seguidas: "Lives in a row", doado: "Reais in Pix" },
+  }
+
+  /** Each badge for these stats: its level (0 to 8), the mark it reached and the next one, and the way there. */
+  function medalhas(stats = {}, lingua = "pt") {
+    return MEDALHAS.filter((m) => m.id !== "doado" || stats.doado !== undefined).map((m) => {
+      const valor = m.valor(stats)
+      const nivel = m.marcos.filter((x) => valor >= x).length
+      const marco = m.marcos[nivel - 1] ?? 0
+      const proximo = m.marcos[nivel] ?? null
+      return { id: m.id, nome: MEDALHA_NOMES[lingua][m.id], valor, nivel, niveis: m.marcos.length, marco, proximo, progresso: proximo === null ? 1 : (valor - marco) / (proximo - marco) }
+    })
+  }
+
+  window.Sigma = { RL, ranque, peso, COR_LIVRE, MEDALHAS, medalhas }
 })()

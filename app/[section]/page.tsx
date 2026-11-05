@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import { ChannelHome } from "@/components/site/channel/channel-home"
+import { ChannelMenu } from "@/components/site/channel/channel-menu"
 import { MuralPage } from "@/components/site/pix/mural-page"
 import { PixPage } from "@/components/site/pix/pix-page"
 import { PrivacyPage } from "@/components/site/privacy-page"
@@ -80,12 +81,22 @@ export async function generateMetadata({ params }: PageProps<"/[section]">) {
 export default async function SectionPage({ params }: PageProps<"/[section]">) {
   const slug = (await params).section
   if (slug === privacySlug()) return <PrivacyPage />
-  if (slug === profileSlug()) return <ProfilePage />
-  if (slug === PIX_SLUG) return <PixPage />
-  if (slug === MURAL_SLUG) return <MuralPage />
+  if (slug === profileSlug()) return <OfChannel page={<ProfilePage />} />
+  if (slug === PIX_SLUG) return <OfChannel page={<PixPage />} />
+  if (slug === MURAL_SLUG) return <OfChannel page={<MuralPage />} />
   const section = sectionFromSlug(slug)
   if (section === "professional") return <TimelinePage content={professional} />
   if (section === "content") return <ProjectList page={content.page} projects={content.projects} />
-  if (section === "channel") return <ChannelHome lives={lives()} />
+  if (section === "channel") return <OfChannel page={<ChannelHome lives={lives()} />} />
   notFound()
+}
+
+/** A page with the channel's menu, like those under /canal get from their layout. */
+function OfChannel({ page }: { page: React.ReactNode }) {
+  return (
+    <div className="relative">
+      <ChannelMenu />
+      {page}
+    </div>
+  )
 }

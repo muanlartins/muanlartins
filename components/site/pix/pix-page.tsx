@@ -351,7 +351,7 @@ export function PixPage() {
                 draft.mural ? "border-klein bg-klein/[0.07]" : "border-dashed border-klein/50 hover:border-klein hover:bg-klein/[0.03]",
               )}
             >
-              <span className="flex w-16 shrink-0 justify-center">
+              <span className="flex w-[76px] shrink-0 justify-start pl-1">
                 {T && login ? (
                   <FanView T={T} fan={T.normalizar(look, login)} className="h-[72px] w-12" />
                 ) : (

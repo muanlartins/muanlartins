@@ -75,8 +75,24 @@ export const channel = {
   pix: {
     title: { pt: "Pix na live", en: "Pix on the live" },
     description: {
-      pt: "Sua mensagem na tela, lida pela voz que você escolher, com o Pix direto para o Luan. E o mural de quem já mandou.",
-      en: "Your message on screen, read by the voice you pick, with the Pix straight to Luan. And the mural of everyone who has sent one.",
+      pt: "Sua mensagem na tela, lida pela voz que você escolher, com o Pix direto para o Luan.",
+      en: "Your message on screen, read by the voice you pick, with the Pix straight to Luan.",
+    },
+  },
+
+  mural: {
+    title: { pt: "Mural", en: "Mural" },
+    description: {
+      pt: "Quem mandou Pix na live e quis aparecer, meta por meta, com o torcedor e os badges de cada um.",
+      en: "Everyone who sent a Pix on the live and wanted to show, goal by goal, with each one's fan and badges.",
+    },
+  },
+
+  profile: {
+    title: { pt: "Seu torcedor", en: "Your fan" },
+    description: {
+      pt: "Monte o seu torcedor da arquibancada e veja o seu Σ, a sua sequência de lives e os seus badges.",
+      en: "Build your fan for the stand and see your Σ, your run of lives and your badges.",
     },
   },
 

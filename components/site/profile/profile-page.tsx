@@ -10,7 +10,7 @@ import {
   canSave,
   eraseMine,
   loadMine,
-  loadSigma,
+  loadMySigma,
   saveMine,
   signIn,
   signOut,
@@ -121,7 +121,7 @@ export function ProfilePage() {
     loadMine(found)
       .then(({ login, aparencia }) => {
         setLogin(login)
-        loadSigma(login)
+        loadMySigma(found, login)
           .then(setStats)
           .catch(() => setStats(null))
         const mine = aparencia ? T.normalizar(aparencia, login) : null

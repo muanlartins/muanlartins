@@ -6,7 +6,11 @@ import { LiveBadge } from "@/components/site/lives/live-badge"
 import { cn } from "@/lib/utils"
 import {
   LANGUAGE_LABEL,
+  MURAL_SLUG,
+  muralUrl,
   OTHER_LOCALE,
+  PIX_SLUG,
+  pixUrl,
   SECTIONS,
   UI,
   privacySlug,
@@ -35,11 +39,18 @@ export function SiteHeader({ lives }: { lives?: string }) {
   const page = pathname.replace(/\/$/, "")
   const onPrivacy = page === `/${privacySlug()}`
   const onProfile = page === `/${profileSlug()}`
+  // The profile, Pix and the mural sit beside the sections, but they're the channel's: its menu has them.
+  const ofChannel = onProfile || page === `/${PIX_SLUG}` || page === `/${MURAL_SLUG}`
+  const shown = onPrivacy ? null : ofChannel ? "channel" : current
   const otherLanguage = onPrivacy
     ? privacyUrl(OTHER_LOCALE)
     : onProfile
       ? profileUrl(OTHER_LOCALE)
-      : sectionUrl(current, OTHER_LOCALE) + subpath
+      : page === `/${PIX_SLUG}`
+        ? pixUrl(OTHER_LOCALE)
+        : page === `/${MURAL_SLUG}`
+          ? muralUrl(OTHER_LOCALE)
+          : sectionUrl(current, OTHER_LOCALE) + subpath
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-xl">
@@ -63,10 +74,10 @@ export function SiteHeader({ lives }: { lives?: string }) {
             <Link
               key={section}
               href={sectionPath(section)}
-              aria-current={section === current && !onPrivacy && !onProfile ? "page" : undefined}
+              aria-current={section === shown ? "page" : undefined}
               className={cn(
                 "transition-colors hover:text-klein",
-                section === current && !onPrivacy && !onProfile ? "text-klein" : "text-muted",
+                section === shown ? "text-klein" : "text-muted",
                 section === "personal" && "hidden sm:inline",
               )}
             >
