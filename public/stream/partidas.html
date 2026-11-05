@@ -452,7 +452,10 @@
       $("tier").onchange = setRank
       $("division").onchange = setRank
       $("mmr").onchange = setRank
-      $("mmr").onkeydown = (event) => event.key === "Escape" && ($("mmr").blur(), render())
+      // A block body: an on* handler that returns false cancels the key, and nothing would be typed.
+      $("mmr").onkeydown = (event) => {
+        if (event.key === "Escape") $("mmr").blur(), render()
+      }
       $("show").onchange = () => ((state.show = $("show").checked), save(), render())
       $("auto-scene").onchange = () => ((state.autoScene = $("auto-scene").checked), save())
       $("narrador").onchange = () => ((state.narrador = $("narrador").checked), save(), broadcast())
