@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { LanguageBadge } from "@/components/site/language-badge"
+import { Agenda } from "@/components/site/lives/agenda"
 import { OnAir } from "@/components/site/lives/on-air"
 import { PageIntro } from "@/components/site/page-intro"
 import { longDate, signed, weekday } from "@/components/site/ranked/format"
@@ -29,6 +30,10 @@ export function LivesPage({ lives, sessions }: { lives: Live[]; sessions: Sessio
 
       <div className="mt-12">
         <OnAir />
+      </div>
+
+      <div className="mt-12">
+        <Agenda />
       </div>
 
       <section className="mt-16">

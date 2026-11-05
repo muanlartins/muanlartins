@@ -1,0 +1,7 @@
+{
+  "$comment": "When the lives are. Days are ISO (1 Monday … 7 Sunday), times in timeZone. The site's Lives page and agenda.ics read it; scripts/twitch_agenda.py puts it on Twitch.",
+  "timeZone": "America/Sao_Paulo",
+  "since": "2026-11-06",
+  "slots": [{ "days": [1, 2, 3, 4, 5], "start": "14:30", "end": "16:30" }],
+  "twitch": { "title": "Ranqueadas de Rocket League", "category": "30921" }
+}
