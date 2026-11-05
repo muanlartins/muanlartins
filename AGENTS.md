@@ -21,6 +21,14 @@ Luan Martins' personal site and the home of the muanlartins channel: improving a
 - Small changes go straight to `main`; bigger features go through a branch and PR. A push to `main` is a release (below), so run `pnpm lint` first.
 - Commit messages are imperative and short, with no names.
 
+## Routines (skills)
+
+The stream's recurring work is written down as skills in `.claude/skills/` (Luan calls them as `/name`; read
+the one that fits before starting): `antes-da-live` (what not to run while he's on air, OBS checks),
+`depois-da-live` (filing the material, the live's page, YouTube, release), `estudio` (shorts and commented
+videos with RLR's studio), `agenda` (the lives' schedule on the site and Twitch) and `obs` (OBS from WSL,
+`scripts/obs.mjs`). When a routine changes, change its skill in the same commit.
+
 ## One codebase, two sites
 
 Each build bakes in one locale (`NEXT_PUBLIC_LOCALE`, see `lib/site.ts`):
