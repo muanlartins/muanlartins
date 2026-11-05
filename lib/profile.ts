@@ -71,8 +71,10 @@ export async function loadSigma(login: string): Promise<SigmaStats | null> {
   if (!SIGMA_API || !login) return null
   const response = await fetch(`${SIGMA_API}/sigmas?logins=${encodeURIComponent(login)}`)
   if (!response.ok) throw new Error(String(response.status))
-  const found = (await response.json()) as Record<string, SigmaStats>
-  return found[login] ?? null
+  const found = (await response.json()) as Record<string, Partial<SigmaStats>>
+  const stats = found[login]
+  // A viewer whose first Σ came from a Pix has no minutes, lives or streak yet.
+  return stats ? { sigma: 0, minutos: 0, lives: 0, sequencia: 0, ...stats } : null
 }
 
 /** window.Torcedor, from /stream/torcedor.js. */
