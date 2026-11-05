@@ -183,6 +183,18 @@ async function call(method: string, token: string, body?: unknown) {
   return (await response.json()) as { login: string; aparencia: Choice | null }
 }
 
+/** The fans saved under these logins (the public side of the profile API); a login missing has none saved. */
+export async function loadFans(logins: string[]): Promise<Record<string, Choice>> {
+  const unique = [...new Set(logins)]
+  const found: Record<string, Choice> = {}
+  for (let i = 0; i < unique.length; i += 100) {
+    const response = await fetch(`${PROFILE_API}/torcedores?logins=${unique.slice(i, i + 100).map(encodeURIComponent).join(",")}`)
+    if (!response.ok) throw new Error(String(response.status))
+    Object.assign(found, await response.json())
+  }
+  return found
+}
+
 export const loadMine = (token: string) => call("GET", token)
 export const saveMine = (token: string, fan: Fan) => call("PUT", token, fan)
 export const eraseMine = (token: string) => call("DELETE", token)

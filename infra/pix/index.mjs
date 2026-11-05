@@ -13,9 +13,10 @@
 //   pix/<iso>#<id>      every paid Pix, forever: the alerts, the goal and the mural
 //   pendente/<iso>#<id> a Pix nobody reserved, for the dock to place (with only the payer's first name)
 //   visto/<hash>        a notification already seen, since the phone may send one twice
-//   meta/atual          the goal on screen
+//   meta/atual          the goal on screen, counting every Pix since it was set
+//   meta/<iso>          a goal that ended (sk: when it started), for the mural's history
 //
-// Public: POST /reservar, GET /reserva?id=, GET /mural. The phone: POST /notificacao with x-token. The
+// Public: POST /reservar, GET /reserva?id=, GET /mural (the site's /mural: the goals and who chose to show). The phone: POST /notificacao with x-token. The
 // stream: GET /canal, GET /audio?id= and POST /canal with x-chave (the Σ key, already in OBS).
 
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto"
@@ -30,6 +31,7 @@ const DIA = 24 * 60 * MINUTO
 const RESERVA = 15 * MINUTO
 const FOLGA = 5 * MINUTO
 const SIGMA_POR_REAL = 10
+const MINIMO = 100 // R$ 1,00, for a reservation; a Pix that arrives by itself counts at any value
 const MAXIMO = 1_000_000 // R$ 10.000,00
 const VOZ = /^[a-z0-9]{1,16}$/
 const LOGIN = /^[a-z0-9_]{1,25}$/
@@ -131,7 +133,7 @@ async function reservar(event) {
   const p = lerJson(event)
   if (!p) return out(400, { erro: "Pedido inválido." })
   const pedido = Number(p.centavos)
-  if (!Number.isInteger(pedido) || pedido < 1 || pedido > MAXIMO) return out(400, { erro: "Escolha um valor entre R$ 0,01 e R$ 10.000." })
+  if (!Number.isInteger(pedido) || pedido < MINIMO || pedido > MAXIMO) return out(400, { erro: "Escolha um valor entre R$ 1 e R$ 10.000." })
   let audio
   if (p.audio) {
     const { tipo, dados } = p.audio
@@ -195,11 +197,57 @@ async function meta() {
   return { titulo: m.titulo, alvo: m.alvo, arrecadado }
 }
 
+/** Ends the goal on screen; it goes to the history, unless no Pix came while it was up (a typo, say). */
+async function encerrar() {
+  const m = await ler("meta", "atual")
+  if (!m) return
+  const pix = await todos("pix", { desde: m.desde })
+  if (pix.length) {
+    const arrecadado = pix.reduce((t, p) => t + p.centavos, 0)
+    await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: m.desde, titulo: m.titulo, alvo: m.alvo, desde: m.desde, ate: iso(Date.now()), arrecadado } }))
+  }
+  await apagar("meta", "atual")
+}
+
+// The mural: each goal (the one on screen, then the ones before) with the Pix that came while it was up,
+// and the Pix of no goal. A Pix shows by name only if its sender ticked the mural; with their Twitch
+// login when they signed in, so the page can draw their fan. The rest count, without a name.
 async function mural() {
-  const pix = (await todos("pix", { desc: true }))
-    .filter((p) => p.mural && !p.oculto)
-    .map((p) => ({ em: p.sk.slice(0, 24), nome: p.nome, mensagem: p.mensagem || p.transcricao || "", centavos: p.centavos }))
-  return out(200, { pix, meta: await meta() })
+  const [todosPix, metas] = await Promise.all([todos("pix"), todos("meta")])
+  const atual = metas.find((m) => m.sk === "atual")
+  const goals = [
+    ...(atual ? [{ titulo: atual.titulo, alvo: atual.alvo, desde: atual.desde, ate: null }] : []),
+    ...metas
+      .filter((m) => m.sk !== "atual")
+      .sort((a, b) => (a.desde < b.desde ? 1 : -1))
+      .map((m) => ({ titulo: m.titulo, alvo: m.alvo, desde: m.desde, ate: m.ate })),
+  ]
+  const daMeta = (p) => goals.findIndex((g) => p.sk >= g.desde && (!g.ate || p.sk < g.ate))
+  const mostra = (p) => ({
+    em: p.sk.slice(0, 24),
+    nome: p.nome,
+    mensagem: p.mensagem || p.transcricao || "",
+    centavos: p.centavos,
+    login: p.login,
+  })
+  const contas = goals.map(() => ({ arrecadado: 0, pix: 0, apoiadores: [] }))
+  const semMeta = []
+  for (const p of todosPix.reverse()) {
+    const i = daMeta(p)
+    if (i >= 0) {
+      contas[i].arrecadado += p.centavos
+      contas[i].pix++
+    }
+    if (!p.mural || p.oculto) continue
+    if (i >= 0) contas[i].apoiadores.push(mostra(p))
+    else semMeta.push(mostra(p))
+  }
+  const lista = goals.map((g, i) => ({ ...g, ...contas[i] }))
+  return out(200, {
+    meta: atual ? lista[0] : null,
+    metas: atual ? lista.slice(1) : lista,
+    pix: semMeta,
+  })
 }
 
 // --- A Pix arrives ------------------------------------------------------------------------------------
@@ -397,13 +445,18 @@ async function acao(p) {
     if (typeof p.pix === "string") await atualizar("pix", p.pix, { transcricao: texto, sujo })
     return out(200, { texto, sujo })
   }
+  // A new goal ends the one before; "ajustar" changes the one on screen and keeps its count.
   if (acao === "meta") {
     const alvo = Number(p.alvo)
     if (!Number.isInteger(alvo) || alvo < 1) {
-      await apagar("meta", "atual")
+      await encerrar()
       return out(200, { meta: null })
     }
-    await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: "atual", titulo: filtrar(linha(p.titulo, 60)).texto, alvo, desde: iso(Date.now()) } }))
+    const titulo = filtrar(linha(p.titulo, 60)).texto
+    if (!(p.ajustar && (await atualizar("meta", "atual", { titulo, alvo })))) {
+      await encerrar()
+      await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: "atual", titulo, alvo, desde: iso(Date.now()) } }))
+    }
     return out(200, { meta: await meta() })
   }
   return out(400, { erro: "acao" })

@@ -1,19 +1,20 @@
 import { notFound } from "next/navigation"
 import { ChannelHome } from "@/components/site/channel/channel-home"
+import { MuralPage } from "@/components/site/pix/mural-page"
 import { PixPage } from "@/components/site/pix/pix-page"
 import { PrivacyPage } from "@/components/site/privacy-page"
 import { ProfilePage } from "@/components/site/profile/profile-page"
 import { ProjectList } from "@/components/site/project-list"
 import { TimelinePage } from "@/components/site/timeline-page"
 import { channel } from "@/content/channel"
-import { pix } from "@/content/pix"
+import { mural, pix } from "@/content/pix"
 import { privacy } from "@/content/privacy"
 import { profile } from "@/content/profile"
 import professional from "@/content/professional"
 import * as content from "@/content/projects"
 import { lives } from "@/lib/lives-files"
 import { sectionMetadata } from "@/lib/metadata"
-import { HTML_LANG, localize, PIX_SLUG, pixUrl, privacySlug, privacyUrl, profileSlug, profileUrl, sectionFromSlug, sectionPath } from "@/lib/site"
+import { HTML_LANG, localize, MURAL_SLUG, muralUrl, PIX_SLUG, pixUrl, privacySlug, privacyUrl, profileSlug, profileUrl, sectionFromSlug, sectionPath } from "@/lib/site"
 
 export const dynamicParams = false
 
@@ -23,6 +24,7 @@ export function generateStaticParams() {
     { section: privacySlug() },
     { section: profileSlug() },
     { section: PIX_SLUG },
+    { section: MURAL_SLUG },
   ]
 }
 
@@ -58,6 +60,16 @@ export async function generateMetadata({ params }: PageProps<"/[section]">) {
       },
     }
   }
+  if (slug === MURAL_SLUG) {
+    return {
+      title: localize(mural.title),
+      description: localize(mural.description),
+      alternates: {
+        canonical: muralUrl(),
+        languages: { [HTML_LANG.pt]: muralUrl("pt"), [HTML_LANG.en]: muralUrl("en") },
+      },
+    }
+  }
   const section = sectionFromSlug(slug)
   if (section === "professional") return sectionMetadata(section, professional)
   if (section === "content") return sectionMetadata(section, content.page)
@@ -70,6 +82,7 @@ export default async function SectionPage({ params }: PageProps<"/[section]">) {
   if (slug === privacySlug()) return <PrivacyPage />
   if (slug === profileSlug()) return <ProfilePage />
   if (slug === PIX_SLUG) return <PixPage />
+  if (slug === MURAL_SLUG) return <MuralPage />
   const section = sectionFromSlug(slug)
   if (section === "professional") return <TimelinePage content={professional} />
   if (section === "content") return <ProjectList page={content.page} projects={content.projects} />

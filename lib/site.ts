@@ -65,6 +65,13 @@ export function pixUrl(locale: Locale = LOCALE) {
   return `${ORIGINS[locale]}/${PIX_SLUG}`
 }
 
+/** The mural of everyone who sent a Pix and chose to show: the same word in both languages too. */
+export const MURAL_SLUG = "mural"
+
+export function muralUrl(locale: Locale = LOCALE) {
+  return `${ORIGINS[locale]}/${MURAL_SLUG}`
+}
+
 /**
  * Your profiles elsewhere. They show in the footer and tell Google that
  * these accounts and this site are the same person.

@@ -18,7 +18,8 @@
         reservation, like a notification would; with none, it shows with the
         name typed here.
       - Últimos Pix: repeat an alert; take one off the site's mural.
-      - Meta: the goal bar on the overlay and on /pix; it counts from when it's set.
+      - Meta: the goal bar on the overlay, /pix and /mural; it counts from when it's set. A new one (or
+        Encerrar) sends the one before to /mural's history; Ajustar changes the one on screen and keeps its count.
     -->
     <style>
       html,
@@ -155,8 +156,9 @@
     <form class="row" id="meta">
       <input class="nome-in" id="m-titulo" maxlength="60" placeholder="Microfone novo" />
       <input class="valor-in" id="m-alvo" inputmode="decimal" placeholder="R$ 500" />
-      <button>Definir</button>
-      <button type="button" id="m-tirar">Tirar</button>
+      <button>Nova meta</button>
+      <button type="button" id="m-ajustar">Ajustar</button>
+      <button type="button" id="m-tirar">Encerrar</button>
     </form>
 
     <script>
@@ -199,7 +201,9 @@
       }
 
       let ultimo = ""
+      let metaAgora = null
       function desenhar({ pix, pendentes, reservas, meta }) {
+        metaAgora = meta
         const chave = JSON.stringify([pix, pendentes, reservas.map((r) => r.id), meta])
         if (chave === ultimo) return
         ultimo = chave
@@ -275,9 +279,19 @@
         e.preventDefault()
         const alvo = centavosDe($("m-alvo").value)
         if (!(alvo >= 1)) return alert("Valor da meta inválido.")
+        if (metaAgora && !confirm(`Começar uma meta nova? "${metaAgora.titulo || "Meta"}" vai para o histórico do mural.`)) return
         agir({ acao: "meta", titulo: $("m-titulo").value, alvo })
+        $("meta").reset()
       }
-      $("m-tirar").onclick = () => confirm("Tirar a meta da tela?") && agir({ acao: "meta", alvo: 0 })
+      // Ajustar: what's typed replaces the title or the target; the count goes on.
+      $("m-ajustar").onclick = () => {
+        if (!metaAgora) return alert("Não há meta para ajustar.")
+        const alvo = $("m-alvo").value ? centavosDe($("m-alvo").value) : metaAgora.alvo
+        if (!(alvo >= 1)) return alert("Valor da meta inválido.")
+        agir({ acao: "meta", ajustar: true, titulo: $("m-titulo").value || metaAgora.titulo, alvo })
+        $("meta").reset()
+      }
+      $("m-tirar").onclick = () => metaAgora && confirm("Encerrar a meta? Ela sai da tela e vai para o histórico do mural.") && agir({ acao: "meta", alvo: 0 })
 
       ler()
       setInterval(ler, 3000)
