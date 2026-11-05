@@ -51,15 +51,20 @@ DIVISIONS = ["I", "II", "III", "IV"]
 def recording(date, day):
     """(file, start) of the day's recording: the longest the dock logged, or the largest file for that day."""
     logged = [o for s in day for o in s.get("outputs", []) if o["kind"] == "record" and o.get("file") and o.get("end")]
+    # OBS leaves "<date> <hh-mm-ss>.mp4" in Videos; scripts/videos.py files it as Lives\<date>\<hh-mm-ss> Live.mp4.
+    organized = VIDEOS / "Lives" / date
     if logged:
         longest = max(logged, key=lambda o: datetime.fromisoformat(o["end"]) - datetime.fromisoformat(o["start"]))
-        return VIDEOS / longest["file"], datetime.fromisoformat(longest["start"].replace("Z", "+00:00"))
-    files = [f for f in VIDEOS.glob(f"{date} ??-??-??.*") if f.suffix in (".mkv", ".mp4")]
+        file = VIDEOS / longest["file"]
+        if not file.exists():
+            file = organized / f"{file.stem.split(' ')[-1]} Live{file.suffix}"
+        return file, datetime.fromisoformat(longest["start"].replace("Z", "+00:00"))
+    files = [f for f in [*VIDEOS.glob(f"{date} ??-??-??.*"), *organized.glob("??-??-?? Live.*")] if f.suffix in (".mkv", ".mp4")]
     if not files:
-        sys.exit(f"Nenhuma gravação de {date} em {VIDEOS}.")
+        sys.exit(f"Nenhuma gravação de {date} em {VIDEOS} nem em {organized}.")
     file = max(files, key=lambda f: f.stat().st_size)
     # OBS names the file for the local time it started.
-    start = datetime.strptime(file.stem, "%Y-%m-%d %H-%M-%S").replace(tzinfo=TIME_ZONE)
+    start = datetime.strptime(f"{date} {file.stem[-8:] if file.parent == VIDEOS else file.stem[:8]}", "%Y-%m-%d %H-%M-%S").replace(tzinfo=TIME_ZONE)
     print(f"O dock não registrou a gravação: uso {file.name}, começando às {start:%H:%M:%S}.")
     return file, start
 
