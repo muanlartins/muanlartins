@@ -13,6 +13,7 @@
 //   pix/<iso>#<id>      every paid Pix, forever: the alerts, the goal and the mural
 //   pendente/<iso>#<id> a Pix nobody reserved, for the dock to place (with only the payer's first name)
 //   visto/<hash>        a notification already seen, since the phone may send one twice
+//   limite/<ip>#<n>     reservations from one IP in the n-th 15-minute window, so a script can't hold every value
 //   meta/atual          the goal on screen, counting every Pix since it was set
 //   meta/<iso>          a goal that ended (sk: when it started), for the mural's history
 //
@@ -33,6 +34,7 @@ const FOLGA = 5 * MINUTO
 const SIGMA_POR_REAL = 10
 const MINIMO = 100 // R$ 1,00, for a reservation; a Pix that arrives by itself counts at any value
 const MAXIMO = 1_000_000 // R$ 10.000,00
+const POR_IP = 5 // reservations per IP every RESERVA
 const VOZ = /^[a-z0-9]{1,16}$/
 const LOGIN = /^[a-z0-9_]{1,25}$/
 const AUDIO = /^audio\/(webm|ogg|mp4|mpeg)(;[\w=.,\s-]*)?$/
@@ -129,6 +131,21 @@ async function quem(headers) {
 
 // --- The viewer -------------------------------------------------------------------------------------
 
+async function demais(ip) {
+  const janela = Math.floor(Date.now() / RESERVA)
+  const r = await db.send(
+    new UpdateCommand({
+      TableName: T,
+      Key: { pk: "limite", sk: `${ip}#${janela}` },
+      UpdateExpression: "ADD n :um SET #ttl = :ttl",
+      ExpressionAttributeNames: { "#ttl": "ttl" },
+      ExpressionAttributeValues: { ":um": 1, ":ttl": expiraEm(2 * RESERVA) },
+      ReturnValues: "UPDATED_NEW",
+    }),
+  )
+  return r.Attributes.n > POR_IP
+}
+
 async function reservar(event) {
   const p = lerJson(event)
   if (!p) return out(400, { erro: "Pedido inválido." })
@@ -140,6 +157,7 @@ async function reservar(event) {
     if (!AUDIO.test(tipo) || typeof dados !== "string" || dados.length > MAX_AUDIO || !BASE64.test(dados)) return out(400, { erro: "Não deu para enviar o áudio. Grave de novo, mais curto." })
     audio = { tipo, dados }
   }
+  if (await demais(event.requestContext.http.sourceIp)) return out(429, { erro: "Muitas reservas seguidas. Espere alguns minutos e tente de novo." })
   const login = await quem(event.headers || {})
   const agora = Date.now()
   const id = novoId()
