@@ -10,6 +10,8 @@ import { ORIGIN, profileSlug } from "@/lib/site"
 export const TWITCH_CLIENT_ID = process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID ?? "dploislenvijye1obbcm5dqxcxu5y1"
 /** The profile API. Both can be set in the environment to try the page against a local stand-in. */
 export const PROFILE_API = process.env.NEXT_PUBLIC_PROFILE_API ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
+/** The Σ API (output SigmaApiUrl): each viewer's points, public by login. */
+export const SIGMA_API = process.env.NEXT_PUBLIC_SIGMA_API ?? ""
 
 const TOKEN_KEY = "twitch:token"
 const STATE_KEY = "twitch:state"
@@ -33,7 +35,42 @@ export interface Fan {
 declare global {
   interface Window {
     Torcedor?: Torcedor
+    Sigma?: Sigma
   }
+}
+
+/** A viewer's Σ and what earned it (infra/site.yml). */
+export interface SigmaStats {
+  sigma: number
+  minutos: number
+  lives: number
+  sequencia: number
+}
+
+/** A rank for a Σ total, in one game (sigma.js). */
+export interface Rank {
+  id: string
+  nome: string
+  emblema: string
+  desde: number
+  ate: number | null
+  proximo: string | null
+}
+
+/** window.Sigma, from /stream/sigma.js. */
+export interface Sigma {
+  ranque(sigma?: number, lingua?: "pt" | "en"): Rank
+  peso(sigma?: number): number
+  COR_LIVRE: number
+}
+
+/** Someone's Σ, or nothing yet: they haven't been in a live since Σ started. */
+export async function loadSigma(login: string): Promise<SigmaStats | null> {
+  if (!SIGMA_API || !login) return null
+  const response = await fetch(`${SIGMA_API}/sigmas?logins=${encodeURIComponent(login)}`)
+  if (!response.ok) throw new Error(String(response.status))
+  const found = (await response.json()) as Record<string, SigmaStats>
+  return found[login] ?? null
 }
 
 /** window.Torcedor, from /stream/torcedor.js. */
@@ -48,6 +85,7 @@ export interface Torcedor {
   STICKERS_MAX: number
   padrao(login?: string): Fan
   normalizar(choice: Choice | Fan | null | undefined, login?: string): Fan
+  soPaleta(fan: Fan, login?: string): Fan
   figura(fan: Fan): string
   umEmoji(text: string): boolean
 }

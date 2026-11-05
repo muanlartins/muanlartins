@@ -5,7 +5,8 @@ Description: >-
   role GitHub Actions assumes to deploy. Both domains also serve RLR, the
   replay player, at /rlr/ from its own GitHub Pages site. The viewers'
   profiles (how their fan looks in the stream's crowd) live in a DynamoDB
-  table behind a small HTTP API, signed in with Twitch. Create in us-east-1,
+  table behind a small HTTP API, signed in with Twitch; their Σ (points
+  earned watching the lives) in another, behind its own. Create in us-east-1,
   where CloudFront certificates must live.
 
 Parameters:
@@ -29,6 +30,11 @@ Parameters:
     Type: String
     Default: ""
     Description: Client ID of the Twitch app the profile page signs in with (dev.twitch.tv/console)
+  SigmaChave:
+    Type: String
+    NoEcho: true
+    MinLength: 32
+    Description: The key the stream's crowd overlay sends to credit Σ; it lives only here and in OBS's source URL
 
 Conditions:
   CreateOidcProvider: !Equals [!Ref CreateGitHubOidcProvider, "true"]
@@ -428,9 +434,144 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PerfilApi}/*
 
+  # --- Σ: the viewers' points, one total each, earned in the lives and never spent ------------------------
+
+  Sigmas:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions: [{ AttributeName: login, AttributeType: S }]
+      KeySchema: [{ AttributeName: login, KeyType: HASH }]
+
+  SigmaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns: [arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole]
+      Policies:
+        - PolicyName: sigmas
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:BatchGetItem, dynamodb:UpdateItem]
+                Resource: !GetAtt Sigmas.Arn
+
+  # GET /sigmas?logins=a,b is public: each one's Σ, minutes watched, lives and streak. POST /presenca comes
+  # from the crowd overlay once a minute while the stream is on, with who's in the chat and the key: each
+  # gets 1 Σ a minute (once, however many calls), and on their first minute of a live 10 Σ plus 5 for each
+  # live in a row before it, up to 50. A live is a day, in Luan's time; the item "#canal" keeps the last
+  # two, which is how a streak knows it wasn't broken.
+  Sigma:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Role: !GetAtt SigmaRole.Arn
+      MemorySize: 256
+      Timeout: 10
+      Environment:
+        Variables:
+          TABLE: !Ref Sigmas
+          CHAVE: !Ref SigmaChave
+      Code:
+        ZipFile: |
+          const { DynamoDBClient } = require("@aws-sdk/client-dynamodb")
+          const { DynamoDBDocumentClient, BatchGetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb")
+          const db = DynamoDBDocumentClient.from(new DynamoDBClient({}))
+          const T = process.env.TABLE
+          const LOGIN = /^[a-z0-9_]{1,25}$/
+          const CANAL = "#canal"
+          const out = (statusCode, body) => ({ statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+          const lista = (l) => [...new Set(l.map((x) => String(x).toLowerCase()))].filter((x) => LOGIN.test(x)).slice(0, 100)
+          async function ler(logins) {
+            const r = await db.send(new BatchGetCommand({ RequestItems: { [T]: { Keys: logins.map((login) => ({ login })) } } }))
+            return Object.fromEntries((r.Responses?.[T] || []).map((i) => [i.login, i]))
+          }
+
+          exports.handler = async (event) => {
+            const metodo = event.requestContext.http.method
+            const caminho = event.rawPath
+            // The $default route takes the browser's preflight too; API Gateway adds the CORS headers.
+            if (metodo === "OPTIONS") return { statusCode: 204 }
+            if (metodo === "GET" && caminho === "/sigmas") {
+              const logins = lista((event.queryStringParameters?.logins || "").split(","))
+              if (!logins.length) return out(200, {})
+              const itens = await ler(logins)
+              return out(200, Object.fromEntries(Object.values(itens).map(({ login, sigma, minutos, lives, sequencia }) => [login, { sigma, minutos, lives, sequencia }])))
+            }
+            if (metodo !== "POST" || caminho !== "/presenca") return out(404, {})
+            if (!process.env.CHAVE || event.headers?.["x-chave"] !== process.env.CHAVE) return out(401, {})
+            let corpo = event.body || "{}"
+            if (event.isBase64Encoded) corpo = Buffer.from(corpo, "base64").toString()
+            let logins
+            try { logins = lista(JSON.parse(corpo).logins || []) } catch { return out(400, {}) }
+            const minuto = Math.floor(Date.now() / 60000)
+            const hoje = new Date().toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
+            const canal = (await ler([CANAL]))[CANAL] || {}
+            if (canal.ultima !== hoje) {
+              await db.send(new UpdateCommand({ TableName: T, Key: { login: CANAL }, UpdateExpression: "SET ultima = :h, anterior = :a", ExpressionAttributeValues: { ":h": hoje, ":a": canal.ultima ?? null } }))
+            }
+            const anterior = canal.ultima !== hoje ? canal.ultima : canal.anterior
+            const itens = logins.length ? await ler(logins) : {}
+            let creditados = 0
+            await Promise.all(logins.map(async (login) => {
+              const i = itens[login] || {}
+              const nova = i.ultimaLive !== hoje
+              const sequencia = !nova ? i.sequencia || 1 : anterior && i.ultimaLive === anterior ? (i.sequencia || 0) + 1 : 1
+              const ganho = 1 + (nova ? 10 + 5 * Math.min(sequencia - 1, 10) : 0)
+              try {
+                await db.send(new UpdateCommand({
+                  TableName: T, Key: { login },
+                  ConditionExpression: "attribute_not_exists(minuto) OR minuto < :m",
+                  UpdateExpression: "SET minuto = :m, ultimaLive = :h, sequencia = :s ADD sigma :g, minutos :um, lives :l",
+                  ExpressionAttributeValues: { ":m": minuto, ":h": hoje, ":s": sequencia, ":g": ganho, ":um": 1, ":l": nova ? 1 : 0 },
+                }))
+                creditados++
+              } catch (e) {
+                if (e.name !== "ConditionalCheckFailedException") throw e
+              }
+            }))
+            return out(200, { creditados })
+          }
+
+  SigmaApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub ${AWS::StackName}-sigma
+      ProtocolType: HTTP
+      Target: !GetAtt Sigma.Arn
+      CorsConfiguration:
+        AllowOrigins:
+          - https://muanlartins.com.br
+          - https://muanlartins.com
+          - http://localhost:3000
+          - http://localhost:3001
+          - http://localhost:8130
+        AllowMethods: [GET, POST]
+        AllowHeaders: [content-type, x-chave]
+        MaxAge: 3600
+
+  SigmaApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref Sigma
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${SigmaApi}/*
+
 Outputs:
   PerfilApiUrl:
     Value: !GetAtt PerfilApi.ApiEndpoint
+  SigmaApiUrl:
+    Value: !GetAtt SigmaApi.ApiEndpoint
   DeployRoleArn:
     Value: !GetAtt DeployRole.Arn
   Bucket:

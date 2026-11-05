@@ -215,6 +215,18 @@ and UI polish still to do.
 
 ## 7. Σ, fans and the community (decided, for later)
 
+**Built 11-04 (the first version):** 1 Σ a minute logged in to the chat while the stream is on, +10 each live,
++5 for each live in a row up to +50; test streams count. Rocket League ranks from 0 to 20,000 Σ (the top in about
+a year of lives); the stand orders by Σ with emblems; the dedication is weighed by a log of Σ; the profile shows
+Σ, rank and progress; any colour unlocks at Ouro I. Lifetime total only, seasons later. See AGENTS.md.
+
+**Luan's ideas for what comes next (11-04):**
+- Pix: **10 Σ per real** may be fair against 1 Σ a minute (to decide with Live Pix).
+- Past the top rank, **badges**: total donated, total watched, and so on.
+- A **hall of fame** (mural da fama): special names first (the first commenter on YouTube, the first viewer of
+  a live), then filled in over time.
+- **One-time rewards** to claim. Σ is never spent, so claiming unlocks something without taking any away.
+
 - **Σ ("sigmas")**: one cumulative points currency; game ranks are only a per-game display of it (thresholds
   per game). **Nobody ever loses or spends Σ, only gains.** Lifetime total plus **seasons**.
 - Earned by watch time, presence streak (like Duolingo's), Pix, channel points (once Affiliate), studying the

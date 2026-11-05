@@ -48,16 +48,17 @@
     }
   }
 
+  const HEX = /^#[0-9a-f]{6}$/i
   const EMOJI = /^\p{Extended_Pictographic}[\p{Extended_Pictographic}\p{Emoji_Modifier}‍️]*$/u
   const umEmoji = (e) => typeof e === "string" && e.length <= 16 && EMOJI.test(e)
 
-  /** A stored look over the default one: only what's valid is kept. */
+  /** A stored look over the default one: only what's valid is kept. Any colour is valid here; the palette
+      is a rule of the stand (soPaleta), which knows who has unlocked free colours. */
   function normalizar(escolha, login = "") {
     const a = padrao(login)
     if (!escolha || typeof escolha !== "object") return a
     const de = (lista, chave) => lista.includes(escolha[chave]) && (a[chave] = escolha[chave])
-    de(CORES, "cor")
-    de(CORES, "detalhe")
+    for (const chave of ["cor", "detalhe"]) if (HEX.test(escolha[chave])) a[chave] = escolha[chave].toLowerCase()
     de(CABECAS, "cabeca")
     de(ROUPAS, "roupa")
     de(ACESSORIOS, "acessorio")
@@ -68,6 +69,14 @@
       const lista = escolha.stickers?.[quando]
       if (Array.isArray(lista)) a.stickers[quando] = lista.filter(umEmoji).slice(0, STICKERS_MAX)
     }
+    return a
+  }
+
+  /** The look with any colour outside the palette back to the default one: for who hasn't unlocked free colours (sigma.js). */
+  function soPaleta(aparencia, login = "") {
+    const base = padrao(login)
+    const a = { ...aparencia }
+    for (const chave of ["cor", "detalhe"]) if (!CORES.includes(a[chave])) a[chave] = base[chave]
     return a
   }
 
@@ -107,6 +116,6 @@
 
   window.Torcedor = {
     CORES, CABECAS, ROUPAS, ACESSORIOS, COMEMORACOES, STICKERS, FRASE_MAX, STICKERS_MAX,
-    padrao, normalizar, figura, umEmoji,
+    padrao, normalizar, soPaleta, figura, umEmoji,
   }
 })()
