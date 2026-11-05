@@ -102,8 +102,9 @@ export async function loadSigmas(logins: string[]): Promise<Record<string, Sigma
 /** The signed-in viewer's own Σ, with what they sent by Pix; the public one if the Σ API can't say. */
 export async function loadMySigma(token: string, login: string): Promise<SigmaStats | null> {
   if (!SIGMA_API || !login) return null
-  const response = await fetch(`${SIGMA_API}/eu`, { headers: { authorization: `Bearer ${token}` } })
-  if (response.ok) {
+  // Before the Σ API has /eu (or if it refuses the call outright), the public side still answers.
+  const response = await fetch(`${SIGMA_API}/eu`, { headers: { authorization: `Bearer ${token}` } }).catch(() => null)
+  if (response?.ok) {
     const { stats } = (await response.json()) as { stats: Partial<SigmaStats> | null }
     return stats ? complete(stats) : null
   }
