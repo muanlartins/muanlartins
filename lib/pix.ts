@@ -10,9 +10,31 @@ export interface Reservation {
   sigma: number
 }
 
+/** A Pix on the mural; `login` when its sender signed in with Twitch, to draw their fan. */
+export interface MuralPix {
+  em: string
+  nome: string
+  mensagem: string
+  centavos: number
+  login?: string
+}
+
+/** A goal and what came in while it was up: every Pix counts; only those who chose to are named. */
+export interface Goal {
+  titulo: string
+  alvo: number
+  desde: string
+  ate: string | null
+  arrecadado: number
+  pix: number
+  apoiadores: MuralPix[]
+}
+
 export interface Mural {
-  pix: { em: string; nome: string; mensagem: string; centavos: number }[]
-  meta: { titulo: string; alvo: number; arrecadado: number } | null
+  meta: Goal | null
+  metas: Goal[]
+  /** The named Pix of no goal. */
+  pix: MuralPix[]
 }
 
 export interface Order {
@@ -56,3 +78,6 @@ export async function loadMural(): Promise<Mural> {
   if (!response.ok) throw new Error(String(response.status))
   return response.json()
 }
+
+/** The smallest Pix the form takes: R$ 1. */
+export const MINIMO = 100

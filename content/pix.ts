@@ -1,12 +1,11 @@
 /**
- * /pix: a Pix to the live, with a message on screen read by a voice, and the mural of every Pix whose sender
- * agreed. The voices' ids are the narrator's (scripts/narrador.py); their samples are in public/pix/vozes/.
+ * /pix: a Pix to the live, with a message on screen read by a voice; /mural: every Pix whose sender agreed. The voices' ids are the narrator's (scripts/narrador.py); their samples are in public/pix/vozes/.
  */
 export const pix = {
   title: { pt: "Pix na live", en: "Pix on the live" },
   description: {
-    pt: "Mande um Pix e sua mensagem aparece na live, lida pela voz que você escolher. Sem taxa de plataforma: o Pix cai direto na conta do Luan.",
-    en: "Send a Pix and your message shows up on the live, read by the voice you pick. No platform fee: the Pix goes straight to Luan's account. Pix works with Brazilian banks only.",
+    pt: "Mande um Pix e sua mensagem aparece na live, lida pela voz que você escolher.",
+    en: "Send a Pix and your message shows up on the live, read by the voice you pick. Pix works with Brazilian banks only.",
   },
   soon: {
     pt: "O Pix na live está quase pronto. Volte daqui a pouco.",
@@ -26,7 +25,8 @@ export const pix = {
   recordLimit: { pt: "Até 15 segundos. Na live, o texto do que você falou aparece na tela.", en: "Up to 15 seconds. On the live, what you said shows on screen as text." },
   recordDenied: { pt: "O navegador não deixou usar o microfone.", en: "The browser didn't allow the microphone." },
   voice: { pt: "Voz", en: "Voice" },
-  listen: { pt: "Ouvir", en: "Listen" },
+  voiceHint: { pt: "Toque numa voz para ouvir como ela fala.", en: "Tap a voice to hear how it sounds." },
+  voiceRecordingHint: { pt: "Sua gravação sai na voz que você escolher.", en: "Your recording comes out in the voice you pick." },
   amount: { pt: "Valor", en: "Amount" },
   other: { pt: "Outro", en: "Other" },
   otherPlaceholder: { pt: "R$ 2,50", en: "R$ 2.50" },
@@ -34,7 +34,15 @@ export const pix = {
   now: { pt: "Na hora", en: "Right away" },
   between: { pt: "Entre partidas", en: "Between matches" },
   betweenHint: { pt: "Espera a partida acabar, para não atrapalhar o jogo.", en: "Waits for the match to end, so it doesn't get in the way." },
-  mural: { pt: "Mostrar no mural do site, com o nome e a mensagem", en: "Show on the site's mural, with the name and message" },
+  muralTitle: { pt: "Apareça no mural", en: "Be on the mural" },
+  muralNote: {
+    pt: "Seu nome e sua mensagem ficam no mural do canal, junto da meta que você ajudou a bater.",
+    en: "Your name and message stay on the channel's mural, next to the goal you helped reach.",
+  },
+  muralFan: { pt: "Com a Twitch conectada, seu torcedor aparece junto.", en: "With Twitch connected, your fan shows up too." },
+  muralOn: { pt: "Vou aparecer no mural", en: "I'll be on the mural" },
+  muralOff: { pt: "Quero aparecer no mural", en: "I want to be on the mural" },
+  muralSee: { pt: "Ver o mural", en: "See the mural" },
   sigmaSignedIn: { pt: "Entrou como", en: "Signed in as" },
   sigmaGain: { pt: "Este Pix te dá", en: "This Pix gives you" },
   sigmaSignIn: { pt: "Entrar com a Twitch para ganhar Σ", en: "Sign in with Twitch to earn Σ" },
@@ -43,7 +51,7 @@ export const pix = {
   generate: { pt: "Gerar Pix", en: "Make the Pix" },
   generating: { pt: "Gerando…", en: "Making it…" },
   error: { pt: "Não deu para gerar o Pix. Tente de novo.", en: "Couldn't make the Pix. Try again." },
-  minimum: { pt: "O valor mínimo é R$ 0,01.", en: "The minimum is R$ 0.01." },
+  minimum: { pt: "O valor mínimo é R$ 1.", en: "The minimum is R$ 1." },
   payTitle: { pt: "Pague este valor exato", en: "Pay this exact amount" },
   payNote: {
     pt: "Leia o QR no app do seu banco ou copie o código e use Pix copia e cola. O valor já vem preenchido; se tiver centavos, são eles que identificam o seu Pix.",
@@ -62,19 +70,41 @@ export const pix = {
   },
   again: { pt: "Mandar outro Pix", en: "Send another Pix" },
   goal: { pt: "Meta", en: "Goal" },
-  muralTitle: { pt: "Mural", en: "Mural" },
-  muralEmpty: { pt: "Ainda ninguém. O primeiro nome do mural pode ser o seu.", en: "Nobody yet. The mural's first name could be yours." },
+} as const
+
+/** /mural: the goals, the one on screen and the ones before, with whoever chose to show on each. */
+export const mural = {
+  title: { pt: "Mural", en: "Mural" },
+  description: {
+    pt: "Quem mandou Pix na live e quis aparecer aqui, meta por meta. Valeu a cada um!",
+    en: "Everyone who sent a Pix on the live and wanted to show up here, goal by goal. Thanks, each of you!",
+  },
+  soon: { pt: "O mural abre junto com o Pix na live.", en: "The mural opens along with Pix on the live." },
+  send: { pt: "Mandar um Pix", en: "Send a Pix" },
+  goalNow: { pt: "Meta atual", en: "Current goal" },
+  noGoal: { pt: "Nenhuma meta agora.", en: "No goal right now." },
+  goalsBefore: { pt: "Metas anteriores", en: "Earlier goals" },
+  reached: { pt: "Meta batida", en: "Goal reached" },
+  of: { pt: "de", en: "of" },
+  supporters: { pt: "Quem ajudou", en: "Who helped" },
+  others: { pt: "Pix sem nome no mural", en: "Pix with no name on the mural" },
+  noneYet: { pt: "Ninguém no mural ainda. O primeiro pode ser você.", en: "Nobody on the mural yet. The first could be you." },
+  outside: { pt: "Fora das metas", en: "Outside the goals" },
+  anonymous: { pt: "Anônimo", en: "Anonymous" },
   privacy: {
-    pt: "O nome do banco de quem paga nunca aparece: nem na live, nem no mural. Para tirar um Pix seu do mural, fale com o Luan.",
-    en: "The payer's name at the bank never shows: not on the live, not on the mural. To take a Pix of yours off the mural, ask Luan.",
+    pt: "O nome do banco de quem paga nunca aparece: nem na live, nem aqui. Para tirar um Pix seu do mural, fale com o Luan.",
+    en: "The payer's name at the bank never shows: not on the live, not here. To take a Pix of yours off the mural, ask Luan.",
   },
 } as const
 
-/** The voices on the form. "propria" is only for a recording: it plays as recorded. */
-export const VOICES: { id: string; name: string; text: boolean; recording: boolean }[] = [
-  { id: "propria", name: "Minha própria voz", text: false, recording: true },
-  { id: "antonio", name: "Antônio (voz neutra)", text: true, recording: false },
-  { id: "francisca", name: "Francisca (voz neutra)", text: true, recording: false },
+/**
+ * The voices on the form. "propria" is only for a recording: it plays as recorded. Each card shows an icon
+ * (components/site/pix/voice-picker.tsx); `image` swaps it for public/pix/vozes/<id>.webp, for art Luan has the rights to.
+ */
+export const VOICES: { id: string; name: string; note?: { pt: string; en: string }; text: boolean; recording: boolean; image?: boolean }[] = [
+  { id: "propria", name: "Minha voz", note: { pt: "como você gravou", en: "as you recorded it" }, text: false, recording: true },
+  { id: "antonio", name: "Antônio", note: { pt: "voz neutra", en: "plain voice" }, text: true, recording: false },
+  { id: "francisca", name: "Francisca", note: { pt: "voz neutra", en: "plain voice" }, text: true, recording: false },
   { id: "galvao", name: "Galvão Bueno", text: true, recording: true },
   { id: "bob", name: "Bob Esponja", text: true, recording: true },
   { id: "patrick", name: "Patrick", text: true, recording: true },

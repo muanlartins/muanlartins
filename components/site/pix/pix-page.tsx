@@ -1,15 +1,21 @@
 "use client"
 
+import { Check } from "lucide-react"
+import Script from "next/script"
 import qrcode from "qrcode-generator"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { PageIntro } from "@/components/site/page-intro"
-import { pix, VOICES } from "@/content/pix"
-import { centavosDe, loadMural, PIX_API, reais, reservationStatus, reserve, type Mural, type Order, type Reservation } from "@/lib/pix"
-import { canSave, keptToken, loadMine, signIn, signOut, SignedOut } from "@/lib/profile"
-import { LOCALE, localize, PIX_SLUG } from "@/lib/site"
+import { GoalBar } from "@/components/site/pix/goal-bar"
+import { VoicePicker } from "@/components/site/pix/voice-picker"
+import { FanView } from "@/components/site/profile/fan-view"
+import { mural as muralCopy, pix, VOICES } from "@/content/pix"
+import { centavosDe, loadMural, MINIMO, PIX_API, reais, reservationStatus, reserve, type Goal, type Order, type Reservation } from "@/lib/pix"
+import { canSave, keptToken, loadMine, signIn, signOut, SignedOut, type Choice, type Torcedor } from "@/lib/profile"
+import { localize, MURAL_SLUG, PIX_SLUG } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const text = localize(pix)
+const of = localize(muralCopy.of)
 const PRESETS = [100, 500, 1000, 2000]
 const MAX_SECONDS = 15
 const DRAFT_KEY = "pix:rascunho"
@@ -88,9 +94,10 @@ export function PixPage() {
   const [reservation, setReservation] = useState<Reservation | null>(null)
   const [now, setNow] = useState(0)
   const [copied, setCopied] = useState(false)
-  const [mural, setMural] = useState<Mural | null>(null)
+  const [goal, setGoal] = useState<Goal | null>(null)
+  const [T, setT] = useState<Torcedor | null>(null)
+  const [look, setLook] = useState<Choice | null>(null)
   const recorder = useRef<MediaRecorder | null>(null)
-  const sample = useRef<HTMLAudioElement | null>(null)
 
   const change = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }))
   const centavos = draft.preset ?? centavosDe(draft.outro)
@@ -104,14 +111,17 @@ export function PixPage() {
     if (!found) return
     setToken(found)
     loadMine(found)
-      .then(({ login }) => setLogin(login))
+      .then(({ login, aparencia }) => {
+        setLogin(login)
+        setLook(aparencia)
+      })
       .catch((e) => {
         if (e instanceof SignedOut) setToken(null)
       })
   }, [])
 
   useEffect(() => {
-    if (PIX_API) loadMural().then(setMural).catch(() => {})
+    if (PIX_API) loadMural().then((m) => setGoal(m.meta), () => {})
   }, [step])
 
   // While paying: the countdown, and the reservation's status every 2 s until it's paid or past its grace.
@@ -142,12 +152,7 @@ export function PixPage() {
     signOut()
     setToken(null)
     setLogin("")
-  }
-
-  function listen() {
-    sample.current?.pause()
-    sample.current = new Audio(`/pix/vozes/${draft.voz}.mp3`)
-    sample.current.play().catch(() => {})
+    setLook(null)
   }
 
   async function startRecording() {
@@ -187,7 +192,7 @@ export function PixPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!Number.isInteger(centavos) || centavos < 1) {
+    if (!Number.isInteger(centavos) || centavos < MINIMO) {
       setError(text.minimum)
       return
     }
@@ -237,11 +242,22 @@ export function PixPage() {
     return q.createSvgTag({ cellSize: 8, margin: 2, scalable: true })
   })()
 
-  const goal = mural?.meta
-
   return (
     <div className="space-y-10">
+      {/* The fan from the stream's crowd, for the mural's preview; React hoists the stylesheet into the head. */}
+      {/* eslint-disable-next-line @next/next/no-css-tags */}
+      <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
+      <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />
       <PageIntro title={text.title} description={text.description} />
+
+      {PIX_API && goal && step === "form" && (
+        <a href={`/${MURAL_SLUG}`} className="block max-w-[34rem] space-y-2 rounded-md border border-line bg-paper/70 px-4 py-3 transition-colors hover:border-klein/60">
+          <p className="text-[13px] font-medium uppercase tracking-[0.12em] text-klein">
+            {text.goal}: {goal.titulo}
+          </p>
+          <GoalBar goal={goal} of={of} />
+        </a>
+      )}
 
       {!PIX_API ? (
         <p className="text-[15px] text-muted">{text.soon}</p>
@@ -291,19 +307,8 @@ export function PixPage() {
             )}
           </Field>
 
-          <Field label={text.voice}>
-            <div className="flex gap-2">
-              <select value={voices.some((v) => v.id === draft.voz) ? draft.voz : voices[0].id} onChange={(e) => change({ voz: e.target.value })} className={field}>
-                {voices.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name}
-                  </option>
-                ))}
-              </select>
-              <button type="button" onClick={listen} disabled={draft.voz === "propria"} className={cn(choice(false), "shrink-0 disabled:opacity-40")}>
-                {text.listen}
-              </button>
-            </div>
+          <Field label={text.voice} hint={draft.modo === "texto" ? text.voiceHint : text.voiceRecordingHint}>
+            <VoicePicker voices={voices} value={voices.some((v) => v.id === draft.voz) ? draft.voz : voices[0].id} onChange={(voz) => change({ voz })} />
           </Field>
 
           <Field label={text.amount}>
@@ -335,10 +340,48 @@ export function PixPage() {
             </div>
           </Field>
 
-          <label className="flex items-start gap-3 text-[15px] text-ink">
-            <input type="checkbox" checked={draft.mural} onChange={(e) => change({ mural: e.target.checked })} className="mt-1 h-4 w-4 accent-klein" />
-            {text.mural}
-          </label>
+          <div className="space-y-2">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={draft.mural}
+              onClick={() => change({ mural: !draft.mural })}
+              className={cn(
+                "flex w-full items-start gap-4 rounded-md border-2 px-4 py-4 text-left transition-colors",
+                draft.mural ? "border-klein bg-klein/[0.07]" : "border-dashed border-klein/50 hover:border-klein hover:bg-klein/[0.03]",
+              )}
+            >
+              <span className="flex w-16 shrink-0 justify-center">
+                {T && login ? (
+                  <FanView T={T} fan={T.normalizar(look, login)} className="h-[72px] w-12" />
+                ) : (
+                  <span className="mt-1 grid h-12 w-12 place-items-center rounded-full bg-klein/10 text-[20px] font-medium text-klein">
+                    {(draft.nome || "?").trim().charAt(0).toUpperCase() || "?"}
+                  </span>
+                )}
+              </span>
+              <span className="flex-1 space-y-1.5">
+                <span className="block text-[18px] font-medium text-klein">{text.muralTitle}</span>
+                <span className="block text-[14px] leading-[1.5] text-ink">
+                  {text.muralNote} {!login && text.muralFan}
+                </span>
+                <span
+                  className={cn(
+                    "mt-1 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[14px] font-medium",
+                    draft.mural ? "bg-klein text-paper" : "border border-klein text-klein",
+                  )}
+                >
+                  <span className={cn("grid h-4 w-4 place-items-center rounded-sm", draft.mural ? "bg-paper text-klein" : "border border-klein")}>
+                    {draft.mural && <Check className="h-3 w-3" strokeWidth={3} />}
+                  </span>
+                  {draft.mural ? text.muralOn : text.muralOff}
+                </span>
+              </span>
+            </button>
+            <a href={`/${MURAL_SLUG}`} target="_blank" className="inline-block text-[14px] text-muted underline underline-offset-2 hover:text-klein">
+              {text.muralSee} →
+            </a>
+          </div>
 
           {canSave && (
             <div className="space-y-2 rounded-md border border-line bg-paper/70 px-4 py-3 text-[15px]">
@@ -415,38 +458,6 @@ export function PixPage() {
         )
       )}
 
-      {PIX_API && (
-        <section className="space-y-5 border-t border-line pt-8">
-          {goal && (
-            <div className="space-y-2">
-              <p className="text-[13px] font-medium uppercase tracking-[0.12em] text-klein">
-                {text.goal}: {goal.titulo}
-              </p>
-              <div className="h-2.5 overflow-hidden rounded-full bg-line">
-                <div className="h-full rounded-full bg-klein" style={{ width: `${Math.min(100, Math.max(2, (goal.arrecadado / goal.alvo) * 100))}%` }} />
-              </div>
-              <p className="text-[14px] text-muted tabular-nums">
-                R$ {reais(goal.arrecadado)} / R$ {reais(goal.alvo)}
-              </p>
-            </div>
-          )}
-          <h2 className="text-[13px] font-medium uppercase tracking-[0.12em] text-klein">{text.muralTitle}</h2>
-          {mural && mural.pix.length === 0 && <p className="text-[15px] text-muted">{text.muralEmpty}</p>}
-          <ul className="space-y-4">
-            {mural?.pix.map((p) => (
-              <li key={p.em + p.nome} className="space-y-1 border-b border-line pb-4 last:border-0">
-                <p className="flex flex-wrap items-baseline gap-x-3 text-[15px]">
-                  <strong className="font-medium text-ink">{p.nome || text.anonymous}</strong>
-                  <span className="text-klein tabular-nums">R$ {reais(p.centavos)}</span>
-                  <span className="text-[13px] text-muted">{new Date(p.em).toLocaleDateString(LOCALE === "pt" ? "pt-BR" : "en")}</span>
-                </p>
-                {p.mensagem && <p className="text-[15px] leading-[1.6] text-ink">{p.mensagem}</p>}
-              </li>
-            ))}
-          </ul>
-          <p className="text-[13px] text-muted">{text.privacy}</p>
-        </section>
-      )}
     </div>
   )
 }
