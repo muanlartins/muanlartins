@@ -172,6 +172,10 @@ and UI polish still to do.
 
 ## 6. Live Pix (replace LivePix and its fees)
 
+**Built 11-05 on the `pix` branch** (see AGENTS.md, "Live Pix"): everything below except the PJ API, with Luan's
+overrides: minimum R$ 0,01, 10 Σ per real for senders signed in with Twitch, and all twelve character voices
+from the start (plus two plain TTS voices and the viewer's own recorded voice).
+
 **Decided (10-30):**
 
 - **Trigger:** the phone's Inter notification (title "Pix recebido", text "<FULL NAME> te enviou um Pix de R$

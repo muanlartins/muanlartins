@@ -9,8 +9,9 @@ import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
 import { channelPath } from "@/lib/channel"
 import { gamePath } from "@/lib/game"
+import { PIX_API } from "@/lib/pix"
 import type { Live } from "@/lib/lives"
-import { LINKS, localize, profileSlug, type Locale } from "@/lib/site"
+import { LINKS, localize, PIX_SLUG, profileSlug, type Locale } from "@/lib/site"
 
 const T = localize(channel)
 const L = localize({ latest: { pt: "Última", en: "Latest" } })
@@ -93,6 +94,7 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
             </p>
           )}
         </Card>
+        {PIX_API && <Card href={`/${PIX_SLUG}`} title={T.pix.title} summary={T.pix.description} />}
         <Card href={channelPath("backstage")} title={T.backstage.title} summary={T.backstage.description} />
       </section>
 

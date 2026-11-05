@@ -16,6 +16,8 @@ export const SIGMA_API = process.env.NEXT_PUBLIC_SIGMA_API ?? "https://p1rblei1o
 const TOKEN_KEY = "twitch:token"
 const STATE_KEY = "twitch:state"
 const DRAFT_KEY = "perfil:rascunho"
+// Where to go back to after Twitch, for a sign-in that didn't start on the profile (Twitch only sends back there).
+const BACK_KEY = "twitch:volta"
 
 /** What a viewer chose; the options and their defaults are in public/stream/torcedor.js. */
 export type Choice = Record<string, unknown>
@@ -110,10 +112,11 @@ const store = {
 }
 
 /** Sends the browser to Twitch, keeping the fan being built so it's still there on the way back. */
-export function signIn(draft: Fan) {
+export function signIn(draft: Fan | null, back?: string) {
   const state = crypto.randomUUID()
   store.set(STATE_KEY, state, true)
-  store.set(DRAFT_KEY, JSON.stringify(draft), true)
+  if (draft) store.set(DRAFT_KEY, JSON.stringify(draft), true)
+  if (back) store.set(BACK_KEY, back, true)
   const url = new URL("https://id.twitch.tv/oauth2/authorize")
   url.search = new URLSearchParams({
     client_id: TWITCH_CLIENT_ID,
@@ -134,6 +137,18 @@ export function takeToken(): string | null {
     store.set(STATE_KEY, null, true)
     store.set(TOKEN_KEY, token)
   }
+  return store.get(TOKEN_KEY)
+}
+
+/** The page a sign-in started on, once; null when it started on the profile. */
+export function takeBack(): string | null {
+  const back = store.get(BACK_KEY, true)
+  store.set(BACK_KEY, null, true)
+  return back?.startsWith("/") && !back.startsWith("//") ? back : null
+}
+
+/** The token kept from an earlier sign-in, for pages other than the profile. */
+export function keptToken(): string | null {
   return store.get(TOKEN_KEY)
 }
 

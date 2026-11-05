@@ -56,3 +56,10 @@ jobs:
           done
           aws cloudfront create-invalidation --distribution-id "${{ vars.DISTRIBUTION_PT }}" --paths "/*"
           aws cloudfront create-invalidation --distribution-id "${{ vars.DISTRIBUTION_EN }}" --paths "/*"
+
+      # The Pix function (infra/pix). Off until the stack has it and its name is in the repo's variables.
+      - name: Publish the Pix function
+        if: env.PUBLISH == 'true' && vars.PIX_FUNCTION != ''
+        run: |
+          (cd infra/pix && zip -q -r ../../pix.zip . -x '*.test.*')
+          aws lambda update-function-code --function-name "${{ vars.PIX_FUNCTION }}" --zip-file fileb://pix.zip > /dev/null

@@ -58,6 +58,13 @@ export function profileUrl(locale: Locale = LOCALE) {
   return `${ORIGINS[locale]}/${PROFILE_SLUGS[locale]}`
 }
 
+/** Pix on the live: the same word in both languages. */
+export const PIX_SLUG = "pix"
+
+export function pixUrl(locale: Locale = LOCALE) {
+  return `${ORIGINS[locale]}/${PIX_SLUG}`
+}
+
 /**
  * Your profiles elsewhere. They show in the footer and tell Google that
  * these accounts and this site are the same person.

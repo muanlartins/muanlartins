@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pix · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: Browser source, 1920×1080, over everything in the game scenes, its
+      sound on the stream's track only (like the crowd's narrator). The Pix
+      sent on the site's /pix: a Klein band under the scoreboard with the name,
+      the amount and the message, a chime, and the message read by the voice
+      the viewer chose (or their recording, in that voice). And the goal, if
+      the dock set one: a small bar at the top left.
+
+      It reads the Pix API (infra/pix) every 2 s with the stream's key, the Σ
+      key: ?api=<PixApiUrl>#chave=<key>. The voices come from
+      scripts/narrador.py on this PC (?narrador= its address); each open
+      reservation is rendered while the viewer pays, so the alert never waits.
+      Without the narrator, the band still shows, silent but for the chime.
+
+      "Entre partidas" holds a Pix until the match ends, as the Partidas dock
+      says (partidas.html, through obs-browser's emit_event); an alert never
+      plays twice, and the dock can ask for one again.
+
+      ?demo: a made-up Pix every 12 s, without the API, to place the source.
+    -->
+    <style>
+      .alerta {
+        position: absolute;
+        top: 132px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        visibility: hidden;
+      }
+      .alerta.tocando {
+        visibility: visible;
+        animation:
+          wipe 0.9s var(--ease) both,
+          sair var(--dura, 8s) linear forwards;
+      }
+      .faixa {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        min-height: 150px;
+        max-width: 1280px;
+        padding: 24px 72px 24px 36px;
+        background: var(--klein);
+        clip-path: polygon(44px 0, 100% 0, 100% calc(100% - 44px), calc(100% - 44px) 100%, 0 100%, 0 44px);
+        overflow: hidden;
+      }
+      .faixa::before {
+        content: "";
+        position: absolute;
+        inset: -48px;
+        background:
+          repeating-linear-gradient(45deg, transparent 0 calc(var(--unit) * 0.7071 - 1px), var(--lattice-line) 0 calc(var(--unit) * 0.7071)),
+          repeating-linear-gradient(-45deg, transparent 0 calc(var(--unit) * 0.7071 - 1px), var(--lattice-line) 0 calc(var(--unit) * 0.7071));
+        animation: drift 12s linear infinite;
+      }
+      .faixa::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, transparent 42%, rgb(133 167 255 / 0.45) 50%, transparent 58%);
+        transform: translateX(-100%);
+      }
+      .tocando .faixa::after {
+        animation: brilho 1.4s var(--ease) 0.7s both;
+      }
+      .marca {
+        position: relative;
+        width: 92px;
+        height: 92px;
+        flex: none;
+      }
+      .texto {
+        position: relative;
+        min-width: 0;
+      }
+      .rotulo {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--klein-claro);
+      }
+      .nome {
+        max-width: 1000px;
+        margin: 6px 0 0;
+        overflow: hidden;
+        font-size: 58px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .mensagem {
+        max-width: 1000px;
+        margin: 12px 0 0;
+        font-size: 30px;
+        line-height: 1.25;
+      }
+      .mensagem:empty {
+        display: none;
+      }
+      @keyframes wipe {
+        from {
+          clip-path: polygon(0 0, 0 0, -200px 100%, -200px 100%);
+        }
+        to {
+          clip-path: polygon(0 0, calc(100% + 200px) 0, 100% 100%, -200px 100%);
+        }
+      }
+      @keyframes sair {
+        0%,
+        94% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      @keyframes brilho {
+        to {
+          transform: translateX(100%);
+        }
+      }
+
+      /* The goal: top left, clear of the scoreboard (top centre). */
+      .meta {
+        position: absolute;
+        top: 28px;
+        left: 28px;
+        width: 380px;
+        padding: 14px 18px 16px;
+        background: rgb(0 20 71 / 0.82);
+        clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+      }
+      .meta p {
+        margin: 0;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 19px;
+        font-weight: 500;
+      }
+      .meta .titulo {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .meta .quanto {
+        flex: none;
+        color: var(--klein-claro);
+        font-variant-numeric: tabular-nums;
+      }
+      .barra {
+        height: 10px;
+        margin-top: 10px;
+        background: rgb(133 167 255 / 0.25);
+      }
+      .barra div {
+        height: 100%;
+        width: 0;
+        background: var(--paper);
+        transition: width 1.2s var(--ease);
+      }
+      .aviso {
+        position: absolute;
+        right: 16px;
+        bottom: 12px;
+        margin: 0;
+        padding: 8px 14px;
+        background: var(--paper);
+        color: var(--klein);
+        font-size: 15px;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <div class="meta" hidden>
+        <p><span class="titulo"></span><span class="quanto"></span></p>
+        <div class="barra"><div></div></div>
+      </div>
+      <div class="alerta">
+        <div class="faixa">
+          <img class="marca" src="/brand/mark-small-clear.svg" alt="" />
+          <div class="texto">
+            <p class="rotulo"></p>
+            <p class="nome"></p>
+            <p class="mensagem"></p>
+          </div>
+        </div>
+      </div>
+      <p class="aviso" hidden></p>
+    </main>
+    <script src="stream.js"></script>
+    <script>
+      const API = params.get("api") ?? ""
+      const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
+      const NARRADOR = params.get("narrador") ?? "http://127.0.0.1:8788"
+      const DEMO = params.has("demo")
+      const $ = (s) => document.querySelector(s)
+
+      const reais = (c) => (c / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      // How the voice says an amount: "5 reais e 50 centavos".
+      function falado(c) {
+        const r = Math.floor(c / 100)
+        const ct = c % 100
+        return [r && `${r} ${r === 1 ? "real" : "reais"}`, ct && `${ct} ${ct === 1 ? "centavo" : "centavos"}`].filter(Boolean).join(" e ")
+      }
+      // The masked words aren't read out.
+      const legivel = (t) => t.replace(/•••/g, " ").replace(/\s+/g, " ").trim()
+
+      // Chrome only plays after a click (OBS needs none): the page says so while it's muted.
+      const som = new AudioContext()
+      const aviso = $(".aviso")
+      function avisar() {
+        const falta = som.state !== "running" ? "Som desligado: clique na página" : !CHAVE && !DEMO ? "Falta #chave= na URL" : !API && !DEMO ? "Falta ?api= na URL" : ""
+        aviso.textContent = falta
+        aviso.hidden = !falta
+      }
+      som.onstatechange = avisar
+      addEventListener("click", () => som.resume())
+      avisar()
+
+      function chime() {
+        ;[784, 1175].forEach((f, i) => {
+          const o = som.createOscillator()
+          const g = som.createGain()
+          const t = som.currentTime + i * 0.14
+          o.frequency.value = f
+          g.gain.setValueAtTime(0.0001, t)
+          g.gain.exponentialRampToValueAtTime(0.22, t + 0.02)
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5)
+          o.connect(g).connect(som.destination)
+          o.start(t)
+          o.stop(t + 0.5)
+        })
+      }
+      function tocar(buffer) {
+        return new Promise((fim) => {
+          if (!buffer) return fim()
+          const fonte = som.createBufferSource()
+          fonte.buffer = buffer
+          fonte.connect(som.destination)
+          fonte.onended = fim
+          fonte.start()
+        })
+      }
+      const decodificar = (dados) => som.decodeAudioData(dados).catch(() => null)
+
+      // --- The voices, rendered ahead: one entry per reservation (or per Pix without one) ---------------
+      const prontas = new Map() // id → Promise<{ fala: AudioBuffer[], texto }>
+      async function falar(texto, voz) {
+        if (NARRADOR === "0" || !texto) return null
+        const r = await fetch(`${NARRADOR}/falar`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ texto, voz }) }).catch(() => null)
+        return r?.ok ? decodificar(await r.arrayBuffer()) : null
+      }
+      const pedir = (caminho, corpo) =>
+        fetch(API + caminho, {
+          method: corpo ? "POST" : "GET",
+          headers: { "x-chave": CHAVE, ...(corpo ? { "content-type": "application/json" } : {}) },
+          body: corpo && JSON.stringify(corpo),
+        }).then((r) => (r.ok ? r.json() : null))
+
+      // r: a reservation or a Pix ({ id or reserva, nome, centavos, mensagem, audio, voz, transcricao, sujo }).
+      async function render(r, pix) {
+        const nome = r.nome || "Anônimo"
+        const abertura = `${nome} mandou ${falado(r.centavos)}.`
+        const voz = r.voz && r.voz !== "propria" ? r.voz : "antonio"
+        const id = r.id ?? r.reserva
+        if (!r.audio) return { fala: [await falar(legivel(`${abertura} ${r.mensagem || ""}`), voz)], texto: r.mensagem || "" }
+        // A recording: whisper's transcript goes on screen (and to the mural, filtered by the API); the
+        // recording plays in the voice, unless the filter caught something, then the voice reads the rest.
+        let texto = r.transcricao ?? ""
+        let sujo = !!r.sujo
+        let gravacao = null
+        const audio = await pedir(`/audio?id=${encodeURIComponent(id)}`).catch(() => null)
+        if (audio && NARRADOR !== "0") {
+          const g = await fetch(`${NARRADOR}/gravacao`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, dados: audio.dados, voz: r.voz }) })
+            .then((x) => (x.ok ? x.json() : null))
+            .catch(() => null)
+          if (g) {
+            const filtrado = await pedir("/canal", { acao: "transcricao", reserva: id, pix, texto: g.texto }).catch(() => null)
+            texto = filtrado?.texto ?? texto
+            sujo = filtrado ? filtrado.sujo : sujo
+            gravacao = await decodificar(Uint8Array.from(atob(g.audio), (c) => c.charCodeAt(0)).buffer)
+          }
+        }
+        const fala = sujo || !gravacao ? [await falar(legivel(`${abertura} ${texto}`), voz)] : [await falar(abertura, voz), gravacao]
+        return { fala, texto }
+      }
+      function preparar(r, pix) {
+        const id = r.id ?? r.reserva ?? r.sk
+        if (!prontas.has(id)) prontas.set(id, render(r, pix).catch(() => ({ fala: [], texto: r.mensagem || "" })))
+        return prontas.get(id)
+      }
+
+      // --- The queue -------------------------------------------------------------------------------------
+      const fila = [] // Pix waiting, in the order they were paid
+      const vistos = new Map() // sk → when it was queued or played, so it plays once until the dock asks again
+      let tocando = false
+      let emPartida = false
+      let partidaVista = 0
+      addEventListener("muanlartins-partidas", ({ detail }) => {
+        emPartida = !!detail?.emPartida
+        partidaVista = Date.now()
+        proximo()
+      })
+      // Without word from the dock for a while, no match is holding anyone.
+      const segurando = () => emPartida && Date.now() - partidaVista < 20000
+
+      async function proximo() {
+        if (tocando) return
+        const i = fila.findIndex((p) => p.quando !== "entre" || !segurando())
+        if (i < 0) return
+        const [pix] = fila.splice(i, 1)
+        tocando = true
+        try {
+          const pronta = await Promise.race([preparar(pix, pix.sk), new Promise((r) => setTimeout(() => r(null), 15000))])
+          const texto = pronta?.texto ?? pix.mensagem ?? ""
+          // A recording transcribed while its reservation waited: the paid Pix keeps the words for the mural.
+          if (pix.audio && !pix.transcricao && texto && !DEMO) pedir("/canal", { acao: "transcricao", pix: pix.sk, texto }).catch(() => {})
+          $(".rotulo").textContent = `Pix · R$ ${reais(pix.centavos)}`
+          $(".nome").textContent = pix.nome || "Anônimo"
+          $(".mensagem").textContent = texto
+          const falas = (pronta?.fala ?? []).filter(Boolean)
+          const segundos = Math.max(7, Math.min(40, 1.2 + falas.reduce((t, b) => t + b.duration, 0) + 1.5), 6 + texto.length * 0.05)
+          const alerta = $(".alerta")
+          alerta.style.setProperty("--dura", `${segundos}s`)
+          alerta.classList.remove("tocando")
+          void alerta.offsetWidth
+          alerta.classList.add("tocando")
+          chime()
+          await new Promise((r) => setTimeout(r, 1200))
+          for (const b of falas) await tocar(b)
+          await new Promise((r) => setTimeout(r, Math.max(0, segundos * 1000 - 1200 - falas.reduce((t, b) => t + b.duration * 1000, 0))))
+          alerta.classList.remove("tocando")
+          vistos.set(pix.sk, Date.now())
+          if (!DEMO) await pedir("/canal", { acao: "exibido", pix: pix.sk, reserva: pix.reserva }).catch(() => {})
+        } finally {
+          tocando = false
+          setTimeout(proximo, 800)
+        }
+      }
+
+      function meta(m) {
+        $(".meta").hidden = !m
+        if (!m) return
+        $(".meta .titulo").textContent = m.titulo || "Meta"
+        $(".meta .quanto").textContent = `R$ ${reais(m.arrecadado)} / ${reais(m.alvo)}`
+        $(".barra div").style.width = `${Math.min(100, (m.arrecadado / m.alvo) * 100)}%`
+      }
+
+      async function ler() {
+        const estado = await pedir("/canal").catch(() => null)
+        if (!estado) return
+        meta(estado.meta)
+        for (const r of estado.reservas) preparar(r)
+        const recente = new Date(estado.agora - 6 * 3600 * 1000).toISOString()
+        // Oldest first, so they play in the order they came.
+        for (const p of [...estado.pix].reverse()) {
+          const visto = vistos.get(p.sk)
+          if (p.exibido || p.sk < recente || fila.some((f) => f.sk === p.sk) || (visto && Date.now() - visto < 30000)) continue
+          vistos.set(p.sk, Date.now())
+          fila.push(p)
+        }
+        proximo()
+      }
+
+      if (DEMO) {
+        const nomes = ["Ana", "pedrinho_rl", "", "Duda"]
+        const msgs = ["Que gol, Luan!", "Bora subir pra Campeão", "", "Manda um abraço pra galera do Discord!"]
+        let n = 0
+        meta({ titulo: "Microfone novo", alvo: 50000, arrecadado: 12345 })
+        const um = () => {
+          const i = n++ % nomes.length
+          fila.push({ sk: `demo${n}`, nome: nomes[i], mensagem: msgs[i], centavos: [500, 1000, 201, 2000][i], voz: "antonio", quando: "agora" })
+          proximo()
+        }
+        um()
+        setInterval(um, 12000)
+      } else if (API && CHAVE) {
+        ler()
+        setInterval(ler, 2000)
+      }
+    </script>
+  </body>
+</html>
