@@ -66,6 +66,22 @@ export const channel = {
       pt: "As lives da Twitch, inteiras. Quando estou no ar, dá para assistir aqui mesmo; depois, cada live fica com capítulos, as partidas e a transcrição do que eu falei.",
       en: "The Twitch streams, in full. While I'm on air you can watch right here; afterwards, each stream keeps its chapters, the matches and a transcript of what I said.",
     },
+    /** When the lives are; the times themselves are in content/agenda.json. */
+    agenda: {
+      title: { pt: "Agenda", en: "Schedule" },
+      zone: { pt: "Horário de Brasília", en: "Brasília time" },
+      yours: { pt: "No seu horário", en: "In your time" },
+      weekend: { pt: "Fins de semana a definir.", en: "Weekends to be decided." },
+      next: { pt: "Próxima live", en: "Next stream" },
+      now: { pt: "Agora, no horário da live", en: "Now, in stream hours" },
+      today: { pt: "hoje", en: "today" },
+      tomorrow: { pt: "amanhã", en: "tomorrow" },
+      subscribe: { pt: "Adicionar à sua agenda", en: "Add to your calendar" },
+      calendar: {
+        pt: "Live do muanlartins: ranqueadas de Rocket League",
+        en: "muanlartins live: Rocket League ranked",
+      },
+    },
   },
   games: {
     title: { pt: "Jogos", en: "Games" },
