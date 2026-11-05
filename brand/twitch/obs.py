@@ -46,8 +46,9 @@ def browser(name, page, restart=False):
                                             "fps": 60, "restart_when_active": restart, "shutdown": False, "css": ""})
 
 
-def item(src, i, pos=(0, 0), bounds=None):
-    """A scene item at `pos`; with `bounds`, the source is scaled to fill that box and cropped to it.
+def item(src, i, pos=(0, 0), bounds=None, crop=(0, 0, 0, 0)):
+    """A scene item at `pos`; with `bounds`, the source is scaled to fill that box and cropped to it;
+    `crop` (left, top, right, bottom) cuts the source first.
     Both are in the overlays' 1920×1080 pixels. OBS 31+ reads the *_rel fields (relative to the canvas,
     in units of half its height, from its centre); the absolute ones are written too, for older versions."""
     (x, y), (w, h) = [v * K for v in pos], [v * K for v in bounds or (0, 0)]
@@ -58,7 +59,9 @@ def item(src, i, pos=(0, 0), bounds=None):
             "scale_ref": {"x": CANVAS[0], "y": CANVAS[1]}, "align": TOP_LEFT,
             "bounds_type": BOUNDS_SCALE_OUTER if bounds else BOUNDS_NONE, "bounds_align": 0, "bounds_crop": bool(bounds),
             "bounds": {"x": w, "y": h}, "bounds_rel": {"x": w / half, "y": h / half},
-            "crop_left": 0, "crop_top": 0, "crop_right": 0, "crop_bottom": 0, "scale_filter": "disable",
+            "crop_left": round(crop[0] * K), "crop_top": round(crop[1] * K), "crop_right": round(crop[2] * K),
+            "crop_bottom": round(crop[3] * K),
+            "scale_filter": "disable",
             "blend_method": "default", "blend_type": "normal", "private_settings": {}}
 
 
@@ -88,6 +91,13 @@ chat_overlay = browser("Overlay · Conversa", "conversa.html")
 crowd = browser("Torcida", "torcida.html")
 crowd["settings"]["reroute_audio"] = True
 crowd.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
+# Live Pix: the band and the goal, over everything; its sound is the Pix voices, like the crowd's. One source in
+# every scene that has the game or the talk, so an alert never plays twice: in Conversa (where a Pix "entre partidas"
+# usually plays) it's cropped to the band and set on the camera's lower third.
+pix = browser("Pix", "pix.html")
+pix["settings"]["reroute_audio"] = True
+pix.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
+pix_in_talk = (pix, {"pos": (64, 548), "crop": (320, 110, 320, 660)})
 # Restarts when shown, so the countdown starts over each time the scene goes live.
 starting = browser("Tela · Começando", "intervalo.html?tela=comecando&minutos=5", restart=True)
 back = browser("Tela · Já volto", "intervalo.html?tela=volto")
@@ -118,10 +128,10 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVE
 scenes = [
     scene("Começando", (starting, {})),
     scene("Jogo", (game, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}), (game_overlay, {}),
-          (crowd, {}), *alerts_in_game),
+          (crowd, {}), *alerts_in_game, (pix, {})),
     scene("Jogo + chat", (game, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}),
-          (game_chat_overlay, {}), (crowd, {}), *alerts_in_game),
-    scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (chat_overlay, {}), *alerts_in_talk),
+          (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {})),
+    scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
     scene("Já volto", (back, {})),
     scene("Fim", (end, {})),
 ]
@@ -142,7 +152,7 @@ collection = {
     "current_scene": "Começando",
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
-    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, crowd, starting, back, end] + apps + ([alerts] if alerts else []),
+    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, crowd, pix, starting, back, end] + apps + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
     "transitions": [stinger],
