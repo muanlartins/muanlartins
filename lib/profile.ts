@@ -11,7 +11,7 @@ export const TWITCH_CLIENT_ID = process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID ?? "dpl
 /** The profile API. Both can be set in the environment to try the page against a local stand-in. */
 export const PROFILE_API = process.env.NEXT_PUBLIC_PROFILE_API ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
 /** The Σ API (output SigmaApiUrl): each viewer's points, public by login. */
-export const SIGMA_API = process.env.NEXT_PUBLIC_SIGMA_API ?? ""
+export const SIGMA_API = process.env.NEXT_PUBLIC_SIGMA_API ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
 
 const TOKEN_KEY = "twitch:token"
 const STATE_KEY = "twitch:state"

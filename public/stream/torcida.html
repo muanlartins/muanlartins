@@ -437,7 +437,7 @@
       // more in the goal's dedication. While the stream is on (the Partidas dock says so), this page tells
       // the API who's in the chat once a minute, which is how Σ is earned; that takes the key, which only
       // OBS's source URL holds (#chave=…). The channel earns none and always stands in front.
-      const SIGMA_API = params.get("sigma") ?? ""
+      const SIGMA_API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
       const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
       const sigmas = new Map() // login → { sigma, minutos, lives, sequencia }
       const sigma = (login) => sigmas.get(login)?.sigma ?? 0
