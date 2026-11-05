@@ -54,7 +54,7 @@ Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand token
 
 ## The Rocket League roadmap
 
-A usaco.guide-style path at `/conteudo/rocket-league/fundamentals`, inside Rocket League's home. `content/rocket-league.ts` holds ranks → pillars (Mecânica, Estratégia) → concepts → topics. Each topic is tagged with the rank where not knowing it starts costing games, and gets its own page and video (`video`: a YouTube id; without one the topic is drawn as a draft, "Vídeo em breve"). Never rename a topic's `id`: it is its URL and its saved progress. `fundamentals`, `ranked` and `lives` are taken by the game's pages; the build refuses a topic with any of them.
+A usaco.guide-style path at `/conteudo/rocket-league/fundamentals`, inside Rocket League's home. `content/rocket-league.ts` holds ranks → pillars (Mecânica, Estratégia) → concepts → topics. Each topic is tagged with the rank where not knowing it starts costing games, and gets its own page and video (`video`: a YouTube id; without one the topic is drawn as a draft, "Vídeo em breve"). Never rename a topic's `id`: it is its URL and its saved progress. `fundamentals` and `ranked` are taken by the game's pages; the build refuses a topic with either.
 
 Luan plans topics and tracks recording in an Obsidian note outside the repo (`- [ ] Rank · Topic`; `#gravando` = recorded, editing; `[x]` = published). The note is the source of truth for what exists; this file follows it.
 
