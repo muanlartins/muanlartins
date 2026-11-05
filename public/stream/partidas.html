@@ -727,6 +727,8 @@
         const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, ...record(current(), state.mode) }
         emit("muanlartins-partidas", detail)
         emit("muanlartins-torcida", { tipo: "narrador", ligado: state.narrador })
+        // The stand credits Σ only while the stream is on.
+        request("GetStreamStatus").then((r) => r && emit("muanlartins-torcida", { tipo: "noar", ligado: r.outputActive }))
         // Tells any other copy of this dock that this one is open.
         request("BroadcastCustomEvent", { eventData: { partidas: DOCK } })
       }

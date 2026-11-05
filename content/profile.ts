@@ -33,6 +33,27 @@ export const profile = {
     pt: "Salvar ainda não está ligado: dá para montar e ver, e logo dá para salvar.",
     en: "Saving isn't on yet: you can build and preview, and soon save.",
   },
+  sigma: {
+    title: { pt: "Seu Σ", en: "Your Σ" },
+    what: {
+      pt: "Σ (sigmas) são os pontos do canal. Você ganha assistindo às lives logado no chat: 1 por minuto, mais 10 a cada live e um bônus por lives seguidas. Eles nunca se gastam nem se perdem. No Rocket League o Σ vira um ranque, e quem tem mais fica mais na frente da arquibancada.",
+      en: "Σ (sigmas) are the channel's points. You earn them watching the lives logged in to the chat: 1 a minute, plus 10 each live and a bonus for lives in a row. They're never spent or lost. In Rocket League your Σ becomes a rank, and whoever has more stands further in front.",
+    },
+    signIn: { pt: "Entre com a Twitch para ver o seu.", en: "Sign in with Twitch to see yours." },
+    none: {
+      pt: "Ainda nada por aqui: o seu Σ começa na próxima live em que você estiver no chat.",
+      en: "Nothing yet: your Σ starts in the next live you're in the chat for.",
+    },
+    toNext: { pt: "para", en: "to" },
+    top: { pt: "O ranque mais alto. Daqui em diante, o Σ só cresce.", en: "The top rank. From here, Σ only grows." },
+    hours: { pt: "horas assistidas", en: "hours watched" },
+    lives: { pt: "lives", en: "lives" },
+    streak: { pt: "lives seguidas", en: "lives in a row" },
+  },
+  freeColor: {
+    label: { pt: "Qualquer cor", en: "Any color" },
+    locked: { pt: "Qualquer cor libera no", en: "Any color unlocks at" },
+  },
   preview: {
     goal: { pt: "Ver no nosso gol", en: "See on our goal" },
     against: { pt: "Ver no gol deles", en: "See on their goal" },

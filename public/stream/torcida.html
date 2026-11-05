@@ -11,20 +11,24 @@
       left) and Rocket League's boost meter (bottom right), with one fan for
       each viewer logged in to the chat (Twitch's membership events, as in
       presenca.html: only who has the chat open, about 10 s late), their name
-      over them. Ten to a row; the first rows are who has been here longest
-      (by Σ, once it exists), each row behind smaller.
+      over them, after their rank's emblem. Ten to a row; the channel and then
+      who has the most Σ stand in front (sigma.js), each row behind smaller.
 
       It reacts to the game as the "Partidas" dock sends it (partidas.html,
       through obs-browser's emit_event): our goal is a wave, confetti, the
       speed, and a goal dedicated to someone drawn from the stand; theirs, a
-      slump; our saves, a cheer. What a viewer says in the chat shows in a
-      balloon over their fan for a few seconds (three at most at once); they
-      move their own fan with !pula, !danca, !ola. Each fan's look comes from their login for now; the
-      profile on the site will set it.
+      slump; our saves, a cheer. The dedication is drawn by Σ, flattened. What
+      a viewer says in the chat shows in a balloon over their fan for a few
+      seconds (three at most at once); they move their own fan with !pula,
+      !danca, !ola. Each fan's look is their profile on the site (/perfil), or
+      what their login gives them.
 
       Goals are narrated in the narrator's voice by scripts/narrador.py, running
       on this PC (?narrador= its address, ?narrador=0 for none); OBS sends this
       source's sound to the stream only, never to the recording.
+
+      While the stream is on, it credits Σ to whoever is in the chat, once a
+      minute: ?sigma= the Σ API, and #chave= its key, set only in OBS.
 
       ?canal= as in the overlays. The channel stands with its viewers. ?demo fills the stand with sample people and
       plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça,
@@ -134,6 +138,11 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      .nome img {
+        height: 1.2em;
+        margin-right: 0.25em;
+        vertical-align: -0.25em;
       }
       .fa.atras .nome {
         color: var(--klein-claro);
@@ -381,6 +390,7 @@
     </main>
     <script src="stream.js"></script>
     <script src="torcedor.js"></script>
+    <script src="sigma.js"></script>
     <script>
       const torcida = document.getElementById("torcida")
       const $ = (id) => document.getElementById(id)
@@ -416,7 +426,36 @@
       // arrive and every two minutes, so a change made on the site shows up during the live.
       const API = params.get("api") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
       const escolhas = new Map() // login → what they chose
-      const aparencia = (login) => Torcedor.normalizar(escolhas.get(login), login)
+      // Free colours are a Σ unlock (sigma.js); the channel has them anyway.
+      const aparencia = (login) => {
+        const a = Torcedor.normalizar(escolhas.get(login), login)
+        return login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+      }
+
+      // --- Σ: each viewer's points (sigma.js), from the Σ API (infra/site.yml) ---------------------------
+      // Asked with the looks. More Σ stands further in front, shows its rank's emblem by the name and weighs
+      // more in the goal's dedication. While the stream is on (the Partidas dock says so), this page tells
+      // the API who's in the chat once a minute, which is how Σ is earned; that takes the key, which only
+      // OBS's source URL holds (#chave=…). The channel earns none and always stands in front.
+      const SIGMA_API = params.get("sigma") ?? ""
+      const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
+      const sigmas = new Map() // login → { sigma, minutos, lives, sequencia }
+      const sigma = (login) => sigmas.get(login)?.sigma ?? 0
+      let noArAte = 0
+      async function presenca() {
+        const logins = [...pessoas.keys()].filter((login) => login !== CHANNEL)
+        if (!SIGMA_API || !CHAVE || Date.now() > noArAte || !logins.length) return
+        try {
+          await fetch(`${SIGMA_API}/presenca`, {
+            method: "POST",
+            headers: { "content-type": "application/json", "x-chave": CHAVE },
+            body: JSON.stringify({ logins: logins.slice(0, 100) }),
+          })
+        } catch {
+          // The API down: this minute isn't counted.
+        }
+      }
+      setInterval(presenca, 60000)
       // Someone who just arrived shouts their phrase, once their choices come in.
       const GRITO_MS = 30000
 
@@ -429,7 +468,15 @@
           try {
             for (let i = 0; i < logins.length; i += 100) {
               const lote = logins.slice(i, i + 100)
-              const resposta = await fetch(`${API}/torcedores?logins=${lote.join(",")}`)
+              const [resposta, pontos] = await Promise.all([
+                fetch(`${API}/torcedores?logins=${lote.join(",")}`),
+                SIGMA_API ? fetch(`${SIGMA_API}/sigmas?logins=${lote.join(",")}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : null,
+              ])
+              if (pontos) {
+                for (const login of lote) pontos[login] ? sigmas.set(login, pontos[login]) : sigmas.delete(login)
+                for (const login of lote) rotular(pessoas.get(login))
+                arrumar()
+              }
               if (!resposta.ok) return
               const achadas = await resposta.json()
               for (const login of lote) {
@@ -493,7 +540,6 @@
         if (chegando) p.chegou = Date.now()
         el.dataset.comemoracao = aparencia(p.login).comemoracao
         el.innerHTML = `<span class="nome"></span><div class="pose"><div class="vivo">${Torcedor.figura(aparencia(p.login))}</div></div>`
-        el.querySelector(".nome").textContent = p.nome
         el.querySelector(".vivo").style.setProperty("--atraso", `${-Math.random() * 3}s`)
         el.addEventListener("animationend", (e) => {
           if (e.target === el) el.classList.remove("chegando")
@@ -503,12 +549,27 @@
           }
         })
         torcida.append(el)
+        p.el = el
+        rotular(p)
         return el
+      }
+      // The name over a fan, after their rank's emblem; the channel's name alone, so it fits.
+      function rotular(p) {
+        if (!p?.el) return
+        const nome = p.el.querySelector(".nome")
+        const src = p.login !== CHANNEL && (SIGMA_API || params.has("demo")) ? Sigma.ranque(sigma(p.login)).emblema : null
+        const emblema = document.createElement("img")
+        emblema.alt = ""
+        if (src) emblema.src = src
+        nome.replaceChildren(...(src ? [emblema] : []), p.nome)
+        caber(nome)
       }
 
       // Who has been here longest stands in front (by Σ, once it exists); each takes the next place.
       function arrumar() {
-        const lista = [...pessoas.values()].sort((a, b) => a.desde - b.desde)
+        const lista = [...pessoas.values()].sort(
+          (a, b) => (b.login === CHANNEL) - (a.login === CHANNEL) || sigma(b.login) - sigma(a.login) || a.desde - b.desde,
+        )
         lista.forEach((p, i) => {
           const fila = Math.floor(i / POR_FILEIRA)
           if (fila >= FILEIRAS.length) {
@@ -548,10 +609,7 @@
         if (p) {
           if (nome !== login && p.nome !== nome) {
             p.nome = nome
-            if (p.el) {
-              p.el.querySelector(".nome").replaceChildren(nome)
-              caber(p.el.querySelector(".nome"))
-            }
+            rotular(p)
           }
           return
         }
@@ -612,8 +670,9 @@
 
       // A goal is dedicated to someone in the stand, everyone with the same odds (by Σ, once it exists).
       function sortear() {
-        const lista = [...pessoas.values()].filter((p) => p.el)
-        return lista.length ? lista[Math.floor(Math.random() * lista.length)] : null
+        const lista = [...pessoas.values()].filter((p) => p.el && p.login !== CHANNEL)
+        let sorte = Math.random() * lista.reduce((soma, p) => soma + Sigma.peso(sigma(p.login)), 0)
+        return lista.find((p) => (sorte -= Sigma.peso(sigma(p.login))) < 0) ?? lista.at(-1) ?? null
       }
       function dedicar(p) {
         setTimeout(() => {
@@ -694,6 +753,9 @@
           const dedicado = sortear()
           if (dedicado) dedicar(dedicado)
           narrarGol(kmh, dedicado)
+        },
+        noar({ ligado }) {
+          noArAte = ligado ? Date.now() + 15000 : 0
         },
         narrador({ ligado }) {
           narradorLigado = !!ligado
@@ -827,6 +889,8 @@
           comemoracao: um(Torcedor.COMEMORACOES), frase: um(["bora Luan!", "chegueeei", "hoje sobe!"]),
           stickers: { gol: [um(Torcedor.STICKERS.slice(0, 12)), um(Torcedor.STICKERS.slice(0, 12))], contra: [um(Torcedor.STICKERS.slice(12))] },
         }))
+        // And each has some Σ, from a newcomer to a regular of a year.
+        nomes.forEach((n, i) => sigmas.set(n.toLowerCase(), { sigma: Math.round(20000 * Math.random() ** 3) }))
         nomes.slice(0, 12).forEach((n) => chegar(n.toLowerCase(), n))
         conectouEm = Date.now() - ASSENTANDO_MS
         const FRASES = ["boa noite!!", "que golaço", "GG", "esse half flip foi limpo demais",

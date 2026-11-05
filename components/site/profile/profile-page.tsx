@@ -4,11 +4,13 @@ import Script from "next/script"
 import { useRef, useState, type ReactNode } from "react"
 import { PageIntro } from "@/components/site/page-intro"
 import { FanView } from "@/components/site/profile/fan-view"
+import { SigmaPanel } from "@/components/site/profile/sigma-panel"
 import { profile } from "@/content/profile"
 import {
   canSave,
   eraseMine,
   loadMine,
+  loadSigma,
   saveMine,
   signIn,
   signOut,
@@ -16,9 +18,11 @@ import {
   takeDraft,
   takeToken,
   type Fan,
+  type Sigma,
+  type SigmaStats,
   type Torcedor,
 } from "@/lib/profile"
-import { localize } from "@/lib/site"
+import { LOCALE, localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const text = localize(profile)
@@ -35,6 +39,43 @@ function Group({ title, hint, children }: { title: string; hint?: string; childr
   )
 }
 
+/** Any colour, past the palette: a Σ unlock (sigma.js). Locked, it says where it unlocks. */
+function FreeColor({
+  value,
+  onChange,
+  locked,
+  unlocksAt,
+  palette,
+}: {
+  value: string
+  onChange: (color: string) => void
+  locked: boolean
+  unlocksAt: string
+  palette: string[]
+}) {
+  const custom = !palette.includes(value)
+  if (locked) {
+    return (
+      <span className="flex h-8 items-center rounded-sm border-2 border-dashed border-navy/20 px-2 text-[12px] text-muted">
+        {text.freeColor.locked} {unlocksAt}
+      </span>
+    )
+  }
+  return (
+    <label
+      title={text.freeColor.label}
+      className={cn(
+        "relative flex h-8 cursor-pointer items-center gap-1.5 rounded-sm border-2 px-2 text-[12px] text-ink",
+        custom ? "border-klein ring-2 ring-klein/40" : "border-navy/20",
+      )}
+    >
+      <span className="h-4 w-4 rounded-sm border border-navy/20" style={{ background: custom ? value : "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }} />
+      {text.freeColor.label}
+      <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 cursor-pointer opacity-0" />
+    </label>
+  )
+}
+
 const tile = (on: boolean) =>
   cn(
     "flex flex-col items-center gap-2 rounded-md border px-2 pb-2 pt-3 text-[13px] transition-colors",
@@ -43,6 +84,9 @@ const tile = (on: boolean) =>
 
 export function ProfilePage() {
   const [T, setT] = useState<Torcedor | null>(null)
+  const [S, setS] = useState<Sigma | null>(null)
+  // undefined while it loads; null when they have none yet.
+  const [stats, setStats] = useState<SigmaStats | null | undefined>(undefined)
   const [token, setToken] = useState<string | null>(null)
   const [login, setLogin] = useState("")
   const [saved, setSaved] = useState<Fan | null>(null)
@@ -70,6 +114,9 @@ export function ProfilePage() {
     loadMine(found)
       .then(({ login, aparencia }) => {
         setLogin(login)
+        loadSigma(login)
+          .then(setStats)
+          .catch(() => setStats(null))
         const mine = aparencia ? T.normalizar(aparencia, login) : null
         setSaved(mine)
         setFan(draft ? T.normalizar(draft, login) : (mine ?? T.padrao(login)))
@@ -148,6 +195,7 @@ export function ProfilePage() {
     signOut()
     setToken(null)
     setLogin("")
+    setStats(undefined)
     setSaved(null)
     setFan(T!.padrao())
     setStatus("idle")
@@ -174,6 +222,7 @@ export function ProfilePage() {
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
       <Script src="/stream/torcedor.js" onReady={() => start(window.Torcedor)} />
+      <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />
       <PageIntro title={text.title} description={text.description} />
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px]">
@@ -200,6 +249,8 @@ export function ProfilePage() {
           <p className="max-w-[34rem] text-[14px] text-muted">{text.soon}</p>
         )}
       </div>
+
+      {S && canSave && <SigmaPanel S={S} login={token ? login : ""} stats={stats} />}
 
       {T && fan && (
         <div className="grid gap-10 sm:grid-cols-[15rem_1fr]">
@@ -270,6 +321,15 @@ export function ProfilePage() {
                         style={{ background: color }}
                       />
                     ))}
+                    {S && (
+                      <FreeColor
+                        value={fan[key]}
+                        onChange={(color) => change({ [key]: color })}
+                        locked={(stats?.sigma ?? 0) < S.COR_LIVRE}
+                        unlocksAt={`${S.ranque(S.COR_LIVRE, LOCALE).nome} (${S.COR_LIVRE} Σ)`}
+                        palette={T.CORES}
+                      />
+                    )}
                   </div>
                 </div>
               ))}
