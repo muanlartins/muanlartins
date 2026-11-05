@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="stream.css" />
     <!--
       OBS: a custom browser dock (Docks → Custom Browser Docks), for Luan only:
-      ?api=<PixApiUrl>#chave=<the Σ key>, like the Pix overlay.
+      #chave=<the Σ key>, like the Pix overlay (?api= only to point it elsewhere).
 
       - Pix sem formulário: a Pix that arrived with no reservation for its
         value (paid straight to the key, or after its reservation ran out, or a
@@ -163,7 +163,8 @@
 
     <script>
       const params = new URLSearchParams(location.search)
-      const API = params.get("api") ?? ""
+      // The stack's PixApiUrl; ?api= points it elsewhere (a local stand-in).
+      const API = params.get("api") ?? "https://g2x6kdnhr0.execute-api.us-east-1.amazonaws.com"
       const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
       const $ = (id) => document.getElementById(id)
       const reais = (c) => (c / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })

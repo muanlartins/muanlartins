@@ -172,7 +172,7 @@ and UI polish still to do.
 
 ## 6. Live Pix (replace LivePix and its fees)
 
-**Built 11-05 on the `pix` branch** (see AGENTS.md, "Live Pix"): everything below except the PJ API, with Luan's
+**Built and released 11-05 (`pix` branch, merged)** (see AGENTS.md, "Live Pix"): everything below except the PJ API, with Luan's
 overrides: minimum R$ 1 (it was R$ 0,01 at first), 10 Σ per real for senders signed in with Twitch, and all twelve character voices
 from the start (plus two plain TTS voices and the viewer's own recorded voice).
 
