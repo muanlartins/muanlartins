@@ -470,7 +470,8 @@
               const lote = logins.slice(i, i + 100)
               const [resposta, pontos] = await Promise.all([
                 fetch(`${API}/torcedores?logins=${lote.join(",")}`),
-                SIGMA_API ? fetch(`${SIGMA_API}/sigmas?logins=${lote.join(",")}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : null,
+                // The demo's people have made-up Σ: they aren't asked about.
+                SIGMA_API && !params.has("demo") ? fetch(`${SIGMA_API}/sigmas?logins=${lote.join(",")}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : null,
               ])
               if (pontos) {
                 for (const login of lote) pontos[login] ? sigmas.set(login, pontos[login]) : sigmas.delete(login)
