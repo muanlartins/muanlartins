@@ -6,7 +6,8 @@ Description: >-
   replay player, at /rlr/ from its own GitHub Pages site. The viewers'
   profiles (how their fan looks in the stream's crowd) live in a DynamoDB
   table behind a small HTTP API, signed in with Twitch; their Σ (points
-  earned watching the lives) in another, behind its own. Create in us-east-1,
+  earned watching the lives) in another, behind its own; the Pix sent during
+  the lives in a third, behind a function CI deploys. Create in us-east-1,
   where CloudFront certificates must live.
 
 Parameters:
@@ -35,6 +36,23 @@ Parameters:
     NoEcho: true
     MinLength: 32
     Description: The key the stream's crowd overlay sends to credit Σ; it lives only here and in OBS's source URL
+  PixChave:
+    Type: String
+    NoEcho: true
+    Description: The Pix key the viewers pay to, as the bank's own QR carries it (a random key, chave aleatória)
+  PixNome:
+    Type: String
+    MaxLength: 25
+    Description: The receiver's name exactly as the bank's own QR carries it (field 59)
+  PixCidade:
+    Type: String
+    MaxLength: 15
+    Description: The receiver's city exactly as the bank's own QR carries it (field 60)
+  PixToken:
+    Type: String
+    NoEcho: true
+    MinLength: 24
+    Description: The token the phone sends with each bank notification; it lives only here and in MacroDroid
 
 Conditions:
   CreateOidcProvider: !Equals [!Ref CreateGitHubOidcProvider, "true"]
@@ -294,6 +312,10 @@ Resources:
                 Resource:
                   - !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionPt}
                   - !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionEn}
+              # The Pix function's code lives in infra/pix and ships with each push, like the site.
+              - Effect: Allow
+                Action: lambda:UpdateFunctionCode
+                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-pix
 
   # --- Viewer profiles: /perfil on the site saves each viewer's fan; the stream's crowd reads them ---------
 
@@ -567,11 +589,104 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${SigmaApi}/*
 
+  # --- Live Pix: /pix on the site reserves a value, the phone forwards the bank's notification, the stream
+  # shows what's paid. The code is infra/pix/index.mjs (its header tells the whole story); CI deploys it into
+  # this function on every push to main, so the code below is only what answers until the first deploy. --
+
+  Pix:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      TimeToLiveSpecification: { AttributeName: ttl, Enabled: true }
+
+  PixRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns: [arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole]
+      Policies:
+        - PolicyName: pix
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:DeleteItem, dynamodb:UpdateItem, dynamodb:Query]
+                Resource: !GetAtt Pix.Arn
+              # A Pix sent signed in with Twitch earns its sender Σ.
+              - Effect: Allow
+                Action: dynamodb:UpdateItem
+                Resource: !GetAtt Sigmas.Arn
+
+  PixFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-pix
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Role: !GetAtt PixRole.Arn
+      MemorySize: 256
+      Timeout: 10
+      Environment:
+        Variables:
+          TABLE: !Ref Pix
+          SIGMAS: !Ref Sigmas
+          CHAVE: !Ref SigmaChave
+          PIX_CHAVE: !Ref PixChave
+          PIX_NOME: !Ref PixNome
+          PIX_CIDADE: !Ref PixCidade
+          PIX_TOKEN: !Ref PixToken
+          TWITCH_CLIENT_ID: !Ref TwitchClientId
+      Code:
+        ZipFile: |
+          exports.handler = async () => ({ statusCode: 503, headers: { "content-type": "application/json" }, body: '{"erro":"O Pix ainda não foi publicado."}' })
+
+  PixApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub ${AWS::StackName}-pix
+      ProtocolType: HTTP
+      Target: !GetAtt PixFunction.Arn
+      CorsConfiguration:
+        AllowOrigins:
+          - https://muanlartins.com.br
+          - https://muanlartins.com
+          - http://localhost:3000
+          - http://localhost:3001
+          - http://localhost:8130
+        AllowMethods: [GET, POST]
+        AllowHeaders: [content-type, authorization, x-chave]
+        MaxAge: 3600
+
+  PixApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PixFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PixApi}/*
+
 Outputs:
   PerfilApiUrl:
     Value: !GetAtt PerfilApi.ApiEndpoint
   SigmaApiUrl:
     Value: !GetAtt SigmaApi.ApiEndpoint
+  PixApiUrl:
+    Value: !GetAtt PixApi.ApiEndpoint
+  PixFunction:
+    Value: !Ref PixFunction
   DeployRoleArn:
     Value: !GetAtt DeployRole.Arn
   Bucket:

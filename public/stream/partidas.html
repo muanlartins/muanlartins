@@ -524,6 +524,7 @@
           note("end")
           finish(data.WinnerTeamNum)
           cutToTalk()
+          broadcast()
         } else if (event === "MatchDestroyed" && match) {
           // Leaving a ranked match before it ends counts as a loss in the game, so it does here too.
           if (match.started && RANKED.has(match.playlist)) finish(null)
@@ -724,7 +725,9 @@
       function broadcast() {
         if (!obsReady) return
         const rank = state.ranks[state.mode]
-        const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, ...record(current(), state.mode) }
+        // emPartida: a match is on, from its first countdown to its end; the Pix overlay holds "entre partidas" Pix.
+        const emPartida = Boolean(match?.started && !finished.has(match.guid))
+        const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, emPartida, ...record(current(), state.mode) }
         emit("muanlartins-partidas", detail)
         emit("muanlartins-torcida", { tipo: "narrador", ligado: state.narrador })
         // The stand credits Σ only while the stream is on.

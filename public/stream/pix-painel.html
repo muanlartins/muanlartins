@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pix · painel · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: a custom browser dock (Docks → Custom Browser Docks), for Luan only:
+      ?api=<PixApiUrl>#chave=<the Σ key>, like the Pix overlay.
+
+      - Pix sem formulário: a Pix that arrived with no reservation for its
+        value (paid straight to the key, or after its reservation ran out, or a
+        personal one that has nothing to do with the live). Nothing shows on
+        the stream until it's placed here: on an open reservation (a typo in
+        the cents), as Anônimo, or ignored. Only the payer's first name is
+        kept, for three days, so Luan knows who it was.
+      - Registrar Pix: when the phone missed one. The value pays its
+        reservation, like a notification would; with none, it shows with the
+        name typed here.
+      - Últimos Pix: repeat an alert; take one off the site's mural.
+      - Meta: the goal bar on the overlay and on /pix; it counts from when it's set.
+    -->
+    <style>
+      html,
+      body {
+        overflow: auto;
+        background: var(--navy);
+      }
+      body {
+        padding: 14px;
+        font-size: 15px;
+        line-height: 1.35;
+      }
+      h2 {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 18px 0 8px;
+        color: var(--klein-claro);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      h2 small {
+        color: rgb(244 245 247 / 0.5);
+        letter-spacing: 0;
+        text-transform: none;
+      }
+      .status {
+        margin: 0;
+        color: rgb(244 245 247 / 0.6);
+        font-size: 12px;
+      }
+      .status::before {
+        content: "";
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background: #ff5a5a;
+      }
+      .status.on::before {
+        background: var(--klein-claro);
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+      }
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      li {
+        padding: 8px 0;
+        border-bottom: 1px solid rgb(133 167 255 / 0.18);
+      }
+      li:last-child {
+        border-bottom: 0;
+      }
+      li p {
+        margin: 0 0 6px;
+      }
+      .valor {
+        color: var(--klein-claro);
+        font-variant-numeric: tabular-nums;
+      }
+      .quando,
+      .vazio {
+        color: rgb(244 245 247 / 0.5);
+        font-size: 12px;
+      }
+      .msg {
+        display: block;
+        color: rgb(244 245 247 / 0.8);
+        font-size: 13px;
+      }
+      .pendente {
+        border-left: 3px solid #ffcc4d;
+        padding-left: 8px;
+      }
+      select,
+      input,
+      button {
+        font: inherit;
+        font-size: 14px;
+        color: var(--paper);
+        background: rgb(0 47 167 / 0.45);
+        border: 1px solid rgb(133 167 255 / 0.4);
+        padding: 5px 8px;
+      }
+      input::placeholder {
+        color: rgb(244 245 247 / 0.5);
+      }
+      select option {
+        background: var(--navy);
+      }
+      button {
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--klein-claro);
+      }
+      input.valor-in {
+        width: 90px;
+      }
+      input.nome-in {
+        width: 140px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="status" id="status">Conectando…</p>
+
+    <h2>Pix sem formulário <small id="n-pendentes"></small></h2>
+    <ul id="pendentes"></ul>
+
+    <h2>Registrar Pix</h2>
+    <form class="row" id="registrar">
+      <input class="valor-in" id="r-valor" inputmode="decimal" placeholder="R$ 5,00" required />
+      <input class="nome-in" id="r-nome" maxlength="25" placeholder="Nome (opcional)" />
+      <button>Registrar</button>
+    </form>
+
+    <h2>Últimos Pix <small id="n-reservas"></small></h2>
+    <ul id="pix"></ul>
+
+    <h2>Meta</h2>
+    <p class="vazio" id="meta-agora"></p>
+    <form class="row" id="meta">
+      <input class="nome-in" id="m-titulo" maxlength="60" placeholder="Microfone novo" />
+      <input class="valor-in" id="m-alvo" inputmode="decimal" placeholder="R$ 500" />
+      <button>Definir</button>
+      <button type="button" id="m-tirar">Tirar</button>
+    </form>
+
+    <script>
+      const params = new URLSearchParams(location.search)
+      const API = params.get("api") ?? ""
+      const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
+      const $ = (id) => document.getElementById(id)
+      const reais = (c) => (c / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      const centavosDe = (t) => {
+        const s = t.replace(/R\$|\s/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".")
+        return /^\d+(\.\d{1,2})?$/.test(s) ? Math.round(Number(s) * 100) : NaN
+      }
+      // sk is "<ISO time>#<id>".
+      const hora = (sk) => new Date(sk.slice(0, 24)).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+      const dia = (sk) => new Date(sk.slice(0, 24)).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+      function el(tag, props = {}, ...filhos) {
+        const e = Object.assign(document.createElement(tag), props)
+        e.append(...filhos)
+        return e
+      }
+      const botao = (texto, acao) => el("button", { type: "button", textContent: texto, onclick: acao })
+
+      async function pedir(caminho, corpo) {
+        const r = await fetch(API + caminho, {
+          method: corpo ? "POST" : "GET",
+          headers: { "x-chave": CHAVE, ...(corpo ? { "content-type": "application/json" } : {}) },
+          body: corpo && JSON.stringify(corpo),
+        })
+        const j = await r.json().catch(() => ({}))
+        if (!r.ok) throw new Error(j.erro || r.status)
+        return j
+      }
+      async function agir(corpo) {
+        try {
+          await pedir("/canal", corpo)
+        } catch (e) {
+          alert(`Não deu: ${e.message}`)
+        }
+        ler()
+      }
+
+      let ultimo = ""
+      function desenhar({ pix, pendentes, reservas, meta }) {
+        const chave = JSON.stringify([pix, pendentes, reservas.map((r) => r.id), meta])
+        if (chave === ultimo) return
+        ultimo = chave
+
+        $("n-pendentes").textContent = pendentes.length ? `${pendentes.length}` : ""
+        $("pendentes").replaceChildren(
+          ...(pendentes.length
+            ? pendentes.map((p) => {
+                const lista = el("select", {}, el("option", { value: "", textContent: "Ligar a uma reserva…" }), ...reservas.map((r) => el("option", { value: r.id, textContent: `R$ ${reais(r.centavos)} · ${r.nome || "Anônimo"}` })))
+                lista.onchange = () => lista.value && agir({ acao: "ligar", pendente: p.sk, reserva: lista.value })
+                return el(
+                  "li",
+                  { className: "pendente" },
+                  el("p", {}, el("span", { className: "valor", textContent: `R$ ${reais(p.centavos)}` }), ` · ${p.primeiro || "?"} `, el("span", { className: "quando", textContent: `${dia(p.sk)} ${hora(p.sk)}` })),
+                  el("div", { className: "row" }, botao("Mostrar como Anônimo", () => agir({ acao: "anonimo", pendente: p.sk })), reservas.length ? lista : "", botao("Ignorar", () => agir({ acao: "ignorar", pendente: p.sk }))),
+                )
+              })
+            : [el("li", { className: "vazio", textContent: "Nenhum." })]),
+        )
+
+        $("n-reservas").textContent = reservas.length ? `${reservas.length} esperando pagamento` : ""
+        $("pix").replaceChildren(
+          ...(pix.length
+            ? pix.slice(0, 12).map((p) =>
+                el(
+                  "li",
+                  {},
+                  el(
+                    "p",
+                    {},
+                    el("span", { className: "valor", textContent: `R$ ${reais(p.centavos)}` }),
+                    ` · ${p.nome || "Anônimo"} `,
+                    el("span", { className: "quando", textContent: `${dia(p.sk)} ${hora(p.sk)}${p.exibido ? "" : " · na fila"}${p.quando === "entre" ? " · entre partidas" : ""}${p.origem === "manual" ? " · registrado" : ""}` }),
+                    el("span", { className: "msg", textContent: p.mensagem || p.transcricao || (p.audio ? "(áudio)" : "") }),
+                  ),
+                  el(
+                    "div",
+                    { className: "row" },
+                    botao("Repetir", () => agir({ acao: "repetir", pix: p.sk })),
+                    p.mural ? botao(p.oculto ? "Voltar ao mural" : "Tirar do mural", () => agir({ acao: "ocultar", pix: p.sk, oculto: !p.oculto })) : "",
+                  ),
+                ),
+              )
+            : [el("li", { className: "vazio", textContent: "Nenhum ainda." })]),
+        )
+
+        $("meta-agora").textContent = meta ? `${meta.titulo || "Meta"}: R$ ${reais(meta.arrecadado)} de R$ ${reais(meta.alvo)}` : "Sem meta na tela."
+      }
+
+      async function ler() {
+        if (!API || !CHAVE) {
+          $("status").textContent = !API ? "Falta ?api= na URL" : "Falta #chave= na URL"
+          return
+        }
+        try {
+          desenhar(await pedir("/canal"))
+          $("status").className = "status on"
+          $("status").textContent = `Pix ok · ${new Date().toLocaleTimeString("pt-BR")}`
+        } catch (e) {
+          $("status").className = "status"
+          $("status").textContent = `Sem conexão com o Pix (${e.message})`
+        }
+      }
+
+      $("registrar").onsubmit = (e) => {
+        e.preventDefault()
+        const centavos = centavosDe($("r-valor").value)
+        if (!(centavos >= 1)) return alert("Valor inválido.")
+        agir({ acao: "registrar", centavos, nome: $("r-nome").value })
+        $("registrar").reset()
+      }
+      $("meta").onsubmit = (e) => {
+        e.preventDefault()
+        const alvo = centavosDe($("m-alvo").value)
+        if (!(alvo >= 1)) return alert("Valor da meta inválido.")
+        agir({ acao: "meta", titulo: $("m-titulo").value, alvo })
+      }
+      $("m-tirar").onclick = () => confirm("Tirar a meta da tela?") && agir({ acao: "meta", alvo: 0 })
+
+      ler()
+      setInterval(ler, 3000)
+    </script>
+  </body>
+</html>

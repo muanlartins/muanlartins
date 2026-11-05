@@ -15,6 +15,7 @@ import {
   signIn,
   signOut,
   SignedOut,
+  takeBack,
   takeDraft,
   takeToken,
   type Fan,
@@ -104,8 +105,14 @@ export function ProfilePage() {
   function start(T: Torcedor | undefined) {
     if (!T) return
     setT(T)
-    const draft = takeDraft()
     const found = canSave ? takeToken() : null
+    // A sign-in from another page (/pix) goes back there with the token.
+    const back = takeBack()
+    if (back) {
+      location.replace(back)
+      return
+    }
+    const draft = takeDraft()
     setToken(found)
     if (!found) {
       setFan(draft ? T.normalizar(draft) : T.padrao())

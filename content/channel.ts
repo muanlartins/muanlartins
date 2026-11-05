@@ -72,6 +72,14 @@ export const channel = {
     first: { pt: "Primeira etapa", en: "First stage" },
   },
 
+  pix: {
+    title: { pt: "Pix na live", en: "Pix on the live" },
+    description: {
+      pt: "Sua mensagem na tela, lida pela voz que você escolher, com o Pix direto para o Luan. E o mural de quem já mandou.",
+      en: "Your message on screen, read by the voice you pick, with the Pix straight to Luan. And the mural of everyone who has sent one.",
+    },
+  },
+
   backstage: {
     title: { pt: "Bastidores", en: "Behind the scenes" },
     description: {
