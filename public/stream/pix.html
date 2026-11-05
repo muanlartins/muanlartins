@@ -13,7 +13,7 @@
       the dock set one: a small bar at the top left.
 
       It reads the Pix API (infra/pix) every 2 s with the stream's key, the Σ
-      key: ?api=<PixApiUrl>#chave=<key>. The voices come from
+      key: #chave=<key> (?api= only to point it elsewhere). The voices come from
       scripts/narrador.py on this PC (?narrador= its address); each open
       reservation is rendered while the viewer pays, so the alert never waits.
       Without the narrator, the band still shows, silent but for the chime.
@@ -204,7 +204,8 @@
     </main>
     <script src="stream.js"></script>
     <script>
-      const API = params.get("api") ?? ""
+      // The stack's PixApiUrl; ?api= points it elsewhere (a local stand-in).
+      const API = params.get("api") ?? "https://g2x6kdnhr0.execute-api.us-east-1.amazonaws.com"
       const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
       const NARRADOR = params.get("narrador") ?? "http://127.0.0.1:8788"
       const DEMO = params.has("demo")

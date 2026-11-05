@@ -1,5 +1,5 @@
-/** The Pix API (infra/pix, output PixApiUrl): reserving a value, its status, and the mural. Empty until it exists. */
-export const PIX_API = process.env.NEXT_PUBLIC_PIX_API ?? ""
+/** The Pix API (infra/pix, output PixApiUrl): reserving a value, its status, and the mural. NEXT_PUBLIC_PIX_API points it at a local stand-in. */
+export const PIX_API = process.env.NEXT_PUBLIC_PIX_API ?? "https://g2x6kdnhr0.execute-api.us-east-1.amazonaws.com"
 
 export interface Reservation {
   id: string
