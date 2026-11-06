@@ -20,6 +20,8 @@ from pathlib import Path
 
 CAMERA = "Camera (NVIDIA Broadcast):"
 MIC = "{0.0.1.00000000}.{1bd84196-0816-4f00-8c22-a2b3950b995a}"
+# The main monitor (1920×1080 at 0,0; the other one is portrait). Without it OBS captures nothing.
+MONITOR = "\\\\?\\DISPLAY#GSM5D24#5&23b6c223&0&UID37120#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}"
 W, H = 1080, 1920
 STAGE = 1056  # the studio's picture (RLR's STAGE in src/app.tsx)
 LINE = 6
@@ -51,7 +53,7 @@ def item(src, i, pos=(0, 0), bounds=None, canvas=(W, H)):
 
 
 # The screen as it is, at 1:1 from its top left corner: what's past the canvas (the studio's controls) is cut off.
-screen = source("monitor_capture", "Tela", {"capture_cursor": False, "method": 0})
+screen = source("monitor_capture", "Tela", {"capture_cursor": False, "method": 0, "monitor_id": MONITOR})
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,
                                          "deactivate_when_not_showing": False})
 # Klein (#002FA7) as OBS writes colours: 0xAABBGGRR.
