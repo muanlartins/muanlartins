@@ -95,8 +95,8 @@ screen. Nothing that ages (no "today", rank or dates). Shorts get no intro, only
 records them and writes the words; Claude edits: trims the silences, levels to −14 LUFS, and adds what's on
 screen (callouts, the tech, the hooks). The parts live in `Videos\Comentados\Partes` (`intro.mp4`, `outro.mp4`, raws
 kept as `… (bruto).mp4`). The outros' edit is `scripts/montagem.py --apply` (its docstring has the recipe; a re-recorded part
-needs its word timings measured again with whisper `-ml 1`, and `CLIPS` picks the live moments, never with anyone
-else's name legible).
+needs its word timings measured again with whisper `-ml 1`, `POSES` picks his poses from a live's `Câmera.mkv`
+and `SITE` is the shorts' list of what's on the site, Luan's to edit).
 
 ## Checking studio changes
 
