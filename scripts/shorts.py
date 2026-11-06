@@ -12,8 +12,10 @@ becomes a short, the same way every time:
   at the top and bottom of the play are cut, the rest scaled back up to fill it);
 - the full wordmark over the camera's cut "anlartins" (NVIDIA Broadcast's background, cropped);
 - a hook line on top for its first seconds when --gancho gives one (what the chat said, say);
-- captioned word by word from whisper (the microphone alone), three words at a time, the one being said in Klein
-  claro, on the line between the play and the camera; friends' names come out as in the lives' transcripts;
+- captioned word by word from whisper (the microphone alone): blocks of up to two lines sitting on the line between
+  the play and the camera, each word appearing as it's said, in Klein claro with a glow while it's the one being said,
+  then white; a pause or the end of a sentence starts the next block, and a block's layout is set once, so words don't
+  shift as they come in; friends' names come out as in the lives' transcripts;
 - levelled to -14 LUFS, the shorts' outro (Videos\\Shorts\\Partes\\outro-editado.mp4, montagem.py) after it;
 - encoded for Instagram and YouTube Shorts (H.264, AAC, the index up front) as
   Videos\\Shorts\\prontos\\<date> <time> - <play>.mp4. Over 60 s is said, not cut.
@@ -45,7 +47,7 @@ LOCKUP = Path(__file__).resolve().parent.parent / "brand" / "logo" / "lockup.svg
 LOGO_AT = (0, 1104)  # montagem.py's: over the camera's cut "anlartins"
 KLEIN = "0x002FA7"
 MIC, ALL = 1, 0  # audio streams, from 0
-WORDS_SHOWN = 3
+BLOCK_CHARS = 34  # about two lines at the captions' size
 
 
 def probe(file, *args):
@@ -134,34 +136,46 @@ def ass_time(seconds):
 
 
 def captions(said, hook=None):
-    """An ASS subtitle file: three words at a time, the one being said in Klein claro, centred on the seam."""
-    groups, group = [], []
+    """An ASS subtitle file: blocks of up to two lines, built word by word as he says them, just above the seam."""
+    blocks, block = [], []
     for word in said:
-        # A new line every three words, and after a pause or the end of a sentence.
-        if group and (len(group) == WORDS_SHOWN or word[0] - group[-1][1] > 0.6 or group[-1][2][-1] in ".?!"):
-            groups.append(group)
-            group = []
-        group.append(word)
-    if group:
-        groups.append(group)
+        if block and (len(" ".join(w for _, _, w in block + [word])) > BLOCK_CHARS
+                      or word[0] - block[-1][1] > 0.6 or block[-1][2][-1] in ".?!"):
+            blocks.append(block)
+            block = []
+        block.append(word)
+    if block:
+        blocks.append(block)
+    hidden = "{\\alpha&HFF&}"  # there but invisible, so the block's lines are laid out once
+    white = "{\\alpha&H00&\\c&HF7F5F4&}"
+    klein_claro = "{\\alpha&H00&\\c&HFFA785&}"
+    # The glow: only the word being said, its outline wide, blurred and half seen, flaring as it comes in.
+    glow = "{\\alpha&HFF&\\3a&H70&\\3c&HFFA785&\\bord22\\blur10\\t(0,160,\\bord14)}"
     events = []
-    for group in groups:
-        for i, (start, end, _) in enumerate(group):
-            # Each word holds until the next one starts, so the line doesn't blink between words.
-            until = group[i + 1][0] if i + 1 < len(group) else end + 0.25
-            text = " ".join(("{\\c&HFFA785&}" + w + "{\\c&HF7F5F4&}") if j == i else w for j, (_, _, w) in enumerate(group))
-            events.append(f"Dialogue: 0,{ass_time(start)},{ass_time(max(until, start + 0.05))},Legenda,,0,0,0,,{{\\pos(540,{SEAM})}}{text}")
+    for n, block in enumerate(blocks):
+        # The block ends when the next one starts at the latest, so two blocks never share the seam.
+        last = block[-1][1] + 0.4
+        if n + 1 < len(blocks):
+            last = min(last, blocks[n + 1][0][0])
+        for i, (start, end, _) in enumerate(block):
+            until = block[i + 1][0] if i + 1 < len(block) else last
+            at = f"{ass_time(start)},{ass_time(max(until, start + 0.05))}"
+            behind = " ".join((glow if j == i else "{\\alpha&HFF&\\3a&HFF&}") + w for j, (_, _, w) in enumerate(block))
+            text = " ".join((white if j < i else klein_claro if j == i else hidden) + w for j, (_, _, w) in enumerate(block))
+            # Sitting on the seam from above: the camera's corner (the wordmark) stays clear.
+            events.append(f"Dialogue: 0,{at},Legenda,,0,0,0,,{{\\an2\\pos(540,{SEAM - 18})}}{behind}")
+            events.append(f"Dialogue: 1,{at},Legenda,,0,0,0,,{{\\an2\\pos(540,{SEAM - 18})}}{text}")
     if hook:
         events.append(f"Dialogue: 1,{ass_time(0)},{ass_time(2.4)},Gancho,,0,0,0,,{{\\pos(540,330)\\fad(0,200)}}{hook}")
     return f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: 1080
 PlayResY: 1920
-WrapStyle: 2
+WrapStyle: 0
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Legenda,Space Grotesk,78,&H00F7F5F4,&H00F7F5F4,&H00A72F00,&H00A72F00,-1,0,0,0,100,100,0,0,3,18,0,5,40,40,0,1
+Style: Legenda,Space Grotesk,70,&H00F7F5F4,&H00F7F5F4,&H00A72F00,&H00A72F00,-1,0,0,0,100,100,0,0,1,9,0,5,70,70,0,1
 Style: Gancho,Space Grotesk,58,&H00F7F5F4,&H00F7F5F4,&H00A72F00,&H00A72F00,-1,0,0,0,100,100,0,0,3,24,0,5,60,60,0,1
 
 [Events]
