@@ -373,6 +373,38 @@
         }
       }
 
+      /* Live captions (legenda.js): over the stand, clear of its banners, which hide them while they show. */
+      .legenda {
+        position: absolute;
+        left: 1076px;
+        bottom: 236px;
+        z-index: 55;
+        translate: -50% 0;
+        width: fit-content;
+        max-width: 960px;
+        max-height: calc(2 * 1.25em + 20px);
+        overflow: hidden;
+        margin: 0;
+        padding: 8px 20px 12px;
+        background: rgb(0 20 71 / 0.78);
+        color: var(--klein-claro);
+        font-size: 34px;
+        font-weight: 600;
+        line-height: 1.25;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.4s var(--ease), color 0.3s;
+      }
+      .legenda.final {
+        color: var(--paper);
+      }
+      .legenda.visivel {
+        opacity: 1;
+      }
+      .legenda.escondida {
+        opacity: 0;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .vivo,
         .arquibancada::before {
@@ -391,6 +423,7 @@
     <script src="stream.js"></script>
     <script src="torcedor.js"></script>
     <script src="sigma.js"></script>
+    <script src="legenda.js"></script>
     <script>
       const torcida = document.getElementById("torcida")
       const $ = (id) => document.getElementById(id)
@@ -666,6 +699,7 @@
           f.append(span)
         }
         torcida.append(f)
+        Legenda.esconder(5400)
         setTimeout(() => f.remove(), 5400)
       }
 
@@ -760,6 +794,9 @@
         },
         narrador({ ligado }) {
           narradorLigado = !!ligado
+        },
+        legenda({ ligado }) {
+          Legenda.ligar(!!ligado)
         },
         defesa({ epica }) {
           momento("defesa", 800)
@@ -913,6 +950,8 @@
           },
           s: () => sair(random()),
           m: () => say(random(), FRASES[Math.floor(Math.random() * FRASES.length)]),
+          l: () => Legenda.mostrar(pick(["Olha esse kickoff, eu vou fake e ele vem com tudo", "Que golaço, meu Deus do céu, que golaço!",
+            "Aqui eu devia ter rodado pra trás, o meu companheiro já estava na bola e eu fiquei no meio do caminho dele"]), Math.random() < 0.5),
         }
         addEventListener("keydown", (e) => keys[e.key]?.())
         if (params.get("demo") === "parado") return

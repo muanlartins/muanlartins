@@ -19,6 +19,9 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
   - no swiftshader/Playwright, no ffmpeg over recordings, no `pnpm build`, no dev servers, no whisper;
   - queue those for after the stream and say so.
 - Never stop `scripts/narrador.py`: it's part of the live (the goal narrator and the Pix voices).
+- Live captions (`scripts/legenda.py`, started at login like the narrator, log `~/.cache/muanlartins/legenda.log`):
+  on only while the dock's "Legendas ao vivo" is ticked, then they hear the mic and run whisper on the GPU every
+  second (~0.2 s each, ~1 GB VRAM). If the stream stutters with them on, untick it first; it frees the GPU at once.
 - Never restart or close OBS, or change scenes/inputs, while he's live unless he asks for that change.
 - The same goes, more mildly, whenever OBS is open: a 9-minute ffmpeg encode on 11-05 left OBS with 35% of its
   render frames skipped while it sat idle.
