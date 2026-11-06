@@ -88,6 +88,12 @@ screen, so he drives it with the keys (V, space, I/O, L, M) and turns the 3D cam
 become chapters. "Back to the live's OBS" afterwards. Recordings land in `Videos\Comentados`
 (`<date> <time> comentado.mp4`, CQP 20). The edit (cuts, the upload) is still by hand: ask Luan what he wants.
 
+**Intro and outro** (Luan's plan, 11-06): recorded once each in the Vídeo collection's scene "Intro e outro" (the
+camera filling the frame) and put on every video: the match's strongest 5–10 s first, then the intro (15–20 s: the
+channel's idea, the series), the commentary, the outro (the lives, the site) with ~20 s at the end for YouTube's end
+screen. Nothing that ages (no "today", rank or dates). Shorts get no intro, only a 3–5 s outro of their own. Luan
+records them and writes the words; Claude reviews them and joins the parts.
+
 ## Checking studio changes
 
 - Headless Chromium in WSL decodes **no video at all** (Format error even for VP8). Test the logic with a
@@ -101,7 +107,6 @@ become chapters. "Back to the live's OBS" afterwards. Recordings land in `Videos
 
 ## Still to build (in this order unless Luan says otherwise)
 
-1. Test the Shorts and Vídeo profiles in the real OBS (built 11-06, applied, never opened yet): the monitor capture
-   picks the right screen, the camera, the browser's sound, and switching back to the live's.
-
-
+1. Test the Shorts and Vídeo profiles through the studio (OBS side checked 11-06: both capture the main monitor and
+   the camera; `Tela` needs `monitor_id`, there are two monitors): the browser's sound and switching back.
+2. A script joining a commented take with the intro and outro.

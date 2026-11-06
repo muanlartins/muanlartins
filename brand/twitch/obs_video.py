@@ -17,7 +17,7 @@ import json
 import sys
 from pathlib import Path
 
-from obs_shorts import CAMERA, MIC, OBS, TRACK_ALL, TRACK_MIC, TRACK_STUDIO, item, source
+from obs_shorts import CAMERA, MIC, MONITOR, OBS, TRACK_ALL, TRACK_MIC, TRACK_STUDIO, item, source
 
 W, H = 1920, 1080
 CANVAS = (W, H)
@@ -26,7 +26,7 @@ FOLDER = "C:\\\\Users\\\\muanl\\\\Videos\\\\Comentados"
 CAMERA_AT, CAMERA_SIZE = (44, 740), (480, 270)
 FRAME = 6
 
-screen = source("monitor_capture", "Tela", {"capture_cursor": False, "method": 0})
+screen = source("monitor_capture", "Tela", {"capture_cursor": False, "method": 0, "monitor_id": MONITOR})
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,
                                          "deactivate_when_not_showing": False})
 frame = source("color_source_v3", "Moldura", {"color": 0xFFA72F00, "width": CAMERA_SIZE[0] + 2 * FRAME,
@@ -43,10 +43,13 @@ items = [item(screen, 1, canvas=CANVAS),
          item(camera, 3, CAMERA_AT, CAMERA_SIZE, canvas=CANVAS),
          item(browser, 4, canvas=CANVAS)]
 commented = source("scene", "Comentado", {"id_counter": len(items), "custom_size": False, "items": items})
+# The intro and the outro, recorded once and put on every video: Luan alone, the camera filling the frame.
+alone = source("scene", "Intro e outro", {"id_counter": 1, "custom_size": False,
+                                   "items": [item(camera, 1, (0, 0), CANVAS, canvas=CANVAS)]})
 
 collection = {
     "name": "Vídeo", "current_scene": "Comentado", "current_program_scene": "Comentado",
-    "scene_order": [{"name": "Comentado"}], "sources": [commented, screen, frame, camera, browser], "groups": [],
+    "scene_order": [{"name": "Comentado"}, {"name": "Intro e outro"}], "sources": [commented, alone, screen, frame, camera, browser], "groups": [],
     "AuxAudioDevice1": mic, "transitions": [], "current_transition": "Fade", "transition_duration": 300,
     "quick_transitions": [], "saved_projectors": [], "preview_locked": False, "scaling_enabled": False, "modules": {},
     "resolution": {"x": W, "y": H}, "version": 2,
