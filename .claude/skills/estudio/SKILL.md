@@ -52,6 +52,28 @@ a recording by hand still works for anything else.)
 - Reading the chapters back from a studio recording:
   `ffmpeg -i "<file>.mp4" 2>&1 | grep -A2 Chapter` (or `ffprobe -show_chapters`).
 
+## Shorts (the "modo short")
+
+One take = one short; Luan only picks the play and talks. Everything else runs the same way every time:
+
+1. **The plays** (`src/studio/plays.ts`, deterministic): Luan's goals (more for km/h, aerial, long, bicycle,
+   flip reset, overtime), assists, epic saves, saves, flip resets and shots off the bar, from the dock's events,
+   plus points for excited lines in the live's transcript at that moment ("que golaço"). Each loops from the
+   kickoff or up to 9 s before to 2.5 s after. The transcript comes from the site, so the live's page must be
+   published (`depois-da-live`) for those points.
+2. **Recording:** in RLR, "Shorts" on a day of the lives list opens the best play: the picture is fixed at the
+   screen's top left, 1080×1056 of the screen's own pixels (the game cut to the middle, V for the 3D in the same
+   frame), the list and controls beside it. "Full screen", then "Connect OBS" and **"Record a short"**: the
+   studio switches OBS to the **Shorts profile and scene collection** (`brand/twitch/obs_shorts.py --apply`, OBS
+   closed: 1080×1920, the screen captured 1:1 from its corner, his camera 1080×864 under it, mic tracks 1 and 2,
+   the browser's sound on 3), refusing while live, and every play shown while recording becomes a chapter named
+   for it. "Back to the live's OBS" puts the live's profile back (`node scripts/obs.mjs` warns if it stayed on
+   Shorts). Takes land in `Videos\Shorts`.
+3. **The edit:** `scripts/.venv/bin/python scripts/shorts.py --apply` makes each chapter of each new take a
+   short in `Videos\Shorts\prontos`: cut to his speech (silence on the mic track), captions word by word from
+   whisper on the seam between play and camera (three words, the one being said in Klein claro, friends' names
+   out), H.264/AAC for Instagram and YouTube Shorts. Over 60 s is reported, not cut. Luan reviews and posts.
+
 ## Checking studio changes
 
 - Headless Chromium in WSL decodes **no video at all** (Format error even for VP8). Test the logic with a
@@ -65,6 +87,7 @@ a recording by hand still works for anything else.)
 
 ## Still to build (in this order unless Luan says otherwise)
 
-1. An OBS scene "Estúdio" (browser window, mic, camera) for recording the commentary: ask before touching OBS.
-2. The cutting pipeline: from the studio recording's chapters and marks to shorts (vertical) and the
-   commented video.
+1. The Jogo recording's own start: RLR lines the video up from the session's recording start, and the game's file
+   starts a fraction of a second later. Measure it on the first live with `Jogo.mp4` (cross-correlate its sound
+   with `Live.mp4`'s track 3) and correct it before Luan records from it.
+2. An OBS scene for the commented videos (16:9, the studio and the camera).
