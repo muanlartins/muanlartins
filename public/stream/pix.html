@@ -10,7 +10,11 @@
       sent on the site's /pix: a Klein band under the scoreboard with the name,
       the amount and the message, a chime, and the message read by the voice
       the viewer chose (or their recording, in that voice). And the goal, if
-      the dock set one: a small bar at the top left.
+      the dock set one: a small bar at the top left. Above it, always, the
+      call: a QR code to the site's /pix (public/stream/pix-qr.svg, drawn by
+      scripts/pix-qr.mjs, chamada() in stream.js) so whoever watches knows they
+      can send one;
+      ?chamada=0 leaves it out.
 
       It reads the Pix API (infra/pix) every 2 s with the stream's key, the Σ
       key: #chave=<key> (?api= only to point it elsewhere). The voices come from
@@ -132,12 +136,17 @@
         }
       }
 
-      /* The goal: top left, clear of the scoreboard (top centre). */
-      .meta {
+      /* Top left, clear of the scoreboard (top centre): the call, and the goal under it. */
+      .canto {
         position: absolute;
         top: 28px;
         left: 28px;
         width: 380px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .meta {
         padding: 14px 18px 16px;
         background: rgb(0 20 71 / 0.82);
         clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
@@ -186,9 +195,12 @@
   </head>
   <body>
     <main class="stage">
-      <div class="meta" hidden>
-        <p><span class="titulo"></span><span class="quanto"></span></p>
-        <div class="barra"><div></div></div>
+      <div class="canto">
+        <div id="chamada"></div>
+        <div class="meta" hidden>
+          <p><span class="titulo"></span><span class="quanto"></span></p>
+          <div class="barra"><div></div></div>
+        </div>
       </div>
       <div class="alerta">
         <div class="faixa">
@@ -210,6 +222,7 @@
       const NARRADOR = params.get("narrador") ?? "http://127.0.0.1:8788"
       const DEMO = params.has("demo")
       const $ = (s) => document.querySelector(s)
+      if (params.get("chamada") !== "0") chamada($("#chamada"))
 
       const reais = (c) => (c / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       // How the voice says an amount: "5 reais e 50 centavos".

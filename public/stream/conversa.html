@@ -9,7 +9,8 @@
       hole, 1280×720 at (64, 64); the Twitch chat runs down the right.
       ?topico= sets the line under the camera and ?rotulo= the label above it
       (default "Agora"); ?canal= the chat's channel
-      (default muanlartins); ?demo fills the chat with sample messages.
+      (default muanlartins); ?demo fills the chat with sample messages. Under
+      the camera on the right, the Pix call (?chamada=0 leaves it out).
     -->
     <style>
       .ground {
@@ -38,6 +39,8 @@
         gap: 48px;
       }
       .topic {
+        /* Clear of the Pix call on the right. */
+        max-width: 600px;
         margin: 8px 0 0;
         font-size: 52px;
         font-weight: 500;
@@ -58,6 +61,26 @@
         padding-bottom: 14px;
         border-bottom: 1px solid rgb(133 167 255 / 0.4);
       }
+      /* Between matches is when a Pix is likeliest: the call is bigger here. */
+      #chamada {
+        position: absolute;
+        right: 576px;
+        top: 852px;
+      }
+      #chamada.chamada {
+        --qr: 148px;
+        gap: 22px;
+        padding-right: 28px;
+      }
+      #chamada .pix {
+        font-size: 18px;
+      }
+      #chamada .convite {
+        font-size: 30px;
+      }
+      #chamada .site {
+        font-size: 20px;
+      }
       #chat {
         position: relative;
         flex: 1;
@@ -75,6 +98,7 @@
           <p class="topic" id="topic">Rocket League</p>
         </div>
       </div>
+      <div id="chamada"></div>
       <aside class="side">
         <p class="eyebrow">Chat</p>
         <div id="chat"></div>
@@ -88,6 +112,7 @@
       if (params.get("topico")) document.getElementById("topic").textContent = params.get("topico")
       if (params.get("rotulo")) document.getElementById("label").textContent = params.get("rotulo")
       chat(document.getElementById("chat"))
+      if (params.get("chamada") !== "0") chamada(document.getElementById("chamada"))
     </script>
   </body>
 </html>
