@@ -29,7 +29,10 @@ description: Making Luan's shorts and commented-match videos from a live's mater
 - The session: `content/matches/<id>.json` (`outputs`: when the recording started; each match's `start` and
   `at`) and `<id>.events.json` (each match's log: kickoffs, goals with km/h, shots, saves, demos, touches; players
   as roles `me`, `mate1`, `opp2`).
-- A match's place in the recording: `match.start − record start`, plus an event's `t`. Checked on 11-05: a goal
+- A match's place in the recording: `match.start − record start`, plus an event's `t`. `Jogo.mp4` starts later
+  (Source Record opens it when the game is first on screen: 83 s after the recording on 11-06); RLR takes its start
+  from its name plus half a second (`forRecording` in `src/studio/sync.ts`). OBS's log has it to the millisecond
+  (`[ffmpeg muxer: 'Gravar jogo'] Writing file`). Checked on 11-05: a goal
   the dock logged at 25:41.6 shows its explosion at 25:41.6 in the recording.
 
 ## RLR's studio (`~/repos/rlr`, `src/studio/`)
@@ -98,8 +101,7 @@ become chapters. "Back to the live's OBS" afterwards. Recordings land in `Videos
 
 ## Still to build (in this order unless Luan says otherwise)
 
-1. The Jogo recording's own start: RLR lines the video up from the session's recording start, and the game's file
-   starts a fraction of a second later. Measure it on the first live with `Jogo.mp4` (cross-correlate its sound
-   with `Live.mp4`'s track 3) and correct it before Luan records from it.
-2. Test the Shorts and Vídeo profiles in the real OBS (built 11-06, applied, never opened yet): the monitor capture
+1. Test the Shorts and Vídeo profiles in the real OBS (built 11-06, applied, never opened yet): the monitor capture
    picks the right screen, the camera, the browser's sound, and switching back to the live's.
+
+
