@@ -424,7 +424,6 @@ EPISODES = {
 
 # One per Twitch live uploaded as a VOD, by date: the rank and tier it reached, if it climbed.
 LIVES = {
-    "2026-10-27": (None, None),
     "2026-10-28": ("diamond", 3),
     "2026-11-05": (None, None),
 }
