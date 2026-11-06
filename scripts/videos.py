@@ -49,7 +49,8 @@ def recordings():
     """(file, where it goes) for each OBS recording still loose in Videos."""
     for file in sorted(VIDEOS.iterdir()):
         found = LOOSE.match(file.name)
-        if file.is_file() and found:
+        # Source Record leaves an empty file when OBS opens a scene after recording stops: those stay put.
+        if file.is_file() and found and file.stat().st_size > 1_000_000:
             day, time, kind, ext = found.groups()
             yield file, LIVES / day / f"{time} {KINDS[kind]}.{ext}"
 
@@ -96,7 +97,7 @@ def replays():
         for number, match in enumerate(sorted(matches, key=lambda m: m.get("start") or m["at"]), 1):
             end = datetime.fromisoformat(match["at"].replace("Z", "+00:00"))
             fits = [(path, min(abs(when - end) for when in whens)) for path, whens, goals in saved
-                    if goals == set(match["score"]) and min(abs(when - end) for when in whens) < timedelta(minutes=3)]
+                    if match.get("score") and goals == set(match["score"]) and min(abs(when - end) for when in whens) < timedelta(minutes=3)]
             if not fits:
                 continue
             path = min(fits, key=lambda fit: fit[1])[0]
