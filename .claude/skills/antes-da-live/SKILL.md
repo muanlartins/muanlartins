@@ -14,7 +14,7 @@ WSL shares the CPU with the game and OBS. On 2026-11-05 headless WebGL (swiftsha
 made his stream stutter: OBS skipped hundreds of frames and he felt it in the game and "even the network".
 
 - First check: `node scripts/obs.mjs` (prints live/recording, fps, skipped frames, CPU, and the profile: it
-  warns when OBS stayed on the Shorts profile, which would stream 1080×1920). If `live: yes`:
+  warns when OBS stayed on the studio's Shorts or Vídeo profile, which would stream the wrong thing). If `live: yes`:
   - only code edits, `tsc`, lint and light reads;
   - no swiftshader/Playwright, no ffmpeg over recordings, no `pnpm build`, no dev servers, no whisper;
   - queue those for after the stream and say so.

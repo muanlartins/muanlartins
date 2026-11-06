@@ -26,7 +26,8 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   and "Gravar jogo" on Rocket League (`… jogo.mkv`, the game without camera or overlays, CQP 22, its own sound;
   added 2026-11-05). `videos.py` files both.
 - Shorts have their own profile and scene collection, "Shorts" (1080×1920; `brand/twitch/obs_shorts.py --apply`
-  with OBS closed). RLR's studio switches to them to record and back; never switch while live.
+  with OBS closed), and so do commented videos, "Vídeo" (1920×1080, folder `profiles\Video`;
+  `brand/twitch/obs_video.py --apply`). RLR's studio switches to them to record and back; never switch while live.
 - Luan's choice: Discord is hidden in Jogo, Jogo + chat and Conversa, and the browser in the game scenes.
 - Changes made by hand or by websocket should also land in `brand/twitch/obs.py`, which generates the scene
   collection (`python3 brand/twitch/obs.py [stinger path] [alerts URL] > muanlartins.json`; the alerts URL is a

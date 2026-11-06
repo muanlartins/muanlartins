@@ -72,8 +72,8 @@ function summary() {
   return [
     `live: ${stream.outputActive ? `yes, ${stream.outputTimecode}` : "no"} · recording: ${record.outputActive ? `yes, ${record.outputTimecode}` : "no"}`,
     `scene: ${scene.currentProgramSceneName ?? "?"} · profile: ${profiles.currentProfileName ?? "?"}`,
-    // RLR's studio switches to the Shorts profile to record shorts and back afterwards; a live needs the live's.
-    profiles.currentProfileName === "Shorts" ? "⚠ OBS is still on the Shorts profile (1080×1920): switch back to the live's before going live" : "",
+    // RLR's studio switches to the Shorts or Vídeo profile to record and back afterwards; a live needs the live's.
+    ["Shorts", "Vídeo"].includes(profiles.currentProfileName) ? `⚠ OBS is still on the ${profiles.currentProfileName} profile (the studio's): switch back to the live's before going live` : "",
     `fps ${stats.activeFps?.toFixed(1)} · cpu ${stats.cpuUsage?.toFixed(1)}% · render skipped ${stats.renderSkippedFrames}/${stats.renderTotalFrames} · encode skipped ${stats.outputSkippedFrames}/${stats.outputTotalFrames}`,
     stream.outputActive ? `stream skipped ${stream.outputSkippedFrames}/${stream.outputTotalFrames} · congestion ${stream.outputCongestion?.toFixed(2)}` : "",
   ]
