@@ -119,8 +119,15 @@ def expendable():
             continue
         page = PAGES / f"{folder.name}.json"
         video = json.loads(page.read_text()).get("video") if page.exists() else None
+        old = (date.today() - day).days > KEEP_DAYS
+        done = (folder / DONE).exists()
+        # Before 11-06 there was no Jogo.mkv: the stream's recording is then the studio's only copy of the matches.
+        alone = not any(folder.glob("??-??-?? Jogo.*"))
         for file in sorted(folder.glob("??-??-?? Live.*")):
             if not video:
+                continue
+            if alone and not (old or done):
+                print(f"keep  {file.relative_to(VIDEOS)}: o dia não tem Jogo.mkv, e o estúdio ainda usa este (até --done ou {KEEP_DAYS} dias)")
                 continue
             # Imported here: it needs the venv, and only this check does.
             from youtube import processed
@@ -131,8 +138,6 @@ def expendable():
                 print(f"keep  {file.relative_to(VIDEOS)}: o vídeo {video} tem {online} s e o arquivo {length(file):.0f} s")
             else:
                 yield file, f"no YouTube ({video})"
-        old = (date.today() - day).days > KEEP_DAYS
-        done = (folder / DONE).exists()
         if old or done:
             for file in sorted([*folder.glob("??-??-?? Jogo.*"), *folder.glob("??-??-?? Câmera.*")]):
                 yield file, "dia marcado como feito" if done else f"mais de {KEEP_DAYS} dias"

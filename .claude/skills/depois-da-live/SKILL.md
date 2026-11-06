@@ -62,6 +62,7 @@ python3 scripts/videos.py --done <date>                        # after that day'
 ```
 
 - `Live.mp4` goes once its YouTube video is processed and as long as the file (checked through the API).
+  A day without `Jogo.mkv` (11-05 and before) keeps it until `--done` or 7 days: it's the studio's only copy of the matches.
 - `Jogo.mkv` and `Câmera.mkv` go when the day is marked `--done`, or 7 days after the live (`KEEP_DAYS`).
 - Replays stay (a few MB). Show Luan the list before `--apply`: nothing comes back.
 - Free space under ~150 GB before a live: tell him.
