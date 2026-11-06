@@ -8,8 +8,10 @@ from pathlib import Path
 @cache
 def home() -> Path:
     """%USERPROFILE%, as a WSL path; the Linux home outside WSL."""
+    # By full path when it's there: a WSL process started from Windows doesn't always get Windows' folders in its PATH.
+    cmd = "/mnt/c/Windows/System32/cmd.exe" if Path("/mnt/c/Windows/System32/cmd.exe").exists() else "cmd.exe"
     try:
-        profile = subprocess.run(["cmd.exe", "/c", "echo %USERPROFILE%"], capture_output=True, text=True,
+        profile = subprocess.run([cmd, "/c", "echo %USERPROFILE%"], capture_output=True, text=True,
                                  cwd="/mnt/c", check=True).stdout.strip()
         return to_wsl(profile)
     except (OSError, subprocess.CalledProcessError):
