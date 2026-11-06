@@ -46,7 +46,7 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 
 ## OBS facts
 
-- OBS 33, profile "Untitled", Advanced output. Recording: Hybrid MP4 (survives a crash, takes chapter marks),
+- OBS 33, profile "Live" ("Untitled" until 11-06), Advanced output. Recording: Hybrid MP4 (survives a crash, takes chapter marks),
   NVENC, tracks 1–4 (1 Tudo, 2 Microfone, 3 Jogo, 4 Discord); track 5 "Live" is the stream's. The camera also
   records to its own `… câmera.mkv` (Source Record filter "Gravar câmera").
 - Scenes: Começando, Jogo, Jogo + chat, Conversa, Já volto, Fim. `brand/twitch/obs.py` generates the scene

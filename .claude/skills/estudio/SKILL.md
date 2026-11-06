@@ -91,8 +91,10 @@ become chapters. "Back to the live's OBS" afterwards. Recordings land in `Videos
 **Intro and outro** (Luan's plan, 11-06): recorded once each in the Vídeo collection's scene "Intro e outro" (the
 camera filling the frame) and put on every video: the match's strongest 5–10 s first, then the intro (15–20 s: the
 channel's idea, the series), the commentary, the outro (the lives, the site) with ~20 s at the end for YouTube's end
-screen. Nothing that ages (no "today", rank or dates). Shorts get no intro, only a 3–5 s outro of their own. Luan
-records them and writes the words; Claude reviews them and joins the parts.
+screen. Nothing that ages (no "today", rank or dates). Shorts get no intro, only a 3–5 s outro of their own, recorded in the Shorts collection's scene "Final" (the camera where "Short" has it, the top plain Klein: the edit fills it with the lives' tech in motion). Luan
+records them and writes the words; Claude edits: trims the silences, levels to −14 LUFS, and adds what's on
+screen (callouts, the tech, the hooks). The parts live in `Videos\Comentados\Partes` (`intro.mp4`, `outro.mp4`, raws
+kept as `… (bruto).mp4`).
 
 ## Checking studio changes
 
