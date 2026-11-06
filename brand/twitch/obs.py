@@ -70,9 +70,16 @@ def scene(name, *items):
                                   "items": [item(src, i + 1, **opts) for i, (src, opts) in enumerate(items)]})
 
 
+# The game also goes to a file of its own while recording, without camera or overlays (the Source Record plugin), for
+# vertical shorts and commented videos; with its own sound. CQP 22: it's material for cuts, and space adds up daily.
 game = source("game_capture", "Rocket League", {"capture_mode": "window", "window": ROCKET_LEAGUE, "priority": 2,
                                                 "capture_cursor": False, "allow_transparency": False,
-                                                "capture_audio": True}, mixers=EVERYWHERE | TRACK_GAME)
+                                                "capture_audio": True}, mixers=EVERYWHERE | TRACK_GAME, filters=[
+    source("source_record_filter", "Gravar jogo", {
+        "record_mode": 3, "path": "C:\\Users\\muanl\\Videos", "filename_formatting": "%CCYY-%MM-%DD %hh-%mm-%ss jogo",
+        "rec_format": "mkv", "encoder": "nvenc", "rate_control": "CQP", "cqp": 22, "keyint_sec": 2, "preset2": "p5",
+        "profile": "high", "different_audio": False}),
+])
 # Stays on between scenes, so switching to one with the camera doesn't wait for it to start.
 # It also goes to a file of its own at native resolution while recording (the Source Record plugin), with the
 # microphone for syncing it to the main recording.
@@ -139,8 +146,14 @@ scenes = [
     scene("Já volto", (back, {})),
     scene("Fim", (end, {})),
 ]
+# Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
+# browser out of the game scenes; they're kept as hidden items, ready to switch on.
+HIDDEN = {"Jogo": {"Discord", "Navegador"}, "Jogo + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"}}
 for each in scenes:
-    each["settings"]["items"] += [item(app, each["settings"]["id_counter"] + n + 1) for n, app in enumerate(apps)]
+    added = [item(app, each["settings"]["id_counter"] + n + 1) for n, app in enumerate(apps)]
+    for one in added:
+        one["visible"] = one["name"] not in HIDDEN.get(each["name"], set())
+    each["settings"]["items"] += added
     each["settings"]["id_counter"] += len(apps)
 # The game fills the screen keeping its aspect ratio rather than cropping.
 for captured in (scenes[1], scenes[2]):

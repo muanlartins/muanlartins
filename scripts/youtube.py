@@ -56,6 +56,19 @@ def youtube():
     return build("youtube", "v3", credentials=credentials(), cache_discovery=False)
 
 
+def processed(video_id):
+    """The video's length in seconds once YouTube has it whole (processed, on the channel); None before that."""
+    items = youtube().videos().list(part="contentDetails,processingDetails,status", id=video_id).execute()["items"]
+    if not items or items[0]["status"].get("uploadStatus") != "processed":
+        return None
+    if items[0].get("processingDetails", {}).get("processingStatus", "succeeded") != "succeeded":
+        return None
+    # ISO 8601, like PT2H17M13S.
+    found = re.fullmatch(r"P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", items[0]["contentDetails"]["duration"])
+    d, h, m, s = (int(part or 0) for part in found.groups())
+    return ((d * 24 + h) * 60 + m) * 60 + s
+
+
 def auth(_):
     credentials(interactive=True)
     channel = youtube().channels().list(part="snippet", mine=True).execute()["items"][0]
