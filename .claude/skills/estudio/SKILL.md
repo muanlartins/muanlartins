@@ -74,6 +74,17 @@ One take = one short; Luan only picks the play and talks. Everything else runs t
    whisper on the seam between play and camera (three words, the one being said in Klein claro, friends' names
    out), H.264/AAC for Instagram and YouTube Shorts. Over 60 s is reported, not cut. Luan reviews and posts.
 
+## Commented videos
+
+Luan opens a match from the lives list (its `Jogo.mp4`, the game alone, and the replay, in step), clicks
+**"Full screen"**, **"Connect OBS"** and **"Record a video"**: the studio switches OBS to the **Vídeo profile and
+scene collection** (`brand/twitch/obs_video.py --apply`, OBS closed: 1920×1080, the whole screen as it is, his
+camera 480×270 at the bottom left in a Klein frame as on the lives, mic tracks 1 and 2, the browser's sound on 3),
+refusing while live. In full screen the studio's controls fade unless the mouse is in the bottom 30% of the
+screen, so he drives it with the keys (V, space, I/O, L, M) and turns the 3D camera without them showing; M marks
+become chapters. "Back to the live's OBS" afterwards. Recordings land in `Videos\Comentados`
+(`<date> <time> comentado.mp4`, CQP 20). The edit (cuts, the upload) is still by hand: ask Luan what he wants.
+
 ## Checking studio changes
 
 - Headless Chromium in WSL decodes **no video at all** (Format error even for VP8). Test the logic with a
@@ -90,4 +101,5 @@ One take = one short; Luan only picks the play and talks. Everything else runs t
 1. The Jogo recording's own start: RLR lines the video up from the session's recording start, and the game's file
    starts a fraction of a second later. Measure it on the first live with `Jogo.mp4` (cross-correlate its sound
    with `Live.mp4`'s track 3) and correct it before Luan records from it.
-2. An OBS scene for the commented videos (16:9, the studio and the camera).
+2. Test the Shorts and Vídeo profiles in the real OBS (built 11-06, applied, never opened yet): the monitor capture
+   picks the right screen, the camera, the browser's sound, and switching back to the live's.

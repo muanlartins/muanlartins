@@ -36,13 +36,14 @@ def source(kind, name, settings, mixers=TRACK_ALL, **extra):
             "muted": False, "monitoring_type": 0, "sync": 0, "hotkeys": {}, "private_settings": {}, **extra}
 
 
-def item(src, i, pos=(0, 0), bounds=None):
+def item(src, i, pos=(0, 0), bounds=None, canvas=(W, H)):
     x, y = pos
     w, h = bounds or (0, 0)
-    half = H / 2
+    half = canvas[1] / 2
     return {"name": src["name"], "source_uuid": src["uuid"], "id": i, "visible": True, "locked": True,
-            "pos": {"x": x, "y": y}, "pos_rel": {"x": (x - W / 2) / half, "y": (y - half) / half},
-            "rot": 0.0, "scale": {"x": 1.0, "y": 1.0}, "scale_rel": {"x": 1.0, "y": 1.0}, "scale_ref": {"x": W, "y": H},
+            "pos": {"x": x, "y": y}, "pos_rel": {"x": (x - canvas[0] / 2) / half, "y": (y - half) / half},
+            "rot": 0.0, "scale": {"x": 1.0, "y": 1.0}, "scale_rel": {"x": 1.0, "y": 1.0},
+            "scale_ref": {"x": canvas[0], "y": canvas[1]},
             "align": TOP_LEFT, "bounds_type": BOUNDS_SCALE_OUTER if bounds else BOUNDS_NONE, "bounds_align": 0,
             "bounds_crop": bool(bounds), "bounds": {"x": w, "y": h}, "bounds_rel": {"x": w / half, "y": h / half},
             "crop_left": 0, "crop_top": 0, "crop_right": 0, "crop_bottom": 0, "scale_filter": "disable",
