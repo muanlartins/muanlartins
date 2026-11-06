@@ -35,6 +35,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from windows import PROGRAMS, to_windows  # noqa: E402
 
 PORT = 8790
+# By full path: started at login (bash -lc from Windows), WSL's PATH may lack Windows' folders.
+CURL = "/mnt/c/Windows/System32/curl.exe"
+TASKKILL = "/mnt/c/Windows/System32/taskkill.exe"
 WHISPER_PORT = 8791
 WHISPER = PROGRAMS / "whisper"
 FFMPEG = PROGRAMS / "ffmpeg" / "ffmpeg.exe"
@@ -82,7 +85,7 @@ def as_wav(pcm: bytes) -> bytes:
 
 def transcribe(pcm: bytes) -> str:
     result = subprocess.run(
-        ["curl.exe", "-s", "--max-time", "5", "-F", "file=@-;filename=linha.wav", "-F", "response_format=json",
+        [CURL, "-s", "--max-time", "5", "-F", "file=@-;filename=linha.wav", "-F", "response_format=json",
          "-F", "temperature=0", f"http://127.0.0.1:{WHISPER_PORT}/inference"],
         input=as_wav(pcm), capture_output=True, cwd="/mnt/c")
     try:
@@ -94,13 +97,13 @@ def transcribe(pcm: bytes) -> str:
 
 def start_whisper():
     # One left behind by a copy of this that died (Windows' children outlive WSL's processes) would hold the port.
-    subprocess.run(["taskkill.exe", "/f", "/im", "whisper-server.exe"], capture_output=True, cwd="/mnt/c")
+    subprocess.run([TASKKILL, "/f", "/im", "whisper-server.exe"], capture_output=True, cwd="/mnt/c")
     server = subprocess.Popen(
         [str(WHISPER / "whisper-server.exe"), "-m", to_windows(WHISPER / "models" / "ggml-large-v3-turbo-q5_0.bin"),
          "--host", "127.0.0.1", "--port", str(WHISPER_PORT), "-l", "pt", "-nt", "-sns", "-mc", "0"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd="/mnt/c")
     for _ in range(60):  # the model loads in a few seconds
-        up = subprocess.run(["curl.exe", "-s", "-o", "NUL", "-w", "%{http_code}", f"http://127.0.0.1:{WHISPER_PORT}/"],
+        up = subprocess.run([CURL, "-s", "-o", "NUL", "-w", "%{http_code}", f"http://127.0.0.1:{WHISPER_PORT}/"],
                             capture_output=True, text=True, cwd="/mnt/c").stdout
         if up == "200":
             return server
