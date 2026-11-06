@@ -117,6 +117,10 @@ alerts_in_talk = [(alerts, {"pos": (154, 800), "bounds": ALERTS_SIZE})] if alert
 apps = [source("wasapi_process_output_capture", name, {"window": window, "priority": 2}, mixers=mixers)
         for name, window, mixers in (("Discord", "Discord:Chrome_WidgetWin_1:Discord.exe", EVERYWHERE | TRACK_DISCORD),
                                      ("Navegador", "Brave:Chrome_WidgetWin_1:brave.exe", EVERYWHERE))]
+# Music (StreamBeats, cleared for Twitch and YouTube) goes to the stream only, never to the recording that becomes the
+# YouTube VOD. Spotify's window is titled after the song, so it's matched by executable.
+apps.append(source("wasapi_process_output_capture", "Spotify", {"window": "Spotify:Chrome_WidgetWin_1:Spotify.exe",
+                                                                "priority": 2}, mixers=TRACK_LIVE))
 mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVERYWHERE | TRACK_MIC, filters=[
     # Noise is already removed by NVIDIA Broadcast, which the microphone goes through.
     source("compressor_filter", "Compressor", {"ratio": 4.0, "threshold": -18.0, "attack_time": 6, "release_time": 60,
