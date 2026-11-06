@@ -8,16 +8,17 @@ they are, and a copy of each ranked match's replay, named for its number in the 
     python3 scripts/videos.py --done <date>                        # that day's material is used up
 
 OBS leaves "2026-11-05 14-10-55.mp4" (and the Source Record filters' "… câmera.mkv" and "… jogo.mkv") in
-Videos; they become Lives\\2026-11-05\\14-10-55 Live.mp4, 14-10-56 Câmera.mkv and 14-10-56 Jogo.mkv (the game
-alone, no camera or overlays). The start time stays in the name: live.py reads it when the dock didn't log the
-recording. Replays stay in the game's folder (it lists them from there) and are copied to
+Videos; they become Lives\\2026-11-05\\14-10-55 Live.mp4, 14-10-56 Câmera.mkv and 14-10-56 Jogo.mp4 (the game
+alone, no camera or overlays). The filter writes MKV, which survives OBS crashing or the disk filling up; the game's
+is remuxed to MP4 (no re-encoding, the same pictures) because RLR's studio plays it in the browser. The start time
+stays in the name: live.py reads it when the dock didn't log the recording. Replays stay in the game's folder (it lists them from there) and are copied to
 Lives\\<date>\\Replays\\, matched to the dock's matches by score and time.
 
 Lives come every day and an hour of them is tens of GB, so the material goes once it has done its job:
 - the stream's recording (Live) once its YouTube video (content/lives/<date>.json) is processed and as long as
-  the file (YouTube keeps it; RLR's studio falls back to the Jogo recording);
+  the file (YouTube keeps it); a day without a Jogo recording keeps it as the studio's copy, like a Jogo;
 - the Jogo and Câmera recordings once the day is marked done (--done, after its shorts and commented videos),
-  or KEEP_DAYS after the live, whichever comes first.
+  or, oldest day first, when the disk would otherwise have less than FREE_GB free: kept as long as there's room.
 Replays are small and stay. Deleting is for good (no Recycle Bin): --clean alone only lists.
 """
 
@@ -38,8 +39,9 @@ LIVES = VIDEOS / "Lives"
 DEMOS = [home() / "OneDrive" / "Documents" / "My Games" / "Rocket League" / "TAGame" / folder for folder in ("DemosEpic", "Demos")]
 LOOSE = re.compile(r"^(\d{4}-\d{2}-\d{2}) (\d{2}-\d{2}-\d{2})(?: (câmera|jogo))?\.(mp4|mkv|mov)$")
 KINDS = {None: "Live", "câmera": "Câmera", "jogo": "Jogo"}
-# How long the Jogo and Câmera recordings wait for their shorts and commented videos.
-KEEP_DAYS = 7
+# What a live needs free before it starts (about 3 hours of the three recordings at ~50 GB/h, and a margin): the
+# Jogo and Câmera recordings wait for their shorts and commented videos as long as this much stays free.
+FREE_GB = 200
 DONE = ".feito"
 
 
@@ -111,23 +113,22 @@ def length(file):
 
 
 def expendable():
-    """(file, why) for each recording that has done its job."""
+    """(file, why) for each recording that has done its job, or that has to go to keep FREE_GB free."""
+    gone = []
+    material = []  # (day, files) of the days not done, oldest first: what goes when space runs short
     for folder in sorted(LIVES.iterdir()) if LIVES.exists() else []:
         try:
-            day = date.fromisoformat(folder.name)
+            date.fromisoformat(folder.name)
         except ValueError:
             continue
         page = PAGES / f"{folder.name}.json"
         video = json.loads(page.read_text()).get("video") if page.exists() else None
-        old = (date.today() - day).days > KEEP_DAYS
         done = (folder / DONE).exists()
-        # Before 11-06 there was no Jogo.mkv: the stream's recording is then the studio's only copy of the matches.
+        # Before 11-06 there was no Jogo recording: the stream's is then the studio's only copy of the matches.
         alone = not any(folder.glob("??-??-?? Jogo.*"))
+        kept = [*folder.glob("??-??-?? Jogo.*"), *folder.glob("??-??-?? Câmera.*")]
         for file in sorted(folder.glob("??-??-?? Live.*")):
             if not video:
-                continue
-            if alone and not (old or done):
-                print(f"keep  {file.relative_to(VIDEOS)}: o dia não tem Jogo.mkv, e o estúdio ainda usa este (até --done ou {KEEP_DAYS} dias)")
                 continue
             # Imported here: it needs the venv, and only this check does.
             from youtube import processed
@@ -136,11 +137,24 @@ def expendable():
                 print(f"keep  {file.relative_to(VIDEOS)}: o vídeo {video} ainda não terminou de processar no YouTube")
             elif abs(online - length(file)) > 5:
                 print(f"keep  {file.relative_to(VIDEOS)}: o vídeo {video} tem {online} s e o arquivo {length(file):.0f} s")
+            elif alone and not done:
+                kept.append(file)
             else:
-                yield file, f"no YouTube ({video})"
-        if old or done:
-            for file in sorted([*folder.glob("??-??-?? Jogo.*"), *folder.glob("??-??-?? Câmera.*")]):
-                yield file, "dia marcado como feito" if done else f"mais de {KEEP_DAYS} dias"
+                gone.append((file, f"no YouTube ({video})"))
+        if done:
+            gone += [(file, "dia marcado como feito") for file in sorted(kept)]
+        elif kept:
+            material.append((folder.name, sorted(kept)))
+    yield from gone
+    free = shutil.disk_usage(VIDEOS).free + sum(file.stat().st_size for file, _ in gone)
+    while material and free < FREE_GB * 1e9:
+        _, files = material.pop(0)
+        for file in files:
+            free += file.stat().st_size
+            yield file, f"o mais antigo, para manter {FREE_GB} GB livres"
+    if material:
+        days = [day for day, _ in material]
+        print(f"keep  o material de {len(days)} dia(s), {days[0]} a {days[-1]}: cabe com {FREE_GB} GB livres")
 
 
 def clean(apply):
@@ -156,6 +170,17 @@ def clean(apply):
         print("(nada foi apagado: rode com --apply)")
 
 
+def remux(source, target):
+    """MKV to MP4 with the same streams (no re-encoding), the index up front for seeking; the MKV goes once the MP4
+    is as long."""
+    from windows import PROGRAMS, run, to_windows
+    run(PROGRAMS / "ffmpeg" / "ffmpeg.exe", "-hide_banner", "-loglevel", "error", "-y", "-i", to_windows(source),
+        "-map", "0", "-c", "copy", "-movflags", "+faststart", to_windows(target))
+    if abs(length(target) - length(source)) > 1:
+        raise SystemExit(f"{target.name} saiu com {length(target):.0f} s e {source.name} tem {length(source):.0f} s: fiquei com os dois")
+    source.unlink()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--apply", action="store_true", help="move and copy, or delete (without it, only show)")
@@ -166,13 +191,20 @@ def main():
     if args.done:
         (LIVES / args.done).mkdir(parents=True, exist_ok=True)
         (LIVES / args.done / DONE).touch()
-        print(f"{args.done} marcado como feito: os Jogo e Câmera dele saem no próximo --clean.")
+        print(f"{args.done} marcado como feito: as gravações dele saem no próximo --clean.")
         return
     if args.clean:
         clean(args.apply)
         return
 
     for source, target in recordings():
+        if target.name.endswith(" Jogo.mkv"):
+            target = target.with_suffix(".mp4")
+            print(f"remux {source.name}  →  {target.relative_to(VIDEOS)}")
+            if args.apply:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                remux(source, target)
+            continue
         print(f"move  {source.name}  →  {target.relative_to(VIDEOS)}")
         if args.apply:
             target.parent.mkdir(parents=True, exist_ok=True)
