@@ -58,7 +58,7 @@ camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_vide
                                          "deactivate_when_not_showing": False})
 # Klein (#002FA7) as OBS writes colours: 0xAABBGGRR.
 line = source("color_source_v3", "Linha", {"color": 0xFFA72F00, "width": W, "height": LINE})
-browser = source("wasapi_process_output_capture", "Estúdio", {"window": "RLR:Chrome_WidgetWin_1:msedge.exe", "priority": 2},
+browser = source("wasapi_process_output_capture", "Estúdio", {"window": "RLR - Brave:Chrome_WidgetWin_1:brave.exe", "priority": 2},
                  mixers=TRACK_ALL | TRACK_STUDIO)
 mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=TRACK_ALL | TRACK_MIC, filters=[
     source("compressor_filter", "Compressor", {"ratio": 4.0, "threshold": -18.0, "attack_time": 6, "release_time": 60,

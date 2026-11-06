@@ -38,7 +38,7 @@ description: Making Luan's shorts and commented-match videos from a live's mater
 ## RLR's studio (`~/repos/rlr`, `src/studio/`)
 
 Published at muanlartins.com.br/rlr (also locally: `./run.sh` in `~/repos/rlr`, port 5180). Luan's way in:
-**"Open a lives folder…"** on RLR's first page, pointed once at `Videos\Lives` (Edge remembers it; each visit is
+**"Open a lives folder…"** on RLR's first page, pointed once at `Videos\Lives` (the browser remembers it; each visit is
 one click, "Open Lives", to allow reading it). It lists each day's matches from the `Replays` names; a click
 opens that match's replay, the day's recording and the studio, already in step, and ‹ › go to the day's other
 matches. So `depois-da-live` filing the folder is what makes a live show up there. (Opening a replay and adding
@@ -86,7 +86,17 @@ camera 480×270 at the bottom left in a Klein frame as on the lives, mic tracks 
 refusing while live. In full screen the studio's controls fade unless the mouse is in the bottom 30% of the
 screen, so he drives it with the keys (V, space, I/O, L, M) and turns the 3D camera without them showing; M marks
 become chapters. "Back to the live's OBS" afterwards. Recordings land in `Videos\Comentados`
-(`<date> <time> comentado.mp4`, CQP 20). The edit (cuts, the upload) is still by hand: ask Luan what he wants.
+(`<date> <time> comentado.mp4`, CQP 20). The edit: `python3 scripts/comentado.py "<take>" --gancho 17:14.6-17:22.2
+[--bip a-b] [--capitulo "17:15 O gol"]` (dry run first, then `--apply`) puts Luan's hook, the intro, the take trimmed
+to his speech and the outro together in `Videos\Comentados\prontos`, at -14 LUFS, and prints the chapters for the
+description. Luan picks the hook; the upload is his, in Studio.
+
+Luan runs the studio in **Brave** (OBS's "Estúdio" sound source captures brave.exe since 11-06; before that it
+pointed at Edge and the first takes came out without the game). If a take's track 3 is silent anyway,
+`scripts/.venv/bin/python scripts/som_do_jogo.py "<take>" --partida N --apply` rebuilds it from the day's
+`Jogo.mp4` (frame matching, the studio's speeds and pauses) as "<take> (com jogo).mp4", which `shorts.py` and
+`comentado.py` use instead. Ask him to press the studio's "Full screen" before recording: on 11-06 the short was
+taken with Brave's bars and the taskbar on screen (`shorts.py` cuts them now, at the cost of a 10 % zoom).
 
 **Intro and outro** (Luan's plan, 11-06): recorded once each in the Vídeo collection's scene "Intro e outro" (the
 camera filling the frame) and put on every video: the match's strongest 5–10 s first, then the intro (15–20 s: the
