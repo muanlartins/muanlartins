@@ -426,6 +426,7 @@ EPISODES = {
 LIVES = {
     "2026-10-27": (None, None),
     "2026-10-28": ("diamond", 3),
+    "2026-11-05": (None, None),
 }
 
 

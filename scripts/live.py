@@ -65,6 +65,11 @@ def recording(date, day):
     file = max(files, key=lambda f: f.stat().st_size)
     # OBS names the file for the local time it started.
     start = datetime.strptime(f"{date} {file.stem[-8:] if file.parent == VIDEOS else file.stem[:8]}", "%Y-%m-%d %H-%M-%S").replace(tzinfo=TIME_ZONE)
+    # The dock may have logged the recording's start without its file: that start is exact, the name only to the second.
+    near = [when(o["start"]) for s in day for o in s.get("outputs", [])
+            if o["kind"] == "record" and abs((when(o["start"]) - start).total_seconds()) < 5]
+    if near:
+        return file, near[0]
     print(f"O dock não registrou a gravação: uso {file.name}, começando às {start:%H:%M:%S}.")
     return file, start
 

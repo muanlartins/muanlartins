@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-05",
+  "game": "rocket-league",
+  "video": "",
+  "summary": {
+    "pt": "3v3 ranqueado: 4 vitórias e 6 derrotas, de Diamante 1 II (849) a Diamante 1 I (827).",
+    "en": "Ranked 3v3: 4 wins and 6 losses, from Diamond 1 II (849) to Diamond 1 I (827)."
+  },
+  "chapters": [
+    { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
+    { "at": "4:10", "match": "6973D6FC11F1D93C67A9C88E13E6498A" },
+    { "at": "25:11", "match": "57E098F011F1D93FF1759FA5284E6B98" },
+    { "at": "39:52", "match": "644F4FEE11F1D94184BBAFA61A6F09FC" },
+    { "at": "49:13", "match": "B5B3F8CA11F1D9429E0D47AC8BF616A9" },
+    { "at": "58:27", "match": "FD736DDE11F1D9436F92AC8F15A8A97B" },
+    { "at": "1:05:31", "match": "FA5DAB2211F1D94438B783A593F5F544" },
+    { "at": "1:15:25", "match": "5DA370BC11F1D946068AF3A8098F0CE2" },
+    { "at": "1:24:46", "match": "ABE20B8411F1D947460AC2A661C00416" },
+    { "at": "1:33:21", "match": "DEA32AB611F1D94897F00685BA7C9F3F" },
+    { "at": "1:40:19", "match": "D936E1F211F1D94984BB96821A6F09FC" },
+    { "at": "1:46:13", "title": { "pt": "Fim", "en": "The end" } }
+  ]
+}
