@@ -8,15 +8,22 @@ A take is Videos\\Shorts\\<date> <time> short.mp4, 1080×1920: the play on top, 
 becomes a short, the same way every time:
 
 - cut from just before he starts talking to just after he stops (silence on the microphone's track);
+- the game's picture freed of the browser's bars when the studio wasn't in full screen (rows that never change
+  at the top and bottom of the play are cut, the rest scaled back up to fill it);
+- the full wordmark over the camera's cut "anlartins" (NVIDIA Broadcast's background, cropped);
+- a hook line on top for its first seconds when --gancho gives one (what the chat said, say);
 - captioned word by word from whisper (the microphone alone), three words at a time, the one being said in Klein
   claro, on the line between the play and the camera; friends' names come out as in the lives' transcripts;
+- levelled to -14 LUFS, the shorts' outro (Videos\\Shorts\\Partes\\outro-editado.mp4, montagem.py) after it;
 - encoded for Instagram and YouTube Shorts (H.264, AAC, the index up front) as
   Videos\\Shorts\\prontos\\<date> <time> - <play>.mp4. Over 60 s is said, not cut.
 
-Shorts already made are skipped; the takes stay until Luan has posted them.
+Shorts already made are skipped; the takes stay until Luan has posted them. A take's "(com jogo)" copy (the
+game's sound put back by som_do_jogo.py) is used instead of it when there is one.
 """
 
 import argparse
+import array
 import json
 import re
 import shutil
@@ -32,6 +39,11 @@ TAKE = re.compile(r"^(\d{4}-\d{2}-\d{2}) (\d{2}-\d{2}-\d{2}) short\.mp4$")
 FONT = Path(__file__).resolve().parent.parent / "brand" / "fonts" / "SpaceGrotesk.ttf"
 # Where the captions sit: the line between the play and the camera (obs_shorts.py's STAGE).
 SEAM = 1056
+STAGE = (1080, 1056)
+OUTRO = SHORTS / "Partes" / "outro-editado.mp4"
+LOCKUP = Path(__file__).resolve().parent.parent / "brand" / "logo" / "lockup.svg"
+LOGO_AT = (0, 1104)  # montagem.py's: over the camera's cut "anlartins"
+KLEIN = "0x002FA7"
 MIC, ALL = 1, 0  # audio streams, from 0
 WORDS_SHOWN = 3
 
@@ -39,6 +51,26 @@ WORDS_SHOWN = 3
 def probe(file, *args):
     out = run(FFMPEG / "ffprobe.exe", "-v", "error", *args, "-of", "json", to_windows(file), capture_output=True, text=True).stdout
     return json.loads(out)
+
+
+def bars(file, start, end):
+    """(top, bottom) of the game's picture within the stage: rows that stay the same through the play (the browser's
+    tabs and address bar, the taskbar) are not the game. The whole stage when nothing is found."""
+    rows = []
+    for i in range(8):
+        at = start + (end - start) * (i + 0.5) / 8
+        raw = run(FFMPEG / "ffmpeg.exe", "-hide_banner", "-loglevel", "error", "-ss", f"{at:.3f}", "-i", to_windows(file),
+                  "-frames:v", "1", "-vf", f"crop={STAGE[0]}:{STAGE[1]}:0:0,scale=270:{STAGE[1]},format=gray",
+                  "-f", "rawvideo", "-", capture_output=True).stdout
+        pixels = array.array("B", raw)
+        rows.append([sum(pixels[y * 270:(y + 1) * 270]) / 270 for y in range(STAGE[1])])
+    moving = [max(r[y] for r in rows) - min(r[y] for r in rows) > 1.5 for y in range(STAGE[1])]
+    top = next((y for y, m in enumerate(moving) if m), 0)
+    bottom = STAGE[1] - next((y for y, m in enumerate(reversed(moving)) if m), 0)
+    # Only bands worth cutting, and never most of the picture (a play paused all along moves nowhere).
+    top = top if 20 <= top < STAGE[1] // 4 else 0
+    bottom = bottom if STAGE[1] * 3 // 4 < bottom <= STAGE[1] - 20 else STAGE[1]
+    return top, bottom
 
 
 def chapters(file):
@@ -101,7 +133,7 @@ def ass_time(seconds):
     return f"{cs // 360000}:{cs // 6000 % 60:02d}:{cs // 100 % 60:02d}.{cs % 100:02d}"
 
 
-def captions(said):
+def captions(said, hook=None):
     """An ASS subtitle file: three words at a time, the one being said in Klein claro, centred on the seam."""
     groups, group = [], []
     for word in said:
@@ -119,6 +151,8 @@ def captions(said):
             until = group[i + 1][0] if i + 1 < len(group) else end + 0.25
             text = " ".join(("{\\c&HFFA785&}" + w + "{\\c&HF7F5F4&}") if j == i else w for j, (_, _, w) in enumerate(group))
             events.append(f"Dialogue: 0,{ass_time(start)},{ass_time(max(until, start + 0.05))},Legenda,,0,0,0,,{{\\pos(540,{SEAM})}}{text}")
+    if hook:
+        events.append(f"Dialogue: 1,{ass_time(0)},{ass_time(2.4)},Gancho,,0,0,0,,{{\\pos(540,330)\\fad(0,200)}}{hook}")
     return f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: 1080
@@ -128,6 +162,7 @@ WrapStyle: 2
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Legenda,Space Grotesk,78,&H00F7F5F4,&H00F7F5F4,&H00A72F00,&H00A72F00,-1,0,0,0,100,100,0,0,3,18,0,5,40,40,0,1
+Style: Gancho,Space Grotesk,58,&H00F7F5F4,&H00F7F5F4,&H00A72F00,&H00A72F00,-1,0,0,0,100,100,0,0,3,24,0,5,60,60,0,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -140,43 +175,66 @@ def plan():
         found = TAKE.match(take.name)
         if not found:
             continue
+        with_game = take.with_name(f"{take.stem} (com jogo).mp4")
+        take = with_game if with_game.exists() else take
         for n, (start, end, title) in enumerate(chapters(take), 1):
             name = re.sub(r'[<>:"/\\|?*]', "", title.replace(" · ", " - ")).strip() or f"Short {n}"
             yield take, start, end, title, READY / f"{found[1]} {found[2]} - {name}.mp4"
 
 
-def make(take, start, end, out):
+def make(take, start, end, out, hook=None):
     cut = speech(take, start, end)
     if not cut:
         print("      sem fala no microfone: pulado")
         return
     start, end = cut
     said = words(take, start, end)
-    # The subtitles filter takes paths relative to C:\ (run's working directory), sparing ffmpeg's escaping of "C:".
+    top, bottom = bars(take, start, end)
+    # The subtitles filter takes paths relative to C:\\ (run's working directory), sparing ffmpeg's escaping of "C:".
     work = TEMP / "muanlartins-short"
     work.mkdir(exist_ok=True)
     shutil.copy(FONT, work / FONT.name)
-    (work / "legenda.ass").write_text(captions(said), encoding="utf-8")
+    (work / "legenda.ass").write_text(captions(said, hook), encoding="utf-8")
+    subprocess.run(["resvg", "-w", "330", str(LOCKUP), str(work / "lockup.png")], check=True)
     rel = to_windows(work).split(":\\", 1)[1].replace("\\", "/")
+    length = end - start
+    w, h = STAGE
+    graph = [
+        f"[0:v]split[base][g]",
+        f"[g]crop={w}:{bottom - top}:0:{top},scale=-2:{h}:flags=lanczos,crop={w}:{h}[game]",
+        "[base][game]overlay=0:0[v1]",
+        f"color=c={KLEIN}:s=360x96:d={length:.3f}[plate]",
+        f"[v1][plate]overlay={LOGO_AT[0]}:{LOGO_AT[1]}[v2]",
+        f"[v2][2:v]overlay={LOGO_AT[0] + 4}:{LOGO_AT[1] - 3}[v3]",
+        f"[v3]subtitles={rel}/legenda.ass:fontsdir={rel},fps=60,format=yuv420p,setsar=1[pv]",
+        f"[0:a:{ALL}]loudnorm=I=-14:TP=-1.5:LRA=7,aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,"
+        f"afade=t=out:st={length - 0.05:.3f}:d=0.05[pa]",
+        "[1:v]fps=60,format=yuv420p,setsar=1[ov]",
+        "[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[oa]",
+        "[pv][pa][ov][oa]concat=n=2:v=1:a=1[v][a]",
+    ]
     READY.mkdir(parents=True, exist_ok=True)
     run(FFMPEG / "ffmpeg.exe", "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{start:.3f}", "-to", f"{end:.3f}",
-        "-i", to_windows(take), "-vf", f"subtitles={rel}/legenda.ass:fontsdir={rel}", "-map", "0:v:0", "-map",
-        f"0:a:{ALL}", "-map_chapters", "-1", "-map_metadata", "-1", "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-r", "60",
+        "-i", to_windows(take), "-i", to_windows(OUTRO), "-i", to_windows(work / "lockup.png"),
+        "-filter_complex", ";".join(graph), "-map", "[v]", "-map", "[a]", "-map_chapters", "-1", "-map_metadata", "-1",
+        "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-r", "60",
         "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", to_windows(out))
     shutil.rmtree(work)
-    length = end - start
-    print(f"      {length:.0f} s, {len(said)} palavras{'  (passou de 60 s)' if length > 60 else ''}")
+    if top or bottom < STAGE[1]:
+        print(f"      barras do navegador cortadas: jogo entre y {top} e {bottom}")
+    print(f"      {length:.0f} s + outro, {len(said)} palavras{'  (passou de 60 s)' if length > 60 else ''}")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--apply", action="store_true", help="make the shorts (without it, only show)")
+    parser.add_argument("--gancho", help="a line on top for the first seconds (each short made in this run)")
     args = parser.parse_args()
     todo = [each for each in plan() if not each[4].exists()]
     for take, start, end, title, out in todo:
         print(f"short  {take.name} {start:.0f}–{end:.0f} s ({title or 'sem capítulo'})  →  prontos\\{out.name}")
         if args.apply:
-            make(take, start, end, out)
+            make(take, start, end, out, args.gancho)
     if not todo:
         print("Nenhum take novo em Videos\\Shorts.")
     elif not args.apply:
