@@ -105,8 +105,8 @@ pix = browser("Pix", "pix.html")
 pix["settings"]["reroute_audio"] = True
 pix.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
 pix_in_talk = (pix, {"pos": (64, 548), "crop": (320, 110, 320, 660)})
-# Restarts when shown, so the countdown starts over each time the scene goes live.
-starting = browser("Tela · Começando", "intervalo.html?tela=comecando&minutos=5", restart=True)
+# Restarts when shown, so its drawing starts over each time the scene goes live. No countdown (Luan, 2026-11-06).
+starting = browser("Tela · Começando", "intervalo.html?tela=comecando", restart=True)
 back = browser("Tela · Já volto", "intervalo.html?tela=volto")
 end = browser("Tela · Fim", "intervalo.html?tela=fim")
 # Twitch's Alerts Box, drawn by brand/twitch/alertas/: a band 168 px tall, centred in the source.
