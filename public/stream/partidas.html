@@ -304,7 +304,7 @@
       // ?demo plays fake matches into its own storage, so the real sessions stay untouched.
       const KEY = params.has("demo") ? "partidas:demo" : "partidas:v1"
       const state = Object.assign(
-        { mode: "3v3", ranks: {}, sessions: [], show: true, autoScene: true, narrador: false, legenda: false, me: null, obsPassword: "", token: "" },
+        { mode: "3v3", ranks: {}, sessions: [], show: true, autoScene: true, narrador: false, legenda: true, me: null, obsPassword: "", token: "" },
         JSON.parse(localStorage.getItem(KEY) || "{}"),
       )
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
