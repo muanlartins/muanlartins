@@ -239,6 +239,7 @@
     <p class="status"><span id="game">Rocket League</span><span id="obs">OBS</span><span id="air" hidden></span><span id="site"></span></p>
     <p class="twin" id="twin" hidden>Outra cópia deste painel está aberta (no navegador?). Feche uma: as duas mandam placar e gols para a live.</p>
     <label class="check"><input type="checkbox" id="narrador" /> Galvão narrando os gols</label>
+    <label class="check"><input type="checkbox" id="legenda" /> Legendas ao vivo</label>
 
     <h2>Ranque <span class="row tabs" id="modes"></span></h2>
     <div class="row rank-row">
@@ -303,7 +304,7 @@
       // ?demo plays fake matches into its own storage, so the real sessions stay untouched.
       const KEY = params.has("demo") ? "partidas:demo" : "partidas:v1"
       const state = Object.assign(
-        { mode: "3v3", ranks: {}, sessions: [], show: true, autoScene: true, narrador: false, me: null, obsPassword: "", token: "" },
+        { mode: "3v3", ranks: {}, sessions: [], show: true, autoScene: true, narrador: false, legenda: false, me: null, obsPassword: "", token: "" },
         JSON.parse(localStorage.getItem(KEY) || "{}"),
       )
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
@@ -388,6 +389,7 @@
         $("show").checked = state.show
         $("auto-scene").checked = state.autoScene
         $("narrador").checked = state.narrador
+        $("legenda").checked = state.legenda
         $("count").textContent = session.matches.length || ""
         $("empty").hidden = session.matches.length > 0
         $("matches").replaceChildren(...[...session.matches].reverse().map((m) => matchItem(session, m)))
@@ -459,6 +461,7 @@
       $("show").onchange = () => ((state.show = $("show").checked), save(), render())
       $("auto-scene").onchange = () => ((state.autoScene = $("auto-scene").checked), save())
       $("narrador").onchange = () => ((state.narrador = $("narrador").checked), save(), broadcast())
+      $("legenda").onchange = () => ((state.legenda = $("legenda").checked), save(), broadcast())
       $("obs-password").onchange = () => ((state.obsPassword = $("obs-password").value), save(), obs.close())
       $("token").onchange = () => ((state.token = $("token").value.trim()), save())
       $("new-session").onclick = () => (newSession(), render())
@@ -733,6 +736,7 @@
         const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, emPartida, ...record(current(), state.mode) }
         emit("muanlartins-partidas", detail)
         emit("muanlartins-torcida", { tipo: "narrador", ligado: state.narrador })
+        emit("muanlartins-torcida", { tipo: "legenda", ligado: state.legenda })
         // The stand credits Σ only while the stream is on.
         request("GetStreamStatus").then((r) => r && emit("muanlartins-torcida", { tipo: "noar", ligado: r.outputActive }))
         // Tells any other copy of this dock that this one is open.
