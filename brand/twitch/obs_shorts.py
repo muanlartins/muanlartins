@@ -68,10 +68,15 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=TRA
 items = [item(screen, 1), item(camera, 2, (0, STAGE), (W, H - STAGE)), item(line, 3, (0, STAGE - LINE // 2)),
          item(browser, 4)]
 short = source("scene", "Short", {"id_counter": len(items), "custom_size": False, "items": items})
+# The shorts' outro, recorded once: Luan where the play leaves him, the top left plain Klein for the edit to fill
+# (what the channel's lives have, in motion).
+background = source("color_source_v3", "Fundo", {"color": 0xFFA72F00, "width": W, "height": STAGE})
+final_items = [item(background, 1), item(camera, 2, (0, STAGE), (W, H - STAGE)), item(line, 3, (0, STAGE - LINE // 2))]
+final = source("scene", "Final", {"id_counter": len(final_items), "custom_size": False, "items": final_items})
 
 collection = {
-    "name": "Shorts", "current_scene": "Short", "current_program_scene": "Short", "scene_order": [{"name": "Short"}],
-    "sources": [short, screen, camera, line, browser], "groups": [], "AuxAudioDevice1": mic, "transitions": [],
+    "name": "Shorts", "current_scene": "Short", "current_program_scene": "Short", "scene_order": [{"name": "Short"}, {"name": "Final"}],
+    "sources": [short, final, screen, background, camera, line, browser], "groups": [], "AuxAudioDevice1": mic, "transitions": [],
     "current_transition": "Fade", "transition_duration": 300, "quick_transitions": [], "saved_projectors": [],
     "preview_locked": False, "scaling_enabled": False, "modules": {}, "resolution": {"x": W, "y": H}, "version": 2,
 }
