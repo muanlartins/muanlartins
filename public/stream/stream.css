@@ -276,3 +276,50 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
+
+/* The Pix call: a QR code to the site's /pix (pix-qr.svg, from scripts/pix-qr.mjs), in pix.html and conversa.html. */
+.chamada {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px 12px 12px;
+  background: rgb(0 20 71 / 0.82);
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  position: relative;
+  overflow: hidden;
+}
+.chamada img {
+  width: var(--qr, 116px);
+  height: var(--qr, 116px);
+  flex: none;
+}
+/* It catches the light now and then, like the camera frame (chamada() in stream.js). */
+.chamada .luz {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent 42%, rgb(133 167 255 / 0.35) 50%, transparent 58%);
+  transform: translateX(-100%);
+}
+.chamada p {
+  margin: 0;
+}
+.chamada .pix {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--klein-claro);
+}
+.chamada .convite {
+  margin-top: 4px;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.chamada .site {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--klein-claro);
+}

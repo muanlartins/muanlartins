@@ -181,6 +181,20 @@ function recordPlate(el, hole, band) {
   }, 5000)
 }
 
+/**
+ * The Pix call inside `el`: the QR code to the site's /pix and what it's for (the copy is a draft for Luan). It
+ * catches the light now, and then every 3 minutes.
+ */
+function chamada(el) {
+  el.classList.add("chamada")
+  el.innerHTML = `<div class="luz"></div><img src="/stream/pix-qr.svg" alt="" />
+    <div><p class="pix">Pix com voz</p><p class="convite">Sua mensagem lida aqui na live</p><p class="site">muanlartins.com.br/pix</p></div>`
+  const brilhar = () =>
+    el.querySelector(".luz").animate([{ transform: "translateX(-100%)" }, { transform: "translateX(100%)" }], { duration: 1400, easing: "cubic-bezier(0.65, 0, 0.35, 1)" })
+  setTimeout(brilhar, 1500)
+  setInterval(brilhar, 180000)
+}
+
 /** Runs `actions` in turn, one every `seconds`: the overlays' now-and-then movement. */
 function alternate(seconds, ...actions) {
   let i = 0
