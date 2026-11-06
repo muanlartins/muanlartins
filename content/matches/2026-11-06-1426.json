@@ -34,8 +34,10 @@
       "rank": {
         "tier": "diamond-1",
         "division": 1,
-        "mmr": 836
-      }
+        "mmr": 827
+      },
+      "points": 9,
+      "mmr": 836
     },
     {
       "id": "1364200411F1DA0ACAF880959C9B171C",
@@ -391,8 +393,8 @@
         "division": 2,
         "mmr": 856
       },
-      "points": -846,
-      "mmr": 10
+      "points": 10,
+      "mmr": 866
     },
     {
       "id": "C6A2FA9811F1DA12208CC9A6736BCBEC",
@@ -440,9 +442,9 @@
       "rank": {
         "tier": "diamond-1",
         "division": 2,
-        "mmr": 10
+        "mmr": 866
       },
-      "points": 865,
+      "points": 9,
       "mmr": 875
     },
     {
@@ -763,7 +765,7 @@
       "mode": "3v3",
       "tier": "diamond-1",
       "division": 2,
-      "mmr": 10
+      "mmr": 866
     },
     {
       "at": "2026-11-06T18:58:21.275Z",
