@@ -59,5 +59,8 @@ const Legenda = (() => {
     },
     /** For the demo. */
     mostrar,
+    get ligada() {
+      return !!fonte
+    },
   }
 })()

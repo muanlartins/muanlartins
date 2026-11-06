@@ -32,7 +32,8 @@
 
       ?canal= as in the overlays. The channel stands with its viewers. ?demo fills the stand with sample people and
       plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça,
-      p pula, n dança, o ola, m mensagem, j chega alguém, s sai alguém.
+      p pula, n dança, o ola, m mensagem, j chega alguém, s sai alguém,
+      l uma legenda de exemplo, v liga/desliga as legendas de verdade (scripts/legenda.py).
     -->
     <style>
       .torcida {
@@ -950,6 +951,8 @@
           },
           s: () => sair(random()),
           m: () => say(random(), FRASES[Math.floor(Math.random() * FRASES.length)]),
+          // The real captions, without OBS or the dock: to try legenda.py from a browser.
+          v: () => Legenda.ligar(!Legenda.ligada),
           l: () => Legenda.mostrar(pick(["Olha esse kickoff, eu vou fake e ele vem com tudo", "Que golaço, meu Deus do céu, que golaço!",
             "Aqui eu devia ter rodado pra trás, o meu companheiro já estava na bola e eu fiquei no meio do caminho dele"]), Math.random() < 0.5),
         }
