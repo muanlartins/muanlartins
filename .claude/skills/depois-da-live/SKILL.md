@@ -55,8 +55,8 @@ Luan before pushing**: a push to `main` is a release. Then `gh run watch` and ch
 
 ## Things to keep in mind
 
-- Copyright: music on the stream is on track 5 only, so it isn't in the recording. A stretch of 11-05's
-  recording (about 0:11:00–0:14:25 into it) still has Spotify on all tracks from before that was fixed: cut or mute it
-  when that recording is edited.
+- Copyright: music on the stream is on track 5 only, so it isn't in the recording. If a recording may have caught
+  some (a source routed to all tracks for a while), measure before cutting: per-second levels of track 1 against
+  2 + 3 with ffmpeg's `astats`. On 11-05 the suspect stretch turned out silent: nothing to mute.
 - The repo is public: no other players' names or ids, no replays, teammates stay nameless, no tokens.
 - For shorts and commented videos from the material, see the `estudio` skill.
