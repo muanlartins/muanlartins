@@ -5,6 +5,7 @@
     scripts/.venv/bin/python scripts/youtube.py playlists        # the channel's playlists and their ids
     scripts/.venv/bin/python scripts/youtube.py live <date>      # a live's video: see live()
     scripts/.venv/bin/python scripts/youtube.py live <date> --dry-run
+    scripts/.venv/bin/python scripts/youtube.py video content/videos/<name>.json [--dry-run]   # a commented video or short
 
 The OAuth client and the token live outside the repository, in %USERPROFILE%\\.config\\muanlartins
 (youtube-client.json, youtube-token.json). Never commit or print them.
@@ -14,6 +15,7 @@ import argparse
 import json
 import re
 import sys
+from pathlib import Path
 import webbrowser
 from io import BytesIO
 
@@ -24,7 +26,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseUpload
 
 from content import LIVES, ROOT, brand_tables, clock, matches_by_id, seconds
-from windows import CONFIG
+from windows import CONFIG, VIDEOS
 
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
@@ -222,6 +224,64 @@ def live(args):
         print("Legendas: ok")
 
 
+def video(args):
+    """Sets a commented video or a short from its record in content/videos/ (id, title, description, tags, and
+    optionally thumbnail, playlist, privacy, and captions: an .srt under Videos, kept out of the repository since it
+    has what he says, other players' names included): Gaming, pt-BR, not for kids, no altered content. Privacy stays
+    as it is unless the record says otherwise."""
+    record = json.loads(Path(args.record).read_text())
+    video_id, tags = record["id"], record["tags"]
+    print(f"Vídeo {video_id}  ({record.get('privacy', 'privacidade como está')})\n\n{record['title']}\n\n"
+          f"{record['description']}\n\nTags: {', '.join(tags)}\n")
+    thumbnail = ROOT / record["thumbnail"] if record.get("thumbnail") else None
+    captions_file = VIDEOS / record["captions"] if record.get("captions") else Path("/nonexistent")
+    if args.dry_run:
+        print(f"Thumbnail: {record.get('thumbnail', '—')} · playlist: {record.get('playlist', '—')} · "
+              f"legendas: {captions_file.name if captions_file.exists() else '—'}")
+        return
+    api = youtube()
+    items = api.videos().list(part="snippet,status", id=video_id).execute()["items"]
+    if not items:
+        sys.exit(f"O vídeo {video_id} não está no canal.")
+    current = items[0]
+    snippet = {**current["snippet"], "title": record["title"], "description": record["description"], "tags": tags,
+               "categoryId": GAMING, "defaultLanguage": "pt-BR", "defaultAudioLanguage": "pt-BR"}
+    snippet.pop("thumbnails", None)
+    snippet.pop("localized", None)
+    status = {key: value for key, value in current["status"].items()
+              if key in ("embeddable", "license", "publicStatsViewable", "publishAt", "privacyStatus")}
+    status.update(selfDeclaredMadeForKids=False, containsSyntheticMedia=False)
+    if record.get("privacy"):
+        status["privacyStatus"] = record["privacy"]
+    api.videos().update(part="snippet,status", body={"id": video_id, "snippet": snippet, "status": status}).execute()
+    print("Título, descrição, tags e status: ok")
+    if thumbnail:
+        api.thumbnails().set(videoId=video_id, media_body=MediaFileUpload(str(thumbnail), mimetype="image/png")).execute()
+        print(f"Thumbnail: ok ({thumbnail.name})")
+    if record.get("playlist"):
+        playlist = next((p for p in all_playlists(api) if p["snippet"]["title"] == record["playlist"]), None)
+        if not playlist:
+            print(f"Playlist: não achei “{record['playlist']}”")
+        else:
+            inside = api.playlistItems().list(part="id", playlistId=playlist["id"], videoId=video_id).execute()["items"]
+            if not inside:
+                api.playlistItems().insert(part="snippet", body={"snippet": {
+                    "playlistId": playlist["id"], "resourceId": {"kind": "youtube#video", "videoId": video_id}}}).execute()
+            print(f"Playlist “{record['playlist']}”: ok")
+    if captions_file.exists():
+        media = in_memory(captions_file.read_bytes())
+        existing = [c for c in api.captions().list(part="snippet", videoId=video_id).execute()["items"]
+                    if c["snippet"]["name"] == CAPTION_NAME]
+        if existing:
+            api.captions().update(part="snippet", body={"id": existing[0]["id"], "snippet": existing[0]["snippet"]},
+                                  media_body=media).execute()
+        else:
+            api.captions().insert(part="snippet", body={"snippet": {
+                "videoId": video_id, "language": "pt-BR", "name": CAPTION_NAME, "isDraft": False}},
+                media_body=media).execute()
+        print("Legendas: ok")
+
+
 def in_memory(data: bytes):
     return MediaIoBaseUpload(BytesIO(data), mimetype="application/octet-stream", resumable=False)
 
@@ -244,6 +304,10 @@ def main():
     command.add_argument("--dry-run", action="store_true", help="only show what would be set")
     command.add_argument("--no-captions", action="store_true")
     command.set_defaults(run=live)
+    command = commands.add_parser("video")
+    command.add_argument("record", help="content/videos/<name>.json")
+    command.add_argument("--dry-run", action="store_true", help="only show what would be set")
+    command.set_defaults(run=video)
     args = parser.parse_args()
     args.run(args)
 

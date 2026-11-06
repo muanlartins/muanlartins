@@ -399,11 +399,11 @@ def plated_thumbnail(hero, plate, label, tag=None, emblem=None, width=1280, heig
                f'{placed(lockup(height=mark_height, background=None), x0, y0)}{text}', width, height)
 
 
-def episode_thumbnail(number, rank, tier):
-    """A 2v2 comentado episode: "2v2" with the v in a Klein tint, the episode's number on the plate, and
-    the rank and tier where it was played, with that tier's emblem."""
+def episode_thumbnail(number, mode, rank, tier):
+    """A commented episode: its mode ("2v2", "3v3") with the v in a Klein tint, the episode's number on the plate,
+    and the rank and tier where it was played, with that tier's emblem."""
     name, color = RANKS[rank]
-    return plated_thumbnail([("2", PAPER), ("v", klein_tint(0.6)), ("2", PAPER)], f"{number:02d}", "Partidas comentadas",
+    return plated_thumbnail([(mode[0], PAPER), ("v", klein_tint(0.6)), (mode[2], PAPER)], f"{number:02d}", "Partidas comentadas",
                             (f"{name.upper()} {tier}", color), (f"ranks/{rank}-{tier}.png", color))
 
 
@@ -417,15 +417,17 @@ def live_thumbnail(day, rank=None, tier=None):
                             (f"{name.upper()} {tier}", color), (f"ranks/{rank}-{tier}.png", color))
 
 
-# One per episode of 2v2 comentado: the rank and tier it was played at.
+# One per commented episode (the series counts across modes): its mode, and the rank and tier it was played at.
 EPISODES = {
-    1: ("diamond", 2),
+    1: ("2v2", "diamond", 2),
+    2: ("3v3", "diamond", 1),
 }
 
 # One per Twitch live uploaded as a VOD, by date: the rank and tier it reached, if it climbed.
 LIVES = {
     "2026-10-28": ("diamond", 3),
     "2026-11-05": (None, None),
+    "2026-11-06": (None, None),
 }
 
 
@@ -590,9 +592,9 @@ if __name__ == "__main__":
     for name, (rank, lines) in THUMBNAILS.items():
         write(f"youtube/thumbnails/{name}.svg", thumbnail(lines, rank))
         png(f"youtube/thumbnails/{name}.svg", f"youtube/thumbnails/{name}.png", 1280)
-    for number, (rank, tier) in EPISODES.items():
-        write(f"youtube/thumbnails/2v2-{number:02d}.svg", episode_thumbnail(number, rank, tier))
-        png(f"youtube/thumbnails/2v2-{number:02d}.svg", f"youtube/thumbnails/2v2-{number:02d}.png", 1280)
+    for number, (mode, rank, tier) in EPISODES.items():
+        write(f"youtube/thumbnails/{mode}-{number:02d}.svg", episode_thumbnail(number, mode, rank, tier))
+        png(f"youtube/thumbnails/{mode}-{number:02d}.svg", f"youtube/thumbnails/{mode}-{number:02d}.png", 1280)
     for date, (rank, tier) in LIVES.items():
         write(f"youtube/thumbnails/live-{date}.svg", live_thumbnail(f"{date[8:]}/{date[5:7]}", rank, tier))
         png(f"youtube/thumbnails/live-{date}.svg", f"youtube/thumbnails/live-{date}.png", 1280)
