@@ -40,7 +40,7 @@ The repo's `AGENTS.md` still rules (copy is Luan's, `brand/` keeps everything, s
 
 From the 10-29 handoff, still to execute:
 
-1. Record automatically while streaming. MKV with auto-remux, or Hybrid MP4; NVENC CQP 18, keyframe 2 s, 1080p60.
+1. Record automatically while streaming. MKV with auto-remux, or Hybrid MP4; NVENC CQP 22 since 11-06 (CQP 18 was 35 GB/h; 22 measured under 1 VMAF point from it), keyframe 2 s, 1080p60.
    The stream itself stays 1080p60 NVENC CBR 6000 (no 2K before Affiliate).
 2. Audio tracks: 1 Tudo, 2 Mic, 3 Jogo, 4 Discord. The stream uses track 1 only. Mixer: mic on 1+2, Rocket
    League 1+3, Discord 1+4, browser sources and alerts 1. `obs.py` needs Discord on track 4 (bitmask 8).

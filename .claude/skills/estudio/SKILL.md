@@ -21,10 +21,10 @@ description: Making Luan's shorts and commented-match videos from a live's mater
 
 - The live's folder (after `depois-da-live`): `C:\Users\muanl\Videos\Lives\<date>\` with
   `<hh-mm-ss> Live.mp4` (1080p60, webcam and overlays baked in at the bottom-left, tracks 1 Tudo, 2 Microfone,
-  3 Jogo, 4 Discord), `<hh-mm-ss> Câmera.mkv` (the webcam alone), `<hh-mm-ss> Jogo.mkv` (the game alone, from
-  11-06 on: what vertical shorts are cut from) and `Replays\Partida NN - ….replay`.
-- They don't last: `Live.mp4` goes once it's on YouTube, `Jogo`/`Câmera` 7 days after the live or when the day
-  is marked done (`depois-da-live`, "Free the disk"). Make a day's shorts within the week, then
+  3 Jogo, 4 Discord), `<hh-mm-ss> Câmera.mkv` (the webcam alone), `<hh-mm-ss> Jogo.mp4` (the game alone, from
+  11-06 on: what the studio plays for shorts and commented videos, so Luan's camera goes on top only once) and `Replays\Partida NN - ….replay`.
+- They don't last: `Live.mp4` goes once it's on YouTube; `Jogo`/`Câmera` when the day is marked done or, oldest
+  first, when the disk runs short (`depois-da-live`, "Free the disk"). After a day's shorts and commented videos,
   `python3 scripts/videos.py --done <date>`.
 - The session: `content/matches/<id>.json` (`outputs`: when the recording started; each match's `start` and
   `at`) and `<id>.events.json` (each match's log: kickoffs, goals with km/h, shots, saves, demos, touches; players
@@ -66,7 +66,5 @@ a recording by hand still works for anything else.)
 ## Still to build (in this order unless Luan says otherwise)
 
 1. An OBS scene "Estúdio" (browser window, mic, camera) for recording the commentary: ask before touching OBS.
-2. The studio playing the live's unlisted YouTube video when `Live.mp4` is gone (the crowd is in it; `Jogo.mkv`
-   alone isn't the stream's view).
-3. The cutting pipeline: from the studio recording's chapters and marks to shorts (vertical) and the
+2. The cutting pipeline: from the studio recording's chapters and marks to shorts (vertical) and the
    commented video.

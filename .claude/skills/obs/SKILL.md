@@ -20,6 +20,8 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
 - Audio tracks are a bitmask per input (`SetInputAudioTracks` with `{"1": true, …, "6": false}`): 1 Tudo,
   2 Microfone, 3 Jogo, 4 Discord go to the recording; 5 "Live" is the stream's only. Music (the "Spotify" source)
   is on 5 alone.
+- The main recording: Hybrid MP4, NVENC CQP 22 (`recordEncoder.json` in the profile; 18 until 11-06, measured
+  under 1 VMAF point apart and ~40% smaller). Change it only with OBS closed.
 - Source Record filters write files of their own while OBS records: "Gravar câmera" on Câmera (`… câmera.mkv`)
   and "Gravar jogo" on Rocket League (`… jogo.mkv`, the game without camera or overlays, CQP 22, its own sound;
   added 2026-11-05). `videos.py` files both.
