@@ -20,6 +20,10 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
 - Audio tracks are a bitmask per input (`SetInputAudioTracks` with `{"1": true, …, "6": false}`): 1 Tudo,
   2 Microfone, 3 Jogo, 4 Discord go to the recording; 5 "Live" is the stream's only. Music (the "Spotify" source)
   is on 5 alone.
+- Source Record filters write files of their own while OBS records: "Gravar câmera" on Câmera (`… câmera.mkv`)
+  and "Gravar jogo" on Rocket League (`… jogo.mkv`, the game without camera or overlays, CQP 22, its own sound;
+  added 2026-11-05). `videos.py` files both.
+- Luan's choice: Discord is hidden in Jogo, Jogo + chat and Conversa, and the browser in the game scenes.
 - Changes made by hand or by websocket should also land in `brand/twitch/obs.py`, which generates the scene
   collection (`python3 brand/twitch/obs.py [stinger path] [alerts URL] > muanlartins.json`; the alerts URL is a
   secret: pass it on the command line, never commit it).

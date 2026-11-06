@@ -3,28 +3,44 @@ they are, and a copy of each ranked match's replay, named for its number in the 
 
     python3 scripts/videos.py            # what it would do
     python3 scripts/videos.py --apply    # do it
+    scripts/.venv/bin/python scripts/videos.py --clean            # what it would delete, to free the disk
+    scripts/.venv/bin/python scripts/videos.py --clean --apply    # delete it
+    python3 scripts/videos.py --done <date>                        # that day's material is used up
 
-OBS leaves "2026-11-05 14-10-55.mp4" (and the camera's "… câmera.mkv") in Videos; they become
-Lives\\2026-11-05\\14-10-55 Live.mp4 and 14-10-56 Câmera.mkv. The start time stays in the name: live.py
-reads it when the dock didn't log the recording. Replays stay in the game's folder (it lists them from
-there) and are copied to Lives\\<date>\\Replays\\, matched to the dock's matches by score and time.
+OBS leaves "2026-11-05 14-10-55.mp4" (and the Source Record filters' "… câmera.mkv" and "… jogo.mkv") in
+Videos; they become Lives\\2026-11-05\\14-10-55 Live.mp4, 14-10-56 Câmera.mkv and 14-10-56 Jogo.mkv (the game
+alone, no camera or overlays). The start time stays in the name: live.py reads it when the dock didn't log the
+recording. Replays stay in the game's folder (it lists them from there) and are copied to
+Lives\\<date>\\Replays\\, matched to the dock's matches by score and time.
+
+Lives come every day and an hour of them is tens of GB, so the material goes once it has done its job:
+- the stream's recording (Live) once its YouTube video (content/lives/<date>.json) is processed and as long as
+  the file (YouTube keeps it; RLR's studio falls back to the Jogo recording);
+- the Jogo and Câmera recordings once the day is marked done (--done, after its shorts and commented videos),
+  or KEEP_DAYS after the live, whichever comes first.
+Replays are small and stay. Deleting is for good (no Recycle Bin): --clean alone only lists.
 """
 
 import argparse
+import json
 import re
 import shutil
 import struct
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
-from content import sessions
+from content import LIVES as PAGES, sessions
 from windows import VIDEOS, home
 
 TIME_ZONE = ZoneInfo("America/Sao_Paulo")
 
 LIVES = VIDEOS / "Lives"
 DEMOS = [home() / "OneDrive" / "Documents" / "My Games" / "Rocket League" / "TAGame" / folder for folder in ("DemosEpic", "Demos")]
-LOOSE = re.compile(r"^(\d{4}-\d{2}-\d{2}) (\d{2}-\d{2}-\d{2})( câmera)?\.(mp4|mkv|mov)$")
+LOOSE = re.compile(r"^(\d{4}-\d{2}-\d{2}) (\d{2}-\d{2}-\d{2})(?: (câmera|jogo))?\.(mp4|mkv|mov)$")
+KINDS = {None: "Live", "câmera": "Câmera", "jogo": "Jogo"}
+# How long the Jogo and Câmera recordings wait for their shorts and commented videos.
+KEEP_DAYS = 7
+DONE = ".feito"
 
 
 def recordings():
@@ -32,8 +48,8 @@ def recordings():
     for file in sorted(VIDEOS.iterdir()):
         found = LOOSE.match(file.name)
         if file.is_file() and found:
-            date, time, camera, ext = found.groups()
-            yield file, LIVES / date / f"{time} {'Câmera' if camera else 'Live'}.{ext}"
+            day, time, kind, ext = found.groups()
+            yield file, LIVES / day / f"{time} {KINDS[kind]}.{ext}"
 
 
 def header(path):
@@ -87,10 +103,69 @@ def replays():
             yield path, LIVES / day / "Replays" / name
 
 
+def length(file):
+    from windows import PROGRAMS, run, to_windows
+    out = run(PROGRAMS / "ffmpeg" / "ffprobe.exe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+              to_windows(file), capture_output=True, text=True).stdout
+    return float(out.strip())
+
+
+def expendable():
+    """(file, why) for each recording that has done its job."""
+    for folder in sorted(LIVES.iterdir()) if LIVES.exists() else []:
+        try:
+            day = date.fromisoformat(folder.name)
+        except ValueError:
+            continue
+        page = PAGES / f"{folder.name}.json"
+        video = json.loads(page.read_text()).get("video") if page.exists() else None
+        for file in sorted(folder.glob("??-??-?? Live.*")):
+            if not video:
+                continue
+            # Imported here: it needs the venv, and only this check does.
+            from youtube import processed
+            online = processed(video)
+            if online is None:
+                print(f"keep  {file.relative_to(VIDEOS)}: o vídeo {video} ainda não terminou de processar no YouTube")
+            elif abs(online - length(file)) > 5:
+                print(f"keep  {file.relative_to(VIDEOS)}: o vídeo {video} tem {online} s e o arquivo {length(file):.0f} s")
+            else:
+                yield file, f"no YouTube ({video})"
+        old = (date.today() - day).days > KEEP_DAYS
+        done = (folder / DONE).exists()
+        if old or done:
+            for file in sorted([*folder.glob("??-??-?? Jogo.*"), *folder.glob("??-??-?? Câmera.*")]):
+                yield file, "dia marcado como feito" if done else f"mais de {KEEP_DAYS} dias"
+
+
+def clean(apply):
+    freed = 0
+    for file, why in expendable():
+        size = file.stat().st_size
+        freed += size
+        print(f"{'delete' if apply else 'would delete'}  {file.relative_to(VIDEOS)}  ({size / 1e9:.1f} GB, {why})")
+        if apply:
+            file.unlink()
+    print(f"{'Liberados' if apply else 'Liberaria'} {freed / 1e9:.1f} GB. Livre agora: {shutil.disk_usage(VIDEOS).free / 1e9:.0f} GB.")
+    if not apply:
+        print("(nada foi apagado: rode com --apply)")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--apply", action="store_true", help="move and copy (without it, only show)")
+    parser.add_argument("--apply", action="store_true", help="move and copy, or delete (without it, only show)")
+    parser.add_argument("--clean", action="store_true", help="delete recordings that have done their job")
+    parser.add_argument("--done", metavar="DATE", help="mark a day's material as used up (its shorts and videos made)")
     args = parser.parse_args()
+
+    if args.done:
+        (LIVES / args.done).mkdir(parents=True, exist_ok=True)
+        (LIVES / args.done / DONE).touch()
+        print(f"{args.done} marcado como feito: os Jogo e Câmera dele saem no próximo --clean.")
+        return
+    if args.clean:
+        clean(args.apply)
+        return
 
     for source, target in recordings():
         print(f"move  {source.name}  →  {target.relative_to(VIDEOS)}")
