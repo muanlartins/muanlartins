@@ -5,7 +5,7 @@
 
 It waits, doing nothing, until the stand (public/stream/torcida.html) asks for captions: the "Partidas" dock's
 "Legendas ao vivo" switches them on there. Then it listens to the microphone (Windows' ffmpeg, the NVIDIA
-Broadcast mic, already clean) and every second sends what was said since the current line began to whisper.cpp on
+Broadcast mic, already clean) and every half second sends what was said since the current line began to whisper.cpp on
 the GPU (whisper-server, Windows side, the lives' model kept loaded), and the text to the stand. A line ends at a
 pause or after 8 s; the next one starts from there. When the last stand lets go (captions off, OBS closed), it
 stops listening and frees the GPU. Nothing is kept: no audio, no text.
@@ -43,10 +43,10 @@ WHISPER = PROGRAMS / "whisper"
 FFMPEG = PROGRAMS / "ffmpeg" / "ffmpeg.exe"
 MICROPHONE = "Microphone (NVIDIA Broadcast)"
 RATE = 16000
-STEP = 1.0  # seconds between transcriptions of the line so far
+STEP = 0.5  # seconds between transcriptions of the line so far
 LONGEST = 8.0  # a line ends after this long even without a pause
-PAUSE = 0.6  # this much quiet at the end of the line ends it…
-SHORTEST = 1.5  # …once it's at least this long
+PAUSE = 0.5  # this much quiet at the end of the line ends it…
+SHORTEST = 1.0  # …once it's at least this long
 QUIET = 500  # RMS of 16-bit samples: NVIDIA Broadcast leaves silence near 0
 # The overlays are served by the site; Chrome asks before a public page reaches a local address.
 ORIGINS = {"https://muanlartins.com.br", "https://muanlartins.com", "http://localhost:3000", "http://localhost:8130"}
@@ -148,7 +148,7 @@ def caption(test):
                 time.sleep(STEP)
                 line = bytes(heard[line_start:])
                 seconds = len(line) / 2 / RATE
-                if seconds < 0.8:
+                if seconds < 0.5:
                     continue
                 if rms(line) < QUIET:  # nothing said: the line starts over from here
                     line_start += len(line)
