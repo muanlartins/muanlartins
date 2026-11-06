@@ -6,7 +6,7 @@
 The studio (RLR, full screen in the browser) fills the screen with the match: the game's own recording (Jogo.mp4,
 without camera or overlays) or the replay's 3D, V to swap, the other in its corner at the top right; its controls
 hide while the mouse rests. OBS captures the screen as it is and puts Luan's camera once, at the bottom left where
-the live has it, in a Klein frame. Sound: the microphone (with the live's compressor and limiter) and the
+the live has it, in the live's animated frame (jogo.html, with the site on its plate). Sound: the microphone (with the live's compressor and limiter) and the
 browser's; tracks 1 Tudo, 2 Microfone, 3 Estúdio. The studio's "Record a video" switches OBS to this profile and
 back (never while live), like "Record a short" does with obs_shorts.py's. Files go to Videos\\Comentados, named
 "<date> <time> comentado.mp4", with the studio's marks as chapters.
@@ -24,13 +24,14 @@ CANVAS = (W, H)
 FOLDER = "C:\\\\Users\\\\muanl\\\\Videos\\\\Comentados"
 # The live's camera hole (obs.py, jogo.html), so the videos look like the lives.
 CAMERA_AT, CAMERA_SIZE = (44, 740), (480, 270)
-FRAME = 6
 
 screen = source("monitor_capture", "Tela", {"capture_cursor": False, "method": 0, "monitor_id": MONITOR})
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,
                                          "deactivate_when_not_showing": False})
-frame = source("color_source_v3", "Moldura", {"color": 0xFFA72F00, "width": CAMERA_SIZE[0] + 2 * FRAME,
-                                              "height": CAMERA_SIZE[1] + 2 * FRAME})
+# The live's own camera frame (jogo.html: the animated band, the site on its plate), without the day's record.
+frame = source("browser_source", "Moldura", {"url": "https://muanlartins.com.br/stream/jogo.html?placar=0",
+                                            "width": W, "height": H, "fps_custom": True, "fps": 60,
+                                            "restart_when_active": False, "shutdown": False, "css": ""})
 browser = source("wasapi_process_output_capture", "Estúdio", {"window": "RLR:Chrome_WidgetWin_1:msedge.exe", "priority": 2},
                  mixers=TRACK_ALL | TRACK_STUDIO)
 mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=TRACK_ALL | TRACK_MIC, filters=[
@@ -39,8 +40,8 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=TRA
     source("limiter_filter", "Limitador", {"threshold": -1.0, "release_time": 60}),
 ])
 items = [item(screen, 1, canvas=CANVAS),
-         item(frame, 2, (CAMERA_AT[0] - FRAME, CAMERA_AT[1] - FRAME), canvas=CANVAS),
          item(camera, 3, CAMERA_AT, CAMERA_SIZE, canvas=CANVAS),
+         item(frame, 2, canvas=CANVAS),
          item(browser, 4, canvas=CANVAS)]
 commented = source("scene", "Comentado", {"id_counter": len(items), "custom_size": False, "items": items})
 # The intro and the outro, recorded once and put on every video: Luan alone, the camera filling the frame.
