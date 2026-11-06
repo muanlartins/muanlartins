@@ -22,6 +22,7 @@ const STATUS = [
   ["GetRecordStatus", {}],
   ["GetStats", {}],
   ["GetCurrentProgramScene", {}],
+  ["GetProfileList", {}],
 ]
 const arg = process.argv[2] ?? "status"
 const requests = arg === "status" ? STATUS : JSON.parse(arg)
@@ -67,10 +68,12 @@ function next() {
 const mask = (text) => text.replace(/#(chave|obs)=[^"\s]*/g, "#$1=…")
 
 function summary() {
-  const [stream, record, stats, scene] = results.map(([, , data]) => data ?? {})
+  const [stream, record, stats, scene, profiles] = results.map(([, , data]) => data ?? {})
   return [
     `live: ${stream.outputActive ? `yes, ${stream.outputTimecode}` : "no"} · recording: ${record.outputActive ? `yes, ${record.outputTimecode}` : "no"}`,
-    `scene: ${scene.currentProgramSceneName ?? "?"}`,
+    `scene: ${scene.currentProgramSceneName ?? "?"} · profile: ${profiles.currentProfileName ?? "?"}`,
+    // RLR's studio switches to the Shorts profile to record shorts and back afterwards; a live needs the live's.
+    profiles.currentProfileName === "Shorts" ? "⚠ OBS is still on the Shorts profile (1080×1920): switch back to the live's before going live" : "",
     `fps ${stats.activeFps?.toFixed(1)} · cpu ${stats.cpuUsage?.toFixed(1)}% · render skipped ${stats.renderSkippedFrames}/${stats.renderTotalFrames} · encode skipped ${stats.outputSkippedFrames}/${stats.outputTotalFrames}`,
     stream.outputActive ? `stream skipped ${stream.outputSkippedFrames}/${stream.outputTotalFrames} · congestion ${stream.outputCongestion?.toFixed(2)}` : "",
   ]
