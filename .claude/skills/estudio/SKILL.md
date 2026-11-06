@@ -94,7 +94,9 @@ channel's idea, the series), the commentary, the outro (the lives, the site) wit
 screen. Nothing that ages (no "today", rank or dates). Shorts get no intro, only a 3–5 s outro of their own, recorded in the Shorts collection's scene "Final" (the camera where "Short" has it, the top plain Klein: the edit fills it with the lives' tech in motion). Luan
 records them and writes the words; Claude edits: trims the silences, levels to −14 LUFS, and adds what's on
 screen (callouts, the tech, the hooks). The parts live in `Videos\Comentados\Partes` (`intro.mp4`, `outro.mp4`, raws
-kept as `… (bruto).mp4`).
+kept as `… (bruto).mp4`). The outros' edit is `scripts/montagem.py --apply` (its docstring has the recipe; a re-recorded part
+needs its word timings measured again with whisper `-ml 1`, and `CLIPS` picks the live moments, never with anyone
+else's name legible).
 
 ## Checking studio changes
 
