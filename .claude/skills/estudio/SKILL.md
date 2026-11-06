@@ -30,8 +30,12 @@ description: Making Luan's shorts and commented-match videos from a live's mater
 
 ## RLR's studio (`~/repos/rlr`, `src/studio/`)
 
-Published at muanlartins.com.br/rlr (also locally: `./run.sh` in `~/repos/rlr`, port 5180). Luan opens a
-replay, clicks **Studio** and adds the recording. It finds the match itself and keeps both in step.
+Published at muanlartins.com.br/rlr (also locally: `./run.sh` in `~/repos/rlr`, port 5180). Luan's way in:
+**"Open a lives folder…"** on RLR's first page, pointed once at `Videos\Lives` (Edge remembers it; each visit is
+one click, "Open Lives", to allow reading it). It lists each day's matches from the `Replays` names; a click
+opens that match's replay, the day's recording and the studio, already in step, and ‹ › go to the day's other
+matches. So `depois-da-live` filing the folder is what makes a live show up there. (Opening a replay and adding
+a recording by hand still works for anything else.)
 
 - **Sync:** it fetches the sessions near the replay's date from GitHub's API, recognises the match by its
   kickoffs and goals (replay ids and the dock's ids differ), and lines up each stretch between goals on its
@@ -58,6 +62,5 @@ replay, clicks **Studio** and adds the recording. It finds the match itself and 
 ## Still to build (in this order unless Luan says otherwise)
 
 1. An OBS scene "Estúdio" (browser window, mic, camera) for recording the commentary: ask before touching OBS.
-2. Opening a whole session at once in the studio (pick the live's folder, switch between its matches).
-3. The cutting pipeline: from the studio recording's chapters and marks to shorts (vertical) and the
+2. The cutting pipeline: from the studio recording's chapters and marks to shorts (vertical) and the
    commented video.
