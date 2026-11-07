@@ -86,7 +86,10 @@ full screen lands; a page shows its middle) where the play goes,
 his camera under it, Brave's sound on track 3. Tabs switch with Ctrl+Tab or Ctrl+1…9. Clips of the lives (the
 crowd's goal, a Pix alert) are cut to `Videos\Shorts\Partes\clipes` or opened on the live's YouTube VOD at their
 second. One take per short; `scripts/.venv/bin/python scripts/shorts.py --apply --sem-barras [--gancho "…"]` (a page
-that sits still must not be read as browser bars).
+that sits still must not be read as browser bars). `--topo "0-39=live-pix.mp4@3"` puts a clip (from
+`clipes`, from its second 3) in the top from take second 0 to 39, over the tab switching, while his camera and voice go
+on; `"39-41=@45"` shows the take's own top from a later second. It applies to every short of that run: run it when
+only that take is new.
 
 ## Commented videos
 
