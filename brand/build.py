@@ -235,7 +235,10 @@ def webcam(width=3840, height=2160, side="left"):
     mark_height = height * 0.085
     w, h = lockup_size(mark_height)
     margin = height * 0.045
-    x0 = margin if side == "left" else width - w - margin
+    # "dentro": the corner of what the shorts keep of the camera (its middle 1350 of 1920, the 1080×864 under the
+    # play), so the lockup isn't cut there and still sits top left in the full frame.
+    inside = width * (1 - 1350 / 1920) / 2
+    x0 = {"left": margin, "right": width - w - margin, "dentro": inside + margin}[side]
     y0 = margin
     holes = [(width / 2, height * 0.8, width * 0.36, height * 0.75), (x0 + w / 2, y0 + h / 2, w * 0.75, h * 1.2)]
     grid = lattice(width, height, mark_height, x0, y0, holes, step=2)
@@ -584,7 +587,7 @@ if __name__ == "__main__":
     png("twitch/banner-1200x480.svg", "twitch/banner-1200x480.png", 1200)
     write("twitch/offline-1920x1080.svg", banner(1920, 1080, 160, (1300, 500)))
     png("twitch/offline-1920x1080.svg", "twitch/offline-1920x1080.png", 1920)
-    for side in ("left", "right"):
+    for side in ("left", "right", "dentro"):
         write(f"webcam/webcam-{side}.svg", webcam(side=side))
         png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-3840x2160.png", 3840)
         png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-1920x1080.png", 1920)
