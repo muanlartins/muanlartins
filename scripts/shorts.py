@@ -109,28 +109,50 @@ def speech(file, start, end):
     return start + max(0.0, talk_from - 0.3), start + min(end - start, talk_to + 0.6)
 
 
+CHUNK = (6.0, 12.0)  # whisper's word times drift over a long stretch: it hears pieces this long, cut at pauses
+
+
 def words(file, start, end):
-    """[(from, to, word)] said in [start, end], in seconds from `start`."""
+    """[(from, to, word)] said in [start, end], in seconds from `start`. Whisper hears it in pieces of 6–12 s cut in
+    the middle of pauses, each timed from its own start, so its word times can't drift far (on one 48 s run they
+    were up to half a second late by the end)."""
     stem = TEMP / f"muanlartins-short-{file.stem.replace(' ', '_')}-{start:.0f}"
     wav = stem.with_suffix(".wav")
     run(FFMPEG / "ffmpeg.exe", "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{start:.3f}", "-to", f"{end:.3f}",
         "-i", to_windows(file), "-map", f"0:a:{MIC}", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", to_windows(wav))
-    # One word per segment (-ml 1 -sow) for its timing; -mc 0 against loops on silence, as for the lives.
-    run(WHISPER / "whisper-cli.exe", "-m", to_windows(WHISPER / "models" / "ggml-large-v3-turbo-q5_0.bin"),
-        "-l", "pt", "-mc", "0", "-ml", "1", "-sow", "-oj", "-of", to_windows(stem), "-np", to_windows(wav),
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    result = json.loads(stem.with_suffix(".json").read_text(encoding="utf-8"))
-    wav.unlink()
-    stem.with_suffix(".json").unlink()
+    log = run(FFMPEG / "ffmpeg.exe", "-hide_banner", "-nostats", "-i", to_windows(wav), "-af",
+              "silencedetect=noise=-40dB:d=0.25", "-f", "null", "-", capture_output=True, text=True).stderr
+    pauses = list(zip([float(x) for x in re.findall(r"silence_start: (-?[\d.]+)", log)],
+                      [float(x) for x in re.findall(r"silence_end: ([\d.]+)", log)]))
+    length = end - start
+    cuts, last = [0.0], 0.0
+    for a, b in pauses:
+        middle = (a + b) / 2
+        if middle - last >= CHUNK[0] and length - middle >= 2:
+            cuts.append(middle)
+            last = middle
+    cuts.append(length)
     friends = names()
     said = []
-    for s in result["transcription"]:
-        word = s["text"].strip()
-        if not word or HALLUCINATIONS.match(word):
-            continue
-        if friends:
-            word = friends.sub("—", word)
-        said.append((s["offsets"]["from"] / 1000, s["offsets"]["to"] / 1000, word))
+    for n, (a, b) in enumerate(zip(cuts, cuts[1:])):
+        piece = stem.with_name(f"{stem.name}-{n}")
+        run(FFMPEG / "ffmpeg.exe", "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{a:.3f}", "-to", f"{b:.3f}",
+            "-i", to_windows(wav), "-c:a", "pcm_s16le", to_windows(piece.with_suffix(".wav")))
+        # One word per segment (-ml 1 -sow) for its timing; -mc 0 against loops on silence, as for the lives.
+        run(WHISPER / "whisper-cli.exe", "-m", to_windows(WHISPER / "models" / "ggml-large-v3-turbo-q5_0.bin"),
+            "-l", "pt", "-mc", "0", "-ml", "1", "-sow", "-oj", "-of", to_windows(piece), "-np",
+            to_windows(piece.with_suffix(".wav")), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        result = json.loads(piece.with_suffix(".json").read_text(encoding="utf-8"))
+        piece.with_suffix(".wav").unlink()
+        piece.with_suffix(".json").unlink()
+        for seg in result["transcription"]:
+            word = seg["text"].strip()
+            if not word or HALLUCINATIONS.match(word):
+                continue
+            if friends:
+                word = friends.sub("—", word)
+            said.append((a + seg["offsets"]["from"] / 1000, a + seg["offsets"]["to"] / 1000, word))
+    wav.unlink()
     return said
 
 
@@ -187,8 +209,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """ + "\n".join(events) + "\n"
 
 
-def plan():
-    """(take, start, end, title, output) for each play of each take not made yet."""
+def plan(titles=None):
+    """(take, start, end, title, output) for each play of each take not made yet. `titles` names a take's short by
+    its time ("13-14-46": "Arquibancada") when it has no chapters."""
     for take in sorted(SHORTS.glob("*.mp4")) if SHORTS.exists() else []:
         found = TAKE.match(take.name)
         if not found:
@@ -196,6 +219,7 @@ def plan():
         with_game = take.with_name(f"{take.stem} (com jogo).mp4")
         take = with_game if with_game.exists() else take
         for n, (start, end, title) in enumerate(chapters(take), 1):
+            title = title or (titles or {}).get(found[2], "")
             name = re.sub(r'[<>:"/\\|?*]', "", title.replace(" · ", " - ")).strip() or f"Short {n}"
             yield take, start, end, title, READY / f"{found[1]} {found[2]} - {name}.mp4"
 
@@ -207,11 +231,13 @@ DAY = 24 * 3600
 def top_over(spec):
     """--topo "10-39=live-pix.mp4@0": from take second 10 to 39, the top shows that clip (from its second 0) instead;
     "39-41=@45" shows the take's own top from its second 45 (skipping a tab switch). Clips are looked up in
-    Videos\\Shorts\\Partes\\clipes. Returns (from, to, file or None, its second)."""
+    Videos\\Shorts\\Partes\\clipes. "12-56-21:10-39=…" limits it to that take (by its time). Returns (take or "",
+    from, to, file or None, its second)."""
     span, what = spec.split("=", 1)
+    take, _, span = span.rpartition(":")
     a, b = (float(x) for x in span.split("-"))
     name, _, at = what.partition("@")
-    return a, b, (Path(name) if Path(name).is_absolute() else CLIPS / name) if name else None, float(at or 0)
+    return take, a, b, (Path(name) if Path(name).is_absolute() else CLIPS / name) if name else None, float(at or 0)
 
 
 def make(take, start, end, out, hook=None, cut_bars=True, tops=()):
@@ -248,6 +274,7 @@ def make(take, start, end, out, hook=None, cut_bars=True, tops=()):
     ]
     # The top replaced for a while (a clip, or the take's own top from another moment); the camera and the voice go on.
     extra, last = [], "v1o"
+    tops = [t[1:] for t in tops if not t[0] or t[0] in take.name]
     for n, (a, b, clip, at) in enumerate(tops):
         a, b = max(a, start) - start, min(b, end) - start
         if b <= a:
@@ -275,17 +302,21 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--apply", action="store_true", help="make the shorts (without it, only show)")
     parser.add_argument("--gancho", help="a line on top for the first seconds (each short made in this run)")
+    parser.add_argument("--nome", action="append", default=[], metavar="HH-MM-SS=NOME",
+                        help='names a take\'s short when it has no chapters: "13-14-46=Arquibancada"')
     parser.add_argument("--topo", action="append", default=[], type=top_over,
-                        help='replace the top for a while: "10-39=live-pix.mp4@0" (a clip) or "39-41=@45" (the take later)')
+                        help='replace the top for a while: "10-39=live-pix.mp4@0" (a clip), "39-41=@45" (the take later); '
+                             '"12-56-21:10-39=…" for one take only')
     parser.add_argument("--sem-barras", action="store_true",
                         help="don't look for browser bars (takes from the \"Navegador\" scene: the site, still)")
     args = parser.parse_args()
+    titles = dict(n.split("=", 1) for n in args.nome)
     # Takes whose shorts were all made a day ago or more: reviewed by now, they go at the end (a fresh short keeps its
     # take, in case it needs another pass).
     made_before = {}
-    for take, _, _, _, out in plan():
+    for take, _, _, _, out in plan(titles):
         made_before[take] = made_before.get(take, True) and out.exists() and time.time() - out.stat().st_mtime > DAY
-    todo = [each for each in plan() if not each[4].exists()]
+    todo = [each for each in plan(titles) if not each[4].exists()]
     for take, start, end, title, out in todo:
         print(f"short  {take.name} {start:.0f}–{end:.0f} s ({title or 'sem capítulo'})  →  prontos\\{out.name}")
         if args.apply:

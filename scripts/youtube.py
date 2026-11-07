@@ -231,7 +231,8 @@ def video(args):
     as it is unless the record says otherwise."""
     record = json.loads(Path(args.record).read_text())
     video_id, tags = record["id"], record["tags"]
-    print(f"Vídeo {video_id}  ({record.get('privacy', 'privacidade como está')})\n\n{record['title']}\n\n"
+    when = f"agendado para {record['publish_at']}" if record.get("publish_at") else record.get("privacy", "privacidade como está")
+    print(f"Vídeo {video_id}  ({when})\n\n{record['title']}\n\n"
           f"{record['description']}\n\nTags: {', '.join(tags)}\n")
     thumbnail = ROOT / record["thumbnail"] if record.get("thumbnail") else None
     captions_file = VIDEOS / record["captions"] if record.get("captions") else Path("/nonexistent")
@@ -253,6 +254,9 @@ def video(args):
     status.update(selfDeclaredMadeForKids=False, containsSyntheticMedia=False)
     if record.get("privacy"):
         status["privacyStatus"] = record["privacy"]
+    # Scheduled: private until publish_at (ISO with offset, e.g. "2026-11-07T18:00:00-03:00"), then YouTube publishes it.
+    if record.get("publish_at"):
+        status.update(privacyStatus="private", publishAt=record["publish_at"])
     api.videos().update(part="snippet,status", body={"id": video_id, "snippet": snippet, "status": status}).execute()
     print("Título, descrição, tags e status: ok")
     if thumbnail:
