@@ -25,6 +25,10 @@ export type Choice = Record<string, unknown>
 export interface Fan {
   cor: string
   detalhe: string
+  /** The third colour, for the patterns that take one (tricolor, faixa-dupla). */
+  terceira: string
+  /** Their team, by name: one of TIMES (its shirt) or any they type. */
+  time: string
   cabeca: string
   roupa: string
   numero: number
@@ -116,6 +120,9 @@ export interface Torcedor {
   CORES: string[]
   CABECAS: string[]
   ROUPAS: string[]
+  TRES_CORES: string[]
+  TIMES: { nome: string; cor: string; detalhe: string; terceira?: string; roupa: string }[]
+  TIME_MAX: number
   ACESSORIOS: string[]
   COMEMORACOES: string[]
   STICKERS: string[]

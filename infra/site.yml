@@ -391,7 +391,8 @@ Resources:
             const o = {}
             if (!a || typeof a !== "object") return o
             for (const k of ["cabeca", "roupa", "acessorio", "comemoracao"]) if (ID.test(a[k])) o[k] = a[k]
-            for (const k of ["cor", "detalhe"]) if (typeof a[k] === "string" && COR.test(a[k].toLowerCase())) o[k] = a[k].toLowerCase()
+            for (const k of ["cor", "detalhe", "terceira"]) if (typeof a[k] === "string" && COR.test(a[k].toLowerCase())) o[k] = a[k].toLowerCase()
+            if (typeof a.time === "string") o.time = [...a.time.replace(/\s+/g, " ").trim()].slice(0, 24).join("").trim()
             if (Number.isInteger(a.numero) && a.numero >= 0 && a.numero <= 99) o.numero = a.numero
             if (typeof a.frase === "string") o.frase = [...a.frase.replace(/\s+/g, " ").trim()].slice(0, 30).join("").trim()
             const st = (l) => (Array.isArray(l) ? l.filter((e) => typeof e === "string" && e.length <= 16 && EMOJI.test(e)).slice(0, 3) : [])

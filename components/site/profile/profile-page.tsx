@@ -77,6 +77,52 @@ function FreeColor({
   )
 }
 
+/** Their team: a club from the list dresses the fan in its shirt; any other is just its name. */
+function TeamGroup({ T, fan, change }: { T: Torcedor; fan: Fan; change: (patch: Partial<Fan>) => void }) {
+  const club = T.TIMES.find((t) => t.nome === fan.time)
+  const [typing, setTyping] = useState(Boolean(fan.time && !club))
+  const value = club ? club.nome : typing ? "outro" : ""
+  return (
+    <Group title={text.groups.team} hint={text.groups.teamHint}>
+      <div className="flex flex-wrap items-center gap-3">
+        <select
+          value={value}
+          onChange={(e) => {
+            const pick = e.target.value
+            if (pick === "outro") {
+              setTyping(true)
+              change({ time: "" })
+              return
+            }
+            setTyping(false)
+            const team = T.TIMES.find((t) => t.nome === pick)
+            change(team ? { time: team.nome, cor: team.cor, detalhe: team.detalhe, terceira: team.terceira ?? team.detalhe, roupa: team.roupa } : { time: "" })
+          }}
+          className="rounded-sm border border-line bg-paper px-3 py-2 text-ink"
+        >
+          <option value="">{text.groups.teamNone}</option>
+          {T.TIMES.map((t) => (
+            <option key={t.nome} value={t.nome}>
+              {t.nome}
+            </option>
+          ))}
+          <option value="outro">{text.groups.teamOther}</option>
+        </select>
+        {typing && (
+          <input
+            value={fan.time}
+            maxLength={T.TIME_MAX}
+            placeholder={text.groups.teamName}
+            aria-label={text.groups.teamName}
+            onChange={(e) => change({ time: e.target.value })}
+            className="w-full max-w-[14rem] rounded-sm border border-line bg-paper px-3 py-2 text-ink"
+          />
+        )}
+      </div>
+    </Group>
+  )
+}
+
 const tile = (on: boolean) =>
   cn(
     "flex flex-col items-center gap-2 rounded-md border px-2 pb-2 pt-3 text-[13px] transition-colors",
@@ -310,10 +356,14 @@ export function ProfilePage() {
           </div>
 
           <div className="space-y-8">
+            <TeamGroup T={T} fan={fan} change={change} />
+
             <Group title={text.groups.colors}>
-              {(["cor", "detalhe"] as const).map((key) => (
+              {(T.TRES_CORES.includes(fan.roupa) ? (["cor", "detalhe", "terceira"] as const) : (["cor", "detalhe"] as const)).map((key) => (
                 <div key={key} className="space-y-2">
-                  <p className="text-[14px] text-muted">{key === "cor" ? text.groups.color : text.groups.detail}</p>
+                  <p className="text-[14px] text-muted">
+                    {key === "cor" ? text.groups.color : key === "detalhe" ? text.groups.detail : text.groups.third}
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {T.CORES.map((color) => (
                       <button
