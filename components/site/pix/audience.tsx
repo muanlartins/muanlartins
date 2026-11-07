@@ -171,7 +171,15 @@ export function Audience({ T, S }: { T: Torcedor | null; S: Sigma | null }) {
               <p className="text-[13px] text-muted tabular-nums">{day(m.date)}</p>
               <p className="text-[17px] font-medium text-ink">{m.title}</p>
               {m.dedication && honored.length > 0 && (
-                <a href="#afiliacao" className="text-[14px] text-klein underline-offset-4 hover:underline">
+                <a
+                  href="#afiliacao"
+                  // The tab lives in the address (#audiencia): scroll to the stand without trading it for #afiliacao.
+                  onClick={(e) => {
+                    e.preventDefault()
+                    document.getElementById("afiliacao")?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
+                  }}
+                  className="text-[14px] text-klein underline-offset-4 hover:underline"
+                >
                   {text.seeStand}
                 </a>
               )}
