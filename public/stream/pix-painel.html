@@ -20,6 +20,7 @@
       - Últimos Pix: repeat an alert; take one off the site's mural.
       - Meta: the goal bar on the overlay, /pix and /mural; it counts from when it's set. A new one (or
         Encerrar) sends the one before to /mural's history; Ajustar changes the one on screen and keeps its count.
+        Ticking "fora de meta", a new one also counts the Pix that came in since the last goal ended.
     -->
     <style>
       html,
@@ -71,6 +72,14 @@
         flex-wrap: wrap;
         align-items: center;
         gap: 6px;
+      }
+      .avulsos {
+        display: flex;
+        flex-basis: 100%;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        opacity: 0.8;
       }
       ul {
         margin: 0;
@@ -159,6 +168,7 @@
       <button>Nova meta</button>
       <button type="button" id="m-ajustar">Ajustar</button>
       <button type="button" id="m-tirar">Encerrar</button>
+      <label class="avulsos"><input type="checkbox" id="m-avulsos" /> Contar os Pix que vieram fora de meta</label>
     </form>
 
     <script>
@@ -281,7 +291,7 @@
         const alvo = centavosDe($("m-alvo").value)
         if (!(alvo >= 1)) return alert("Valor da meta inválido.")
         if (metaAgora && !confirm(`Começar uma meta nova? "${metaAgora.titulo || "Meta"}" vai para o histórico do mural.`)) return
-        agir({ acao: "meta", titulo: $("m-titulo").value, alvo })
+        agir({ acao: "meta", titulo: $("m-titulo").value, alvo, avulsos: $("m-avulsos").checked })
         $("meta").reset()
       }
       // Ajustar: what's typed replaces the title or the target; the count goes on.

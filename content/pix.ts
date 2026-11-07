@@ -72,20 +72,25 @@ export const pix = {
   goal: { pt: "Meta", en: "Goal" },
 } as const
 
-/** /mural: the goals, the one on screen and the ones before, with whoever chose to show on each. */
+/** /mural: two tabs, the Pix (goal by goal, with whoever chose to show on each) and the audience (who watches, its milestones). */
 export const mural = {
   title: { pt: "Mural", en: "Mural" },
   description: {
-    pt: "Quem mandou Pix na live e quis aparecer aqui, meta por meta. Valeu a cada um!",
-    en: "Everyone who sent a Pix on the live and wanted to show up here, goal by goal. Thanks, each of you!",
+    pt: "Quem faz o canal acontecer: quem manda Pix na live e quem aparece para assistir. Valeu a cada um!",
+    en: "The people who make the channel happen: the ones who send a Pix on the live and the ones who show up to watch. Thanks, each of you!",
   },
   soon: { pt: "O mural abre junto com o Pix na live.", en: "The mural opens along with Pix on the live." },
   send: { pt: "Mandar um Pix", en: "Send a Pix" },
+  tabPix: { pt: "Pix", en: "Pix" },
+  tabAudience: { pt: "Audiência", en: "Audience" },
+  /** The audience tab's address: /mural#audiencia. */
+  audienceHash: { pt: "audiencia", en: "audience" },
   goalNow: { pt: "Meta atual", en: "Current goal" },
   noGoal: { pt: "Nenhuma meta agora.", en: "No goal right now." },
   goalsBefore: { pt: "Metas anteriores", en: "Earlier goals" },
   reached: { pt: "Meta batida", en: "Goal reached" },
   of: { pt: "de", en: "of" },
+  toGo: { pt: "faltam", en: "to go:" },
   supporters: { pt: "Quem ajudou", en: "Who helped" },
   others: { pt: "Pix sem nome no mural", en: "Pix with no name on the mural" },
   noneYet: { pt: "Ninguém no mural ainda. O primeiro pode ser você.", en: "Nobody on the mural yet. The first could be you." },
@@ -95,7 +100,53 @@ export const mural = {
     pt: "O nome do banco de quem paga nunca aparece: nem na live, nem aqui. Para tirar um Pix seu do mural, fale com o Luan.",
     en: "The payer's name at the bank never shows: not on the live, not here. To take a Pix of yours off the mural, ask Luan.",
   },
+  // The audience tab.
+  audienceLead: {
+    pt: "Até hoje, {pessoas} assistiram às lives, somando {horas} na arquibancada.",
+    en: "So far, {pessoas} have watched the lives, {horas} in the stand altogether.",
+  },
+  // Singular|plural.
+  people: { pt: "pessoa|pessoas", en: "person|people" },
+  hours: { pt: "hora|horas", en: "hour|hours" },
+  nextMilestone: { pt: "Próximo marco", en: "Next milestone" },
+  countPeople: { pt: "{n} pessoas assistindo", en: "{n} people watching" },
+  countHours: { pt: "{n} horas assistidas", en: "{n} hours watched" },
+  milestones: { pt: "Marcos", en: "Milestones" },
+  reachedCounts: { pt: "Já batidos", en: "Already reached" },
+  top: { pt: "Quem mais assiste", en: "Who watches the most" },
+  showAll: { pt: "Ver todos", en: "Show everyone" },
+  showLess: { pt: "Ver menos", en: "Show fewer" },
+  livesUnit: { pt: "live|lives", en: "live|lives" },
+  dedicationTitle: { pt: "Afiliado à Twitch", en: "Twitch affiliate" },
+  dedication: {
+    pt: "No dia 7 de novembro de 2026, o canal virou afiliado da Twitch. Isso só acontece quando gente de verdade aparece nas lives, e cada uma destas pessoas apareceu. Esta conquista é de vocês.",
+    en: "On November 7, 2026, the channel became a Twitch affiliate. That only happens when real people show up to the lives, and each of these people did. This one is yours.",
+  },
+  dedicationSince: {
+    pt: "Conta quem esteve no chat desde 5 de novembro, quando o canal começou a registrar quem assiste.",
+    en: "It counts everyone in the chat since November 5, when the channel started keeping track of who watches.",
+  },
+  seeStand: { pt: "Ver a arquibancada", en: "See the stand" },
+  audienceSoon: { pt: "A audiência aparece aqui em breve.", en: "The audience shows up here soon." },
+  audiencePrivacy: {
+    pt: "Aparece aqui quem estava logado no chat da Twitch durante uma live. Para sair da lista, fale com o Luan.",
+    en: "Everyone logged in to the Twitch chat during a live shows up here. To be left out, ask Luan.",
+  },
 } as const
+
+/** The channel's dated milestones, oldest first; `dedication` draws the stand of everyone who had watched by that day. */
+export const MILESTONES: { date: string; title: { pt: string; en: string }; dedication?: boolean }[] = [
+  { date: "2026-10-28", title: { pt: "Primeira live", en: "First live" } },
+  { date: "2026-11-05", title: { pt: "A torcida ganha nomes e Σ", en: "The stand gets names and Σ" } },
+  { date: "2026-11-06", title: { pt: "Primeiro Pix na live", en: "First Pix on the live" } },
+  { date: "2026-11-07", title: { pt: "Afiliado à Twitch", en: "Twitch affiliate" }, dedication: true },
+]
+
+/** The audience's milestones by count: the next one shows as a bar, the ones reached as a list. */
+export const COUNTS = {
+  pessoas: [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
+  horas: [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
+}
 
 /**
  * The voices on the form. "propria" is only for a recording: it plays as recorded. Each card shows an icon

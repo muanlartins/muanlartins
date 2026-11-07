@@ -103,6 +103,20 @@ export async function loadSigmas(logins: string[]): Promise<Record<string, Sigma
   return found
 }
 
+/** Someone who has watched a live: their public Σ, and their first live if it came after 2026-11-07 (before that, nobody's was kept). */
+export interface Viewer extends SigmaStats {
+  login: string
+  primeira?: string
+}
+
+/** Everyone who has watched a live, most minutes first. */
+export async function loadAudience(): Promise<Viewer[]> {
+  const response = await fetch(`${SIGMA_API}/audiencia`)
+  if (!response.ok) throw new Error(String(response.status))
+  const { pessoas } = (await response.json()) as { pessoas: (Partial<SigmaStats> & { login: string; primeira?: string })[] }
+  return pessoas.map((p) => ({ ...complete(p), login: p.login, ...(p.primeira ? { primeira: p.primeira } : {}) }))
+}
+
 /** The signed-in viewer's own Σ, with what they sent by Pix; the public one if the Σ API can't say. */
 export async function loadMySigma(token: string, login: string): Promise<SigmaStats | null> {
   if (!SIGMA_API || !login) return null

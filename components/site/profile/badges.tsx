@@ -23,12 +23,12 @@ export function amount(id: Badge["id"], n: number) {
 }
 
 /** The medal: the badge's icon in its level's colour, grey before the first. */
-export function Medal({ badge, size = "md" }: { badge: Badge; size?: "sm" | "md" }) {
+export function Medal({ badge, size = "md", label }: { badge: Badge; size?: "sm" | "md"; label?: string }) {
   const Icon = ICONS[badge.id]
   const color = badge.nivel ? LEVELS[badge.nivel - 1] : undefined
   return (
     <span
-      title={`${badge.nome}: ${amount(badge.id, badge.valor)}`}
+      title={label ?? `${badge.nome}: ${amount(badge.id, badge.valor)}`}
       className={cn(
         "relative grid shrink-0 place-items-center",
         size === "md" ? "h-14 w-14" : "h-7 w-7",
@@ -86,20 +86,27 @@ export function BadgeGrid({ badges }: { badges: Badge[] }) {
   )
 }
 
-/** A row of small medals, the ones already earned, for the mural. */
+/**
+ * A row of small medals, the ones already earned, for the mural. The run of lives in a row going on now rides on
+ * the "seguidas" medal as a number, rather than a second flame beside it.
+ */
 export function BadgeChips({ badges, streak }: { badges: Badge[]; streak: number }) {
-  const earned = badges.filter((b) => b.nivel > 0)
-  if (!earned.length && streak < 2) return null
+  const live = streak >= 2
+  const shown = badges.filter((b) => b.nivel > 0 || (b.id === "seguidas" && live))
+  if (!shown.length) return null
   return (
-    <span className="flex flex-wrap items-center gap-1">
-      {earned.map((b) => (
-        <Medal key={b.id} badge={b} size="sm" />
-      ))}
-      {streak >= 2 && (
-        <span title={`${streak} ${text.streakNow}`} className="inline-flex items-center gap-0.5 rounded-full bg-[#ff7a1a]/15 px-1.5 py-0.5 text-[12px] font-semibold text-[#e0620a] tabular-nums">
-          <Flame className="h-3.5 w-3.5" strokeWidth={2.2} />
-          {streak}
-        </span>
+    <span className="flex flex-wrap items-center gap-1.5">
+      {shown.map((b) =>
+        b.id === "seguidas" && live ? (
+          <span key={b.id} className="relative">
+            <Medal badge={b} size="sm" label={`${streak} ${text.streakNow} (${b.nome}: ${amount(b.id, b.valor)})`} />
+            <span className="absolute -top-1.5 -right-2 grid h-4 min-w-4 place-items-center rounded-full bg-[#e0620a] px-1 text-[10px] leading-none font-semibold text-white tabular-nums ring-2 ring-paper">
+              {streak}
+            </span>
+          </span>
+        ) : (
+          <Medal key={b.id} badge={b} size="sm" />
+        ),
       )}
     </span>
   )
