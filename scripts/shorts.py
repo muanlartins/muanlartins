@@ -9,7 +9,8 @@ becomes a short, the same way every time:
 
 - cut from just before he starts talking to just after he stops (silence on the microphone's track);
 - the game's picture freed of the browser's bars when the studio wasn't in full screen (rows that never change
-  at the top and bottom of the play are cut, the rest scaled back up to fill it);
+  at the top and bottom of the play are cut, the rest scaled back up to fill it; --sem-barras for the takes of the
+  "Navegador" scene, where the site itself sits still);
 - the full wordmark over the camera's cut "anlartins" (NVIDIA Broadcast's background, cropped);
 - a hook line on top for its first seconds when --gancho gives one (what the chat said, say);
 - captioned word by word from whisper (the microphone alone): blocks of up to two lines sitting on the line between
@@ -196,14 +197,15 @@ def plan():
             yield take, start, end, title, READY / f"{found[1]} {found[2]} - {name}.mp4"
 
 
-def make(take, start, end, out, hook=None):
+def make(take, start, end, out, hook=None, cut_bars=True):
     cut = speech(take, start, end)
     if not cut:
         print("      sem fala no microfone: pulado")
         return
     start, end = cut
     said = words(take, start, end)
-    top, bottom = bars(take, start, end)
+    # A page that sits still (the "Navegador" scene) would read as bars: those takes skip it.
+    top, bottom = bars(take, start, end) if cut_bars else (0, STAGE[1])
     # The subtitles filter takes paths relative to C:\\ (run's working directory), sparing ffmpeg's escaping of "C:".
     work = TEMP / "muanlartins-short"
     work.mkdir(exist_ok=True)
@@ -243,12 +245,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--apply", action="store_true", help="make the shorts (without it, only show)")
     parser.add_argument("--gancho", help="a line on top for the first seconds (each short made in this run)")
+    parser.add_argument("--sem-barras", action="store_true",
+                        help="don't look for browser bars (takes from the \"Navegador\" scene: the site, still)")
     args = parser.parse_args()
     todo = [each for each in plan() if not each[4].exists()]
     for take, start, end, title, out in todo:
         print(f"short  {take.name} {start:.0f}–{end:.0f} s ({title or 'sem capítulo'})  →  prontos\\{out.name}")
         if args.apply:
-            make(take, start, end, out, args.gancho)
+            make(take, start, end, out, args.gancho, not args.sem_barras)
     if not todo:
         print("Nenhum take novo em Videos\\Shorts.")
     elif not args.apply:
