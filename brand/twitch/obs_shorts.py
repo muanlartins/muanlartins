@@ -6,7 +6,7 @@
 The studio (RLR, full screen in the browser) puts the play in the screen's top left corner, 1080×1056 of the screen's
 own pixels; OBS captures the screen as it is, so that corner is the short's top, and Luan's camera covers the rest,
 1080×864 under it, with a Klein line between them. Sound: the microphone (with the live's compressor and limiter) and
-the browser's (the game, low); tracks 1 Tudo, 2 Microfone, 3 Estúdio, so the edit can caption from the microphone
+the browser's (the game, low); tracks 1 Tudo and 2 Microfone (the browser's sound mixed into Tudo), so the edit can caption from the microphone
 alone. The studio's "Record a short" switches OBS to this profile and back (never while live); see the `estudio`
 skill. Files go to Videos\\Shorts, named "<date> <time> short.mp4", one chapter per play.
 
@@ -96,6 +96,8 @@ collection = {
     "preview_locked": False, "scaling_enabled": False, "modules": {}, "resolution": {"x": W, "y": H}, "version": 2,
 }
 
+# Recorded: tracks 1 Tudo and 2 Microfone only (RecTracks=3). The browser's sound is in Tudo, and a player that
+# picks a file's last track (Windows' does) then plays his voice, not a silent Estúdio track.
 PROFILE = f"""[General]
 Name=Shorts
 
@@ -108,7 +110,7 @@ RecType=Standard
 RecFilePath={FOLDER}
 RecFormat2=hybrid_mp4
 RecEncoder=obs_nvenc_h264_tex
-RecTracks=7
+RecTracks=3
 RecAudioEncoder=ffmpeg_aac
 Track1Bitrate=192
 Track2Bitrate=192
