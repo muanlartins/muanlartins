@@ -21,7 +21,8 @@ becomes a short, the same way every time:
 - encoded for Instagram and YouTube Shorts (H.264, AAC, the index up front) as
   Videos\\Shorts\\prontos\\<date> <time> - <play>.mp4. Over 60 s is said, not cut.
 
-Shorts already made are skipped. Once every short of a take is made, the take goes (and its "(com jogo)" copy, the
+Shorts already made are skipped. A take whose shorts were all made a day ago or more goes (a fresh one stays, so a
+short can get a second pass first) (and its "(com jogo)" copy, the
 game's sound put back by som_do_jogo.py, which is used instead of it when there is one): Luan wants the kitchen
 kept clean, the shorts in prontos are what's kept.
 """
@@ -32,6 +33,7 @@ import json
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 
 from live import FFMPEG, HALLUCINATIONS, WHISPER, names
@@ -198,7 +200,21 @@ def plan():
             yield take, start, end, title, READY / f"{found[1]} {found[2]} - {name}.mp4"
 
 
-def make(take, start, end, out, hook=None, cut_bars=True):
+CLIPS = SHORTS / "Partes" / "clipes"
+DAY = 24 * 3600
+
+
+def top_over(spec):
+    """--topo "10-39=live-pix.mp4@0": from take second 10 to 39, the top shows that clip (from its second 0) instead;
+    "39-41=@45" shows the take's own top from its second 45 (skipping a tab switch). Clips are looked up in
+    Videos\\Shorts\\Partes\\clipes. Returns (from, to, file or None, its second)."""
+    span, what = spec.split("=", 1)
+    a, b = (float(x) for x in span.split("-"))
+    name, _, at = what.partition("@")
+    return a, b, (Path(name) if Path(name).is_absolute() else CLIPS / name) if name else None, float(at or 0)
+
+
+def make(take, start, end, out, hook=None, cut_bars=True, tops=()):
     cut = speech(take, start, end)
     if not cut:
         print("      sem fala no microfone: pulado")
@@ -219,7 +235,7 @@ def make(take, start, end, out, hook=None, cut_bars=True):
     graph = [
         f"[0:v]split[base][g]",
         f"[g]crop={w}:{bottom - top}:0:{top},scale=-2:{h}:flags=lanczos,crop={w}:{h}[game]",
-        "[base][game]overlay=0:0[v1]",
+        "[base][game]overlay=0:0[v1o]",
         f"color=c={KLEIN}:s=360x96:d={length:.3f}[plate]",
         f"[v1][plate]overlay={LOGO_AT[0]}:{LOGO_AT[1]}[v2]",
         f"[v2][2:v]overlay={LOGO_AT[0] + 4}:{LOGO_AT[1] - 3}[v3]",
@@ -230,9 +246,22 @@ def make(take, start, end, out, hook=None, cut_bars=True):
         "[1:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[oa]",
         "[pv][pa][ov][oa]concat=n=2:v=1:a=1[v][a]",
     ]
+    # The top replaced for a while (a clip, or the take's own top from another moment); the camera and the voice go on.
+    extra, last = [], "v1o"
+    for n, (a, b, clip, at) in enumerate(tops):
+        a, b = max(a, start) - start, min(b, end) - start
+        if b <= a:
+            continue
+        extra += ["-ss", f"{at:.3f}", "-t", f"{b - a + 0.5:.3f}", "-i", to_windows(clip or take)]
+        fit = (f"crop={w}:{h}:0:0" if clip is None else
+               f"scale={w}:{h}:force_original_aspect_ratio=decrease:flags=lanczos,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:color={KLEIN}")
+        graph.insert(3 + 2 * n, f"[{3 + n}:v]fps=60,{fit},setsar=1,setpts=PTS-STARTPTS+{a:.3f}/TB[top{n}]")
+        graph.insert(4 + 2 * n, f"[{last}][top{n}]overlay=0:0:enable='between(t,{a:.3f},{b:.3f})':eof_action=pass[t{n}]")
+        last = f"t{n}"
+    graph = [g.replace("[v1][plate]", f"[{last}][plate]") for g in graph]
     READY.mkdir(parents=True, exist_ok=True)
     run(FFMPEG / "ffmpeg.exe", "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{start:.3f}", "-to", f"{end:.3f}",
-        "-i", to_windows(take), "-i", to_windows(OUTRO), "-i", to_windows(work / "lockup.png"),
+        "-i", to_windows(take), "-i", to_windows(OUTRO), "-i", to_windows(work / "lockup.png"), *extra,
         "-filter_complex", ";".join(graph), "-map", "[v]", "-map", "[a]", "-map_chapters", "-1", "-map_metadata", "-1",
         "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p", "-r", "60",
         "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", to_windows(out))
@@ -246,20 +275,23 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--apply", action="store_true", help="make the shorts (without it, only show)")
     parser.add_argument("--gancho", help="a line on top for the first seconds (each short made in this run)")
+    parser.add_argument("--topo", action="append", default=[], type=top_over,
+                        help='replace the top for a while: "10-39=live-pix.mp4@0" (a clip) or "39-41=@45" (the take later)')
     parser.add_argument("--sem-barras", action="store_true",
                         help="don't look for browser bars (takes from the \"Navegador\" scene: the site, still)")
     args = parser.parse_args()
+    # Takes whose shorts were all made a day ago or more: reviewed by now, they go at the end (a fresh short keeps its
+    # take, in case it needs another pass).
+    made_before = {}
+    for take, _, _, _, out in plan():
+        made_before[take] = made_before.get(take, True) and out.exists() and time.time() - out.stat().st_mtime > DAY
     todo = [each for each in plan() if not each[4].exists()]
     for take, start, end, title, out in todo:
         print(f"short  {take.name} {start:.0f}–{end:.0f} s ({title or 'sem capítulo'})  →  prontos\\{out.name}")
         if args.apply:
-            make(take, start, end, out, args.gancho, not args.sem_barras)
+            make(take, start, end, out, args.gancho, not args.sem_barras, args.topo)
     if args.apply:
-        # A take whose shorts are all made has done its job.
-        done = {}
-        for take, _, _, _, out in plan():
-            done[take] = done.get(take, True) and out.exists()
-        for take, made in done.items():
+        for take, made in made_before.items():
             if made:
                 original = take.with_name(take.name.replace(" (com jogo)", ""))
                 for file in {take, original}:
