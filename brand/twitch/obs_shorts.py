@@ -21,6 +21,9 @@ from pathlib import Path
 CAMERA = "Camera (NVIDIA Broadcast):"
 MIC = "{0.0.1.00000000}.{1bd84196-0816-4f00-8c22-a2b3950b995a}"
 # The main monitor (1920×1080 at 0,0; the other one is portrait). Without it OBS captures nothing.
+# The portrait monitor (1440×2560, right of the main one): the browser full screen there for the "Navegador" shorts.
+PORTRAIT = "\\\\?\\DISPLAY#GSM7766#5&23b6c223&0&UID37121#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}"
+PORTRAIT_SIZE = (1440, 2560)
 MONITOR = "\\\\?\\DISPLAY#GSM5D24#5&23b6c223&0&UID37120#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}"
 W, H = 1080, 1920
 STAGE = 1056  # the studio's picture (RLR's STAGE in src/app.tsx)
@@ -74,9 +77,20 @@ background = source("color_source_v3", "Fundo", {"color": 0xFFA72F00, "width": W
 final_items = [item(background, 1), item(camera, 2, (0, STAGE), (W, H - STAGE)), item(line, 3, (0, STAGE - LINE // 2))]
 final = source("scene", "Final", {"id_counter": len(final_items), "custom_size": False, "items": final_items})
 
+# Shorts about the channel's tech: Brave full screen (F11) on the portrait monitor, the page zoomed so the site takes
+# its phone layout (250 %: 576 px wide), its top 1440×1408 scaled to the play's place (×0.75), Luan under it as in
+# "Short", the browser's sound on track 3.
+portrait = source("monitor_capture", "Tela vertical", {"capture_cursor": True, "method": 0, "monitor_id": PORTRAIT})
+shown = round(PORTRAIT_SIZE[0] * STAGE / W)
+page = item(portrait, 1, (0, 0), (W, STAGE))
+page["crop_bottom"] = PORTRAIT_SIZE[1] - shown
+browser_items = [page, item(camera, 2, (0, STAGE), (W, H - STAGE)), item(line, 3, (0, STAGE - LINE // 2)),
+                 item(browser, 4)]
+navegador = source("scene", "Navegador", {"id_counter": len(browser_items), "custom_size": False, "items": browser_items})
+
 collection = {
-    "name": "Shorts", "current_scene": "Short", "current_program_scene": "Short", "scene_order": [{"name": "Short"}, {"name": "Final"}],
-    "sources": [short, final, screen, background, camera, line, browser], "groups": [], "AuxAudioDevice1": mic, "transitions": [],
+    "name": "Shorts", "current_scene": "Short", "current_program_scene": "Short", "scene_order": [{"name": "Short"}, {"name": "Navegador"}, {"name": "Final"}],
+    "sources": [short, navegador, final, screen, portrait, background, camera, line, browser], "groups": [], "AuxAudioDevice1": mic, "transitions": [],
     "current_transition": "Fade", "transition_duration": 300, "quick_transitions": [], "saved_projectors": [],
     "preview_locked": False, "scaling_enabled": False, "modules": {}, "resolution": {"x": W, "y": H}, "version": 2,
 }
