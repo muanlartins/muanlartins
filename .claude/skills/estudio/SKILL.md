@@ -81,7 +81,8 @@ One take = one short; Luan only picks the play and talks. Everything else runs t
 
 Luan talks over his site and the lives' material (the crowd, the Live Pix, the studio, the dock's matches, the site's
 history): Shorts collection, scene **"Navegador"**. Brave in full screen (F11) on the portrait monitor (1440×2560),
-the site zoomed to 250 % so it takes its phone layout; OBS shows that monitor's top 1440×1408 where the play goes,
+the site zoomed to 250 % so it takes its phone layout; OBS shows that monitor's middle 1440×1408 (where a video in
+full screen lands; a page shows its middle) where the play goes,
 his camera under it, Brave's sound on track 3. Tabs switch with Ctrl+Tab or Ctrl+1…9. Clips of the lives (the
 crowd's goal, a Pix alert) are cut to `Videos\Shorts\Partes\clipes` or opened on the live's YouTube VOD at their
 second. One take per short; `scripts/.venv/bin/python scripts/shorts.py --apply --sem-barras [--gancho "…"]` (a page
