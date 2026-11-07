@@ -78,12 +78,13 @@ final_items = [item(background, 1), item(camera, 2, (0, STAGE), (W, H - STAGE)),
 final = source("scene", "Final", {"id_counter": len(final_items), "custom_size": False, "items": final_items})
 
 # Shorts about the channel's tech: Brave full screen (F11) on the portrait monitor, the page zoomed so the site takes
-# its phone layout (250 %: 576 px wide), its top 1440×1408 scaled to the play's place (×0.75), Luan under it as in
+# its phone layout (250 %: 576 px wide), its middle 1440×1408 scaled to the play's place (×0.75), Luan under it as in
 # "Short", the browser's sound on track 3.
 portrait = source("monitor_capture", "Tela vertical", {"capture_cursor": True, "method": 0, "monitor_id": PORTRAIT})
 shown = round(PORTRAIT_SIZE[0] * STAGE / W)
 page = item(portrait, 1, (0, 0), (W, STAGE))
-page["crop_bottom"] = PORTRAIT_SIZE[1] - shown
+# The monitor's middle band: where the browser puts anything in full screen (a video), and the middle of a page.
+page["crop_top"] = page["crop_bottom"] = (PORTRAIT_SIZE[1] - shown) // 2
 browser_items = [page, item(camera, 2, (0, STAGE), (W, H - STAGE)), item(line, 3, (0, STAGE - LINE // 2)),
                  item(browser, 4)]
 navegador = source("scene", "Navegador", {"id_counter": len(browser_items), "custom_size": False, "items": browser_items})
