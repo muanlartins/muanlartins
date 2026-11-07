@@ -40,6 +40,10 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 - The "Partidas" dock (OBS custom dock, `public/stream/partidas.html` from the site) open: it logs each match and
   its events. At the end, **"Publicar sessões"**: that writes `content/matches/<id>.json` and `.events.json`,
   which the after-live routine and RLR's studio need.
+- **Rocket League's Stats API is on** before the game starts: `PacketSendRate=10` in
+  `C:\Program Files\Epic Games\rocketleague\TAGame\Config\DefaultStatsAPI.ini`. Game updates reset it to 0
+  (11-05), and then the dock sees no match. `node scripts/obs.mjs` warns when it's off; fix it, then restart the
+  game (it reads the file at start).
 - **Save the replay after each match** (they land in `Documents\My Games\Rocket League\TAGame\DemosEpic`).
 - Music for the stream (StreamBeats) plays through the "Spotify" source, which goes to **track 5 only**: the
   stream hears it, the recording (tracks 1–4) doesn't, so YouTube stays free of claims.
