@@ -4,6 +4,7 @@ import math
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import segno
@@ -60,8 +61,9 @@ def enclosing_circle(points):
 
 
 def mark(size=256, fit="circle", fill=0.69, stroke=0.24, gap=0.65, b_weight=1.0,
-         weave=True, a_color=PAPER, b_color=KLEIN_LIGHT, background=KLEIN, round_corners=False, uid="", crisp=False):
-    """Return the woven mark as SVG markup (no <svg> wrapper), plus its unit scale."""
+         weave=True, a_color=PAPER, b_color=KLEIN_LIGHT, background=KLEIN, round_corners=False, uid="", crisp=False, draw=None):
+    """Return the woven mark as SVG markup (no <svg> wrapper), plus its unit scale. `draw` ({"a": 0..1, "b": 0..1})
+    draws only that share of each copy's stroke, from its start, for the animated emote."""
     pts = LUAN + LUAN_TURNED
     reach = stroke * (0.5 if round_corners else MITER)
     if fit == "circle":
@@ -91,8 +93,17 @@ def mark(size=256, fit="circle", fill=0.69, stroke=0.24, gap=0.65, b_weight=1.0,
                              f'stroke-width="{widths[over] + 2 * g:.2f}" stroke-linecap="{cap}" stroke-linejoin="{join}" stroke-miterlimit="10"/>')
         defs.append(f'<mask id="{uid}m{under}" maskUnits="userSpaceOnUse" x="0" y="0" width="{size}" height="{size}">'
                     f'<rect width="{size}" height="{size}" fill="#fff"/>{"".join(holes)}</mask>')
+    def dash(name):
+        if draw is None:
+            return ""
+        pts = [to_px(p) for p in (LUAN if name == "a" else LUAN_TURNED)]
+        length = sum(math.dist(p, q) for p, q in zip(pts, pts[1:]))
+        return f' stroke-dasharray="{length * draw[name]:.2f} {length * 2:.2f}"'
+
     for name, color in (("b", b_color), ("a", a_color)):
-        body.append(f'<path d="{paths[name]}" mask="url(#{uid}m{name})"{' shape-rendering="crispEdges"' if crisp else ''} fill="none" stroke="{color}" stroke-width="{widths[name]:.2f}" '
+        if draw is not None and draw[name] <= 0:
+            continue
+        body.append(f'<path d="{paths[name]}"{dash(name)} mask="url(#{uid}m{name})"{' shape-rendering="crispEdges"' if crisp else ''} fill="none" stroke="{color}" stroke-width="{widths[name]:.2f}" '
                     f'stroke-linecap="{cap}" stroke-linejoin="{join}" stroke-miterlimit="10"/>')
     bg = f'<rect width="{size}" height="{size}" fill="{background}"/>' if background else ""
     return f'<defs>{"".join(defs)}</defs>{bg}{"".join(body)}'
@@ -546,8 +557,179 @@ def board():
 
 SMALL = dict(fit="box", fill=0.80, stroke=0.36, gap=0.9)
 
+
+# --- Twitch emotes --------------------------------------------------------------------------------------------------
+# Each one is a Klein badge cut like the camera frame (so it reads on Twitch's dark and light chat alike), with a
+# pictogram or a word in Branco and Klein claro, drawn on a 112-unit square: Twitch shows them at 28, 56 and 112 px,
+# so nothing thinner than ~8 units (2 px at 28). Corners are mitred, like the mark's. The code is muanla + the name.
+E = 112
+E_CUT = 22
+NAVY = "#001447"
+
+
+def emote_badge(inner, background=KLEIN):
+    return svg(f'<path d="{panel_shape(E, E, E_CUT)}" fill="{background}"/>{inner}', E)
+
+
+def emote_word(text, width=84, height=56, color=PAPER, weight=700, cy=E / 2):
+    """A word centred on the badge, as large as fits `width` × `height` (cap height)."""
+    d, w, _, _ = wordmark(text, weight=weight, size=100)
+    cap = 70.0  # Space Grotesk's cap height at size 100
+    k = min(width / w, height / cap)
+    return (f'<path transform="translate({(E - w * k) / 2:.2f} {cy + cap * k / 2:.2f}) scale({k:.4f})" '
+            f'd="{d}" fill="{color}"/>')
+
+
+def line(points, width, color, cap="square"):
+    d = "M" + "L".join(f"{x:.2f} {y:.2f}" for x, y in points)
+    return (f'<path d="{d}" fill="none" stroke="{color}" stroke-width="{width}" stroke-linecap="{cap}" '
+            f'stroke-linejoin="miter" stroke-miterlimit="10"/>')
+
+
+def fan(x, y, h, color, arms="up", outline=NAVY):
+    """One fan of the stand (torcedor.js's shape: a round head over shoulders cut at 45°), feet at (x, y), h tall."""
+    k = h / 36
+    body = f"M{x - 8 * k:.2f} {y:.2f}V{y - 13 * k:.2f}L{x - 5 * k:.2f} {y - 16 * k:.2f}H{x + 5 * k:.2f}L{x + 8 * k:.2f} {y - 13 * k:.2f}V{y:.2f}Z"
+    arm = []
+    if arms in ("up", "left"):
+        arm.append(line([(x - 6 * k, y - 13 * k), (x - 12 * k, y - 27 * k)], 4 * k, color))
+    if arms in ("up", "right"):
+        arm.append(line([(x + 6 * k, y - 13 * k), (x + 12 * k, y - 27 * k)], 4 * k, color))
+    return ("".join(arm) + f'<path d="{body}" fill="{color}" stroke="{outline}" stroke-width="{1.4 * k:.2f}" stroke-linejoin="round"/>'
+            f'<circle cx="{x:.2f}" cy="{y - 22.5 * k:.2f}" r="{5.6 * k:.2f}" fill="{color}" stroke="{outline}" stroke-width="{1.4 * k:.2f}"/>')
+
+
+def emote_logo(draw=None):
+    return emote_badge(mark(size=E, fit="box", fill=0.72, stroke=0.36, gap=0.9, background=None, uid="el", draw=draw))
+
+
+def emote_gol(flash=False):
+    ink, ground = (KLEIN, PAPER) if flash else (PAPER, KLEIN)
+    return emote_badge(emote_word("GOL", width=90, height=42, color=ink), ground)
+
+
+def emote_bug():
+    c = PAPER
+    legs = ""
+    for y in (52, 66, 80):
+        legs += line([(40, y), (26, y + (-10 if y == 52 else 0 if y == 66 else 10))], 8, KLEIN_LIGHT)
+        legs += line([(72, y), (86, y + (-10 if y == 52 else 0 if y == 66 else 10))], 8, KLEIN_LIGHT)
+    antennae = line([(48, 34), (38, 20)], 7, KLEIN_LIGHT) + line([(64, 34), (74, 20)], 7, KLEIN_LIGHT)
+    head = f'<circle cx="56" cy="38" r="11" fill="{c}"/>'
+    body = f'<path d="M38 52Q38 46 44 46H68Q74 46 74 52V78Q74 94 56 96Q38 94 38 78Z" fill="{c}"/>'
+    seam = line([(56, 48), (56, 94)], 5, KLEIN, cap="butt")
+    return emote_badge(legs + antennae + body + head + seam)
+
+
+def emote_pix():
+    coin = (f'<circle cx="56" cy="58" r="38" fill="{KLEIN_LIGHT}"/>'
+            f'<circle cx="56" cy="58" r="30" fill="{PAPER}"/>')
+    return emote_badge(coin + emote_word("R$", width=40, height=30, color=KLEIN, cy=58))
+
+
+def emote_hipotese():
+    # A test tube on the lattice's 45°: drawn upright around its centre, then turned.
+    tube = (f'<path d="M44 14V78A12 12 0 0 0 68 78V14" fill="none" stroke="{PAPER}" stroke-width="9" stroke-linejoin="miter"/>'
+            f'<path d="M48.5 50H63.5V78A7.5 7.5 0 0 1 48.5 78Z" fill="{KLEIN_LIGHT}"/>'
+            f'<circle cx="56" cy="38" r="4" fill="{KLEIN_LIGHT}"/><circle cx="58" cy="26" r="3" fill="{KLEIN_LIGHT}"/>'
+            + line([(36, 14), (76, 14)], 9, PAPER))
+    return emote_badge(f'<g transform="rotate(35 56 56) translate(0 6)">{tube}</g>')
+
+
+def emote_torcida():
+    floor = f'<path d="M14 92H98L104 100H8Z" fill="{KLEIN_LIGHT}"/>'
+    side = fan(30, 92, 50, KLEIN_LIGHT) + fan(82, 92, 50, KLEIN_LIGHT)
+    return emote_badge(f'<g clip-path="url(#tc)">{side}{fan(56, 94, 64, PAPER)}</g>'
+                       f'<defs><clipPath id="tc"><path d="{panel_shape(E, E, E_CUT)}"/></clipPath></defs>')
+
+
+def emote_diamante():
+    crown = f'<path d="M34 30H78L96 50H16Z" fill="{PAPER}"/>'
+    pavilion = f'<path d="M16 50H96L56 96Z" fill="{KLEIN_LIGHT}"/>'
+    facets = (line([(44, 30), (36, 50), (56, 96)], 4, KLEIN, cap="butt") + line([(68, 30), (76, 50), (56, 96)], 4, KLEIN, cap="butt")
+              + line([(16, 50), (96, 50)], 4, KLEIN, cap="butt") + line([(56, 30), (46, 50)], 4, KLEIN, cap="butt") + line([(56, 30), (66, 50)], 4, KLEIN, cap="butt"))
+    spark = f'<path d="M92 12L95 21L104 24L95 27L92 36L89 27L80 24L89 21Z" fill="{PAPER}"/>'
+    return emote_badge(crown + pavilion + facets + spark)
+
+
+def emote_oi():
+    # Waving: the fan's raised hand, with two arcs beside it.
+    k, x, y = 80 / 36, 56, 100
+    hx, hy = x + 12 * k, y - 27 * k
+    hand = f'<circle cx="{hx:.2f}" cy="{hy:.2f}" r="{3.4 * k:.2f}" fill="{PAPER}" stroke="{NAVY}" stroke-width="{1.4 * k:.2f}"/>'
+
+    def arc(r):
+        p0 = (hx + r * math.cos(math.radians(-75)), hy + r * math.sin(math.radians(-75)))
+        p1 = (hx + r * math.cos(math.radians(-5)), hy + r * math.sin(math.radians(-5)))
+        return (f'<path d="M{p0[0]:.2f} {p0[1]:.2f}A{r} {r} 0 0 1 {p1[0]:.2f} {p1[1]:.2f}" fill="none" '
+                f'stroke="{KLEIN_LIGHT}" stroke-width="6" stroke-linecap="square"/>')
+
+    return emote_badge(fan(x, y, 80, PAPER, arms="right") + hand + arc(13) + arc(22))
+
+
+def emote_gg():
+    return emote_badge(emote_word("GG", width=84, height=46))
+
+
+EMOTES = {
+    # Tier 1
+    "Logo": emote_logo, "Gol": emote_gol, "Bug": emote_bug, "Pix": emote_pix, "Hipotese": emote_hipotese,
+    # Tier 2 and 3
+    "Torcida": emote_torcida, "Diamante": emote_diamante,
+    # Followers
+    "Oi": emote_oi, "GG": emote_gg,
+}
+
+
+def gif(frames, out, size):
+    """Frames [(svg path, seconds)] → a transparent GIF at `size` px (resvg for each frame, ffmpeg for the GIF)."""
+    tmp = ROOT / "twitch/emotes/.frames"
+    tmp.mkdir(parents=True, exist_ok=True)
+    listing = []
+    for i, (src, seconds) in enumerate(frames):
+        frame = tmp / f"{i:03d}.png"
+        subprocess.run(["resvg", "-w", str(size), str(src), str(frame)], check=True)
+        listing.append(f"file '{frame}'\nduration {seconds}")
+    listing.append(f"file '{tmp / f'{len(frames) - 1:03d}.png'}'")
+    (tmp / "list.txt").write_text("\n".join(listing) + "\n")
+    subprocess.run([shutil.which("ffmpeg") or "ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(tmp / "list.txt"),
+                    "-filter_complex", "[0:v]split[a][b];[a]palettegen=reserve_transparent=1:stats_mode=full[p];[b][p]paletteuse=alpha_threshold=128:dither=none",
+                    "-loop", "0", str(ROOT / out)], check=True)
+    shutil.rmtree(tmp)
+
+
+def emotes():
+    """brand/twitch/emotes/: each emote as SVG and PNG at 112, 56 and 28 px (and 1024 for Twitch's single upload);
+    the animated ones as GIFs at the same sizes."""
+    folder = "twitch/emotes"
+    for name, draw in EMOTES.items():
+        write(f"{folder}/{name}.svg", draw())
+        for s in (1024, 112, 56, 28):
+            png(f"{folder}/{name}.svg", f"{folder}/{name}-{s}.png", s)
+    # The mark drawing itself: the white copy, then the light one over it, then a long hold.
+    frames = []
+    steps = 18
+    for i in range(1, steps + 1):
+        t = i / steps
+        a = min(1.0, t / 0.6)
+        b = max(0.0, (t - 0.4) / 0.6)
+        path = write(f"{folder}/.anim/logo-{i:02d}.svg", emote_logo(draw={"a": a, "b": b}))
+        frames.append((path, 0.06))
+    frames.append((write(f"{folder}/.anim/logo-full.svg", emote_logo()), 2.4))
+    # The goal flashing, like the stream's crowd when it's ours.
+    gol = [(emote_gol(), 0.5), (emote_gol(flash=True), 0.12), (emote_gol(), 0.12), (emote_gol(flash=True), 0.12),
+           (emote_gol(), 0.12), (emote_gol(flash=True), 0.12), (emote_gol(), 1.2)]
+    gol_frames = [(write(f"{folder}/.anim/gol-{i}.svg", markup), seconds) for i, (markup, seconds) in enumerate(gol)]
+    for s in (112, 56, 28):
+        gif(frames, f"{folder}/Logo-animado-{s}.gif", s)
+        gif(gol_frames, f"{folder}/Gol-animado-{s}.gif", s)
+    shutil.rmtree(ROOT / folder / ".anim")
+
 if __name__ == "__main__":
     os.chdir(ROOT)
+    if sys.argv[1:] == ["emotes"]:
+        emotes()
+        raise SystemExit
     write("logo/mark.svg", svg(mark(background=None), 256))
     write("logo/mark-on-klein.svg", svg(mark(), 256))
     png("logo/mark-on-klein.svg", "logo/avatar-800.png", 800)
@@ -614,4 +796,5 @@ if __name__ == "__main__":
         png("twitch/paineis/pix.svg", "twitch/paineis/pix.png", 640)
 
     site_assets()
+    emotes()
     print("klein light", KLEIN_LIGHT)
