@@ -37,6 +37,7 @@ const MAXIMO = 1_000_000 // R$ 10.000,00
 const POR_IP = 5 // reservations per IP every RESERVA
 const VOZ = /^[a-z0-9]{1,16}$/
 const LOGIN = /^[a-z0-9_]{1,25}$/
+const DONO = "muanlartins" // the channel's own login: its Pix are tests
 const AUDIO = /^audio\/(webm|ogg|mp4|mpeg)(;[\w=.,\s-]*)?$/
 const BASE64 = /^[A-Za-z0-9+/]+=*$/
 const MAX_AUDIO = 360_000 // base64 characters: ~270 KB, far more than 20 s of Opus
@@ -227,10 +228,13 @@ async function encerrar() {
   await apagar("meta", "atual")
 }
 
-/** When the Pix of no goal began: the first since the last goal ended (or the first ever); now, if there's none. */
+/**
+ * When the Pix of no goal began: the first since the last goal ended (or the first ever), leaving out the channel's
+ * own (Luan's tests); now, if there's none.
+ */
 async function semMeta() {
   const fim = (await todos("meta")).filter((m) => m.sk !== "atual").reduce((a, m) => (m.ate > a ? m.ate : a), "")
-  const [primeiro] = await todos("pix", fim ? { desde: fim, limite: 1 } : { limite: 1 })
+  const primeiro = (await todos("pix", fim ? { desde: fim } : {})).find((p) => p.login !== DONO)
   return primeiro ? primeiro.sk.slice(0, 24) : iso(Date.now())
 }
 
@@ -470,8 +474,8 @@ async function acao(p) {
     if (typeof p.pix === "string") await atualizar("pix", p.pix, { transcricao: texto, sujo })
     return out(200, { texto, sujo })
   }
-  // A new goal ends the one before; "ajustar" changes the one on screen and keeps its count. With "avulsos", a new
-  // goal also counts the Pix that came in since the last goal ended (or since the first Pix, if none ever did).
+  // A new goal ends the one before; "ajustar" changes the one on screen and keeps its count. With "avulsos", a goal
+  // (new or adjusted) counts from the first Pix since the last goal ended (or the first ever, if none did).
   if (acao === "meta") {
     const alvo = Number(p.alvo)
     if (!Number.isInteger(alvo) || alvo < 1) {
@@ -479,7 +483,7 @@ async function acao(p) {
       return out(200, { meta: null })
     }
     const titulo = filtrar(linha(p.titulo, 60)).texto
-    if (!(p.ajustar && (await atualizar("meta", "atual", { titulo, alvo })))) {
+    if (!(p.ajustar && (await atualizar("meta", "atual", { titulo, alvo, ...(p.avulsos ? { desde: await semMeta() } : {}) })))) {
       await encerrar()
       await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: "atual", titulo, alvo, desde: p.avulsos ? await semMeta() : iso(Date.now()) } }))
     }

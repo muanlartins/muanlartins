@@ -20,7 +20,7 @@
       - Últimos Pix: repeat an alert; take one off the site's mural.
       - Meta: the goal bar on the overlay, /pix and /mural; it counts from when it's set. A new one (or
         Encerrar) sends the one before to /mural's history; Ajustar changes the one on screen and keeps its count.
-        Ticking "fora de meta", a new one also counts the Pix that came in since the last goal ended.
+        Ticking "fora de meta", a new one (or Ajustar) counts from the first Pix since the last goal ended.
     -->
     <style>
       html,
@@ -299,7 +299,7 @@
         if (!metaAgora) return alert("Não há meta para ajustar.")
         const alvo = $("m-alvo").value ? centavosDe($("m-alvo").value) : metaAgora.alvo
         if (!(alvo >= 1)) return alert("Valor da meta inválido.")
-        agir({ acao: "meta", ajustar: true, titulo: $("m-titulo").value || metaAgora.titulo, alvo })
+        agir({ acao: "meta", ajustar: true, titulo: $("m-titulo").value || metaAgora.titulo, alvo, avulsos: $("m-avulsos").checked })
         $("meta").reset()
       }
       $("m-tirar").onclick = () => metaAgora && confirm("Encerrar a meta? Ela sai da tela e vai para o histórico do mural.") && agir({ acao: "meta", alvo: 0 })
