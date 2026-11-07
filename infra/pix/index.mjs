@@ -227,6 +227,13 @@ async function encerrar() {
   await apagar("meta", "atual")
 }
 
+/** When the Pix of no goal began: the first since the last goal ended (or the first ever); now, if there's none. */
+async function semMeta() {
+  const fim = (await todos("meta")).filter((m) => m.sk !== "atual").reduce((a, m) => (m.ate > a ? m.ate : a), "")
+  const [primeiro] = await todos("pix", fim ? { desde: fim, limite: 1 } : { limite: 1 })
+  return primeiro ? primeiro.sk.slice(0, 24) : iso(Date.now())
+}
+
 // The mural: each goal (the one on screen, then the ones before) with the Pix that came while it was up,
 // and the Pix of no goal. A Pix shows by name only if its sender ticked the mural; with their Twitch
 // login when they signed in, so the page can draw their fan. The rest count, without a name.
@@ -463,7 +470,8 @@ async function acao(p) {
     if (typeof p.pix === "string") await atualizar("pix", p.pix, { transcricao: texto, sujo })
     return out(200, { texto, sujo })
   }
-  // A new goal ends the one before; "ajustar" changes the one on screen and keeps its count.
+  // A new goal ends the one before; "ajustar" changes the one on screen and keeps its count. With "avulsos", a new
+  // goal also counts the Pix that came in since the last goal ended (or since the first Pix, if none ever did).
   if (acao === "meta") {
     const alvo = Number(p.alvo)
     if (!Number.isInteger(alvo) || alvo < 1) {
@@ -473,7 +481,7 @@ async function acao(p) {
     const titulo = filtrar(linha(p.titulo, 60)).texto
     if (!(p.ajustar && (await atualizar("meta", "atual", { titulo, alvo })))) {
       await encerrar()
-      await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: "atual", titulo, alvo, desde: iso(Date.now()) } }))
+      await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: "atual", titulo, alvo, desde: p.avulsos ? await semMeta() : iso(Date.now()) } }))
     }
     return out(200, { meta: await meta() })
   }

@@ -495,7 +495,8 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: [dynamodb:BatchGetItem, dynamodb:UpdateItem]
+                # Scan: GET /audiencia, everyone who has watched, for the mural.
+                Action: [dynamodb:BatchGetItem, dynamodb:UpdateItem, dynamodb:Scan]
                 Resource: !GetAtt Sigmas.Arn
 
   # The code is infra/sigma/index.mjs (its header tells the whole story: GET /sigmas, GET /eu, POST /presenca);

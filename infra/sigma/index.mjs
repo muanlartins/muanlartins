@@ -3,22 +3,26 @@
 // infra/site.yml creates; the code there is the first version, kept only as what answers until CI's deploy.
 //
 // The table, keyed by login: sigma, minutos (watched), lives, sequencia (lives in a row, as of their last one),
-// recorde (their longest run), ultimaLive, minuto (the last one credited), and doado (cents sent by Pix, added
-// by infra/pix). "#canal" keeps the channel's last two lives, which is how a streak knows it wasn't broken.
+// recorde (their longest run), ultimaLive, minuto (the last one credited), primeira (their first live; only
+// viewers who arrived after 2026-11-07 have it, so whoever lacks it was there before) and doado (cents sent by
+// Pix, added by infra/pix). "#canal" keeps the channel's last two lives, which is how a streak knows it wasn't broken.
 //
 // GET /sigmas?logins=a,b is public: each one's Σ, minutes, lives, current streak and record; not what they sent.
+// GET /audiencia is public too: everyone who has watched a live, the same fields plus their first live, for the
+// mural's audience (its milestones and the stand of whoever was there when one was reached).
 // GET /eu with the viewer's Twitch token: their own, with what they sent. POST /presenca comes from the crowd
 // overlay once a minute while the stream is on, with who's in the chat and the key: each gets 1 Σ a minute
 // (once, however many calls), and on their first minute of a live 10 Σ plus 5 for each live in a row before
 // it, up to 50. A live is a day, in Luan's time.
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
-import { BatchGetCommand, DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb"
+import { BatchGetCommand, DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 const T = process.env.TABLE
 const LOGIN = /^[a-z0-9_]{1,25}$/
 const CANAL = "#canal"
+const DONO = "muanlartins" // the channel itself, in its own stand but not its audience
 const out = (statusCode, body) => ({ statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
 const lista = (l) => [...new Set(l.map((x) => String(x).toLowerCase()))].filter((x) => LOGIN.test(x)).slice(0, 100)
 const diaDe = (t) => new Date(t).toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
@@ -35,6 +39,20 @@ function sequenciaAgora(i, canal, hoje) {
   if (i.ultimaLive === canal.ultima) return i.sequencia
   if (canal.ultima === hoje && i.ultimaLive === canal.anterior) return i.sequencia
   return 0
+}
+
+async function audiencia(canal, hoje) {
+  const pessoas = []
+  let ExclusiveStartKey
+  do {
+    const r = await db.send(new ScanCommand({ TableName: T, ExclusiveStartKey }))
+    for (const i of r.Items || []) {
+      if (i.login === CANAL || i.login === DONO || !i.lives) continue
+      pessoas.push({ login: i.login, ...publico(i, canal, hoje), ...(i.primeira ? { primeira: i.primeira } : {}) })
+    }
+    ExclusiveStartKey = r.LastEvaluatedKey
+  } while (ExclusiveStartKey)
+  return pessoas.sort((a, b) => b.minutos - a.minutos || b.lives - a.lives || (a.login < b.login ? -1 : 1))
 }
 
 const publico = (i, canal, hoje) => ({
@@ -88,7 +106,7 @@ async function presenca(event) {
             TableName: T,
             Key: { login },
             ConditionExpression: "attribute_not_exists(minuto) OR minuto < :m",
-            UpdateExpression: "SET minuto = :m, ultimaLive = :h, sequencia = :s, recorde = :r ADD sigma :g, minutos :um, lives :l",
+            UpdateExpression: `SET minuto = :m, ultimaLive = :h, sequencia = :s, recorde = :r${itens[login]?.lives ? "" : ", primeira = if_not_exists(primeira, :h)"} ADD sigma :g, minutos :um, lives :l`,
             ExpressionAttributeValues: {
               ":m": minuto,
               ":h": hoje,
@@ -121,6 +139,10 @@ export async function handler(event) {
     const itens = await ler([...logins, CANAL])
     const canal = itens[CANAL] || {}
     return out(200, Object.fromEntries(logins.filter((l) => itens[l]).map((l) => [l, publico(itens[l], canal, hoje)])))
+  }
+  if (metodo === "GET" && caminho === "/audiencia") {
+    const canal = (await ler([CANAL]))[CANAL] || {}
+    return out(200, { pessoas: await audiencia(canal, hoje) })
   }
   if (metodo === "GET" && caminho === "/eu") {
     const login = await quem(event.headers || {})
