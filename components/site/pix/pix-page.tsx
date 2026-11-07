@@ -12,6 +12,7 @@ import { mural as muralCopy, pix, VOICES } from "@/content/pix"
 import { centavosDe, loadMural, MINIMO, PIX_API, reais, reservationStatus, reserve, type Goal, type Order, type Reservation } from "@/lib/pix"
 import { canSave, keptToken, loadMine, signIn, signOut, SignedOut, type Choice, type Torcedor } from "@/lib/profile"
 import { localize, MURAL_SLUG, PIX_SLUG } from "@/lib/site"
+import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
 
 const text = localize(pix)
@@ -388,7 +389,7 @@ export function PixPage() {
               {token && login ? (
                 <p className="text-ink">
                   {text.sigmaSignedIn} <strong className="font-medium text-klein">{login}</strong>
-                  {Number.isInteger(centavos) && centavos > 0 && (
+                  {Number.isInteger(centavos) && centavos > 0 && login !== CHANNEL && (
                     <>
                       {" · "}
                       {text.sigmaGain} <strong className="font-medium text-klein tabular-nums">{Math.floor(centavos / 10).toLocaleString("pt-BR")} Σ</strong>

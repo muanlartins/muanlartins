@@ -105,7 +105,7 @@ export const channel = {
   },
 
   profile: {
-    title: { pt: "Seu torcedor", en: "Your fan" },
+    title: { pt: "Perfil", en: "Profile" },
     description: {
       pt: "Monte o seu torcedor da arquibancada e veja o seu Σ, a sua sequência de lives e os seus badges.",
       en: "Build your fan for the stand and see your Σ, your run of lives and your badges.",

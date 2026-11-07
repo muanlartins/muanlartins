@@ -53,13 +53,15 @@ function NextCount({ label, value, steps }: { label: string; value: number; step
 }
 
 /** Everyone who had watched by a milestone, as the stream's stand: rows of fans, each on its step, name above. */
-function Stand({ people, T, fans }: { people: Viewer[]; T: Torcedor | null; fans: Record<string, Choice> | null }) {
+function Stand({ people, T, S, fans }: { people: Viewer[]; T: Torcedor | null; S: Sigma | null; fans: Record<string, Choice> | null }) {
   return (
     <ul className="grid grid-cols-[repeat(auto-fill,minmax(104px,1fr))] gap-y-5 px-3 sm:px-6">
       {people.map((p) => (
         <li key={p.login} className="flex min-w-0 flex-col items-center">
-          <span title={p.login} className="mb-2.5 max-w-[100px] truncate bg-navy/80 px-1.5 py-px text-[11px] font-semibold text-paper">
-            {p.login}
+          <span title={p.login} className="mb-2.5 flex max-w-[100px] items-center gap-1 bg-navy/80 px-1.5 py-px text-[11px] font-semibold text-paper">
+            {/* eslint-disable-next-line @next/next/no-img-element -- a static emblem, already sized */}
+            {S && <img src={S.ranque(p.sigma, LOCALE).emblema} alt="" className="h-3.5 w-3.5 shrink-0 object-contain" />}
+            <span className="truncate">{p.login}</span>
           </span>
           <div className="h-[54px] w-9">{T && fans && <FanView T={T} fan={T.normalizar(fans[p.login] ?? null, p.login)} className="h-full w-full" />}</div>
           <span aria-hidden className="h-2 w-full bg-navy/45" />
@@ -126,7 +128,7 @@ export function Audience({ T, S }: { T: Torcedor | null; S: Sigma | null }) {
             <h2 className="text-3xl font-medium tracking-[-0.03em] sm:text-4xl">{text.dedicationTitle}</h2>
             <p className="max-w-[36rem] text-[17px] leading-[1.6] text-paper/90">{text.dedication}</p>
           </div>
-          <Stand people={honored} T={T} fans={fans} />
+          <Stand people={honored} T={T} S={S} fans={fans} />
           <p className="mt-6 max-w-[40rem] px-5 text-[13px] leading-[1.5] text-paper/70 sm:px-8">
             {`${number(honored.length)} ${plural(honored.length, text.people)}. ${text.dedicationSince}`}
           </p>
@@ -141,7 +143,12 @@ export function Audience({ T, S }: { T: Torcedor | null; S: Sigma | null }) {
               <span className={`w-6 shrink-0 text-right text-[15px] font-medium tabular-nums ${i < 3 ? "text-klein" : "text-muted"}`}>{i + 1}</span>
               <FanSpot T={T} fans={fans} login={p.login} name={p.login} size="sm" />
               <div className="min-w-0 flex-1 space-y-1.5">
-                <p className="truncate text-[15px] font-medium text-ink">{p.login}</p>
+                <p className="flex min-w-0 items-center gap-1.5 text-[15px]">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- a static emblem, already sized */}
+                  {S && <img src={S.ranque(p.sigma, LOCALE).emblema} alt="" className="h-5 w-5 shrink-0 object-contain" />}
+                  <span className="truncate font-medium text-ink">{p.login}</span>
+                  {S && <span className="hidden shrink-0 text-[12px] text-muted sm:inline">{S.ranque(p.sigma, LOCALE).nome}</span>}
+                </p>
                 {S && <BadgeChips badges={S.medalhas(p, LOCALE)} streak={p.sequencia} />}
               </div>
               <div className="shrink-0 text-right tabular-nums">
