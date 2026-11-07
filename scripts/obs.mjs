@@ -67,6 +67,17 @@ function next() {
 
 const mask = (text) => text.replace(/#(chave|obs)=[^"\s]*/g, "#$1=…")
 
+// Rocket League's Stats API feeds the "Partidas" dock; a game update can set its rate back to 0 (it did on 11-05).
+const STATS_INI = "/mnt/c/Program Files/Epic Games/rocketleague/TAGame/Config/DefaultStatsAPI.ini"
+function statsApi() {
+  try {
+    const rate = Number(readFileSync(STATS_INI, "utf8").match(/^PacketSendRate=(\d+)/m)?.[1] ?? 0)
+    return rate > 0 ? "" : `⚠ Rocket League's Stats API is off (PacketSendRate=${rate} in DefaultStatsAPI.ini): set it to 10 and restart the game, or the dock won't see matches`
+  } catch {
+    return ""
+  }
+}
+
 function summary() {
   const [stream, record, stats, scene, profiles] = results.map(([, , data]) => data ?? {})
   return [
@@ -75,6 +86,7 @@ function summary() {
     // RLR's studio switches to the Shorts or Vídeo profile to record and back afterwards; a live needs the live's.
     ["Shorts", "Vídeo"].includes(profiles.currentProfileName) ? `⚠ OBS is still on the ${profiles.currentProfileName} profile (the studio's): switch back to the live's before going live` : "",
     `fps ${stats.activeFps?.toFixed(1)} · cpu ${stats.cpuUsage?.toFixed(1)}% · render skipped ${stats.renderSkippedFrames}/${stats.renderTotalFrames} · encode skipped ${stats.outputSkippedFrames}/${stats.outputTotalFrames}`,
+    statsApi(),
     stream.outputActive ? `stream skipped ${stream.outputSkippedFrames}/${stream.outputTotalFrames} · congestion ${stream.outputCongestion?.toFixed(2)}` : "",
   ]
     .filter(Boolean)

@@ -452,7 +452,7 @@ def panel(title, width=640, height=200, below=""):
 
 
 def pix_panel(brcode, width=640):
-    """The Pix panel: panel() with the QR code for `brcode` (the bank's "copia e cola" text) in Klein
+    """The Pix panel: panel() with the QR code for `brcode` (the site's /pix, or the bank's "copia e cola") in Klein
     on a Branco plate cut like the frame, with the four-module quiet zone scanners need."""
     rows = list(segno.make(brcode, error="m", micro=False).matrix)
     plate = width - 2 * 44
@@ -598,11 +598,14 @@ if __name__ == "__main__":
     for date, (rank, tier) in LIVES.items():
         write(f"youtube/thumbnails/live-{date}.svg", live_thumbnail(f"{date[8:]}/{date[5:7]}", rank, tier))
         png(f"youtube/thumbnails/live-{date}.svg", f"youtube/thumbnails/live-{date}.png", 1280)
-    # Twitch panels, under the player. The Pix one carries the bank's QR code, so it is drawn only when
-    # PIX_BRCODE (the "copia e cola" text) is set, and git ignores it: the key stays out of this public repo.
+    # Twitch panels, under the player. "Pix ao vivo" points at the site's /pix (the alert on stream, the voices);
+    # the old one carries the bank's QR code, so it is drawn only when PIX_BRCODE (the "copia e cola" text) is set,
+    # and git ignores it: the key stays out of this public repo.
     for name in ("Roadmap", "YouTube", "Regras"):
         write(f"twitch/paineis/{name.lower()}.svg", panel(name))
         png(f"twitch/paineis/{name.lower()}.svg", f"twitch/paineis/{name.lower()}.png", 640)
+    write("twitch/paineis/pix-ao-vivo.svg", pix_panel("https://muanlartins.com.br/pix"))
+    png("twitch/paineis/pix-ao-vivo.svg", "twitch/paineis/pix-ao-vivo.png", 640)
     if os.environ.get("PIX_BRCODE"):
         write("twitch/paineis/pix.svg", pix_panel(os.environ["PIX_BRCODE"]))
         png("twitch/paineis/pix.svg", "twitch/paineis/pix.png", 640)
