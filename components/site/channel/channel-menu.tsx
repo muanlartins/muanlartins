@@ -6,7 +6,7 @@ import { localize, MURAL_SLUG, PIX_SLUG, profileSlug } from "@/lib/site"
 const LABELS = localize({
   home: { pt: "Início", en: "Home" },
   mural: { pt: "Mural", en: "Mural" },
-  profile: { pt: "Seu torcedor", en: "Your fan" },
+  profile: { pt: "Perfil", en: "Profile" },
 })
 
 /**

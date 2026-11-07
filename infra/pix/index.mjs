@@ -201,7 +201,7 @@ async function reservar(event) {
       },
     }),
   )
-  return out(200, { id, centavos, brcode: brcode(centavos), expira: agora + RESERVA, login, sigma: login ? Math.floor((centavos * SIGMA_POR_REAL) / 100) : 0 })
+  return out(200, { id, centavos, brcode: brcode(centavos), expira: agora + RESERVA, login, sigma: login && login !== DONO ? Math.floor((centavos * SIGMA_POR_REAL) / 100) : 0 })
 }
 
 async function situacao(id) {
@@ -302,7 +302,8 @@ async function registrar(r, origem) {
     exibido: false,
   }
   await db.send(new PutCommand({ TableName: T, Item: item }))
-  if (r.login) {
+  // The channel earns no Σ of its own: its Pix are tests.
+  if (r.login && r.login !== DONO) {
     await db.send(
       new UpdateCommand({
         TableName: process.env.SIGMAS,

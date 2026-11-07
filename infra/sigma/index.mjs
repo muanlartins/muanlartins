@@ -22,7 +22,7 @@ const db = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 const T = process.env.TABLE
 const LOGIN = /^[a-z0-9_]{1,25}$/
 const CANAL = "#canal"
-const DONO = "muanlartins" // the channel itself, in its own stand but not its audience
+const DONO = "muanlartins" // the channel itself: in its own stand, but it neither earns Σ nor shows any
 const out = (statusCode, body) => ({ statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
 const lista = (l) => [...new Set(l.map((x) => String(x).toLowerCase()))].filter((x) => LOGIN.test(x)).slice(0, 100)
 const diaDe = (t) => new Date(t).toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
@@ -79,7 +79,7 @@ async function presenca(event) {
   if (event.isBase64Encoded) corpo = Buffer.from(corpo, "base64").toString()
   let logins
   try {
-    logins = lista(JSON.parse(corpo).logins || [])
+    logins = lista(JSON.parse(corpo).logins || []).filter((l) => l !== DONO)
   } catch {
     return out(400, {})
   }
@@ -134,7 +134,7 @@ export async function handler(event) {
   if (metodo === "OPTIONS") return { statusCode: 204 }
   const hoje = diaDe(Date.now())
   if (metodo === "GET" && caminho === "/sigmas") {
-    const logins = lista((event.queryStringParameters?.logins || "").split(","))
+    const logins = lista((event.queryStringParameters?.logins || "").split(",")).filter((l) => l !== DONO)
     if (!logins.length) return out(200, {})
     const itens = await ler([...logins, CANAL])
     const canal = itens[CANAL] || {}
@@ -148,7 +148,7 @@ export async function handler(event) {
     const login = await quem(event.headers || {})
     if (!login) return out(401, { erro: "Entre com a Twitch de novo." })
     const itens = await ler([login, CANAL])
-    const i = itens[login]
+    const i = login === DONO ? null : itens[login]
     return out(200, { login, stats: i ? { ...publico(i, itens[CANAL] || {}, hoje), doado: i.doado ?? 0 } : null })
   }
   if (metodo === "POST" && caminho === "/presenca") return presenca(event)

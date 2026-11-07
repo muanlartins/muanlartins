@@ -24,6 +24,7 @@ import {
   type Torcedor,
 } from "@/lib/profile"
 import { LOCALE, localize } from "@/lib/site"
+import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
 
 const text = localize(profile)
@@ -303,7 +304,8 @@ export function ProfilePage() {
         )}
       </div>
 
-      {S && canSave && <SigmaPanel S={S} login={token ? login : ""} stats={stats} />}
+      {/* The channel earns no Σ of its own. */}
+      {S && canSave && !(token && login === CHANNEL) && <SigmaPanel S={S} login={token ? login : ""} stats={stats} />}
 
       {T && fan && (
         <div className="grid gap-10 sm:grid-cols-[15rem_1fr]">
