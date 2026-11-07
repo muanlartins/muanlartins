@@ -4,7 +4,7 @@
     scripts/.venv/bin/python scripts/shorts.py --apply    # make them
 
 A take is Videos\\Shorts\\<date> <time> short.mp4, 1080×1920: the play on top, his camera under it; tracks 1 Tudo,
-2 Microfone, 3 Estúdio; one chapter per play, named by the studio ("Match 2 · Goal · 113 km/h"). Each chapter
+2 Microfone (3 Estúdio in takes before 11-07); one chapter per play, named by the studio ("Match 2 · Goal · 113 km/h"). Each chapter
 becomes a short, the same way every time:
 
 - cut from just before he starts talking to just after he stops (silence on the microphone's track);
@@ -21,8 +21,9 @@ becomes a short, the same way every time:
 - encoded for Instagram and YouTube Shorts (H.264, AAC, the index up front) as
   Videos\\Shorts\\prontos\\<date> <time> - <play>.mp4. Over 60 s is said, not cut.
 
-Shorts already made are skipped; the takes stay until Luan has posted them. A take's "(com jogo)" copy (the
-game's sound put back by som_do_jogo.py) is used instead of it when there is one.
+Shorts already made are skipped. Once every short of a take is made, the take goes (and its "(com jogo)" copy, the
+game's sound put back by som_do_jogo.py, which is used instead of it when there is one): Luan wants the kitchen
+kept clean, the shorts in prontos are what's kept.
 """
 
 import argparse
@@ -253,6 +254,18 @@ def main():
         print(f"short  {take.name} {start:.0f}–{end:.0f} s ({title or 'sem capítulo'})  →  prontos\\{out.name}")
         if args.apply:
             make(take, start, end, out, args.gancho, not args.sem_barras)
+    if args.apply:
+        # A take whose shorts are all made has done its job.
+        done = {}
+        for take, _, _, _, out in plan():
+            done[take] = done.get(take, True) and out.exists()
+        for take, made in done.items():
+            if made:
+                original = take.with_name(take.name.replace(" (com jogo)", ""))
+                for file in {take, original}:
+                    if file.exists():
+                        file.unlink()
+                        print(f"apagado  {file.name} (shorts feitos)")
     if not todo:
         print("Nenhum take novo em Videos\\Shorts.")
     elif not args.apply:
