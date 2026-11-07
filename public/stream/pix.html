@@ -153,20 +153,25 @@
       }
       .meta p {
         margin: 0;
+      }
+      /* The title gets its own line (two at most), so a long one isn't cut; the amount goes under the bar. */
+      .meta .titulo {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-size: 19px;
+        font-weight: 500;
+        line-height: 1.25;
+      }
+      .meta .quanto {
         display: flex;
         justify-content: space-between;
         gap: 12px;
-        font-size: 19px;
-        font-weight: 500;
-      }
-      .meta .titulo {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-      .meta .quanto {
-        flex: none;
+        margin-top: 8px;
         color: var(--klein-claro);
+        font-size: 17px;
+        font-weight: 500;
         font-variant-numeric: tabular-nums;
       }
       .barra {
@@ -198,8 +203,9 @@
       <div class="canto">
         <div id="chamada"></div>
         <div class="meta" hidden>
-          <p><span class="titulo"></span><span class="quanto"></span></p>
+          <p class="titulo"></p>
           <div class="barra"><div></div></div>
+          <p class="quanto"><span class="valor"></span><span class="pct"></span></p>
         </div>
       </div>
       <div class="alerta">
@@ -377,7 +383,8 @@
         $(".meta").hidden = !m
         if (!m) return
         $(".meta .titulo").textContent = m.titulo || "Meta"
-        $(".meta .quanto").textContent = `R$ ${reais(m.arrecadado)} / ${reais(m.alvo)}`
+        $(".meta .valor").textContent = `R$ ${reais(m.arrecadado)} de R$ ${reais(m.alvo)}`
+        $(".meta .pct").textContent = `${Math.floor((m.arrecadado / m.alvo) * 100)}%`
         $(".barra div").style.width = `${Math.min(100, (m.arrecadado / m.alvo) * 100)}%`
       }
 
