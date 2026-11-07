@@ -2,19 +2,37 @@
 laid out with the camera and the game, and transicao.webm as the stinger.
 
     python3 brand/twitch/obs.py [stinger path] [alerts URL] > muanlartins.json
+    python3 brand/twitch/obs.py --apply --dry-run    # what --apply would add
+    python3 brand/twitch/obs.py --apply              # adds what's new to Windows' OBS (close OBS first)
 
 The stinger path is where transicao.webm sits on the streaming machine (OBS plays stingers from local
 files only). The alerts URL is the Twitch Alerts Box's browser source (Creator Dashboard → Alerts →
 Copy); it carries a token, so it is passed in rather than kept here, and without it the scenes have no
 alerts. Import with Scene Collection → Import. Devices and the canvas below are Luan's OBS setup.
+
+--apply merges instead of replacing: it adds to the collection OBS already has (and its secrets: the alerts URL,
+the overlays' keys) only what's missing here — sources, scenes, items in existing scenes, transitions, hotkeys
+not yet bound — and never changes or removes anything. It also copies the sound effects (brand/twitch/sons/) next
+to the stinger and adds the "Efeitos" dock. OBS must be closed: it rewrites these files when it exits.
 """
 import json
+import re
+import shutil
+import subprocess
 import sys
+import time
 import uuid
+from pathlib import Path
 
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 SITE = "https://muanlartins.com.br/stream"
-STINGER = sys.argv[1] if len(sys.argv) > 1 else "C:/Users/muanl/Documents/muanlartins-obs/transicao.webm"
-ALERTS = sys.argv[2] if len(sys.argv) > 2 else None
+FOLDER = "C:/Users/muanl/Documents/muanlartins-obs"
+STINGER = ARGS[0] if ARGS else f"{FOLDER}/transicao.webm"
+# With --apply, the alerts are the source OBS already has (its URL stays there): the new scenes just place it.
+FROM_OBS = "(o do OBS)"
+ALERTS = ARGS[1] if len(ARGS) > 1 else FROM_OBS if "--apply" in sys.argv else None
+# The sound effects (public/stream/sons.js, rendered by brand/twitch/sons.mjs), next to the stinger.
+SOUNDS = f"{FOLDER}/sons"
 # Rocket League's window, matched by executable (priority 2) so a title change doesn't lose it.
 ROCKET_LEAGUE = "Rocket League (64-bit, DX11, Cooked):LaunchUnrealUWindowsClient:RocketLeague.exe"
 CAMERA = "Camera (NVIDIA Broadcast):"
@@ -135,6 +153,36 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVE
     source("limiter_filter", "Limitador", {"threshold": -1.0, "release_time": 60}),
 ])
 
+# --- Effects (the "Efeitos" dock, public/stream/efeitos.html) ---------------------------------------------------
+# Hotkeys are OBS's own, so they work with the game focused: the numeric keypad (Num Lock on), which Rocket League
+# doesn't use. Num 1 "Lance ruim", Num 5 "Terapia", Num 0 back to the main game scene; the sounds around them.
+HOTKEYS = {"Lance ruim": "OBS_KEY_NUM1", "Terapia": "OBS_KEY_NUM5", "Jogo + chat": "OBS_KEY_NUM0"}
+
+
+def sound(name, file, key=None, restart=False):
+    """A sound effect as a media source: `key` restarts it (hotkey); `restart` plays it whenever its scene goes live.
+    It plays once when OBS loads it, silently unless its scene is on: so the sounds stay out of the break screens,
+    where OBS usually opens."""
+    return source("ffmpeg_source", name, {"local_file": f"{SOUNDS}/{file}.wav", "is_local_file": True, "looping": False,
+                                          "restart_on_activate": restart, "close_when_inactive": False,
+                                          "clear_on_media_end": True, "hw_decode": False},
+                  volume=0.7, monitoring_type=MONITOR_AND_OUTPUT,
+                  hotkeys={"MediaSource.Restart": [{"key": key}]} if key else {})
+
+
+sounds = [sound(f"Som · {label}", file, key) for label, file, key in (
+    ("Palmas", "palmas", "OBS_KEY_NUM7"), ("Uuuh", "uuuh", "OBS_KEY_NUM8"), ("Buzina", "buzina", "OBS_KEY_NUM9"),
+    ("Suspense", "suspense", "OBS_KEY_NUM4"), ("Tambor", "tambor", "OBS_KEY_NUM6"),
+    ("Ba-dum-tss", "badumtss", "OBS_KEY_NUM2"), ("Boing", "boing", "OBS_KEY_NUM3"))]
+# "Lance ruim": the game's scene with the camera on top, which the dock zooms; the bars and the sting play each time.
+bad_play = browser("Efeito · Lance ruim", "lance.html", restart=True)
+sting = sound("Som · Lance ruim", "lance", restart=True)
+# "Terapia": water, breathing and music made by the page (so on every track, and in Luan's headphones); it starts
+# over each time and stops off screen.
+calm = browser("Tela · Terapia", "terapia.html", restart=True)
+calm["settings"].update(reroute_audio=True, shutdown=True)
+calm.update(monitoring_type=MONITOR_AND_OUTPUT)
+
 # Hole positions match jogo.html and conversa.html.
 scenes = [
     scene("Começando", (starting, {})),
@@ -143,36 +191,51 @@ scenes = [
     scene("Jogo + chat", (game, {"bounds": (1920, 1080)}), (camera, {"pos": (44, 740), "bounds": (480, 270)}),
           (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {})),
     scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
+    scene("Lance ruim", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
+          (camera, {"pos": (44, 740), "bounds": (480, 270)}), (bad_play, {}), (sting, {})),
+    scene("Terapia", (camera, {"pos": (64, 64), "bounds": (560, 315)}), (calm, {}), *alerts_in_talk,
+          (pix, {"pos": (64, 760), "crop": (320, 110, 320, 660)})),
     scene("Já volto", (back, {})),
     scene("Fim", (end, {})),
 ]
 # Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
-HIDDEN = {"Jogo": {"Discord", "Navegador"}, "Jogo + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"}}
+HIDDEN = {"Jogo": {"Discord", "Navegador"}, "Jogo + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"},
+          "Lance ruim": {"Discord", "Navegador"}, "Terapia": {"Discord"}}
+BREAKS = {"Começando", "Já volto", "Fim"}
 for each in scenes:
-    added = [item(app, each["settings"]["id_counter"] + n + 1) for n, app in enumerate(apps)]
+    extra = apps + ([] if each["name"] in BREAKS else sounds)
+    added = [item(app, each["settings"]["id_counter"] + n + 1) for n, app in enumerate(extra)]
     for one in added:
         one["visible"] = one["name"] not in HIDDEN.get(each["name"], set())
     each["settings"]["items"] += added
-    each["settings"]["id_counter"] += len(apps)
+    each["settings"]["id_counter"] += len(extra)
+    if each["name"] in HOTKEYS:
+        each["hotkeys"] = {"OBSBasic.SelectScene": [{"key": HOTKEYS[each["name"]]}]}
 # The game fills the screen keeping its aspect ratio rather than cropping.
-for captured in (scenes[1], scenes[2]):
+for captured in (scenes[1], scenes[2], scenes[4]):
     captured["settings"]["items"][0]["bounds_type"] = BOUNDS_SCALE_INNER
     captured["settings"]["items"][0]["bounds_crop"] = False
 
 # Software decoding: hardware VP9 decoders drop the alpha channel.
 stinger = {"id": "obs_stinger_transition", "name": "muanlartins", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "stinger")),
            "settings": {"path": STINGER, "tp_type": 0, "transition_point": 600, "hw_decode": False}}
+# The effects' own: "Lance ruim" comes in on a cut (its first frame is the game scene's), "Terapia" on a slow fade.
+cut = {"id": "cut_transition", "name": "Corte", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "corte")), "settings": {}}
+fade = {"id": "fade_transition", "name": "Fade", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "fade")), "settings": {}}
+for each, (transition, ms) in ((scenes[4], ("Corte", 0)), (scenes[5], ("Fade", 1500))):
+    each["private_settings"] = {"transition": transition, "transition_duration": ms}
 
 collection = {
     "name": "muanlartins",
     "current_scene": "Começando",
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
-    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, crowd, pix, starting, back, end] + apps + ([alerts] if alerts else []),
+    "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, crowd, pix, starting, back, end,
+                         bad_play, sting, calm] + apps + sounds + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
-    "transitions": [stinger],
+    "transitions": [stinger, cut, fade],
     "current_transition": "muanlartins",
     "transition_duration": 1300,
     "quick_transitions": [],
@@ -184,5 +247,96 @@ collection = {
     "version": 2,
 }
 
-json.dump(collection, sys.stdout, ensure_ascii=False, indent=2)
-print()
+OBS = Path("/mnt/c/Users/muanl/AppData/Roaming/obs-studio")
+LIVE = OBS / "basic/scenes/muanlartins.json"
+DOCK = ("Efeitos", f"{SITE}/efeitos.html")
+
+
+def merge(live, new):
+    """Adds to `live` what `new` has and it lacks; returns what was added, to print."""
+    added = []
+    by_name = {s["name"]: s for s in live["sources"]}
+    for s in new["sources"]:
+        if s["name"] not in by_name:
+            if s["settings"].get("url") == FROM_OBS:
+                raise SystemExit("O OBS não tem a fonte Alertas: rode obs.py com a URL dos alertas para gerar a coleção inteira.")
+            live["sources"].append(s)
+            by_name[s["name"]] = s
+            added.append(f"fonte {s['name']}")
+    uuids = {name: s["uuid"] for name, s in by_name.items()}
+    for s in new["sources"]:
+        if s["id"] != "scene":
+            continue
+        mine = by_name[s["name"]]
+        items = mine["settings"].setdefault("items", [])
+        for it in s["settings"]["items"]:
+            it["source_uuid"] = uuids[it["name"]]
+            if mine is s or any(i["name"] == it["name"] for i in items):
+                continue
+            mine["settings"]["id_counter"] = mine["settings"].get("id_counter", len(items)) + 1
+            items.append({**it, "id": mine["settings"]["id_counter"]})
+            added.append(f"{it['name']} na cena {s['name']}")
+    for s in new["sources"]:
+        for action, binding in (s.get("hotkeys") or {}).items():
+            mine = by_name[s["name"]].setdefault("hotkeys", {})
+            if not mine.get(action):
+                mine[action] = binding
+                added.append(f"atalho {binding[0]['key'].removeprefix('OBS_KEY_')} → {s['name']}")
+        if s["id"] == "scene" and s.get("private_settings", {}).get("transition"):
+            by_name[s["name"]].setdefault("private_settings", {}).setdefault("transition", s["private_settings"]["transition"])
+            by_name[s["name"]]["private_settings"].setdefault("transition_duration", s["private_settings"]["transition_duration"])
+    names = {t["name"] for t in live.get("transitions", [])}
+    for t in new["transitions"]:
+        if t["name"] not in names:
+            live.setdefault("transitions", []).append(t)
+            added.append(f"transição {t['name']}")
+    order = {o["name"] for o in live.get("scene_order", [])}
+    live["scene_order"] += [o for o in new["scene_order"] if o["name"] not in order]
+    return added
+
+
+def add_dock():
+    """The Efeitos dock in OBS's custom browser docks, with the websocket password in its URL (never printed)."""
+    ini = OBS / "user.ini"
+    text = ini.read_text(encoding="utf-8-sig")
+    line = re.search(r"^ExtraBrowserDocks=(.*)$", text, re.M)
+    docks = json.loads(line.group(1)) if line else []
+    if any(d.get("title") == DOCK[0] for d in docks):
+        return False
+    password = json.loads((OBS / "plugin_config/obs-websocket/config.json").read_text())["server_password"]
+    docks.append({"title": DOCK[0], "url": f"{DOCK[1]}#obs={password}", "uuid": str(uuid.uuid4())})
+    value = "ExtraBrowserDocks=" + json.dumps(docks, ensure_ascii=False, separators=(",", ":"))
+    text = text.replace(line.group(0), value) if line else text.replace("[BasicWindow]\n", f"[BasicWindow]\n{value}\n", 1)
+    ini.write_text(text, encoding="utf-8")
+    return True
+
+
+def apply(dry=False):
+    if dry:
+        print("\n".join(merge(json.loads(LIVE.read_text(encoding="utf-8")), collection)) or "nada novo na coleção")
+        print("(nada foi escrito: --dry-run)")
+        return
+    running = subprocess.run(["tasklist.exe", "/FI", "IMAGENAME eq obs64.exe"], capture_output=True, text=True).stdout
+    if "obs64.exe" in running:
+        raise SystemExit("O OBS está aberto: feche e rode de novo (ele reescreve esses arquivos ao sair).")
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    shutil.copy(LIVE, LIVE.with_name(f"{LIVE.name}.antes-{stamp}"))
+    shutil.copy(OBS / "user.ini", OBS / f"user.ini.antes-{stamp}")
+    live = json.loads(LIVE.read_text(encoding="utf-8"))
+    added = merge(live, collection)
+    LIVE.write_text(json.dumps(live, ensure_ascii=False, indent=4), encoding="utf-8")
+    sons = Path("/mnt/c/Users/muanl/Documents/muanlartins-obs/sons")
+    sons.mkdir(parents=True, exist_ok=True)
+    for wav in sorted((Path(__file__).parent / "sons").glob("*.wav")):
+        shutil.copy(wav, sons / wav.name)
+    print("\n".join(added) or "nada novo na coleção")
+    print(f"sons copiados para {sons}")
+    print("dock Efeitos adicionado" if add_dock() else "dock Efeitos já estava lá")
+    print(f"cópias de antes: {LIVE.name}.antes-{stamp}, user.ini.antes-{stamp}")
+
+
+if "--apply" in sys.argv:
+    apply(dry="--dry-run" in sys.argv)
+else:
+    json.dump(collection, sys.stdout, ensure_ascii=False, indent=2)
+    print()
