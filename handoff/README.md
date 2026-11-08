@@ -237,7 +237,7 @@ the mural. The Σ API's code moved to `infra/sigma/` and ships with each push.
 
 - **Σ ("sigmas")**: one cumulative points currency; game ranks are only a per-game display of it (thresholds
   per game). **Nobody ever loses or spends Σ, only gains.** Lifetime total plus **seasons**.
-- Earned by watch time, presence streak (like Duolingo's), Pix, channel points (once Affiliate), studying the
+- Earned by watch time, presence streak (like Duolingo's), Pix, studying the
   roadmap on the site, following and commenting on YouTube.
 - **Rank = permission tier:** high ranks are few and sensible and get more freedom (e.g. a soundboard); misuse
   means a talk or a demotion.
