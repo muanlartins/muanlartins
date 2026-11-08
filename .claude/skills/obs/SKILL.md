@@ -33,7 +33,11 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   (fade in), and the sounds: the browser source "Sons" (`public/stream/tocador.html`) plays them when the dock hears a
   hotkey restart its trigger, a media source "Som · …" with a silent file (media sources play once when OBS loads, so
   real sounds there went off all at once). Hotkeys are on the F-row (Rocket League binds F1 and F10): F2 Lance ruim,
-  F3 Terapia, F4 Jogo + chat, F5 palmas, F6 uuuh, F7 tambor. `obs.py --apply` refuses a key OBS already uses. OBS's own
+  F3 Terapia, F4 back to the game, F5 palmas, F6 uuuh, F7 tambor. F2 and F4 are triggers too ("Gatilho · …", since
+  2026-11-08), so the dock picks the game's scene; Lance ruim is only ever fired by hand.
+- Valorant (2026-11-08): scenes "Valorant", "Valorant + chat" and "Lance ruim · Valorant", Rocket League's with their
+  own capture "Captura · Valorant" (with "Gravar jogo"), "Overlay · Valorant [+ chat]" and "Torcida · Valorant"; the
+  camera at (44, 44), over the minimap. Pix is the same source; pix.html moves its corner by the scene's name. `obs.py --apply` refuses a key OBS already uses. OBS's own
   cut and fade have names in its language ("Cortar", "Esmaecer"); the dock finds them by kind.
   `brand/twitch/obs.py --apply [--dry-run]` adds what's missing to the live collection without touching the rest.
 - Changes made by hand or by websocket should also land in `brand/twitch/obs.py`, which generates the scene
