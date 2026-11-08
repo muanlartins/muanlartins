@@ -3,7 +3,8 @@
     python3 scripts/twitch_agenda.py            # what would change
     python3 scripts/twitch_agenda.py --apply    # change it
 
-Each slot becomes one weekly segment per weekday. Weekly segments that the agenda no longer has are
+Each slot becomes one weekly segment per weekday, with its game's title and category (agenda.json's twitch).
+Weekly segments that the agenda no longer has (that day, time, length and game) are
 removed; one-off segments are left alone. The first run signs in with a code on twitch.tv/activate
 (the site's Twitch app, scope channel:manage:schedule); the token lives outside the repository, in
 %USERPROFILE%\\.config\\muanlartins\\twitch-agenda.json. Never commit or print it.
@@ -77,11 +78,11 @@ def helix(method, path, access, body=None, **query):
 
 
 def wanted():
-    """(ISO weekday, "HH:MM", minutes) for each segment the agenda asks for."""
+    """(ISO weekday, "HH:MM", minutes, game) for each segment the agenda asks for."""
     for slot in AGENDA["slots"]:
         start, end = (datetime.strptime(t, "%H:%M") for t in (slot["start"], slot["end"]))
         for day in slot["days"]:
-            yield day, slot["start"], int((end - start).total_seconds() // 60)
+            yield day, slot["start"], int((end - start).total_seconds() // 60), slot["game"]
 
 
 def main():
@@ -101,12 +102,15 @@ def main():
     def key(segment):
         start = datetime.fromisoformat(segment["start_time"].replace("Z", "+00:00")).astimezone(zone)
         end = datetime.fromisoformat(segment["end_time"].replace("Z", "+00:00")).astimezone(zone)
-        return start.isoweekday(), start.strftime("%H:%M"), int((end - start).total_seconds() // 60)
+        # The game by its category, so a slot that changes game is replaced.
+        category = (segment.get("category") or {}).get("id")
+        game = next((g for g, t in AGENDA["twitch"].items() if t["category"] == category), category)
+        return start.isoweekday(), start.strftime("%H:%M"), int((end - start).total_seconds() // 60), game
 
     have = {key(segment): segment for segment in segments}
     want = set(wanted())
     names = ["", "seg", "ter", "qua", "qui", "sex", "sáb", "dom"]
-    show = lambda k: f"{names[k[0]]} {k[1]} ({k[2]} min)"
+    show = lambda k: f"{names[k[0]]} {k[1]} ({k[2]} min) {k[3]}"
 
     for k in sorted(have.keys() & want):
         print("mantém", show(k))
@@ -119,12 +123,12 @@ def main():
         return
 
     since = max(date.today() + timedelta(days=1), date.fromisoformat(AGENDA["since"]))
-    for day, start, minutes in sorted(want - have.keys()):
+    for day, start, minutes, game in sorted(want - have.keys()):
         first = since + timedelta(days=(day - since.isoweekday()) % 7)
         at = datetime.combine(first, datetime.strptime(start, "%H:%M").time(), zone)
         helix("POST", "schedule/segment", access, broadcaster_id=broadcaster, body={
             "start_time": at.isoformat(), "timezone": AGENDA["timeZone"], "duration": str(minutes),
-            "is_recurring": True, "category_id": AGENDA["twitch"]["category"], "title": AGENDA["twitch"]["title"],
+            "is_recurring": True, "category_id": AGENDA["twitch"][game]["category"], "title": AGENDA["twitch"][game]["title"],
         })
     for k in have.keys() - want:
         helix("DELETE", "schedule/segment", access, broadcaster_id=broadcaster, id=have[k]["id"])

@@ -153,24 +153,31 @@ export const UI = localize({
   completed: { pt: "concluídos", en: "done" },
   /** Above the ranks: what the statuses mean and where they're kept. */
   statusHint: {
-    pt: "Marque cada tópico como Treinando enquanto pratica e Concluído quando já sai natural no jogo. Concluir os tópicos de um rank leva a bola até o próximo. Fica salvo neste navegador.",
-    en: "Mark each topic Practicing while you drill it and Done once it comes naturally in games. Finishing a rank's topics rolls the ball on to the next one. It's saved in this browser.",
+    pt: "Marque cada tópico como Treinando enquanto pratica e Concluído quando já sai natural no jogo. Concluir os tópicos de um rank leva você até o próximo. Fica salvo neste navegador.",
+    en: "Mark each topic Practicing while you drill it and Done once it comes naturally in games. Finishing a rank's topics moves you on to the next one. It's saved in this browser.",
   },
   rankUp: { pt: "Subiu para", en: "Ranked up to" },
   clearProgress: { pt: "Apagar progresso", en: "Clear progress" },
   confirmClear: { pt: "Apagar tudo? Clique de novo", en: "Clear everything? Click again" },
   roadmapDone: { pt: "Roteiro concluído!", en: "Roadmap complete!" },
   video: { pt: "Vídeo", en: "Video" },
-  /** Under a roadmap of a game made by others. */
-  credits: {
-    pt: "Rocket League e os emblemas de rank são da Psyonix/Epic Games; este site não é oficial nem afiliado. Modelos 3D do Octane e da bola por Jako (CC BY 4.0).",
-    en: "Rocket League and its rank emblems belong to Psyonix/Epic Games; this site is unofficial and not affiliated. Octane and ball 3D models by Jako (CC BY 4.0).",
-  },
   /** Shown when a page's videos and texts are in the other language. */
   otherLanguage: {
     pt: "Os vídeos e textos daqui estão em inglês. Para legendas em português, ative as legendas (CC) e escolha Configurações → Legendas → Traduzir automaticamente → Português.",
     en: "The videos and texts here are in Brazilian Portuguese. For English subtitles, turn on captions (CC), then pick Settings → Subtitles → Auto-translate → English.",
   },
+  /** On the newest fundamentals of a game that redid them, before links to the older ones. */
+  olderEditions: { pt: "Edições anteriores:", en: "Earlier editions:" },
+  /** On an older edition, before the link to the newest. */
+  replacedBy: { pt: "Esta edição foi refeita. A atual:", en: "This edition was redone. The current one:" },
+  edition: { pt: "edição", en: "edition" },
+  /** A roadmap with no topics yet, above its ranks. */
+  noTopics: {
+    pt: "Ainda não há tópicos. Os primeiros chegam com as lives, um conceito de cada vez, organizados pelo rank em que começam a fazer diferença.",
+    en: "No topics yet. The first ones come with the streams, one concept at a time, sorted by the rank where they start to matter.",
+  },
+  /** Under a topic's text: where its tips came from. */
+  sources: { pt: "Onde aprendi", en: "Where I learned it" },
   previous: { pt: "Anterior", en: "Previous" },
   next: { pt: "Próximo", en: "Next" },
 })

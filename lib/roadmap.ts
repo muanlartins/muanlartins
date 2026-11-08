@@ -25,6 +25,14 @@ export interface Rank {
   summary?: L10n
 }
 
+/** Where a tip came from: a video, a guide, a pro's stream. "Como estou aprendendo" credits each one. */
+export interface Source {
+  title: string
+  /** Who made it: a channel, a site, a player. */
+  author?: string
+  href: string
+}
+
 export interface Topic {
   /** The topic's URL and its saved progress. Rename the title freely; never the id. */
   id: string
@@ -35,6 +43,8 @@ export interface Topic {
   video?: string
   /** The written version under the video, in the roadmap's language. A blank line starts a new paragraph. */
   text?: string
+  /** The best sources found for it, credited under the text. */
+  sources?: Source[]
 }
 
 /** One idea, taught a level deeper at each rank: boost, rotation, recovery… */
@@ -52,8 +62,15 @@ export interface Pillar {
 }
 
 export interface Roadmap {
-  /** Its game's id (lib/game.ts), which holds it at /conteudo/<id>/fundamentals. */
+  /** Where the visitor's progress is saved (lib/progress.ts). Never change it: a new edition takes a new one. */
   id: string
+  /** Its game's id (lib/game.ts), which holds it at /conteudo/<game>/fundamentals. */
+  game: string
+  /**
+   * Its edition, from 1. A game can redo its fundamentals: the newest edition is at /fundamentals, the older
+   * ones at /fundamentals/v<edition>, and every edition's topics stay at /conteudo/<game>/<topic>.
+   */
+  edition?: number
   title: L10n
   /** The paragraph under the title; also the summary on the content page. */
   description: L10n
@@ -116,7 +133,15 @@ export function findTopic(roadmap: Roadmap, id: string) {
   }
 }
 
-/** A roadmap lives in its game (lib/game.ts): the roadmap at /conteudo/<id>/fundamentals, each topic at /conteudo/<id>/<topic>. */
-export function roadmapPath(roadmap: Roadmap, topic?: Topic) {
-  return `${sectionPath("content")}/${roadmap.id}/${topic ? topic.id : "fundamentals"}`
+/** The URL of an edition other than the newest: /fundamentals/v1. */
+export const editionSlug = (roadmap: Roadmap) => `v${roadmap.edition ?? 1}`
+
+/**
+ * A roadmap lives in its game (lib/game.ts): the newest edition at /conteudo/<game>/fundamentals, an older one at
+ * /fundamentals/v<edition> (`latest` false), each topic at /conteudo/<game>/<topic> whatever its edition.
+ */
+export function roadmapPath(roadmap: Roadmap, topic?: Topic, latest = true) {
+  const game = `${sectionPath("content")}/${roadmap.game}`
+  if (topic) return `${game}/${topic.id}`
+  return `${game}/fundamentals${latest ? "" : `/${editionSlug(roadmap)}`}`
 }

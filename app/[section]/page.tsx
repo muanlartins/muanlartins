@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation"
 import { ChannelHome } from "@/components/site/channel/channel-home"
 import { ChannelMenu } from "@/components/site/channel/channel-menu"
+import { GameList } from "@/components/site/game/game-list"
 import { MuralPage } from "@/components/site/pix/mural-page"
 import { PixPage } from "@/components/site/pix/pix-page"
 import { PrivacyPage } from "@/components/site/privacy-page"
 import { ProfilePage } from "@/components/site/profile/profile-page"
-import { ProjectList } from "@/components/site/project-list"
 import { TimelinePage } from "@/components/site/timeline-page"
 import { channel } from "@/content/channel"
 import { mural, pix } from "@/content/pix"
@@ -86,7 +86,7 @@ export default async function SectionPage({ params }: PageProps<"/[section]">) {
   if (slug === MURAL_SLUG) return <OfChannel page={<MuralPage />} />
   const section = sectionFromSlug(slug)
   if (section === "professional") return <TimelinePage content={professional} />
-  if (section === "content") return <ProjectList page={content.page} projects={content.projects} />
+  if (section === "content") return <GameList page={content.page} games={content.games} />
   if (section === "channel") return <OfChannel page={<ChannelHome lives={lives()} />} />
   notFound()
 }
