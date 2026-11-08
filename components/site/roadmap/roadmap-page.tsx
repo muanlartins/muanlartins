@@ -1,7 +1,6 @@
 import { ArrowUpRight, Clock, History, Play } from "lucide-react"
 import { LanguageNotice } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
-import { Ladder } from "@/components/site/game/ladder"
 import { ClearProgress } from "@/components/site/roadmap/clear-progress"
 import { RoadmapTimeline } from "@/components/site/roadmap/roadmap-timeline"
 import { TopicStatus } from "@/components/site/roadmap/topic-status"
@@ -12,7 +11,8 @@ import { UI, localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 /**
- * A game's fundamentals: the introduction, then the ranks with their topics (with none yet, the ranks' ladder). A
+ * A game's fundamentals, the same page for every game: the introduction, then the ranks on the rail with their
+ * topics (with none yet, a note above them, every rank "coming soon"), the game's marker rolling down it. A
  * game that redid them shows its other editions under the introduction: the newest links the older ones, an older
  * one links the newest.
  */
@@ -62,33 +62,30 @@ export function RoadmapPage({ game, roadmap }: { game: Game; roadmap: Roadmap })
         </div>
       )}
 
-      {empty ? (
-        <section className="mt-16 space-y-8">
-          <p className="max-w-[38rem] text-[16px] leading-[1.7] text-ink">{UI.noTopics}</p>
-          <Ladder ranks={roadmap.ranks} current={game.rank} />
-        </section>
-      ) : (
-        <section className="mt-16">
+      <section className="mt-16">
+        {empty ? (
+          <p className="max-w-[38rem] rounded-md border border-dashed border-zinc-300 px-5 py-4 text-[15px] leading-[1.6] text-ink">{UI.noTopics}</p>
+        ) : (
           <div className="flex flex-wrap items-start justify-between gap-4">
             <p className="max-w-[38rem] text-[14px] leading-[1.6] text-muted">{UI.statusHint}</p>
             <ClearProgress roadmap={roadmap.id} />
           </div>
-          <RoadmapTimeline
-            roadmap={roadmap.id}
-            look={game.id}
-            ranks={ranksOf(roadmap).map(({ rank, entries }) => ({
-              id: rank.id,
-              name: localize(rank.name),
-              color: rank.color,
-              icons: rank.icons,
-              paint: rank.paint,
-              summary: rank.summary && localize(rank.summary),
-              topics: entries.map((entry) => entry.topic.id),
-              content: <RankTopics roadmap={roadmap} entries={entries} />,
-            }))}
-          />
-        </section>
-      )}
+        )}
+        <RoadmapTimeline
+          roadmap={roadmap.id}
+          look={game.id}
+          ranks={ranksOf(roadmap).map(({ rank, entries }) => ({
+            id: rank.id,
+            name: localize(rank.name),
+            color: rank.color,
+            icons: rank.icons,
+            paint: rank.paint,
+            summary: rank.summary && localize(rank.summary),
+            topics: entries.map((entry) => entry.topic.id),
+            content: <RankTopics roadmap={roadmap} entries={entries} />,
+          }))}
+        />
+      </section>
 
       <p className="mt-16 text-[12px] leading-[1.6] text-muted">{localize(game.credits)}</p>
     </>
