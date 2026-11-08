@@ -339,7 +339,7 @@ def apply(dry=False):
         print("\n".join(merge(json.loads(LIVE.read_text(encoding="utf-8")), collection)) or "nada novo na coleção")
         print("(nada foi escrito: --dry-run)")
         return
-    running = subprocess.run(["tasklist.exe", "/FI", "IMAGENAME eq obs64.exe"], capture_output=True, text=True).stdout
+    running = subprocess.run(["tasklist.exe", "/FI", "IMAGENAME eq obs64.exe"], capture_output=True, encoding="cp850").stdout
     if "obs64.exe" in running:
         raise SystemExit("O OBS está aberto: feche e rode de novo (ele reescreve esses arquivos ao sair).")
     stamp = time.strftime("%Y%m%d-%H%M%S")
