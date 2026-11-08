@@ -681,6 +681,68 @@ EMOTES = {
 }
 
 
+
+# --- Twitch sub badges ----------------------------------------------------------------------------------------------
+# The emotes' badge on a 72-unit square (Twitch shows them at 18, 36 and 72 px, so a stroke is never under 8 units,
+# 2 px at 18). The first year counts in stripes on the lattice's 45°, parallel to the frame's cuts: one, two and
+# three in Klein claro for 1, 2 and 3 months, brightening to Branco by 9. A year is the mark, in its thick favicon
+# drawing (the woven one blurs at 18 px): on Klein at 12, framed in Klein claro at 18, and turned over, Branco with
+# a Klein frame (so it holds on Twitch's light chat too), at 24.
+SB = 72
+SB_CUT = 14
+
+
+def sub_badge(inner, background=KLEIN, frame=None, uid="sb"):
+    shape = panel_shape(SB, SB, SB_CUT)
+    edge = f'<path d="{shape}" fill="none" stroke="{frame}" stroke-width="8" clip-path="url(#{uid})"/>' if frame else ""
+    return svg(f'<defs><clipPath id="{uid}"><path d="{shape}"/></clipPath></defs><path d="{shape}" fill="{background}"/>'
+               f'<g clip-path="url(#{uid})">{inner}</g>{edge}', SB)
+
+
+def sub_stripes(*colors):
+    """Stripes across the badge, centred on its diagonal, from bottom left to top right."""
+    out = ""
+    for i, color in enumerate(colors):
+        s = SB + (i - (len(colors) - 1) / 2) * 17  # the stripe's line is x + y = s
+        out += f'<path d="M{s - 80} 80L{s + 8} -8" stroke="{color}" stroke-width="9" fill="none"/>'
+    return sub_badge(out)
+
+
+def sub_year(background=KLEIN, ink=(PAPER, KLEIN_LIGHT), frame=None):
+    m = mark(size=SB, fit="box", fill=0.74, stroke=0.42, weave=False, background=None, a_color=ink[0], b_color=ink[1], uid="sy")
+    return sub_badge(m, background, frame)
+
+
+SUB_BADGES = {  # months → badge
+    1: lambda: sub_stripes(KLEIN_LIGHT),
+    2: lambda: sub_stripes(KLEIN_LIGHT, KLEIN_LIGHT),
+    3: lambda: sub_stripes(KLEIN_LIGHT, KLEIN_LIGHT, KLEIN_LIGHT),
+    6: lambda: sub_stripes(KLEIN_LIGHT, PAPER, KLEIN_LIGHT),
+    9: lambda: sub_stripes(PAPER, PAPER, PAPER),
+    12: lambda: sub_year(),
+    18: lambda: sub_year(frame=KLEIN_LIGHT),
+    24: lambda: sub_year(PAPER, (KLEIN, KLEIN_LIGHT), frame=KLEIN),
+}
+
+
+def sub_badges():
+    """brand/twitch/selos/: each sub badge as SVG and PNG at 72, 36 and 18 px, named by its months, and a sheet of
+    them on Twitch's dark and light chat."""
+    folder = "twitch/selos"
+    for months, draw in SUB_BADGES.items():
+        write(f"{folder}/{months:02d}-meses.svg", draw())
+        for s in (72, 36, 18):
+            png(f"{folder}/{months:02d}-meses.svg", f"{folder}/{months:02d}-meses-{s}.png", s)
+    cells = []
+    for row, ground in enumerate(("#18181B", "#FFFFFF")):
+        cells.append(f'<rect y="{row * 112}" width="{len(SUB_BADGES) * 150 + 16}" height="112" fill="{ground}"/>')
+        for i, draw in enumerate(SUB_BADGES.values()):
+            inner = draw().split(">", 1)[1].rsplit("</svg>", 1)[0].replace('id="sb"', f'id="sb{row}{i}"').replace("#sb)", f"#sb{row}{i})")
+            for size, dx in ((72, 0), (36, 84), (18, 128)):
+                cells.append(f'<svg x="{16 + i * 150 + dx}" y="{row * 112 + 20}" width="{size}" height="{size}" viewBox="0 0 {SB} {SB}">{inner}</svg>')
+    write(f"{folder}/folha.svg", svg("".join(cells), len(SUB_BADGES) * 150 + 16, 224))
+    png(f"{folder}/folha.svg", f"{folder}/folha.png", (len(SUB_BADGES) * 150 + 16) * 2)
+
 def gif(frames, out, size):
     """Frames [(svg path, seconds)] → a transparent GIF at `size` px (resvg for each frame, ffmpeg for the GIF)."""
     tmp = ROOT / "twitch/emotes/.frames"
@@ -729,6 +791,9 @@ if __name__ == "__main__":
     os.chdir(ROOT)
     if sys.argv[1:] == ["emotes"]:
         emotes()
+        raise SystemExit
+    if sys.argv[1:] == ["selos"]:
+        sub_badges()
         raise SystemExit
     write("logo/mark.svg", svg(mark(background=None), 256))
     write("logo/mark-on-klein.svg", svg(mark(), 256))
@@ -797,4 +862,5 @@ if __name__ == "__main__":
 
     site_assets()
     emotes()
+    sub_badges()
     print("klein light", KLEIN_LIGHT)
