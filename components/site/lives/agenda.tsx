@@ -4,11 +4,10 @@ import { CalendarPlus } from "lucide-react"
 import { useSyncExternalStore } from "react"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
-import { AGENDA, clock, nextLive, WEEKDAYS } from "@/lib/agenda"
-import { HTML_LANG, LOCALE, localize } from "@/lib/site"
+import { AGENDA, clock, nextLive, whenOf, WEEKDAYS } from "@/lib/agenda"
+import { localize } from "@/lib/site"
 
 const T = localize(channel.lives.agenda)
-const LANG = HTML_LANG[LOCALE]
 
 const gameOf = (id: string) => games.find((game) => game.id === id)
 
@@ -30,7 +29,7 @@ export function Agenda() {
   const weekend = !AGENDA.slots.some((slot) => slot.days.some((day) => day >= 6))
 
   return (
-    <section>
+    <section id="agenda" className="scroll-mt-24">
       <h2 className="text-2xl font-medium tracking-[-0.02em] text-klein">{T.title}</h2>
       <ol className="mt-5 grid grid-cols-7 gap-1.5">
         {WEEKDAYS.map((name, index) => {
@@ -74,29 +73,16 @@ function Next({ now }: { now: Date }) {
   const live = nextLive(now)
   if (!live) return null
 
-  const zone = AGENDA.timeZone
-  const day = (date: Date, timeZone?: string) => new Intl.DateTimeFormat("en-CA", { timeZone }).format(date)
-  const time = (date: Date, timeZone?: string) => clock(new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit" }).format(date))
-
-  let when: string
-  if (live.start <= now) when = T.now
-  else {
-    const ahead = Math.round((+new Date(day(live.start, zone)) - +new Date(day(now, zone))) / 86_400_000)
-    const name = ahead === 0 ? T.today : ahead === 1 ? T.tomorrow : new Intl.DateTimeFormat(LANG, { weekday: "long", timeZone: zone }).format(live.start)
-    when = `${name}, ${time(live.start, zone)}`
-  }
-
-  const local = Intl.DateTimeFormat().resolvedOptions().timeZone
-  const differs = time(live.start) !== time(live.start, zone)
+  const { when, local } = whenOf(live, now)
 
   return (
     <p className="mt-4 text-[15px]">
       <span className="font-medium text-klein">{T.next}:</span> {when}
       {gameOf(live.game) && ` · ${localize(gameOf(live.game)!.title)}`}
-      {differs && (
+      {local && (
         <span className="text-muted">
           {" "}
-          · {T.yours} ({local.split("/").pop()?.replaceAll("_", " ")}): {time(live.start)}–{time(live.end)}
+          · {T.yours} ({local})
         </span>
       )}
     </p>

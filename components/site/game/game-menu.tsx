@@ -1,9 +1,10 @@
 "use client"
 
-import { ArrowUpRight } from "lucide-react"
+import { ArrowUpRight, Clapperboard, Heart, House, QrCode, Route, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
 import { motion } from "motion/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { Ball } from "@/components/site/game/game-icon"
 import { Crosshair } from "@/components/site/game/crosshair"
 import { cn } from "@/lib/utils"
 
@@ -12,7 +13,21 @@ export interface MenuItem {
   href: string
   /** Lives elsewhere: another app or YouTube. */
   away?: boolean
+  /** Its icon, by name (the menu is drawn in the browser, so it gets a name, not the icon). */
+  icon?: keyof typeof ICONS
 }
+
+/** The menus' icons. */
+const ICONS = {
+  home: House,
+  fundamentals: Route,
+  ranked: Trophy,
+  lives: Clapperboard,
+  pix: QrCode,
+  mural: Heart,
+  profile: UserRound,
+  backstage: Wrench,
+} satisfies Record<string, LucideIcon>
 
 /** Another game to switch to, with its own pages' addresses. */
 export interface OtherGame {
@@ -92,7 +107,7 @@ export function GameMenu({
                   <MenuLink
                     item={item}
                     className={cn(
-                      "flex items-center gap-1.5 py-1.5 pl-5 text-[15px] transition-colors",
+                      "flex items-center gap-2 py-1.5 pl-5 text-[15px] transition-colors",
                       current ? "font-medium text-klein" : "text-muted hover:text-ink",
                     )}
                   />
@@ -119,7 +134,7 @@ export function GameMenu({
             key={item.href}
             item={item}
             className={cn(
-              "flex items-center gap-1 rounded-md border px-3 py-1.5 text-[14px] transition-colors",
+              "flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[14px] transition-colors",
               item === active ? "border-klein bg-klein text-paper" : "border-line text-ink hover:border-klein",
             )}
           />
@@ -130,6 +145,8 @@ export function GameMenu({
 }
 
 function MenuLink({ item, className }: { item: MenuItem; className: string }) {
+  const Icon = item.icon && ICONS[item.icon]
+  const icon = Icon && <Icon aria-hidden className="h-4 w-4 shrink-0 opacity-75" />
   if (item.away) {
     return (
       <a href={item.href} className={className} {...(item.href.startsWith("http") && { target: "_blank", rel: "noreferrer" })}>
@@ -140,17 +157,9 @@ function MenuLink({ item, className }: { item: MenuItem; className: string }) {
   }
   return (
     <Link href={item.href} className={className}>
+      {icon}
       {item.label}
     </Link>
   )
 }
 
-/** A tiny ball: Klein, with the panel seams of the real one. */
-function Ball() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className="block">
-      <circle cx="6" cy="6" r="5.25" className="fill-paper stroke-klein" strokeWidth="1.5" />
-      <path d="M6 3.2 8.4 4.9 7.5 7.7H4.5L3.6 4.9Z" className="fill-klein" />
-    </svg>
-  )
-}
