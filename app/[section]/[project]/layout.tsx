@@ -1,4 +1,5 @@
 import { ChannelMenu } from "@/components/site/channel/channel-menu"
+import { AgentBackdrop } from "@/components/site/game/agent-backdrop"
 import { GameMenu } from "@/components/site/game/game-menu"
 import { games } from "@/content/projects"
 import { gamePath, type Game } from "@/lib/game"
@@ -38,6 +39,7 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
 
   return (
     <div className="relative">
+      {game.id === "valorant" && <AgentBackdrop />}
       <GameMenu title={localize(game.title)} home={gamePath(game)} items={items} look={game.id} games={others} />
       {children}
     </div>

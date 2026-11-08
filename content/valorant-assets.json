@@ -1,0 +1,321 @@
+{
+  "agents": [
+    {
+      "name": "Astra",
+      "id": "astra",
+      "portrait": true,
+      "role": "Controller"
+    },
+    {
+      "name": "Breach",
+      "id": "breach",
+      "portrait": true,
+      "role": "Initiator"
+    },
+    {
+      "name": "Brimstone",
+      "id": "brimstone",
+      "portrait": true,
+      "role": "Controller"
+    },
+    {
+      "name": "Chamber",
+      "id": "chamber",
+      "portrait": true,
+      "role": "Sentinel"
+    },
+    {
+      "name": "Clove",
+      "id": "clove",
+      "portrait": true,
+      "role": "Controller"
+    },
+    {
+      "name": "Cypher",
+      "id": "cypher",
+      "portrait": true,
+      "role": "Sentinel"
+    },
+    {
+      "name": "Deadlock",
+      "id": "deadlock",
+      "portrait": true,
+      "role": "Sentinel"
+    },
+    {
+      "name": "Fade",
+      "id": "fade",
+      "portrait": true,
+      "role": "Initiator"
+    },
+    {
+      "name": "Gekko",
+      "id": "gekko",
+      "portrait": true,
+      "role": "Initiator"
+    },
+    {
+      "name": "Harbor",
+      "id": "harbor",
+      "portrait": true,
+      "role": "Controller"
+    },
+    {
+      "name": "Hush",
+      "id": "hush",
+      "portrait": true,
+      "role": "Duelist"
+    },
+    {
+      "name": "Iso",
+      "id": "iso",
+      "portrait": true,
+      "role": "Duelist"
+    },
+    {
+      "name": "Jett",
+      "id": "jett",
+      "portrait": true,
+      "role": "Duelist"
+    },
+    {
+      "name": "KAY/O",
+      "id": "kayo",
+      "portrait": true,
+      "role": "Initiator"
+    },
+    {
+      "name": "Killjoy",
+      "id": "killjoy",
+      "portrait": true,
+      "role": "Sentinel"
+    },
+    {
+      "name": "Miks",
+      "id": "miks",
+      "portrait": true,
+      "role": "Controller"
+    },
+    {
+      "name": "Neon",
+      "id": "neon",
+      "portrait": true,
+      "role": "Duelist"
+    },
+    {
+      "name": "Omen",
+      "id": "omen",
+      "portrait": true,
+      "role": "Controller"
+    },
+    {
+      "name": "Phoenix",
+      "id": "phoenix",
+      "portrait": true,
+      "role": "Duelist"
+    },
+    {
+      "name": "Raze",
+      "id": "raze",
+      "portrait": true,
+      "role": "Duelist"
+    },
+    {
+      "name": "Reyna",
+      "id": "reyna",
+      "portrait": true,
+      "role": "Duelist"
+    },
+    {
+      "name": "Sage",
+      "id": "sage",
+      "portrait": true,
+      "role": "Sentinel"
+    },
+    {
+      "name": "Skye",
+      "id": "skye",
+      "portrait": true,
+      "role": "Initiator"
+    },
+    {
+      "name": "Sova",
+      "id": "sova",
+      "portrait": true,
+      "role": "Initiator"
+    },
+    {
+      "name": "Tejo",
+      "id": "tejo",
+      "portrait": true,
+      "role": "Initiator"
+    },
+    {
+      "name": "Veto",
+      "id": "veto",
+      "portrait": true,
+      "role": "Sentinel"
+    },
+    {
+      "name": "Viper",
+      "id": "viper",
+      "portrait": true,
+      "role": "Controller"
+    },
+    {
+      "name": "Vyse",
+      "id": "vyse",
+      "portrait": true,
+      "role": "Sentinel"
+    },
+    {
+      "name": "Waylay",
+      "id": "waylay",
+      "portrait": true,
+      "role": "Duelist"
+    },
+    {
+      "name": "Yoru",
+      "id": "yoru",
+      "portrait": true,
+      "role": "Duelist"
+    }
+  ],
+  "maps": [
+    {
+      "name": "Abyss",
+      "id": "abyss",
+      "code": "Infinity"
+    },
+    {
+      "name": "Ascent",
+      "id": "ascent",
+      "code": "Ascent"
+    },
+    {
+      "name": "Basic Training",
+      "id": "basictraining",
+      "code": "NPEV2"
+    },
+    {
+      "name": "Bind",
+      "id": "bind",
+      "code": "Duality"
+    },
+    {
+      "name": "Breeze",
+      "id": "breeze",
+      "code": "Foxtrot"
+    },
+    {
+      "name": "Corrode",
+      "id": "corrode",
+      "code": "Rook"
+    },
+    {
+      "name": "District",
+      "id": "district",
+      "code": "HURM_Alley"
+    },
+    {
+      "name": "Drift",
+      "id": "drift",
+      "code": "HURM_Helix"
+    },
+    {
+      "name": "Fracture",
+      "id": "fracture",
+      "code": "Canyon"
+    },
+    {
+      "name": "Gauntlet",
+      "id": "gauntlet",
+      "code": "AbilityDraft"
+    },
+    {
+      "name": "Glitch",
+      "id": "glitch",
+      "code": "HURM_HighTide"
+    },
+    {
+      "name": "Haven",
+      "id": "haven",
+      "code": "Triad"
+    },
+    {
+      "name": "Icebox",
+      "id": "icebox",
+      "code": "Port"
+    },
+    {
+      "name": "Kasbah",
+      "id": "kasbah",
+      "code": "HURM_Bowl"
+    },
+    {
+      "name": "Lotus",
+      "id": "lotus",
+      "code": "Jam"
+    },
+    {
+      "name": "Pearl",
+      "id": "pearl",
+      "code": "Pitt"
+    },
+    {
+      "name": "Piazza",
+      "id": "piazza",
+      "code": "HURM_Yard"
+    },
+    {
+      "name": "Skirmish A",
+      "id": "skirmisha",
+      "code": "Skirmish_A"
+    },
+    {
+      "name": "Skirmish B",
+      "id": "skirmishb",
+      "code": "Skirmish_B"
+    },
+    {
+      "name": "Skirmish C",
+      "id": "skirmishc",
+      "code": "Skirmish_C"
+    },
+    {
+      "name": "Skirmish D",
+      "id": "skirmishd",
+      "code": "Skirmish_D"
+    },
+    {
+      "name": "Skirmish E",
+      "id": "skirmishe",
+      "code": "Skirmish_E"
+    },
+    {
+      "name": "Split",
+      "id": "split",
+      "code": "Bonsai"
+    },
+    {
+      "name": "Summit",
+      "id": "summit",
+      "code": "Plummet"
+    },
+    {
+      "name": "Sunset",
+      "id": "sunset",
+      "code": "Juliett"
+    },
+    {
+      "name": "The Range",
+      "id": "therange",
+      "code": "Range"
+    },
+    {
+      "name": "The Range",
+      "id": "therange",
+      "code": "RangeV2"
+    }
+  ]
+}

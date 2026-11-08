@@ -20,6 +20,9 @@
   --color-klein-claro: #85a7ff;
   --color-paper: #f4f5f7;
   --color-navy: #001447;
+  /* Wins and losses (brand/README.md): the same lightness and chroma in OKLCH, both 5:1+ under white text. */
+  --color-win: #007645;
+  --color-loss: #b53031;
 
   --color-ground: var(--ground);
   --color-ink: var(--color-navy);
@@ -108,6 +111,14 @@
 }
 
 /* A rank's name in its metal (--rank): shaded, with a bright band that only shows while the gradient slides past. */
+/* Valorant's agent coming in behind its pages (agent-backdrop.tsx). */
+@keyframes agent-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4vmin);
+  }
+}
+
 .rank-metal {
   background-image: linear-gradient(
     100deg,

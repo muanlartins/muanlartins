@@ -10,7 +10,7 @@ import { RoadmapPage } from "@/components/site/roadmap/roadmap-page"
 import { TopicPage } from "@/components/site/roadmap/topic-page"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
-import { channelPath, type ChannelPage } from "@/lib/channel"
+import { type ChannelPage } from "@/lib/channel"
 import { fundamentals, GAME_PAGES, type GamePage } from "@/lib/game"
 import { matchMoments } from "@/lib/lives"
 import { lives, transcript } from "@/lib/lives-files"
@@ -152,7 +152,6 @@ export default async function SectionSubpage({ params }: Props) {
         sessions={sessions()}
         ranks={ranks}
         moments={matchMoments(lives().filter((live) => live.game === game.id))}
-        livesPath={channelPath("lives")}
         credits={localize(game.credits)}
       />
     )
