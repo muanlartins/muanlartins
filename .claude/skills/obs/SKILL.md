@@ -31,7 +31,7 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
 - Luan's choice: Discord is hidden in Jogo, Jogo + chat and Conversa, and the browser in the game scenes.
 - Effects (2026-11-07): scenes "Lance ruim" (cut in; the Efeitos dock zooms the camera and returns) and "Terapia"
   (fade in), media sources "Som · …" (`public/stream/sons.js`, rendered by `brand/twitch/sons.mjs`). Hotkeys are on the
-  numeric keypad (Num Lock on): Num 1 Lance ruim, Num 5 Terapia, Num 0 Jogo + chat, sounds on Num 2–4 and 6–9.
+  F-row (Rocket League binds F1 and F10; F6 and F7 start and stop OBS's recording): F2 Lance ruim, F3 Terapia, F4 Jogo + chat, sounds on F5, F8, F9, F11, F12, Page Up, Page Down. `obs.py --apply` refuses a key OBS already uses.
   `brand/twitch/obs.py --apply [--dry-run]` adds what's missing to the live collection without touching the rest.
 - Changes made by hand or by websocket should also land in `brand/twitch/obs.py`, which generates the scene
   collection (`python3 brand/twitch/obs.py [stinger path] [alerts URL] > muanlartins.json`; the alerts URL is a

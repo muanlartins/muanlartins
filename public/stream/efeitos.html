@@ -8,13 +8,13 @@
       OBS: Custom browser dock (Docks → Custom Browser Docks), off stream; keep it docked where it stays visible,
       since a hidden dock's timers slow down. It drives the stream's effects through obs-websocket, like Partidas:
 
-      - Lance ruim (Num 1): OBS cuts to the "Lance ruim" scene (the game's, with the camera on top, its sting and
+      - Lance ruim (F2): OBS cuts to the "Lance ruim" scene (the game's, with the camera on top, its sting and
         lance.html's bars); this dock then zooms the camera from its frame to the whole screen, shakes it a little,
         holds 4 s, shrinks it back and cuts to the scene it came from. With "No gol deles", it also fires on
         their goals (Partidas sends them).
-      - Terapia (Num 5): the calm scene (terapia.html), faded in; "Voltar ao jogo" (Num 0, the main game scene)
+      - Terapia (F3): the calm scene (terapia.html), faded in; "Voltar ao jogo" (F4, the main game scene)
         leaves it, faded from here.
-      - Sons: the effects made by sons.js, each a media source with its own hotkey (Num 2–4, 6–9), restarted here.
+      - Sons: the effects made by sons.js, each a media source with its own hotkey (F5, F8, F9, F11, F12, PgUp, PgDn), restarted here.
 
       The scenes' and sounds' hotkeys are OBS's own (brand/twitch/obs.py sets them), so they work with the game
       focused. The OBS websocket password is kept in the dock's storage; #obs=<password> in the URL fills it.
@@ -123,9 +123,9 @@
 
     <h2>Cenas</h2>
     <div class="grid">
-      <button class="primary" id="lance">Lance ruim <kbd>Num 1</kbd></button>
-      <button id="terapia">Terapia <kbd>Num 5</kbd></button>
-      <button id="voltar">Voltar ao jogo <kbd>Num 0</kbd></button>
+      <button class="primary" id="lance">Lance ruim <kbd>F2</kbd></button>
+      <button id="terapia">Terapia <kbd>F3</kbd></button>
+      <button id="voltar">Voltar ao jogo <kbd>F4</kbd></button>
     </div>
     <label class="check"><input type="checkbox" id="auto-gol" /> Lance ruim no gol deles</label>
 
@@ -148,13 +148,13 @@
       const HOLD = 4000
       // Name on the button, OBS's media source (brand/twitch/obs.py) and its hotkey.
       const SONS = [
-        ["Palmas", "Som · Palmas", "Num 7"],
-        ["Uuuh", "Som · Uuuh", "Num 8"],
-        ["Buzina", "Som · Buzina", "Num 9"],
-        ["Suspense", "Som · Suspense", "Num 4"],
-        ["Tambor", "Som · Tambor", "Num 6"],
-        ["Ba-dum-tss", "Som · Ba-dum-tss", "Num 2"],
-        ["Boing", "Som · Boing", "Num 3"],
+        ["Palmas", "Som · Palmas", "F5"],
+        ["Uuuh", "Som · Uuuh", "F8"],
+        ["Buzina", "Som · Buzina", "F9"],
+        ["Suspense", "Som · Suspense", "PgUp"],
+        ["Tambor", "Som · Tambor", "PgDn"],
+        ["Ba-dum-tss", "Som · Ba-dum-tss", "F11"],
+        ["Boing", "Som · Boing", "F12"],
       ]
 
       const KEY = "efeitos"

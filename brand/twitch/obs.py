@@ -154,9 +154,11 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVE
 ])
 
 # --- Effects (the "Efeitos" dock, public/stream/efeitos.html) ---------------------------------------------------
-# Hotkeys are OBS's own, so they work with the game focused: the numeric keypad (Num Lock on), which Rocket League
-# doesn't use. Num 1 "Lance ruim", Num 5 "Terapia", Num 0 back to the main game scene; the sounds around them.
-HOTKEYS = {"Lance ruim": "OBS_KEY_NUM1", "Terapia": "OBS_KEY_NUM5", "Jogo + chat": "OBS_KEY_NUM0"}
+# Hotkeys are OBS's own, so they work with the game focused: the F-row, which Rocket League leaves free but for F1
+# (its console) and F10 (its stat graphs), and F6 and F7, which start and stop OBS's recording here. F2 "Lance ruim",
+# F3 "Terapia", F4 back to the main game scene; the sounds on F5, F8, F9, F11, F12, Page Up and Page Down. `--apply`
+# refuses a key that OBS already uses for something else.
+HOTKEYS = {"Lance ruim": "OBS_KEY_F2", "Terapia": "OBS_KEY_F3", "Jogo + chat": "OBS_KEY_F4"}
 
 
 def sound(name, file, key=None, restart=False):
@@ -171,9 +173,9 @@ def sound(name, file, key=None, restart=False):
 
 
 sounds = [sound(f"Som · {label}", file, key) for label, file, key in (
-    ("Palmas", "palmas", "OBS_KEY_NUM7"), ("Uuuh", "uuuh", "OBS_KEY_NUM8"), ("Buzina", "buzina", "OBS_KEY_NUM9"),
-    ("Suspense", "suspense", "OBS_KEY_NUM4"), ("Tambor", "tambor", "OBS_KEY_NUM6"),
-    ("Ba-dum-tss", "badumtss", "OBS_KEY_NUM2"), ("Boing", "boing", "OBS_KEY_NUM3"))]
+    ("Palmas", "palmas", "OBS_KEY_F5"), ("Uuuh", "uuuh", "OBS_KEY_F8"), ("Buzina", "buzina", "OBS_KEY_F9"),
+    ("Ba-dum-tss", "badumtss", "OBS_KEY_F11"), ("Boing", "boing", "OBS_KEY_F12"),
+    ("Suspense", "suspense", "OBS_KEY_PAGEUP"), ("Tambor", "tambor", "OBS_KEY_PAGEDOWN"))]
 # "Lance ruim": the game's scene with the camera on top, which the dock zooms; the bars and the sting play each time.
 bad_play = browser("Efeito · Lance ruim", "lance.html", restart=True)
 sting = sound("Som · Lance ruim", "lance", restart=True)
@@ -311,7 +313,29 @@ def add_dock():
     return True
 
 
+def clashes(live):
+    """Our hotkeys that OBS already gives to something else: a source in the collection or the profiles' own
+    (start recording and the like, in each profile's basic.ini, read for its OBS_KEY_ lines only)."""
+    ours = {b[0]["key"]: s["name"] for s in collection["sources"] for b in (s.get("hotkeys") or {}).values() if b}
+    taken = []
+    for s in live["sources"]:
+        for action, binding in (s.get("hotkeys") or {}).items():
+            for b in binding or []:
+                if b.get("key") in ours and ours[b["key"]] != s["name"]:
+                    taken.append(f"{b['key'].removeprefix('OBS_KEY_')}: {ours[b['key']]} × {s['name']} ({action})")
+    for ini in sorted((OBS / "basic/profiles").glob("*/basic.ini")):
+        for line in ini.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+            action = line.split("=", 1)[0]
+            for key in re.findall(r'"key":\s*"(OBS_KEY_[A-Z0-9]+)"', line):
+                if key in ours:
+                    taken.append(f"{key.removeprefix('OBS_KEY_')}: {ours[key]} × {action} (perfil {ini.parent.name})")
+    return taken
+
+
 def apply(dry=False):
+    live = json.loads(LIVE.read_text(encoding="utf-8"))
+    if taken := clashes(live):
+        raise SystemExit("Atalhos que o OBS já usa:\n" + "\n".join(taken) + "\nTroque as teclas em obs.py e rode de novo.")
     if dry:
         print("\n".join(merge(json.loads(LIVE.read_text(encoding="utf-8")), collection)) or "nada novo na coleção")
         print("(nada foi escrito: --dry-run)")
