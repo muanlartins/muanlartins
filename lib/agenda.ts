@@ -1,4 +1,5 @@
 import agenda from "@/content/agenda.json"
+import { HTML_LANG, LOCALE } from "@/lib/site"
 
 /**
  * When the lives are (`content/agenda.json`): weekly slots in the channel's
@@ -12,9 +13,31 @@ export interface Slot {
   /** "HH:MM", in the agenda's time zone. */
   start: string
   end: string
+  /** Whose live it is: a game's id (content/projects.ts). */
+  game: string
 }
 
 export const AGENDA: { timeZone: string; since: string; slots: Slot[] } = agenda
+
+/** A game's slots, earliest in the week first. */
+export const slotsOf = (game: string) =>
+  AGENDA.slots.filter((slot) => slot.game === game).sort((a, b) => Math.min(...a.days) - Math.min(...b.days))
+
+const LANG = HTML_LANG[LOCALE]
+
+/** "14h30" in Portuguese, "14:30" in English. */
+export const clock = (hhmm: string) => (LOCALE === "pt" ? hhmm.replace(":", "h").replace(/h00$/, "h") : hhmm)
+
+/** The weekdays' short names, Monday first (2024-01-01 was one). */
+export const WEEKDAYS = Array.from({ length: 7 }, (_, index) =>
+  new Intl.DateTimeFormat(LANG, { weekday: "short", timeZone: "UTC" }).format(new Date(Date.UTC(2024, 0, 1 + index))).replace(".", ""),
+)
+
+/** "seg e qua, 21h–23h": a slot in a line, in the agenda's time zone. */
+export function slotText(slot: Slot) {
+  const days = new Intl.ListFormat(LANG, { type: "conjunction" }).format(slot.days.map((day) => WEEKDAYS[day - 1]))
+  return `${days}, ${clock(slot.start)}–${clock(slot.end)}`
+}
 
 const minutes = (time: string) => {
   const [hours, mins] = time.split(":").map(Number)
@@ -40,8 +63,8 @@ function instant(year: number, month: number, day: number, minute: number, timeZ
   return new Date(guess - offset)
 }
 
-/** The next live, or the one on air now: its start and end, from `now`. */
-export function nextLive(now = new Date()): { start: Date; end: Date } | undefined {
+/** The next live, or the one on air now: its start, end and game, from `now`. */
+export function nextLive(now = new Date()): { start: Date; end: Date; game: string } | undefined {
   const { timeZone, since, slots } = AGENDA
   const today = partsIn(now, timeZone)
   for (let ahead = 0; ahead < 8; ahead++) {
@@ -54,6 +77,7 @@ export function nextLive(now = new Date()): { start: Date; end: Date } | undefin
       .map((slot) => ({
         start: instant(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), minutes(slot.start), timeZone),
         end: instant(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), minutes(slot.end), timeZone),
+        game: slot.game,
       }))
       .filter((live) => live.end > now)
       .sort((a, b) => +a.start - +b.start)[0]
@@ -63,8 +87,8 @@ export function nextLive(now = new Date()): { start: Date; end: Date } | undefin
 
 const ICS_DAYS = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"]
 
-/** The agenda as an iCalendar file a calendar app can subscribe to: one weekly event per slot. */
-export function ics({ summary, description, url }: { summary: string; description: string; url: string }) {
+/** The agenda as an iCalendar file a calendar app can subscribe to: one weekly event per slot, named by `title(game)`. */
+export function ics({ summary, title, description, url }: { summary: string; title: (game: string) => string; description: string; url: string }) {
   const { timeZone, since, slots } = AGENDA
   const stamp = `${since.replaceAll("-", "")}T000000Z`
   const escape = (text: string) => text.replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\n/g, "\\n")
@@ -81,7 +105,7 @@ export function ics({ summary, description, url }: { summary: string; descriptio
       `DTSTART;TZID=${timeZone}:${day}T${time(slot.start)}`,
       `DTEND;TZID=${timeZone}:${day}T${time(slot.end)}`,
       `RRULE:FREQ=WEEKLY;BYDAY=${slot.days.map((d) => ICS_DAYS[d - 1]).join(",")}`,
-      `SUMMARY:${escape(summary)}`,
+      `SUMMARY:${escape(title(slot.game))}`,
       `DESCRIPTION:${escape(description)}`,
       `URL:${url}`,
       `LOCATION:${url}`,

@@ -24,6 +24,7 @@ const commented2v2 = {
 export default game({
   id: "rocket-league",
   title: { pt: "Rocket League", en: "Rocket League" },
+  short: "RL",
   description: {
     pt: "Evoluir no Rocket League com o método científico.",
     en: "Getting better at Rocket League with the scientific method.",
@@ -32,7 +33,7 @@ export default game({
     pt: "Medindo o que funciona em cada técnica, em vídeos no YouTube e ao vivo na Twitch. Aqui ficam os fundamentos do jogo, organizados por rank, e o registro das minhas ranqueadas.",
     en: "Measuring what works in each technique, in videos on YouTube and live on Twitch. Here are the game's fundamentals, organized by rank, and the record of my ranked games.",
   },
-  roadmap: rocketLeague,
+  roadmaps: [rocketLeague],
   ranked: {
     title: { pt: "Ranqueadas", en: "Ranked" },
     description: {
@@ -41,4 +42,8 @@ export default game({
     },
   },
   links: [rlr, commented2v2],
+  credits: {
+    pt: "Rocket League e os emblemas de rank são da Psyonix/Epic Games; este site não é oficial nem afiliado. Modelos 3D do Octane e da bola por Jako (CC BY 4.0).",
+    en: "Rocket League and its rank emblems belong to Psyonix/Epic Games; this site is unofficial and not affiliated. Octane and ball 3D models by Jako (CC BY 4.0).",
+  },
 })

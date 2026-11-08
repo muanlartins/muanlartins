@@ -12,6 +12,7 @@ const divisions = (rank: string) => [1, 2, 3].map((division) => `/ranks/${rank}-
 
 export default roadmap({
   id: "rocket-league",
+  game: "rocket-league",
   title: { pt: "Fundamentos do Rocket League", en: "Rocket League Fundamentals" },
   description: {
     pt: "Um roteiro para evoluir no jogo.",

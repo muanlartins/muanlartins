@@ -29,7 +29,7 @@ import {
   type Session,
   type Standing,
 } from "@/lib/ranked"
-import { UI, localize } from "@/lib/site"
+import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const T = localize({
@@ -110,6 +110,7 @@ export function RankedPage({
   ranks,
   moments,
   livesPath,
+  credits,
 }: {
   title: string
   description: string
@@ -118,6 +119,8 @@ export function RankedPage({
   /** Matches a live has a chapter for: where to watch them. */
   moments: Record<string, { date: string; at: number }>
   livesPath: string
+  /** Whose game and art it is (the game's `credits`). */
+  credits: string
 }) {
   const hash = useSyncExternalStore(subscribe, readHash, () => "")
   // Without a hash, the mode of the latest match.
@@ -255,7 +258,7 @@ export function RankedPage({
         )}
       </div>
 
-      <p className="mt-16 text-[12px] leading-[1.6] text-muted">{UI.credits}</p>
+      <p className="mt-16 text-[12px] leading-[1.6] text-muted">{credits}</p>
       <Script src="/stream/torcedor.js" onReady={() => setTorcedor(window.Torcedor ?? null)} />
     </>
   )

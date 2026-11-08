@@ -16,11 +16,18 @@ export interface Game {
   description: L10n
   /** The home page's introduction: the idea, the channel. A blank line starts a new paragraph. */
   intro: L10n
-  roadmap: Roadmap
+  /** Short enough for a day of the agenda: "RL". */
+  short: string
+  /** Its fundamentals, newest edition first (lib/roadmap.ts): the first is the one at /fundamentals. */
+  roadmaps: [Roadmap, ...Roadmap[]]
+  /** Luan's rank, by its id in the fundamentals' ranks, while the game has no ranked record to read it from: the home shows it on the ladder. */
+  rank?: string
   /** The ranked record page, from content/matches/. */
   ranked?: { title: L10n; description: L10n }
   /** Apps and playlists elsewhere, listed in the menu and on the home page. */
   links: Project[]
+  /** Whose game it is and whose art the page uses, under its pages. */
+  credits: L10n
 }
 
 export function game(page: Game) {
@@ -30,6 +37,9 @@ export function game(page: Game) {
 /** Pages under a game besides its topics: a topic can't take these ids. */
 export const GAME_PAGES = ["fundamentals", "ranked"] as const
 export type GamePage = (typeof GAME_PAGES)[number]
+
+/** The newest edition of its fundamentals. */
+export const fundamentals = (game: Game) => game.roadmaps[0]
 
 export function gamePath(game: { id: string }, page?: GamePage) {
   return `${sectionPath("content")}/${game.id}${page ? `/${page}` : ""}`

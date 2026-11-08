@@ -3,14 +3,17 @@ import type { ReactNode } from "react"
 import { LanguageBadge } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
 import { RoadmapProgress, ShowroomStage } from "@/components/site/game/game-home-client"
+import { Ladder } from "@/components/site/game/ladder"
+import { Range } from "@/components/site/game/range"
 import { divisionOf, longDate, tierOf, type RankInfo } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { channelPath } from "@/lib/channel"
-import { gamePath, type Game } from "@/lib/game"
+import { slotsOf, slotText } from "@/lib/agenda"
+import { fundamentals, gamePath, type Game } from "@/lib/game"
 import type { Live } from "@/lib/lives"
 import { MODES, summarize, type Mode, type Session } from "@/lib/ranked"
 import { entries } from "@/lib/roadmap"
-import { UI, localize } from "@/lib/site"
+import { localize } from "@/lib/site"
 
 const T = localize({
   explore: { pt: "Por aqui", en: "In here" },
@@ -20,12 +23,15 @@ const T = localize({
   noRank: { pt: "Nenhuma partida publicada ainda.", en: "No matches published yet." },
   latestLive: { pt: "Última", en: "Latest" },
   drag: { pt: "Arraste para girar", en: "Drag to spin" },
+  live: { pt: "Ao vivo", en: "Live" },
+  firstTopics: { pt: "Os primeiros tópicos chegam com as lives.", en: "The first topics come with the streams." },
 })
 
 /**
- * A game's home: what it's about, the car on a turntable, and a card for
- * each of its pages with a glimpse of what's in it, and for its lives on the
- * channel.
+ * A game's home: what it's about, the game's own moment (Rocket League's car
+ * on a turntable, Valorant's range), Luan's rank on the ladder while the game
+ * has no ranked record, and a card for each of its pages with a glimpse of
+ * what's in it, and for its lives on the channel with when they are.
  */
 export function GameHome({
   game,
@@ -40,7 +46,9 @@ export function GameHome({
   ranks: RankInfo[]
 }) {
   const paragraphs = localize(game.intro).split(/\n\s*\n/)
-  const topics = entries(game.roadmap)
+  const roadmap = fundamentals(game)
+  const topics = entries(roadmap)
+  const slots = slotsOf(game.id)
   const videos = topics.filter(({ topic }) => topic.video).length
 
   // The rank in the mode played last.
@@ -55,10 +63,17 @@ export function GameHome({
     <>
       <PageIntro title={localize(game.title)} description={localize(game.description)} />
 
-      <div className="relative -mx-6 mt-6 h-64 sm:mx-0 sm:h-80">
-        <ShowroomStage />
-        <p className="pointer-events-none absolute bottom-1 right-6 text-[12px] text-muted sm:right-0">{T.drag}</p>
-      </div>
+      {game.id === "rocket-league" && (
+        <div className="relative -mx-6 mt-6 h-64 sm:mx-0 sm:h-80">
+          <ShowroomStage />
+          <p className="pointer-events-none absolute bottom-1 right-6 text-[12px] text-muted sm:right-0">{T.drag}</p>
+        </div>
+      )}
+      {game.id === "valorant" && (
+        <div className="-mx-6 mt-8 h-72 sm:mx-0 sm:h-80">
+          <Range />
+        </div>
+      )}
 
       <div className="mt-10 max-w-[38rem] space-y-5 text-[17px] leading-[1.7] text-ink">
         {paragraphs.map((paragraph, index) => (
@@ -66,14 +81,16 @@ export function GameHome({
         ))}
       </div>
 
+      {game.rank && <Ladder ranks={roadmap.ranks} current={game.rank} className="mt-12" />}
+
       <section className="mt-16">
         <h2 className="text-[12px] font-medium uppercase tracking-[0.12em] text-muted">{T.explore}</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Card href={gamePath(game, "fundamentals")} title={localize(game.roadmap.title)} summary={localize(game.roadmap.description)}>
+          <Card href={gamePath(game, "fundamentals")} title={localize(roadmap.title)} summary={localize(roadmap.description)}>
             <p className="text-[13px] tabular-nums text-muted">
-              {topics.length} {T.topics} · {videos} {T.videos}
+              {topics.length > 0 ? `${topics.length} ${T.topics} · ${videos} ${T.videos}` : T.firstTopics}
             </p>
-            <RoadmapProgress roadmap={game.roadmap.id} topics={topics.map(({ topic }) => topic.id)} />
+            <RoadmapProgress roadmap={roadmap.id} topics={topics.map(({ topic }) => topic.id)} />
           </Card>
 
           {game.ranked && (
@@ -86,11 +103,18 @@ export function GameHome({
             </Card>
           )}
 
-          {lives[0] && (
+          {(lives[0] || slots.length > 0) && (
             <Card href={channelPath("lives")} title={localize(channel.lives.title)} summary={localize(channel.lives.description)} language="pt">
-              <p className="text-[13px] text-muted">
-                {T.latestLive}: {longDate(lives[0].date)}
-              </p>
+              {slots.map((slot) => (
+                <p key={slot.start} className="text-[14px] font-medium text-ink">
+                  {T.live}: {slotText(slot)} <span className="font-normal text-muted">({localize(channel.lives.agenda.zone)})</span>
+                </p>
+              ))}
+              {lives[0] && (
+                <p className="text-[13px] text-muted">
+                  {T.latestLive}: {longDate(lives[0].date)}
+                </p>
+              )}
             </Card>
           )}
 
@@ -100,7 +124,7 @@ export function GameHome({
         </div>
       </section>
 
-      <p className="mt-16 text-[12px] leading-[1.6] text-muted">{UI.credits}</p>
+      <p className="mt-16 text-[12px] leading-[1.6] text-muted">{localize(game.credits)}</p>
     </>
   )
 }
@@ -117,7 +141,7 @@ function Card({
   title: string
   summary: string
   away?: boolean
-  language?: Game["roadmap"]["language"]
+  language?: Game["roadmaps"][0]["language"]
   children?: ReactNode
 }) {
   return (

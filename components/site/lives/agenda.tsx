@@ -3,19 +3,14 @@
 import { CalendarPlus } from "lucide-react"
 import { useSyncExternalStore } from "react"
 import { channel } from "@/content/channel"
-import { AGENDA, nextLive } from "@/lib/agenda"
+import { games } from "@/content/projects"
+import { AGENDA, clock, nextLive, WEEKDAYS } from "@/lib/agenda"
 import { HTML_LANG, LOCALE, localize } from "@/lib/site"
 
 const T = localize(channel.lives.agenda)
 const LANG = HTML_LANG[LOCALE]
 
-/** "14h30" in Portuguese, "14:30" in English. */
-const clock = (hhmm: string) => (LOCALE === "pt" ? hhmm.replace(":", "h").replace(/h00$/, "h") : hhmm)
-
-/** Monday first: 2024-01-01 was one. */
-const DAYS = Array.from({ length: 7 }, (_, index) =>
-  new Intl.DateTimeFormat(LANG, { weekday: "short", timeZone: "UTC" }).format(new Date(Date.UTC(2024, 0, 1 + index))).replace(".", ""),
-)
+const gameOf = (id: string) => games.find((game) => game.id === id)
 
 function everyMinute(listener: () => void) {
   const timer = setInterval(listener, 10_000)
@@ -38,7 +33,7 @@ export function Agenda() {
     <section>
       <h2 className="text-2xl font-medium tracking-[-0.02em] text-klein">{T.title}</h2>
       <ol className="mt-5 grid grid-cols-7 gap-1.5">
-        {DAYS.map((name, index) => {
+        {WEEKDAYS.map((name, index) => {
           const slots = AGENDA.slots.filter((slot) => slot.days.includes(index + 1))
           return (
             <li
@@ -52,6 +47,9 @@ export function Agenda() {
                 <span key={slot.start} className="flex flex-col tabular-nums leading-tight">
                   <span>{clock(slot.start)}</span>
                   <span className="hidden opacity-70 sm:inline">{clock(slot.end)}</span>
+                  <span title={gameOf(slot.game) && localize(gameOf(slot.game)!.title)} className="mt-1 text-[10px] font-medium tracking-[0.04em] opacity-80 sm:text-[11px]">
+                    {gameOf(slot.game)?.short}
+                  </span>
                 </span>
               ))}
             </li>
@@ -94,6 +92,7 @@ function Next({ now }: { now: Date }) {
   return (
     <p className="mt-4 text-[15px]">
       <span className="font-medium text-klein">{T.next}:</span> {when}
+      {gameOf(live.game) && ` · ${localize(gameOf(live.game)!.title)}`}
       {differs && (
         <span className="text-muted">
           {" "}
