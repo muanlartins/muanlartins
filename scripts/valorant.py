@@ -1,6 +1,6 @@
 """Valorant on the stream: where Luan's game is and each round's result, read from the Riot Client on this PC.
 
-    python3 scripts/valorant.py           # the service (to start with Windows, like legenda.py)
+    python3 scripts/valorant.py           # the service (Windows starts it at login, like legenda.py)
     python3 scripts/valorant.py --ver     # prints what it reads, to try it with the game open
 
 Every 2 s it asks the Riot Client's local API (the port and password in its lockfile, %LOCALAPPDATA%\\Riot Games\\
