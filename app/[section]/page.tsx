@@ -16,17 +16,16 @@ import professional from "@/content/professional"
 import * as content from "@/content/projects"
 import { lives } from "@/lib/lives-files"
 import { sectionMetadata } from "@/lib/metadata"
-import { HTML_LANG, homeUrl, localize, MURAL_SLUG, muralUrl, PIX_SLUG, pixUrl, privacySlug, privacyUrl, profileSlug, profileUrl, sectionFromSlug, sectionPath } from "@/lib/site"
+import { hasSection, HTML_LANG, homeUrl, localize, SECTIONS, MURAL_SLUG, muralUrl, PIX_SLUG, pixUrl, privacySlug, privacyUrl, profileSlug, profileUrl, sectionFromSlug, sectionPath } from "@/lib/site"
 
 export const dynamicParams = false
 
 export function generateStaticParams() {
+  // The English site is Luan's life and work: no channel, content, profile, Pix or mural.
   return [
-    ...(["personal", "professional", "content", "channel"] as const).map((section) => ({ section: sectionPath(section).slice(1) })),
+    ...SECTIONS.map((section) => ({ section: sectionPath(section).slice(1) })),
     { section: privacySlug() },
-    { section: profileSlug() },
-    { section: PIX_SLUG },
-    { section: MURAL_SLUG },
+    ...(hasSection("channel") ? [{ section: profileSlug() }, { section: PIX_SLUG }, { section: MURAL_SLUG }] : []),
   ]
 }
 

@@ -17,8 +17,21 @@ const ORIGINS: Record<Locale, string> =
 
 export const ORIGIN = ORIGINS[LOCALE]
 
-/** In the header's order. The channel is the home page (`sectionHref`); its pages live under /canal. */
-export const SECTIONS: Section[] = ["channel", "content", "personal", "professional"]
+/**
+ * Each site's sections, in the header's order. The Portuguese one has everything, the channel as its home page (its
+ * pages live under /canal); the English one only Luan's life and work (his audience abroad is professional), his
+ * life as its home page.
+ */
+const SECTIONS_OF: Record<Locale, Section[]> = {
+  pt: ["channel", "content", "personal", "professional"],
+  en: ["personal", "professional"],
+}
+const HOME: Record<Locale, Section> = { pt: "channel", en: "personal" }
+export const SECTIONS = SECTIONS_OF[LOCALE]
+export const HOME_SECTION = HOME[LOCALE]
+
+/** Whether a site has a section: the English one has no channel or content. */
+export const hasSection = (section: Section, locale: Locale = LOCALE) => SECTIONS_OF[locale].includes(section)
 
 const SLUGS: Record<Locale, Record<Section, string>> = {
   pt: { personal: "pessoal", professional: "profissional", content: "conteudo", channel: "canal" },
@@ -33,14 +46,19 @@ export function sectionUrl(section: Section, locale: Locale = LOCALE) {
   return `${ORIGINS[locale]}${sectionPath(section, locale)}`
 }
 
-/** Where a link to a section goes: the channel's home is the site's. */
+/** Where a link to a section goes: a site's home section is its home page. */
 export function sectionHref(section: Section, locale: Locale = LOCALE) {
-  return section === "channel" ? "/" : sectionPath(section, locale)
+  return section === HOME[locale] ? "/" : sectionPath(section, locale)
 }
 
-/** The site's home in a language: the channel. */
+/** The site's home in a language: the channel in Portuguese, Luan's life in English. */
 export function homeUrl(locale: Locale = LOCALE) {
   return `${ORIGINS[locale]}/`
+}
+
+/** A section's page in a language, as a full URL: the home page for that site's home section. */
+export function sectionLink(section: Section, locale: Locale = LOCALE) {
+  return section === HOME[locale] ? homeUrl(locale) : sectionUrl(section, locale)
 }
 
 export function sectionFromSlug(slug: string): Section | undefined {
