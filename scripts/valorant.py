@@ -103,6 +103,10 @@ def watch():
             phase, queue_id, score, tier = "menu", None, None, now["tier"]
 
         counts_rounds = queue_id in ROUNDS
+        # As a match ends, the presence zeroes the score a few seconds before it leaves the match: a score that
+        # goes down is that, and the last one stays the match's.
+        if phase == "partida" and last_score and score and sum(score) < sum(last_score):
+            score = last_score
         if phase == "partida" and counts_rounds and score:
             if last_score and score != last_score:
                 # One event per round, in order, even if two went by between looks.
