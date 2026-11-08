@@ -17,7 +17,9 @@ only answers most of this while Valorant is open.
 
     GET /eventos     server-sent events: {"tipo": "fase", "fase": "menu" | "selecao" | "partida", "mapa", "fila", "aberto"},
                      {"tipo": "rodada", "nosso", "placar"}, {"tipo": "partida", "vitoria", "placar"},
-                     {"tipo": "ranque", "tier"} (Riot's competitive tier: 9 is Silver 1),
+                     {"tipo": "ranque", "tier", "rr"} (Riot's competitive tier: 9 is Silver 1; the RR in it, or
+                     null until known: the presence has no RR, so it comes from Valorant's competitive history when
+                     the game opens and after each competitive match),
                      {"tipo": "resumo", "partida": {...}} (a match's summary, a little after it ends)
     GET /resumos     the summaries since it started, for a dock that opens late
     GET /            what it knows now
@@ -57,7 +59,7 @@ summaries: list[dict] = []
 
 listeners: set[queue.Queue] = set()
 listeners_lock = threading.Lock()
-now = {"fase": None, "mapa": None, "fila": None, "placar": None, "tier": None, "aberto": False}
+now = {"fase": None, "mapa": None, "fila": None, "placar": None, "tier": None, "rr": None, "aberto": False}
 
 
 def send(event: dict, show=True):
@@ -91,6 +93,33 @@ def presence(found, puuid):
         if each.get("puuid") == puuid and each.get("product") == "valorant" and each.get("private"):
             return json.loads(base64.b64decode(each["private"]))
     return None
+
+
+def rank_event():
+    return {"tipo": "ranque", "tier": now["tier"], "rr": now["rr"]}
+
+
+def set_rr(tier, rr):
+    """The RR from Valorant's competitive history, for the tier it belongs to (the presence's may have moved on)."""
+    if rr is None or tier != now["tier"]:
+        return
+    if rr != now["rr"]:
+        now["rr"] = rr
+        send(rank_event())
+
+
+def fetch_rr():
+    """Luan's RR now, from his last competitive update."""
+    try:
+        found = client()
+        if not found:
+            return
+        puuid, get = valorant_api(found)
+        updates = get(f"/mmr/v1/players/{puuid}/competitiveupdates?startIndex=0&endIndex=1&queue=competitive")["Matches"]
+        if updates:
+            set_rr(updates[0].get("TierAfterUpdate"), updates[0].get("RankedRatingAfterUpdate"))
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+        print(time.strftime("%H:%M:%S"), "RR ainda não:", type(error).__name__, flush=True)
 
 
 def watch():
@@ -140,9 +169,14 @@ def watch():
         map_name = ((match.get("matchMap") or "").rsplit("/", 1)[-1] or None) if phase != "menu" else None
         if phase != now["fase"] or open_ != now["aberto"]:
             send({"tipo": "fase", "fase": phase, "mapa": map_name, "fila": queue_id, "aberto": open_})
+        opened = open_ and not now["aberto"]
         if tier and tier != now["tier"]:
-            send({"tipo": "ranque", "tier": tier})
+            # A new tier's RR isn't the old one's: unknown until the match's summary (or the history) says.
+            now.update(tier=tier, rr=None)
+            send(rank_event())
         now.update(fase=phase, mapa=map_name, fila=queue_id, placar=score, tier=tier, aberto=open_)
+        if opened:
+            threading.Thread(target=fetch_rr, daemon=True).start()
         time.sleep(EVERY)
 
 
@@ -168,7 +202,9 @@ def valorant_api(found):
     platform = base64.b64encode(json.dumps({"platformType": "PC", "platformOS": "Windows",
                                             "platformOSVersion": "10.0.19042.1.256.64bit", "platformChipset": "Unknown"}).encode()).decode()
     headers = {"Authorization": f"Bearer {tokens['accessToken']}", "X-Riot-Entitlements-JWT": tokens["token"],
-               "X-Riot-ClientVersion": names()["version"], "X-Riot-ClientPlatform": platform}
+               "X-Riot-ClientVersion": names()["version"], "X-Riot-ClientPlatform": platform,
+               # As the game identifies itself: Cloudflare, in front of these servers, turns away Python's own (1010).
+               "User-Agent": "ShooterGame/13 Windows/10.0.19043.1.256.64bit"}
     host = f"https://pd.{SHARDS.get(region, 'na')}.a.pvp.net"
 
     def get(path):
@@ -265,6 +301,8 @@ def summarize_latest(tries=12, wait=15, newer_than_h=2):
             summaries.append(match)
             del summaries[:-30]
             send({"tipo": "resumo", "partida": match}, show=False)
+            if match.get("rank"):
+                set_rr(match["rank"]["tier"], match["rank"]["rr"])
             print(time.strftime("%H:%M:%S"), "resumo", match["map"], match["agent"], match["result"],
                   "-".join(map(str, match["score"])), match.get("rr"), flush=True)
             return
@@ -306,7 +344,7 @@ class Request(BaseHTTPRequestHandler):
             event = {"tipo": "fase", "fase": now["fase"], "mapa": now["mapa"], "fila": now["fila"], "aberto": now["aberto"]}
             mine.put(f"data: {json.dumps(event)}\n\n".encode())
             if now["tier"]:
-                mine.put(f"data: {json.dumps({'tipo': 'ranque', 'tier': now['tier']})}\n\n".encode())
+                mine.put(f"data: {json.dumps(rank_event())}\n\n".encode())
         with listeners_lock:
             listeners.add(mine)
         try:

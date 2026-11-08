@@ -218,14 +218,15 @@ function valorantPlate(el, hole, band, address) {
     const saved = JSON.parse(localStorage.getItem("valorant:dia"))
     if (saved?.date === today()) day = saved
   } catch {}
-  const state = { tier: null, phase: "menu", map: null, queue: null, score: null }
+  const state = { tier: null, rr: null, phase: "menu", map: null, queue: null, score: null }
   const QUEUES = { competitive: "Competitiva", unrated: "Sem classificação", swiftplay: "Frenético", premier: "Premier" }
   const draw = () => {
     if (day.date !== today()) day = { date: today(), wins: 0, losses: 0 }
     const known = valorantTier(state.tier)
     emblem.hidden = !known
     if (known) emblem.src = `/ranks/valorant/${known[0]}.webp`
-    const where = [QUEUES[state.queue], state.phase !== "menu" && (VALORANT_MAPS[state.map] ?? state.map)].filter(Boolean).join(" · ")
+    const rr = known && state.rr != null && `${state.rr} RR`
+    const where = [rr, QUEUES[state.queue], state.phase !== "menu" && (VALORANT_MAPS[state.map] ?? state.map)].filter(Boolean).join(" · ")
     rank.innerHTML = (known ? known[1] : "") + (where ? `<span class="points">${where}</span>` : "")
     line.innerHTML =
       state.phase === "partida" && state.score
@@ -237,7 +238,7 @@ function valorantPlate(el, hole, band, address) {
   const source = new EventSource(`${address}/eventos`)
   source.onmessage = ({ data }) => {
     const event = JSON.parse(data)
-    if (event.tipo === "ranque") state.tier = event.tier
+    if (event.tipo === "ranque") Object.assign(state, { tier: event.tier, rr: event.rr ?? null })
     if (event.tipo === "fase") {
       Object.assign(state, { phase: event.fase, map: event.mapa, queue: event.fila })
       if (event.fase === "partida") state.score = state.score ?? [0, 0]
