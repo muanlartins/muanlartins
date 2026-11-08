@@ -2,8 +2,10 @@
 
 import { Play } from "lucide-react"
 import Link from "next/link"
-import { useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react"
+import Script from "next/script"
+import { useEffect, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react"
 import { PageIntro } from "@/components/site/page-intro"
+import { FanSpot } from "@/components/site/pix/fan-spot"
 import {
   decimal,
   divisionOf,
@@ -16,7 +18,19 @@ import {
 import { MatchResult } from "@/components/site/ranked/match-result"
 import { PointsChart } from "@/components/site/ranked/points-chart"
 import { BallBackdrop } from "@/components/site/roadmap/ball-backdrop"
-import { MODES, STATS, summarize, type Match, type Mode, type PlayerStats, type Session, type Standing } from "@/lib/ranked"
+import { loadFans, type Choice, type Torcedor } from "@/lib/profile"
+import {
+  MODES,
+  STATS,
+  summarize,
+  viewersIn,
+  type Ally,
+  type Match,
+  type Mode,
+  type PlayerStats,
+  type Session,
+  type Standing,
+} from "@/lib/ranked"
 import { UI, localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
@@ -75,6 +89,14 @@ const T = localize({
     en: "Score, points won or lost, the total after, and my goals · assists · saves.",
   },
   showAll: { pt: "Mostrar todas", en: "Show all" },
+  allies: { pt: "Viewers que jogaram comigo", en: "Viewers who played with me" },
+  alliesHint: {
+    pt: "Partidas juntos, vitórias e derrotas, pontos e a média deles por partida: gols · assistências · defesas.",
+    en: "Matches together, wins and losses, points, and their average per match: goals · assists · saves.",
+  },
+  together: { pt: "partidas", en: "matches" },
+  together1: { pt: "partida", en: "match" },
+  with: { pt: "com", en: "with" },
   onLive: { pt: "na live", en: "on stream" },
   empty: {
     pt: "Nenhuma partida ranqueada de {mode} publicada ainda.",
@@ -126,6 +148,17 @@ export function RankedPage({
   )
   const summary = summarize(sessions, mode)
   const played = summary.matches.length
+
+  // The allies' fans, as they built them on their profile (or the one their login gives them).
+  const [torcedor, setTorcedor] = useState<Torcedor | null>(null)
+  const [fans, setFans] = useState<Record<string, Choice> | null>(null)
+  const logins = [...new Set(sessions.flatMap((session) => session.matches.flatMap(viewersIn)))].sort().join(",")
+  useEffect(() => {
+    if (!logins) return
+    loadFans(logins.split(","))
+      .then(setFans)
+      .catch(() => setFans({}))
+  }, [logins])
 
   return (
     <>
@@ -211,6 +244,12 @@ export function RankedPage({
               </Section>
             )}
 
+            {summary.allies.length > 0 && (
+              <Section title={T.allies} hint={T.alliesHint}>
+                <Allies allies={summary.allies} torcedor={torcedor} fans={fans} />
+              </Section>
+            )}
+
             <Section title={T.list} hint={T.listHint}>
               <Matches matches={[...summary.matches].reverse()} moments={moments} livesPath={livesPath} />
             </Section>
@@ -219,6 +258,7 @@ export function RankedPage({
       </div>
 
       <p className="mt-16 text-[12px] leading-[1.6] text-muted">{UI.credits}</p>
+      {logins && <Script src="/stream/torcedor.js" onReady={() => setTorcedor(window.Torcedor ?? null)} />}
     </>
   )
 }
@@ -372,6 +412,37 @@ function Averages({ me, mates }: { me: PlayerStats; mates?: PlayerStats }) {
   )
 }
 
+function Allies({ allies, torcedor, fans }: { allies: Ally[]; torcedor: Torcedor | null; fans: Record<string, Choice> | null }) {
+  return (
+    <ul className="grid gap-3 sm:grid-cols-2">
+      {allies.map((ally) => (
+        <li key={ally.login} className="flex items-center gap-4 rounded-md border border-line px-3 py-3">
+          <FanSpot T={torcedor} fans={fans} login={ally.login} name={ally.login} size="sm" />
+          <div className="min-w-0 space-y-0.5 text-[14px] tabular-nums">
+            <a
+              href={`https://www.twitch.tv/${ally.login}`}
+              target="_blank"
+              rel="noreferrer"
+              className="block truncate text-[16px] font-medium text-ink transition-colors hover:text-klein"
+            >
+              {ally.login}
+            </a>
+            <p className="text-ink">
+              {ally.matches} {ally.matches === 1 ? T.together1 : T.together} · {ally.wins}
+              {T.W} {ally.losses}
+              {T.L}
+              {ally.points !== 0 && <span className="text-muted"> · {signed(ally.points)} {T.points}</span>}
+            </p>
+            <p className="text-muted">
+              {decimal(ally.averages.goals, 1)} · {decimal(ally.averages.assists, 1)} · {decimal(ally.averages.saves, 1)}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function Matches({
   matches,
   moments,
@@ -392,6 +463,11 @@ function Matches({
           return (
             <li key={match.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-[14px] tabular-nums">
               <MatchResult match={match} />
+              {viewersIn(match).length > 0 && (
+                <span className="rounded-sm bg-klein/[0.08] px-2 py-0.5 text-[12px] text-klein">
+                  {T.with} {viewersIn(match).join(", ")}
+                </span>
+              )}
               <span className="ml-auto flex items-center gap-3 text-[13px] text-muted">
                 <span>
                   {[match.overtime && T.overtime, match.left && T.left].filter(Boolean).join(" · ")}

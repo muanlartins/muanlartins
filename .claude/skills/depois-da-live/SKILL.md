@@ -79,5 +79,5 @@ Luan before pushing**: a push to `main` is a release. Then `gh run watch` and ch
 - Copyright: music on the stream is on track 5 only, so it isn't in the recording. If a recording may have caught
   some (a source routed to all tracks for a while), measure before cutting: per-second levels of track 1 against
   2 + 3 with ffmpeg's `astats`. On 11-05 the suspect stretch turned out silent: nothing to mute.
-- The repo is public: no other players' names or ids, no replays, teammates stay nameless, no tokens.
+- The repo is public: no other players' names or ids, no replays, teammates stay nameless, no tokens. The one exception is the viewers in `public/stream/aliados.json`, who agreed to be named: the dock tags them by Twitch login. A new one goes there only when Luan says they agreed.
 - For shorts and commented videos from the material, see the `estudio` skill.
