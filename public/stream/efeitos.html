@@ -29,8 +29,8 @@
       channel:manage:redemptions; the tokens stay in the dock's storage), the dock creates the rewards in REWARDS
       that are missing (by title; a reward made in the dashboard can't be read back by an app, so it never touches
       those), keeps them paused while OBS isn't streaming, and hears redemptions over EventSub: each plays its
-      effect and is marked done, or is refunded when it can't play (a scene without the sounds, Lance ruim outside
-      the game or already zooming). Redemptions left over from a closed dock are refunded when it opens. The
+      sound and is marked done, or is refunded when it can't play (a scene without the sounds). Only the sounds: the
+      scenes stay Luan's. Redemptions left over from a closed dock are refunded when it opens. The
       points don't give Σ: Twitch already pays them for watching, which Σ counts on its own.
     -->
     <style>
@@ -407,21 +407,16 @@
       const HELIX = "https://api.twitch.tv/helix"
       const BREAKS = ["Começando", "Já volto", "Fim"] // the scenes without the sounds (brand/twitch/obs.py)
       const KLEIN = "#002FA7"
-      // The rewards this dock makes and plays. Open to everyone: the cooldown keeps a sound from being spammed.
+      // The rewards this dock makes and plays: the sounds only (the scenes stay Luan's). Open to everyone; a viewer
+      // earns about 300 points an hour, and each sound's cooldown keeps it from being spammed.
       const REWARDS = [
-        { title: "Palmas", cost: 200, prompt: "Palmas na live.", cooldown: 30, play: () => sound("palmas") },
-        { title: "Uuuh", cost: 200, prompt: "O uuuh da torcida.", cooldown: 30, play: () => sound("uuuh") },
-        { title: "Tambor", cost: 200, prompt: "Rufem os tambores.", cooldown: 30, play: () => sound("tambor") },
-        { title: "Lance ruim", cost: 1000, prompt: "O zoom na cara do Luan depois de um lance ruim.", cooldown: 180, play: lanceRuim },
+        { title: "Palmas", cost: 300, prompt: "Palmas na live.", cooldown: 60, play: () => sound("palmas") },
+        { title: "Uuuh", cost: 300, prompt: "O uuuh da torcida.", cooldown: 60, play: () => sound("uuuh") },
+        { title: "Tambor", cost: 300, prompt: "Rufem os tambores.", cooldown: 60, play: () => sound("tambor") },
       ]
       function sound(som) {
         if (!ready || BREAKS.includes(current)) return false
         play(som)
-        return true
-      }
-      function lanceRuim() {
-        if (!ready || zooming || !GAME_SCENES.includes(current)) return false
-        request("SetCurrentProgramScene", { sceneName: LANCE })
         return true
       }
 
