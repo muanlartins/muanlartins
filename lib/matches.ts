@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import type { Session } from "@/lib/ranked"
+import type { ValorantSession } from "@/lib/valorant"
 
 /**
  * Every published session (content/matches/*.json), oldest first. Read at build time. Each session's
@@ -12,4 +13,14 @@ export function sessions(): Session[] {
     .filter((file) => file.endsWith(".json") && !file.endsWith(".events.json"))
     .sort()
     .map((file) => JSON.parse(readFileSync(join(folder, file), "utf8")) as Session)
+}
+
+/** Every published Valorant session (content/valorant/*.json), oldest first; none before the first. */
+export function valorantSessions(): ValorantSession[] {
+  const folder = join(process.cwd(), "content", "valorant")
+  if (!existsSync(folder)) return []
+  return readdirSync(folder)
+    .filter((file) => file.endsWith(".json"))
+    .sort()
+    .map((file) => JSON.parse(readFileSync(join(folder, file), "utf8")) as ValorantSession)
 }

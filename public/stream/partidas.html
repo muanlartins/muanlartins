@@ -31,6 +31,15 @@
       When a match ends it cuts to Conversa, and back to the game scene when the
       next one loads ("Trocar de cena sozinho").
 
+      Valorant has its own tab: scripts/valorant.py (on this PC, ?valorant= its
+      address) reads the Riot Client, so nothing is typed. The rank and RR come
+      from the game; each match's summary (result, score, map, agent, Luan's
+      K/D/A and more, teammates without names) arrives a little after it ends,
+      goes into the Valorant session and is published to content/valorant/ with
+      the same button. The tab follows the game that's open, and so do OBS's
+      stream and recording times. The end of a Valorant match cuts to Conversa
+      too, and agent select brings back the Valorant scene it left.
+
       The OBS websocket password and the GitHub token (fine-grained, Contents
       read and write on muanlartins/muanlartins only) are kept in the dock's
       storage; #obs=<password> in the URL fills the first one.
@@ -233,17 +242,45 @@
         gap: 8px;
         margin: 10px 0 0;
       }
+      .games {
+        margin: 12px 0 0;
+      }
+      #val-emblem {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+      }
+      #val-rank {
+        font-size: 18px;
+      }
+      #val-rank small {
+        margin-left: 6px;
+        color: var(--klein-claro);
+        font-size: 14px;
+      }
       details input:not([type="checkbox"]) {
         width: 100%;
       }
     </style>
   </head>
   <body>
-    <p class="status"><span id="game">Rocket League</span><span id="obs">OBS</span><span id="air" hidden></span><span id="site"></span></p>
+    <p class="status"><span id="game">Rocket League</span><span id="val">Valorant</span><span id="obs">OBS</span><span id="air" hidden></span><span id="site"></span></p>
     <p class="twin" id="twin" hidden>Outra cópia deste painel está aberta (no navegador?). Feche uma: as duas mandam placar e gols para a live.</p>
     <label class="check"><input type="checkbox" id="narrador" /> Galvão narrando os gols</label>
     <label class="check"><input type="checkbox" id="legenda" /> Legendas ao vivo</label>
+    <p class="row tabs games" id="games"><button data-jogo="rocket-league">Rocket League</button><button data-jogo="valorant">Valorant</button></p>
 
+    <section id="val-tab" hidden>
+      <h2>Ranque</h2>
+      <div class="row rank-row"><img id="val-emblem" alt="" /><span id="val-rank"></span></div>
+      <h2>Hoje <span id="val-date"></span></h2>
+      <p class="today" id="val-today"></p>
+      <h2>Partidas <span id="val-count"></span></h2>
+      <ul class="matches" id="val-matches"></ul>
+      <p class="note" id="val-empty">Nenhuma partida ainda. Cada uma entra sozinha um pouco depois de terminar (o resumo vem do histórico do Valorant).</p>
+    </section>
+
+    <section id="rl-tab">
     <h2>Ranque <span class="row tabs" id="modes"></span></h2>
     <div class="row rank-row">
       <img id="emblem" alt="" />
@@ -258,6 +295,7 @@
     <h2>Partidas <span id="count"></span></h2>
     <ul class="matches" id="matches"></ul>
     <p class="note" id="empty">Nenhuma partida ainda. Elas entram sozinhas quando cada uma termina.</p>
+    </section>
 
     <h2>Site</h2>
     <button class="primary" id="publish">Publicar sessões</button>
@@ -272,7 +310,7 @@
       </div>
       <p class="note">Para uma partida que o jogo não mandou, no modo selecionado.</p>
       <label class="check"><input type="checkbox" id="show" /> Mostrar ranque e placar na live</label>
-      <label class="check"><input type="checkbox" id="auto-scene" /> Trocar de cena sozinho (Conversa no fim da partida, o jogo na próxima)</label>
+      <label class="check"><input type="checkbox" id="auto-scene" /> Trocar de cena sozinho (Conversa no fim da partida, o jogo na próxima; no Valorant, na seleção de agentes)</label>
       <label for="obs-password">Senha do servidor WebSocket do OBS</label>
       <input type="password" id="obs-password" autocomplete="off" />
       <label for="token">Token do GitHub (só Contents deste repositório)</label>
@@ -301,8 +339,8 @@
       const MODES = ["1v1", "2v2", "3v3"]
       // After this long without a match, the next one starts a new session (a new stream).
       const SESSION_GAP_MS = 6 * 3600 * 1000
-      // OBS scenes: where a match is played, and where the talk between matches happens.
-      const GAME_SCENES = ["Jogo", "Jogo + chat"]
+      // OBS scenes: where a match is played (Rocket League's, Valorant's), and where the talk between matches happens.
+      const GAME_SCENES = ["Jogo", "Jogo + chat", "Valorant", "Valorant + chat"]
       const TALK_SCENE = "Conversa"
       // Seconds of the end screen the stream sees before cutting to the talk.
       const CUT_AFTER_S = 6
@@ -313,7 +351,7 @@
       // ?demo plays fake matches into its own storage, so the real sessions stay untouched.
       const KEY = params.has("demo") ? "partidas:demo" : "partidas:v1"
       const state = Object.assign(
-        { mode: "3v3", ranks: {}, sessions: [], show: true, autoScene: true, narrador: false, legenda: true, me: null, obsPassword: "", token: "" },
+        { mode: "3v3", ranks: {}, sessions: [], jogo: "rocket-league", val: { sessions: [], tier: null, rr: null }, show: true, autoScene: true, narrador: false, legenda: true, me: null, obsPassword: "", token: "" },
         JSON.parse(localStorage.getItem(KEY) || "{}"),
       )
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
@@ -402,12 +440,16 @@
         $("count").textContent = session.matches.length || ""
         $("empty").hidden = session.matches.length > 0
         $("matches").replaceChildren(...[...session.matches].reverse().map((m) => matchItem(session, m)))
-        const pending = state.sessions.filter((s) => s.dirty).length
+        const pending = state.sessions.filter((s) => s.dirty).length + state.val.sessions.filter((s) => s.dirty && s.matches.some((m) => m.counted)).length
         $("site").textContent = pending ? `${pending} sessão(ões) a publicar` : "Site em dia"
         $("site").className = pending ? "" : "on"
         $("obs-password").value = state.obsPassword
         $("token").value = state.token
         $("me").textContent = state.me ? `Você no jogo: ${state.me.name}` : "Você no jogo: descobre na primeira partida."
+        $("games").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.jogo === state.jogo)))
+        $("rl-tab").hidden = state.jogo !== "rocket-league"
+        $("val-tab").hidden = state.jogo !== "valorant"
+        renderValorant()
         broadcast()
       }
 
@@ -425,6 +467,99 @@
         li.querySelector('[data-act="flip"]').onclick = () => edit(session, () => (m.result = m.result === "win" ? "loss" : "win"))
         li.querySelector('[data-act="remove"]').onclick = () => edit(session, () => session.matches.splice(session.matches.indexOf(m), 1))
         return li
+      }
+
+      // --- Valorant: what scripts/valorant.py reads from the Riot Client ------------------------------
+      const VALORANT = params.get("valorant") ?? "http://127.0.0.1:8792"
+      const QUEUES = { competitive: "Competitiva", unrated: "Sem classificação", swiftplay: "Frenético", premier: "Premier", spikerush: "Disputa da Spike", "": "Personalizada" }
+      let valorant = { fase: null, aberto: false, ligado: false }
+      function valCurrent() {
+        const sessions = state.val.sessions
+        const last = sessions[sessions.length - 1]
+        const lastAt = last && (last.matches.length ? last.matches[last.matches.length - 1].at : last.start)
+        const airing = last?.outputs.some((o) => !o.end)
+        if (!last || (!airing && Date.now() - Date.parse(lastAt) > SESSION_GAP_MS)) {
+          const month = Date.now() - 30 * 86400 * 1000
+          state.val.sessions = sessions.filter((s) => (s.matches.length || s.outputs.length) && (s.dirty || Date.parse(s.start) > month))
+          const now = new Date()
+          state.val.sessions.push({ id: sessionId(now), start: now.toISOString(), outputs: [], matches: [], dirty: false })
+          save()
+        }
+        return state.val.sessions[state.val.sessions.length - 1]
+      }
+      /** The session the stream and recording times go to: the game open in the dock's tab. */
+      const airSession = () => (state.jogo === "valorant" ? valCurrent() : current())
+
+      function addValorant(match) {
+        const session = valCurrent()
+        if (state.val.sessions.some((s) => s.matches.some((m) => m.id === match.id))) return
+        // Only matches played since the session began (a dock opened late still gets them).
+        if (Date.parse(match.at) < Date.parse(session.start) - SESSION_GAP_MS) return
+        session.matches.push({ ...match, counted: match.queue === "competitive" })
+        if (match.rank?.tier) Object.assign(state.val, { tier: match.rank.tier, rr: match.rank.rr })
+        session.dirty = true
+        save()
+        render()
+      }
+
+      function renderValorant() {
+        const session = valCurrent()
+        const known = valorantTier(state.val.tier)
+        $("val-emblem").hidden = !known
+        if (known) $("val-emblem").src = `/ranks/valorant/${known[0]}.webp`
+        $("val-rank").innerHTML = known ? `${known[1]}${state.val.rr != null ? `<small>${state.val.rr} RR</small>` : ""}` : "Abra o Valorant"
+        const counted = session.matches.filter((m) => m.counted)
+        const wins = counted.filter((m) => m.result === "win").length
+        const losses = counted.filter((m) => m.result === "loss").length
+        const rr = counted.reduce((sum, m) => sum + (m.rr ?? 0), 0)
+        $("val-today").innerHTML = `${wins}V <span class="accent">·</span> ${losses}D${rr ? `<small>${rr > 0 ? "+" : ""}${rr} RR</small>` : ""}`
+        $("val-date").textContent = new Date(session.start).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+        $("val-count").textContent = session.matches.length || ""
+        $("val-empty").hidden = session.matches.length > 0
+        $("val-matches").replaceChildren(...[...session.matches].reverse().map((m) => valorantItem(session, m)))
+        $("val").className = valorant.aberto ? "on" : ""
+        $("val").textContent = !valorant.ligado ? "Valorant: ponte desligada" : valorant.aberto ? "Valorant aberto" : "Valorant fechado"
+      }
+
+      function valorantItem(session, m) {
+        const li = document.createElement("li")
+        li.className = `${m.result}${m.counted ? "" : " off"}`
+        const time = new Date(m.at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+        const shots = m.me.headshots + m.me.bodyshots + m.me.legshots
+        const hs = shots ? ` · HS ${Math.round((100 * m.me.headshots) / shots)}%` : ""
+        const acs = m.rounds ? ` · ACS ${Math.round(m.me.score / m.rounds)}` : ""
+        const rr = m.rr != null ? ` · ${m.rr > 0 ? "+" : ""}${m.rr} RR` : ""
+        li.innerHTML = `<span class="result">${{ win: "V", loss: "D", draw: "E" }[m.result]}</span>
+          <span><span>${m.score[0]}–${m.score[1]} · ${m.map} · ${m.agent}${rr}</span><br><span class="detail">${time} · ${QUEUES[m.queue] ?? m.queue} · ${m.me.kills}/${m.me.deaths}/${m.me.assists}${acs}${hs}</span></span>
+          <span class="actions"><button data-act="count" title="Conta no site?">${m.counted ? "conta" : "não conta"}</button><button data-act="remove" title="Apagar">✕</button></span>`
+        li.querySelector('[data-act="count"]').onclick = () => edit(session, () => (m.counted = !m.counted))
+        li.querySelector('[data-act="remove"]').onclick = () => edit(session, () => session.matches.splice(session.matches.indexOf(m), 1))
+        return li
+      }
+
+      function connectValorant() {
+        const source = new EventSource(`${VALORANT}/eventos`)
+        source.onopen = () => {
+          valorant.ligado = true
+          // Summaries from before the dock opened.
+          fetch(`${VALORANT}/resumos`).then((r) => r.json()).then((list) => list.forEach(addValorant)).catch(() => {})
+          render()
+        }
+        source.onerror = () => ((valorant.ligado = false), render())
+        source.onmessage = ({ data }) => {
+          const event = JSON.parse(data)
+          if (event.tipo === "fase") {
+            const was = valorant.fase
+            Object.assign(valorant, { fase: event.fase, aberto: !!event.aberto })
+            // The tab follows the game that's open.
+            if (event.aberto && !gameConnected && state.jogo !== "valorant") (state.jogo = "valorant"), save()
+            if (was && was !== event.fase && event.fase === "selecao") backToGame()
+          }
+          if (event.tipo === "partida") cutToTalk()
+          if (event.tipo === "ranque") state.val.tier = event.tier
+          if (event.tipo === "resumo") addValorant(event.partida)
+          render()
+        }
       }
 
       function edit(session, change) {
@@ -473,7 +608,8 @@
       $("legenda").onchange = () => ((state.legenda = $("legenda").checked), save(), broadcast())
       $("obs-password").onchange = () => ((state.obsPassword = $("obs-password").value), save(), obs.close())
       $("token").onchange = () => ((state.token = $("token").value.trim()), save())
-      $("new-session").onclick = () => (newSession(), render())
+      $("new-session").onclick = () => (state.jogo === "valorant" ? ((valCurrent(), state.val.sessions.push({ id: sessionId(new Date()), start: new Date().toISOString(), outputs: [], matches: [], dirty: false })), save()) : newSession(), render())
+      $("games").querySelectorAll("button").forEach((b) => (b.onclick = () => ((state.jogo = b.dataset.jogo), save(), render())))
       const manual = (result) => () => {
         const session = current()
         edit(session, () =>
@@ -675,7 +811,12 @@
       let gameConnected = false
       function connectGame() {
         const ws = new WebSocket("ws://127.0.0.1:49124")
-        ws.onopen = () => ((gameConnected = true), status())
+        ws.onopen = () => {
+          gameConnected = true
+          // The tab follows the game that's open.
+          if (state.jogo !== "rocket-league") (state.jogo = "rocket-league"), save(), render()
+          status()
+        }
         ws.onmessage = ({ data }) => onGame(data)
         ws.onerror = () => ws.close()
         ws.onclose = () => {
@@ -749,7 +890,7 @@
         if (!obsReady) return
         const rank = state.ranks[state.mode]
         // emPartida: a match is on, from its first countdown to its end; the Pix overlay holds "entre partidas" Pix.
-        const emPartida = Boolean(match?.started && !finished.has(match.guid))
+        const emPartida = Boolean(match?.started && !finished.has(match.guid)) || valorant.fase === "partida"
         const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, emPartida, ...record(current(), state.mode) }
         emit("muanlartins-partidas", detail)
         emit("muanlartins-torcida", { tipo: "narrador", ligado: state.narrador })
@@ -773,11 +914,12 @@
         const started = outputState === "OBS_WEBSOCKET_OUTPUT_STARTED"
         const stopped = outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED"
         if (!started && !stopped) return
-        let session = current()
+        let session = airSession()
         // A new stream after one that ended is a new session.
         if (started && kind === "stream" && session.outputs.some((o) => o.kind === "stream" && o.end)) {
-          newSession()
-          session = current()
+          if (state.jogo === "valorant") state.val.sessions.push({ id: sessionId(new Date()), start: new Date().toISOString(), outputs: [], matches: [], dirty: false })
+          else newSession()
+          session = airSession()
         }
         const open = session.outputs.findLast((o) => o.kind === kind && !o.end)
         if (started && !open) session.outputs.push({ kind, start: new Date().toISOString() })
@@ -794,7 +936,7 @@
         for (const [kind, type] of [["stream", "GetStreamStatus"], ["record", "GetRecordStatus"]]) {
           const status = await request(type)
           if (!status || params.has("demo")) continue
-          const session = current()
+          const session = airSession()
           const open = session.outputs.findLast((o) => o.kind === kind && !o.end)
           if (status.outputActive && !open) {
             session.outputs.push({ kind, start: new Date(Date.now() - status.outputDuration).toISOString() })
@@ -843,12 +985,18 @@
       // The session goes to <id>.json; its matches' logs, which only editing needs, to <id>.events.json.
       $("publish").onclick = async () => {
         const dirty = state.sessions.filter((s) => s.dirty)
+        const valDirty = state.val.sessions.filter((s) => s.dirty && s.matches.some((m) => m.counted))
         if (!state.token) return ($("publish-note").textContent = "Falta o token do GitHub, em Mais.")
-        if (!dirty.length) return ($("publish-note").textContent = "Nada novo para publicar.")
+        if (!dirty.length && !valDirty.length) return ($("publish-note").textContent = "Nada novo para publicar.")
         $("publish").disabled = true
         try {
           for (const session of dirty) {
             await publish(session)
+            session.dirty = false
+            save()
+          }
+          for (const session of valDirty) {
+            await publishValorant(session)
             session.dirty = false
             save()
           }
@@ -879,6 +1027,13 @@
           const events = { id: session.id, matches: logged.map((m) => ({ id: m.id, start: m.start, log: m.log })) }
           await put(`${FOLDER}/${session.id}.events.json`, events, `Record the match events of ${session.id.slice(0, 10)}`, false)
         }
+      }
+
+      // A Valorant session: content/valorant/<id>.json, the counted matches only.
+      async function publishValorant(session) {
+        const matches = session.matches.filter((m) => m.counted).map(({ counted, ...m }) => m)
+        const body = { id: session.id, game: "valorant", start: session.start, end: matches[matches.length - 1].at, outputs: session.outputs, matches }
+        await put(`content/valorant/${session.id}.json`, body, `Record the Valorant session of ${session.id.slice(0, 10)}`)
       }
 
       async function put(path, value, message, pretty = true) {
@@ -921,6 +1076,7 @@
         }, 4000)
       } else connectGame()
       connectObs()
+      if (!params.has("demo")) connectValorant()
     </script>
   </body>
 </html>
