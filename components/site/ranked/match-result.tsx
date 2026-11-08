@@ -16,7 +16,7 @@ export function MatchResult({ match }: { match: Match }) {
       <span
         className={cn(
           "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-[13px] font-semibold",
-          win ? "bg-klein text-paper" : "border border-zinc-300 text-muted",
+          win ? "bg-win text-paper" : "bg-loss text-paper",
         )}
       >
         {win ? T.W : T.L}

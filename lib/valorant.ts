@@ -86,8 +86,8 @@ export interface ValorantSummary {
   maps: { map: string; matches: number; wins: number }[]
   /** Newest first, each day's matches newest first, with the day's RR. */
   days: { date: string; matches: ValorantMatch[]; wins: number; losses: number; rr: number }[]
-  /** The viewers who played with Luan, most matches first. */
-  allies: { login: string; matches: number; wins: number }[]
+  /** The viewers who played with Luan, most matches first, with their averages in those matches. */
+  allies: { login: string; matches: number; wins: number; losses: number; rr: number; averages: { kills: number; deaths: number; assists: number } }[]
 }
 
 /** Every competitive match of these sessions, summed up for the ranked page. */
@@ -137,13 +137,18 @@ export function summarizeValorant(sessions: ValorantSession[]): ValorantSummary 
     day.rr += match.rr ?? 0
   }
 
-  const allies = new Map<string, { matches: number; wins: number }>()
+  const allies = new Map<string, { matches: number; wins: number; losses: number; rr: number; kills: number; deaths: number; assists: number }>()
   for (const m of matches) {
     for (const mate of m.mates ?? []) {
       if (!mate.login) continue
-      const entry = allies.get(mate.login) ?? { matches: 0, wins: 0 }
+      const entry = allies.get(mate.login) ?? { matches: 0, wins: 0, losses: 0, rr: 0, kills: 0, deaths: 0, assists: 0 }
       entry.matches++
       if (m.result === "win") entry.wins++
+      if (m.result === "loss") entry.losses++
+      entry.rr += m.rr ?? 0
+      entry.kills += mate.kills
+      entry.deaths += mate.deaths
+      entry.assists += mate.assists
       allies.set(mate.login, entry)
     }
   }
@@ -157,6 +162,12 @@ export function summarizeValorant(sessions: ValorantSession[]): ValorantSummary 
     agents: tally((m) => m.agent).map(([agent, counts]) => ({ agent, ...counts })),
     maps: tally((m) => m.map).map(([map, counts]) => ({ map, ...counts })),
     days,
-    allies: [...allies].map(([login, counts]) => ({ login, ...counts })).sort((a, b) => b.matches - a.matches || a.login.localeCompare(b.login)),
+    allies: [...allies]
+      .map(([login, { kills, deaths, assists, ...counts }]) => ({
+        login,
+        ...counts,
+        averages: { kills: kills / counts.matches, deaths: deaths / counts.matches, assists: assists / counts.matches },
+      }))
+      .sort((a, b) => b.matches - a.matches || a.login.localeCompare(b.login)),
   }
 }
