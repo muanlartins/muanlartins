@@ -8,7 +8,8 @@ import { longDate } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
 import { channelPath } from "@/lib/channel"
-import { gamePath } from "@/lib/game"
+import { slotsOf, slotText } from "@/lib/agenda"
+import { fundamentals, gamePath } from "@/lib/game"
 import { PIX_API } from "@/lib/pix"
 import type { Live } from "@/lib/lives"
 import { LINKS, localize, MURAL_SLUG, PIX_SLUG, profileSlug, type Locale } from "@/lib/site"
@@ -103,9 +104,13 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
       <section className="mt-16">
         <Heading>{T.games.title}</Heading>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {games.map((game, index) => (
-            <Card key={game.id} href={gamePath(game)} title={localize(game.title)} summary={localize(game.description)} language={game.roadmap.language}>
-              {index === 0 && <p className="text-[13px] text-muted">{T.games.first}</p>}
+          {games.map((game) => (
+            <Card key={game.id} href={gamePath(game)} title={localize(game.title)} summary={localize(game.description)} language={fundamentals(game).language}>
+              {slotsOf(game.id).map((slot) => (
+                <p key={slot.start} className="text-[13px] text-muted">
+                  {T.games.live}: {slotText(slot)}
+                </p>
+              ))}
             </Card>
           ))}
         </div>

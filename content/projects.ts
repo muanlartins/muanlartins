@@ -1,11 +1,8 @@
 import rocketLeagueHome from "@/content/rocket-league-home"
-import { gamePath } from "@/lib/game"
+import valorantHome from "@/content/valorant-home"
 import type { L10n, Locale } from "@/lib/site"
 
-/**
- * The content page: one entry per project, newest first. A project with
- * no `href` yet shows as "coming soon".
- */
+/** Something of Luan's elsewhere, linked from a game: an app, a playlist. */
 export interface Project {
   id: string
   name: L10n
@@ -23,13 +20,6 @@ export const page = {
   },
 }
 
-/** Each game gets a home at /conteudo/<id>, with its roadmap, its ranked record and its links (lib/game.ts). */
-export const games = [rocketLeagueHome]
+/** The content page lists them (components/site/game/game-list.tsx); each gets a home at /conteudo/<id>, with its roadmap, its ranked record and its links (lib/game.ts). */
+export const games = [rocketLeagueHome, valorantHome]
 
-export const projects: Project[] = games.map((game) => ({
-  id: game.id,
-  name: game.title,
-  summary: game.description,
-  href: gamePath(game),
-  language: game.roadmap.language,
-}))

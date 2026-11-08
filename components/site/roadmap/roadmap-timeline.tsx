@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/
 import dynamic from "next/dynamic"
 import { useCallback, useEffect, useState, type ReactNode } from "react"
 import { Timeline } from "@/components/ui/timeline"
+import { Crosshair } from "@/components/site/game/crosshair"
 import { RankHeader } from "@/components/site/roadmap/rank-header"
 import { CHANGE, currentRank, divisionOf, rankFills, useProgress, type Change, type Progress } from "@/lib/progress"
 import type { Paint } from "@/lib/roadmap"
@@ -34,10 +35,13 @@ export interface RankRow {
  * with its own topics; the ball waits on the visitor's rank, the lowest one
  * not finished. Moving up a rank, or a division within one (Bronze I → II),
  * is celebrated.
- * Scrolling only sets the scene: the Octane behind the page air rolls, and
- * it and the page take on the metal of the rank being read.
+ * Scrolling only sets the scene: the page takes on the metal of the rank
+ * being read, and in Rocket League's the Octane behind it air rolls in that
+ * paint. Valorant's crosshair takes the ball's place on the rail, and its
+ * divisions are numbered as the game does (Bronze 2).
  */
-export function RoadmapTimeline({ roadmap, ranks }: { roadmap: string; ranks: RankRow[] }) {
+export function RoadmapTimeline({ roadmap, ranks, look }: { roadmap: string; ranks: RankRow[]; /** Whose scene: a game's id. */ look?: string }) {
+  const rocketLeague = look === "rocket-league"
   const { progress } = useProgress(roadmap)
   const fills = rankFills(ranks, progress)
   const rank = currentRank(fills)
@@ -48,14 +52,14 @@ export function RoadmapTimeline({ roadmap, ranks }: { roadmap: string; ranks: Ra
     function onChange(event: Event) {
       const { detail } = event as CustomEvent<Change>
       if (detail.roadmap !== roadmap) return
-      const reached = promotion(ranks, detail.before, detail.after)
+      const reached = promotion(ranks, detail.before, detail.after, rocketLeague ? ROMAN : ARABIC)
       if (!reached) return
       setBanner((previous) => ({ ...reached, key: (previous?.key ?? 0) + 1 }))
       cheer(reached.color)
     }
     window.addEventListener(CHANGE, onChange)
     return () => window.removeEventListener(CHANGE, onChange)
-  }, [roadmap, ranks])
+  }, [roadmap, ranks, rocketLeague])
 
   useEffect(() => {
     if (!banner) return
@@ -80,14 +84,24 @@ export function RoadmapTimeline({ roadmap, ranks }: { roadmap: string; ranks: Ra
           />
         ))}
       </div>
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 opacity-20">
-        <Garage paint={ranks[reading] && (ranks[reading].paint ?? { color: ranks[reading].color })} />
-      </div>
+      {rocketLeague && (
+        <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 opacity-20">
+          <Garage paint={ranks[reading] && (ranks[reading].paint ?? { color: ranks[reading].color })} />
+        </div>
+      )}
 
       <Timeline
         fills={fills}
         current={rank}
-        marker={(tip) => <RollingBall distance={tip} size={BALL} />}
+        marker={(tip) =>
+          rocketLeague ? (
+            <RollingBall distance={tip} size={BALL} />
+          ) : (
+            <span className="grid place-items-center rounded-full bg-paper" style={{ width: BALL, height: BALL }}>
+              <Crosshair size={BALL - 6} />
+            </span>
+          )
+        }
         data={ranks.map((row, index) => ({
           id: row.id,
           dot: <RankDot color={row.color} reached={index <= rank} />,
@@ -133,23 +147,24 @@ const GLOWS = [
   ["40% 35%", "10% 90%", 22],
 ] as const
 
-const NUMERALS = ["I", "II", "III", "IV", "V"]
+const ROMAN = ["I", "II", "III", "IV", "V"]
+const ARABIC = ["1", "2", "3", "4", "5"]
 
-/** A rank's name with its division, when it has several: "Bronze II". */
-function rankName(rank: RankRow, division: number) {
-  return (rank.icons?.length ?? 0) > 1 ? `${rank.name} ${NUMERALS[division]}` : rank.name
+/** A rank's name with its division, when it has several: "Bronze II" (Valorant: "Bronze 2"). */
+function rankName(rank: RankRow, division: number, numerals: string[]) {
+  return (rank.icons?.length ?? 0) > 1 ? `${rank.name} ${numerals[division]}` : rank.name
 }
 
 /**
  * What a change earned, if anything: a new rank (the climb's lowest
  * unfinished rank went up), or else a new division within some rank.
  */
-function promotion(ranks: RankRow[], before: Progress, after: Progress) {
+function promotion(ranks: RankRow[], before: Progress, after: Progress, numerals: string[]) {
   const [was, now] = [rankFills(ranks, before), rankFills(ranks, after)]
   const reached = currentRank(now)
   if (reached > currentRank(was)) {
     if (reached === ranks.length) return { text: UI.roadmapDone, color: ranks[ranks.length - 1].color }
-    return { text: `${UI.rankUp} ${rankName(ranks[reached], 0)}`, color: ranks[reached].color }
+    return { text: `${UI.rankUp} ${rankName(ranks[reached], 0, numerals)}`, color: ranks[reached].color }
   }
   const index = ranks.findIndex((rank, index) => {
     const divisions = rank.icons?.length ?? 1
@@ -157,7 +172,7 @@ function promotion(ranks: RankRow[], before: Progress, after: Progress) {
   })
   if (index === -1) return undefined
   const rank = ranks[index]
-  return { text: `${UI.rankUp} ${rankName(rank, divisionOf(now[index], rank.icons?.length ?? 1))}`, color: rank.color }
+  return { text: `${UI.rankUp} ${rankName(rank, divisionOf(now[index], rank.icons?.length ?? 1), numerals)}`, color: rank.color }
 }
 
 /** A rank's diamond: hollow until the visitor reaches it, then lit, with a pop. */

@@ -10,18 +10,19 @@ import { TopicPage } from "@/components/site/roadmap/topic-page"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
 import { channelPath, type ChannelPage } from "@/lib/channel"
-import { GAME_PAGES, type GamePage } from "@/lib/game"
+import { fundamentals, GAME_PAGES, type GamePage } from "@/lib/game"
 import { matchMoments } from "@/lib/lives"
 import { lives, transcript } from "@/lib/lives-files"
 import { sessions } from "@/lib/matches"
 import { sectionMetadata } from "@/lib/metadata"
-import { entries, findTopic } from "@/lib/roadmap"
+import { editionSlug, entries, findTopic, type Roadmap } from "@/lib/roadmap"
 import { localize, sectionFromSlug, sectionPath } from "@/lib/site"
 
 /**
  * Pages under a section. In the content section, a game at
- * /conteudo/<project>: its home, its roadmap at /fundamentals, its ranked
- * record at /ranked, and each topic at /<topic>. In the channel, its lives
+ * /conteudo/<project>: its home, its roadmap at /fundamentals (an older
+ * edition at /fundamentals/v<n>), its ranked record at /ranked, and each
+ * topic, of any edition, at /<topic>. In the channel, its lives
  * at /canal/lives, each at /canal/lives/<date>, and its backstage at
  * /canal/backstage. One route for all, so a roadmap with no topics yet still
  * builds.
@@ -32,13 +33,17 @@ export const dynamicParams = false
 export function generateStaticParams() {
   const content = sectionPath("content").slice(1)
   const inGames = games.flatMap((game) => {
-    const topics = entries(game.roadmap).map(({ topic }) => topic.id)
+    // Every edition's topics share the game's URLs, so an id can't repeat across them.
+    const topics = game.roadmaps.flatMap((roadmap) => entries(roadmap).map(({ topic }) => topic.id))
     const taken = topics.find((id) => (GAME_PAGES as readonly string[]).includes(id))
     if (taken) throw new Error(`Topic "${taken}" has the id of one of ${game.id}'s pages; rename it.`)
+    const twice = topics.find((id, index) => topics.indexOf(id) !== index)
+    if (twice) throw new Error(`Topic "${twice}" is in two of ${game.id}'s editions; give the new one another id.`)
     const pages: string[] = ["fundamentals", ...(game.ranked ? ["ranked"] : [])]
     return [
       { section: content, project: game.id, topic: [] },
       ...[...pages, ...topics].map((id) => ({ section: content, project: game.id, topic: [id] })),
+      ...game.roadmaps.slice(1).map((roadmap) => ({ section: content, project: game.id, topic: ["fundamentals", editionSlug(roadmap)] })),
     ]
   })
   const section = sectionPath("channel").slice(1)
@@ -54,7 +59,7 @@ type Props = PageProps<"/[section]/[project]/[[...topic]]">
 
 type Found =
   | { channel: ChannelPage; live?: ReturnType<typeof lives>[number] }
-  | { game: (typeof games)[number]; page?: GamePage; entry?: ReturnType<typeof findTopic> }
+  | { game: (typeof games)[number]; page?: GamePage; roadmap?: Roadmap; entry?: NonNullable<ReturnType<typeof findTopic>> }
 
 async function find(params: Props["params"]): Promise<Found | undefined> {
   const { section, project, topic: [id, ...rest] = [] } = await params
@@ -66,14 +71,21 @@ async function find(params: Props["params"]): Promise<Found | undefined> {
     return live && { channel: "lives", live }
   }
   const game = games.find((game) => game.id === project)
-  if (sectionFromSlug(section) !== "content" || !game || rest.length > 0) return undefined
+  if (sectionFromSlug(section) !== "content" || !game) return undefined
+  if (id === "fundamentals" && rest.length === 1) {
+    const roadmap = game.roadmaps.slice(1).find((roadmap) => editionSlug(roadmap) === rest[0])
+    return roadmap && { game, page: "fundamentals", roadmap }
+  }
+  if (rest.length > 0) return undefined
   if (!id) return { game }
   if ((GAME_PAGES as readonly string[]).includes(id)) {
     if (id === "ranked" && !game.ranked) return undefined
-    return { game, page: id as GamePage }
+    return { game, page: id as GamePage, roadmap: id === "fundamentals" ? fundamentals(game) : undefined }
   }
-  const entry = findTopic(game.roadmap, id)
-  return entry && { game, entry }
+  for (const roadmap of game.roadmaps) {
+    const entry = findTopic(roadmap, id)
+    if (entry) return { game, roadmap, entry }
+  }
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -87,16 +99,19 @@ export async function generateMetadata({ params }: Props) {
     }
     return sectionMetadata("channel", channel[found.channel], `/${found.channel}`)
   }
-  const { game, page, entry } = found
-  if (page === "fundamentals") return sectionMetadata("content", game.roadmap, `/${game.id}/fundamentals`)
+  const { game, page, roadmap, entry } = found
+  if (page === "fundamentals" && roadmap) {
+    const latest = roadmap === fundamentals(game)
+    return sectionMetadata("content", roadmap, `/${game.id}/fundamentals${latest ? "" : `/${editionSlug(roadmap)}`}`)
+  }
   if (page === "ranked" && game.ranked) {
     const title = `${localize(game.ranked.title)} · ${localize(game.title)}`
     return sectionMetadata("content", { title, description: game.ranked.description }, `/${game.id}/ranked`)
   }
-  if (entry) {
+  if (entry && roadmap) {
     return sectionMetadata(
       "content",
-      { title: `${entry.title} · ${localize(game.roadmap.title)}`, description: entry.path },
+      { title: `${entry.title} · ${localize(roadmap.title)}`, description: entry.path },
       `/${game.id}/${entry.topic.id}`,
     )
   }
@@ -111,11 +126,11 @@ export default async function SectionSubpage({ params }: Props) {
     if (found.channel === "lives") return <LivesPage lives={lives()} sessions={sessions()} />
     return <BackstagePage />
   }
-  const { game, page, entry } = found
-  if (entry) return <TopicPage roadmap={game.roadmap} id={entry.topic.id} />
-  if (page === "fundamentals") return <RoadmapPage roadmap={game.roadmap} />
+  const { game, page, roadmap, entry } = found
+  if (entry && roadmap) return <TopicPage game={game} roadmap={roadmap} id={entry.topic.id} />
+  if (page === "fundamentals" && roadmap) return <RoadmapPage game={game} roadmap={roadmap} />
   // The roadmap's ranks, for each emblem's name and colour.
-  const ranks = game.roadmap.ranks.map((rank) => ({ id: rank.id, name: localize(rank.name), color: rank.color }))
+  const ranks = fundamentals(game).ranks.map((rank) => ({ id: rank.id, name: localize(rank.name), color: rank.color }))
   if (page === "ranked" && game.ranked) {
     return (
       <RankedPage
@@ -125,6 +140,7 @@ export default async function SectionSubpage({ params }: Props) {
         ranks={ranks}
         moments={matchMoments(lives().filter((live) => live.game === game.id))}
         livesPath={channelPath("lives")}
+        credits={localize(game.credits)}
       />
     )
   }

@@ -11,8 +11,8 @@ export const channel = {
   },
   /** A blank line starts a new paragraph. */
   intro: {
-    pt: "Cada vídeo pega uma técnica, mede o que funciona e mostra como treinar. Nas lives eu jogo ranqueadas, testo o que estou treinando e converso com quem está no chat.\n\nO primeiro jogo é o Rocket League. Os próximos entram aqui quando chegar a vez deles.",
-    en: "Each video takes one technique, measures what works and shows how to practice it. In the lives I play ranked, try what I'm practicing and talk with whoever is in the chat.\n\nThe first game is Rocket League. The next ones join here when their turn comes.",
+    pt: "Cada vídeo pega uma técnica, mede o que funciona e mostra como treinar. Nas lives eu jogo ranqueadas, testo o que estou treinando e converso com quem está no chat.\n\nHoje são dois jogos: Rocket League, nas tardes, e Valorant, que estou aprendendo do zero, nas noites de segunda e quarta.",
+    en: "Each video takes one technique, measures what works and shows how to practice it. In the lives I play ranked, try what I'm practicing and talk with whoever is in the chat.\n\nThere are two games now: Rocket League in the afternoons, and Valorant, which I'm learning from scratch, on Monday and Wednesday nights.",
   },
   watch: { pt: "Onde assistir", en: "Where to watch" },
   where: {
@@ -77,15 +77,14 @@ export const channel = {
       today: { pt: "hoje", en: "today" },
       tomorrow: { pt: "amanhã", en: "tomorrow" },
       subscribe: { pt: "Adicionar à sua agenda", en: "Add to your calendar" },
-      calendar: {
-        pt: "Live do muanlartins: ranqueadas de Rocket League",
-        en: "muanlartins live: Rocket League ranked",
-      },
+      /** The calendar's name, and each event's with its game after a colon. */
+      calendar: { pt: "Live do muanlartins", en: "muanlartins live" },
     },
   },
   games: {
     title: { pt: "Jogos", en: "Games" },
-    first: { pt: "Primeira etapa", en: "First stage" },
+    /** Before each game's slots in the agenda. */
+    live: { pt: "Ao vivo", en: "Live" },
   },
 
   pix: {
