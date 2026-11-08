@@ -1,5 +1,5 @@
-// Renders the stream's sound effects (public/stream/sons.js) to WAV files in brand/twitch/sons/, which OBS plays
-// as media sources (brand/twitch/obs.py; copy them to Documents\muanlartins-obs\sons on the stream PC).
+// Renders the stream's synthesized sound effects (public/stream/sons.js) to WAV files in public/stream/sons/, which
+// tocador.html plays on stream. (brand/twitch/sons/ keeps the first takes, from when OBS played them itself.)
 //
 //   CHROME=/path/to/chrome node brand/twitch/sons.mjs [name…]
 //
@@ -12,7 +12,7 @@ import { join } from "node:path"
 import { chromium } from "playwright-core"
 
 const SITE = new URL("../..", import.meta.url).pathname
-const OUT = join(SITE, "brand", "twitch", "sons")
+const OUT = join(SITE, "public", "stream", "sons")
 mkdirSync(OUT, { recursive: true })
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME, args: ["--no-sandbox"] })

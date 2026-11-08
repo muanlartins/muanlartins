@@ -1,7 +1,8 @@
-// The stream's sound effects, all synthesized here (no samples, so no rights to clear: they may go into the
-// recording and the YouTube VOD). Each recipe plays into any AudioContext, live or offline;
-// brand/twitch/sons.mjs renders them to WAV files, which OBS plays as media sources with hotkeys (the
-// "Efeitos" dock, efeitos.html, restarts them too). Plain script, no build: sets window.Sons.
+// The stream's synthesized sound effects (no samples, so no rights to clear: they may go into the recording and the
+// YouTube VOD): the bad play's sting, the crowd's "uuuh" and the drum roll. Each recipe plays into any AudioContext,
+// live or offline; brand/twitch/sons.mjs renders them to WAV files in public/stream/sons/, which tocador.html plays
+// (the applause there is a public-domain recording instead: see brand/README.md). Plain script, no build: sets
+// window.Sons.
 
 ;(() => {
   const semitone = (f, n) => f * 2 ** (n / 12)
@@ -110,19 +111,6 @@
       })
     } },
 
-    // Applause: two dozen people clapping, each at their own pace, swelling and fading.
-    palmas: { seconds: 3.4, play(ctx, out) {
-      const r = room(ctx, out, { seconds: 1.2, wet: 0.3 })
-      for (let p = 0; p < 26; p++) {
-        const pace = 0.2 + Math.random() * 0.12
-        const tone = 900 + Math.random() * 1600
-        for (let t = Math.random() * 0.3; t < 2.9; t += pace * (0.9 + Math.random() * 0.2)) {
-          const level = Math.min(1, t / 0.4) * Math.min(1, (3 - t) / 1.2)
-          burst(ctx, r, t, { seconds: 0.02 + Math.random() * 0.03, frequency: tone, q: 1.2, peak: 0.16 * level })
-        }
-      }
-    } },
-
     // The crowd's "uuuh": voices on an "u", sliding down together.
     uuuh: { seconds: 2.6, play(ctx, out) {
       const r = room(ctx, out, { seconds: 1.6, wet: 0.35 })
@@ -165,8 +153,8 @@
       burst(ctx, swell, 0, { seconds: 2.3, frequency: 500, q: 0.8, peak: 0.25, attack: 0.3 })
     } },
 
-    // A drum roll that builds to a crash.
-    tambor: { seconds: 3.2, play(ctx, out) {
+    // A drum roll that builds to one low hit, with no cymbal after it (Luan's call).
+    tambor: { seconds: 2.8, play(ctx, out) {
       const r = room(ctx, out, { seconds: 1.4, wet: 0.25 })
       for (let t = 0; t < 1.7; t += 0.042) {
         const level = 0.15 + 0.75 * (t / 1.7) ** 1.5
@@ -174,111 +162,6 @@
         drum(ctx, r, t, { from: 220, to: 170, seconds: 0.06, peak: level * 0.3, click: 0 })
       }
       drum(ctx, r, 1.75, { from: 90, to: 45, seconds: 0.9, peak: 1 })
-      burst(ctx, r, 1.75, { seconds: 1.4, type: "highpass", frequency: 5000, peak: 0.55 })
-      burst(ctx, r, 1.75, { seconds: 0.9, frequency: 3200, q: 3, peak: 0.25 })
-    } },
-
-    // The rimshot after a joke: ba-dum-tss.
-    badumtss: { seconds: 1.8, play(ctx, out) {
-      const r = room(ctx, out, { seconds: 0.9, wet: 0.2 })
-      drum(ctx, r, 0.0, { from: 200, to: 140, seconds: 0.25, peak: 0.8 })
-      drum(ctx, r, 0.2, { from: 130, to: 85, seconds: 0.3, peak: 0.9 })
-      drum(ctx, r, 0.45, { from: 70, to: 40, seconds: 0.3, peak: 0.7, click: 0 })
-      burst(ctx, r, 0.45, { seconds: 1.1, type: "highpass", frequency: 6500, peak: 0.5 })
-      burst(ctx, r, 0.45, { seconds: 0.5, frequency: 4200, q: 4, peak: 0.25 })
-    } },
-
-    // Suspense: a low drone and tremolo strings climbing, ending on a hit.
-    suspense: { seconds: 4.6, play(ctx, out) {
-      const r = room(ctx, out, { seconds: 2.5, wet: 0.4 })
-      const drone = ctx.createBiquadFilter()
-      drone.type = "lowpass"
-      drone.frequency.value = 400
-      const dg = ctx.createGain()
-      dg.gain.setValueAtTime(0, 0)
-      dg.gain.linearRampToValueAtTime(0.25, 1)
-      dg.gain.setValueAtTime(0.25, 3.6)
-      dg.gain.linearRampToValueAtTime(0, 3.7)
-      drone.connect(dg).connect(r)
-      for (const f of [73.42, 77.78, 110]) {
-        const osc = ctx.createOscillator()
-        osc.type = "sawtooth"
-        osc.frequency.value = f
-        osc.connect(drone)
-        osc.start(0)
-        osc.stop(3.8)
-      }
-      const strings = ctx.createGain()
-      strings.gain.setValueAtTime(0, 0)
-      strings.gain.linearRampToValueAtTime(0.12, 3.6)
-      strings.gain.setValueAtTime(0, 3.62)
-      const trem = ctx.createOscillator()
-      const tremDepth = ctx.createGain()
-      trem.frequency.value = 11
-      tremDepth.gain.value = 0.06
-      trem.connect(tremDepth).connect(strings.gain)
-      trem.start(0)
-      trem.stop(3.7)
-      const lp = ctx.createBiquadFilter()
-      lp.type = "lowpass"
-      lp.frequency.value = 3500
-      strings.connect(lp).connect(r)
-      for (const [f, d] of [[587.33, -6], [587.33, 5], [622.25, 0], [880, 3]]) {
-        const osc = ctx.createOscillator()
-        osc.type = "sawtooth"
-        osc.frequency.setValueAtTime(f, 0)
-        osc.frequency.linearRampToValueAtTime(semitone(f, 2), 3.6)
-        osc.detune.value = d
-        osc.connect(strings)
-        osc.start(0)
-        osc.stop(3.7)
-      }
-      drum(ctx, r, 3.62, { from: 80, to: 40, seconds: 1, peak: 1 })
-      brass(ctx, r, 3.62, 73.42, 0.6, { peak: 0.3 })
-    } },
-
-    // A stadium air horn: short, short, long.
-    buzina: { seconds: 2.2, play(ctx, out) {
-      const r = room(ctx, out, { seconds: 1.2, wet: 0.2 })
-      ;[[0, 0.16], [0.24, 0.16], [0.48, 1.0]].forEach(([t, s]) => {
-        const bp = ctx.createBiquadFilter()
-        bp.type = "peaking"
-        bp.frequency.value = 1400
-        bp.gain.value = 10
-        const g = envelope(ctx, t, { attack: 0.015, hold: s, release: 0.12, peak: 0.16 })
-        bp.connect(g).connect(r)
-        for (const [f, d] of [[349.23, -10], [349.23, 9], [440, -4], [440, 6], [523.25, 0]]) {
-          const osc = ctx.createOscillator()
-          osc.type = "sawtooth"
-          osc.frequency.setValueAtTime(f * 0.94, t)
-          osc.frequency.exponentialRampToValueAtTime(f, t + 0.05)
-          osc.detune.value = d
-          osc.connect(bp)
-          osc.start(t)
-          osc.stop(t + s + 0.15)
-        }
-      })
-    } },
-
-    // A spring: boing.
-    boing: { seconds: 1.2, play(ctx, out) {
-      const osc = ctx.createOscillator()
-      osc.type = "triangle"
-      osc.frequency.setValueAtTime(140, 0)
-      osc.frequency.exponentialRampToValueAtTime(320, 0.08)
-      osc.frequency.exponentialRampToValueAtTime(260, 0.9)
-      const lfo = ctx.createOscillator()
-      const depth = ctx.createGain()
-      lfo.frequency.value = 16
-      depth.gain.setValueAtTime(90, 0)
-      depth.gain.exponentialRampToValueAtTime(4, 0.9)
-      lfo.connect(depth).connect(osc.frequency)
-      const g = envelope(ctx, 0, { attack: 0.004, release: 0.95, peak: 0.6 })
-      osc.connect(g).connect(out)
-      osc.start(0)
-      lfo.start(0)
-      osc.stop(1.1)
-      lfo.stop(1.1)
     } },
   }
 

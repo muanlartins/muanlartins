@@ -22,6 +22,7 @@ import subprocess
 import sys
 import time
 import uuid
+import wave
 from pathlib import Path
 
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
@@ -31,7 +32,7 @@ STINGER = ARGS[0] if ARGS else f"{FOLDER}/transicao.webm"
 # With --apply, the alerts are the source OBS already has (its URL stays there): the new scenes just place it.
 FROM_OBS = "(o do OBS)"
 ALERTS = ARGS[1] if len(ARGS) > 1 else FROM_OBS if "--apply" in sys.argv else None
-# The sound effects (public/stream/sons.js, rendered by brand/twitch/sons.mjs), next to the stinger.
+# The sounds' triggers play a silent file from here, next to the stinger (`--apply` writes it).
 SOUNDS = f"{FOLDER}/sons"
 # Rocket League's window, matched by executable (priority 2) so a title change doesn't lose it.
 ROCKET_LEAGUE = "Rocket League (64-bit, DX11, Cooked):LaunchUnrealUWindowsClient:RocketLeague.exe"
@@ -122,7 +123,10 @@ crowd.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
 pix = browser("Pix", "pix.html")
 pix["settings"]["reroute_audio"] = True
 pix.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
-pix_in_talk = (pix, {"pos": (64, 548), "crop": (320, 110, 320, 660)})
+# Where the talk scenes show pix.html: only its alert band (top: 132, centred), from x 410, where the call and the
+# goal at its top left have ended (from 320 their edge showed as a sliver).
+PIX_BAND = (410, 110, 410, 660)
+pix_in_talk = (pix, {"pos": (154, 548), "crop": PIX_BAND})
 # Restarts when shown, so its drawing starts over each time the scene goes live. No countdown (Luan, 2026-11-06).
 starting = browser("Tela · Começando", "intervalo.html?tela=comecando", restart=True)
 back = browser("Tela · Já volto", "intervalo.html?tela=volto")
@@ -156,28 +160,29 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVE
 # --- Effects (the "Efeitos" dock, public/stream/efeitos.html) ---------------------------------------------------
 # Hotkeys are OBS's own, so they work with the game focused: the F-row, which Rocket League leaves free but for F1
 # (its console) and F10 (its stat graphs). F2 "Lance ruim", F3 "Terapia", F4 back to the main game scene; the sounds
-# on F5–F9, F11 and F12. `--apply` refuses a key that OBS already uses for something else.
+# palmas, uuuh and tambor on F5, F6 and F7. `--apply` refuses a key that OBS already uses for something else.
 HOTKEYS = {"Lance ruim": "OBS_KEY_F2", "Terapia": "OBS_KEY_F3", "Jogo + chat": "OBS_KEY_F4"}
 
 
-def sound(name, file, key=None, restart=False):
-    """A sound effect as a media source: `key` restarts it (hotkey); `restart` plays it whenever its scene goes live.
-    OBS plays every media source once when it loads it, so they start muted: the Efeitos dock unmutes one when its
-    hotkey restarts it and mutes it again when it ends (without the dock open, the hotkeys stay silent)."""
-    return source("ffmpeg_source", name, {"local_file": f"{SOUNDS}/{file}.wav", "is_local_file": True, "looping": False,
-                                          "restart_on_activate": restart, "close_when_inactive": False,
+def trigger(name, key):
+    """A sound's hotkey: a media source playing a silent file, which `key` restarts. The Efeitos dock hears the restart
+    and has the "Sons" browser source play the sound. OBS plays every media source once when it loads it, so sounds
+    kept in media sources all went off at once; this way that's silence."""
+    return source("ffmpeg_source", name, {"local_file": f"{SOUNDS}/silencio.wav", "is_local_file": True, "looping": False,
+                                          "restart_on_activate": False, "close_when_inactive": False,
                                           "clear_on_media_end": True, "hw_decode": False},
-                  volume=0.7, monitoring_type=MONITOR_AND_OUTPUT, muted=True,
-                  hotkeys={"MediaSource.Restart": [{"key": key}]} if key else {})
+                  muted=True, hotkeys={"MediaSource.Restart": [{"key": key}]})
 
 
-sounds = [sound(f"Som · {label}", file, key) for label, file, key in (
-    ("Palmas", "palmas", "OBS_KEY_F5"), ("Uuuh", "uuuh", "OBS_KEY_F6"), ("Buzina", "buzina", "OBS_KEY_F7"),
-    ("Suspense", "suspense", "OBS_KEY_F8"), ("Tambor", "tambor", "OBS_KEY_F9"),
-    ("Ba-dum-tss", "badumtss", "OBS_KEY_F11"), ("Boing", "boing", "OBS_KEY_F12"))]
-# "Lance ruim": the game's scene with the camera on top, which the dock zooms; the bars and the sting play each time.
+# tocador.html plays the sounds (public/stream/sons/), on every track and in Luan's headphones.
+player = browser("Sons", "tocador.html")
+player["settings"].update(width=64, height=64, fps=30, reroute_audio=True)
+player.update(monitoring_type=MONITOR_AND_OUTPUT, volume=0.7)
+sounds = [player] + [trigger(f"Som · {label}", key) for label, key in (
+    ("Palmas", "OBS_KEY_F5"), ("Uuuh", "OBS_KEY_F6"), ("Tambor", "OBS_KEY_F7"))]
+# "Lance ruim": the game's scene with the camera on top, which the dock zooms; the bars play each time, and the dock
+# has "Sons" play the sting.
 bad_play = browser("Efeito · Lance ruim", "lance.html", restart=True)
-sting = sound("Som · Lance ruim", "lance", restart=True)
 # "Terapia": water, breathing and music made by the page (so on every track, and in Luan's headphones); it starts
 # over each time and stops off screen.
 calm = browser("Tela · Terapia", "terapia.html", restart=True)
@@ -193,9 +198,9 @@ scenes = [
           (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {})),
     scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
     scene("Lance ruim", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
-          (camera, {"pos": (44, 740), "bounds": (480, 270)}), (bad_play, {}), (sting, {})),
+          (camera, {"pos": (44, 740), "bounds": (480, 270)}), (bad_play, {})),
     scene("Terapia", (camera, {"pos": (64, 64), "bounds": (560, 315)}), (calm, {}), *alerts_in_talk,
-          (pix, {"pos": (64, 760), "crop": (320, 110, 320, 660)})),
+          (pix, {"pos": (154, 760), "crop": PIX_BAND})),
     scene("Já volto", (back, {})),
     scene("Fim", (end, {})),
 ]
@@ -231,7 +236,7 @@ collection = {
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
     "sources": scenes + [game, camera, game_overlay, game_chat_overlay, chat_overlay, crowd, pix, starting, back, end,
-                         bad_play, sting, calm] + apps + sounds + ([alerts] if alerts else []),
+                         bad_play, calm] + apps + sounds + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
     "transitions": [stinger],
@@ -349,10 +354,11 @@ def apply(dry=False):
     LIVE.write_text(json.dumps(live, ensure_ascii=False, indent=4), encoding="utf-8")
     sons = Path("/mnt/c/Users/muanl/Documents/muanlartins-obs/sons")
     sons.mkdir(parents=True, exist_ok=True)
-    for wav in sorted((Path(__file__).parent / "sons").glob("*.wav")):
-        shutil.copy(wav, sons / wav.name)
+    with wave.open(str(sons / "silencio.wav"), "wb") as silence:  # the triggers' file: a tenth of a second
+        silence.setnchannels(1), silence.setsampwidth(2), silence.setframerate(48000)
+        silence.writeframes(bytes(2 * 4800))
     print("\n".join(added) or "nada novo na coleção")
-    print(f"sons copiados para {sons}")
+    print(f"silêncio dos gatilhos em {sons}")
     print("dock Efeitos adicionado" if add_dock() else "dock Efeitos já estava lá")
     print(f"cópias de antes: {LIVE.name}.antes-{stamp}, user.ini.antes-{stamp}")
 

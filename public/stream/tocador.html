@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Sons · muanlartins</title>
+    <!--
+      OBS: Browser source "Sons" (any size, it draws nothing) in the game and talk scenes, "Control audio via OBS"
+      on, so its sound goes to the stream and Luan's headphones. It plays the stream's sound effects, from sons/,
+      when the "Efeitos" dock (efeitos.html) tells it, through obs-browser's emit_event ("muanlartins-som",
+      { som: "palmas" }). The dock does it when a sound's hotkey restarts its trigger in OBS: a media source
+      "Som · …" that plays a silent file, since OBS plays every media source once when it loads, and a sound that
+      went off then would go off all at once. The bad play's sting plays as its scene goes live.
+
+      The files: palmas.wav is a public-domain recording (brand/README.md says which), the rest are made by sons.js
+      (brand/twitch/sons.mjs renders them). ?som=palmas plays one on a click, to try it in a browser.
+    -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const SONS = ["palmas", "uuuh", "tambor", "lance"]
+      const ctx = new AudioContext()
+      const out = ctx.createGain()
+      out.connect(ctx.destination)
+      const buffers = {}
+      for (const name of SONS) {
+        fetch(`sons/${name}.wav`)
+          .then((r) => r.arrayBuffer())
+          .then((bytes) => ctx.decodeAudioData(bytes))
+          .then((buffer) => (buffers[name] = buffer))
+      }
+      const playing = {}
+      /** Plays `name` from its start; pressed again while it plays, it starts over. */
+      function play(name) {
+        if (!buffers[name]) return
+        ctx.resume()
+        playing[name]?.stop()
+        const source = ctx.createBufferSource()
+        source.buffer = buffers[name]
+        source.connect(out)
+        source.start()
+        playing[name] = source
+        source.onended = () => playing[name] === source && delete playing[name]
+      }
+      addEventListener("muanlartins-som", ({ detail }) => play(detail?.som))
+      const tryOne = new URLSearchParams(location.search).get("som")
+      if (tryOne) addEventListener("click", () => play(tryOne))
+    </script>
+  </body>
+</html>

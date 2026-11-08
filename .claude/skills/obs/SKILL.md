@@ -30,8 +30,11 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   `brand/twitch/obs_video.py --apply`). RLR's studio switches to them to record and back; never switch while live.
 - Luan's choice: Discord is hidden in Jogo, Jogo + chat and Conversa, and the browser in the game scenes.
 - Effects (2026-11-07): scenes "Lance ruim" (cut in; the Efeitos dock zooms the camera and returns) and "Terapia"
-  (fade in), media sources "Som · …" (`public/stream/sons.js`, rendered by `brand/twitch/sons.mjs`). Hotkeys are on the
-  F-row (Rocket League binds F1 and F10): F2 Lance ruim, F3 Terapia, F4 Jogo + chat, sounds on F5–F9, F11, F12. `obs.py --apply` refuses a key OBS already uses.
+  (fade in), and the sounds: the browser source "Sons" (`public/stream/tocador.html`) plays them when the dock hears a
+  hotkey restart its trigger, a media source "Som · …" with a silent file (media sources play once when OBS loads, so
+  real sounds there went off all at once). Hotkeys are on the F-row (Rocket League binds F1 and F10): F2 Lance ruim,
+  F3 Terapia, F4 Jogo + chat, F5 palmas, F6 uuuh, F7 tambor. `obs.py --apply` refuses a key OBS already uses. OBS's own
+  cut and fade have names in its language ("Cortar", "Esmaecer"); the dock finds them by kind.
   `brand/twitch/obs.py --apply [--dry-run]` adds what's missing to the live collection without touching the rest.
 - Changes made by hand or by websocket should also land in `brand/twitch/obs.py`, which generates the scene
   collection (`python3 brand/twitch/obs.py [stinger path] [alerts URL] > muanlartins.json`; the alerts URL is a
