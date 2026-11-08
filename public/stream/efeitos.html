@@ -22,7 +22,10 @@
         sound. The bad play's sting plays the same way as its scene goes live. Without the dock open, they're silent.
 
       The two scenes' transitions are OBS's own cut and fade, found here by kind (OBS names them in its language) and
-      set as the scenes' transition overrides each time the dock connects.
+      set as the scenes' transition overrides each time the dock connects. Leaving them (the return from Lance ruim,
+      F4), the dock never touches OBS's current transition: it sets the destination's override, switches, and takes
+      the override back as OBS starts the transition (an event, not a timer, which a dock out of sight delays). A
+      switch asked for during a transition, which OBS would ignore, waits for it to end.
 
       The scenes' and sounds' hotkeys are OBS's own (brand/twitch/obs.py sets them), so they work with the game
       focused. The OBS websocket password is kept in the dock's storage; #obs=<password> in the URL fills it.
@@ -228,6 +231,7 @@
       const pending = new Map()
       const GENERAL = 1 << 0
       const SCENES = 1 << 2
+      const TRANSITIONS = 1 << 4
       const OUTPUTS = 1 << 6
       const MEDIA = 1 << 8
       const sha256 = async (text) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))))
@@ -237,7 +241,7 @@
         ws.onmessage = async ({ data }) => {
           const { op, d } = JSON.parse(data)
           if (op === 0) {
-            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES | OUTPUTS | MEDIA }
+            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES | TRANSITIONS | OUTPUTS | MEDIA }
             if (d.authentication) {
               const { challenge, salt } = d.authentication
               identify.authentication = await sha256((await sha256(state.obsPassword + salt)) + challenge)
@@ -253,6 +257,8 @@
             if (stream) onAir(stream.outputActive)
           } else if (op === 5) {
             if (d.eventType === "CurrentProgramSceneChanged") changed(d.eventData.sceneName)
+            if (d.eventType === "SceneTransitionStarted") transitionStarted()
+            if (d.eventType === "SceneTransitionEnded") transitionEnded()
             if (d.eventType === "MediaInputActionTriggered" && d.eventData.mediaAction.endsWith("RESTART")) triggered(d.eventData.inputName)
             if (d.eventType === "StreamStateChanged" && !d.eventData.outputState.endsWith("ING")) onAir(d.eventData.outputActive)
           } else if (op === 7) {
@@ -263,6 +269,7 @@
         ws.onerror = () => ws.close()
         ws.onclose = () => {
           ready = false
+          transitionEnded()
           onAir(false)
           for (const resolve of pending.values()) resolve(null)
           pending.clear()
@@ -312,19 +319,54 @@
         if (transitions.fade) request("SetSceneSceneTransitionOverride", { sceneName: TERAPIA, transitionName: transitions.fade, transitionDuration: 1500 })
       }
 
-      /** Switches with one of OBS's own transitions (cut, fade), then puts the usual one back. */
-      async function switchWith(kind, scene, ms = 0) {
-        const transition = transitions[kind]
-        if (!transition) return request("SetCurrentProgramScene", { sceneName: scene })
-        const usual = await request("GetCurrentSceneTransition")
-        await request("SetCurrentSceneTransition", { transitionName: transition })
-        if (ms) await request("SetCurrentSceneTransitionDuration", { transitionDuration: ms })
-        await request("SetCurrentProgramScene", { sceneName: scene })
-        setTimeout(async () => {
-          if (!usual) return
-          await request("SetCurrentSceneTransition", { transitionName: usual.transitionName })
-          if (usual.transitionDuration) request("SetCurrentSceneTransitionDuration", { transitionDuration: usual.transitionDuration })
-        }, ms + 300)
+      // OBS ignores a scene switch while a transition runs: one asked for then waits for its end (the last one asked).
+      let transitioning = false
+      let waiting = null
+      let safety = null
+      let restore = null // puts back the destination's own override, once OBS has started the transition
+      function transitionStarted() {
+        transitioning = true
+        clearTimeout(safety)
+        safety = setTimeout(transitionEnded, 5000) // in case the end never arrives
+        restore?.()
+        restore = null
+      }
+      function transitionEnded() {
+        transitioning = false
+        clearTimeout(safety)
+        const next = waiting
+        waiting = null
+        next?.()
+      }
+      /** Runs `action` now, or when the running transition ends. */
+      function whenFree(action) {
+        if (transitioning) waiting = action
+        else action()
+      }
+
+      /**
+       * Switches to `scene` with one of OBS's own transitions (cut, fade), as that scene's override for this switch
+       * only: OBS's current transition is never changed, so the switches after (Partidas' too) keep the usual one.
+       */
+      function switchWith(kind, scene, ms = 0) {
+        whenFree(async () => {
+          const transition = transitions[kind]
+          if (!transition) return request("SetCurrentProgramScene", { sceneName: scene })
+          const own = await request("GetSceneSceneTransitionOverride", { sceneName: scene })
+          await request("SetSceneSceneTransitionOverride", { sceneName: scene, transitionName: transition, transitionDuration: ms || 50 })
+          restore = () =>
+            request("SetSceneSceneTransitionOverride", {
+              sceneName: scene,
+              transitionName: own?.transitionName ?? null,
+              transitionDuration: own?.transitionDuration ?? null,
+            })
+          await request("SetCurrentProgramScene", { sceneName: scene })
+          // If OBS didn't start a transition (already on that scene), the override goes back anyway.
+          setTimeout(() => {
+            restore?.()
+            restore = null
+          }, 3000)
+        })
       }
 
       const easeOutBack = (x) => 1 + 2.2 * (x - 1) ** 3 + 1.2 * (x - 1) ** 2
@@ -380,14 +422,17 @@
 
       /** The game's Lance ruim: Valorant's after a Valorant scene, Rocket League's otherwise. */
       function lance() {
-        if (current && !LANCES.includes(current)) request("SetCurrentProgramScene", { sceneName: GAMES[game].lance })
+        whenFree(() => {
+          if (current && !LANCES.includes(current)) request("SetCurrentProgramScene", { sceneName: GAMES[game].lance })
+        })
       }
+      // Decided once free: pressed during the fade into Terapia, it leaves Terapia for the scene before.
       function voltar() {
-        switchWith("fade", current === TERAPIA ? before : GAMES[game].main, 1500)
+        whenFree(() => switchWith("fade", current === TERAPIA ? before : GAMES[game].main, 1500))
       }
 
       $("lance").onclick = lance
-      $("terapia").onclick = () => current !== TERAPIA && request("SetCurrentProgramScene", { sceneName: TERAPIA })
+      $("terapia").onclick = () => whenFree(() => current !== TERAPIA && request("SetCurrentProgramScene", { sceneName: TERAPIA }))
       $("voltar").onclick = voltar
 
       // --- Sounds ---------------------------------------------------------------------------------------------
