@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/
 import dynamic from "next/dynamic"
 import { useCallback, useEffect, useState, type ReactNode } from "react"
 import { Timeline } from "@/components/ui/timeline"
-import { Crosshair } from "@/components/site/game/crosshair"
+import UltOrb from "@/components/site/game/ult-orb"
 import { RankHeader } from "@/components/site/roadmap/rank-header"
 import { CHANGE, currentRank, divisionOf, rankFills, useProgress, type Change, type Progress } from "@/lib/progress"
 import type { Paint } from "@/lib/roadmap"
@@ -37,7 +37,8 @@ export interface RankRow {
  * is celebrated.
  * Scrolling only sets the scene: the page takes on the metal of the rank
  * being read, and in Rocket League's the Octane behind it air rolls in that
- * paint. Valorant's crosshair takes the ball's place on the rail, and its
+ * paint. In Valorant's an ultimate orb rolls down the rail in the ball's place
+ * (its agent stands behind the page, from the game's layout), and its
  * divisions are numbered as the game does (Bronze 2).
  */
 export function RoadmapTimeline({ roadmap, ranks, look }: { roadmap: string; ranks: RankRow[]; /** Whose scene: a game's id. */ look?: string }) {
@@ -94,13 +95,7 @@ export function RoadmapTimeline({ roadmap, ranks, look }: { roadmap: string; ran
         fills={fills}
         current={rank}
         marker={(tip) =>
-          rocketLeague ? (
-            <RollingBall distance={tip} size={BALL} />
-          ) : (
-            <span className="grid place-items-center rounded-full bg-paper" style={{ width: BALL, height: BALL }}>
-              <Crosshair size={BALL - 6} />
-            </span>
-          )
+          rocketLeague ? <RollingBall distance={tip} size={BALL} /> : <UltOrb distance={tip} size={BALL} />
         }
         data={ranks.map((row, index) => ({
           id: row.id,

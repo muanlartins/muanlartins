@@ -36,9 +36,9 @@ Each build bakes in one locale (`NEXT_PUBLIC_LOCALE`, see `lib/site.ts`):
 | Locale | Domain | Dev | Sections, in the header's order |
 |---|---|---|---|
 | pt (default) | muanlartins.com.br | `pnpm dev` → :3000 | `/` (the channel; `/canal` is the same page), `/conteudo`, `/pessoal`, `/profissional` |
-| en | muanlartins.com | `pnpm dev:en` → :3001 (`.next-en`) | `/` (`/channel`), `/content`, `/personal`, `/professional` |
+| en | muanlartins.com | `pnpm dev:en` → :3001 (`.next-en`) | `/` (Luan's life; `/personal` is the same page), `/professional`: nothing else, since his audience abroad is professional |
 
-`./run.sh` runs both with hot reload. Copy is written as `{ pt, en }` (`L10n`) and picked with `localize`. Content that exists in one language only, like the roadmap, sets `language`, and the other site marks it with a badge and asks YouTube for captions.
+`./run.sh` runs both with hot reload. Which site has which section is `SECTIONS_OF` and its home `HOME` in `lib/site.ts`; the English build skips the channel, the games, the profile, Pix and the mural (the game routes build one unlinked placeholder, `/_/_`, since a static export can't build none), the header's language switch shows only where the other site has the page, and the footer drops Twitch and YouTube there. The header names each section with an icon, and the footer shows the profiles as brand icons (`components/site/brand-icons.tsx`) with the privacy policy on its own line. Copy is written as `{ pt, en }` (`L10n`) and picked with `localize`. Content that exists in one language only, like the roadmap, sets `language`, and the other site marks it with a badge and asks YouTube for captions.
 
 Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand tokens in `app/globals.css` (the zinc ramp is redefined as Klein tints, so "gray" is bluish on purpose).
 
@@ -70,6 +70,8 @@ From Valorant on, a game's fundamentals are written as how Luan is learning it, 
 he learned about one concept, with the best sources he found credited under it (`sources` on a topic: title,
 author, link; the page lists them as "Onde aprendi"). Only what the game doesn't say anywhere: no settings, no
 menus, nothing the game's own screens explain. Topics come from Luan, a few at a time.
+
+Every game's fundamentals are the same page (`roadmap-page.tsx`): the rail with its ranks, each rank's topics or "coming soon", the game's marker rolling down it (Rocket League's 3D ball, Valorant's ultimate orb, `ult-orb.tsx`) and its scene behind (the Octane, an agent).
 
 A game can redo its fundamentals as a new **edition** (Rocket League's v2 will): a new roadmap file with a new `id`
 (the saved progress is per roadmap, so the old one's stays), the same `game` and `edition: 2`, put first in the

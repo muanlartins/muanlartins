@@ -17,7 +17,7 @@ import { lives, transcript } from "@/lib/lives-files"
 import { sessions, valorantSessions } from "@/lib/matches"
 import { sectionMetadata } from "@/lib/metadata"
 import { editionSlug, entries, findTopic, type Roadmap } from "@/lib/roadmap"
-import { localize, sectionFromSlug, sectionPath } from "@/lib/site"
+import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
 
 /**
  * Pages under a section. In the content section, a game at
@@ -32,6 +32,9 @@ import { localize, sectionFromSlug, sectionPath } from "@/lib/site"
 export const dynamicParams = false
 
 export function generateStaticParams() {
+  // The English site has no games or channel (lib/site.ts). A static export must build at least one page here, so it
+  // gets one that nothing links to and that is the "not found" page (`find` knows no "_").
+  if (!hasSection("content")) return [{ section: "_", project: "_", topic: [] }]
   const content = sectionPath("content").slice(1)
   const inGames = games.flatMap((game) => {
     // Every edition's topics share the game's URLs, so an id can't repeat across them.

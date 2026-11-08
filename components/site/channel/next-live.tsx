@@ -3,7 +3,7 @@
 import { CalendarDays, Play } from "lucide-react"
 import Link from "next/link"
 import { useSyncExternalStore } from "react"
-import { TwitchIcon, YouTubeIcon } from "@/components/site/channel/brand-icons"
+import { TwitchIcon, YouTubeIcon } from "@/components/site/brand-icons"
 import { GameIcon } from "@/components/site/game/game-icon"
 import { Pulse } from "@/components/site/lives/live-badge"
 import { channel } from "@/content/channel"
