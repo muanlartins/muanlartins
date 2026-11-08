@@ -23,6 +23,9 @@
       of each match's events (touches with their speed, goals, shots, saves,
       demos, crossbar hits), published next to the session as
       <session>.events.json, with players as roles (me, mate1, opp2), never names.
+      Teammates are kept as their numbers, but for the viewers in aliados.json
+      (who agreed to it), who get their Twitch login, so the site can show who
+      played with Luan.
       Goals and our saves go to the crowd (torcida.html) as they happen, and
       whether the narrator speaks on goals (off until switched on: it tires).
       When a match ends it cuts to Conversa, and back to the game scene when the
@@ -289,6 +292,12 @@
         34: "Torneio", 63: "Heatseeker",
       }
       const RANKED = new Set([10, 11, 13, 61, 27, 28, 29, 30])
+      // Viewers who agreed to be named on the site: in-game name → Twitch login.
+      const allies = new Map()
+      fetch("aliados.json", { cache: "no-store" })
+        .then((r) => r.json())
+        .then(({ aliados }) => aliados.forEach((a) => a.jogo.forEach((name) => allies.set(name.toLowerCase(), a.login))))
+        .catch(() => {})
       const MODES = ["1v1", "2v2", "3v3"]
       // After this long without a match, the next one starts a new session (a new stream).
       const SESSION_GAP_MS = 6 * 3600 * 1000
@@ -643,8 +652,13 @@
           score: [goals(team), goals(1 - team)],
           overtime: match.overtime,
           me: stats(self),
-          // Teammates by their numbers only: the site is public, their names stay out of it.
-          mates: everyone.filter((p) => p.TeamNum === team && playerKey(p) !== playerKey(self)).map(stats),
+          // Teammates by their numbers only (the site is public), but for the viewers who agreed to be named.
+          mates: everyone
+            .filter((p) => p.TeamNum === team && playerKey(p) !== playerKey(self))
+            .map((p) => {
+              const login = allies.get(String(p.Name).toLowerCase())
+              return login ? { ...stats(p), login } : stats(p)
+            }),
           rank: state.ranks[mode] || null,
           counted: RANKED.has(match.playlist),
           log: anonymized(self),
