@@ -230,9 +230,9 @@
 
       if (params.has("demo")) {
         connectedAt = Date.now() - SETTLE_MS
-        ;["rafa_rl", "giovana_gc", "tiagoboost"].forEach((name) => arrive(name))
+        ;["rafa", "giovana_gc", "tiago.mendes"].forEach((name) => arrive(name))
         $("status").textContent = "Demonstração."
-        const extras = ["platinadinho", "lucas_ssl", "nova_pessoa"]
+        const extras = ["marinamarina", "lucas_s", "nova_pessoa"]
         let i = 0
         setInterval(() => {
           const name = extras[i % extras.length]

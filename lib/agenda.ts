@@ -1,5 +1,6 @@
 import agenda from "@/content/agenda.json"
-import { HTML_LANG, LOCALE } from "@/lib/site"
+import { channel } from "@/content/channel"
+import { HTML_LANG, LOCALE, localize } from "@/lib/site"
 
 /**
  * When the lives are (`content/agenda.json`): weekly slots in the channel's
@@ -83,6 +84,30 @@ export function nextLive(now = new Date()): { start: Date; end: Date; game: stri
       .sort((a, b) => +a.start - +b.start)[0]
     if (found) return found
   }
+}
+
+const W = localize(channel.lives.agenda)
+
+/**
+ * When a live from `nextLive` is, from the viewer's clock: "agora", "hoje, 21h", "amanhã, 14h30" or the weekday,
+ * in Brasília time; and, when the viewer's clock differs, its start and end in their zone with the zone's city.
+ */
+export function whenOf(live: { start: Date; end: Date }, now: Date) {
+  const zone = AGENDA.timeZone
+  const day = (date: Date, timeZone?: string) => new Intl.DateTimeFormat("en-CA", { timeZone }).format(date)
+  const time = (date: Date, timeZone?: string) =>
+    clock(new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit" }).format(date))
+  let when: string
+  if (live.start <= now) when = W.now
+  else {
+    const ahead = Math.round((+new Date(day(live.start, zone)) - +new Date(day(now, zone))) / 86_400_000)
+    const name =
+      ahead === 0 ? W.today : ahead === 1 ? W.tomorrow : new Intl.DateTimeFormat(LANG, { weekday: "long", timeZone: zone }).format(live.start)
+    when = `${name}, ${time(live.start, zone)}`
+  }
+  const differs = time(live.start) !== time(live.start, zone)
+  const city = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/").pop()?.replaceAll("_", " ")
+  return { when, local: differs ? `${city}: ${time(live.start)}–${time(live.end)}` : undefined }
 }
 
 const ICS_DAYS = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"]

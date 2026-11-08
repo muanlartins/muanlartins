@@ -6,65 +6,54 @@
 export const channel = {
   title: { pt: "Canal", en: "Channel" },
   description: {
-    pt: "Evoluir nos jogos com o método científico, uma técnica por vídeo. Ao vivo na Twitch e em vídeo no YouTube, em português.",
-    en: "Getting better at games with the scientific method, one technique per video. Live on Twitch and in videos on YouTube, in Brazilian Portuguese.",
+    pt: "Aprendendo jogos com o método científico, ao vivo na Twitch e em vídeo no YouTube.",
+    en: "Learning games with the scientific method, live on Twitch and on video on YouTube.",
   },
-  /** A blank line starts a new paragraph. */
-  intro: {
-    pt: "Cada vídeo pega uma técnica, mede o que funciona e mostra como treinar. Nas lives eu jogo ranqueadas, testo o que estou treinando e converso com quem está no chat.\n\nHoje são dois jogos: Rocket League, nas tardes, e Valorant, que estou aprendendo, nas noites de segunda e quarta.",
-    en: "Each video takes one technique, measures what works and shows how to practice it. In the lives I play ranked, try what I'm practicing and talk with whoever is in the chat.\n\nThere are two games now: Rocket League in the afternoons, and Valorant, which I'm learning, on Monday and Wednesday nights.",
-  },
-  watch: { pt: "Onde assistir", en: "Where to watch" },
   where: {
-    twitch: { pt: "As lives, ao vivo", en: "The lives, live" },
-    youtube: { pt: "Os vídeos e as lives inteiras", en: "The videos and the lives in full" },
+    twitch: { pt: "Ao vivo", en: "Live" },
+    youtube: { pt: "Vídeos e lives", en: "Videos and streams" },
+  },
+  /** The home's first block: the live on air, or the next one. */
+  next: {
+    title: { pt: "Próxima live", en: "Next stream" },
+    onAir: { pt: "Ao vivo agora", en: "Live now" },
+    watch: { pt: "Assistir aqui", en: "Watch here" },
+    schedule: { pt: "Agenda", en: "Schedule" },
   },
 
-  /** What happens in a live, and the viewer's part in it. */
+  /** What happens in a live, and the viewer's part in it: one line each. */
   inside: {
     title: { pt: "Na live", en: "In the live" },
     crowd: {
-      title: { pt: "A arquibancada", en: "The stand" },
-      text: {
-        pt: "Quem está logado no chat vira um torcedor na arquibancada, embaixo do jogo, com o seu nome em cima. Quem chega primeiro fica na frente.",
-        en: "Everyone logged in to the chat becomes a fan in the stand under the game, with their name above them. Whoever got there first stands in front.",
-      },
+      text: { pt: "Quem está no chat vira torcedor na arquibancada.", en: "Everyone in the chat becomes a fan in the stand." },
       cta: { pt: "Monte o seu torcedor", en: "Build your fan" },
-      ctaHint: {
-        pt: "Cores, cabeça, roupa, acessório, comemoração, um grito de chegada e stickers. Você entra com a Twitch e ele já aparece assim na live.",
-        en: "Colors, head, outfit, accessory, celebration, an arrival shout and stickers. Sign in with Twitch and they show up like that in the live.",
-      },
     },
     moments: [
       {
-        title: { pt: "Gol nosso", en: "Our goal" },
-        text: {
-          pt: "A arquibancada comemora, cada um do seu jeito e com os seus stickers, e o gol é dedicado a alguém sorteado entre quem está lá. Às vezes tem narrador.",
-          en: "The stand celebrates, each fan their own way and with their own stickers, and the goal is dedicated to someone drawn from the stand. Sometimes there's a commentator.",
-        },
+        icon: "party",
+        title: { pt: "Gol ou round nosso", en: "Our goal or round" },
+        text: { pt: "Festa, stickers e uma dedicatória sorteada.", en: "A party, stickers and a dedication drawn by lot." },
       },
       {
-        title: { pt: "No chat", en: "In the chat" },
-        text: {
-          pt: "!pula e !danca mexem o seu torcedor; !ola passa uma ola pela arquibancada inteira. O que você escreve aparece num balão em cima dele.",
-          en: "!pula (jump) and !danca (dance) move your fan; !ola sends a wave through the whole stand. What you write shows in a balloon over them.",
-        },
+        icon: "chat",
+        title: { pt: "Comandos", en: "Commands" },
+        text: { pt: "!pula, !danca e !ola mexem a arquibancada.", en: "!pula, !danca and !ola move the stand." },
       },
       {
+        icon: "ranked",
         title: { pt: "Ranqueadas", en: "Ranked" },
-        text: {
-          pt: "O ranque e o placar do dia ficam em cima da câmera, e cada partida ranqueada vai para a página do jogo.",
-          en: "The rank and the day's record sit above the camera, and each ranked match goes to the game's page.",
-        },
+        text: { pt: "Ranque e placar na tela; cada partida no site.", en: "Rank and score on screen; every match on the site." },
       },
     ],
   },
 
+  more: { pt: "Mais do canal", en: "More of the channel" },
+
   lives: {
     title: { pt: "Lives", en: "Streams" },
     description: {
-      pt: "As lives da Twitch, inteiras. Quando estou no ar, dá para assistir aqui mesmo; depois, cada live fica com capítulos, as partidas e a transcrição do que eu falei.",
-      en: "The Twitch streams, in full. While I'm on air you can watch right here; afterwards, each stream keeps its chapters, the matches and a transcript of what I said.",
+      pt: "As lives inteiras, com capítulos, partidas e transcrição.",
+      en: "Every stream in full, with chapters, matches and a transcript.",
     },
     /** When the lives are; the times themselves are in content/agenda.json. */
     agenda: {
@@ -90,32 +79,32 @@ export const channel = {
   pix: {
     title: { pt: "Pix na live", en: "Pix on the live" },
     description: {
-      pt: "Sua mensagem na tela, lida pela voz que você escolher, com o Pix direto para o Luan.",
-      en: "Your message on screen, read by the voice you pick, with the Pix straight to Luan.",
+      pt: "Sua mensagem na tela, na voz que você escolher.",
+      en: "Your message on screen, in the voice you pick.",
     },
   },
 
   mural: {
     title: { pt: "Mural", en: "Mural" },
     description: {
-      pt: "Quem mandou Pix na live e quis aparecer, meta por meta, com o torcedor e os badges de cada um.",
-      en: "Everyone who sent a Pix on the live and wanted to show, goal by goal, with each one's fan and badges.",
+      pt: "Quem apoiou com Pix, meta por meta.",
+      en: "Who supported with Pix, goal by goal.",
     },
   },
 
   profile: {
     title: { pt: "Perfil", en: "Profile" },
     description: {
-      pt: "Monte o seu torcedor da arquibancada e veja o seu Σ, a sua sequência de lives e os seus badges.",
-      en: "Build your fan for the stand and see your Σ, your run of lives and your badges.",
+      pt: "Seu torcedor, seu Σ e seus badges.",
+      en: "Your fan, your Σ and your badges.",
     },
   },
 
   backstage: {
     title: { pt: "Bastidores", en: "Behind the scenes" },
     description: {
-      pt: "Como o canal é feito: a identidade visual, a live por dentro e o que acontece depois de cada live.",
-      en: "How the channel is made: the visual identity, the live from the inside and what happens after each one.",
+      pt: "Como a marca, a live e o site são feitos.",
+      en: "How the brand, the stream and the site are made.",
     },
     mark: {
       title: { pt: "A marca", en: "The mark" },
