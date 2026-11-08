@@ -14,9 +14,10 @@
         their goals (Partidas sends them).
       - Terapia (F3): the calm scene (terapia.html), faded in; "Voltar ao jogo" (F4, the main game scene)
         leaves it, faded from here.
-      - Sons: the effects made by sons.js, each a media source with its own hotkey (F5–F9, F11, F12), restarted here.
-        OBS plays every media source once when it loads it, so they stay muted: this dock unmutes one while it plays
-        (the hotkey's restart tells it) and mutes it when it ends. Without the dock open, the hotkeys are silent.
+      - Sons: palmas (F5), uuuh (F6) and tambor (F7). Each hotkey restarts a trigger in OBS, a media source
+        "Som · …" playing a silent file (OBS plays every media source once when it loads, so real sounds there all
+        went off at once); this dock hears the restart and has tocador.html, the "Sons" browser source, play the
+        sound. The bad play's sting plays the same way as its scene goes live. Without the dock open, they're silent.
 
       The two scenes' transitions are OBS's own cut and fade, found here by kind (OBS names them in its language) and
       set as the scenes' transition overrides each time the dock connects.
@@ -151,16 +152,12 @@
       const GAME_SCENES = ["Jogo", "Jogo + chat"]
       const CAMERA = "Câmera"
       const HOLD = 4000
-      const STING = "Som · Lance ruim" // restarts on its own when the scene goes live
-      // Name on the button, OBS's media source (brand/twitch/obs.py) and its hotkey.
+      // Name on the button, OBS's trigger (a silent media source, brand/twitch/obs.py), its hotkey and the sound
+      // tocador.html plays.
       const SONS = [
-        ["Palmas", "Som · Palmas", "F5"],
-        ["Uuuh", "Som · Uuuh", "F6"],
-        ["Buzina", "Som · Buzina", "F7"],
-        ["Suspense", "Som · Suspense", "F8"],
-        ["Tambor", "Som · Tambor", "F9"],
-        ["Ba-dum-tss", "Som · Ba-dum-tss", "F11"],
-        ["Boing", "Som · Boing", "F12"],
+        ["Palmas", "Som · Palmas", "F5", "palmas"],
+        ["Uuuh", "Som · Uuuh", "F6", "uuuh"],
+        ["Tambor", "Som · Tambor", "F7", "tambor"],
       ]
 
       const KEY = "efeitos"
@@ -214,8 +211,7 @@
           } else if (op === 5) {
             if (d.eventType === "CurrentProgramSceneChanged") changed(d.eventData.sceneName)
             if (d.eventType === "CustomEvent" && d.eventData?.efeito === "golDeles") theirGoal()
-            if (d.eventType === "MediaInputActionTriggered" && d.eventData.mediaAction.endsWith("RESTART")) play(d.eventData.inputName)
-            if (d.eventType === "MediaInputPlaybackEnded") quiet(d.eventData.inputName)
+            if (d.eventType === "MediaInputActionTriggered" && d.eventData.mediaAction.endsWith("RESTART")) triggered(d.eventData.inputName)
           } else if (op === 7) {
             pending.get(d.requestId)?.(d.requestStatus.result ? (d.responseData ?? {}) : null)
             pending.delete(d.requestId)
@@ -252,7 +248,7 @@
         if (scene !== LANCE && scene !== TERAPIA) before = scene
         $("lance").classList.toggle("active", scene === LANCE)
         $("terapia").classList.toggle("active", scene === TERAPIA)
-        if (scene === LANCE) play(STING)
+        if (scene === LANCE) play("lance")
         if (scene === LANCE && !zooming) zoom()
       }
 
@@ -266,7 +262,6 @@
         }
         if (transitions.cut) request("SetSceneSceneTransitionOverride", { sceneName: LANCE, transitionName: transitions.cut, transitionDuration: 50 })
         if (transitions.fade) request("SetSceneSceneTransitionOverride", { sceneName: TERAPIA, transitionName: transitions.fade, transitionDuration: 1500 })
-        for (const input of [...SONS.map(([, i]) => i), STING]) request("SetInputMute", { inputName: input, inputMuted: true })
       }
 
       /** Switches with one of OBS's own transitions (cut, fade), then puts the usual one back. */
@@ -347,9 +342,14 @@
       $("voltar").onclick = () => switchWith("fade", current === TERAPIA ? before : MAIN, 1500)
 
       // --- Sounds ---------------------------------------------------------------------------------------------
-      const SOUND = new Set([...SONS.map(([, i]) => i), STING])
-      const play = (input) => SOUND.has(input) && request("SetInputMute", { inputName: input, inputMuted: false })
-      const quiet = (input) => SOUND.has(input) && request("SetInputMute", { inputName: input, inputMuted: true })
+      /** Has tocador.html play a sound (obs-browser hands the event to every browser source). */
+      function play(som) {
+        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-som", event_data: { som } } })
+      }
+      function triggered(input) {
+        const found = SONS.find(([, i]) => i === input)
+        if (found) play(found[3])
+      }
       for (const [label, input, key] of SONS) {
         const b = document.createElement("button")
         b.innerHTML = `<span></span><kbd>${key}</kbd>`
