@@ -15,6 +15,11 @@
       - Terapia (F3): the calm scene (terapia.html), faded in; "Voltar ao jogo" (F4, the main game scene)
         leaves it, faded from here.
       - Sons: the effects made by sons.js, each a media source with its own hotkey (F5–F9, F11, F12), restarted here.
+        OBS plays every media source once when it loads it, so they stay muted: this dock unmutes one while it plays
+        (the hotkey's restart tells it) and mutes it when it ends. Without the dock open, the hotkeys are silent.
+
+      The two scenes' transitions are OBS's own cut and fade, found here by kind (OBS names them in its language) and
+      set as the scenes' transition overrides each time the dock connects.
 
       The scenes' and sounds' hotkeys are OBS's own (brand/twitch/obs.py sets them), so they work with the game
       focused. The OBS websocket password is kept in the dock's storage; #obs=<password> in the URL fills it.
@@ -146,6 +151,7 @@
       const GAME_SCENES = ["Jogo", "Jogo + chat"]
       const CAMERA = "Câmera"
       const HOLD = 4000
+      const STING = "Som · Lance ruim" // restarts on its own when the scene goes live
       // Name on the button, OBS's media source (brand/twitch/obs.py) and its hotkey.
       const SONS = [
         ["Palmas", "Som · Palmas", "F5"],
@@ -185,6 +191,7 @@
       const pending = new Map()
       const GENERAL = 1 << 0
       const SCENES = 1 << 2
+      const MEDIA = 1 << 8
       const sha256 = async (text) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))))
       function connect() {
         const ws = new WebSocket("ws://127.0.0.1:4455")
@@ -192,7 +199,7 @@
         ws.onmessage = async ({ data }) => {
           const { op, d } = JSON.parse(data)
           if (op === 0) {
-            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES }
+            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES | MEDIA }
             if (d.authentication) {
               const { challenge, salt } = d.authentication
               identify.authentication = await sha256((await sha256(state.obsPassword + salt)) + challenge)
@@ -201,11 +208,14 @@
           } else if (op === 2) {
             ready = true
             status()
+            await setup()
             const scene = await request("GetCurrentProgramScene")
             if (scene) changed(scene.sceneName)
           } else if (op === 5) {
             if (d.eventType === "CurrentProgramSceneChanged") changed(d.eventData.sceneName)
             if (d.eventType === "CustomEvent" && d.eventData?.efeito === "golDeles") theirGoal()
+            if (d.eventType === "MediaInputActionTriggered" && d.eventData.mediaAction.endsWith("RESTART")) play(d.eventData.inputName)
+            if (d.eventType === "MediaInputPlaybackEnded") quiet(d.eventData.inputName)
           } else if (op === 7) {
             pending.get(d.requestId)?.(d.requestStatus.result ? (d.responseData ?? {}) : null)
             pending.delete(d.requestId)
@@ -242,11 +252,27 @@
         if (scene !== LANCE && scene !== TERAPIA) before = scene
         $("lance").classList.toggle("active", scene === LANCE)
         $("terapia").classList.toggle("active", scene === TERAPIA)
+        if (scene === LANCE) play(STING)
         if (scene === LANCE && !zooming) zoom()
       }
 
-      /** Switches with a given transition (Corte, Fade), then puts the usual one back. */
-      async function switchWith(transition, scene, ms = 0) {
+      // OBS's own cut and fade, by kind: their names are in OBS's language ("Cortar", "Esmaecer").
+      const transitions = { cut: null, fade: null }
+      async function setup() {
+        const list = await request("GetSceneTransitionList")
+        for (const t of list?.transitions ?? []) {
+          if (t.transitionKind === "cut_transition") transitions.cut = t.transitionName
+          if (t.transitionKind === "fade_transition") transitions.fade = t.transitionName
+        }
+        if (transitions.cut) request("SetSceneSceneTransitionOverride", { sceneName: LANCE, transitionName: transitions.cut, transitionDuration: 50 })
+        if (transitions.fade) request("SetSceneSceneTransitionOverride", { sceneName: TERAPIA, transitionName: transitions.fade, transitionDuration: 1500 })
+        for (const input of [...SONS.map(([, i]) => i), STING]) request("SetInputMute", { inputName: input, inputMuted: true })
+      }
+
+      /** Switches with one of OBS's own transitions (cut, fade), then puts the usual one back. */
+      async function switchWith(kind, scene, ms = 0) {
+        const transition = transitions[kind]
+        if (!transition) return request("SetCurrentProgramScene", { sceneName: scene })
         const usual = await request("GetCurrentSceneTransition")
         await request("SetCurrentSceneTransition", { transitionName: transition })
         if (ms) await request("SetCurrentSceneTransitionDuration", { transitionDuration: ms })
@@ -303,7 +329,7 @@
           await animate(id, to, to, 450, (x) => x, 26 * (W / 1920))
           await wait(Math.max(0, HOLD - 300 - (performance.now() - started)))
           await animate(id, to, from, 280, easeInCubic)
-          if (current === LANCE) await switchWith("Corte", before)
+          if (current === LANCE) await switchWith("cut", before)
         } finally {
           zooming = false
         }
@@ -318,9 +344,12 @@
 
       $("lance").onclick = () => current !== LANCE && request("SetCurrentProgramScene", { sceneName: LANCE })
       $("terapia").onclick = () => current !== TERAPIA && request("SetCurrentProgramScene", { sceneName: TERAPIA })
-      $("voltar").onclick = () => switchWith("Fade", current === TERAPIA ? before : MAIN, 1500)
+      $("voltar").onclick = () => switchWith("fade", current === TERAPIA ? before : MAIN, 1500)
 
       // --- Sounds ---------------------------------------------------------------------------------------------
+      const SOUND = new Set([...SONS.map(([, i]) => i), STING])
+      const play = (input) => SOUND.has(input) && request("SetInputMute", { inputName: input, inputMuted: false })
+      const quiet = (input) => SOUND.has(input) && request("SetInputMute", { inputName: input, inputMuted: true })
       for (const [label, input, key] of SONS) {
         const b = document.createElement("button")
         b.innerHTML = `<span></span><kbd>${key}</kbd>`
