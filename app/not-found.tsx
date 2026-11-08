@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { SECTIONS, UI, sectionPath } from "@/lib/site"
+import { SECTIONS, UI, sectionHref } from "@/lib/site"
 
 export const metadata: Metadata = { title: "404" }
 
@@ -75,7 +75,7 @@ export default function NotFound() {
           {SECTIONS.map((section) => (
             <Link
               key={section}
-              href={sectionPath(section)}
+              href={sectionHref(section)}
               className="rounded-md border border-line px-4 py-2 text-[15px] text-klein transition-colors hover:border-klein hover:bg-klein hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-klein"
             >
               {UI.sections[section]}

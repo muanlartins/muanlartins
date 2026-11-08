@@ -1,7 +1,7 @@
 import { GameMenu } from "@/components/site/game/game-menu"
 import { channel } from "@/content/channel"
 import { channelPath } from "@/lib/channel"
-import { localize, MURAL_SLUG, PIX_SLUG, profileSlug } from "@/lib/site"
+import { localize, MURAL_SLUG, PIX_SLUG, profileSlug, sectionPath } from "@/lib/site"
 
 const LABELS = localize({
   home: { pt: "Início", en: "Home" },
@@ -10,7 +10,7 @@ const LABELS = localize({
 })
 
 /**
- * The channel's pages, in the margin like a game's: its home, the lives, Pix, the mural, the viewer's profile and
+ * The channel's pages, in the margin like a game's: its home (the site's), the lives, Pix, the mural, the viewer's profile and
  * the backstage. Pix, the mural and the profile live at the site's root (short to say on stream, and /perfil is
  * where Twitch sends sign-ins back), but they're the channel's.
  */
@@ -20,6 +20,7 @@ export function ChannelMenu() {
     <GameMenu
       title={T.title}
       home={channelPath()}
+      alias={sectionPath("channel")}
       items={[
         { label: LABELS.home, href: channelPath() },
         { label: T.lives.title, href: channelPath("lives") },

@@ -17,26 +17,25 @@ import {
   privacyUrl,
   profileSlug,
   profileUrl,
+  homeUrl,
+  sectionHref,
   sectionPath,
   sectionUrl,
   type Section,
 } from "@/lib/site"
 
-function currentSection(pathname: string): Section {
-  return (
-    SECTIONS.find(
-      (section) => section !== "personal" && pathname.startsWith(sectionPath(section)),
-    ) ?? "personal"
-  )
+/** The section a page is in; the home page is the channel's. */
+function currentSection(page: string): Section | undefined {
+  if (page === "") return "channel"
+  return SECTIONS.find((section) => page === sectionPath(section) || page.startsWith(`${sectionPath(section)}/`))
 }
 
 /** `lives`: the lives page, where the "live" pill leads while the channel is on air. */
 export function SiteHeader({ lives }: { lives?: string }) {
-  const pathname = usePathname()
-  const current = currentSection(pathname)
+  const page = usePathname().replace(/\/$/, "")
+  const current = currentSection(page)
   // Pages under a section keep the same path in both languages.
-  const subpath = current === "personal" ? "" : pathname.slice(sectionPath(current).length)
-  const page = pathname.replace(/\/$/, "")
+  const subpath = current && page.startsWith(sectionPath(current)) ? page.slice(sectionPath(current).length) : ""
   const onPrivacy = page === `/${privacySlug()}`
   const onProfile = page === `/${profileSlug()}`
   // The profile, Pix and the mural sit beside the sections, but they're the channel's: its menu has them.
@@ -50,7 +49,9 @@ export function SiteHeader({ lives }: { lives?: string }) {
         ? pixUrl(OTHER_LOCALE)
         : page === `/${MURAL_SLUG}`
           ? muralUrl(OTHER_LOCALE)
-          : sectionUrl(current, OTHER_LOCALE) + subpath
+          : current && page !== ""
+            ? sectionUrl(current, OTHER_LOCALE) + subpath
+            : homeUrl(OTHER_LOCALE)
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-xl">
@@ -67,18 +68,18 @@ export function SiteHeader({ lives }: { lives?: string }) {
           </span>
         </Link>
 
-        {/* Four sections don't fit a phone: there the mark is the way home, and "Pessoal" steps out. */}
+        {/* Four sections don't fit a phone: there "Profissional" steps out. */}
         <div className="flex items-center gap-3 text-[13px] sm:gap-7 sm:text-[14px]">
           {lives && <LiveBadge href={lives} />}
           {SECTIONS.map((section) => (
             <Link
               key={section}
-              href={sectionPath(section)}
+              href={sectionHref(section)}
               aria-current={section === shown ? "page" : undefined}
               className={cn(
                 "transition-colors hover:text-klein",
                 section === shown ? "text-klein" : "text-muted",
-                section === "personal" && "hidden sm:inline",
+                section === "professional" && "hidden sm:inline",
               )}
             >
               {UI.sections[section]}

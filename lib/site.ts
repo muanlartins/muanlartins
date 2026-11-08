@@ -17,11 +17,12 @@ const ORIGINS: Record<Locale, string> =
 
 export const ORIGIN = ORIGINS[LOCALE]
 
-export const SECTIONS: Section[] = ["personal", "professional", "content", "channel"]
+/** In the header's order. The channel is the home page (`sectionHref`); its pages live under /canal. */
+export const SECTIONS: Section[] = ["channel", "content", "personal", "professional"]
 
 const SLUGS: Record<Locale, Record<Section, string>> = {
-  pt: { personal: "", professional: "profissional", content: "conteudo", channel: "canal" },
-  en: { personal: "", professional: "professional", content: "content", channel: "channel" },
+  pt: { personal: "pessoal", professional: "profissional", content: "conteudo", channel: "canal" },
+  en: { personal: "personal", professional: "professional", content: "content", channel: "channel" },
 }
 
 export function sectionPath(section: Section, locale: Locale = LOCALE) {
@@ -30,6 +31,16 @@ export function sectionPath(section: Section, locale: Locale = LOCALE) {
 
 export function sectionUrl(section: Section, locale: Locale = LOCALE) {
   return `${ORIGINS[locale]}${sectionPath(section, locale)}`
+}
+
+/** Where a link to a section goes: the channel's home is the site's. */
+export function sectionHref(section: Section, locale: Locale = LOCALE) {
+  return section === "channel" ? "/" : sectionPath(section, locale)
+}
+
+/** The site's home in a language: the channel. */
+export function homeUrl(locale: Locale = LOCALE) {
+  return `${ORIGINS[locale]}/`
 }
 
 export function sectionFromSlug(slug: string): Section | undefined {
