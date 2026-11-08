@@ -181,6 +181,79 @@ function recordPlate(el, hole, band) {
   }, 5000)
 }
 
+/** Valorant's competitive tiers by Riot's number (3 Iron 1 … 27 Radiant), as the emblems in /ranks/valorant/ are named. */
+const VALORANT_TIERS = [
+  ...["iron", "bronze", "silver", "gold", "platinum", "diamond", "ascendant", "immortal"].flatMap((tier, t) =>
+    [1, 2, 3].map((n) => [
+      `${tier}-${n}`,
+      `${["Ferro", "Bronze", "Prata", "Ouro", "Platina", "Diamante", "Ascendente", "Imortal"][t]} ${n}`,
+    ]),
+  ),
+  ["radiant", "Radiante"],
+]
+const valorantTier = (tier) => (tier >= 3 ? VALORANT_TIERS[tier - 3] : null)
+const VALORANT_MAPS = { Ascent: "Ascent", Bonsai: "Split", Canyon: "Fracture", Duality: "Bind", Foxtrot: "Breeze",
+  Jam: "Lotus", Juliett: "Sunset", Pitt: "Pearl", Port: "Icebox", Triad: "Haven", Infinity: "Abyss", Rook: "Corrode",
+  Plummet: "Summit", Range: "Range", RangeV2: "Range", HURM_Alley: "District", HURM_Bowl: "Kasbah", HURM_Helix: "Drift",
+  HURM_HighTide: "Glitch", HURM_Yard: "Piazza" } // Riot's code names (valorant-api.com/v1/maps)
+
+/**
+ * The record plate in Valorant's scene (jogo.html?jogo=valorant), the same plate as Rocket League's: Luan's rank,
+ * the queue and the map, and the day's wins and losses in competitive, or the score while a match is on. It hears
+ * scripts/valorant.py on this PC (`address`), which reads the Riot Client. The day's record is kept in this source's
+ * storage, so reloading the scene keeps it.
+ */
+function valorantPlate(el, hole, band, address) {
+  el.classList.add("plate", "turned")
+  el.hidden = true
+  el.innerHTML = `<img alt=""><span class="rank"></span><span class="line"></span>`
+  const [emblem, rank, line] = el.children
+  const place = () => {
+    el.style.left = `${hole.offsetLeft + hole.offsetWidth + band - el.offsetWidth}px`
+    el.style.top = `${hole.offsetTop - band - 26}px`
+  }
+  const today = () => new Date().toLocaleDateString("en-CA")
+  let day = { date: today(), wins: 0, losses: 0 }
+  try {
+    const saved = JSON.parse(localStorage.getItem("valorant:dia"))
+    if (saved?.date === today()) day = saved
+  } catch {}
+  const state = { tier: null, phase: "menu", map: null, queue: null, score: null }
+  const QUEUES = { competitive: "Competitiva", unrated: "Sem classificação", swiftplay: "Frenético", premier: "Premier" }
+  const draw = () => {
+    if (day.date !== today()) day = { date: today(), wins: 0, losses: 0 }
+    const known = valorantTier(state.tier)
+    emblem.hidden = !known
+    if (known) emblem.src = `/ranks/valorant/${known[0]}.webp`
+    const where = [QUEUES[state.queue], state.phase !== "menu" && (VALORANT_MAPS[state.map] ?? state.map)].filter(Boolean).join(" · ")
+    rank.innerHTML = (known ? known[1] : "") + (where ? `<span class="points">${where}</span>` : "")
+    line.innerHTML =
+      state.phase === "partida" && state.score
+        ? `${state.score[0]} <span class="accent">–</span> ${state.score[1]}`
+        : `Hoje ${day.wins}V <span class="accent">·</span> ${day.losses}D`
+    el.hidden = !known && !day.wins && !day.losses
+    place()
+  }
+  const source = new EventSource(`${address}/eventos`)
+  source.onmessage = ({ data }) => {
+    const event = JSON.parse(data)
+    if (event.tipo === "ranque") state.tier = event.tier
+    if (event.tipo === "fase") {
+      Object.assign(state, { phase: event.fase, map: event.mapa, queue: event.fila })
+      if (event.fase === "partida") state.score = state.score ?? [0, 0]
+      else state.score = null
+    }
+    if (event.tipo === "rodada") state.score = event.placar.split("–").map(Number)
+    if (event.tipo === "partida" && state.queue === "competitive") {
+      day[event.vitoria ? "wins" : "losses"]++
+      try {
+        localStorage.setItem("valorant:dia", JSON.stringify(day))
+      } catch {}
+    }
+    draw()
+  }
+}
+
 /**
  * The Pix call inside `el`: the QR code to the site's /pix and what it's for (the copy is a draft for Luan). It
  * catches the light now, and then every 3 minutes.
@@ -430,4 +503,4 @@ function demo(show) {
 }
 
 // What the pages call.
-Object.assign(window, { params, frame, plate, recordPlate, RANKS, DIVISIONS, rankName, hasDivisions, alternate, mark, drawCopy, chat, BOTS, irc, parseIrc })
+Object.assign(window, { params, frame, plate, recordPlate, valorantPlate, RANKS, DIVISIONS, rankName, hasDivisions, alternate, mark, drawCopy, chat, BOTS, irc, parseIrc })

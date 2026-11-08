@@ -82,7 +82,8 @@ export interface Rank {
 
 /** window.Sigma, from /stream/sigma.js. */
 export interface Sigma {
-  ranque(sigma?: number, lingua?: "pt" | "en"): Rank
+  /** In Rocket League's ranks, or Valorant's with `jogo` "valorant". */
+  ranque(sigma?: number, lingua?: "pt" | "en", jogo?: "rocket-league" | "valorant"): Rank
   peso(sigma?: number): number
   COR_LIVRE: number
   medalhas(stats: Partial<SigmaStats>, lingua?: "pt" | "en"): Badge[]
