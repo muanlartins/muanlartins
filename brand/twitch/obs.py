@@ -162,12 +162,12 @@ HOTKEYS = {"Lance ruim": "OBS_KEY_F2", "Terapia": "OBS_KEY_F3", "Jogo + chat": "
 
 def sound(name, file, key=None, restart=False):
     """A sound effect as a media source: `key` restarts it (hotkey); `restart` plays it whenever its scene goes live.
-    It plays once when OBS loads it, silently unless its scene is on: so the sounds stay out of the break screens,
-    where OBS usually opens."""
+    OBS plays every media source once when it loads it, so they start muted: the Efeitos dock unmutes one when its
+    hotkey restarts it and mutes it again when it ends (without the dock open, the hotkeys stay silent)."""
     return source("ffmpeg_source", name, {"local_file": f"{SOUNDS}/{file}.wav", "is_local_file": True, "looping": False,
                                           "restart_on_activate": restart, "close_when_inactive": False,
                                           "clear_on_media_end": True, "hw_decode": False},
-                  volume=0.7, monitoring_type=MONITOR_AND_OUTPUT,
+                  volume=0.7, monitoring_type=MONITOR_AND_OUTPUT, muted=True,
                   hotkeys={"MediaSource.Restart": [{"key": key}]} if key else {})
 
 
@@ -221,11 +221,9 @@ for captured in (scenes[1], scenes[2], scenes[4]):
 # Software decoding: hardware VP9 decoders drop the alpha channel.
 stinger = {"id": "obs_stinger_transition", "name": "muanlartins", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "stinger")),
            "settings": {"path": STINGER, "tp_type": 0, "transition_point": 600, "hw_decode": False}}
-# The effects' own: "Lance ruim" comes in on a cut (its first frame is the game scene's), "Terapia" on a slow fade.
-cut = {"id": "cut_transition", "name": "Corte", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "corte")), "settings": {}}
-fade = {"id": "fade_transition", "name": "Fade", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "fade")), "settings": {}}
-for each, (transition, ms) in ((scenes[4], ("Corte", 0)), (scenes[5], ("Fade", 1500))):
-    each["private_settings"] = {"transition": transition, "transition_duration": ms}
+# "Lance ruim" comes in on a cut (its first frame is the game scene's) and "Terapia" on a slow fade: OBS's own cut
+# and fade, which it names in its language and won't take from a collection, so the Efeitos dock finds them by kind
+# and sets the two scenes' transition overrides each time it connects.
 
 collection = {
     "name": "muanlartins",
@@ -236,7 +234,7 @@ collection = {
                          bad_play, sting, calm] + apps + sounds + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
-    "transitions": [stinger, cut, fade],
+    "transitions": [stinger],
     "current_transition": "muanlartins",
     "transition_duration": 1300,
     "quick_transitions": [],
@@ -249,7 +247,8 @@ collection = {
 }
 
 OBS = Path("/mnt/c/Users/muanl/AppData/Roaming/obs-studio")
-LIVE = OBS / "basic/scenes/muanlartins.json"
+# The collection OBS has open (Luan renamed it "Live" on 11-07), from its user.ini.
+LIVE = OBS / "basic/scenes" / re.search(r"^SceneCollectionFile=(.+)$", (OBS / "user.ini").read_text(encoding="utf-8-sig"), re.M)[1].strip()
 DOCK = ("Efeitos", f"{SITE}/efeitos.html")
 
 
