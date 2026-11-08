@@ -70,7 +70,7 @@ export function GameHome({
         </div>
       )}
       {game.id === "valorant" && (
-        <div className="-mx-6 mt-8 h-72 sm:mx-0 sm:h-80">
+        <div className="-mx-6 mt-8 sm:mx-0">
           <Range />
         </div>
       )}
