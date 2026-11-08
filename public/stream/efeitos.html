@@ -24,6 +24,14 @@
 
       The scenes' and sounds' hotkeys are OBS's own (brand/twitch/obs.py sets them), so they work with the game
       focused. The OBS websocket password is kept in the dock's storage; #obs=<password> in the URL fills it.
+
+      Channel points: signed in to Twitch with the channel's account (device flow, the site's Twitch app, scope
+      channel:manage:redemptions; the tokens stay in the dock's storage), the dock creates the rewards in REWARDS
+      that are missing (by title; a reward made in the dashboard can't be read back by an app, so it never touches
+      those), keeps them paused while OBS isn't streaming, and hears redemptions over EventSub: each plays its
+      effect and is marked done, or is refunded when it can't play (a scene without the sounds, Lance ruim outside
+      the game or already zooming). Redemptions left over from a closed dock are refunded when it opens. The
+      points don't give Σ: Twitch already pays them for watching, which Σ counts on its own.
     -->
     <style>
       html,
@@ -113,6 +121,24 @@
         margin-top: 18px;
         font-size: 13px;
       }
+      .log {
+        margin: 6px 0 0;
+        padding: 0;
+        list-style: none;
+        color: rgb(244 245 247 / 0.75);
+        font-size: 12px;
+      }
+      .log li + li {
+        margin-top: 2px;
+      }
+      .log .refund {
+        color: rgb(244 245 247 / 0.45);
+      }
+      .code {
+        font-size: 22px;
+        letter-spacing: 0.12em;
+        color: var(--paper);
+      }
       details input {
         font: inherit;
         color: var(--paper);
@@ -139,9 +165,21 @@
     <div class="grid" id="sons"></div>
     <p class="note">Os atalhos são do próprio OBS: funcionam com o jogo em foco. O volume de cada som fica no mixer.</p>
 
+    <h2>Pontos do canal</h2>
+    <p class="status" id="twitch">Twitch desconectada</p>
+    <ul class="log" id="resgates"></ul>
+
     <details>
       <summary>Conexão com o OBS</summary>
       <input id="password" type="password" placeholder="Senha do obs-websocket" autocomplete="off" />
+    </details>
+    <details id="twitch-conexao">
+      <summary>Conexão com a Twitch</summary>
+      <p class="note" id="twitch-passo">Entre com a conta do canal para os resgates virarem efeitos.</p>
+      <div class="grid" style="margin-top: 8px">
+        <button id="twitch-entrar">Conectar</button>
+        <button id="twitch-sair">Desconectar</button>
+      </div>
     </details>
 
     <script>
@@ -188,6 +226,7 @@
       const pending = new Map()
       const GENERAL = 1 << 0
       const SCENES = 1 << 2
+      const OUTPUTS = 1 << 6
       const MEDIA = 1 << 8
       const sha256 = async (text) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))))
       function connect() {
@@ -196,7 +235,7 @@
         ws.onmessage = async ({ data }) => {
           const { op, d } = JSON.parse(data)
           if (op === 0) {
-            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES | MEDIA }
+            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES | OUTPUTS | MEDIA }
             if (d.authentication) {
               const { challenge, salt } = d.authentication
               identify.authentication = await sha256((await sha256(state.obsPassword + salt)) + challenge)
@@ -208,10 +247,13 @@
             await setup()
             const scene = await request("GetCurrentProgramScene")
             if (scene) changed(scene.sceneName)
+            const stream = await request("GetStreamStatus")
+            if (stream) onAir(stream.outputActive)
           } else if (op === 5) {
             if (d.eventType === "CurrentProgramSceneChanged") changed(d.eventData.sceneName)
             if (d.eventType === "CustomEvent" && d.eventData?.efeito === "golDeles") theirGoal()
             if (d.eventType === "MediaInputActionTriggered" && d.eventData.mediaAction.endsWith("RESTART")) triggered(d.eventData.inputName)
+            if (d.eventType === "StreamStateChanged" && !d.eventData.outputState.endsWith("ING")) onAir(d.eventData.outputActive)
           } else if (op === 7) {
             pending.get(d.requestId)?.(d.requestStatus.result ? (d.responseData ?? {}) : null)
             pending.delete(d.requestId)
@@ -220,6 +262,7 @@
         ws.onerror = () => ws.close()
         ws.onclose = () => {
           ready = false
+          onAir(false)
           for (const resolve of pending.values()) resolve(null)
           pending.clear()
           status()
@@ -358,8 +401,236 @@
         $("sons").append(b)
       }
 
+      // --- Channel points -------------------------------------------------------------------------------------
+      const CLIENT_ID = "dploislenvijye1obbcm5dqxcxu5y1" // the site's Twitch app (lib/profile.ts)
+      const SCOPES = "channel:manage:redemptions"
+      const HELIX = "https://api.twitch.tv/helix"
+      const BREAKS = ["Começando", "Já volto", "Fim"] // the scenes without the sounds (brand/twitch/obs.py)
+      const KLEIN = "#002FA7"
+      // The rewards this dock makes and plays. Open to everyone: the cooldown keeps a sound from being spammed.
+      const REWARDS = [
+        { title: "Palmas", cost: 200, prompt: "Palmas na live.", cooldown: 30, play: () => sound("palmas") },
+        { title: "Uuuh", cost: 200, prompt: "O uuuh da torcida.", cooldown: 30, play: () => sound("uuuh") },
+        { title: "Tambor", cost: 200, prompt: "Rufem os tambores.", cooldown: 30, play: () => sound("tambor") },
+        { title: "Lance ruim", cost: 1000, prompt: "O zoom na cara do Luan depois de um lance ruim.", cooldown: 180, play: lanceRuim },
+      ]
+      function sound(som) {
+        if (!ready || BREAKS.includes(current)) return false
+        play(som)
+        return true
+      }
+      function lanceRuim() {
+        if (!ready || zooming || !GAME_SCENES.includes(current)) return false
+        request("SetCurrentProgramScene", { sceneName: LANCE })
+        return true
+      }
+
+      const tw = { token: null, refresh: null, user: null, ...JSON.parse(localStorage.getItem("efeitos-twitch") || "{}") }
+      const saveTw = () => localStorage.setItem("efeitos-twitch", JSON.stringify({ token: tw.token, refresh: tw.refresh }))
+      const rewardIds = new Map() // reward id → its entry in REWARDS
+      let airing = null
+      let events = null
+
+      function twStatus(text, on = false) {
+        $("twitch").className = on ? "status on" : "status"
+        $("twitch").textContent = text
+      }
+      function logLine(text, refunded) {
+        const li = document.createElement("li")
+        li.textContent = `${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} ${text}`
+        if (refunded) li.className = "refund"
+        $("resgates").prepend(li)
+        while ($("resgates").children.length > 6) $("resgates").lastChild.remove()
+      }
+
+      const form = (url, fields) =>
+        fetch(url, { method: "POST", body: new URLSearchParams({ client_id: CLIENT_ID, ...fields }) }).then(async (r) => ({ ok: r.ok, body: await r.json().catch(() => ({})) }))
+
+      async function refreshToken() {
+        if (!tw.refresh) return false
+        const { ok, body } = await form("https://id.twitch.tv/oauth2/token", { grant_type: "refresh_token", refresh_token: tw.refresh })
+        if (!ok) {
+          // A public client's refresh token lasts 30 days: past that, sign in again.
+          Object.assign(tw, { token: null, refresh: null })
+          saveTw()
+          return false
+        }
+        Object.assign(tw, { token: body.access_token, refresh: body.refresh_token })
+        saveTw()
+        return true
+      }
+
+      /** Calls Helix, refreshing the token once when it has expired. Returns the JSON body, or null. */
+      async function helix(method, path, body, retried = false) {
+        if (!tw.token) return null
+        const r = await fetch(HELIX + path, {
+          method,
+          headers: { "Client-Id": CLIENT_ID, Authorization: `Bearer ${tw.token}`, ...(body ? { "Content-Type": "application/json" } : {}) },
+          body: body ? JSON.stringify(body) : undefined,
+        })
+        if (r.status === 401 && !retried && (await refreshToken())) return helix(method, path, body, true)
+        if (r.status === 204) return {}
+        const json = await r.json().catch(() => ({}))
+        if (!r.ok) {
+          console.warn("Twitch", method, path, r.status, json.message)
+          return null
+        }
+        return json
+      }
+
+      // Sign in with a code shown here and typed at twitch.tv/activate, so OBS's dock needs no redirect.
+      async function signIn() {
+        const { ok, body } = await form("https://id.twitch.tv/oauth2/device", { scopes: SCOPES })
+        if (!ok) return twStatus("Twitch: não deu para pedir o código")
+        $("twitch-passo").innerHTML = `Abra <b>twitch.tv/activate</b> com a conta do canal e digite:<br><span class="code"></span>`
+        $("twitch-passo").querySelector(".code").textContent = body.user_code
+        const until = Date.now() + body.expires_in * 1000
+        while (Date.now() < until) {
+          await wait(body.interval * 1000)
+          const got = await form("https://id.twitch.tv/oauth2/token", {
+            scopes: SCOPES,
+            device_code: body.device_code,
+            grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+          })
+          if (got.ok) {
+            Object.assign(tw, { token: got.body.access_token, refresh: got.body.refresh_token })
+            saveTw()
+            $("twitch-passo").textContent = "Conectado."
+            return startTwitch()
+          }
+          if (got.body.message !== "authorization_pending") break
+        }
+        $("twitch-passo").textContent = "O código expirou. Clique em Conectar de novo."
+      }
+
+      async function startTwitch() {
+        if (!tw.token) return twStatus("Twitch desconectada: conecte abaixo")
+        const me = await helix("GET", "/users")
+        tw.user = me?.data?.[0]
+        if (!tw.user) return twStatus("Twitch desconectada: conecte abaixo")
+        if (tw.user.broadcaster_type !== "affiliate" && tw.user.broadcaster_type !== "partner") return twStatus("Twitch: o canal ainda não tem pontos")
+        await ensureRewards()
+        await refundLeftovers()
+        airing = null
+        onAir(stateOnAir)
+        listen()
+      }
+
+      async function ensureRewards() {
+        const mine = await helix("GET", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}&only_manageable_rewards=true`)
+        if (!mine) return
+        rewardIds.clear()
+        for (const reward of REWARDS) {
+          let found = mine.data.find((r) => r.title === reward.title)
+          if (!found) {
+            const made = await helix("POST", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}`, {
+              title: reward.title,
+              cost: reward.cost,
+              prompt: reward.prompt,
+              background_color: KLEIN,
+              is_global_cooldown_enabled: true,
+              global_cooldown_seconds: reward.cooldown,
+            })
+            found = made?.data?.[0]
+            if (!found) logLine(`Não deu para criar "${reward.title}" (já existe uma recompensa com esse nome?)`, true)
+          }
+          if (found) rewardIds.set(found.id, reward)
+        }
+      }
+
+      const redemptions = (rewardId, query) => `/channel_points/custom_rewards/redemptions?broadcaster_id=${tw.user.id}&reward_id=${rewardId}&${query}`
+      const setStatus = (rewardId, id, status) => helix("PATCH", redemptions(rewardId, `id=${id}`), { status })
+
+      // Anything redeemed while the dock was closed never played: give the points back.
+      async function refundLeftovers() {
+        for (const [rewardId, reward] of rewardIds) {
+          const left = await helix("GET", redemptions(rewardId, "status=UNFULFILLED&first=50"))
+          for (const r of left?.data ?? []) {
+            await setStatus(rewardId, r.id, "CANCELED")
+            logLine(`${r.user_name}: ${reward.title} devolvido (ficou de antes)`, true)
+          }
+        }
+      }
+
+      // Paused off the air, so nobody spends points on an effect nobody sees.
+      // One change at a time, to the latest state, so a quick off and on can't land out of order.
+      let stateOnAir = false
+      let syncing = Promise.resolve()
+      function onAir(live) {
+        stateOnAir = live
+        syncing = syncing.then(async () => {
+          const want = stateOnAir
+          if (!tw.user || airing === want) return
+          airing = want
+          for (const id of rewardIds.keys()) await helix("PATCH", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}&id=${id}`, { is_paused: !want })
+          twStatus(want ? "Twitch conectada: recompensas ativas" : "Twitch conectada: recompensas pausadas (fora do ar)", true)
+        })
+      }
+
+      async function redeemed(event) {
+        const reward = rewardIds.get(event.reward.id)
+        if (!reward || event.status !== "unfulfilled") return
+        const played = reward.play()
+        await setStatus(event.reward.id, event.id, played ? "FULFILLED" : "CANCELED")
+        logLine(played ? `${event.user_name}: ${reward.title}` : `${event.user_name}: ${reward.title} devolvido (não cabia agora)`, !played)
+      }
+
+      // EventSub over a WebSocket: the welcome gives a session, which the subscription names within 10 s.
+      function listen(url = "wss://eventsub.wss.twitch.tv/ws") {
+        const ws = new WebSocket(url)
+        const previous = events
+        events = ws
+        let alive = null
+        let keepalive = 30
+        // Twitch sends something at least every keepalive seconds; silence past that means the socket is dead.
+        const watchdog = () => {
+          clearTimeout(alive)
+          alive = setTimeout(() => ws.close(), (keepalive + 10) * 1000)
+        }
+        ws.onmessage = async ({ data }) => {
+          const { metadata, payload } = JSON.parse(data)
+          const type = metadata.message_type
+          if (type === "session_welcome") {
+            keepalive = payload.session.keepalive_timeout_seconds ?? 30
+            watchdog()
+            // A reconnect carries the subscription over: only a fresh session needs it.
+            if (previous && url !== "wss://eventsub.wss.twitch.tv/ws") return previous.close()
+            const sub = await helix("POST", "/eventsub/subscriptions", {
+              type: "channel.channel_points_custom_reward_redemption.add",
+              version: "1",
+              condition: { broadcaster_user_id: tw.user.id },
+              transport: { method: "websocket", session_id: payload.session.id },
+            })
+            if (!sub) twStatus("Twitch: não deu para ouvir os resgates")
+          } else if (type === "session_keepalive") {
+            watchdog()
+          } else if (type === "notification") {
+            watchdog()
+            redeemed(payload.event)
+          } else if (type === "session_reconnect") {
+            listen(payload.session.reconnect_url)
+          }
+        }
+        ws.onclose = () => {
+          clearTimeout(alive)
+          if (events !== ws || !tw.token) return
+          events = null
+          setTimeout(() => tw.token && listen(), 5000)
+        }
+      }
+
+      $("twitch-entrar").onclick = signIn
+      $("twitch-sair").onclick = () => {
+        Object.assign(tw, { token: null, refresh: null, user: null })
+        saveTw()
+        events?.close()
+        events = null
+        twStatus("Twitch desconectada: conecte abaixo")
+      }
+
       status()
       connect()
+      startTwitch()
     </script>
   </body>
 </html>
