@@ -21,13 +21,11 @@ import { BallBackdrop } from "@/components/site/roadmap/ball-backdrop"
 import { loadFans, type Choice, type Torcedor } from "@/lib/profile"
 import {
   MODES,
-  STATS,
   summarize,
   viewersIn,
   type Ally,
   type Match,
   type Mode,
-  type PlayerStats,
   type Session,
   type Standing,
 } from "@/lib/ranked"
@@ -62,23 +60,16 @@ const T = localize({
   result: { pt: "V–D", en: "W–L" },
   net: { pt: "Pontos", en: "Points" },
   end: { pt: "Fim do dia", en: "End of day" },
-  compare: { pt: "Eu e meus companheiros", en: "Me and my teammates" },
+  players: { pt: "Eu e os viewers que jogaram comigo", en: "Me and the viewers who played with me" },
   mine: { pt: "Minhas estatísticas", en: "My stats" },
-  compareHint: {
-    pt: "Média por partida, em {n} com estatísticas do jogo.",
-    en: "Average per match, over {n} with the game's stats.",
+  playersHint: {
+    pt: "Partidas, vitórias e derrotas, pontos e a média por partida de gols (G), assistências (A) e defesas (D). A minha conta as {n} partidas com estatísticas do jogo; a de cada viewer, só as que jogou comigo.",
+    en: "Matches, wins and losses, points, and the average per match of goals (G), assists (A) and saves (S). Mine counts the {n} matches with the game's stats; each viewer's, only the ones they played with me.",
   },
-  me: { pt: "Eu", en: "Me" },
-  mate: { pt: "Companheiro", en: "Teammate" },
-  stats: {
-    score: { pt: "Pontuação", en: "Score" },
-    goals: { pt: "Gols", en: "Goals" },
-    assists: { pt: "Assistências", en: "Assists" },
-    saves: { pt: "Defesas", en: "Saves" },
-    shots: { pt: "Chutes", en: "Shots" },
-    touches: { pt: "Toques", en: "Touches" },
-    demos: { pt: "Demolições", en: "Demos" },
-  },
+  me: { pt: "eu", en: "me" },
+  G: { pt: "G", en: "G" },
+  A: { pt: "A", en: "A" },
+  D: { pt: "D", en: "S" },
   list: { pt: "Partidas", en: "Matches" },
   W: { pt: "V", en: "W" },
   L: { pt: "D", en: "L" },
@@ -89,11 +80,6 @@ const T = localize({
     en: "Score, points won or lost, the total after, and my goals · assists · saves.",
   },
   showAll: { pt: "Mostrar todas", en: "Show all" },
-  allies: { pt: "Viewers que jogaram comigo", en: "Viewers who played with me" },
-  alliesHint: {
-    pt: "Partidas juntos, vitórias e derrotas, pontos e a média deles por partida: gols · assistências · defesas.",
-    en: "Matches together, wins and losses, points, and their average per match: goals · assists · saves.",
-  },
   together: { pt: "partidas", en: "matches" },
   together1: { pt: "partida", en: "match" },
   with: { pt: "com", en: "with" },
@@ -103,6 +89,9 @@ const T = localize({
     en: "No ranked {mode} matches published yet.",
   },
 })
+
+/** The channel's own login: my line among the players. */
+const ME = "muanlartins"
 
 /** How many matches the list shows before "Show all". */
 const SHOWN = 20
@@ -152,13 +141,28 @@ export function RankedPage({
   // The allies' fans, as they built them on their profile (or the one their login gives them).
   const [torcedor, setTorcedor] = useState<Torcedor | null>(null)
   const [fans, setFans] = useState<Record<string, Choice> | null>(null)
-  const logins = [...new Set(sessions.flatMap((session) => session.matches.flatMap(viewersIn)))].sort().join(",")
+  const viewers = [...new Set(sessions.flatMap((session) => session.matches.flatMap(viewersIn)))].sort().join(",")
   useEffect(() => {
-    if (!logins) return
-    loadFans(logins.split(","))
+    loadFans([ME, ...(viewers ? viewers.split(",") : [])])
       .then(setFans)
       .catch(() => setFans({}))
-  }, [logins])
+  }, [viewers])
+
+  // Me first, then the viewers who played with me.
+  const players: Player[] = summary.averages
+    ? [
+        {
+          login: ME,
+          me: true,
+          matches: played,
+          wins: summary.wins,
+          losses: summary.losses,
+          points: summary.matches.reduce((total, match) => total + (match.points ?? 0), 0),
+          averages: summary.averages.me,
+        },
+        ...summary.allies,
+      ]
+    : []
 
   return (
     <>
@@ -237,16 +241,10 @@ export function RankedPage({
 
             {summary.averages && (
               <Section
-                title={mode === "1v1" ? T.mine : T.compare}
-                hint={T.compareHint.replace("{n}", String(summary.averages.matches))}
+                title={summary.allies.length > 0 ? T.players : T.mine}
+                hint={T.playersHint.replace("{n}", String(summary.averages.matches))}
               >
-                <Averages me={summary.averages.me} mates={mode === "1v1" ? undefined : summary.averages.mates} />
-              </Section>
-            )}
-
-            {summary.allies.length > 0 && (
-              <Section title={T.allies} hint={T.alliesHint}>
-                <Allies allies={summary.allies} torcedor={torcedor} fans={fans} />
+                <Players players={players} torcedor={torcedor} fans={fans} />
               </Section>
             )}
 
@@ -258,7 +256,7 @@ export function RankedPage({
       </div>
 
       <p className="mt-16 text-[12px] leading-[1.6] text-muted">{UI.credits}</p>
-      {logins && <Script src="/stream/torcedor.js" onReady={() => setTorcedor(window.Torcedor ?? null)} />}
+      <Script src="/stream/torcedor.js" onReady={() => setTorcedor(window.Torcedor ?? null)} />
     </>
   )
 }
@@ -385,56 +383,52 @@ function Tiles({ summary }: { summary: ReturnType<typeof summarize> }) {
   )
 }
 
-function Averages({ me, mates }: { me: PlayerStats; mates?: PlayerStats }) {
+type Player = Ally & { me?: boolean }
+
+/** A number with its letter: "1,4 G". */
+function Stat({ value, letter }: { value: number; letter: string }) {
   return (
-    <table className="w-full max-w-md text-[14px] tabular-nums">
-      <thead>
-        <tr className="border-b border-line text-[12px] text-muted">
-          <th className="py-2 text-left font-normal" />
-          <th className="py-2 text-right font-normal">{T.me}</th>
-          {mates && <th className="py-2 text-right font-normal">{T.mate}</th>}
-        </tr>
-      </thead>
-      <tbody>
-        {STATS.map((stat) => (
-          <tr key={stat} className="border-b border-line/60">
-            <td className="py-2">{T.stats[stat]}</td>
-            <td className="py-2 text-right font-medium text-ink">{decimal(me[stat], stat === "score" || stat === "touches" ? 0 : 1)}</td>
-            {mates && (
-              <td className="py-2 text-right text-muted">
-                {decimal(mates[stat], stat === "score" || stat === "touches" ? 0 : 1)}
-              </td>
-            )}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <span className="whitespace-nowrap">
+      <span className="text-ink">{decimal(value, 1)}</span> <span className="text-[12px] text-muted">{letter}</span>
+    </span>
   )
 }
 
-function Allies({ allies, torcedor, fans }: { allies: Ally[]; torcedor: Torcedor | null; fans: Record<string, Choice> | null }) {
+/** Me, marked, and the viewers who played with me: their fan, their record and their averages. */
+function Players({ players, torcedor, fans }: { players: Player[]; torcedor: Torcedor | null; fans: Record<string, Choice> | null }) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
-      {allies.map((ally) => (
-        <li key={ally.login} className="flex items-center gap-4 rounded-md border border-line px-3 py-3">
-          <FanSpot T={torcedor} fans={fans} login={ally.login} name={ally.login} size="sm" />
+      {players.map((player) => (
+        <li
+          key={player.login}
+          className={cn(
+            "flex items-center gap-4 rounded-md px-3 py-3",
+            player.me ? "border-2 border-klein bg-klein/[0.06] sm:col-span-2" : "border border-line",
+          )}
+        >
+          <FanSpot T={torcedor} fans={fans} login={player.login} name={player.login} size={player.me ? "md" : "sm"} />
           <div className="min-w-0 space-y-0.5 text-[14px] tabular-nums">
-            <a
-              href={`https://www.twitch.tv/${ally.login}`}
-              target="_blank"
-              rel="noreferrer"
-              className="block truncate text-[16px] font-medium text-ink transition-colors hover:text-klein"
-            >
-              {ally.login}
-            </a>
-            <p className="text-ink">
-              {ally.matches} {ally.matches === 1 ? T.together1 : T.together} · {ally.wins}
-              {T.W} {ally.losses}
-              {T.L}
-              {ally.points !== 0 && <span className="text-muted"> · {signed(ally.points)} {T.points}</span>}
+            <p className="flex items-center gap-2">
+              <a
+                href={`https://www.twitch.tv/${player.login}`}
+                target="_blank"
+                rel="noreferrer"
+                className={cn("truncate font-medium text-ink transition-colors hover:text-klein", player.me ? "text-[18px]" : "text-[16px]")}
+              >
+                {player.login}
+              </a>
+              {player.me && <span className="rounded-sm bg-klein px-1.5 py-px text-[11px] font-semibold text-paper">{T.me}</span>}
             </p>
-            <p className="text-muted">
-              {decimal(ally.averages.goals, 1)} · {decimal(ally.averages.assists, 1)} · {decimal(ally.averages.saves, 1)}
+            <p className="text-ink">
+              {player.matches} {player.matches === 1 ? T.together1 : T.together} · {player.wins}
+              {T.W} {player.losses}
+              {T.L}
+              {player.points !== 0 && <span className="text-muted"> · {signed(player.points)} {T.points}</span>}
+            </p>
+            <p className="flex flex-wrap gap-x-3">
+              <Stat value={player.averages.goals} letter={T.G} />
+              <Stat value={player.averages.assists} letter={T.A} />
+              <Stat value={player.averages.saves} letter={T.D} />
             </p>
           </div>
         </li>
