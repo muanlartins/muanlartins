@@ -7,12 +7,19 @@ Every 2 s it asks the Riot Client's local API (the port and password in its lock
 Riot Client\\Config\\lockfile, never printed) for Luan's own presence, the same one his friends list shows: whether he
 is in the menus, in agent select or in a match, the map, the queue, the match's score and his rank. From the score's
 changes it tells the stand (public/stream/torcida.html with ?jogo=valorant) each round won or lost, and the match's
-end. It reads nothing about anyone else in the match: only what Luan's own presence already shows his friends.
-Nothing touches the game itself; the Riot Client's local API is unofficial, so a patch can change it.
+end. When a match ends it asks Valorant's own match history (with the tokens the Riot Client hands out, kept in memory
+only) for its summary: result, score, map, agent, Luan's kills, deaths, assists, combat score, shots by body part,
+damage and first kills, the RR it won or lost and the rank after, and his teammates' numbers without their names
+(but for the viewers in public/stream/aliados.json who agreed to be named, by their Riot ID). The "Partidas" dock
+keeps those as the Valorant session and publishes it to content/valorant/, which the site reads. Nothing touches the
+game itself; the Riot Client's local API and Valorant's are unofficial, so a patch can change them. The Riot Client
+only answers most of this while Valorant is open.
 
-    GET /eventos     server-sent events: {"tipo": "fase", "fase": "menu" | "selecao" | "partida", "mapa", "fila"},
+    GET /eventos     server-sent events: {"tipo": "fase", "fase": "menu" | "selecao" | "partida", "mapa", "fila", "aberto"},
                      {"tipo": "rodada", "nosso", "placar"}, {"tipo": "partida", "vitoria", "placar"},
-                     {"tipo": "ranque", "tier"} (Riot's competitive tier: 9 is Silver 1)
+                     {"tipo": "ranque", "tier"} (Riot's competitive tier: 9 is Silver 1),
+                     {"tipo": "resumo", "partida": {...}} (a match's summary, a little after it ends)
+    GET /resumos     the summaries since it started, for a dock that opens late
     GET /            what it knows now
 
 WSL reaches the Riot Client through curl.exe (on Windows, 127.0.0.1 is the client's own), and Windows reaches this
@@ -27,6 +34,8 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.request
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -41,10 +50,14 @@ ORIGINS = {"https://muanlartins.com.br", "https://muanlartins.com", "http://loca
 # Queues whose score counts rounds; deathmatch and its kin count kills.
 ROUNDS = {"competitive", "unrated", "swiftplay", "premier", "spikerush", "newmap", ""}
 PHASES = {"MENUS": "menu", "PREGAME": "selecao", "INGAME": "partida"}
+# Valorant's servers by the account's region: Brazil and Latin America play on North America's.
+SHARDS = {"br": "na", "latam": "na", "na": "na", "pbe": "pbe", "eu": "eu", "ap": "ap", "kr": "kr"}
+ALIADOS = Path(__file__).resolve().parent.parent / "public" / "stream" / "aliados.json"
+summaries: list[dict] = []
 
 listeners: set[queue.Queue] = set()
 listeners_lock = threading.Lock()
-now = {"fase": None, "mapa": None, "fila": None, "placar": None, "tier": None}
+now = {"fase": None, "mapa": None, "fila": None, "placar": None, "tier": None, "aberto": False}
 
 
 def send(event: dict, show=True):
@@ -99,8 +112,9 @@ def watch():
             queue_id = match.get("queueId", "")
             score = (private.get("partyOwnerMatchScoreAllyTeam", 0), private.get("partyOwnerMatchScoreEnemyTeam", 0))
             tier = private.get("playerPresenceData", {}).get("competitiveTier")
+            open_ = True
         except (LookupError, OSError, ValueError, subprocess.SubprocessError):
-            phase, queue_id, score, tier = "menu", None, None, now["tier"]
+            phase, queue_id, score, tier, open_ = "menu", None, None, now["tier"], False
 
         counts_rounds = queue_id in ROUNDS
         # As a match ends, the presence zeroes the score a few seconds before it leaves the match: a score that
@@ -119,16 +133,143 @@ def watch():
         if now["fase"] == "partida" and phase != "partida" and last_score and last_score[0] != last_score[1]:
             ours, theirs = last_score
             send({"tipo": "partida", "vitoria": ours > theirs, "placar": f"{ours}–{theirs}"})
+            threading.Thread(target=summarize_latest, daemon=True).start()
         if phase != "partida":
             last_score = None
 
         map_name = ((match.get("matchMap") or "").rsplit("/", 1)[-1] or None) if phase != "menu" else None
-        if phase != now["fase"]:
-            send({"tipo": "fase", "fase": phase, "mapa": map_name, "fila": queue_id})
+        if phase != now["fase"] or open_ != now["aberto"]:
+            send({"tipo": "fase", "fase": phase, "mapa": map_name, "fila": queue_id, "aberto": open_})
         if tier and tier != now["tier"]:
             send({"tipo": "ranque", "tier": tier})
-        now.update(fase=phase, mapa=map_name, fila=queue_id, placar=score, tier=tier)
+        now.update(fase=phase, mapa=map_name, fila=queue_id, placar=score, tier=tier, aberto=open_)
         time.sleep(EVERY)
+
+
+# --- A match's summary, from Valorant's match history -------------------------------------------------------------
+
+_names: dict = {}
+
+
+def names():
+    """Maps' and agents' names by Riot's ids (valorant-api.com), fetched once."""
+    if not _names:
+        get = lambda path: json.load(urllib.request.urlopen(f"https://valorant-api.com/v1/{path}", timeout=15))["data"]
+        _names["maps"] = {m["mapUrl"]: m["displayName"] for m in get("maps")}
+        _names["agents"] = {a["uuid"].lower(): a["displayName"] for a in get("agents?isPlayableCharacter=true")}
+        _names["version"] = get("version")["riotClientVersion"]
+    return _names
+
+
+def valorant_api(found):
+    """GET on Valorant's own servers, as the game does, with the Riot Client's tokens (never kept or printed)."""
+    tokens = ask(found, "/entitlements/v1/token")
+    region = ask(found, "/riotclient/region-locale").get("region", "br").lower()
+    platform = base64.b64encode(json.dumps({"platformType": "PC", "platformOS": "Windows",
+                                            "platformOSVersion": "10.0.19042.1.256.64bit", "platformChipset": "Unknown"}).encode()).decode()
+    headers = {"Authorization": f"Bearer {tokens['accessToken']}", "X-Riot-Entitlements-JWT": tokens["token"],
+               "X-Riot-ClientVersion": names()["version"], "X-Riot-ClientPlatform": platform}
+    host = f"https://pd.{SHARDS.get(region, 'na')}.a.pvp.net"
+
+    def get(path):
+        return json.load(urllib.request.urlopen(urllib.request.Request(host + path, headers=headers), timeout=15))
+    return tokens["subject"], get
+
+
+def allies():
+    """Riot IDs ("name#tag", lowercase) of the viewers who agreed to be named → their Twitch login."""
+    try:
+        return {riot.lower(): a["login"] for a in json.loads(ALIADOS.read_text())["aliados"] for riot in a.get("riot", [])}
+    except (OSError, ValueError, KeyError):
+        return {}
+
+
+def iso(millis):
+    return datetime.fromtimestamp(millis / 1000, timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def summary(details, puuid, updates):
+    """The match as the site keeps it: Luan's numbers, his teammates' without names, never the opponents'."""
+    info = details["matchInfo"]
+    me = next(p for p in details["players"] if p["subject"] == puuid)
+    team = me["teamId"]
+    teams = {t["teamId"]: t for t in details["teams"]}
+    ours = teams.get(team, {}).get("roundsWon", 0)
+    theirs = max((t["roundsWon"] for t in details["teams"] if t["teamId"] != team), default=0)
+    shots = {"headshots": 0, "bodyshots": 0, "legshots": 0, "damage": 0}
+    first_kills = 0
+    for round_ in details.get("roundResults", []):
+        for stats in round_.get("playerStats", []):
+            if stats["subject"] == puuid:
+                for hit in stats.get("damage", []):
+                    for key in shots:
+                        shots[key] += hit.get(key, 0)
+        kills = [k for stats in round_.get("playerStats", []) for k in stats.get("kills", [])]
+        if kills and min(kills, key=lambda k: k.get("roundTime", 0)).get("killer") == puuid:
+            first_kills += 1
+    stats = me["stats"]
+    named = allies()
+    mates = []
+    for p in details["players"]:
+        if p["teamId"] != team or p["subject"] == puuid:
+            continue
+        mate = {"agent": names()["agents"].get(p["characterId"].lower(), "?"), "kills": p["stats"]["kills"],
+                "deaths": p["stats"]["deaths"], "assists": p["stats"]["assists"], "score": p["stats"]["score"]}
+        login = named.get(f"{p.get('gameName', '')}#{p.get('tagLine', '')}".lower())
+        if login:
+            mate["login"] = login
+        mates.append(mate)
+    update = next((u for u in updates if u.get("MatchID") == info["matchId"]), None)
+    result = "draw" if ours == theirs else "win" if ours > theirs else "loss"
+    match = {
+        "id": info["matchId"],
+        "start": iso(info["gameStartMillis"]),
+        "at": iso(info["gameStartMillis"] + info.get("gameLengthMillis", 0)),
+        "queue": info.get("queueID", ""),
+        "map": names()["maps"].get(info["mapId"], info["mapId"].rsplit("/", 1)[-1]),
+        "agent": names()["agents"].get(me["characterId"].lower(), "?"),
+        "result": result,
+        "score": [ours, theirs],
+        "rounds": stats.get("roundsPlayed", ours + theirs),
+        "me": {"kills": stats["kills"], "deaths": stats["deaths"], "assists": stats["assists"], "score": stats["score"],
+               **shots, "firstKills": first_kills},
+        "mates": mates,
+    }
+    if update:
+        match["rr"] = update.get("RankedRatingEarned")
+        match["rank"] = {"tier": update.get("TierAfterUpdate"), "rr": update.get("RankedRatingAfterUpdate")}
+    return match
+
+
+def summarize_latest(tries=12, wait=15, newer_than_h=2):
+    """The match that just ended, once Valorant's history has it (it takes a moment): told to the dock."""
+    done = {s["id"] for s in summaries}
+    for _ in range(tries):
+        time.sleep(wait)
+        try:
+            found = client()
+            if not found:
+                continue
+            puuid, get = valorant_api(found)
+            history = get(f"/match-history/v1/history/{puuid}?startIndex=0&endIndex=1")["History"]
+            if not history or history[0]["MatchID"] in done:
+                continue
+            # A match that started over 2 hours ago is an older one: the one that just ended isn't in the history yet.
+            if time.time() * 1000 - history[0]["GameStartTime"] > newer_than_h * 3600 * 1000:
+                continue
+            details = get(f"/match-details/v1/matches/{history[0]['MatchID']}")
+            updates = []
+            if details["matchInfo"].get("queueID") == "competitive":
+                updates = get(f"/mmr/v1/players/{puuid}/competitiveupdates?startIndex=0&endIndex=3&queue=competitive")["Matches"]
+            match = summary(details, puuid, updates)
+            summaries.append(match)
+            del summaries[:-30]
+            send({"tipo": "resumo", "partida": match}, show=False)
+            print(time.strftime("%H:%M:%S"), "resumo", match["map"], match["agent"], match["result"],
+                  "-".join(map(str, match["score"])), match.get("rr"), flush=True)
+            return
+        except (OSError, ValueError, KeyError, StopIteration, subprocess.SubprocessError) as error:
+            print(time.strftime("%H:%M:%S"), "resumo ainda não:", type(error).__name__, flush=True)
 
 
 class Request(BaseHTTPRequestHandler):
@@ -146,6 +287,11 @@ class Request(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        if self.path == "/resumos":
+            self.headers_for(200, "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(summaries, ensure_ascii=False).encode())
+            return
         if self.path != "/eventos":
             self.headers_for(200, "application/json")
             self.end_headers()
@@ -157,7 +303,10 @@ class Request(BaseHTTPRequestHandler):
         mine = queue.Queue()
         # A stand that opens mid-match learns where the game is at once.
         if now["fase"]:
-            mine.put(f"data: {json.dumps({'tipo': 'fase', 'fase': now['fase'], 'mapa': now['mapa'], 'fila': now['fila']})}\n\n".encode())
+            event = {"tipo": "fase", "fase": now["fase"], "mapa": now["mapa"], "fila": now["fila"], "aberto": now["aberto"]}
+            mine.put(f"data: {json.dumps(event)}\n\n".encode())
+            if now["tier"]:
+                mine.put(f"data: {json.dumps({'tipo': 'ranque', 'tier': now['tier']})}\n\n".encode())
         with listeners_lock:
             listeners.add(mine)
         try:
@@ -180,7 +329,15 @@ class Request(BaseHTTPRequestHandler):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--ver", action="store_true", help="only print what it reads, without serving")
+    parser.add_argument("--resumo", action="store_true", help="print the last match's summary (Valorant open) and stop")
     args = parser.parse_args()
+    if args.resumo:
+        summaries.clear()
+        send_original = globals()["send"]
+        globals()["send"] = lambda event, show=True: print(json.dumps(event["partida"], ensure_ascii=False, indent=2))
+        summarize_latest(tries=1, wait=0, newer_than_h=24 * 365)
+        globals()["send"] = send_original
+        return
     if args.ver:
         watch()
         return
