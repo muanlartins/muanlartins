@@ -22,6 +22,9 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 - Live captions (`scripts/legenda.py`, started at login like the narrator, log `~/.cache/muanlartins/legenda.log`):
   on only while the dock's "Legendas ao vivo" is ticked, then they hear the mic and run whisper on the GPU every
   second (~0.2 s each, ~1 GB VRAM). If the stream stutters with them on, untick it first; it frees the GPU at once.
+- Valorant (`scripts/valorant.py`, started at login too, log `~/.cache/muanlartins/valorant.log`): reads Luan's
+  own presence from the Riot Client every 2 s (two `curl.exe` calls, negligible) for the Valorant scene's stand and
+  rank plate. `http://127.0.0.1:8792/` shows what it knows; if the plate or the rounds stop, check that first.
 - Never restart or close OBS, or change scenes/inputs, while he's live unless he asks for that change.
 - The same goes, more mildly, whenever OBS is open: a 9-minute ffmpeg encode on 11-05 left OBS with 35% of its
   render frames skipped while it sat idle.
