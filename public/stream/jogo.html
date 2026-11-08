@@ -92,8 +92,12 @@
       // Every 5 s, in turn: the plate's line wipes, or the frame catches the light.
       alternate(5, attention, border.glint)
 
-      // The rank and the day's record, from the "Partidas" dock; hidden until it sends them.
-      if (params.get("placar") !== "0") recordPlate(document.getElementById("record"), hole, BAND)
+      // The rank and the day's record, from the "Partidas" dock; hidden until it sends them. In Valorant's scene
+      // (?jogo=valorant), from scripts/valorant.py instead (?valorant= its address).
+      if (params.get("placar") !== "0") {
+        if (params.get("jogo") === "valorant") valorantPlate(document.getElementById("record"), hole, BAND, params.get("valorant") ?? "http://127.0.0.1:8792")
+        else recordPlate(document.getElementById("record"), hole, BAND)
+      }
 
       // Opposite the camera; messages leave after 45 s so a quiet chat leaves the game clear.
       if (params.get("chat") === "1") {

@@ -15,22 +15,57 @@
     [9400, "grand-champion-1"], [12100, "grand-champion-2"], [15500, "grand-champion-3"],
     [20000, "supersonic-legend"],
   ]
-  const NOMES = {
-    pt: { bronze: "Bronze", silver: "Prata", gold: "Ouro", platinum: "Platina", diamond: "Diamante", champion: "Campeão", "grand-champion": "Grande Campeão", "supersonic-legend": "Lenda Supersônica" },
-    en: { bronze: "Bronze", silver: "Silver", gold: "Gold", platinum: "Platinum", diamond: "Diamond", champion: "Champion", "grand-champion": "Grand Champion", "supersonic-legend": "Supersonic Legend" },
+  // Valorant's for the same totals: its 25 steps over the same year, Gold 1 where Rocket League's Gold I is (370 Σ,
+  // where free colours unlock), Radiant at the top like Supersonic Legend.
+  const VALORANT = [
+    [0, "iron-1"], [15, "iron-2"], [35, "iron-3"],
+    [60, "bronze-1"], [90, "bronze-2"], [125, "bronze-3"],
+    [170, "silver-1"], [225, "silver-2"], [290, "silver-3"],
+    [370, "gold-1"], [470, "gold-2"], [600, "gold-3"],
+    [760, "platinum-1"], [960, "platinum-2"], [1210, "platinum-3"],
+    [1520, "diamond-1"], [1900, "diamond-2"], [2400, "diamond-3"],
+    [3000, "ascendant-1"], [3800, "ascendant-2"], [4800, "ascendant-3"],
+    [6100, "immortal-1"], [7900, "immortal-2"], [10300, "immortal-3"],
+    [20000, "radiant"],
+  ]
+  const JOGOS = {
+    "rocket-league": {
+      escada: RL,
+      pasta: "/ranks/",
+      divisoes: ["I", "II", "III"],
+      nomes: {
+        pt: { bronze: "Bronze", silver: "Prata", gold: "Ouro", platinum: "Platina", diamond: "Diamante", champion: "Campeão", "grand-champion": "Grande Campeão", "supersonic-legend": "Lenda Supersônica" },
+        en: { bronze: "Bronze", silver: "Silver", gold: "Gold", platinum: "Platinum", diamond: "Diamond", champion: "Champion", "grand-champion": "Grand Champion", "supersonic-legend": "Supersonic Legend" },
+      },
+    },
+    valorant: {
+      escada: VALORANT,
+      pasta: "/ranks/valorant/",
+      divisoes: ["1", "2", "3"],
+      nomes: {
+        pt: { iron: "Ferro", bronze: "Bronze", silver: "Prata", gold: "Ouro", platinum: "Platina", diamond: "Diamante", ascendant: "Ascendente", immortal: "Imortal", radiant: "Radiante", unranked: "Sem rank" },
+        en: { iron: "Iron", bronze: "Bronze", silver: "Silver", gold: "Gold", platinum: "Platinum", diamond: "Diamond", ascendant: "Ascendant", immortal: "Immortal", radiant: "Radiant", unranked: "Unranked" },
+      },
+    },
   }
-  const nome = (id, lingua = "pt") => {
+  /** A rank's name from its emblem's id: "silver-2" → "Prata II" (Valorant: "Prata 2"). */
+  const nome = (id, lingua = "pt", jogo = "rocket-league") => {
+    const { nomes, divisoes } = JOGOS[jogo] ?? JOGOS["rocket-league"]
     const [, tier, n] = id.match(/^(.+?)(?:-(\d))?$/)
-    return NOMES[lingua][tier] + (n ? " " + ["I", "II", "III"][n - 1] : "")
+    return nomes[lingua][tier] + (n ? " " + divisoes[n - 1] : "")
   }
 
-  /** The rank for a total: its id (the emblem in /ranks/), name, where it starts, and the next one, if any. */
-  function ranque(sigma = 0, lingua = "pt") {
+  /**
+   * The rank for a total, in a game's ranks (Rocket League's unless `jogo` says "valorant"): its id (the emblem in
+   * /ranks/ or /ranks/valorant/), name, where it starts, and the next one, if any.
+   */
+  function ranque(sigma = 0, lingua = "pt", jogo = "rocket-league") {
+    const { escada, pasta } = JOGOS[jogo] ?? JOGOS["rocket-league"]
     let i = 0
-    while (i + 1 < RL.length && sigma >= RL[i + 1][0]) i++
-    const [desde, id] = RL[i]
-    const [ate, proximo] = RL[i + 1] ?? []
-    return { id, nome: nome(id, lingua), emblema: `/ranks/${id}.webp`, desde, ate: ate ?? null, proximo: proximo ? nome(proximo, lingua) : null }
+    while (i + 1 < escada.length && sigma >= escada[i + 1][0]) i++
+    const [desde, id] = escada[i]
+    const [ate, proximo] = escada[i + 1] ?? []
+    return { id, nome: nome(id, lingua, jogo), emblema: `${pasta}${id}.webp`, desde, ate: ate ?? null, proximo: proximo ? nome(proximo, lingua, jogo) : null }
   }
 
   // The goal's dedication: more Σ, more chance, flattened by a log so a newcomer still gets theirs
@@ -65,5 +100,5 @@
     })
   }
 
-  window.Sigma = { RL, ranque, peso, COR_LIVRE, MEDALHAS, medalhas }
+  window.Sigma = { RL, VALORANT, ranque, peso, COR_LIVRE, MEDALHAS, medalhas }
 })()

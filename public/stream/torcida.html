@@ -11,7 +11,7 @@
       left) and Rocket League's boost meter (bottom right; Valorant: see ?jogo), with one fan for
       each viewer logged in to the chat (Twitch's membership events, as in
       presenca.html: only who has the chat open, about 10 s late), their name
-      over them, after their rank's emblem. Ten to a row; the channel and then
+      over them, after their rank's emblem (their Σ in Rocket League's ranks, or Valorant's with ?jogo=valorant). Ten to a row; the channel and then
       who has the most Σ stand in front (sigma.js), each row behind smaller.
 
       It reacts to the game as the "Partidas" dock sends it (partidas.html,
@@ -486,6 +486,8 @@
       // OBS's source URL holds (#chave=…). The channel earns none and always stands in front.
       const SIGMA_API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
       const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
+      // The game on screen: Valorant's scene says so (?jogo=valorant); otherwise Rocket League.
+      const JOGO = params.get("jogo") === "valorant" ? "valorant" : "rocket-league"
       const sigmas = new Map() // login → { sigma, minutos, lives, sequencia }
       const sigma = (login) => sigmas.get(login)?.sigma ?? 0
       let noArAte = 0
@@ -605,7 +607,7 @@
       function rotular(p) {
         if (!p?.el) return
         const nome = p.el.querySelector(".nome")
-        const src = p.login !== CHANNEL && (SIGMA_API || params.has("demo")) ? Sigma.ranque(sigma(p.login)).emblema : null
+        const src = p.login !== CHANNEL && (SIGMA_API || params.has("demo")) ? Sigma.ranque(sigma(p.login), "pt", JOGO).emblema : null
         const emblema = document.createElement("img")
         emblema.alt = ""
         if (src) emblema.src = src
@@ -733,7 +735,7 @@
 
       // Valorant's HUD has the abilities where the stand stands: with ?jogo=valorant it tucks away while a match is
       // played, and comes up for a moment (a round's end) or when no match is on.
-      const RECOLHE = params.get("jogo") === "valorant"
+      const RECOLHE = JOGO === "valorant"
       let emPartida = false
       let visivelAte = 0
       function recolher() {
