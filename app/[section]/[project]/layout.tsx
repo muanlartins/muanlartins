@@ -24,9 +24,9 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
   if (!game) return children
 
   const pagesOf = (game: Game) => [
-    { label: LABELS.home, href: gamePath(game) },
-    { label: LABELS.fundamentals, href: gamePath(game, "fundamentals") },
-    ...(game.ranked ? [{ label: localize(game.ranked.title), href: gamePath(game, "ranked") }] : []),
+    { label: LABELS.home, href: gamePath(game), icon: "home" as const },
+    { label: LABELS.fundamentals, href: gamePath(game, "fundamentals"), icon: "fundamentals" as const },
+    ...(game.ranked ? [{ label: localize(game.ranked.title), href: gamePath(game, "ranked"), icon: "ranked" as const }] : []),
   ]
   const items = [
     ...pagesOf(game),

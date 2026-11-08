@@ -8,16 +8,22 @@
     <!--
       OBS: Browser source, 1920×1080, over the game in Jogo and Jogo + chat. The
       crowd: a stand at the bottom centre, clear of the camera frame (bottom
-      left) and Rocket League's boost meter (bottom right), with one fan for
+      left) and Rocket League's boost meter (bottom right; Valorant: see ?jogo), with one fan for
       each viewer logged in to the chat (Twitch's membership events, as in
       presenca.html: only who has the chat open, about 10 s late), their name
       over them, after their rank's emblem. Ten to a row; the channel and then
       who has the most Σ stand in front (sigma.js), each row behind smaller.
 
       It reacts to the game as the "Partidas" dock sends it (partidas.html,
-      through obs-browser's emit_event): our goal is a wave, confetti, the
-      speed, and a goal dedicated to someone drawn from the stand; theirs, a
-      slump; our saves, a cheer. The dedication is drawn by Σ, flattened. What
+      through obs-browser's emit_event), whatever the game. Rocket League: our
+      goal is a wave, confetti, the speed, and a goal dedicated to someone
+      drawn from the stand; theirs, a slump; our saves, a cheer. Valorant
+      (scripts/valorant.py reads the Riot Client): each round won is a smaller
+      party with the score, a round lost a slump, and a match won the full
+      party with the win dedicated. The dedication is drawn by Σ, flattened.
+      ?jogo=valorant (the Valorant scene's source) tucks the stand away while a
+      match is being played, where it would cover the HUD's abilities, and
+      brings it up for each round's end and between matches. What
       a viewer says in the chat shows in a balloon over their fan for a few
       seconds (three at most at once); they move their own fan with !pula,
       !danca, !ola. Each fan's look is their profile on the site (/perfil), or
@@ -31,17 +37,24 @@
       minute: ?sigma= the Σ API, and #chave= its key, set only in OBS.
 
       ?canal= as in the overlays. The channel stands with its viewers. ?demo fills the stand with sample people and
-      plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça,
+      plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça, r round nosso, t round deles,
+      w vitória, x derrota, f entra/sai de partida (with ?jogo=valorant, the stand tucks away),
       p pula, n dança, o ola, m mensagem, j chega alguém, s sai alguém,
       l uma legenda de exemplo, v liga/desliga as legendas de verdade (scripts/legenda.py).
     -->
     <style>
       .torcida {
+        transition: transform 0.6s ease;
         position: absolute;
         left: 596px;
         width: 960px;
         bottom: 0;
         height: 220px;
+      }
+
+      /* Tucked under the screen's edge (?jogo=valorant, during play): its moments bring it back up. */
+      .torcida.recolhida {
+        transform: translateY(260px);
       }
 
       /* The stand: a Klein band cut at 45° on its ends, lined with the lattice, a Klein claro hairline on top. */
@@ -704,18 +717,40 @@
         setTimeout(() => f.remove(), 5400)
       }
 
-      // A goal is dedicated to someone in the stand, everyone with the same odds (by Σ, once it exists).
+      // A goal (Valorant: a win) is dedicated to someone in the stand, everyone with the same odds (by Σ, once it exists).
       function sortear() {
         const lista = [...pessoas.values()].filter((p) => p.el && p.login !== CHANNEL)
         let sorte = Math.random() * lista.reduce((soma, p) => soma + Sigma.peso(sigma(p.login)), 0)
         return lista.find((p) => (sorte -= Sigma.peso(sigma(p.login))) < 0) ?? lista.at(-1) ?? null
       }
-      function dedicar(p) {
+      function dedicar(p, frase = (quem) => `Esse gol é do ${quem}!`) {
         setTimeout(() => {
           p.el?.classList.add("dedicado", "foco")
           setTimeout(() => p.el?.classList.remove("dedicado", "foco"), 5600)
-          faixa(`Esse gol é do ${p.nome}!`, "", "dedicatoria")
+          faixa(frase(p.nome), "", "dedicatoria")
         }, 2400)
+      }
+
+      // Valorant's HUD has the abilities where the stand stands: with ?jogo=valorant it tucks away while a match is
+      // played, and comes up for a moment (a round's end) or when no match is on.
+      const RECOLHE = params.get("jogo") === "valorant"
+      let emPartida = false
+      let visivelAte = 0
+      function recolher() {
+        torcida.classList.toggle("recolhida", RECOLHE && emPartida && Date.now() >= visivelAte)
+      }
+      function mostrar(ms) {
+        visivelAte = Date.now() + ms
+        recolher()
+        setTimeout(recolher, ms + 50)
+      }
+      // The rounds and the match's end come from scripts/valorant.py on this PC (?valorant= its address).
+      if (RECOLHE && !params.has("demo")) {
+        const fonte = new EventSource(`${params.get("valorant") ?? "http://127.0.0.1:8792"}/eventos`)
+        fonte.onmessage = ({ data }) => {
+          const evento = JSON.parse(data)
+          jogo[evento.tipo]?.(evento)
+        }
       }
 
       // --- The narrator (scripts/narrador.py, on this PC): goals in the narrator's voice ---------------
@@ -733,6 +768,9 @@
         "Que pancada! É gol, é gol, é gol do Luan!",
       ]
       const CONTRA = ["Ih, amigo... tomou. Bola pra frente, Luan.", "Não dá pra acreditar. Gol deles.", "Acontece. Respira e vamos pra cima!"]
+      // Valorant: only the match's end is narrated; rounds come too often.
+      const VITORIA = ["Acabou! É vitória do Luan!", "Fim de jogo, e é vitória, amigo!"]
+      const DERROTA = ["Fim de jogo. Não foi dessa vez, Luan.", "Perdemos essa. Respira, que tem a próxima."]
       const som = new AudioContext()
       const prontas = new Map() // line → AudioBuffer
       function voz(texto) {
@@ -745,7 +783,7 @@
           .catch(() => null)
       }
       // The openers, now and whenever the narrator comes up later.
-      const preparar = () => [...ABERTURAS, ...CONTRA].filter((t) => !prontas.has(t)).forEach(voz)
+      const preparar = () => [...ABERTURAS, ...CONTRA, ...VITORIA, ...DERROTA].filter((t) => !prontas.has(t)).forEach(voz)
       preparar()
       setInterval(preparar, 30000)
 
@@ -767,7 +805,7 @@
         })
       }
       const pick = (lista) => lista[Math.floor(Math.random() * lista.length)]
-      // Logins read better without their dots and underscores: "bia.aerial" → "bia aerial".
+      // Logins read better without their dots and underscores: "bia.lima" → "bia lima".
       const falado = (nome) => nome.replace(/[._-]+/g, " ").trim()
       function narrarGol(kmh, dedicado) {
         const velocidade = kmh ? (kmh >= 100 ? `${kmh} quilômetros por hora, que bomba!` : `A bola entrou a ${kmh} quilômetros por hora!`) : ""
@@ -802,6 +840,38 @@
         defesa({ epica }) {
           momento("defesa", 800)
           if (epica) faixa("DEFESAÇA!")
+        },
+        // Valorant, from scripts/valorant.py through the dock. `placar` is ours–theirs, "7–5".
+        rodada({ nosso, placar }) {
+          mostrar(12000)
+          if (!nosso) {
+            soltarStickers("contra")
+            return momento("luto", 2400)
+          }
+          momento("festa", 2600)
+          soltarStickers("gol")
+          faixa("ROUND!", placar ?? "")
+        },
+        partida({ vitoria, placar }) {
+          mostrar(15000)
+          if (!vitoria) {
+            narrar(voz(pick(DERROTA)))
+            soltarStickers("contra")
+            faixa("FIM DE JOGO", placar ?? "")
+            return momento("luto", 3300)
+          }
+          momento("festa", 3500)
+          soltarStickers("gol")
+          confete()
+          faixa("VITÓRIA!", placar ?? "")
+          const dedicado = sortear()
+          if (dedicado) dedicar(dedicado, (quem) => `Essa vitória é do ${quem}!`)
+          narrar(voz(pick(VITORIA)), dedicado && voz(`Essa vitória é do ${falado(dedicado.nome)}!`))
+        },
+        // Where the game is: "menu", "selecao" (agent select) or "partida".
+        fase({ fase }) {
+          emPartida = fase === "partida"
+          recolher()
         },
       }
       addEventListener("muanlartins-torcida", ({ detail }) => jogo[detail?.tipo]?.(detail))
@@ -919,8 +989,8 @@
         })
 
       function demo() {
-        const nomes = ["rafa_rl", "Giovana_GC", "tiagoboost", "platinadinho", "lucas_ssl", "bia.aerial", "DuduFlip",
-          "kickoff_king", "ceci_rl", "manomenezes", "zeroboost", "Ana_Ceiling", "otto_dribla", "jujuflick", "PedroDemo"]
+        const nomes = ["rafa", "Giovana_GC", "tiago.mendes", "marinamarina", "lucas_s", "bia.lima", "DuduSantos",
+          "kingkong", "ceci", "manomenezes", "zezinho", "Ana_Clara", "otto", "jujuba", "PedroH"]
         // Half of them chose their look on the site.
         const um = (lista) => lista[Math.floor(Math.random() * lista.length)]
         nomes.forEach((n, i) => i % 2 && escolhas.set(n.toLowerCase(), {
@@ -932,8 +1002,9 @@
         nomes.forEach((n, i) => sigmas.set(n.toLowerCase(), { sigma: Math.round(20000 * Math.random() ** 3) }))
         nomes.slice(0, 12).forEach((n) => chegar(n.toLowerCase(), n))
         conectouEm = Date.now() - ASSENTANDO_MS
-        const FRASES = ["boa noite!!", "que golaço", "GG", "esse half flip foi limpo demais",
-          "qual a sensibilidade do teu controle?", "bora subir pro diamante 3 hoje", "kkkkkkk", "salvou demais"]
+        const FRASES = ["boa noite!!", "que jogada", "GG", "essa foi limpa demais",
+          "qual a tua sensibilidade?", "bora subir hoje", "kkkkkkk", "salvou demais"]
+        const placar = [0, 0]
         const say = (login, text) => apply(`@display-name=${login} :${login}!${login}@x PRIVMSG #${CHANNEL} :${text}`)
         const random = () => [...pessoas.keys()][Math.floor(Math.random() * pessoas.size)]
         const keys = {
@@ -941,6 +1012,11 @@
           c: () => jogo.gol({ nosso: false }),
           d: () => jogo.defesa({}),
           e: () => jogo.defesa({ epica: true }),
+          r: () => jogo.rodada({ nosso: true, placar: `${++placar[0]}–${placar[1]}` }),
+          t: () => jogo.rodada({ nosso: false, placar: `${placar[0]}–${++placar[1]}` }),
+          w: () => jogo.partida({ vitoria: true, placar: "13–9" }),
+          x: () => jogo.partida({ vitoria: false, placar: "9–13" }),
+          f: () => jogo.fase({ fase: emPartida ? "menu" : "partida" }),
           p: () => say(random(), "!pula"),
           n: () => say(random(), "!dança"),
           o: () => say(random(), "!ola"),
@@ -953,8 +1029,8 @@
           m: () => say(random(), FRASES[Math.floor(Math.random() * FRASES.length)]),
           // The real captions, without OBS or the dock: to try legenda.py from a browser.
           v: () => Legenda.ligar(!Legenda.ligada),
-          l: () => Legenda.mostrar(pick(["Olha esse kickoff, eu vou fake e ele vem com tudo", "Que golaço, meu Deus do céu, que golaço!",
-            "Aqui eu devia ter rodado pra trás, o meu companheiro já estava na bola e eu fiquei no meio do caminho dele"]), Math.random() < 0.5),
+          l: () => Legenda.mostrar(pick(["Olha essa jogada, eu achei que não ia dar", "Que lance, meu Deus do céu, que lance!",
+            "Aqui eu devia ter esperado o meu time, entrei sozinho e fiquei no meio do caminho"]), Math.random() < 0.5),
         }
         addEventListener("keydown", (e) => keys[e.key]?.())
         if (params.get("demo") === "parado") return

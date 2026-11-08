@@ -411,13 +411,13 @@ function parseIrc(line) {
 
 function demo(show) {
   const samples = [
-    ["rafa_rl", "boa noite!! chegando agora"],
-    ["muanlartins", "fala rafa, bem-vindo! hoje é treino de air dribble", true],
-    ["giovana.gc", "esse half flip foi limpo demais Kappa", false, "25:32-36"],
-    ["tiagoboost", "qual a sensibilidade do teu controle?"],
-    ["platinadinho", "ainda não consigo fazer o wave dash, alguma dica?"],
-    ["lucas_ssl", "a shadow defense mudou meu jogo, sério"],
-    ["rafa_rl", "GG"],
+    ["rafa", "boa noite!! chegando agora"],
+    ["muanlartins", "fala rafa, bem-vindo! hoje tem ranqueada", true],
+    ["giovana.gc", "essa jogada foi limpa demais Kappa", false, "25:29-33"],
+    ["tiago.mendes", "qual a tua sensibilidade?"],
+    ["marinamarina", "alguma dica pra quem tá começando?"],
+    ["lucas_s", "esse conceito mudou meu jogo, sério"],
+    ["rafa", "GG"],
   ]
   let i = 0
   const next = () => {

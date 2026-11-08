@@ -7,13 +7,13 @@ import type { Choice, Torcedor } from "@/lib/profile"
 
 /** Made-up viewers, some with a fan of their own and some with the one their login gives them. */
 const PEOPLE: [string, Choice?][] = [
-  ["rafa_rl", { cabeca: "redonda", acessorio: "bone", comemoracao: "pula" }],
-  ["bia.aerial"],
-  ["tiagoboost", { roupa: "numero", numero: 7, acessorio: "cachecol", comemoracao: "danca" }],
-  ["ceci_rl"],
-  ["otto_dribla", { cabeca: "hexagono", acessorio: "coroa", comemoracao: "gira" }],
-  ["kickoff_king"],
-  ["ana_ceiling", { roupa: "faixa", acessorio: "oculos", comemoracao: "bananeira" }],
+  ["rafa", { cabeca: "redonda", acessorio: "bone", comemoracao: "pula" }],
+  ["bia.lima"],
+  ["tiago.mendes", { roupa: "numero", numero: 7, acessorio: "cachecol", comemoracao: "danca" }],
+  ["ceci"],
+  ["otto", { cabeca: "hexagono", acessorio: "coroa", comemoracao: "gira" }],
+  ["kingkong"],
+  ["ana_clara", { roupa: "faixa", acessorio: "oculos", comemoracao: "bananeira" }],
 ]
 
 /** A few fans of the stream's stand, drawn by torcedor.js, each celebrating now and then. */

@@ -22,12 +22,12 @@ export function ChannelMenu() {
       home={channelPath()}
       alias={sectionPath("channel")}
       items={[
-        { label: LABELS.home, href: channelPath() },
-        { label: T.lives.title, href: channelPath("lives") },
-        { label: T.pix.title, href: `/${PIX_SLUG}` },
-        { label: LABELS.mural, href: `/${MURAL_SLUG}` },
-        { label: LABELS.profile, href: `/${profileSlug()}` },
-        { label: T.backstage.title, href: channelPath("backstage") },
+        { label: LABELS.home, href: channelPath(), icon: "home" },
+        { label: T.lives.title, href: channelPath("lives"), icon: "lives" },
+        { label: T.pix.title, href: `/${PIX_SLUG}`, icon: "pix" },
+        { label: LABELS.mural, href: `/${MURAL_SLUG}`, icon: "mural" },
+        { label: LABELS.profile, href: `/${profileSlug()}`, icon: "profile" },
+        { label: T.backstage.title, href: channelPath("backstage"), icon: "backstage" },
       ]}
     />
   )
