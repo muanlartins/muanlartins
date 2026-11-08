@@ -696,8 +696,6 @@
         if (event === "GoalScored") match.inPlay = false
         if (event === "GoalScored") {
           emit("muanlartins-torcida", { tipo: "gol", nosso: data.Scorer?.TeamNum === team, kmh: kmh(data.GoalSpeed) })
-          // The Efeitos dock may answer their goal with "Lance ruim".
-          if (data.Scorer?.TeamNum !== team) request("BroadcastCustomEvent", { eventData: { efeito: "golDeles" } })
         } else if (event === "StatfeedEvent" && (data.EventName === "Save" || data.EventName === "EpicSave") && data.MainTarget?.TeamNum === team)
           emit("muanlartins-torcida", { tipo: "defesa", epica: data.EventName === "EpicSave" })
       }

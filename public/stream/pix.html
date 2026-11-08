@@ -14,7 +14,9 @@
       call: a QR code to the site's /pix (public/stream/pix-qr.svg, drawn by
       scripts/pix-qr.mjs, chamada() in stream.js) so whoever watches knows they
       can send one;
-      ?chamada=0 leaves it out.
+      ?chamada=0 leaves it out. In Valorant's scenes (by the scene's name, as
+      the source is the same in every scene) the call and the goal go down to
+      y 380, under the camera's plate; ?canto=baixo forces it, to place it.
 
       It reads the Pix API (infra/pix) every 2 s with the stream's key, the Σ
       key: #chave=<key> (?api= only to point it elsewhere). The voices come from
@@ -146,6 +148,10 @@
         flex-direction: column;
         gap: 10px;
       }
+      /* Valorant's scenes have the camera at the top left, over the minimap: the corner goes under its plate. */
+      .canto.baixo {
+        top: 380px;
+      }
       .meta {
         padding: 14px 18px 16px;
         background: rgb(0 20 71 / 0.82);
@@ -230,9 +236,15 @@
       const $ = (s) => document.querySelector(s)
       if (params.get("chamada") !== "0") chamada($("#chamada"))
       // In Conversa this source is cropped to its band, over the camera's lower third, and conversa.html has its own
-      // call: there the corner (the call and the goal) would show its edge on the camera, so it hides.
+      // call: there the corner (the call and the goal) would show its edge on the camera, so it hides. In Valorant's
+      // scenes the camera is where the corner was (top left, over the minimap), so the corner goes under it.
       const canto = document.querySelector(".canto")
-      const cena = (nome) => (canto.style.visibility = nome === "Conversa" ? "hidden" : "")
+      const VALORANT = ["Valorant", "Valorant + chat", "Lance ruim · Valorant"]
+      const cena = (nome) => {
+        canto.style.visibility = nome === "Conversa" ? "hidden" : ""
+        canto.classList.toggle("baixo", VALORANT.includes(nome) || params.get("canto") === "baixo")
+      }
+      cena()
       window.obsstudio?.getCurrentScene?.((scene) => cena(scene?.name))
       addEventListener("obsSceneChanged", (event) => cena(event.detail?.name))
 
