@@ -19,6 +19,8 @@ Two copies of it, one turned 180°, are glued together and woven over and under 
 | Klein | `#002FA7` | Ground. International Klein Blue. |
 | Branco | `#F4F5F7` | Primary ink, the over copy. |
 | Klein claro | `#85A7FF` | Accent, the under copy. Same hue and saturation as Klein (HSL 223° / 100%), lightness 76%. ~4.5:1 on Klein. |
+| Vitória | `#007645` | Wins on the site's ranked records (`--color-win`). |
+| Derrota | `#B53031` | Losses (`--color-loss`). The pair has the same lightness and chroma in OKLCH (0.50–0.52), so neither shouts over the other, and both carry white text at 5.7:1 and 6.1:1. |
 
 The website extends this into a ramp of Klein tints (see `app/globals.css`).
 
