@@ -1,7 +1,7 @@
 import { roadmap } from "@/lib/roadmap"
 
 /**
- * Valorant's fundamentals, written the "Como estou aprendendo" way: Luan is a Bronze, so each topic is what he
+ * Valorant's fundamentals, written the "Como estou aprendendo" way: Luan is a Silver, so each topic is what he
  * learned about one concept, with the best sources he found (`sources`), not a lesson from someone who knows.
  * Only what the game doesn't say anywhere: no settings, no menus.
  * Topics come as Luan names them; each sits under its pillar and concept with the rank where not knowing it starts
@@ -29,7 +29,7 @@ export default roadmap({
     },
     { id: "iron", name: { pt: "Ferro", en: "Iron" }, color: "#5b5f66", icons: divisions("iron") },
     { id: "bronze", name: { pt: "Bronze", en: "Bronze" }, color: "#8c6a3f", icons: divisions("bronze") },
-    { id: "silver", name: { pt: "Prata", en: "Silver" }, color: "#76878a", icons: divisions("silver") },
+    { id: "silver", name: { pt: "Prata", en: "Silver" }, color: "#5c6d71", icons: divisions("silver") },
     { id: "gold", name: { pt: "Ouro", en: "Gold" }, color: "#b0891c", icons: divisions("gold") },
     { id: "platinum", name: { pt: "Platina", en: "Platinum" }, color: "#2f8796", icons: divisions("platinum") },
     { id: "diamond", name: { pt: "Diamante", en: "Diamond" }, color: "#9a5fc0", icons: divisions("diamond") },

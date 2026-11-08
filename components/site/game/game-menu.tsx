@@ -35,6 +35,7 @@ export function GameMenu({
   items,
   look,
   games = [],
+  alias,
 }: {
   title: string
   home: string
@@ -42,13 +43,16 @@ export function GameMenu({
   /** Whose marker: a game's id. */
   look?: string
   games?: OtherGame[]
+  /** Another address of the home page (the channel's /canal, the same page as the site's home). */
+  alias?: string
 }) {
-  const pathname = usePathname().replace(/\/$/, "")
+  const path = usePathname().replace(/\/$/, "") || "/"
+  const pathname = path === alias ? home : path
   const own = items.filter((item) => !item.away)
   const active =
     own.find((item) => item.href === pathname) ??
     own.find((item) => item.href !== home && pathname.startsWith(`${item.href}/`)) ??
-    (pathname.startsWith(`${home}/`) ? own.find((item) => item.href.endsWith("/fundamentals")) : undefined)
+    (home !== "/" && pathname.startsWith(`${home}/`) ? own.find((item) => item.href.endsWith("/fundamentals")) : undefined)
   const page = active ? active.href.slice(home.length) : ""
   const switchTo = (game: OtherGame) => (game.pages.includes(`${game.home}${page}`) ? `${game.home}${page}` : game.home)
 

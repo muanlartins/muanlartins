@@ -11,8 +11,8 @@ export const channel = {
   },
   /** A blank line starts a new paragraph. */
   intro: {
-    pt: "Cada vídeo pega uma técnica, mede o que funciona e mostra como treinar. Nas lives eu jogo ranqueadas, testo o que estou treinando e converso com quem está no chat.\n\nHoje são dois jogos: Rocket League, nas tardes, e Valorant, que estou aprendendo do zero, nas noites de segunda e quarta.",
-    en: "Each video takes one technique, measures what works and shows how to practice it. In the lives I play ranked, try what I'm practicing and talk with whoever is in the chat.\n\nThere are two games now: Rocket League in the afternoons, and Valorant, which I'm learning from scratch, on Monday and Wednesday nights.",
+    pt: "Cada vídeo pega uma técnica, mede o que funciona e mostra como treinar. Nas lives eu jogo ranqueadas, testo o que estou treinando e converso com quem está no chat.\n\nHoje são dois jogos: Rocket League, nas tardes, e Valorant, que estou aprendendo, nas noites de segunda e quarta.",
+    en: "Each video takes one technique, measures what works and shows how to practice it. In the lives I play ranked, try what I'm practicing and talk with whoever is in the chat.\n\nThere are two games now: Rocket League in the afternoons, and Valorant, which I'm learning, on Monday and Wednesday nights.",
   },
   watch: { pt: "Onde assistir", en: "Where to watch" },
   where: {

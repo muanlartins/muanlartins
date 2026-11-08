@@ -11,17 +11,18 @@ import { channel } from "@/content/channel"
 import { mural, pix } from "@/content/pix"
 import { privacy } from "@/content/privacy"
 import { profile } from "@/content/profile"
+import personal from "@/content/personal"
 import professional from "@/content/professional"
 import * as content from "@/content/projects"
 import { lives } from "@/lib/lives-files"
 import { sectionMetadata } from "@/lib/metadata"
-import { HTML_LANG, localize, MURAL_SLUG, muralUrl, PIX_SLUG, pixUrl, privacySlug, privacyUrl, profileSlug, profileUrl, sectionFromSlug, sectionPath } from "@/lib/site"
+import { HTML_LANG, homeUrl, localize, MURAL_SLUG, muralUrl, PIX_SLUG, pixUrl, privacySlug, privacyUrl, profileSlug, profileUrl, sectionFromSlug, sectionPath } from "@/lib/site"
 
 export const dynamicParams = false
 
 export function generateStaticParams() {
   return [
-    ...(["professional", "content", "channel"] as const).map((section) => ({ section: sectionPath(section).slice(1) })),
+    ...(["personal", "professional", "content", "channel"] as const).map((section) => ({ section: sectionPath(section).slice(1) })),
     { section: privacySlug() },
     { section: profileSlug() },
     { section: PIX_SLUG },
@@ -72,9 +73,11 @@ export async function generateMetadata({ params }: PageProps<"/[section]">) {
     }
   }
   const section = sectionFromSlug(slug)
+  if (section === "personal") return sectionMetadata(section, personal)
   if (section === "professional") return sectionMetadata(section, professional)
   if (section === "content") return sectionMetadata(section, content.page)
-  if (section === "channel") return sectionMetadata(section, channel)
+  // The same page as the home, which is where search engines should send people.
+  if (section === "channel") return { ...sectionMetadata(section, channel), alternates: { canonical: homeUrl() } }
   return {}
 }
 
@@ -85,6 +88,7 @@ export default async function SectionPage({ params }: PageProps<"/[section]">) {
   if (slug === PIX_SLUG) return <OfChannel page={<PixPage />} />
   if (slug === MURAL_SLUG) return <OfChannel page={<MuralPage />} />
   const section = sectionFromSlug(slug)
+  if (section === "personal") return <TimelinePage content={personal} />
   if (section === "professional") return <TimelinePage content={professional} />
   if (section === "content") return <GameList page={content.page} games={content.games} />
   if (section === "channel") return <OfChannel page={<ChannelHome lives={lives()} />} />
