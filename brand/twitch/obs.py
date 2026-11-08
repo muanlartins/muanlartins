@@ -155,9 +155,8 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVE
 
 # --- Effects (the "Efeitos" dock, public/stream/efeitos.html) ---------------------------------------------------
 # Hotkeys are OBS's own, so they work with the game focused: the F-row, which Rocket League leaves free but for F1
-# (its console) and F10 (its stat graphs), and F6 and F7, which start and stop OBS's recording here. F2 "Lance ruim",
-# F3 "Terapia", F4 back to the main game scene; the sounds on F5, F8, F9, F11, F12, Page Up and Page Down. `--apply`
-# refuses a key that OBS already uses for something else.
+# (its console) and F10 (its stat graphs). F2 "Lance ruim", F3 "Terapia", F4 back to the main game scene; the sounds
+# on F5–F9, F11 and F12. `--apply` refuses a key that OBS already uses for something else.
 HOTKEYS = {"Lance ruim": "OBS_KEY_F2", "Terapia": "OBS_KEY_F3", "Jogo + chat": "OBS_KEY_F4"}
 
 
@@ -173,9 +172,9 @@ def sound(name, file, key=None, restart=False):
 
 
 sounds = [sound(f"Som · {label}", file, key) for label, file, key in (
-    ("Palmas", "palmas", "OBS_KEY_F5"), ("Uuuh", "uuuh", "OBS_KEY_F8"), ("Buzina", "buzina", "OBS_KEY_F9"),
-    ("Ba-dum-tss", "badumtss", "OBS_KEY_F11"), ("Boing", "boing", "OBS_KEY_F12"),
-    ("Suspense", "suspense", "OBS_KEY_PAGEUP"), ("Tambor", "tambor", "OBS_KEY_PAGEDOWN"))]
+    ("Palmas", "palmas", "OBS_KEY_F5"), ("Uuuh", "uuuh", "OBS_KEY_F6"), ("Buzina", "buzina", "OBS_KEY_F7"),
+    ("Suspense", "suspense", "OBS_KEY_F8"), ("Tambor", "tambor", "OBS_KEY_F9"),
+    ("Ba-dum-tss", "badumtss", "OBS_KEY_F11"), ("Boing", "boing", "OBS_KEY_F12"))]
 # "Lance ruim": the game's scene with the camera on top, which the dock zooms; the bars and the sting play each time.
 bad_play = browser("Efeito · Lance ruim", "lance.html", restart=True)
 sting = sound("Som · Lance ruim", "lance", restart=True)
