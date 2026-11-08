@@ -3,7 +3,8 @@
  * (public/stream/partidas.html): one file per session in content/matches/,
  * published from the dock at the end of a stream. Points are the game's
  * MMR, typed in after each match; the rest comes from Rocket League's
- * Stats API. Teammates are kept without their names.
+ * Stats API. Teammates are kept without their names, but for the viewers who
+ * agreed to be named (public/stream/aliados.json), kept by Twitch login.
  */
 
 export const MODES = ["1v1", "2v2", "3v3"] as const
@@ -29,6 +30,11 @@ export interface PlayerStats {
   demos: number
 }
 
+/** A teammate: their numbers, and their Twitch login when they're a viewer who agreed to be named. */
+export interface Mate extends PlayerStats {
+  login?: string
+}
+
 export interface Match {
   id: string
   /** The first countdown: where the match's chapter of the VOD begins. Missing on older matches. */
@@ -43,7 +49,7 @@ export interface Match {
   score?: [number, number]
   overtime?: boolean
   me?: PlayerStats
-  mates?: PlayerStats[]
+  mates?: Mate[]
   /** The rank going into the match. */
   rank?: Standing | null
   /** Points won or lost, and the total after. */
@@ -95,7 +101,23 @@ export interface Summary {
   days: Day[]
   /** Averages per match: mine, and one teammate's. */
   averages?: { me: PlayerStats; mates?: PlayerStats; matches: number }
+  /** The viewers who played with me, most matches first. */
+  allies: Ally[]
 }
+
+export interface Ally {
+  login: string
+  matches: number
+  wins: number
+  losses: number
+  /** Net points from the matches together that have them. */
+  points: number
+  /** Their average per match with me. */
+  averages: PlayerStats
+}
+
+/** The viewers among a match's teammates. */
+export const viewersIn = (match: Match) => (match.mates ?? []).flatMap((mate) => (mate.login ? [mate.login] : []))
 
 export const STATS: (keyof PlayerStats)[] = ["score", "goals", "assists", "saves", "shots", "touches", "demos"]
 
@@ -188,7 +210,28 @@ export function summarize(sessions: Session[], mode: Mode): Summary {
   const pointsOf = (result: Match["result"]) =>
     mean(matches.filter((m) => m.result === result && m.points != null).map((m) => m.points!))
 
+  const byLogin = new Map<string, { matches: Match[]; lines: PlayerStats[] }>()
+  for (const match of matches) {
+    for (const mate of match.mates ?? []) {
+      if (!mate.login) continue
+      const ally = byLogin.get(mate.login) ?? { matches: [], lines: [] }
+      ally.matches.push(match)
+      ally.lines.push(mate)
+      byLogin.set(mate.login, ally)
+    }
+  }
+  const allies: Ally[] = [...byLogin].map(([login, { matches: together, lines }]) => ({
+    login,
+    matches: together.length,
+    wins: together.filter((match) => match.result === "win").length,
+    losses: together.filter((match) => match.result === "loss").length,
+    points: together.reduce((total, match) => total + (match.points ?? 0), 0),
+    averages: averageStats(lines)!,
+  }))
+  allies.sort((a, b) => b.matches - a.matches || b.wins - a.wins || a.login.localeCompare(b.login))
+
   return {
+    allies,
     matches,
     wins: matches.filter((match) => match.result === "win").length,
     losses: matches.filter((match) => match.result === "loss").length,
