@@ -14,7 +14,7 @@
         their goals (Partidas sends them).
       - Terapia (F3): the calm scene (terapia.html), faded in; "Voltar ao jogo" (F4, the main game scene)
         leaves it, faded from here.
-      - Sons: the effects made by sons.js, each a media source with its own hotkey (F5, F8, F9, F11, F12, PgUp, PgDn), restarted here.
+      - Sons: the effects made by sons.js, each a media source with its own hotkey (F5–F9, F11, F12), restarted here.
 
       The scenes' and sounds' hotkeys are OBS's own (brand/twitch/obs.py sets them), so they work with the game
       focused. The OBS websocket password is kept in the dock's storage; #obs=<password> in the URL fills it.
@@ -149,10 +149,10 @@
       // Name on the button, OBS's media source (brand/twitch/obs.py) and its hotkey.
       const SONS = [
         ["Palmas", "Som · Palmas", "F5"],
-        ["Uuuh", "Som · Uuuh", "F8"],
-        ["Buzina", "Som · Buzina", "F9"],
-        ["Suspense", "Som · Suspense", "PgUp"],
-        ["Tambor", "Som · Tambor", "PgDn"],
+        ["Uuuh", "Som · Uuuh", "F6"],
+        ["Buzina", "Som · Buzina", "F7"],
+        ["Suspense", "Som · Suspense", "F8"],
+        ["Tambor", "Som · Tambor", "F9"],
         ["Ba-dum-tss", "Som · Ba-dum-tss", "F11"],
         ["Boing", "Som · Boing", "F12"],
       ]
