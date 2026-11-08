@@ -5,6 +5,7 @@ import { LivePage } from "@/components/site/lives/live-page"
 import { LivesPage } from "@/components/site/lives/lives-page"
 import { fullDate } from "@/components/site/ranked/format"
 import { RankedPage } from "@/components/site/ranked/ranked-page"
+import { ValorantRankedPage } from "@/components/site/ranked/valorant-ranked-page"
 import { RoadmapPage } from "@/components/site/roadmap/roadmap-page"
 import { TopicPage } from "@/components/site/roadmap/topic-page"
 import { channel } from "@/content/channel"
@@ -13,7 +14,7 @@ import { channelPath, type ChannelPage } from "@/lib/channel"
 import { fundamentals, GAME_PAGES, type GamePage } from "@/lib/game"
 import { matchMoments } from "@/lib/lives"
 import { lives, transcript } from "@/lib/lives-files"
-import { sessions } from "@/lib/matches"
+import { sessions, valorantSessions } from "@/lib/matches"
 import { sectionMetadata } from "@/lib/metadata"
 import { editionSlug, entries, findTopic, type Roadmap } from "@/lib/roadmap"
 import { localize, sectionFromSlug, sectionPath } from "@/lib/site"
@@ -131,6 +132,18 @@ export default async function SectionSubpage({ params }: Props) {
   if (page === "fundamentals" && roadmap) return <RoadmapPage game={game} roadmap={roadmap} />
   // The roadmap's ranks, for each emblem's name and colour.
   const ranks = fundamentals(game).ranks.map((rank) => ({ id: rank.id, name: localize(rank.name), color: rank.color }))
+  if (page === "ranked" && game.ranked && game.id === "valorant") {
+    return (
+      <ValorantRankedPage
+        title={localize(game.ranked.title)}
+        description={localize(game.ranked.description)}
+        sessions={valorantSessions()}
+        ranks={fundamentals(game).ranks}
+        rank={game.rank}
+        credits={localize(game.credits)}
+      />
+    )
+  }
   if (page === "ranked" && game.ranked) {
     return (
       <RankedPage
@@ -144,5 +157,5 @@ export default async function SectionSubpage({ params }: Props) {
       />
     )
   }
-  return <GameHome game={game} sessions={game.ranked ? sessions() : []} lives={lives().filter((live) => live.game === game.id)} ranks={ranks} />
+  return <GameHome game={game} sessions={game.ranked && game.id === "rocket-league" ? sessions() : []} valorant={game.id === "valorant" ? valorantSessions() : []} lives={lives().filter((live) => live.game === game.id)} ranks={ranks} />
 }

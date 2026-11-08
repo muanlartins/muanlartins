@@ -3,7 +3,8 @@ import { game } from "@/lib/game"
 
 /**
  * Valorant's home at /conteudo/valorant: the second game, learned from Silver, live on Monday and Wednesday
- * nights (content/agenda.json). No ranked record yet: the Partidas dock reads Rocket League.
+ * nights (content/agenda.json). Its ranked record is content/valorant/, from the Partidas dock's Valorant tab;
+ * `rank` is Luan's rank by hand until the first match there tells it.
  * The credits are Riot's "Legal Jibber Jabber", which fan sites using its art must show.
  */
 export default game({
@@ -20,6 +21,13 @@ export default game({
   },
   roadmaps: [valorant],
   rank: "silver",
+  ranked: {
+    title: { pt: "Ranqueadas", en: "Ranked" },
+    description: {
+      pt: "Meu elo, meu RR e cada partida competitiva das lives.",
+      en: "My rank, my RR and every competitive match from the streams.",
+    },
+  },
   links: [],
   credits: {
     pt: "muanlartins não é endossado pela Riot Games e não reflete as visões ou opiniões da Riot Games ou de qualquer pessoa oficialmente envolvida na produção ou gestão das propriedades da Riot Games. Riot Games e todas as propriedades associadas são marcas comerciais ou marcas registradas da Riot Games, Inc. Os emblemas de rank são da Riot Games.",

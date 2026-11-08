@@ -14,6 +14,7 @@ import type { Live } from "@/lib/lives"
 import { MODES, summarize, type Mode, type Session } from "@/lib/ranked"
 import { entries } from "@/lib/roadmap"
 import { localize } from "@/lib/site"
+import { summarizeValorant, tierId, type ValorantSession } from "@/lib/valorant"
 
 const T = localize({
   explore: { pt: "Por aqui", en: "In here" },
@@ -38,9 +39,12 @@ export function GameHome({
   sessions,
   lives,
   ranks,
+  valorant = [],
 }: {
   game: Game
   sessions: Session[]
+  /** Valorant's published sessions, when it's Valorant's home. */
+  valorant?: ValorantSession[]
   /** The game's lives on the channel, newest first. */
   lives: Live[]
   ranks: RankInfo[]
@@ -58,6 +62,11 @@ export function GameHome({
     .sort((a, b) => b.at.localeCompare(a.at))[0]
   const mode = latest?.mode as Mode | undefined
   const standing = mode && summarize(sessions, mode).standing
+  // Valorant's rank: the latest match's, or Luan's by hand before the first.
+  const valorantRank = summarizeValorant(valorant).rank
+  const valorantTier = tierId(valorantRank?.tier)
+  const ladderAt = valorantTier ? valorantTier.replace(/-\d$/, "") : game.rank
+  const valorantInfo = valorantTier && roadmap.ranks.find((rank) => valorantTier.startsWith(rank.id))
 
   return (
     <>
@@ -81,7 +90,7 @@ export function GameHome({
         ))}
       </div>
 
-      {game.rank && <Ladder ranks={roadmap.ranks} current={game.rank} className="mt-12" />}
+      {ladderAt && <Ladder ranks={roadmap.ranks} current={ladderAt} className="mt-12" />}
 
       <section className="mt-16">
         <h2 className="text-[12px] font-medium uppercase tracking-[0.12em] text-muted">{T.explore}</h2>
@@ -97,6 +106,15 @@ export function GameHome({
             <Card href={gamePath(game, "ranked")} title={localize(game.ranked.title)} summary={localize(game.ranked.description)}>
               {standing ? (
                 <RankLine tier={standing.tier} ranks={ranks} mode={mode!} division={divisionOf(standing)} mmr={standing.mmr} />
+              ) : valorantInfo && valorantRank ? (
+                <p className="flex items-center gap-2 text-[14px] text-ink">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/ranks/valorant/${valorantTier}.webp`} alt="" className="h-7 w-7 object-contain" />
+                  <span className="font-medium">
+                    {localize(valorantInfo.name)} {valorantTier!.match(/-(\d)$/)?.[1]}
+                  </span>
+                  <span className="tabular-nums text-muted">· {valorantRank.rr} RR</span>
+                </p>
               ) : (
                 <p className="text-[13px] text-muted">{T.noRank}</p>
               )}
