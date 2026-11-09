@@ -8,79 +8,107 @@
       OBS: Browser source, 1920×1080, on top of the "Lance ruim" scene, "Restart when the source becomes active",
       so its moment plays from the start each time the scene goes live. The scene is the game's, with the camera on
       top: the "Efeitos" dock (efeitos.html) zooms the camera from its frame to the whole screen and, after
-      ?segundos= (default 4), back, and returns to the scene before. This page is the film around it: navy bars
-      closing in from top and bottom, a vignette, and a line in the bottom bar. Its sound, "dun dun duuun", is the
-      scene's own media source (sons.js, lance). ?demo replays it every 6 s.
+      ?segundos= (default 4), back, and returns to the scene before. This page is the shock around it, as in anime:
+      a flash, then black speed lines rushing in from the edges toward the middle, redrawn a dozen times a second so
+      they shiver, leaving the face clear. No words. Its sound, "dun dun duuun", is the scene's own media source
+      (sons.js, lance). ?demo replays it every 6 s.
     -->
     <style>
-      .bar {
-        position: absolute;
-        left: 0;
-        width: 1920px;
-        height: 120px;
-        background: var(--navy);
-        transition: transform 0.28s var(--ease);
-      }
-      .bar.top {
-        top: 0;
-        transform: translateY(-100%);
-        box-shadow: inset 0 -4px 0 var(--klein-claro);
-      }
-      .bar.bottom {
-        bottom: 0;
-        transform: translateY(100%);
-        box-shadow: inset 0 4px 0 var(--klein-claro);
-      }
-      .on .bar {
-        transform: none;
-      }
-      .vignette {
+      canvas,
+      .flash {
         position: absolute;
         inset: 0;
-        background: radial-gradient(ellipse at 50% 45%, transparent 45%, rgb(0 10 36 / 0.75) 100%);
+        width: 1920px;
+        height: 1080px;
+      }
+      .flash {
+        background: #fff;
         opacity: 0;
-        transition: opacity 0.4s var(--ease);
       }
-      .on .vignette {
-        opacity: 1;
+      .on .flash {
+        animation: flash 0.22s ease-out;
       }
-      .line {
-        position: absolute;
-        right: 64px;
-        bottom: 34px;
-        margin: 0;
-        font-size: 40px;
-        font-weight: 500;
-        letter-spacing: -0.02em;
-        opacity: 0;
-        transform: translateY(12px);
-        transition:
-          opacity 0.3s var(--ease) 0.25s,
-          transform 0.3s var(--ease) 0.25s;
-      }
-      .on .line {
-        opacity: 1;
-        transform: none;
+      @keyframes flash {
+        from {
+          opacity: 0.55;
+        }
+        to {
+          opacity: 0;
+        }
       }
     </style>
   </head>
   <body>
     <main class="stage" id="stage">
-      <div class="vignette"></div>
-      <div class="bar top"></div>
-      <div class="bar bottom"></div>
-      <p class="line" id="line"></p>
+      <canvas id="lines" width="1920" height="1080"></canvas>
+      <div class="flash"></div>
     </main>
     <script src="stream.js"></script>
     <script>
-      // Draft lines for Luan to rewrite; one at random each time.
-      const LINES = ["Ninguém viu nada.", "Isso não aconteceu.", "Faz parte do método.", "Hipótese refutada.", "Calma. Respira."]
       const SECONDS = Number(params.get("segundos")) || 4
+      const W = 1920
+      const H = 1080
       const el = document.getElementById("stage")
+      const ctx = document.getElementById("lines").getContext("2d")
+
+      // The lines: wedges from past the corners, each tip on a ragged ellipse round the middle.
+      const COUNT = 170
+      const OUTER = Math.hypot(W, H) / 2 + 40
+      const CLEAR = { x: 560, y: 330 } // the smallest the clear middle gets
+      const RUSH = 0.18 // seconds for the lines to rush in, and out
+      const BOIL = 1000 / 14 // new lines every this many ms
+
+      let lines = []
+      function shuffle() {
+        lines = Array.from({ length: COUNT }, (_, i) => ({
+          angle: ((i + Math.random() * 0.8) / COUNT) * Math.PI * 2,
+          reach: 1 + Math.random() ** 2 * 0.7, // how far short of the middle the tip stops
+          width: 2 + Math.random() ** 3 * 40, // at the outer edge, in px
+        }))
+      }
+
+      function draw(spread, alpha) {
+        ctx.clearRect(0, 0, W, H)
+        ctx.globalAlpha = alpha
+        ctx.fillStyle = "#000"
+        ctx.beginPath()
+        for (const { angle, reach, width } of lines) {
+          const cos = Math.cos(angle)
+          const sin = Math.sin(angle)
+          const half = width / 2 / OUTER
+          const tip = reach * spread
+          ctx.moveTo(W / 2 + cos * CLEAR.x * tip, H / 2 + sin * CLEAR.y * tip)
+          ctx.lineTo(W / 2 + Math.cos(angle - half) * OUTER, H / 2 + Math.sin(angle - half) * OUTER)
+          ctx.lineTo(W / 2 + Math.cos(angle + half) * OUTER, H / 2 + Math.sin(angle + half) * OUTER)
+          ctx.closePath()
+        }
+        ctx.fill()
+      }
+
+      const ease = (t) => 1 - (1 - Math.min(Math.max(t, 0), 1)) ** 3
+      let run = 0
       function play() {
-        document.getElementById("line").textContent = LINES[Math.floor(Math.random() * LINES.length)]
+        const id = ++run
+        const start = performance.now()
+        const end = start + (SECONDS - 0.35) * 1000
+        let shuffled = 0
+        el.classList.remove("on")
         requestAnimationFrame(() => el.classList.add("on"))
-        setTimeout(() => el.classList.remove("on"), (SECONDS - 0.35) * 1000)
+        const frame = (now) => {
+          if (id !== run) return
+          if (now - shuffled > BOIL) {
+            shuffle()
+            shuffled = now
+          }
+          // From off screen to the ellipse, and back out at the end.
+          const coming = ease((now - start) / 1000 / RUSH)
+          const going = ease((now - end) / 1000 / RUSH)
+          const spread = 2.6 - 1.6 * coming + 1.6 * going
+          draw(spread, 1 - going)
+          if (going < 1) requestAnimationFrame(frame)
+          else ctx.clearRect(0, 0, W, H)
+        }
+        requestAnimationFrame(frame)
       }
       play()
       if (params.has("demo")) setInterval(play, 6000)
