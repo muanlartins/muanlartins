@@ -74,8 +74,12 @@ One take = one short; Luan only picks the play and talks. Everything else runs t
    Shorts). Takes land in `Videos\Shorts`.
 3. **The edit:** `scripts/.venv/bin/python scripts/shorts.py --apply` makes each chapter of each new take a
    short in `Videos\Shorts\prontos`: cut to his speech (silence on the mic track), captions word by word from
-   whisper on the seam between play and camera (three words, the one being said in Klein claro, friends' names
-   out), H.264/AAC for Instagram and YouTube Shorts. Over 60 s is reported, not cut. Luan reviews and posts.
+   whisper on the seam between play and camera (three words, the one being said in Klein claro, names as said:
+   nothing is blanked), H.264/AAC for Instagram and YouTube Shorts. Over 60 s is reported, not cut. Luan reviews and posts.
+   Whisper mishears brands and some words: read the transcript first and fix them with `--troca "ERRADA=CERTA"`
+   (one word, case-insensitive, punctuation kept; 11-08: `Enlabs=Aimlabs`, `COVAX=KovaaK's`, `portaria=porcaria`,
+   `Thiago=Tiago` from the handle on screen). A single word that is one of whisper's stock phrases ("obrigado") is
+   kept; only a whole piece that is one goes.
 
 ## Shorts about the channel
 
@@ -90,6 +94,36 @@ that sits still must not be read as browser bars). `--topo "0-39=live-pix.mp4@3"
 `clipes`, from its second 3) in the top from take second 0 to 39, over the tab switching, while his camera and voice go
 on; `"39-41=@45"` shows the take's own top from a later second. It applies to every short of that run: run it when
 only that take is new.
+
+### The run, as done on 11-07 and 11-08
+
+1. `node scripts/obs.mjs`: not live (and Valorant's bridge, `curl -s 127.0.0.1:8792`, not in `"partida"`).
+2. Watch which takes are new in `Videos\Shorts`, transcribe them (`words()` in shorts.py) and look at a few frames:
+   Luan sometimes records a short twice; ask which take, delete the other.
+3. A take without chapters (the channel's shorts) needs `--nome "<hh-mm-ss>=<Assunto>"`, the file's name in
+   `prontos`; pass the same `--nome` on later runs too, or `plan()` sees it as not made. Takes of other days whose
+   shorts exist under another name: delete them before running, or they're made again as "Short 1".
+4. 11-08: `scripts/.venv/bin/python scripts/shorts.py --apply --sem-barras --nome "20-57-31=Afiliado"
+   --nome "21-03-43=Mira no Valorant" --troca "Thiago=Tiago" --troca "Enlabs=Aimlabs" --troca "COVAX=KovaaK's"
+   --troca "portaria=porcaria"`. 11-07 also used `--topo "12-56-21:0-39=live-pix.mp4@3"`.
+5. To redo a short, delete its .mp4 in `prontos` and run again.
+
+## Publishing shorts (YouTube and Instagram)
+
+- **Schedule:** at most one or two a day, spread out; Luan approves the table first. No audience data behind it yet:
+  late afternoon/evening for Brazil, and a game's short on the day of that game's live, a few hours before
+  (11-09: Valorant's aim short Mon 18:00, before the 21:00 Valorant live; affiliate Tue 18:00). Times in Brasília.
+- **YouTube:** the upload is Luan's, in Studio, as private (an unverified app's uploads stay locked private). He
+  gives the ids; each short has `content/videos/<date>-<slug>.json` (id, title ending in the game's hashtag,
+  description with the site page of the subject, Twitch and the site, tags, `publish_at` ISO with -03:00), then
+  `scripts/.venv/bin/python scripts/youtube.py video content/videos/<file>.json --dry-run`, then without
+  `--dry-run`: it sets the metadata and schedules; YouTube publishes by itself.
+- **Instagram:** the Windows session with a browser schedules them in Meta Business Suite, Luan logged in. The
+  handoff is a file in `C:\Users\muanl\Downloads\handoff-instagram-<…>.md` (file, caption with "link na bio"
+  instead of URLs, date and time, "show Luan before confirming each one"), plus a one-line message Luan pastes in
+  that session. Same times as YouTube.
+- If something here is missing, the long-running Claude session named `muanlartins` (see `ListAgents`) has the
+  history of these routines: ask it with `SendMessage`, then write the answer here.
 
 ## Commented videos
 

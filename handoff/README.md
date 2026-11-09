@@ -85,8 +85,7 @@ Scripted on 11-04; one command per step, from the repo, after Luan uploads the r
 1. `scripts/.venv/bin/python scripts/live.py <date>`: finds the day's recording (from the dock's `outputs`, else
    the largest file in Videos named for the day; its start is second 0 of the VOD), transcribes the Microfone
    track (Windows ffmpeg + whisper.cpp on CUDA, `-l pt -mc 0 --vad`, ~2 min for 1h30), cleans it
-   (hallucinations, repeats, usernames with digits, friends' names from `%USERPROFILE%\.config\muanlartins\nomes.txt`
-   become "—"), writes `content/lives/<date>.transcript.json` and `<date>.json` (chapters: each ranked match from
+   (hallucinations, repeats; names stay as said, nothing is blanked), writes `content/lives/<date>.transcript.json` and `<date>.json` (chapters: each ranked match from
    its start, "Começo" and "Fim"; a summary drafted from the numbers, for Luan to rewrite), adds the day to
    `LIVES` in `brand/build.py` (the rank and tier reached, if it climbed) and draws the thumbnail. Existing files
    are kept; `--force` redoes them.
