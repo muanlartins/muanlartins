@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowRight, ArrowUpRight, Clapperboard, Link2, Route, Target, Trophy, type LucideIcon } from "lucide-react"
+import { ArrowRight, ArrowUpRight, Clapperboard, Link2, Route, Swords, Target, Trophy, type LucideIcon } from "lucide-react"
 import { motion } from "motion/react"
 import Link from "next/link"
 import { useState, type ReactNode } from "react"
@@ -8,7 +8,7 @@ import { GameIcon } from "@/components/site/game/game-icon"
 import { cn } from "@/lib/utils"
 
 /** The pages' icons, the same as the menu's (game-menu.tsx). */
-const ICONS = { fundamentals: Route, ranked: Trophy, aim: Target, lives: Clapperboard, link: Link2 } satisfies Record<string, LucideIcon>
+const ICONS = { fundamentals: Route, ranked: Trophy, aim: Target, inventory: Swords, lives: Clapperboard, link: Link2 } satisfies Record<string, LucideIcon>
 
 export interface PageEntry {
   href: string

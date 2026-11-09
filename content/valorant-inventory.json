@@ -1,0 +1,1037 @@
+{
+ "read": null,
+ "weapons": [
+  {
+   "id": "classic",
+   "name": "Classic",
+   "category": "sidearms",
+   "skin": "24aee897-4cdc-b0fd-e596-1ba90fa6d1b2",
+   "chroma": "4b2d5b4f-4955-4208-286c-abadec250cdd",
+   "ideal": {
+    "skin": "051f5a50-4b95-9452-f18a-a1add8266757",
+    "variants": [
+     "Blue"
+    ]
+   }
+  },
+  {
+   "id": "shorty",
+   "name": "Shorty",
+   "category": "sidearms",
+   "skin": "48ad078a-4dae-2b85-a945-f4b6d1efecbb",
+   "chroma": "95608504-4c8b-1408-1612-0f8200421c49",
+   "ideal": {
+    "skin": "4542410b-46ba-36f2-898d-c2815b504002",
+    "variants": [
+     "Cobalt"
+    ]
+   }
+  },
+  {
+   "id": "frenzy",
+   "name": "Frenzy",
+   "category": "sidearms",
+   "skin": "f06657f3-48b6-6314-7235-a9a2749df5b9",
+   "chroma": "dc99ed5a-4d75-87a0-c921-75963ea3c1e1",
+   "ideal": {
+    "skin": "4fb9ea7d-45a6-9154-7a46-648781b081c4",
+    "variants": [
+     "Blue",
+     "Dark"
+    ]
+   }
+  },
+  {
+   "id": "ghost",
+   "name": "Ghost",
+   "category": "sidearms",
+   "skin": "1c63b43b-43c4-04e4-01c9-7aa1bffa5ac1",
+   "chroma": "947a28b6-4e0f-61fb-e795-bc9a5e7b7129",
+   "ideal": {
+    "skin": "a9d11586-488a-c93e-c3cc-1ca5d9b6faa9",
+    "variants": [
+     "Blue"
+    ]
+   }
+  },
+  {
+   "id": "bandit",
+   "name": "Bandit",
+   "category": "sidearms",
+   "skin": "b576b9f1-407d-310a-6009-6287fb6829bc",
+   "chroma": "ff308f94-427d-e6d3-8fcb-258f5d4c2c29",
+   "ideal": null
+  },
+  {
+   "id": "sheriff",
+   "name": "Sheriff",
+   "category": "sidearms",
+   "skin": "1ef6ba68-4dbe-30c7-6bc8-93a6c6f13f04",
+   "chroma": "5a59bd61-48a9-af61-c00f-4aa21deca9a8",
+   "ideal": null
+  },
+  {
+   "id": "stinger",
+   "name": "Stinger",
+   "category": "smgs",
+   "skin": "940fb417-4a9c-3004-41f5-3e8f1f4178b2",
+   "chroma": "31bb2115-4c62-d37c-43c4-11b8fee7f212",
+   "ideal": null
+  },
+  {
+   "id": "spectre",
+   "name": "Spectre",
+   "category": "smgs",
+   "skin": "f01d1307-4299-42f5-2c5e-7dab7e69ab19",
+   "chroma": "a9aaccca-4cdc-02ea-1d7e-89bbacecc0e2",
+   "ideal": {
+    "skin": "b160a897-4b92-0034-58ff-2b9b8c2d7340",
+    "variants": [
+     "Cobalt"
+    ]
+   }
+  },
+  {
+   "id": "bucky",
+   "name": "Bucky",
+   "category": "shotguns",
+   "skin": "70c97fb2-4d79-d4bb-5173-a1888cd4bfd9",
+   "chroma": "3d8ffcfe-4786-0180-42d7-e1be18dd1cab",
+   "ideal": null
+  },
+  {
+   "id": "judge",
+   "name": "Judge",
+   "category": "shotguns",
+   "skin": "acd26127-48ff-8b9e-7ba6-b989af8a4b24",
+   "chroma": "b71ae8d6-44bb-aa4c-0d2a-dc9ed9e66410",
+   "ideal": {
+    "skin": "0221b120-444b-6d1b-fc50-e4a98e470eb2",
+    "variants": [
+     "Blue",
+     "Dark"
+    ]
+   }
+  },
+  {
+   "id": "bulldog",
+   "name": "Bulldog",
+   "category": "rifles",
+   "skin": "724a7f42-4315-eccf-0e76-77bdd3ec2e09",
+   "chroma": "bf35f404-4a14-6953-ced2-5bafd21639a0",
+   "ideal": {
+    "skin": "970e24f7-41df-3ebb-c668-61a180d9d2f2",
+    "variants": [
+     "Blue"
+    ]
+   }
+  },
+  {
+   "id": "guardian",
+   "name": "Guardian",
+   "category": "rifles",
+   "skin": "3bf1e8e0-47e8-f27a-6054-929575f41a54",
+   "chroma": "0f934388-418a-a9e7-42a7-21b27402e46c",
+   "ideal": {
+    "skin": "8966067d-4023-c88a-db56-2691f163d335",
+    "variants": [
+     "Base"
+    ]
+   }
+  },
+  {
+   "id": "phantom",
+   "name": "Phantom",
+   "category": "rifles",
+   "skin": "337cb216-4a6e-d85d-88c2-f29ab317784c",
+   "chroma": "52221ba2-4e4c-ec76-8c81-3483506d5242",
+   "ideal": {
+    "skin": "c1b96274-4346-2ea4-65f4-ec957d217922",
+    "variants": [
+     "Blue"
+    ]
+   }
+  },
+  {
+   "id": "vandal",
+   "name": "Vandal",
+   "category": "rifles",
+   "skin": "27f21d97-4c4b-bd1c-1f08-31830ab0be84",
+   "chroma": "19629ae1-4996-ae98-7742-24a240d41f99",
+   "ideal": {
+    "skin": "18609205-4edb-5966-cff8-0fba0230ba1e",
+    "variants": [
+     "Blue",
+     "Dark"
+    ]
+   }
+  },
+  {
+   "id": "warden",
+   "name": "Warden",
+   "category": "rifles",
+   "skin": "61d99a36-4033-0fa9-2c94-71aaf901e120",
+   "chroma": "44b01f26-4569-0161-681f-e2a677f317ff",
+   "ideal": null
+  },
+  {
+   "id": "marshal",
+   "name": "Marshal",
+   "category": "snipers",
+   "skin": "fd44b2d5-49ee-77ab-fa56-588f3ac0c268",
+   "chroma": "1afec971-4170-f29b-1c94-07a0eff270ab",
+   "ideal": {
+    "skin": "685af060-4934-e262-543d-5d96ed42257d",
+    "variants": [
+     "Black",
+     "Blue"
+    ]
+   }
+  },
+  {
+   "id": "outlaw",
+   "name": "Outlaw",
+   "category": "snipers",
+   "skin": "740b9572-44b1-57bf-767e-6aa01811f94d",
+   "chroma": "66c8d241-4f7c-6652-3aaa-51bafffbd493",
+   "ideal": null
+  },
+  {
+   "id": "operator",
+   "name": "Operator",
+   "category": "snipers",
+   "skin": "d1f2920f-469a-3431-ad96-96afbd0017f2",
+   "chroma": "4914f50d-49f9-6424-ca80-9486c45a138d",
+   "ideal": {
+    "skin": "d722313d-43cb-b38d-7841-75880a3ed2cb",
+    "variants": [
+     "Blue",
+     "Dark"
+    ]
+   }
+  },
+  {
+   "id": "ares",
+   "name": "Ares",
+   "category": "heavies",
+   "skin": "5305d9c4-4f46-fbf4-9e9a-dea772c263b5",
+   "chroma": "b33de820-4061-8b85-31ce-808f1a2c58f5",
+   "ideal": null
+  },
+  {
+   "id": "odin",
+   "name": "Odin",
+   "category": "heavies",
+   "skin": "f454efd1-49cb-372f-7096-d394df615308",
+   "chroma": "2f93861d-4b2f-2175-af0c-3ba0c736e257",
+   "ideal": null
+  },
+  {
+   "id": "melee",
+   "name": "Melee",
+   "category": "melee",
+   "skin": "12cc9ed2-4430-d2fe-3064-f7a19b1ba7c7",
+   "chroma": "cac83e5c-47a1-3519-5420-1db1fdbc4892",
+   "ideal": {
+    "skin": "987e847d-47d2-6ab3-2369-0497b6c39a7e",
+    "variants": [
+     "Blue"
+    ]
+   }
+  }
+ ],
+ "owned": {
+  "skins": [],
+  "chromas": []
+ },
+ "skins": {
+  "f454efd1-49cb-372f-7096-d394df615308": {
+   "name": "Standard Odin",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "2f93861d-4b2f-2175-af0c-3ba0c736e257",
+     "name": "Base",
+     "image": "/valorant/skins/2f93861d-4b2f-2175-af0c-3ba0c736e257.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "5305d9c4-4f46-fbf4-9e9a-dea772c263b5": {
+   "name": "Standard Ares",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "b33de820-4061-8b85-31ce-808f1a2c58f5",
+     "name": "Base",
+     "image": "/valorant/skins/b33de820-4061-8b85-31ce-808f1a2c58f5.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "18609205-4edb-5966-cff8-0fba0230ba1e": {
+   "name": "Elderflame Vandal",
+   "standard": false,
+   "tier": {
+    "name": "Ultra",
+    "color": "#fad663"
+   },
+   "chromas": [
+    {
+     "id": "835ad8e3-4b0e-071b-ce38-00a05032ac43",
+     "name": "Base",
+     "image": "/valorant/skins/835ad8e3-4b0e-071b-ce38-00a05032ac43.webp",
+     "swatch": "/valorant/skins/835ad8e3-4b0e-071b-ce38-00a05032ac43-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/71127731-9ce5-4f7a-b9ae-dc55dfe7d9b4_default_universal.mp4"
+    },
+    {
+     "id": "a9873bd5-41f9-170d-27f0-abb68fea0ce9",
+     "name": "Red",
+     "image": "/valorant/skins/a9873bd5-41f9-170d-27f0-abb68fea0ce9.webp",
+     "swatch": "/valorant/skins/a9873bd5-41f9-170d-27f0-abb68fea0ce9-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/71127731-9ce5-4f7a-b9ae-dc55dfe7d9b4_default_universal.mp4"
+    },
+    {
+     "id": "6fb459fa-4368-7d20-106a-629db9825a2b",
+     "name": "Blue",
+     "image": "/valorant/skins/6fb459fa-4368-7d20-106a-629db9825a2b.webp",
+     "swatch": "/valorant/skins/6fb459fa-4368-7d20-106a-629db9825a2b-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/71127731-9ce5-4f7a-b9ae-dc55dfe7d9b4_default_universal.mp4"
+    },
+    {
+     "id": "403f7d3e-4e96-6566-42f3-01b7a803d660",
+     "name": "Dark",
+     "image": "/valorant/skins/403f7d3e-4e96-6566-42f3-01b7a803d660.webp",
+     "swatch": "/valorant/skins/403f7d3e-4e96-6566-42f3-01b7a803d660-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/71127731-9ce5-4f7a-b9ae-dc55dfe7d9b4_default_universal.mp4"
+    }
+   ]
+  },
+  "27f21d97-4c4b-bd1c-1f08-31830ab0be84": {
+   "name": "Standard Vandal",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "19629ae1-4996-ae98-7742-24a240d41f99",
+     "name": "Base",
+     "image": "/valorant/skins/19629ae1-4996-ae98-7742-24a240d41f99.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "61d99a36-4033-0fa9-2c94-71aaf901e120": {
+   "name": "Standard Warden",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "44b01f26-4569-0161-681f-e2a677f317ff",
+     "name": "Base",
+     "image": "/valorant/skins/44b01f26-4569-0161-681f-e2a677f317ff.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "724a7f42-4315-eccf-0e76-77bdd3ec2e09": {
+   "name": "Standard Bulldog",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "bf35f404-4a14-6953-ced2-5bafd21639a0",
+     "name": "Base",
+     "image": "/valorant/skins/bf35f404-4a14-6953-ced2-5bafd21639a0.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "970e24f7-41df-3ebb-c668-61a180d9d2f2": {
+   "name": "Nocturnum Bulldog",
+   "standard": false,
+   "tier": {
+    "name": "Exclusive",
+    "color": "#f5955b"
+   },
+   "chromas": [
+    {
+     "id": "75f1f419-44d7-e378-9db0-d496066fd7bb",
+     "name": "Base",
+     "image": "/valorant/skins/75f1f419-44d7-e378-9db0-d496066fd7bb.webp",
+     "swatch": "/valorant/skins/75f1f419-44d7-e378-9db0-d496066fd7bb-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/ff6b1129-46e1-8595-2f53-3c8bf7f7ec10_default_universal.mp4"
+    },
+    {
+     "id": "397b990c-46df-4ebb-5dda-779082e408da",
+     "name": "Black",
+     "image": "/valorant/skins/397b990c-46df-4ebb-5dda-779082e408da.webp",
+     "swatch": "/valorant/skins/397b990c-46df-4ebb-5dda-779082e408da-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/3699b504-4c2b-681f-833b-fe805d99f09f_default_universal.mp4"
+    },
+    {
+     "id": "dda610cb-4e70-85f3-e119-b69155417830",
+     "name": "Blue",
+     "image": "/valorant/skins/dda610cb-4e70-85f3-e119-b69155417830.webp",
+     "swatch": "/valorant/skins/dda610cb-4e70-85f3-e119-b69155417830-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/6e6724d5-404e-d4d6-89ff-989cde00b963_default_universal.mp4"
+    },
+    {
+     "id": "11a2dfbe-4f2e-e264-33c2-8ca412ee6b42",
+     "name": "Yellow",
+     "image": "/valorant/skins/11a2dfbe-4f2e-e264-33c2-8ca412ee6b42.webp",
+     "swatch": "/valorant/skins/11a2dfbe-4f2e-e264-33c2-8ca412ee6b42-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/87bb2dc2-43a8-2332-46f7-538a30e4b1d2_default_universal.mp4"
+    }
+   ]
+  },
+  "c1b96274-4346-2ea4-65f4-ec957d217922": {
+   "name": "Ayakashi Phantom",
+   "standard": false,
+   "tier": {
+    "name": "Exclusive",
+    "color": "#f5955b"
+   },
+   "chromas": [
+    {
+     "id": "58b05ae6-4126-2be4-84c1-1e9d63409091",
+     "name": "Base",
+     "image": "/valorant/skins/58b05ae6-4126-2be4-84c1-1e9d63409091.webp",
+     "swatch": "/valorant/skins/58b05ae6-4126-2be4-84c1-1e9d63409091-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/7b060d2a-4137-c8b8-0068-9590ee477632_default_universal.mp4"
+    },
+    {
+     "id": "a6d4e18c-4c75-6648-fd29-b4a4345983b3",
+     "name": "Red",
+     "image": "/valorant/skins/a6d4e18c-4c75-6648-fd29-b4a4345983b3.webp",
+     "swatch": "/valorant/skins/a6d4e18c-4c75-6648-fd29-b4a4345983b3-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/27a9081b-4b20-2b39-aff1-8aa99e83cf80_default_universal.mp4"
+    },
+    {
+     "id": "ade1fd1b-4e09-303b-f14b-f4be212b0cbc",
+     "name": "Pink",
+     "image": "/valorant/skins/ade1fd1b-4e09-303b-f14b-f4be212b0cbc.webp",
+     "swatch": "/valorant/skins/ade1fd1b-4e09-303b-f14b-f4be212b0cbc-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/dfbaf53f-4633-332c-d5ed-2db222bb58c4_default_universal.mp4"
+    },
+    {
+     "id": "2006be54-4d9d-cbfe-a325-818a9571e1a4",
+     "name": "Blue",
+     "image": "/valorant/skins/2006be54-4d9d-cbfe-a325-818a9571e1a4.webp",
+     "swatch": "/valorant/skins/2006be54-4d9d-cbfe-a325-818a9571e1a4-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/78d33b52-482f-000c-54c5-82a98b74aa45_default_universal.mp4"
+    }
+   ]
+  },
+  "337cb216-4a6e-d85d-88c2-f29ab317784c": {
+   "name": "Standard Phantom",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "52221ba2-4e4c-ec76-8c81-3483506d5242",
+     "name": "Base",
+     "image": "/valorant/skins/52221ba2-4e4c-ec76-8c81-3483506d5242.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "0221b120-444b-6d1b-fc50-e4a98e470eb2": {
+   "name": "Elderflame Judge",
+   "standard": false,
+   "tier": {
+    "name": "Ultra",
+    "color": "#fad663"
+   },
+   "chromas": [
+    {
+     "id": "72b9e3f7-427f-3d24-f618-11b0f28feb89",
+     "name": "Base",
+     "image": "/valorant/skins/72b9e3f7-427f-3d24-f618-11b0f28feb89.webp",
+     "swatch": "/valorant/skins/72b9e3f7-427f-3d24-f618-11b0f28feb89-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/51da2dd8-00cb-43d2-b13b-b55ab4646d29_default_universal.mp4"
+    },
+    {
+     "id": "87e27487-4705-8060-5d07-c6a6dc927f09",
+     "name": "Red",
+     "image": "/valorant/skins/87e27487-4705-8060-5d07-c6a6dc927f09.webp",
+     "swatch": "/valorant/skins/87e27487-4705-8060-5d07-c6a6dc927f09-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/51da2dd8-00cb-43d2-b13b-b55ab4646d29_default_universal.mp4"
+    },
+    {
+     "id": "ede643c7-4b83-0fd4-13d1-1c9ddb4d34cd",
+     "name": "Blue",
+     "image": "/valorant/skins/ede643c7-4b83-0fd4-13d1-1c9ddb4d34cd.webp",
+     "swatch": "/valorant/skins/ede643c7-4b83-0fd4-13d1-1c9ddb4d34cd-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/51da2dd8-00cb-43d2-b13b-b55ab4646d29_default_universal.mp4"
+    },
+    {
+     "id": "ec9caa7a-43ff-8f04-52a7-27a46de24f6e",
+     "name": "Dark",
+     "image": "/valorant/skins/ec9caa7a-43ff-8f04-52a7-27a46de24f6e.webp",
+     "swatch": "/valorant/skins/ec9caa7a-43ff-8f04-52a7-27a46de24f6e-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/51da2dd8-00cb-43d2-b13b-b55ab4646d29_default_universal.mp4"
+    }
+   ]
+  },
+  "acd26127-48ff-8b9e-7ba6-b989af8a4b24": {
+   "name": "Standard Judge",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "b71ae8d6-44bb-aa4c-0d2a-dc9ed9e66410",
+     "name": "Base",
+     "image": "/valorant/skins/b71ae8d6-44bb-aa4c-0d2a-dc9ed9e66410.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "70c97fb2-4d79-d4bb-5173-a1888cd4bfd9": {
+   "name": "Standard Bucky",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "3d8ffcfe-4786-0180-42d7-e1be18dd1cab",
+     "name": "Base",
+     "image": "/valorant/skins/3d8ffcfe-4786-0180-42d7-e1be18dd1cab.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "4fb9ea7d-45a6-9154-7a46-648781b081c4": {
+   "name": "Elderflame Frenzy",
+   "standard": false,
+   "tier": {
+    "name": "Ultra",
+    "color": "#fad663"
+   },
+   "chromas": [
+    {
+     "id": "eee0c458-474a-b80f-871c-c188f3929a79",
+     "name": "Base",
+     "image": "/valorant/skins/eee0c458-474a-b80f-871c-c188f3929a79.webp",
+     "swatch": "/valorant/skins/eee0c458-474a-b80f-871c-c188f3929a79-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/bc78c474-4ce3-4cb6-a887-8d3da7694780_default_universal.mp4"
+    },
+    {
+     "id": "f40759fa-4a3a-3bb1-484e-4fabf878a774",
+     "name": "Red",
+     "image": "/valorant/skins/f40759fa-4a3a-3bb1-484e-4fabf878a774.webp",
+     "swatch": "/valorant/skins/f40759fa-4a3a-3bb1-484e-4fabf878a774-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/bc78c474-4ce3-4cb6-a887-8d3da7694780_default_universal.mp4"
+    },
+    {
+     "id": "a0e8d567-4673-2f0c-7bb0-debb86d3f4ef",
+     "name": "Blue",
+     "image": "/valorant/skins/a0e8d567-4673-2f0c-7bb0-debb86d3f4ef.webp",
+     "swatch": "/valorant/skins/a0e8d567-4673-2f0c-7bb0-debb86d3f4ef-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/bc78c474-4ce3-4cb6-a887-8d3da7694780_default_universal.mp4"
+    },
+    {
+     "id": "3f8b9999-4a92-de0a-8a0a-4ebf04258950",
+     "name": "Dark",
+     "image": "/valorant/skins/3f8b9999-4a92-de0a-8a0a-4ebf04258950.webp",
+     "swatch": "/valorant/skins/3f8b9999-4a92-de0a-8a0a-4ebf04258950-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/bc78c474-4ce3-4cb6-a887-8d3da7694780_default_universal.mp4"
+    }
+   ]
+  },
+  "f06657f3-48b6-6314-7235-a9a2749df5b9": {
+   "name": "Standard Frenzy",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "dc99ed5a-4d75-87a0-c921-75963ea3c1e1",
+     "name": "Base",
+     "image": "/valorant/skins/dc99ed5a-4d75-87a0-c921-75963ea3c1e1.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "051f5a50-4b95-9452-f18a-a1add8266757": {
+   "name": "Nocturnum Classic",
+   "standard": false,
+   "tier": {
+    "name": "Exclusive",
+    "color": "#f5955b"
+   },
+   "chromas": [
+    {
+     "id": "ab5245a7-4abd-131b-2226-c3ad68b4e503",
+     "name": "Base",
+     "image": "/valorant/skins/ab5245a7-4abd-131b-2226-c3ad68b4e503.webp",
+     "swatch": "/valorant/skins/ab5245a7-4abd-131b-2226-c3ad68b4e503-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/b060ecc6-4134-2392-5866-52b2ec1020a7_default_universal.mp4"
+    },
+    {
+     "id": "a374e193-4a50-87fc-91a0-72b194de9ea7",
+     "name": "Black",
+     "image": "/valorant/skins/a374e193-4a50-87fc-91a0-72b194de9ea7.webp",
+     "swatch": "/valorant/skins/a374e193-4a50-87fc-91a0-72b194de9ea7-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/8e054fb5-40c3-e3dc-32e3-728e7118d279_default_universal.mp4"
+    },
+    {
+     "id": "b36bfcf3-45a0-64c5-fa75-61bd9b20c107",
+     "name": "Blue",
+     "image": "/valorant/skins/b36bfcf3-45a0-64c5-fa75-61bd9b20c107.webp",
+     "swatch": "/valorant/skins/b36bfcf3-45a0-64c5-fa75-61bd9b20c107-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/26528bc0-441e-10d8-996c-d29124f38838_default_universal.mp4"
+    },
+    {
+     "id": "4d6dbcdd-486a-69a7-cc01-a6908e7e4f10",
+     "name": "Yellow",
+     "image": "/valorant/skins/4d6dbcdd-486a-69a7-cc01-a6908e7e4f10.webp",
+     "swatch": "/valorant/skins/4d6dbcdd-486a-69a7-cc01-a6908e7e4f10-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/ea2c6f05-4f68-ba05-b6b5-d68a3a71ef74_default_universal.mp4"
+    }
+   ]
+  },
+  "24aee897-4cdc-b0fd-e596-1ba90fa6d1b2": {
+   "name": "Standard Classic",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "4b2d5b4f-4955-4208-286c-abadec250cdd",
+     "name": "Base",
+     "image": "/valorant/skins/4b2d5b4f-4955-4208-286c-abadec250cdd.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "b576b9f1-407d-310a-6009-6287fb6829bc": {
+   "name": "Standard Bandit",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "ff308f94-427d-e6d3-8fcb-258f5d4c2c29",
+     "name": "Base",
+     "image": "/valorant/skins/ff308f94-427d-e6d3-8fcb-258f5d4c2c29.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "1c63b43b-43c4-04e4-01c9-7aa1bffa5ac1": {
+   "name": "Standard Ghost",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "947a28b6-4e0f-61fb-e795-bc9a5e7b7129",
+     "name": "Base",
+     "image": "/valorant/skins/947a28b6-4e0f-61fb-e795-bc9a5e7b7129.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "a9d11586-488a-c93e-c3cc-1ca5d9b6faa9": {
+   "name": "Ayakashi Ghost",
+   "standard": false,
+   "tier": {
+    "name": "Exclusive",
+    "color": "#f5955b"
+   },
+   "chromas": [
+    {
+     "id": "7486c55a-4f30-9228-96a7-53844b0d7a33",
+     "name": "Base",
+     "image": "/valorant/skins/7486c55a-4f30-9228-96a7-53844b0d7a33.webp",
+     "swatch": "/valorant/skins/7486c55a-4f30-9228-96a7-53844b0d7a33-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/53ba42bf-4f02-c9b7-a745-7c8c256878ff_default_universal.mp4"
+    },
+    {
+     "id": "c549adb1-42b5-c3ad-f1be-a98c1dcc6670",
+     "name": "Red",
+     "image": "/valorant/skins/c549adb1-42b5-c3ad-f1be-a98c1dcc6670.webp",
+     "swatch": "/valorant/skins/c549adb1-42b5-c3ad-f1be-a98c1dcc6670-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/a8ef09ac-463e-b402-421b-7da93ea40396_default_universal.mp4"
+    },
+    {
+     "id": "146c5a32-4641-d43e-49bf-efa384a4f551",
+     "name": "Pink",
+     "image": "/valorant/skins/146c5a32-4641-d43e-49bf-efa384a4f551.webp",
+     "swatch": "/valorant/skins/146c5a32-4641-d43e-49bf-efa384a4f551-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/284ddc9e-4007-0759-0422-f48957731297_default_universal.mp4"
+    },
+    {
+     "id": "a31f040c-44b4-a9a0-4b52-94875b1984f8",
+     "name": "Blue",
+     "image": "/valorant/skins/a31f040c-44b4-a9a0-4b52-94875b1984f8.webp",
+     "swatch": "/valorant/skins/a31f040c-44b4-a9a0-4b52-94875b1984f8-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/3e909efc-4581-6ba7-85ce-a38203528fb0_default_universal.mp4"
+    }
+   ]
+  },
+  "1ef6ba68-4dbe-30c7-6bc8-93a6c6f13f04": {
+   "name": "Standard Sheriff",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "5a59bd61-48a9-af61-c00f-4aa21deca9a8",
+     "name": "Base",
+     "image": "/valorant/skins/5a59bd61-48a9-af61-c00f-4aa21deca9a8.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "4542410b-46ba-36f2-898d-c2815b504002": {
+   "name": "Primordium Shorty",
+   "standard": false,
+   "tier": {
+    "name": "Exclusive",
+    "color": "#f5955b"
+   },
+   "chromas": [
+    {
+     "id": "e08406ae-45bb-9065-9ef0-f4b08acc4cdc",
+     "name": "Base",
+     "image": "/valorant/skins/e08406ae-45bb-9065-9ef0-f4b08acc4cdc.webp",
+     "swatch": "/valorant/skins/e08406ae-45bb-9065-9ef0-f4b08acc4cdc-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/7b41234d-482a-46a7-1856-9a8ae08fd875_default_universal.mp4"
+    },
+    {
+     "id": "c19c23c7-419d-7967-a0c5-72a64e3c2cf8",
+     "name": "Venom",
+     "image": "/valorant/skins/c19c23c7-419d-7967-a0c5-72a64e3c2cf8.webp",
+     "swatch": "/valorant/skins/c19c23c7-419d-7967-a0c5-72a64e3c2cf8-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/5bf90721-4b6c-b998-197c-388f85878b79_default_universal.mp4"
+    },
+    {
+     "id": "b051ee64-4cda-2899-d34a-d396fd9edbb6",
+     "name": "Cobalt",
+     "image": "/valorant/skins/b051ee64-4cda-2899-d34a-d396fd9edbb6.webp",
+     "swatch": "/valorant/skins/b051ee64-4cda-2899-d34a-d396fd9edbb6-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/fd0b9dd4-4a1c-d270-e97b-9d90a09394c9_default_universal.mp4"
+    },
+    {
+     "id": "5d977a6f-45c8-e782-c9bb-86a1f92a13e5",
+     "name": "Gold",
+     "image": "/valorant/skins/5d977a6f-45c8-e782-c9bb-86a1f92a13e5.webp",
+     "swatch": "/valorant/skins/5d977a6f-45c8-e782-c9bb-86a1f92a13e5-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/3b46dc40-4d3a-b5a8-f2a7-c889edd71bc3_default_universal.mp4"
+    }
+   ]
+  },
+  "48ad078a-4dae-2b85-a945-f4b6d1efecbb": {
+   "name": "Standard Shorty",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "95608504-4c8b-1408-1612-0f8200421c49",
+     "name": "Base",
+     "image": "/valorant/skins/95608504-4c8b-1408-1612-0f8200421c49.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "d1f2920f-469a-3431-ad96-96afbd0017f2": {
+   "name": "Standard Operator",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "4914f50d-49f9-6424-ca80-9486c45a138d",
+     "name": "Base",
+     "image": "/valorant/skins/4914f50d-49f9-6424-ca80-9486c45a138d.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "d722313d-43cb-b38d-7841-75880a3ed2cb": {
+   "name": "Elderflame Operator",
+   "standard": false,
+   "tier": {
+    "name": "Ultra",
+    "color": "#fad663"
+   },
+   "chromas": [
+    {
+     "id": "61583c81-4332-ff81-2ede-2a8248863c80",
+     "name": "Base",
+     "image": "/valorant/skins/61583c81-4332-ff81-2ede-2a8248863c80.webp",
+     "swatch": "/valorant/skins/61583c81-4332-ff81-2ede-2a8248863c80-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/9662e509-fba3-409d-b4c4-87b0c7279792_default_universal.mp4"
+    },
+    {
+     "id": "a8b125e5-4e33-953d-d02c-37ad9e284b6a",
+     "name": "Red",
+     "image": "/valorant/skins/a8b125e5-4e33-953d-d02c-37ad9e284b6a.webp",
+     "swatch": "/valorant/skins/a8b125e5-4e33-953d-d02c-37ad9e284b6a-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/9662e509-fba3-409d-b4c4-87b0c7279792_default_universal.mp4"
+    },
+    {
+     "id": "37cca29b-4468-a01e-e31b-8f8978a81eef",
+     "name": "Blue",
+     "image": "/valorant/skins/37cca29b-4468-a01e-e31b-8f8978a81eef.webp",
+     "swatch": "/valorant/skins/37cca29b-4468-a01e-e31b-8f8978a81eef-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/9662e509-fba3-409d-b4c4-87b0c7279792_default_universal.mp4"
+    },
+    {
+     "id": "296dcddb-4fbf-8834-bc01-44acac66dc60",
+     "name": "Dark",
+     "image": "/valorant/skins/296dcddb-4fbf-8834-bc01-44acac66dc60.webp",
+     "swatch": "/valorant/skins/296dcddb-4fbf-8834-bc01-44acac66dc60-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/9662e509-fba3-409d-b4c4-87b0c7279792_default_universal.mp4"
+    }
+   ]
+  },
+  "3bf1e8e0-47e8-f27a-6054-929575f41a54": {
+   "name": "Standard Guardian",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "0f934388-418a-a9e7-42a7-21b27402e46c",
+     "name": "Base",
+     "image": "/valorant/skins/0f934388-418a-a9e7-42a7-21b27402e46c.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "8966067d-4023-c88a-db56-2691f163d335": {
+   "name": "Ruination Guardian",
+   "standard": false,
+   "tier": {
+    "name": "Exclusive",
+    "color": "#f5955b"
+   },
+   "chromas": [
+    {
+     "id": "3f621c8c-4fa8-b50c-969f-c5b4e8bdc3c9",
+     "name": "Base",
+     "image": "/valorant/skins/3f621c8c-4fa8-b50c-969f-c5b4e8bdc3c9.webp",
+     "swatch": "/valorant/skins/3f621c8c-4fa8-b50c-969f-c5b4e8bdc3c9-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/69b189af-4221-0053-c98a-459da0712cb6_default_universal.mp4"
+    },
+    {
+     "id": "82024942-4396-65bf-777a-009fe896437f",
+     "name": "Purple",
+     "image": "/valorant/skins/82024942-4396-65bf-777a-009fe896437f.webp",
+     "swatch": "/valorant/skins/82024942-4396-65bf-777a-009fe896437f-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/af8dd1e7-4146-3786-1dfa-baaa78de95bb_default_universal.mp4"
+    },
+    {
+     "id": "3d0a76d8-4f01-244f-158d-57b59c5ff51e",
+     "name": "Red/Yellow",
+     "image": "/valorant/skins/3d0a76d8-4f01-244f-158d-57b59c5ff51e.webp",
+     "swatch": "/valorant/skins/3d0a76d8-4f01-244f-158d-57b59c5ff51e-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/8394fb8c-4702-f7b6-7214-1d899e1d4ea7_default_universal.mp4"
+    },
+    {
+     "id": "38776b08-42b7-4231-a32c-539251cf6b4a",
+     "name": "Green",
+     "image": "/valorant/skins/38776b08-42b7-4231-a32c-539251cf6b4a.webp",
+     "swatch": "/valorant/skins/38776b08-42b7-4231-a32c-539251cf6b4a-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/cb169daa-4261-1d4c-9715-48a778673709_default_universal.mp4"
+    }
+   ]
+  },
+  "740b9572-44b1-57bf-767e-6aa01811f94d": {
+   "name": "Standard Outlaw",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "66c8d241-4f7c-6652-3aaa-51bafffbd493",
+     "name": "Base",
+     "image": "/valorant/skins/66c8d241-4f7c-6652-3aaa-51bafffbd493.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "fd44b2d5-49ee-77ab-fa56-588f3ac0c268": {
+   "name": "Standard Marshal",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "1afec971-4170-f29b-1c94-07a0eff270ab",
+     "name": "Base",
+     "image": "/valorant/skins/1afec971-4170-f29b-1c94-07a0eff270ab.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "685af060-4934-e262-543d-5d96ed42257d": {
+   "name": "Nocturnum Marshal",
+   "standard": false,
+   "tier": {
+    "name": "Exclusive",
+    "color": "#f5955b"
+   },
+   "chromas": [
+    {
+     "id": "c59df123-4851-6143-ac76-cf972a81f7df",
+     "name": "Base",
+     "image": "/valorant/skins/c59df123-4851-6143-ac76-cf972a81f7df.webp",
+     "swatch": "/valorant/skins/c59df123-4851-6143-ac76-cf972a81f7df-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/31ec25e8-4b37-b3ac-9641-1990bb913fa4_default_universal.mp4"
+    },
+    {
+     "id": "5ce8c7d8-4398-7421-2f58-4788b42ea92a",
+     "name": "Black",
+     "image": "/valorant/skins/5ce8c7d8-4398-7421-2f58-4788b42ea92a.webp",
+     "swatch": "/valorant/skins/5ce8c7d8-4398-7421-2f58-4788b42ea92a-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/47b67b16-4c50-8414-3e41-529150b2fd70_default_universal.mp4"
+    },
+    {
+     "id": "0d37d691-452c-1006-938d-818fae0580a9",
+     "name": "Blue",
+     "image": "/valorant/skins/0d37d691-452c-1006-938d-818fae0580a9.webp",
+     "swatch": "/valorant/skins/0d37d691-452c-1006-938d-818fae0580a9-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/88ccb326-4b11-f687-508c-a7a6bd3dbc41_default_universal.mp4"
+    },
+    {
+     "id": "cbba0270-4f54-39e9-b851-13a37dcb171c",
+     "name": "Yellow",
+     "image": "/valorant/skins/cbba0270-4f54-39e9-b851-13a37dcb171c.webp",
+     "swatch": "/valorant/skins/cbba0270-4f54-39e9-b851-13a37dcb171c-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/79f2d204-44e3-bc5e-555b-65ba6a03f73e_default_universal.mp4"
+    }
+   ]
+  },
+  "b160a897-4b92-0034-58ff-2b9b8c2d7340": {
+   "name": "Primordium Spectre",
+   "standard": false,
+   "tier": {
+    "name": "Exclusive",
+    "color": "#f5955b"
+   },
+   "chromas": [
+    {
+     "id": "7ae0be16-4581-4b01-7586-5d91cec24ac9",
+     "name": "Base",
+     "image": "/valorant/skins/7ae0be16-4581-4b01-7586-5d91cec24ac9.webp",
+     "swatch": "/valorant/skins/7ae0be16-4581-4b01-7586-5d91cec24ac9-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/8b028771-47d2-bb77-f44a-a39ce29edc61_default_universal.mp4"
+    },
+    {
+     "id": "0fd3f8f5-44af-bf82-9ad5-2b9f6b410b07",
+     "name": "Venom",
+     "image": "/valorant/skins/0fd3f8f5-44af-bf82-9ad5-2b9f6b410b07.webp",
+     "swatch": "/valorant/skins/0fd3f8f5-44af-bf82-9ad5-2b9f6b410b07-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/27d37e10-46b1-8c1c-03d5-3c8907520d6e_default_universal.mp4"
+    },
+    {
+     "id": "f0a4e5b1-42b2-168f-4831-e29173b6e35b",
+     "name": "Cobalt",
+     "image": "/valorant/skins/f0a4e5b1-42b2-168f-4831-e29173b6e35b.webp",
+     "swatch": "/valorant/skins/f0a4e5b1-42b2-168f-4831-e29173b6e35b-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/cc0374c0-4fad-138e-129d-3687eaec97e0_default_universal.mp4"
+    },
+    {
+     "id": "0aba6ed5-4df4-9d95-6262-5bac3ff92524",
+     "name": "Gold",
+     "image": "/valorant/skins/0aba6ed5-4df4-9d95-6262-5bac3ff92524.webp",
+     "swatch": "/valorant/skins/0aba6ed5-4df4-9d95-6262-5bac3ff92524-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/00c51c3b-491b-117c-fb50-3cb27713ed80_default_universal.mp4"
+    }
+   ]
+  },
+  "f01d1307-4299-42f5-2c5e-7dab7e69ab19": {
+   "name": "Standard Spectre",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "a9aaccca-4cdc-02ea-1d7e-89bbacecc0e2",
+     "name": "Base",
+     "image": "/valorant/skins/a9aaccca-4cdc-02ea-1d7e-89bbacecc0e2.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "940fb417-4a9c-3004-41f5-3e8f1f4178b2": {
+   "name": "Standard Stinger",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "31bb2115-4c62-d37c-43c4-11b8fee7f212",
+     "name": "Base",
+     "image": "/valorant/skins/31bb2115-4c62-d37c-43c4-11b8fee7f212.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "12cc9ed2-4430-d2fe-3064-f7a19b1ba7c7": {
+   "name": "Melee",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "cac83e5c-47a1-3519-5420-1db1fdbc4892",
+     "name": "Base",
+     "image": "/valorant/skins/cac83e5c-47a1-3519-5420-1db1fdbc4892.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "987e847d-47d2-6ab3-2369-0497b6c39a7e": {
+   "name": "Kogitsune",
+   "standard": false,
+   "tier": {
+    "name": "Exclusive",
+    "color": "#f5955b"
+   },
+   "chromas": [
+    {
+     "id": "73bd2862-42bf-3ab2-5546-0e93c6ab74b3",
+     "name": "Base",
+     "image": "/valorant/skins/73bd2862-42bf-3ab2-5546-0e93c6ab74b3.webp",
+     "swatch": "/valorant/skins/73bd2862-42bf-3ab2-5546-0e93c6ab74b3-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/fa145313-44c3-5621-d6a0-6685210868a6_default_universal.mp4"
+    },
+    {
+     "id": "13ba5977-46ba-60f4-6351-248666ff552b",
+     "name": "Red",
+     "image": "/valorant/skins/13ba5977-46ba-60f4-6351-248666ff552b.webp",
+     "swatch": "/valorant/skins/13ba5977-46ba-60f4-6351-248666ff552b-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/5650e158-447a-d77c-18b0-daaa99daae0c_default_universal.mp4"
+    },
+    {
+     "id": "e6f018de-492b-ed0e-fcb8-e587cf6e7fb9",
+     "name": "Pink",
+     "image": "/valorant/skins/e6f018de-492b-ed0e-fcb8-e587cf6e7fb9.webp",
+     "swatch": "/valorant/skins/e6f018de-492b-ed0e-fcb8-e587cf6e7fb9-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/1921e1b4-4d1e-1efc-b517-bca587d55892_default_universal.mp4"
+    },
+    {
+     "id": "d8323b21-4661-1f2b-107b-70a1c77ac851",
+     "name": "Blue",
+     "image": "/valorant/skins/d8323b21-4661-1f2b-107b-70a1c77ac851.webp",
+     "swatch": "/valorant/skins/d8323b21-4661-1f2b-107b-70a1c77ac851-amostra.webp",
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/03217acb-42a8-088d-55a3-1e9745eb48c6_default_universal.mp4"
+    }
+   ]
+  }
+ }
+}
