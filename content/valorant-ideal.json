@@ -1,0 +1,15 @@
+{
+  "classic": { "skin": "Nocturnum Classic", "variants": ["Blue"] },
+  "shorty": { "skin": "Primordium Shorty", "variants": ["Cobalt"] },
+  "frenzy": { "skin": "Elderflame Frenzy", "variants": ["Blue", "Dark"] },
+  "ghost": { "skin": "Ayakashi Ghost", "variants": ["Blue"] },
+  "spectre": { "skin": "Primordium Spectre", "variants": ["Cobalt"] },
+  "judge": { "skin": "Elderflame Judge", "variants": ["Blue", "Dark"] },
+  "bulldog": { "skin": "Nocturnum Bulldog", "variants": ["Blue"] },
+  "guardian": { "skin": "Ruination Guardian", "variants": ["Base"] },
+  "phantom": { "skin": "Ayakashi Phantom", "variants": ["Blue"] },
+  "vandal": { "skin": "Elderflame Vandal", "variants": ["Blue", "Dark"] },
+  "marshal": { "skin": "Nocturnum Marshal", "variants": ["Black", "Blue"] },
+  "operator": { "skin": "Elderflame Operator", "variants": ["Blue", "Dark"] },
+  "melee": { "skin": "Kogitsune", "variants": ["Blue"] }
+}

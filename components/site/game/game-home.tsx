@@ -14,6 +14,7 @@ import { MODES, summarize, type Mode, type Session } from "@/lib/ranked"
 import { entries } from "@/lib/roadmap"
 import { localize } from "@/lib/site"
 import { summarizeValorant, tierId, type ValorantSession } from "@/lib/valorant"
+import { inventory } from "@/lib/valorant-inventory"
 import { rankById, summarizeVoltaic, type VoltaicDay } from "@/lib/voltaic"
 
 const T = localize({
@@ -27,6 +28,8 @@ const T = localize({
   live: { pt: "Ao vivo", en: "Live" },
   soon: { pt: "Primeiros tópicos em breve", en: "First topics soon" },
   energy: { pt: "de energia", en: "energy" },
+  of: { pt: "de", en: "of" },
+  collected: { pt: "skins na coleção", en: "skins collected" },
   unranked: { pt: "Sem rank", en: "Unranked" },
   trained: { pt: "dias de treino", en: "days trained" },
   noAim: { pt: "O primeiro treino entra aqui.", en: "The first training shows up here." },
@@ -77,6 +80,7 @@ export function GameHome({
   const aim = game.aim ? summarizeVoltaic(voltaic) : undefined
   const aimLatest = aim?.benchmarks.at(-1)
   const aimRank = rankById(aimLatest?.rank)
+  const collection = game.inventory ? inventory().weapons.flatMap((weapon) => (weapon.ideal ? [weapon.ideal] : [])) : []
 
   return (
     <>
@@ -168,6 +172,28 @@ export function GameHome({
                         </span>
                       ) : (
                         <span className="text-[13px] text-muted">{aim.days.length ? `${aim.days.length} ${T.trained}` : T.noAim}</span>
+                      ),
+                    },
+                  ]
+                : []),
+              ...(game.inventory
+                ? [
+                    {
+                      href: gamePath(game, "inventory"),
+                      icon: "inventory" as const,
+                      title: localize(game.inventory.title),
+                      summary: localize(game.inventory.description),
+                      glimpse: (
+                        <span className="w-full max-w-48 space-y-1.5">
+                          <span className="block text-[13px] tabular-nums text-muted">
+                            {collection.filter((skin) => skin.owned).length} {T.of} {collection.length} {T.collected}
+                          </span>
+                          <span className="flex h-1.5 gap-[2px]" aria-hidden>
+                            {collection.map((skin, index) => (
+                              <span key={index} className={skin.owned ? "flex-1 rounded-full bg-navy" : "flex-1 rounded-full bg-zinc-200"} />
+                            ))}
+                          </span>
+                        </span>
                       ),
                     },
                   ]
