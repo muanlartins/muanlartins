@@ -5,7 +5,8 @@ import { game } from "@/lib/game"
  * Valorant's home at /conteudo/valorant: the second game, learned from Silver, live on Monday and Wednesday
  * nights (content/agenda.json). Its ranked record is content/valorant/, from the Partidas dock's Valorant tab;
  * `rank` is Luan's rank by hand until the first match there tells it. `aim` is the Voltaic page (content/voltaic/,
- * from scripts/voltaic.py).
+ * from scripts/voltaic.py). `inventory` is the weapon skins page (content/valorant-ideal.json is the collection Luan is
+ * building; scripts/valorant_inventory.py reads the game and fetches the art into content/valorant-inventory.json).
  * The credits are Riot's "Legal Jibber Jabber", which fan sites using its art must show.
  */
 export default game({
@@ -34,6 +35,13 @@ export default game({
     description: {
       pt: "Meu treino de mira com a Voltaic: a rotina no Aimlabs todo dia e o benchmark todo domingo, para ver a mira subir semana a semana.",
       en: "My aim training with Voltaic: their Aimlabs routine every day and their benchmark every Sunday, to watch my aim climb week by week.",
+    },
+  },
+  inventory: {
+    title: { pt: "Inventário", en: "Inventory" },
+    description: {
+      pt: "A skin que uso em cada arma e a coleção que estou montando, arma por arma.",
+      en: "The skin I use on each weapon and the collection I'm building, weapon by weapon.",
     },
   },
   links: [],

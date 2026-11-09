@@ -29,6 +29,7 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
     { label: LABELS.fundamentals, href: gamePath(game, "fundamentals"), icon: "fundamentals" as const },
     ...(game.ranked ? [{ label: localize(game.ranked.title), href: gamePath(game, "ranked"), icon: "ranked" as const }] : []),
     ...(game.aim ? [{ label: localize(game.aim.title), href: gamePath(game, "aim"), icon: "aim" as const }] : []),
+    ...(game.inventory ? [{ label: localize(game.inventory.title), href: gamePath(game, "inventory"), icon: "inventory" as const }] : []),
   ]
   const items = [
     ...pagesOf(game),
