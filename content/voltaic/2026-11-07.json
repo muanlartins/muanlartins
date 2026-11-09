@@ -1,0 +1,197 @@
+{
+ "date": "2026-11-07",
+ "plays": [
+  {
+   "at": "2026-11-07T16:32:33Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZI7OR",
+   "name": "VT Angleswitch Micro Entry",
+   "score": 75,
+   "accuracy": 65.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T16:34:14Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZI7OR",
+   "name": "VT Angleswitch Micro Entry",
+   "score": 73,
+   "accuracy": 61.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T16:36:07Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZI7OR",
+   "name": "VT Angleswitch Micro Entry",
+   "score": 77,
+   "accuracy": 63.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T16:37:28Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RX52TZ",
+   "name": "VT Regenspheres Entry",
+   "score": 57,
+   "accuracy": 36.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T16:39:02Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RX52TZ",
+   "name": "VT Regenspheres Entry",
+   "score": 65,
+   "accuracy": 36.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T16:40:20Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RX52TZ",
+   "name": "VT Regenspheres Entry",
+   "score": 59,
+   "accuracy": 36.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T16:41:49Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RX54BD",
+   "name": "VT Regenspheres Control Entry",
+   "score": 45,
+   "accuracy": 33.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T16:45:20Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RX54BD",
+   "name": "VT Regenspheres Control Entry",
+   "score": 47,
+   "accuracy": 37.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T16:47:00Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RX54BD",
+   "name": "VT Regenspheres Control Entry",
+   "score": 51,
+   "accuracy": 38.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T19:10:35Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RZLJM5",
+   "name": "VT Regenspheres Varied Entry",
+   "score": 31,
+   "accuracy": 45.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T19:11:49Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RZLJM5",
+   "name": "VT Regenspheres Varied Entry",
+   "score": 30,
+   "accuracy": 41.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T19:13:05Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RZLJM5",
+   "name": "VT Regenspheres Varied Entry",
+   "score": 30,
+   "accuracy": 41.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T19:14:27Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RVRH8Z",
+   "name": "VT Angletrack Entry",
+   "score": 5047,
+   "accuracy": 84.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:29:45Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RVRH8Z",
+   "name": "VT Angletrack Entry",
+   "score": 5309,
+   "accuracy": 88.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:31:06Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RVRH8Z",
+   "name": "VT Angletrack Entry",
+   "score": 5100,
+   "accuracy": 85.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:32:36Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVQG7",
+   "name": "VT Angleswitch Blink Entry",
+   "score": 990,
+   "accuracy": 32.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:34:03Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVQG7",
+   "name": "VT Angleswitch Blink Entry",
+   "score": 998,
+   "accuracy": 42.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:37:48Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVQG7",
+   "name": "VT Angleswitch Blink Entry",
+   "score": 1116,
+   "accuracy": 41.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:41:43Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVPRI",
+   "name": "Angleswitch Smooth Entry",
+   "score": 24,
+   "accuracy": 38.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:44:04Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVPRI",
+   "name": "Angleswitch Smooth Entry",
+   "score": 20,
+   "accuracy": 35.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:45:17Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVPRI",
+   "name": "Angleswitch Smooth Entry",
+   "score": 22,
+   "accuracy": 35.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:46:36Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVPBS",
+   "name": "VT Angleswitch Novice Small",
+   "score": 1154,
+   "accuracy": 30.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:49:01Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVPBS",
+   "name": "VT Angleswitch Novice Small",
+   "score": 1233,
+   "accuracy": 33.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-07T20:51:20Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVPBS",
+   "name": "VT Angleswitch Novice Small",
+   "score": 1212,
+   "accuracy": 33.3,
+   "seconds": 60
+  }
+ ]
+}

@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpRight, Clapperboard, Heart, House, QrCode, Route, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
+import { ArrowUpRight, Clapperboard, Heart, House, QrCode, Route, Target, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
 import { motion } from "motion/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -22,6 +22,7 @@ const ICONS = {
   home: House,
   fundamentals: Route,
   ranked: Trophy,
+  aim: Target,
   lives: Clapperboard,
   pix: QrCode,
   mural: Heart,

@@ -1,0 +1,781 @@
+{
+ "_": "Voltaic's Season 3 benchmarks on Aimlabs: each level's 18 scenarios (Aimlabs task id, name, category, subcategory) and the scores each rank starts at, the first being the floor energy counts from. Taken from aimlab-stats.com's benchmark page, which mirrors Voltaic's sheet; lib/voltaic.ts turns scores into energy the way Voltaic does.",
+ "playlists": {
+  "novice": "3266803489",
+  "intermediate": "3266802818",
+  "advanced": "3266801451"
+ },
+ "levels": [
+  {
+   "id": "novice",
+   "name": {
+    "pt": "Novice",
+    "en": "Novice"
+   },
+   "points": [
+    0,
+    100,
+    200,
+    300,
+    400
+   ],
+   "max": 499,
+   "ranks": [
+    "iron",
+    "bronze",
+    "silver",
+    "gold"
+   ],
+   "scenarios": [
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Angle.SGAB0P",
+     "name": "VT Angleshot",
+     "category": "Clicking",
+     "subcategory": "Dynamic",
+     "scores": [
+      0,
+      350,
+      475,
+      575,
+      675
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Popsh.SEXRD5",
+     "name": "VT Popshot",
+     "category": "Clicking",
+     "subcategory": "Dynamic",
+     "scores": [
+      0,
+      125,
+      175,
+      225,
+      275
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Quads.SEY63N",
+     "name": "VT Quadshot",
+     "category": "Clicking",
+     "subcategory": "Static",
+     "scores": [
+      0,
+      675,
+      875,
+      1050,
+      1175
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Wides.SEY6L3",
+     "name": "VT Wideshot",
+     "category": "Clicking",
+     "subcategory": "Static",
+     "scores": [
+      0,
+      650,
+      850,
+      1025,
+      1150
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Frogs.SEY57B",
+     "name": "VT Frogshot",
+     "category": "Clicking",
+     "subcategory": "Linear",
+     "scores": [
+      0,
+      225,
+      300,
+      400,
+      500
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Float.SEY5O0",
+     "name": "VT Floatshot",
+     "category": "Clicking",
+     "subcategory": "Linear",
+     "scores": [
+      0,
+      200,
+      350,
+      500,
+      600
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Vertt.SEY6XZ",
+     "name": "VT Verttrack",
+     "category": "Tracking",
+     "subcategory": "Precise",
+     "scores": [
+      0,
+      1900,
+      2225,
+      2550,
+      2775
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Shift.SEY7DQ",
+     "name": "VT Shifttrack",
+     "category": "Tracking",
+     "subcategory": "Precise",
+     "scores": [
+      0,
+      2025,
+      2275,
+      2525,
+      2700
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Jettr.SEZZJ9",
+     "name": "VT Jettrack",
+     "category": "Tracking",
+     "subcategory": "Reactive",
+     "scores": [
+      0,
+      2000,
+      2300,
+      2600,
+      2825
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Quake.SEZZWD",
+     "name": "VT Quaketrack",
+     "category": "Tracking",
+     "subcategory": "Reactive",
+     "scores": [
+      0,
+      2000,
+      2225,
+      2450,
+      2600
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Contr.SEY7RT",
+     "name": "VT Controltrack",
+     "category": "Tracking",
+     "subcategory": "Control",
+     "scores": [
+      0,
+      1300,
+      1625,
+      1950,
+      2175
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Stead.SEZZ3K",
+     "name": "VT Steadytrack",
+     "category": "Tracking",
+     "subcategory": "Control",
+     "scores": [
+      0,
+      1600,
+      1925,
+      2275,
+      2500
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Pokes.SF00IK",
+     "name": "VT Pokeswitch",
+     "category": "Switching",
+     "subcategory": "Speed",
+     "scores": [
+      0,
+      2000,
+      2250,
+      2525,
+      2700
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Tempo.SF04A4",
+     "name": "VT Temposwitch",
+     "category": "Switching",
+     "subcategory": "Speed",
+     "scores": [
+      0,
+      1900,
+      2100,
+      2300,
+      2425
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Bolts.SF04OM",
+     "name": "VT Boltswitch",
+     "category": "Switching",
+     "subcategory": "Evasive",
+     "scores": [
+      0,
+      1950,
+      2225,
+      2500,
+      2700
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Darts.SF0531",
+     "name": "VT Dartswitch",
+     "category": "Switching",
+     "subcategory": "Evasive",
+     "scores": [
+      0,
+      2050,
+      2325,
+      2625,
+      2825
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Smoot.SF05GE",
+     "name": "VT Smoothswitch",
+     "category": "Switching",
+     "subcategory": "Stability",
+     "scores": [
+      0,
+      1875,
+      2100,
+      2325,
+      2500
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Leaps.SF05WI",
+     "name": "VT Leapswitch",
+     "category": "Switching",
+     "subcategory": "Stability",
+     "scores": [
+      0,
+      1200,
+      1375,
+      1575,
+      1725
+     ]
+    }
+   ]
+  },
+  {
+   "id": "intermediate",
+   "name": {
+    "pt": "Intermediate",
+    "en": "Intermediate"
+   },
+   "points": [
+    400,
+    500,
+    600,
+    700,
+    800
+   ],
+   "max": 899,
+   "ranks": [
+    "platinum",
+    "diamond",
+    "jade",
+    "master"
+   ],
+   "scenarios": [
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Angle.SGAAO8",
+     "name": "VT Angleshot",
+     "category": "Clicking",
+     "subcategory": "Dynamic",
+     "scores": [
+      550,
+      625,
+      700,
+      800,
+      900
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Popsh.SEXRAC",
+     "name": "VT Popshot",
+     "category": "Clicking",
+     "subcategory": "Dynamic",
+     "scores": [
+      175,
+      250,
+      325,
+      400,
+      450
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Quads.SEY603",
+     "name": "VT Quadshot",
+     "category": "Clicking",
+     "subcategory": "Static",
+     "scores": [
+      1100,
+      1200,
+      1300,
+      1400,
+      1475
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Wides.SEY6I6",
+     "name": "VT Wideshot",
+     "category": "Clicking",
+     "subcategory": "Static",
+     "scores": [
+      1050,
+      1175,
+      1300,
+      1375,
+      1450
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Frogs.SEY55A",
+     "name": "VT Frogshot",
+     "category": "Clicking",
+     "subcategory": "Linear",
+     "scores": [
+      375,
+      475,
+      575,
+      700,
+      800
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Float.SEY5KV",
+     "name": "VT Floatshot",
+     "category": "Clicking",
+     "subcategory": "Linear",
+     "scores": [
+      475,
+      575,
+      675,
+      775,
+      850
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Vertt.SEY6VH",
+     "name": "VT Verttrack",
+     "category": "Tracking",
+     "subcategory": "Precise",
+     "scores": [
+      2500,
+      2725,
+      2950,
+      3150,
+      3325
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Shift.SEY7A3",
+     "name": "VT Shifttrack",
+     "category": "Tracking",
+     "subcategory": "Precise",
+     "scores": [
+      2250,
+      2575,
+      2900,
+      3200,
+      3375
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Jettr.SEZZGJ",
+     "name": "VT Jettrack",
+     "category": "Tracking",
+     "subcategory": "Reactive",
+     "scores": [
+      2400,
+      2700,
+      3000,
+      3275,
+      3475
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Quake.SEZZS5",
+     "name": "VT Quaketrack",
+     "category": "Tracking",
+     "subcategory": "Reactive",
+     "scores": [
+      2175,
+      2475,
+      2775,
+      3050,
+      3250
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Contr.SEY7P0",
+     "name": "VT Controltrack",
+     "category": "Tracking",
+     "subcategory": "Control",
+     "scores": [
+      1825,
+      2075,
+      2325,
+      2600,
+      2775
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Stead.SEZZ11",
+     "name": "VT Steadytrack",
+     "category": "Tracking",
+     "subcategory": "Control",
+     "scores": [
+      2100,
+      2375,
+      2650,
+      2950,
+      3150
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Pokes.SF00E4",
+     "name": "VT Pokeswitch",
+     "category": "Switching",
+     "subcategory": "Speed",
+     "scores": [
+      2375,
+      2575,
+      2775,
+      2975,
+      3150
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Tempo.SF047B",
+     "name": "VT Temposwitch",
+     "category": "Switching",
+     "subcategory": "Speed",
+     "scores": [
+      2100,
+      2300,
+      2500,
+      2700,
+      2900
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Bolts.SF04LI",
+     "name": "VT Boltswitch",
+     "category": "Switching",
+     "subcategory": "Evasive",
+     "scores": [
+      2425,
+      2575,
+      2725,
+      2900,
+      3050
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Darts.SF050E",
+     "name": "VT Dartswitch",
+     "category": "Switching",
+     "subcategory": "Evasive",
+     "scores": [
+      2550,
+      2700,
+      2850,
+      2950,
+      3150
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Smoot.SF05DY",
+     "name": "VT Smoothswitch",
+     "category": "Switching",
+     "subcategory": "Stability",
+     "scores": [
+      2150,
+      2375,
+      2600,
+      2800,
+      2950
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Leaps.SF05T0",
+     "name": "VT Leapswitch",
+     "category": "Switching",
+     "subcategory": "Stability",
+     "scores": [
+      1400,
+      1650,
+      1900,
+      2175,
+      2375
+     ]
+    }
+   ]
+  },
+  {
+   "id": "advanced",
+   "name": {
+    "pt": "Advanced",
+    "en": "Advanced"
+   },
+   "points": [
+    800,
+    900,
+    1000,
+    1100,
+    1200
+   ],
+   "max": 1200,
+   "ranks": [
+    "grandmaster",
+    "nova",
+    "astra",
+    "celestial"
+   ],
+   "scenarios": [
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Angle.SGAAML",
+     "name": "VT Angleshot",
+     "category": "Clicking",
+     "subcategory": "Dynamic",
+     "scores": [
+      700,
+      825,
+      950,
+      1100,
+      1275
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Popsh.SEXR6M",
+     "name": "VT Popshot",
+     "category": "Clicking",
+     "subcategory": "Dynamic",
+     "scores": [
+      325,
+      425,
+      525,
+      625,
+      700
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Quads.SEY5WD",
+     "name": "VT Quadshot",
+     "category": "Clicking",
+     "subcategory": "Static",
+     "scores": [
+      1425,
+      1525,
+      1625,
+      1750,
+      1875
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Wides.SEY6DO",
+     "name": "VT Wideshot",
+     "category": "Clicking",
+     "subcategory": "Static",
+     "scores": [
+      1375,
+      1475,
+      1575,
+      1725,
+      1850
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Frogs.SEY528",
+     "name": "VT Frogshot",
+     "category": "Clicking",
+     "subcategory": "Linear",
+     "scores": [
+      675,
+      800,
+      925,
+      1025,
+      1125
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Float.SEY5FO",
+     "name": "VT Floatshot",
+     "category": "Clicking",
+     "subcategory": "Linear",
+     "scores": [
+      700,
+      825,
+      950,
+      1075,
+      1175
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Vertt.SEY6SM",
+     "name": "VT Verttrack",
+     "category": "Tracking",
+     "subcategory": "Precise",
+     "scores": [
+      3000,
+      3200,
+      3400,
+      3750,
+      4100
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Shift.SEY774",
+     "name": "VT Shifttrack",
+     "category": "Tracking",
+     "subcategory": "Precise",
+     "scores": [
+      3000,
+      3225,
+      3450,
+      3750,
+      4000
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Jettr.SEZZBG",
+     "name": "VT Jettrack",
+     "category": "Tracking",
+     "subcategory": "Reactive",
+     "scores": [
+      3150,
+      3375,
+      3600,
+      3800,
+      4000
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Quake.SEZZPH",
+     "name": "VT Quaketrack",
+     "category": "Tracking",
+     "subcategory": "Reactive",
+     "scores": [
+      2875,
+      3100,
+      3325,
+      3550,
+      3800
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Contr.SEY7M7",
+     "name": "VT Controltrack",
+     "category": "Tracking",
+     "subcategory": "Control",
+     "scores": [
+      2250,
+      2600,
+      2950,
+      3300,
+      3550
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Stead.SEZYYC",
+     "name": "VT Steadytrack",
+     "category": "Tracking",
+     "subcategory": "Control",
+     "scores": [
+      2575,
+      2950,
+      3325,
+      3675,
+      4000
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Pokes.SF009C",
+     "name": "VT Pokeswitch",
+     "category": "Switching",
+     "subcategory": "Speed",
+     "scores": [
+      2900,
+      3050,
+      3200,
+      3350,
+      3475
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Tempo.SF0446",
+     "name": "VT Temposwitch",
+     "category": "Switching",
+     "subcategory": "Speed",
+     "scores": [
+      2575,
+      2775,
+      2975,
+      3175,
+      3400
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Bolts.SF04IX",
+     "name": "VT Boltswitch",
+     "category": "Switching",
+     "subcategory": "Evasive",
+     "scores": [
+      2650,
+      2900,
+      3150,
+      3425,
+      3600
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Darts.SF04WR",
+     "name": "VT Dartswitch",
+     "category": "Switching",
+     "subcategory": "Evasive",
+     "scores": [
+      2725,
+      2950,
+      3175,
+      3350,
+      3575
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Smoot.SF05AW",
+     "name": "VT Smoothswitch",
+     "category": "Switching",
+     "subcategory": "Stability",
+     "scores": [
+      2600,
+      2800,
+      3000,
+      3250,
+      3475
+     ]
+    },
+    {
+     "id": "CsLevel.VT Lowgravity56.VT Leaps.SF05P3",
+     "name": "VT Leapswitch",
+     "category": "Switching",
+     "subcategory": "Stability",
+     "scores": [
+      2050,
+      2275,
+      2500,
+      2725,
+      2875
+     ]
+    }
+   ]
+  }
+ ]
+}

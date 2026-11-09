@@ -1,7 +1,6 @@
-import { ArrowUpRight } from "lucide-react"
-import type { ReactNode } from "react"
 import { LanguageBadge } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
+import { PageList } from "@/components/site/game/page-list"
 import { RoadmapProgress, ShowroomStage } from "@/components/site/game/game-home-client"
 import { Ladder } from "@/components/site/game/ladder"
 import { Range } from "@/components/site/game/range"
@@ -15,6 +14,7 @@ import { MODES, summarize, type Mode, type Session } from "@/lib/ranked"
 import { entries } from "@/lib/roadmap"
 import { localize } from "@/lib/site"
 import { summarizeValorant, tierId, type ValorantSession } from "@/lib/valorant"
+import { rankById, summarizeVoltaic, type VoltaicDay } from "@/lib/voltaic"
 
 const T = localize({
   explore: { pt: "Por aqui", en: "In here" },
@@ -25,7 +25,11 @@ const T = localize({
   latestLive: { pt: "Última", en: "Latest" },
   drag: { pt: "Arraste para girar", en: "Drag to spin" },
   live: { pt: "Ao vivo", en: "Live" },
-  firstTopics: { pt: "Os primeiros tópicos chegam com as lives.", en: "The first topics come with the streams." },
+  soon: { pt: "Primeiros tópicos em breve", en: "First topics soon" },
+  energy: { pt: "de energia", en: "energy" },
+  unranked: { pt: "Sem rank", en: "Unranked" },
+  trained: { pt: "dias de treino", en: "days trained" },
+  noAim: { pt: "O primeiro treino entra aqui.", en: "The first training shows up here." },
 })
 
 /**
@@ -40,11 +44,14 @@ export function GameHome({
   lives,
   ranks,
   valorant = [],
+  voltaic = [],
 }: {
   game: Game
   sessions: Session[]
   /** Valorant's published sessions, when it's Valorant's home. */
   valorant?: ValorantSession[]
+  /** The aim training's days (content/voltaic/), when the game has an aim page. */
+  voltaic?: VoltaicDay[]
   /** The game's lives on the channel, newest first. */
   lives: Live[]
   ranks: RankInfo[]
@@ -67,6 +74,9 @@ export function GameHome({
   const valorantTier = tierId(valorantRank?.tier)
   const ladderAt = valorantTier ? valorantTier.replace(/-\d$/, "") : game.rank
   const valorantInfo = valorantTier && roadmap.ranks.find((rank) => valorantTier.startsWith(rank.id))
+  const aim = game.aim ? summarizeVoltaic(voltaic) : undefined
+  const aimLatest = aim?.benchmarks.at(-1)
+  const aimRank = rankById(aimLatest?.rank)
 
   return (
     <>
@@ -94,90 +104,114 @@ export function GameHome({
 
       <section className="mt-16">
         <h2 className="text-[12px] font-medium uppercase tracking-[0.12em] text-muted">{T.explore}</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Card href={gamePath(game, "fundamentals")} title={localize(roadmap.title)} summary={localize(roadmap.description)}>
-            <p className="text-[13px] tabular-nums text-muted">
-              {topics.length > 0 ? `${topics.length} ${T.topics} · ${videos} ${T.videos}` : T.firstTopics}
-            </p>
-            <RoadmapProgress roadmap={roadmap.id} topics={topics.map(({ topic }) => topic.id)} />
-          </Card>
-
-          {game.ranked && (
-            <Card href={gamePath(game, "ranked")} title={localize(game.ranked.title)} summary={localize(game.ranked.description)}>
-              {standing ? (
-                <RankLine tier={standing.tier} ranks={ranks} mode={mode!} division={divisionOf(standing)} mmr={standing.mmr} />
-              ) : valorantInfo && valorantRank ? (
-                <p className="flex items-center gap-2 text-[14px] text-ink">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/ranks/valorant/${valorantTier}.webp`} alt="" className="h-7 w-7 object-contain" />
-                  <span className="font-medium">
-                    {localize(valorantInfo.name)} {valorantTier!.match(/-(\d)$/)?.[1]}
+        <div className="mt-4">
+          <PageList
+            game={game.id}
+            pages={[
+              {
+                href: gamePath(game, "fundamentals"),
+                icon: "fundamentals",
+                title: localize(roadmap.title),
+                summary: localize(roadmap.description),
+                badge: roadmap.language && <LanguageBadge language={roadmap.language} />,
+                glimpse: (
+                  <span className="space-y-1.5">
+                    <span className="block text-[13px] tabular-nums text-muted">
+                      {topics.length > 0 ? `${topics.length} ${T.topics} · ${videos} ${T.videos}` : T.soon}
+                    </span>
+                    <RoadmapProgress roadmap={roadmap.id} topics={topics.map(({ topic }) => topic.id)} />
                   </span>
-                  <span className="tabular-nums text-muted">· {valorantRank.rr} RR</span>
-                </p>
-              ) : (
-                <p className="text-[13px] text-muted">{T.noRank}</p>
-              )}
-            </Card>
-          )}
-
-          {(lives[0] || slots.length > 0) && (
-            <Card href={channelPath("lives")} title={localize(channel.lives.title)} summary={localize(channel.lives.description)} language="pt">
-              {slots.map((slot) => (
-                <p key={slot.start} className="text-[14px] font-medium text-ink">
-                  {T.live}: {slotText(slot)} <span className="font-normal text-muted">({localize(channel.lives.agenda.zone)})</span>
-                </p>
-              ))}
-              {lives[0] && (
-                <p className="text-[13px] text-muted">
-                  {T.latestLive}: {longDate(lives[0].date)}
-                </p>
-              )}
-            </Card>
-          )}
-
-          {game.links.map((link) => (
-            <Card key={link.id} href={link.href!} title={localize(link.name)} summary={localize(link.summary)} away language={link.language} />
-          ))}
+                ),
+              },
+              ...(game.ranked
+                ? [
+                    {
+                      href: gamePath(game, "ranked"),
+                      icon: "ranked" as const,
+                      title: localize(game.ranked.title),
+                      summary: localize(game.ranked.description),
+                      glimpse: standing ? (
+                        <RankLine tier={standing.tier} ranks={ranks} mode={mode!} division={divisionOf(standing)} mmr={standing.mmr} />
+                      ) : valorantInfo && valorantRank ? (
+                        <span className="flex items-center gap-2 text-[14px] text-ink">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={`/ranks/valorant/${valorantTier}.webp`} alt="" className="h-7 w-7 object-contain" />
+                          <span className="font-medium">
+                            {localize(valorantInfo.name)} {valorantTier!.match(/-(\d)$/)?.[1]}
+                          </span>
+                          <span className="tabular-nums text-muted">· {valorantRank.rr} RR</span>
+                        </span>
+                      ) : (
+                        <span className="text-[13px] text-muted">{T.noRank}</span>
+                      ),
+                    },
+                  ]
+                : []),
+              ...(game.aim && aim
+                ? [
+                    {
+                      href: gamePath(game, "aim"),
+                      icon: "aim" as const,
+                      title: localize(game.aim.title),
+                      summary: localize(game.aim.description),
+                      glimpse: aimLatest ? (
+                        <span className="flex items-center gap-2 text-[14px] text-ink">
+                          <svg viewBox="0 0 20 20" aria-hidden className="h-6 w-6 shrink-0">
+                            <polygon points="10,1 18,5.5 18,14.5 10,19 2,14.5 2,5.5" fill={aimRank?.color ?? "var(--color-muted)"} />
+                          </svg>
+                          <span className="font-medium" style={{ color: aimRank?.color }}>
+                            {aimRank?.name ?? T.unranked}
+                          </span>
+                          <span className="tabular-nums text-muted">
+                            · {aimLatest.energy} {T.energy}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-[13px] text-muted">{aim.days.length ? `${aim.days.length} ${T.trained}` : T.noAim}</span>
+                      ),
+                    },
+                  ]
+                : []),
+              ...(lives[0] || slots.length > 0
+                ? [
+                    {
+                      href: channelPath("lives"),
+                      icon: "lives" as const,
+                      title: localize(channel.lives.title),
+                      summary: localize(channel.lives.description),
+                      badge: <LanguageBadge language="pt" />,
+                      glimpse: (
+                        <span className="space-y-0.5">
+                          {slots.map((slot) => (
+                            <span key={slot.start} className="block text-[14px] font-medium text-ink">
+                              {slotText(slot)}
+                            </span>
+                          ))}
+                          {lives[0] && (
+                            <span className="block text-[12px] text-muted">
+                              {T.latestLive}: {longDate(lives[0].date)}
+                            </span>
+                          )}
+                        </span>
+                      ),
+                    },
+                  ]
+                : []),
+              ...game.links.map((link) => ({
+                href: link.href!,
+                icon: "link" as const,
+                title: localize(link.name),
+                summary: localize(link.summary),
+                away: true,
+                badge: link.language && <LanguageBadge language={link.language} />,
+              })),
+            ]}
+          />
         </div>
       </section>
 
       <p className="mt-16 text-[12px] leading-[1.6] text-muted">{localize(game.credits)}</p>
     </>
-  )
-}
-
-function Card({
-  href,
-  title,
-  summary,
-  away,
-  language,
-  children,
-}: {
-  href: string
-  title: string
-  summary: string
-  away?: boolean
-  language?: Game["roadmaps"][0]["language"]
-  children?: ReactNode
-}) {
-  return (
-    <a
-      href={href}
-      {...(away && href.startsWith("http") && { target: "_blank", rel: "noreferrer" })}
-      className="group flex flex-col gap-3 rounded-md border border-line bg-paper/70 px-5 py-4 backdrop-blur-sm transition-colors hover:border-klein"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <h3 className="flex items-center gap-2 text-xl font-medium text-klein tracking-[-0.02em]">
-          {title}
-          {language && <LanguageBadge language={language} />}
-        </h3>
-        {away && <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-muted transition-colors group-hover:text-klein" />}
-      </div>
-      <p className="text-[14px] leading-[1.6] text-ink">{summary}</p>
-      {children && <div className="mt-auto space-y-2 pt-1">{children}</div>}
-    </a>
   )
 }
 

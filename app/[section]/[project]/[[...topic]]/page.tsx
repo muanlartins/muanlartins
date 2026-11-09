@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { AimPage } from "@/components/site/aim/aim-page"
 import { BackstagePage } from "@/components/site/channel/backstage-page"
 import { GameHome } from "@/components/site/game/game-home"
 import { LivePage } from "@/components/site/lives/live-page"
@@ -14,7 +15,7 @@ import { type ChannelPage } from "@/lib/channel"
 import { fundamentals, GAME_PAGES, type GamePage } from "@/lib/game"
 import { matchMoments } from "@/lib/lives"
 import { lives, transcript } from "@/lib/lives-files"
-import { sessions, valorantSessions } from "@/lib/matches"
+import { sessions, valorantSessions, voltaicDays } from "@/lib/matches"
 import { sectionMetadata } from "@/lib/metadata"
 import { editionSlug, entries, findTopic, type Roadmap } from "@/lib/roadmap"
 import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
@@ -22,7 +23,7 @@ import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
 /**
  * Pages under a section. In the content section, a game at
  * /conteudo/<project>: its home, its roadmap at /fundamentals (an older
- * edition at /fundamentals/v<n>), its ranked record at /ranked, and each
+ * edition at /fundamentals/v<n>), its ranked record at /ranked, its aim training at /aim, and each
  * topic, of any edition, at /<topic>. In the channel, its lives
  * at /canal/lives, each at /canal/lives/<date>, and its backstage at
  * /canal/backstage. One route for all, so a roadmap with no topics yet still
@@ -43,7 +44,7 @@ export function generateStaticParams() {
     if (taken) throw new Error(`Topic "${taken}" has the id of one of ${game.id}'s pages; rename it.`)
     const twice = topics.find((id, index) => topics.indexOf(id) !== index)
     if (twice) throw new Error(`Topic "${twice}" is in two of ${game.id}'s editions; give the new one another id.`)
-    const pages: string[] = ["fundamentals", ...(game.ranked ? ["ranked"] : [])]
+    const pages: string[] = ["fundamentals", ...(game.ranked ? ["ranked"] : []), ...(game.aim ? ["aim"] : [])]
     return [
       { section: content, project: game.id, topic: [] },
       ...[...pages, ...topics].map((id) => ({ section: content, project: game.id, topic: [id] })),
@@ -84,6 +85,7 @@ async function find(params: Props["params"]): Promise<Found | undefined> {
   if (!id) return { game }
   if ((GAME_PAGES as readonly string[]).includes(id)) {
     if (id === "ranked" && !game.ranked) return undefined
+    if (id === "aim" && !game.aim) return undefined
     return { game, page: id as GamePage, roadmap: id === "fundamentals" ? fundamentals(game) : undefined }
   }
   for (const roadmap of game.roadmaps) {
@@ -112,6 +114,10 @@ export async function generateMetadata({ params }: Props) {
     const title = `${localize(game.ranked.title)} · ${localize(game.title)}`
     return sectionMetadata("content", { title, description: game.ranked.description }, `/${game.id}/ranked`)
   }
+  if (page === "aim" && game.aim) {
+    const title = `${localize(game.aim.title)} · ${localize(game.title)}`
+    return sectionMetadata("content", { title, description: game.aim.description }, `/${game.id}/aim`)
+  }
   if (entry && roadmap) {
     return sectionMetadata(
       "content",
@@ -133,6 +139,9 @@ export default async function SectionSubpage({ params }: Props) {
   const { game, page, roadmap, entry } = found
   if (entry && roadmap) return <TopicPage game={game} roadmap={roadmap} id={entry.topic.id} />
   if (page === "fundamentals" && roadmap) return <RoadmapPage game={game} roadmap={roadmap} />
+  if (page === "aim" && game.aim) {
+    return <AimPage title={localize(game.aim.title)} description={localize(game.aim.description)} days={voltaicDays()} credits={localize(game.credits)} />
+  }
   // The roadmap's ranks, for each emblem's name and colour.
   const ranks = fundamentals(game).ranks.map((rank) => ({ id: rank.id, name: localize(rank.name), color: rank.color }))
   if (page === "ranked" && game.ranked && game.id === "valorant") {
@@ -159,5 +168,5 @@ export default async function SectionSubpage({ params }: Props) {
       />
     )
   }
-  return <GameHome game={game} sessions={game.ranked && game.id === "rocket-league" ? sessions() : []} valorant={game.id === "valorant" ? valorantSessions() : []} lives={lives().filter((live) => live.game === game.id)} ranks={ranks} />
+  return <GameHome game={game} sessions={game.ranked && game.id === "rocket-league" ? sessions() : []} valorant={game.id === "valorant" ? valorantSessions() : []} voltaic={game.aim ? voltaicDays() : []} lives={lives().filter((live) => live.game === game.id)} ranks={ranks} />
 }
