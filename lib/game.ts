@@ -26,6 +26,8 @@ export interface Game {
   ranked?: { title: L10n; description: L10n }
   /** The aim training page (Valorant's: Voltaic's routine and benchmarks, from content/voltaic/). */
   aim?: { title: L10n; description: L10n }
+  /** The weapon skins page (Valorant's: the skin on each weapon now and the collection being built, from content/valorant-inventory.json). */
+  inventory?: { title: L10n; description: L10n }
   /** Apps and playlists elsewhere, listed in the menu and on the home page. */
   links: Project[]
   /** Whose game it is and whose art the page uses, under its pages. */
@@ -37,7 +39,7 @@ export function game(page: Game) {
 }
 
 /** Pages under a game besides its topics: a topic can't take these ids. */
-export const GAME_PAGES = ["fundamentals", "ranked", "aim"] as const
+export const GAME_PAGES = ["fundamentals", "ranked", "aim", "inventory"] as const
 export type GamePage = (typeof GAME_PAGES)[number]
 
 /** The newest edition of its fundamentals. */

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { AimPage } from "@/components/site/aim/aim-page"
 import { BackstagePage } from "@/components/site/channel/backstage-page"
 import { GameHome } from "@/components/site/game/game-home"
+import { InventoryPage } from "@/components/site/inventory/inventory-page"
 import { LivePage } from "@/components/site/lives/live-page"
 import { LivesPage } from "@/components/site/lives/lives-page"
 import { fullDate } from "@/components/site/ranked/format"
@@ -23,7 +24,7 @@ import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
 /**
  * Pages under a section. In the content section, a game at
  * /conteudo/<project>: its home, its roadmap at /fundamentals (an older
- * edition at /fundamentals/v<n>), its ranked record at /ranked, its aim training at /aim, and each
+ * edition at /fundamentals/v<n>), its ranked record at /ranked, its aim training at /aim, its weapon skins at /inventory, and each
  * topic, of any edition, at /<topic>. In the channel, its lives
  * at /canal/lives, each at /canal/lives/<date>, and its backstage at
  * /canal/backstage. One route for all, so a roadmap with no topics yet still
@@ -44,7 +45,7 @@ export function generateStaticParams() {
     if (taken) throw new Error(`Topic "${taken}" has the id of one of ${game.id}'s pages; rename it.`)
     const twice = topics.find((id, index) => topics.indexOf(id) !== index)
     if (twice) throw new Error(`Topic "${twice}" is in two of ${game.id}'s editions; give the new one another id.`)
-    const pages: string[] = ["fundamentals", ...(game.ranked ? ["ranked"] : []), ...(game.aim ? ["aim"] : [])]
+    const pages: string[] = ["fundamentals", ...(game.ranked ? ["ranked"] : []), ...(game.aim ? ["aim"] : []), ...(game.inventory ? ["inventory"] : [])]
     return [
       { section: content, project: game.id, topic: [] },
       ...[...pages, ...topics].map((id) => ({ section: content, project: game.id, topic: [id] })),
@@ -86,6 +87,7 @@ async function find(params: Props["params"]): Promise<Found | undefined> {
   if ((GAME_PAGES as readonly string[]).includes(id)) {
     if (id === "ranked" && !game.ranked) return undefined
     if (id === "aim" && !game.aim) return undefined
+    if (id === "inventory" && !game.inventory) return undefined
     return { game, page: id as GamePage, roadmap: id === "fundamentals" ? fundamentals(game) : undefined }
   }
   for (const roadmap of game.roadmaps) {
@@ -118,6 +120,10 @@ export async function generateMetadata({ params }: Props) {
     const title = `${localize(game.aim.title)} · ${localize(game.title)}`
     return sectionMetadata("content", { title, description: game.aim.description }, `/${game.id}/aim`)
   }
+  if (page === "inventory" && game.inventory) {
+    const title = `${localize(game.inventory.title)} · ${localize(game.title)}`
+    return sectionMetadata("content", { title, description: game.inventory.description }, `/${game.id}/inventory`)
+  }
   if (entry && roadmap) {
     return sectionMetadata(
       "content",
@@ -141,6 +147,9 @@ export default async function SectionSubpage({ params }: Props) {
   if (page === "fundamentals" && roadmap) return <RoadmapPage game={game} roadmap={roadmap} />
   if (page === "aim" && game.aim) {
     return <AimPage title={localize(game.aim.title)} description={localize(game.aim.description)} days={voltaicDays()} credits={localize(game.credits)} />
+  }
+  if (page === "inventory" && game.inventory) {
+    return <InventoryPage title={localize(game.inventory.title)} description={localize(game.inventory.description)} credits={localize(game.credits)} />
   }
   // The roadmap's ranks, for each emblem's name and colour.
   const ranks = fundamentals(game).ranks.map((rank) => ({ id: rank.id, name: localize(rank.name), color: rank.color }))
