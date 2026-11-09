@@ -12,7 +12,8 @@ const T = localize({
 })
 
 /**
- * The content page: each game with its pages one click away (its fundamentals, its ranked record, its links
+ * The content page: each game with its pages one click away (its fundamentals, its ranked record, its aim
+ * training, its links
  * elsewhere) and when it's live, so nobody has to go through a game's home to reach them.
  */
 export function GameList({ page, games }: { page: { title: L10n; description: L10n }; games: Game[] }) {
@@ -32,6 +33,7 @@ export function GameList({ page, games }: { page: { title: L10n; description: L1
                   },
                 ]
               : []),
+            ...(game.aim ? [{ label: localize(game.aim.title), href: gamePath(game, "aim") }] : []),
             ...game.links.flatMap((link) => (link.href ? [{ label: localize(link.name), href: link.href, away: true }] : [])),
           ]
           return (

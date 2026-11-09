@@ -4,7 +4,8 @@ import { game } from "@/lib/game"
 /**
  * Valorant's home at /conteudo/valorant: the second game, learned from Silver, live on Monday and Wednesday
  * nights (content/agenda.json). Its ranked record is content/valorant/, from the Partidas dock's Valorant tab;
- * `rank` is Luan's rank by hand until the first match there tells it.
+ * `rank` is Luan's rank by hand until the first match there tells it. `aim` is the Voltaic page (content/voltaic/,
+ * from scripts/voltaic.py).
  * The credits are Riot's "Legal Jibber Jabber", which fan sites using its art must show.
  */
 export default game({
@@ -26,6 +27,13 @@ export default game({
     description: {
       pt: "Meu elo, meu RR e cada partida competitiva das lives.",
       en: "My rank, my RR and every competitive match from the streams.",
+    },
+  },
+  aim: {
+    title: { pt: "Mira", en: "Aim" },
+    description: {
+      pt: "Meu treino de mira com a Voltaic: a rotina no Aimlabs todo dia e o benchmark todo domingo, para ver a mira subir semana a semana.",
+      en: "My aim training with Voltaic: their Aimlabs routine every day and their benchmark every Sunday, to watch my aim climb week by week.",
     },
   },
   links: [],
