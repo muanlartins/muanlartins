@@ -77,7 +77,7 @@ One take = one short; Luan only picks the play and talks. Everything else runs t
    whisper on the seam between play and camera (three words, the one being said in Klein claro, names as said:
    nothing is blanked), H.264/AAC for Instagram and YouTube Shorts. Over 60 s is reported, not cut. Luan reviews and posts.
    Whisper mishears brands and some words: read the transcript first and fix them with `--troca "ERRADA=CERTA"`
-   (one word, case-insensitive, punctuation kept; 11-08: `Enlabs=Aimlabs`, `COVAX=KovaaK's`, `portaria=porcaria`,
+   (one word, case-insensitive, punctuation kept; 11-08: `Enlabs=Aimlabs`, `COVAX=KovaaK's`,
    `Thiago=Tiago` from the handle on screen). A single word that is one of whisper's stock phrases ("obrigado") is
    kept; only a whole piece that is one goes.
 
@@ -104,8 +104,8 @@ only that take is new.
    `prontos`; pass the same `--nome` on later runs too, or `plan()` sees it as not made. Takes of other days whose
    shorts exist under another name: delete them before running, or they're made again as "Short 1".
 4. 11-08: `scripts/.venv/bin/python scripts/shorts.py --apply --sem-barras --nome "20-57-31=Afiliado"
-   --nome "21-03-43=Mira no Valorant" --troca "Thiago=Tiago" --troca "Enlabs=Aimlabs" --troca "COVAX=KovaaK's"
-   --troca "portaria=porcaria"`. 11-07 also used `--topo "12-56-21:0-39=live-pix.mp4@3"`.
+   --nome "21-03-43=Mira no Valorant" --troca "Thiago=Tiago" --troca "Enlabs=Aimlabs" --troca "COVAX=KovaaK's"`.
+   Ask Luan before "fixing" a word that sounds odd: "portaria do prata" was what he said. 11-07 also used `--topo "12-56-21:0-39=live-pix.mp4@3"`.
 5. To redo a short, delete its .mp4 in `prontos` and run again.
 
 ## Publishing shorts (YouTube and Instagram)
