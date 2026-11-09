@@ -37,8 +37,8 @@ studio), moving it breaks that page's copy: tell him to add it again from the ne
 scripts/.venv/bin/python scripts/live.py <date>
 ```
 
-Transcribes the Microfone track (Windows whisper.cpp on CUDA), cleans it (friends' names from
-`%USERPROFILE%\.config\muanlartins\nomes.txt` become "—"), writes `content/lives/<date>.json` (chapters from
+Transcribes the Microfone track (Windows whisper.cpp on CUDA), cleans it (hallucinations and repeats; names
+stay as said: Luan ended the blanking of names on 2026-11-08, "mostrar tudo sempre"), writes `content/lives/<date>.json` (chapters from
 the dock, a draft summary **for Luan to rewrite**: the copy is his) and `.transcript.json`, adds the day to
 `brand/build.py` and draws the thumbnail. `--force` redoes existing files.
 

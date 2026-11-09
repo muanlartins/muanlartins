@@ -16,7 +16,7 @@ becomes a short, the same way every time:
 - captioned word by word from whisper (the microphone alone): blocks of up to two lines sitting on the line between
   the play and the camera, each word appearing as it's said, in Klein claro with a glow while it's the one being said,
   then white; a pause or the end of a sentence starts the next block, and a block's layout is set once, so words don't
-  shift as they come in; friends' names come out as in the lives' transcripts;
+  shift as they come in; names stay as said, and --troca fixes a word whisper gets wrong ("Enlabs=Aim Lab");
 - levelled to -14 LUFS, the shorts' outro (Videos\\Shorts\\Partes\\outro-editado.mp4, montagem.py) after it;
 - encoded for Instagram and YouTube Shorts (H.264, AAC, the index up front) as
   Videos\\Shorts\\prontos\\<date> <time> - <play>.mp4. Over 60 s is said, not cut.
@@ -36,7 +36,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from live import FFMPEG, HALLUCINATIONS, WHISPER, names
+from live import FFMPEG, HALLUCINATIONS, WHISPER
 from windows import TEMP, VIDEOS, run, to_windows
 
 SHORTS = VIDEOS / "Shorts"
@@ -112,8 +112,8 @@ def speech(file, start, end):
 CHUNK = (6.0, 12.0)  # whisper's word times drift over a long stretch: it hears pieces this long, cut at pauses
 
 
-def words(file, start, end):
-    """[(from, to, word)] said in [start, end], in seconds from `start`. Whisper hears it in pieces of 6–12 s cut in
+def words(file, start, end, fixes=()):
+    """[(from, to, word)] said in [start, end], in seconds from `start`; `fixes` are (wrong, right) words. Whisper hears it in pieces of 6–12 s cut in
     the middle of pauses, each timed from its own start, so its word times can't drift far (on one 48 s run they
     were up to half a second late by the end)."""
     stem = TEMP / f"muanlartins-short-{file.stem.replace(' ', '_')}-{start:.0f}"
@@ -132,7 +132,6 @@ def words(file, start, end):
             cuts.append(middle)
             last = middle
     cuts.append(length)
-    friends = names()
     said = []
     for n, (a, b) in enumerate(zip(cuts, cuts[1:])):
         piece = stem.with_name(f"{stem.name}-{n}")
@@ -145,15 +144,27 @@ def words(file, start, end):
         result = json.loads(piece.with_suffix(".json").read_text(encoding="utf-8"))
         piece.with_suffix(".wav").unlink()
         piece.with_suffix(".json").unlink()
+        # Whisper's stock phrases are whole lines: a piece that is only one goes, but a word alone is kept (one word
+        # per segment here, so "obrigado" on its own is him thanking someone).
+        if HALLUCINATIONS.match(" ".join(seg["text"].strip() for seg in result["transcription"]).strip()):
+            continue
         for seg in result["transcription"]:
             word = seg["text"].strip()
-            if not word or HALLUCINATIONS.match(word):
+            if not word or re.fullmatch(r"\[.*\]|\(.*\)|♪.*", word):
                 continue
-            if friends:
-                word = friends.sub("—", word)
+            word = fix(word, fixes)
             said.append((a + seg["offsets"]["from"] / 1000, a + seg["offsets"]["to"] / 1000, word))
     wav.unlink()
     return said
+
+
+def fix(word, fixes):
+    """`word` with a wrong word whisper heard swapped for the right one, keeping the punctuation around it."""
+    lead, core, tail = re.fullmatch(r"(\W*)(.*?)(\W*)", word).groups()
+    for wrong, right in fixes:
+        if core.casefold() == wrong.casefold():
+            return lead + right + tail
+    return word
 
 
 def ass_time(seconds):
@@ -240,13 +251,13 @@ def top_over(spec):
     return take, a, b, (Path(name) if Path(name).is_absolute() else CLIPS / name) if name else None, float(at or 0)
 
 
-def make(take, start, end, out, hook=None, cut_bars=True, tops=()):
+def make(take, start, end, out, hook=None, cut_bars=True, tops=(), fixes=()):
     cut = speech(take, start, end)
     if not cut:
         print("      sem fala no microfone: pulado")
         return
     start, end = cut
-    said = words(take, start, end)
+    said = words(take, start, end, fixes)
     # A page that sits still (the "Navegador" scene) would read as bars: those takes skip it.
     top, bottom = bars(take, start, end) if cut_bars else (0, STAGE[1])
     # The subtitles filter takes paths relative to C:\\ (run's working directory), sparing ffmpeg's escaping of "C:".
@@ -307,10 +318,13 @@ def main():
     parser.add_argument("--topo", action="append", default=[], type=top_over,
                         help='replace the top for a while: "10-39=live-pix.mp4@0" (a clip), "39-41=@45" (the take later); '
                              '"12-56-21:10-39=…" for one take only')
+    parser.add_argument("--troca", action="append", default=[], metavar="ERRADA=CERTA",
+                        help='a word whisper gets wrong, in the captions: "Enlabs=Aim Lab" (each short made in this run)')
     parser.add_argument("--sem-barras", action="store_true",
                         help="don't look for browser bars (takes from the \"Navegador\" scene: the site, still)")
     args = parser.parse_args()
     titles = dict(n.split("=", 1) for n in args.nome)
+    fixes = [tuple(t.split("=", 1)) for t in args.troca]
     # Takes whose shorts were all made a day ago or more: reviewed by now, they go at the end (a fresh short keeps its
     # take, in case it needs another pass).
     made_before = {}
@@ -320,7 +334,7 @@ def main():
     for take, start, end, title, out in todo:
         print(f"short  {take.name} {start:.0f}–{end:.0f} s ({title or 'sem capítulo'})  →  prontos\\{out.name}")
         if args.apply:
-            make(take, start, end, out, args.gancho, not args.sem_barras, args.topo)
+            make(take, start, end, out, args.gancho, not args.sem_barras, args.topo, fixes)
     if args.apply:
         for take, made in made_before.items():
             if made:

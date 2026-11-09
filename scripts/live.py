@@ -7,9 +7,8 @@ See "After each live" in handoff/README.md.
 
 - The recording is the one the "Partidas" dock saw OBS make that day (the session's `outputs`), or else the
   largest in Videos named for that day. Its start is second 0 of the VOD.
-- The transcript is whisper (Windows, CUDA, with VAD) on the microphone's own track, cleaned: no hallucinations,
-  no repeats, and no names: friends' (one per line in %USERPROFILE%\\.config\\muanlartins\\nomes.txt, kept out of
-  this public repo) and anything that looks like a username (letters with digits, like xx_gamer99) become "—".
+- The transcript is whisper (Windows, CUDA, with VAD) on the microphone's own track, cleaned of hallucinations and
+  repeats. Names stay as said: nothing is blanked (Luan's call, 2026-11-08).
 - Chapters: each ranked match from its start, a "Começo" before the first and a "Fim" after the last.
 - The summary is a draft from the numbers, for Luan to rewrite.
 - The thumbnail: the rank reached, if the day climbed, goes into LIVES in brand/build.py, and the PNG is drawn.
@@ -26,12 +25,11 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from content import LIVES, ROOT, clock, sessions
-from windows import CONFIG, PROGRAMS, TEMP, VIDEOS, run, to_windows
+from windows import PROGRAMS, TEMP, VIDEOS, run, to_windows
 
 TIME_ZONE = ZoneInfo("America/Sao_Paulo")
 WHISPER = PROGRAMS / "whisper"
 FFMPEG = PROGRAMS / "ffmpeg"
-NAMES = CONFIG / "nomes.txt"
 # The recording's audio tracks: 1 Tudo, 2 Microfone, 3 Jogo, 4 Discord.
 MIC_TRACK = 1
 
@@ -88,22 +86,10 @@ HALLUCINATIONS = re.compile(
     re.IGNORECASE)
 # A word or a short phrase said three or more times in a row: kept once.
 REPEATS = re.compile(r"\b(.{1,40}?)(?:[\s,.!?]+\1\b){2,}", re.IGNORECASE)
-# Usernames: letters followed by digits (xx_gamer99), not 2v2 or ps5.
-HANDLES = re.compile(r"\b[A-Za-z_][A-Za-z_]{2,}\d+\w*(?:\.\d+)?\b")
-
-
-def names():
-    if not NAMES.exists():
-        NAMES.parent.mkdir(parents=True, exist_ok=True)
-        NAMES.write_text("# Nomes de amigos que não vão para as transcrições do site: um por linha.\n")
-    lines = [line.strip() for line in NAMES.read_text(encoding="utf-8").splitlines()]
-    words = [line for line in lines if line and not line.startswith("#")]
-    return re.compile(r"\b(" + "|".join(map(re.escape, words)) + r")\b", re.IGNORECASE) if words else None
 
 
 def clean(segments):
-    """[(start, end, text)] → [[seconds, text]], without hallucinations, repeats or names."""
-    friends = names()
+    """[(start, end, text)] → [[seconds, text]], without hallucinations or repeats."""
     lines = []
     for start, end, text in segments:
         text = " ".join(text.split())
@@ -111,9 +97,6 @@ def clean(segments):
         if not text or HALLUCINATIONS.match(text):
             continue
         text = REPEATS.sub(r"\1", text)
-        text = HANDLES.sub("—", text)
-        if friends:
-            text = friends.sub("—", text)
         if lines and text.lower() == lines[-1][1].lower():
             continue
         lines.append([int(start), text])
