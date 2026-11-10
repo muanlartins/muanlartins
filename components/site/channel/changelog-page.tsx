@@ -3,7 +3,7 @@
 import { ArrowLeft, ArrowUpRight, Car, Clapperboard, Globe, Lightbulb, Play, Radio, Sigma, Users, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import Script from "next/script"
-import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { LifelinePhotoCard } from "@/components/lifeline/lifeline-photos"
 import { TwitchIcon, YouTubeIcon } from "@/components/site/brand-icons"
 import { PageIntro } from "@/components/site/page-intro"
@@ -139,9 +139,38 @@ function Heading({ children, aside }: { children: ReactNode; aside?: ReactNode }
   )
 }
 
-/** The people who suggested something, standing on the stream's stand, each celebrating in turn. */
+/** The narrowest place on the community's stand: room for a name, or, on a phone, for the fan alone (names then go at two heights). */
+const SLOT = 120
+const SLOT_COMPACT = 56
+/** A step of the stand, the stream's band cut at 45° on its ends. */
+const STEP = { clipPath: "polygon(16px 0, calc(100% - 16px) 0, 100% 100%, 0 100%)" }
+
+/**
+ * The people who suggested something, standing on the stream's stand, each celebrating in turn. As many to a row as
+ * fit, the rows as even as they can be (six in rows of five stand three and three), each on its own step.
+ */
 function Community({ look }: { look: Fans }) {
   const [moving, setMoving] = useState(-1)
+  const box = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  useEffect(() => {
+    const el = box.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width))
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const inner = (width || 720) - 24
+  const compact = inner < 560
+  const most = Math.max(1, Math.floor(inner / (compact ? SLOT_COMPACT : SLOT)))
+  const perRow = Math.ceil(SUGGESTIONS.length / Math.ceil(SUGGESTIONS.length / most))
+  const slot = inner / perRow
+  // When a name won't fit its place, every other one goes a step higher, so each can take two places.
+  const stagger = slot < 112
+  const rows: (typeof SUGGESTIONS)[] = []
+  for (let i = 0; i < SUGGESTIONS.length; i += perRow) rows.push(SUGGESTIONS.slice(i, i + perRow))
 
   useEffect(() => {
     if (!look.T || SUGGESTIONS.length < 1 || matchMedia("(prefers-reduced-motion: reduce)").matches) return
@@ -155,34 +184,43 @@ function Community({ look }: { look: Fans }) {
       <Heading>{R.community.title}</Heading>
       <p className="mt-2 max-w-[38rem] text-[15px] leading-[1.6] text-muted">{R.community.text}</p>
 
-      <div className="relative mt-5 h-[176px] overflow-hidden rounded-md border border-line bg-paper/70">
-        <div
-          className="absolute inset-x-0 bottom-0 h-5 bg-klein"
-          style={{ clipPath: "polygon(16px 0, calc(100% - 16px) 0, 100% 100%, 0 100%)" }}
-        />
-        <ul className="absolute inset-x-3 bottom-3 flex justify-around sm:justify-center sm:gap-28">
-          {SUGGESTIONS.map(({ id, items }, i) => {
-            const p = person(id)
-            return (
-              <li key={id}>
-                <a href={`#${items[0].id}`} className="group relative block h-[96px] w-16" aria-label={p.name}>
-                  <span className="absolute bottom-[calc(100%+12px)] left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap bg-navy/80 px-1 py-px text-[10px] font-semibold text-paper transition-colors group-hover:bg-klein sm:px-1.5 sm:text-[11px]">
-                    <PlatformIcon where={p.where} className="h-2.5 w-2.5" />
-                    {p.name}
-                  </span>
-                  {look.T && (
-                    <FanView
-                      T={look.T}
-                      fan={look.T.normalizar(p.login ? (look.fans?.[p.login] ?? null) : null, p.login ?? p.name.toLowerCase())}
-                      move={i === moving ? "comemora" : undefined}
-                      className="h-full w-full"
-                    />
-                  )}
-                </a>
-              </li>
-            )
-          })}
-        </ul>
+      <div ref={box} className="mt-5 overflow-hidden rounded-md border border-line bg-paper/70">
+        {rows.map((row, r) => (
+          <div key={r} className="relative px-3 pb-3" style={{ paddingTop: stagger ? 64 : 44 }}>
+            <div className="absolute inset-x-0 bottom-0 h-5 bg-klein" style={STEP} />
+            <ul className="relative flex justify-center">
+              {row.map(({ id, items }, j) => {
+                const p = person(id)
+                return (
+                  <li key={id} className="flex justify-center" style={{ width: slot }}>
+                    <a href={`#${items[0].id}`} className={cn("group relative block", compact ? "h-[72px] w-12" : "h-[96px] w-16")} aria-label={p.name}>
+                      <span
+                        className={cn(
+                          "absolute flex items-center gap-1 whitespace-nowrap bg-navy/80 px-1 py-px text-[10px] font-semibold text-paper transition-colors group-hover:bg-klein sm:px-1.5 sm:text-[11px]",
+                          stagger && j % 2 ? "bottom-[calc(100%+32px)]" : "bottom-[calc(100%+12px)]",
+                          // At two heights the names run wider than their place: the ends' lean inwards, off the edge.
+                          stagger && row.length > 1 && j === 0 ? "left-0" : stagger && row.length > 1 && j === row.length - 1 ? "right-0" : "left-1/2 -translate-x-1/2",
+                        )}
+                        style={{ maxWidth: (stagger ? 2 * slot : slot) - 8 }}
+                      >
+                        <PlatformIcon where={p.where} className="h-2.5 w-2.5 shrink-0" />
+                        <span className="truncate">{p.name}</span>
+                      </span>
+                      {look.T && (
+                        <FanView
+                          T={look.T}
+                          fan={look.T.normalizar(p.login ? (look.fans?.[p.login] ?? null) : null, p.login ?? p.name.toLowerCase())}
+                          move={r * perRow + j === moving ? "comemora" : undefined}
+                          className="h-full w-full"
+                        />
+                      )}
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ))}
       </div>
 
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
