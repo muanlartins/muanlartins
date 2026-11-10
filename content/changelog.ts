@@ -126,6 +126,14 @@ export const SHIPPED: Shipped[] = [
     href: "/rlr/",
   },
   {
+    id: "ranking-do-mural",
+    date: "2026-11-10",
+    tag: "site",
+    title: "Mural: o ranking por Σ",
+    text: "A audiência agora é um ranking por Σ, como a arquibancada da live: os três primeiros no pódio e todo mundo logo abaixo, com os Σ, as horas e as lives de cada um.",
+    href: "/mural#audiencia",
+  },
+  {
     id: "politica-de-privacidade",
     date: "2026-11-10",
     tag: "site",

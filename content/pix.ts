@@ -72,7 +72,7 @@ export const pix = {
   goal: { pt: "Meta", en: "Goal" },
 } as const
 
-/** /mural: two tabs, the Pix (goal by goal, with whoever chose to show on each) and the audience (who watches, its milestones). */
+/** /mural: two tabs, the Pix (goal by goal, with whoever chose to show on each) and the audience (the ranking by Σ, the milestones). */
 export const mural = {
   title: { pt: "Mural", en: "Mural" },
   description: {
@@ -113,7 +113,11 @@ export const mural = {
   countHours: { pt: "{n} horas assistidas", en: "{n} hours watched" },
   milestones: { pt: "Marcos", en: "Milestones" },
   reachedCounts: { pt: "Já batidos", en: "Already reached" },
-  top: { pt: "Quem mais assiste", en: "Who watches the most" },
+  ranking: { pt: "Ranking", en: "Ranking" },
+  rankingNote: {
+    pt: "Σ são os pontos do canal: 1 por minuto de live, mais um bônus a cada live e a cada live seguida.",
+    en: "Σ are the channel's points: 1 per minute of a live, plus a bonus for each live and each live in a row.",
+  },
   showAll: { pt: "Ver todos", en: "Show everyone" },
   showLess: { pt: "Ver menos", en: "Show fewer" },
   livesUnit: { pt: "live|lives", en: "live|lives" },
