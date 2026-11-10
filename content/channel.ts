@@ -127,6 +127,8 @@ export const channel = {
       /** "{n} novidades em {d} dias". */
       summary: { pt: "{n} novidades em {d} dias", en: "{n} releases in {d} days" },
       all: { pt: "Tudo", en: "All" },
+      /** The filter for what the community suggested or told about. */
+      community: { pt: "Comunidade", en: "Community" },
       day: { pt: "Dia", en: "Day" },
       date: { pt: "Data", en: "Date" },
       idea: { pt: "Ideia de", en: "Idea by" },

@@ -101,84 +101,17 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
   ...(portrait ? { portrait } : {}),
 })
 
-/** What comes next, in order within each status. */
+/**
+ * What comes next, in order within each status. Every feature Luan decides on and won't release the same day goes
+ * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
+ */
 export const UPCOMING: Upcoming[] = [
   {
-    id: "fundamentos-valorant",
-    status: "agora",
-    tag: "site",
-    title: "Fundamentos do Valorant",
-    text: "Como estou aprendendo Valorant, tópico a tópico, com as melhores fontes que encontrei.",
-  },
-  {
-    id: "fundamentos-rocket-league-v2",
+    id: "analise-de-mira",
     status: "proximo",
     tag: "site",
-    title: "Fundamentos do Rocket League, edição 2",
-    text: "O roadmap do Rocket League refeito no mesmo formato do Valorant; os tópicos de hoje continuam no ar.",
-  },
-  {
-    id: "momentos-na-tela",
-    status: "proximo",
-    tag: "live",
-    title: "Momentos na tela, com som",
-    text: "Pancada braba, na trave, frango e gol contra ganham faixa e som na hora, e viram marcações para os shorts.",
-  },
-  {
-    id: "mais-filtros",
-    status: "proximo",
-    tag: "live",
-    title: "Mais filtros na câmera",
-    text: "Outros agentes e efeitos no painel de filtros, além do Phoenix e da bola.",
-  },
-  {
-    id: "mural-da-fama",
-    status: "ideia",
-    tag: "site",
-    title: "Mural da fama",
-    text: "Os nomes especiais do canal, como o primeiro comentário no YouTube e o primeiro viewer de uma live.",
-  },
-  {
-    id: "recompensas",
-    status: "ideia",
-    tag: "site",
-    title: "Recompensas para resgatar",
-    text: "Coisas que o seu Σ desbloqueia uma vez, sem gastar nada: Σ nunca diminui.",
-  },
-  {
-    id: "creditos-da-live",
-    status: "ideia",
-    tag: "live",
-    title: "Créditos no fim da live",
-    text: "Quem esteve lá e os números da live na tela final.",
-  },
-  {
-    id: "adivinha-a-velocidade",
-    status: "ideia",
-    tag: "live",
-    title: "Adivinha a velocidade",
-    text: "Entre partidas, o chat chuta a quantos km/h foi um chute.",
-  },
-  {
-    id: "analise-do-viewer",
-    status: "ideia",
-    tag: "videos",
-    title: "Análise do viewer",
-    text: "Você manda o seu replay e eu analiso no RLR.",
-  },
-  {
-    id: "replay-na-live",
-    status: "ideia",
-    tag: "site",
-    title: "O replay junto da live",
-    text: "Na página de cada live, o replay em 3D do RLR andando junto com o vídeo.",
-  },
-  {
-    id: "shorts-em-todo-lugar",
-    status: "ideia",
-    tag: "videos",
-    title: "Shorts no TikTok e no Instagram",
-    text: "Cada short nas três redes, e todos listados aqui no site.",
+    title: "Ferramenta de análise de mira pro Valorant",
+    text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
   },
 ]
 

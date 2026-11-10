@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, ArrowUpRight, Car, Clapperboard, Globe, Lightbulb, Play, Radio, Sigma, type LucideIcon } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, Car, Clapperboard, Globe, Lightbulb, Play, Radio, Sigma, Users, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import Script from "next/script"
 import { useEffect, useMemo, useState, type ReactNode } from "react"
@@ -37,6 +37,10 @@ const TAG_ORDER = Object.keys(TAGS) as Tag[]
 const STATUS_ORDER = Object.keys(STATUSES) as Status[]
 
 const person = (id: PersonId): Person => PEOPLE[id]
+
+/** The changelog's filter: everything, a tag, or what the community suggested or told about. */
+type Filter = Tag | "comunidade" | null
+const shows = (filter: Filter, entry: Shipped) => !filter || (filter === "comunidade" ? Boolean(entry.credit) : entry.tag === filter)
 
 /** Newest first; within a day, as written. */
 const ENTRIES = SHIPPED.map((entry, index) => ({ entry, index }))
@@ -85,7 +89,7 @@ interface Fans {
  */
 export function ChangelogPage() {
   const [look, setLook] = useState<Fans>({ T: null, fans: null })
-  const [filter, setFilter] = useState<Tag | null>(null)
+  const [filter, setFilter] = useState<Filter>(null)
 
   useEffect(() => {
     if (!LOGINS.length) return
@@ -241,7 +245,7 @@ function Next({ look }: { look: Fans }) {
                 <h3 className="text-[13px] font-medium uppercase tracking-[0.12em] text-klein">{STATUSES[status].title}</h3>
                 <span className="text-[13px] text-muted">{STATUSES[status].text}</span>
               </div>
-              <ul className={cn("mt-3 grid gap-3", status !== "agora" && "sm:grid-cols-2")}>
+              <ul className={cn("mt-3 grid gap-3", status !== "agora" && items.length > 1 && "sm:grid-cols-2")}>
                 {items.map((item) => (
                   <UpcomingCard key={item.id} item={item} look={look} />
                 ))}
@@ -343,9 +347,9 @@ function CreditLine({ credit, look, inverted }: { credit: Credit; look: Fans; in
 }
 
 /** Everything released, a day at a time on a dashed rail: the day since the site went up, the date, then each release. */
-function Changelog({ look, filter, setFilter }: { look: Fans; filter: Tag | null; setFilter: (tag: Tag | null) => void }) {
+function Changelog({ look, filter, setFilter }: { look: Fans; filter: Filter; setFilter: (filter: Filter) => void }) {
   const days = useMemo(() => {
-    const shown = ENTRIES.filter((entry) => !filter || entry.tag === filter)
+    const shown = ENTRIES.filter((entry) => shows(filter, entry))
     const byDay: { date: string; entries: Shipped[] }[] = []
     for (const entry of shown) {
       const last = byDay.at(-1)
@@ -357,7 +361,7 @@ function Changelog({ look, filter, setFilter }: { look: Fans; filter: Tag | null
 
   const span = dayNumber(ENTRIES[0].date)
   const summary = R.shipped.summary.replace("{n}", `${ENTRIES.length}`).replace("{d}", `${span}`)
-  const count = (tag: Tag) => ENTRIES.filter((entry) => entry.tag === tag).length
+  const count = (filter: Filter) => ENTRIES.filter((entry) => shows(filter, entry)).length
 
   return (
     <section className="mt-20">
@@ -365,6 +369,9 @@ function Changelog({ look, filter, setFilter }: { look: Fans; filter: Tag | null
 
       <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label={R.shipped.title}>
         <FilterButton active={filter === null} onClick={() => setFilter(null)} label={R.shipped.all} count={ENTRIES.length} />
+        {count("comunidade") > 0 && (
+          <FilterButton active={filter === "comunidade"} onClick={() => setFilter("comunidade")} label={R.shipped.community} count={count("comunidade")} icon={Users} />
+        )}
         {TAG_ORDER.filter((tag) => count(tag) > 0).map((tag) => (
           <FilterButton key={tag} active={filter === tag} onClick={() => setFilter(tag)} label={TAGS[tag]} count={count(tag)} icon={TAG_ICONS[tag]} />
         ))}
