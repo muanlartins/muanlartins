@@ -133,6 +133,7 @@ export const SHIPPED: Shipped[] = [
     title: "Mural do Pix: todo Pix com seu valor",
     text: "Cada meta lista todos os Pix, com o nome e a mensagem como aparecem na live. Com a Twitch conectada, seu torcedor vem junto e o Pix ainda dá Σ.",
     href: "/mural",
+    media: [media("mural-pix-valores", "A meta atual no mural, com cada Pix, seu valor e sua mensagem")],
   },
   {
     id: "rlr-em-portugues",
@@ -149,6 +150,7 @@ export const SHIPPED: Shipped[] = [
     title: "Mural: o ranking por Σ",
     text: "A audiência agora é um ranking por Σ, como a arquibancada da live: os três primeiros no pódio e todo mundo logo abaixo, com os Σ, as horas e as lives de cada um.",
     href: "/mural#audiencia",
+    media: [media("mural-ranking", "O pódio dos três com mais Σ e o ranking da audiência no mural")],
   },
   {
     id: "politica-de-privacidade",

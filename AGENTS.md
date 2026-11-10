@@ -103,13 +103,17 @@ visiting would notice.
   with their channel's URL) and set `credit: { by, link }` on the entry, `link` pointing at where they said it when
   there's one (a YouTube comment's link is `watch?v=<video>&lc=<comment id>`; `scripts/youtube.py`'s client reads
   the channel's comments). Credit only what Luan confirms came from them. Upcoming items take a credit too.
-- **The pictures** live in `public/canal/roadmap/<name>.webp` (about 960 px wide, ffmpeg's `libwebp` at quality
+- **Every entry gets a picture (or a clip) of the thing whenever there's something to see** (Luan: "é bom ter
+  demonstrações visuais do que foi feito"): add it in the same commit as the entry, not later. Prefer showing it
+  working with real data (the page live on the site, the overlay on a live's recording) over a mock; a clip when it
+  moves. Leave it out only when nothing can be shown (a fix nobody sees, a voice, a schedule).
+- **The pictures** live in `public/canal/roadmap/<name>.webp` (960×540, 16:9 like the rest; ffmpeg's `libwebp` at quality
   ~84), with an optional `<name>.mp4` clip (a few seconds, 640 px wide, no sound, H.264 CRF 28, `+faststart`),
   added with `media(name, alt, { video, portrait })` (`portrait` for a short's 9:16 frame). Good sources: the
   shorts in `Videos\Shorts\prontos` (the screen is the band y=224–832 of the 1080×1920 frame), the lives' recordings
   (`<hh-mm-ss> Live.mp4`; when the game capture came out black, put `Jogo.mp4`'s frame under it with
   `colorkey=black`), a stream page screenshot with headless Chrome (`?demo` where a page has one), or the site
-  itself. **Never show other players' names** (lobby lists, the kill feed, RLR's name tags, the top-right feed in
+  itself (headless Chrome on the live site at 1440×810, scrolled to the feature, scaled to 960×540). **Never show other players' names** (lobby lists, the kill feed, RLR's name tags, the top-right feed in
   Rocket League): crop, blur or pick another frame. Viewers' names in the stand are fine; the chat's messages, keep out.
 - When a feature from `UPCOMING` ships, delete it there and write its `SHIPPED` entry (keep the credit).
 
