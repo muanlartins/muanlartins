@@ -39,6 +39,7 @@ PORT = 8790
 CURL = "/mnt/c/Windows/System32/curl.exe"
 TASKKILL = "/mnt/c/Windows/System32/taskkill.exe"
 WHISPER_PORT = 8791
+WHISPER_LOG = Path.home() / ".cache" / "muanlartins" / "whisper-server.log"  # the last start's output
 WHISPER = PROGRAMS / "whisper"
 FFMPEG = PROGRAMS / "ffmpeg" / "ffmpeg.exe"
 MICROPHONE = "Microphone (NVIDIA Broadcast)"
@@ -98,20 +99,25 @@ def transcribe(pcm: bytes) -> str:
 def start_whisper():
     # One left behind by a copy of this that died (Windows' children outlive WSL's processes) would hold the port.
     subprocess.run([TASKKILL, "/f", "/im", "whisper-server.exe"], capture_output=True, cwd="/mnt/c")
-    server = subprocess.Popen(
-        [str(WHISPER / "whisper-server.exe"), "-m", to_windows(WHISPER / "models" / "ggml-large-v3-turbo-q5_0.bin"),
-         "--host", "127.0.0.1", "--port", str(WHISPER_PORT), "-l", "pt", "-nt", "-sns", "-mc", "0"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd="/mnt/c")
-    for _ in range(60):  # the model loads in a few seconds
+    with WHISPER_LOG.open("wb") as log:
+        server = subprocess.Popen(
+            [str(WHISPER / "whisper-server.exe"), "-m", to_windows(WHISPER / "models" / "ggml-large-v3-turbo-q5_0.bin"),
+             "--host", "127.0.0.1", "--port", str(WHISPER_PORT), "-l", "pt", "-nt", "-sns", "-mc", "0"],
+            stdout=log, stderr=subprocess.STDOUT, cwd="/mnt/c")
+    # The model loads in a few seconds, but much slower while OBS is starting up beside it (GPU and disk busy):
+    # on 2026-11-09 opening OBS took this past 30 s.
+    began = time.monotonic()
+    while time.monotonic() - began < 120:
         up = subprocess.run([CURL, "-s", "-o", "NUL", "-w", "%{http_code}", f"http://127.0.0.1:{WHISPER_PORT}/"],
                             capture_output=True, text=True, cwd="/mnt/c").stdout
         if up == "200":
+            print(f"whisper-server pronto em {time.monotonic() - began:.1f} s", flush=True)
             return server
         if server.poll() is not None:
-            break
+            raise RuntimeError(f"whisper-server saiu com código {server.returncode} (veja {WHISPER_LOG})")
         time.sleep(0.5)
     stop(server)
-    raise RuntimeError("whisper-server didn't start")
+    raise RuntimeError(f"whisper-server não respondeu em 120 s (veja {WHISPER_LOG})")
 
 
 def listen(test):

@@ -239,7 +239,7 @@
       // call: there the corner (the call and the goal) would show its edge on the camera, so it hides. In Valorant's
       // scenes the camera is where the corner was (top left, over the minimap), so the corner goes under it.
       const canto = document.querySelector(".canto")
-      const VALORANT = ["Valorant", "Valorant + chat", "Lance ruim · Valorant"]
+      const VALORANT = ["Valorant + chat", "Lance ruim · Valorant"]
       const cena = (nome) => {
         canto.style.visibility = nome === "Conversa" ? "hidden" : ""
         canto.classList.toggle("baixo", VALORANT.includes(nome) || params.get("canto") === "baixo")

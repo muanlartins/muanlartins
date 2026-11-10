@@ -13,7 +13,7 @@
         to the whole screen, shakes it a little, holds 4 s, shrinks it back and cuts to the scene it came from.
         Only by hand (Luan's choice, 2026-11-08): nothing fires it on its own.
       - Terapia (F3): the calm scene (terapia.html), faded in; "Voltar ao jogo" (F4) leaves it for the scene before,
-        or goes to the game's main scene ("Jogo + chat" or "Valorant + chat"), faded from here.
+        or goes to the game's main scene ("RL + chat" or "Valorant + chat"), faded from here.
       F2, F4 and F8 are triggers like the sounds' ("Gatilho · …"), so the dock picks the game's scene; F3 is
       the scene's own hotkey.
       - Sons: palmas (F5), uuuh (F6) and tambor (F7). Each hotkey restarts a trigger in OBS, a media source
@@ -285,10 +285,10 @@
     <script>
       const $ = (id) => document.getElementById(id)
       const TERAPIA = "Terapia"
-      // Each game's scenes (brand/twitch/obs.py): its main one, the others, and its Lance ruim.
+      // Each game's scenes (brand/twitch/obs.py): its main one (the only one since 2026-11-10: the chat is always on), and its Lance ruim.
       const GAMES = {
-        rl: { main: "Jogo + chat", scenes: ["Jogo", "Jogo + chat"], lance: "Lance ruim", var: "VAR · Rocket League" },
-        val: { main: "Valorant + chat", scenes: ["Valorant", "Valorant + chat"], lance: "Lance ruim · Valorant", var: "VAR · Valorant" },
+        rl: { main: "RL + chat", scenes: ["RL + chat"], lance: "Lance ruim", var: "VAR · Rocket League" },
+        val: { main: "Valorant + chat", scenes: ["Valorant + chat"], lance: "Lance ruim · Valorant", var: "VAR · Valorant" },
       }
       const LANCES = Object.values(GAMES).map((g) => g.lance)
       const VARS = Object.values(GAMES).map((g) => g.var)

@@ -13,7 +13,7 @@ alerts. Import with Scene Collection → Import. Devices and the canvas below ar
 --apply merges instead of replacing: it adds to the collection OBS already has (and its secrets: the alerts URL,
 the overlays' keys) only what's missing here — sources, scenes, items in existing scenes, transitions, hotkeys
 not yet bound — and never changes or removes anything, but for the hotkeys in RETIRED, which it unbinds. It also copies the sound effects (brand/twitch/sons/) next
-to the stinger and adds the "Efeitos" dock. OBS must be closed: it rewrites these files when it exits.
+to the stinger and adds the "Efeitos" and "Filtros" docks. OBS must be closed: it rewrites these files when it exits.
 """
 import json
 import re
@@ -24,6 +24,8 @@ import time
 import uuid
 import wave
 from pathlib import Path
+
+from obs_shorts import camera_framing
 
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
 SITE = "https://muanlartins.com.br/stream"
@@ -113,15 +115,16 @@ valorant = capture("Captura · Valorant", VALORANT)
 # microphone for syncing it to the main recording.
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,
                                          "deactivate_when_not_showing": False}, filters=[
+    camera_framing(source),
     source("source_record_filter", "Gravar câmera", {
         "record_mode": 3, "path": "C:\\Users\\muanl\\Videos", "filename_formatting": "%CCYY-%MM-%DD %hh-%mm-%ss câmera",
         "rec_format": "mkv", "encoder": "nvenc", "rate_control": "CQP", "cqp": 18, "keyint_sec": 2, "preset2": "p5",
         "profile": "high", "different_audio": True, "audio_source": "Microfone"}),
 ])
-game_overlay = browser("Overlay · Jogo", "jogo.html")
+# One scene per game, always with the chat (Luan, 2026-11-10: the scenes without it, "Jogo" and "Valorant", are gone,
+# and Rocket League's is "RL + chat"). The overlays' sources keep the names they had.
 game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1")
 chat_overlay = browser("Overlay · Conversa", "conversa.html")
-valorant_overlay = browser("Overlay · Valorant", "jogo.html?jogo=valorant&altura=cima")
 valorant_chat_overlay = browser("Overlay · Valorant + chat", "jogo.html?chat=1&jogo=valorant&altura=cima")
 # The crowd, over the game overlay; the dock sends it the goals and saves. Its sound is the goal narrator: on the
 # stream only, and in Luan's headphones.
@@ -221,19 +224,22 @@ in_var_monitor = {"pos": (64, 136), "bounds": (1216, 684)}
 in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
 
 # Hole positions match jogo.html and conversa.html.
+# The camera filters (public/stream/filtros.html): one full-screen source just above the camera in every scene with
+# it; the page reads the scene and draws the filtered camera in that scene's box (BOXES there mirrors these
+# positions), clear while no filter is on. Served from WSL on localhost by "Filtros muanlartins.vbs" at login, since
+# Phoenix's model stays off the site. OBS must start with --enable-media-stream for a page to open the camera.
+filters = browser("Filtros", "filtros.html")
+# Page permission 2 (read user information) lets it ask for the current scene when it loads, not only hear changes.
+filters["settings"].update(url="http://localhost:8126/stream/filtros.html", fps=30, webpage_control_level=2)
 in_rocket_league = {"pos": (44, 740), "bounds": (480, 270)}
 in_valorant = {"pos": (44, 44), "bounds": (480, 270)}
 scenes = [
     scene("Começando", (starting, {})),
-    scene("Jogo", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (game_overlay, {}),
-          (crowd, {}), *alerts_in_game, (pix, {})),
-    scene("Jogo + chat", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league),
+    scene("RL + chat", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, {}),
           (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {})),
-    scene("Valorant", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (valorant_overlay, {}),
-          (valorant_crowd, {}), *alerts_in_game, (pix, {})),
-    scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant),
+    scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, {}),
           (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {})),
-    scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
+    scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (filters, {}), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
     scene("Lance ruim", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
           (camera, in_rocket_league), (bad_play, {})),
     scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
@@ -242,15 +248,15 @@ scenes = [
           *alerts_in_game, (pix, {})),
     scene("VAR · Valorant", (replay, in_var_monitor), (camera, in_var_camera), (booth, {}), (valorant_crowd, {}),
           *alerts_in_game, (pix, {})),
-    scene("Terapia", (camera, {"pos": (64, 64), "bounds": (560, 315)}), (calm, {}), *alerts_in_talk,
+    scene("Terapia", (camera, {"pos": (64, 64), "bounds": (560, 315)}), (filters, {}), (calm, {}), *alerts_in_talk,
           (pix, {"pos": (154, 760), "crop": PIX_BAND})),
     scene("Já volto", (back, {})),
     scene("Fim", (end, {})),
 ]
 # Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
-HIDDEN = {"Jogo": {"Discord", "Navegador"}, "Jogo + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"},
-          "Lance ruim": {"Discord", "Navegador"}, "Terapia": {"Discord"}, "Valorant": {"Discord", "Navegador"},
+HIDDEN = {"RL + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"},
+          "Lance ruim": {"Discord", "Navegador"}, "Terapia": {"Discord"},
           "Valorant + chat": {"Discord", "Navegador"}, "Lance ruim · Valorant": {"Discord", "Navegador"},
           "VAR · Rocket League": {"Discord", "Navegador"}, "VAR · Valorant": {"Discord", "Navegador"}}
 BREAKS = {"Começando", "Já volto", "Fim"}
@@ -286,7 +292,7 @@ collection = {
     "current_scene": "Começando",
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
-    "sources": scenes + [game, valorant, camera, game_overlay, game_chat_overlay, valorant_overlay, valorant_chat_overlay,
+    "sources": scenes + [game, valorant, camera, filters, game_chat_overlay, valorant_chat_overlay,
                          chat_overlay, crowd, valorant_crowd, pix, starting, back, end, bad_play, calm, replay, booth] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
@@ -306,7 +312,9 @@ collection = {
 OBS = Path("/mnt/c/Users/muanl/AppData/Roaming/obs-studio")
 # The collection OBS has open (Luan renamed it "Live" on 11-07), from its user.ini.
 LIVE = OBS / "basic/scenes" / re.search(r"^SceneCollectionFile=(.+)$", (OBS / "user.ini").read_text(encoding="utf-8-sig"), re.M)[1].strip()
-DOCK = ("Efeitos", f"{SITE}/efeitos.html")
+# The docks this adds: Efeitos, from the site, and Filtros (the camera filters' switches), served from this working
+# copy like filtros.html itself.
+DOCKS = [("Efeitos", f"{SITE}/efeitos.html"), ("Filtros", "http://localhost:8126/stream/filtros-painel.html")]
 
 
 def merge(live, new):
@@ -357,20 +365,23 @@ def merge(live, new):
     return added
 
 
-def add_dock():
-    """The Efeitos dock in OBS's custom browser docks, with the websocket password in its URL (never printed)."""
+def add_docks():
+    """Our docks in OBS's custom browser docks, each with the websocket password in its URL (never printed).
+    Returns the titles it added."""
     ini = OBS / "user.ini"
     text = ini.read_text(encoding="utf-8-sig")
     line = re.search(r"^ExtraBrowserDocks=(.*)$", text, re.M)
     docks = json.loads(line.group(1)) if line else []
-    if any(d.get("title") == DOCK[0] for d in docks):
-        return False
+    missing = [d for d in DOCKS if not any(have.get("title") == d[0] for have in docks)]
+    if not missing:
+        return []
     password = json.loads((OBS / "plugin_config/obs-websocket/config.json").read_text())["server_password"]
-    docks.append({"title": DOCK[0], "url": f"{DOCK[1]}#obs={password}", "uuid": str(uuid.uuid4())})
+    docks += [{"title": title, "url": f"{url}#obs={password}", "uuid": str(uuid.uuid4())} for title, url in missing]
     value = "ExtraBrowserDocks=" + json.dumps(docks, ensure_ascii=False, separators=(",", ":"))
-    text = text.replace(line.group(0), value) if line else text.replace("[BasicWindow]\n", f"[BasicWindow]\n{value}\n", 1)
+    # A function as the replacement, so re.sub leaves the value's backslashes alone.
+    text = re.sub(r"^ExtraBrowserDocks=.*$", lambda _: value, text, count=1, flags=re.M) if line else text.replace("[BasicWindow]\n", f"[BasicWindow]\n{value}\n", 1)
     ini.write_text(text, encoding="utf-8")
-    return True
+    return [title for title, _ in missing]
 
 
 def clashes(live):
@@ -422,7 +433,7 @@ def apply(dry=False):
     if var_webm.exists():
         shutil.copy(var_webm, sons.parent / var_webm.name)
         print(f"stinger do VAR copiado para {sons.parent}")
-    print("dock Efeitos adicionado" if add_dock() else "dock Efeitos já estava lá")
+    print(f"docks adicionados: {', '.join(docks)}" if (docks := add_docks()) else "os docks já estavam lá")
     print(f"cópias de antes: {LIVE.name}.antes-{stamp}, user.ini.antes-{stamp}")
 
 
