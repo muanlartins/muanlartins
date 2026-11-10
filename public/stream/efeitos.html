@@ -194,6 +194,19 @@
       button.usada {
         opacity: 0.55;
       }
+      #marcas {
+        grid-template-columns: 1fr;
+      }
+      .marca {
+        display: flex;
+        gap: 4px;
+      }
+      .marca button:first-child {
+        flex: 1;
+      }
+      .marca button:last-child {
+        padding: 0 9px;
+      }
       #var-painel {
         margin-top: 10px;
         padding: 10px;
@@ -235,12 +248,14 @@
 
     <h2>VAR</h2>
     <p class="status" id="buffer">Replay Buffer desligado</p>
+    <p class="status" id="chat-var">Chat: conectando</p>
     <div class="grid" style="margin-top: 8px">
       <button class="primary" id="var">VAR <kbd>F8</kbd></button>
       <button id="buffer-ligar">Ligar o buffer</button>
     </div>
     <p class="note">Valorant: abre na hora. Rocket League: só marca; depois da partida, abra a marca aqui.</p>
     <div class="grid" id="marcas" style="margin-top: 6px"></div>
+    <div class="grid" style="margin-top: 6px"><button id="marcas-apagar" hidden>Apagar as marcas</button></div>
     <label class="campo">Pergunta <input id="var-pergunta" maxlength="60" autocomplete="off" /></label>
     <div class="opcoes-var" style="margin-top: 6px">
       <input id="var-op1" maxlength="24" placeholder="!1" autocomplete="off" />
@@ -571,7 +586,8 @@
       let pedido = null // the game F8 was pressed in, until OBS says the clip is saved
       let varAtual = null // the open VAR's whole state, as the pages get it
       let saindoDoVar = false
-      const marcas = [] // { path, hora, usada }
+      const marcas = [] // { n, path, hora, usada }
+      let marcadas = 0 // numbers the marks, which keep theirs when one is deleted
       let fimVotacao = null
       let fimVeredito = null
       let reenvio = null
@@ -638,24 +654,40 @@
         pedido = null
         if (!path) return
         if (jogo === "val") return abrirVar(path, "val")
-        marcas.unshift({ path, hora: new Date().toLocaleTimeString("pt-BR"), usada: false })
+        marcas.unshift({ n: ++marcadas, path, hora: new Date().toLocaleTimeString("pt-BR"), usada: false })
         marcas.length = Math.min(marcas.length, MARCAS)
         desenharMarcas()
       }
       function desenharMarcas() {
         $("marcas").replaceChildren(
-          ...marcas.map((m, i) => {
+          ...marcas.map((m) => {
+            const linha = document.createElement("div")
+            linha.className = "marca"
             const b = document.createElement("button")
-            b.textContent = `Marca ${marcas.length - i} · ${m.hora}`
+            b.textContent = `Marca ${m.n} · ${m.hora}`
             b.classList.toggle("usada", m.usada)
             b.onclick = () => {
               m.usada = true
               desenharMarcas()
               abrirVar(m.path, "rl")
             }
-            return b
+            // Gone from the list only: the clip stays in Videos, for depois-da-live.
+            const x = document.createElement("button")
+            x.textContent = "×"
+            x.title = "Apagar a marca"
+            x.onclick = () => {
+              marcas.splice(marcas.indexOf(m), 1)
+              desenharMarcas()
+            }
+            linha.append(b, x)
+            return linha
           }),
         )
+        $("marcas-apagar").hidden = marcas.length < 2
+      }
+      $("marcas-apagar").onclick = () => {
+        marcas.length = 0
+        desenharMarcas()
       }
       $("var").onclick = chamarVar
 
@@ -733,19 +765,35 @@
         setTimeout(() => request("TriggerMediaInputAction", { inputName: REPLAY, mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP" }), 2500)
       }
 
-      // The chat's votes: !1, !2, !3, one per login (the last counts), not the channel's nor the bots'.
-      irc((line) => {
-        const v = varAtual
-        if (!v || v.fase !== "votacao") return
-        const { prefix, command, trailing } = parseIrc(line)
-        if (command !== "PRIVMSG") return
-        const login = prefix.split("!")[0]
-        const n = Number(/^!\s*([1-9])(?!\d)/.exec(trailing.trim())?.[1])
-        if (!n || n > v.opcoes.length || login === CHANNEL || BOTS.has(login)) return
-        v.votantes[login] = n - 1
-        v.votos = v.opcoes.map((_, i) => Object.values(v.votantes).filter((x) => x === i).length)
-        enviarLogo()
-      })
+      // The chat's votes: !1, !2, !3, one per login (the last counts), not the channel's nor the bots'. The
+      // line under the buffer's says whether the chat is connected and what became of the last vote seen.
+      let chatOn = false
+      let ultimoVoto = ""
+      function chatStatus() {
+        $("chat-var").className = chatOn ? "status on" : "status"
+        $("chat-var").textContent = (chatOn ? "Chat conectado" : "Chat desconectado") + (ultimoVoto ? ` · ${ultimoVoto}` : "")
+      }
+      irc(
+        (line) => {
+          const { prefix, command, trailing } = parseIrc(line)
+          if (command !== "PRIVMSG") return
+          const n = Number(/^!\s*([1-9])(?!\d)/.exec(trailing.trim())?.[1])
+          if (!n) return
+          const login = prefix.split("!")[0]
+          const v = varAtual
+          const motivo =
+            login === CHANNEL ? "não conta: o canal não vota" : BOTS.has(login) ? "não conta: bot"
+              : !v ? "não conta: sem VAR aberto" : v.fase !== "votacao" ? "não conta: votação encerrada"
+                : n > v.opcoes.length ? "não conta: opção não existe" : "contou"
+          ultimoVoto = `${login} !${n}: ${motivo}`
+          chatStatus()
+          if (motivo !== "contou") return
+          v.votantes[login] = n - 1
+          v.votos = v.opcoes.map((_, i) => Object.values(v.votantes).filter((x) => x === i).length)
+          enviarLogo()
+        },
+        { onStatus: (on) => ((chatOn = on), chatStatus()) },
+      )
 
       // The panel while a VAR is open: the count, the tie's buttons, the replay's controls.
       function painel() {
