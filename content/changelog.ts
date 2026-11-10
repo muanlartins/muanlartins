@@ -42,6 +42,9 @@ export interface Credit {
   by: PersonId
   /** "report" when they told about a bug rather than suggesting something: "Avisado por" instead of "Ideia de". */
   as?: "idea" | "report"
+  /** What they said, for their card on the page when the entry's title doesn't say it: a bug's report is what was
+   * wrong ("Pix tocando duas vezes"), not the fix's title. */
+  about?: string
   /** Where the idea was given, when there's a link to it (a YouTube comment, a moment of a live). */
   link?: string
 }
@@ -190,12 +193,21 @@ export const SHIPPED: Shipped[] = [
     credit: { by: "lucca_3098" },
   },
   {
+    id: "lives-valorant",
+    date: "2026-11-10",
+    tag: "videos",
+    title: "Lives de Valorant no site e no YouTube",
+    text: "As lives de Valorant também ficam inteiras no site, com um capítulo por partida (mapa e RR) e o resumo do competitivo, e na playlist “Valorant ao vivo” no YouTube.",
+    href: "/canal/lives/2026-11-09",
+    media: [media("lives-valorant", "A thumbnail da live de Valorant de 9 de novembro")],
+  },
+  {
     id: "pix-uma-vez",
     date: "2026-11-10",
     tag: "live",
     title: "Cada Pix toca uma vez só",
     text: "Um Pix com mensagem longa, de mais de 30 segundos, voltava para a fila e tocava duas vezes na live. Agora toca uma vez, por mais longo que seja.",
-    credit: { by: "jpmartins_1", as: "report" },
+    credit: { by: "jpmartins_1", as: "report", about: "Pix tocando duas vezes" },
   },
   {
     id: "lives-inteiras",

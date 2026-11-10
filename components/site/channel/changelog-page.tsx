@@ -209,7 +209,7 @@ function Community({ look }: { look: Fans }) {
                         {list.map((item) => (
                           <li key={item.id}>
                             <a href={`#${item.id}`} className="text-[14px] leading-[1.5] text-klein underline decoration-line underline-offset-4 hover:decoration-klein">
-                              {item.title}
+                              {item.credit?.about ?? item.title}
                             </a>
                           </li>
                         ))}
