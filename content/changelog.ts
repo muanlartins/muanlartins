@@ -127,6 +127,14 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "creditos-da-live",
+    date: "2026-11-10",
+    tag: "live",
+    title: "Créditos no fim da live",
+    text: "A live termina como filme: os créditos sobem com quem seguiu, se inscreveu, mandou Pix e assistiu, e cada nome que passa faz o seu torcedor comemorar na arquibancada.",
+    media: [media("creditos-da-live", "Os créditos subindo ao lado da câmera, com a arquibancada de quem assistiu embaixo", { video: true })],
+  },
+  {
     id: "mural-do-pix-com-valores",
     date: "2026-11-10",
     tag: "site",

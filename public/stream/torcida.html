@@ -29,6 +29,9 @@
       !danca, !ola. Each fan's look is their profile on the site (/perfil), or
       what their login gives them.
 
+      On air, each dedication is also kept in this site's storage for the day (torcida:dedicatorias), each stand its
+      own game's: the end credits (creditos.html) list them.
+
       Goals are narrated in the narrator's voice by scripts/narrador.py, running
       on this PC (?narrador= its address, ?narrador=0 for none); OBS sends this
       source's sound to the stream only, never to the recording.
@@ -767,6 +770,21 @@
         let sorte = Math.random() * lista.reduce((soma, p) => soma + Sigma.peso(sigma(p.login)), 0)
         return lista.find((p) => (sorte -= Sigma.peso(sigma(p.login))) < 0) ?? lista.at(-1) ?? null
       }
+      // The day's dedications, on air only, for the credits at the end (creditos.html reads them from this site's
+      // storage, which OBS's browser sources share). Both stands hear every moment: each keeps its own game's.
+      function anotarDedicatoria(p, tipo, detalhe) {
+        if (!p || p.login === CHANNEL || params.has("demo") || Date.now() > noArAte) return
+        const dia = new Date().toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
+        try {
+          const salvo = JSON.parse(localStorage.getItem("torcida:dedicatorias") || "null")
+          const lista = salvo?.dia === dia ? salvo.lista : []
+          lista.push({ login: p.login, nome: p.nome, tipo, detalhe: detalhe ?? null, em: Date.now() })
+          localStorage.setItem("torcida:dedicatorias", JSON.stringify({ dia, lista: lista.slice(-60) }))
+        } catch {
+          // No storage: the credits go without them.
+        }
+      }
+
       function dedicar(p, frase = (quem) => `Esse gol é do ${quem}!`) {
         setTimeout(() => {
           p.el?.classList.add("dedicado", "foco")
@@ -870,6 +888,7 @@
           faixa("GOOOL!", kmh ? `${kmh} km/h` : "")
           const dedicado = sortear()
           if (dedicado) dedicar(dedicado)
+          if (JOGO === "rocket-league") anotarDedicatoria(dedicado, "gol", kmh)
           narrarGol(kmh, dedicado)
         },
         noar({ ligado }) {
@@ -910,6 +929,7 @@
           faixa("VITÓRIA!", placar ?? "")
           const dedicado = sortear()
           if (dedicado) dedicar(dedicado, (quem) => `Essa vitória é do ${quem}!`)
+          if (JOGO === "valorant") anotarDedicatoria(dedicado, "vitoria", placar)
           narrar(voz(pick(VITORIA)), dedicado && voz(`Essa vitória é do ${falado(dedicado.nome)}!`))
         },
         // Where the game is: "menu", "selecao" (agent select) or "partida".
