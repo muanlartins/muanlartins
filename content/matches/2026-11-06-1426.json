@@ -17,31 +17,76 @@
   "outputs": [
     {
       "kind": "record",
-      "start": "2026-11-06T17:28:56.504Z"
+      "start": "2026-11-06T17:28:56.504Z",
+      "end": "2026-11-06T20:18:25.269Z",
+      "file": "2026-11-06 14-28-56.mp4"
     },
     {
       "kind": "stream",
-      "start": "2026-11-06T17:28:57.771Z"
+      "start": "2026-11-06T17:28:57.771Z",
+      "end": "2026-11-06T20:18:24.547Z"
+    },
+    {
+      "kind": "record",
+      "start": "2026-11-06T21:01:04.852Z",
+      "end": "2026-11-06T21:01:26.717Z",
+      "file": "2026-11-06 18-01-04.mp4"
+    },
+    {
+      "kind": "record",
+      "start": "2026-11-06T21:08:42.319Z",
+      "end": "2026-11-06T21:09:00.315Z",
+      "file": "2026-11-06 18-08-42 comentado.mp4"
+    },
+    {
+      "kind": "record",
+      "start": "2026-11-06T21:09:50.173Z",
+      "end": "2026-11-06T21:10:07.193Z",
+      "file": "2026-11-06 18-09-50 comentado.mp4"
+    },
+    {
+      "kind": "record",
+      "start": "2026-11-06T21:15:52.284Z",
+      "end": "2026-11-06T21:16:11.273Z",
+      "file": "2026-11-06 18-15-52 comentado.mp4"
+    },
+    {
+      "kind": "record",
+      "start": "2026-11-06T21:22:18.936Z",
+      "end": "2026-11-06T21:22:42.698Z",
+      "file": "2026-11-06 18-22-18 comentado.mp4"
+    },
+    {
+      "kind": "record",
+      "start": "2026-11-06T21:31:52.561Z",
+      "end": "2026-11-06T21:32:01.918Z",
+      "file": "2026-11-06 18-31-52 short.mp4"
+    },
+    {
+      "kind": "record",
+      "start": "2026-11-06T21:51:00.875Z",
+      "end": "2026-11-06T22:09:01.209Z",
+      "file": "2026-11-06 18-51-00 comentado.mp4"
+    },
+    {
+      "kind": "record",
+      "start": "2026-11-06T22:11:07.379Z",
+      "end": "2026-11-06T22:11:53.164Z",
+      "file": "2026-11-06 19-11-07 short.mp4"
     }
   ],
   "matches": [
     {
       "id": "manual-1793987129844",
-      "at": "2026-11-06T17:40:33.000Z",
+      "at": "2026-11-06T17:45:29.844Z",
       "mode": "3v3",
       "ranked": true,
       "result": "win",
       "rank": {
         "tier": "diamond-1",
         "division": 1,
-        "mmr": 827
-      },
-      "points": 9,
-      "mmr": 836,
-      "score": [
-        3,
-        1
-      ]
+        "mmr": 836
+      }
     },
     {
       "id": "1364200411F1DA0ACAF880959C9B171C",
@@ -329,8 +374,7 @@
           "saves": 0,
           "shots": 6,
           "touches": 62,
-          "demos": 3,
-          "login": "haxzsv"
+          "demos": 3
         },
         {
           "score": 128,
@@ -339,8 +383,7 @@
           "saves": 0,
           "shots": 1,
           "touches": 34,
-          "demos": 1,
-          "login": "pao_919"
+          "demos": 1
         }
       ],
       "rank": {
@@ -382,8 +425,7 @@
           "saves": 0,
           "shots": 7,
           "touches": 43,
-          "demos": 0,
-          "login": "haxzsv"
+          "demos": 0
         },
         {
           "score": 274,
@@ -392,8 +434,7 @@
           "saves": 0,
           "shots": 2,
           "touches": 16,
-          "demos": 0,
-          "login": "pao_919"
+          "demos": 0
         }
       ],
       "rank": {
@@ -401,8 +442,8 @@
         "division": 2,
         "mmr": 856
       },
-      "points": 10,
-      "mmr": 866
+      "points": -846,
+      "mmr": 10
     },
     {
       "id": "C6A2FA9811F1DA12208CC9A6736BCBEC",
@@ -435,8 +476,7 @@
           "saves": 1,
           "shots": 4,
           "touches": 69,
-          "demos": 0,
-          "login": "haxzsv"
+          "demos": 0
         },
         {
           "score": 184,
@@ -445,16 +485,15 @@
           "saves": 0,
           "shots": 1,
           "touches": 36,
-          "demos": 0,
-          "login": "pao_919"
+          "demos": 0
         }
       ],
       "rank": {
         "tier": "diamond-1",
         "division": 2,
-        "mmr": 866
+        "mmr": 10
       },
-      "points": 9,
+      "points": 865,
       "mmr": 875
     },
     {
@@ -488,8 +527,7 @@
           "saves": 0,
           "shots": 6,
           "touches": 50,
-          "demos": 1,
-          "login": "haxzsv"
+          "demos": 1
         },
         {
           "score": 113,
@@ -498,8 +536,7 @@
           "saves": 1,
           "shots": 0,
           "touches": 15,
-          "demos": 2,
-          "login": "pao_919"
+          "demos": 2
         }
       ],
       "rank": {
@@ -541,8 +578,7 @@
           "saves": 0,
           "shots": 3,
           "touches": 21,
-          "demos": 0,
-          "login": "haxzsv"
+          "demos": 0
         },
         {
           "score": 180,
@@ -551,8 +587,7 @@
           "saves": 0,
           "shots": 1,
           "touches": 10,
-          "demos": 0,
-          "login": "spike32001"
+          "demos": 0
         }
       ],
       "rank": {
@@ -594,8 +629,7 @@
           "saves": 2,
           "shots": 2,
           "touches": 32,
-          "demos": 0,
-          "login": "haxzsv"
+          "demos": 0
         },
         {
           "score": 222,
@@ -604,8 +638,7 @@
           "saves": 1,
           "shots": 2,
           "touches": 20,
-          "demos": 0,
-          "login": "spike32001"
+          "demos": 0
         }
       ],
       "rank": {
@@ -647,8 +680,7 @@
           "saves": 2,
           "shots": 5,
           "touches": 78,
-          "demos": 1,
-          "login": "haxzsv"
+          "demos": 1
         },
         {
           "score": 506,
@@ -657,8 +689,7 @@
           "saves": 3,
           "shots": 7,
           "touches": 56,
-          "demos": 0,
-          "login": "spike32001"
+          "demos": 0
         }
       ],
       "rank": {
@@ -700,8 +731,7 @@
           "saves": 1,
           "shots": 5,
           "touches": 41,
-          "demos": 1,
-          "login": "haxzsv"
+          "demos": 1
         },
         {
           "score": 312,
@@ -710,8 +740,7 @@
           "saves": 1,
           "shots": 2,
           "touches": 24,
-          "demos": 0,
-          "login": "spike32001"
+          "demos": 0
         }
       ],
       "rank": {
@@ -785,7 +814,7 @@
       "mode": "3v3",
       "tier": "diamond-1",
       "division": 2,
-      "mmr": 866
+      "mmr": 10
     },
     {
       "at": "2026-11-06T18:58:21.275Z",
