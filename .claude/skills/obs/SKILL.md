@@ -43,6 +43,14 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   background stays on) and a "Enquadramento" crop filter, first on Câmera in all three collections (Live, Shorts,
   Vídeo), crops him at about 1.75× (`CAMERA_CROP` in `brand/twitch/obs_shorts.py`). If he moves the camera, retune
   it there and on the three sources (SetSourceFilterSettings, switching collections while he's not live).
+- Twitch's alerts ("Alertas", the Alerts Box) are on tracks 1 and 5 and on "Monitorar e enviar", like Pix and
+  Sons, so Luan hears them too: the installed source had monitoring off until 2026-11-10 (the stream heard the subs,
+  he didn't). The page's "AlertsFeatureLaunchFlags: unauthenticated" GraphQL error on load is in every log since
+  11-08 and harmless.
+- Don't change Câmera's settings or its filters while OBS records: on 11-09 at 21:29, during the live, websocket
+  clients from WSL changed the camera twice in 4 s (the second time its device settings); Source Record stopped the
+  camera's file ("Gravar câmera") and OBS crashed tearing it down (`Crash 2026-11-09 21-29-43.txt`,
+  `video_output_disconnect2`), so the live came out in pieces.
 - Source Record filters write files of their own while OBS records: "Gravar câmera" on Câmera (`… câmera.mkv`)
   and "Gravar jogo" on Rocket League (`… jogo.mkv`, the game without camera or overlays, CQP 22, its own sound;
   added 2026-11-05). `videos.py` files both.

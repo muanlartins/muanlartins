@@ -346,6 +346,9 @@
       // --- The queue -------------------------------------------------------------------------------------
       const fila = [] // Pix waiting, in the order they were paid
       const vistos = new Map() // sk → when it was queued or played, so it plays once until the dock asks again
+      // The Pix on screen now: the API has it as not shown until it ends, and a long one (a held Pix, or a voice
+      // of 40 s) outlasts its 30 s in vistos, so without this it went back in the queue and played twice (11-10).
+      let atual = null
       let tocando = false
       let emPartida = false
       let partidaVista = 0
@@ -363,6 +366,7 @@
         if (i < 0) return
         const [pix] = fila.splice(i, 1)
         tocando = true
+        atual = pix.sk
         try {
           const pronta = await Promise.race([preparar(pix, pix.sk), new Promise((r) => setTimeout(() => r(null), 15000))])
           const texto = pronta?.texto ?? pix.mensagem ?? ""
@@ -387,6 +391,7 @@
           if (!DEMO) await pedir("/canal", { acao: "exibido", pix: pix.sk, reserva: pix.reserva }).catch(() => {})
         } finally {
           tocando = false
+          atual = null
           setTimeout(proximo, 800)
         }
       }
@@ -409,7 +414,7 @@
         // Oldest first, so they play in the order they came.
         for (const p of [...estado.pix].reverse()) {
           const visto = vistos.get(p.sk)
-          if (p.exibido || p.sk < recente || fila.some((f) => f.sk === p.sk) || (visto && Date.now() - visto < 30000)) continue
+          if (p.exibido || p.sk === atual || p.sk < recente || fila.some((f) => f.sk === p.sk) || (visto && Date.now() - visto < 30000)) continue
           vistos.set(p.sk, Date.now())
           fila.push(p)
         }

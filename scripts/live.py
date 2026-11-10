@@ -72,6 +72,28 @@ def recording(date, day):
     return file, start
 
 
+def placer(file, start):
+    """datetime → seconds of the VOD. A recording joined from pieces (videos.py, when OBS restarted mid-live) has
+    Lives\\<date>\\partes.json: each moment is placed in its own piece; the minutes between pieces aren't in the file,
+    and a moment there goes to the next piece's start."""
+    pieces_file = file.parent / "partes.json"
+    kind = file.stem.split(" ", 1)[-1]
+    pieces = json.loads(pieces_file.read_text()).get(kind, []) if pieces_file.exists() else []
+    if not pieces:
+        return lambda moment: (moment - start).total_seconds()
+    # The first piece's start may be the dock's exact one; the others are from their names, to the second.
+    starts = [start] + [datetime.fromisoformat(p["inicio"]).replace(tzinfo=TIME_ZONE) for p in pieces[1:]]
+
+    def place(moment):
+        at = (moment - start).total_seconds()
+        for piece, begin in zip(pieces[1:], starts[1:]):
+            if moment < begin:
+                return min(at, piece["em"])
+            at = piece["em"] + (moment - begin).total_seconds()
+        return at
+    return place
+
+
 def duration(file):
     out = run(FFMPEG / "ffprobe.exe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
               to_windows(file), capture_output=True, text=True).stdout
@@ -126,8 +148,8 @@ def when(iso):
     return datetime.fromisoformat(iso.replace("Z", "+00:00"))
 
 
-def chapters(day, start, length):
-    """Each ranked match from its start, in seconds of the VOD."""
+def chapters(day, place, length):
+    """Each ranked match from its start, in seconds of the VOD (place: datetime → seconds)."""
     matches = sorted((m for s in day for m in s["matches"]), key=lambda m: m["at"])
     found = []
     previous_end = None
@@ -135,9 +157,9 @@ def chapters(day, start, length):
         # Older matches have only their end: they start where the previous one ended, or 7 min before it.
         begin = when(match["start"]) if match.get("start") else previous_end or when(match["at"]) - timedelta(minutes=7)
         previous_end = when(match["at"])
-        at = (begin - start).total_seconds()
+        at = place(begin)
         if 0 <= at < length:
-            found.append((at, {"match": match["id"]}, (previous_end - start).total_seconds()))
+            found.append((at, {"match": match["id"]}, place(previous_end)))
     chapters = []
     if not found or found[0][0] >= 10:
         chapters.append({"at": "0:00", "title": {"pt": "Começo", "en": "Start"}})
@@ -264,7 +286,7 @@ def main():
     else:
         # The lives are Rocket League's for now; a live of another game sets its id by hand.
         live = {"date": args.date, "game": "rocket-league", "video": args.video or "", "summary": summary(day),
-                "chapters": chapters(day, start, length)}
+                "chapters": chapters(day, placer(file, start), length)}
         write_live(page, live)
         print(f"Página: {len(live['chapters'])} capítulos em {page.relative_to(ROOT)}. O resumo é um rascunho.")
 

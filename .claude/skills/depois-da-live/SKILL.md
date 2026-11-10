@@ -26,7 +26,11 @@ python3 scripts/videos.py --apply
 OBS's loose `2026-11-05 14-10-55.mp4`, `… câmera.mkv` and `… jogo.mkv` become `Videos\Lives\<date>\14-10-55 Live.mp4`,
 `14-10-56 Câmera.mkv` and `14-10-56 Jogo.mp4` (the game alone, from 11-06 on, remuxed from OBS's MKV without
 re-encoding so the studio can play it in the browser; the start time stays in the name:
-`live.py` reads it). Each match's replay is **copied**
+`live.py` reads it). When OBS restarted mid-live (crash, relaunch), the day's pieces of each kind that start within
+15 min of the previous one's end are **joined** end to end without re-encoding under the first one's name (11-09:
+three pieces → `20-07-37 Live.mp4`, 2h06), and `Lives\<date>\partes.json` keeps where each piece starts, which
+`live.py` uses to place the chapters (the minutes OBS was down aren't in the file). `videos.py <date> --apply`
+files only that day. Each match's replay is **copied**
 (the game lists them from its own folder) to `Videos\Lives\<date>\Replays\Partida NN - Vitória 5-4.replay`,
 matched to the dock's matches by score and save time. The VAR's clips (OBS's Replay Buffer, loose as
 `Replay 2026-11-05 14-32-10.mp4`) go to `Videos\Lives\<date>\VAR\14-32-10 VAR.mp4`: shots for a short. If Luan has a recording open in a browser (RLR's

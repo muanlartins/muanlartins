@@ -3,6 +3,7 @@ they are, and a copy of each ranked match's replay, named for its number in the 
 
     python3 scripts/videos.py            # what it would do
     python3 scripts/videos.py --apply    # do it
+    python3 scripts/videos.py 2026-11-09 --apply    # only that day's material
     scripts/.venv/bin/python scripts/videos.py --clean            # what it would delete, to free the disk
     scripts/.venv/bin/python scripts/videos.py --clean --apply    # delete it
     python3 scripts/videos.py --done <date>                        # that day's material is used up
@@ -11,7 +12,10 @@ OBS leaves "2026-11-05 14-10-55.mp4" (and the Source Record filters' "… câmer
 Videos; they become Lives\\2026-11-05\\14-10-55 Live.mp4, 14-10-56 Câmera.mkv and 14-10-56 Jogo.mp4 (the game
 alone, no camera or overlays). The filter writes MKV, which survives OBS crashing or the disk filling up; the game's
 is remuxed to MP4 (no re-encoding, the same pictures) because RLR's studio plays it in the browser. The start time
-stays in the name: live.py reads it when the dock didn't log the recording. The VAR's clips (OBS's Replay Buffer,
+stays in the name: live.py reads it when the dock didn't log the recording. When OBS restarted mid-live (a crash,
+a relaunch), the day has several recordings of a kind: they're joined end to end, still without re-encoding, under
+the first one's name, and Lives\\<date>\\partes.json says where each piece starts, in the day's clock and in the
+joined file (live.py places the chapters with it; the minutes OBS was down aren't in the file). The VAR's clips (OBS's Replay Buffer,
 saved by the Efeitos dock: "Replay 2026-11-05 14-32-10.mp4") go to Lives\\<date>\\VAR\\14-32-10 VAR.mp4, material
 for shorts like the Jogo recording. Replays stay in the game's folder (it lists them from there) and are copied to
 Lives\\<date>\\Replays\\, matched to the dock's matches by score and time.
@@ -46,6 +50,9 @@ VAR_CLIP = re.compile(r"^Replay (\d{4}-\d{2}-\d{2}) (\d{2}-\d{2}-\d{2})\.(mp4|mk
 # Jogo and Câmera recordings wait for their shorts and commented videos as long as this much stays free.
 FREE_GB = 200
 DONE = ".feito"
+PIECES = "partes.json"
+# How long OBS can be down between two pieces of one live (a crash, a relaunch).
+RESTART = timedelta(minutes=15)
 
 
 def recordings():
@@ -189,11 +196,47 @@ def remux(source, target):
     source.unlink()
 
 
+def started(file):
+    """When OBS started a loose recording, from its name (local time, to the second)."""
+    day, time = LOOSE.match(file.name).groups()[:2]
+    return datetime.strptime(f"{day} {time}", "%Y-%m-%d %H-%M-%S")
+
+
+def join(sources, target):
+    """Several recordings of one kind end to end, with the same streams (no re-encoding: they come from the same OBS
+    profile), into target; the pieces go once it's as long as all of them together. Each piece's start, in the
+    day's clock (from its name) and in the joined file, goes into the day's PIECES under the kind."""
+    from windows import PROGRAMS, TEMP, run, to_windows
+    lengths = [length(source) for source in sources]
+    listing = TEMP / f"muanlartins-{target.parent.name}-{target.stem.replace(' ', '_')}.txt"
+    listing.write_text("".join(f"file '{to_windows(source).replace(chr(92), '/')}'\n" for source in sources), encoding="utf-8")
+    try:
+        run(PROGRAMS / "ffmpeg" / "ffmpeg.exe", "-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0",
+            "-i", to_windows(listing), "-map", "0", "-c", "copy", *(["-movflags", "+faststart"] if target.suffix == ".mp4" else []),
+            to_windows(target))
+    finally:
+        listing.unlink(missing_ok=True)
+    if abs(length(target) - sum(lengths)) > 2:
+        raise SystemExit(f"{target.name} saiu com {length(target):.0f} s e as partes somam {sum(lengths):.0f} s: fiquei com tudo")
+    pieces_file = target.parent / PIECES
+    pieces = json.loads(pieces_file.read_text()) if pieces_file.exists() else {}
+    kind = target.stem.split(" ", 1)[1]
+    pieces[kind] = []
+    at = 0.0
+    for source, seconds in zip(sources, lengths):
+        pieces[kind].append({"inicio": started(source).isoformat(), "em": round(at, 3), "segundos": round(seconds, 3)})
+        at += seconds
+    pieces_file.write_text(json.dumps(pieces, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    for source in sources:
+        source.unlink()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--apply", action="store_true", help="move and copy, or delete (without it, only show)")
     parser.add_argument("--clean", action="store_true", help="delete recordings that have done their job")
     parser.add_argument("--done", metavar="DATE", help="mark a day's material as used up (its shorts and videos made)")
+    parser.add_argument("day", nargs="?", help="YYYY-MM-DD: file only that day's material")
     args = parser.parse_args()
 
     if args.done:
@@ -205,7 +248,36 @@ def main():
         clean(args.apply)
         return
 
-    for source, target in recordings():
+    day_of = lambda target: target.parent.parent.name if target.parent.name == "VAR" else target.parent.name  # noqa: E731
+    found = [(source, target) for source, target in recordings() if not args.day or day_of(target) == args.day]
+    # A day's recordings of one kind, oldest first, each starting at most RESTART after the one before ended: the
+    # pieces of one live that OBS restarted in the middle of (a test recorded hours before stays apart).
+    kinds = {}
+    for source, target in found:
+        if target.parent.name != "VAR":
+            kinds.setdefault((target.parent, target.stem.split(" ", 1)[1]), []).append((source, target))
+    groups = []
+    for pieces in kinds.values():
+        if len(pieces) < 2:
+            continue
+        groups.append([pieces[0]])
+        for previous, piece in zip(pieces, pieces[1:]):
+            if started(piece[0]) - started(previous[0]) - timedelta(seconds=length(previous[0])) > RESTART:
+                groups.append([])
+            groups[-1].append(piece)
+    for group in groups:
+        if len(group) < 2:
+            continue
+        target = group[0][1].with_suffix(".mp4") if group[0][1].name.endswith(" Jogo.mkv") else group[0][1]
+        print(f"join  {' + '.join(source.name for source, _ in group)}  →  {target.relative_to(VIDEOS)}")
+        if args.apply:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            join([source for source, _ in group], target)
+    joined = {source for group in groups if len(group) > 1 for source, _ in group}
+
+    for source, target in found:
+        if source in joined:
+            continue
         if target.name.endswith(" Jogo.mkv"):
             target = target.with_suffix(".mp4")
             print(f"remux {source.name}  →  {target.relative_to(VIDEOS)}")
@@ -218,7 +290,7 @@ def main():
             target.parent.mkdir(parents=True, exist_ok=True)
             source.rename(target)
     for source, target in replays():
-        if target.exists():
+        if target.exists() or (args.day and target.parent.parent.name != args.day):
             continue
         print(f"copy  {source.name}  →  {target.relative_to(VIDEOS)}")
         if args.apply:
