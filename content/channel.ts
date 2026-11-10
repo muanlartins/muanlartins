@@ -116,6 +116,7 @@ export const channel = {
         en: "Got an idea? Say it in the stream's chat or comment on a video. If it makes it in, your name stays here.",
       },
       suggested: { pt: "Sugeriu", en: "Suggested" },
+      reported: { pt: "Avisou", en: "Reported" },
       comment: { pt: "o comentário", en: "the comment" },
     },
     next: {
@@ -129,6 +130,7 @@ export const channel = {
       day: { pt: "Dia", en: "Day" },
       date: { pt: "Data", en: "Date" },
       idea: { pt: "Ideia de", en: "Idea by" },
+      reported: { pt: "Avisado por", en: "Reported by" },
       see: { pt: "Ver", en: "See" },
       watch: { pt: "Assistir", en: "Watch" },
       none: { pt: "Nada com essa marca ainda.", en: "Nothing with this tag yet." },

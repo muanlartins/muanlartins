@@ -82,8 +82,10 @@ plays on hover). The channel exists only on the Portuguese site, so the entries 
 
 **When you release something new, add it there in the same commit.** Not only the site's features: a new overlay,
 dock feature, scene or effect on the live, a script that changes what viewers get, an RLR feature (RLR is another
-repository, but its releases are listed here too), new brand art. Not a release: ranked sessions, a live's page,
-a video's metadata, bug fixes and internal tooling nobody watching or visiting would notice.
+repository, but its releases are listed here too), new brand art, a change only in Luan's OBS that the live shows,
+and a fix viewers noticed (credit whoever told about it with `as: "report"`, shown as "Avisado por"). Not a
+release: ranked sessions, a live's page, a video's metadata, and fixes or internal tooling nobody watching or
+visiting would notice.
 
 - **The entry:** a unique kebab-case `id` (the anchor, `/canal/roadmap#<id>`), the `date` it was released (the push to
   `main`, or the day it went into Luan's OBS), a `tag` (`live`, `site`, `videos`, `rlr`, `marca`), a `title` and one
