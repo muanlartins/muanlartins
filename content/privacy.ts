@@ -7,7 +7,7 @@ import type { L10n } from "@/lib/site"
  * written as bare URLs.
  */
 export const privacy = {
-  title: { pt: "Privacidade", en: "Privacy" },
+  title: { pt: "Política de privacidade", en: "Privacy policy" },
   description: {
     pt: "O que este site e as ferramentas do canal fazem com dados. Resumindo: quase nada.",
     en: "What this site and the channel's tools do with data. In short: almost nothing.",

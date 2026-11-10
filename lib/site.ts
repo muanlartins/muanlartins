@@ -162,7 +162,7 @@ export const UI = localize({
     channel: { pt: "Canal", en: "Channel" },
   },
   switchLanguage: { pt: "English", en: "Português" },
-  privacy: { pt: "Privacidade", en: "Privacy" },
+  privacy: { pt: "Política de privacidade", en: "Privacy policy" },
   /** The 404 page. */
   notFound: {
     title: { pt: "Nada por aqui", en: "Nothing here" },

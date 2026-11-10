@@ -118,6 +118,15 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "politica-de-privacidade",
+    date: "2026-11-10",
+    tag: "site",
+    title: "“Política de privacidade” no rodapé",
+    text: "O link do rodapé dizia só “Privacidade” e parecia perfil de outra plataforma. Agora diz o que é.",
+    href: "/privacidade",
+    credit: { by: "lucca_3098" },
+  },
+  {
     id: "roadmap",
     date: "2026-11-10",
     tag: "site",
