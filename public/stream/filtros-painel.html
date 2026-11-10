@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Filtros · painel · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: Custom browser dock "Filtros" (brand/twitch/obs.py --apply adds it), off stream. It switches the camera
+      filters of filtros.html, the "Filtros" browser source: one button per filter, one on at a time (the lit one;
+      clicking it again, or Desligar, turns it off), and under them the one-offs of the filter that's on.
+
+      It's served like filtros.html, from this working copy on localhost:8126 ("Filtros muanlartins.vbs" in Startup),
+      so a new filter needs no release: a line in FILTROS here and its drawing there.
+
+      It tells the page through obs-websocket, like the Efeitos dock: obs-browser's emit_event "muanlartins-filtro"
+      with { filtro: "<id>" } ("nenhum" for none), sent on each click and again every 4 s, so the page catches up
+      after a reload; { acao: "<id>" } is a one-off. The dock is where the choice lives and it isn't kept: opening
+      OBS always starts with no filter. The OBS websocket password is kept in the dock's storage;
+      #obs=<password> in the URL fills it.
+    -->
+    <style>
+      html,
+      body {
+        overflow: auto;
+        background: var(--navy);
+      }
+      body {
+        padding: 14px;
+        font-size: 15px;
+        line-height: 1.35;
+      }
+      h2 {
+        margin: 18px 0 8px;
+        color: var(--klein-claro);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .status {
+        margin: 0;
+        color: rgb(244 245 247 / 0.6);
+        font-size: 12px;
+      }
+      .status::before {
+        content: "";
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background: #ff5a5a;
+      }
+      .status.on::before {
+        background: var(--klein-claro);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+        gap: 6px;
+      }
+      button {
+        font: inherit;
+        font-size: 14px;
+        color: var(--paper);
+        background: rgb(0 47 167 / 0.45);
+        border: 1px solid rgb(133 167 255 / 0.4);
+        padding: 10px;
+        cursor: pointer;
+        text-align: left;
+      }
+      button:hover {
+        border-color: var(--klein-claro);
+      }
+      button.active {
+        background: var(--klein);
+        border-color: var(--paper);
+        box-shadow: 0 0 0 2px rgb(244 245 247 / 0.35);
+      }
+      .note {
+        margin: 8px 0 0;
+        color: rgb(244 245 247 / 0.55);
+        font-size: 12px;
+      }
+      details {
+        margin-top: 18px;
+        font-size: 13px;
+      }
+      details input {
+        font: inherit;
+        color: var(--paper);
+        background: rgb(0 47 167 / 0.45);
+        border: 1px solid rgb(133 167 255 / 0.4);
+        padding: 6px 9px;
+        width: 100%;
+        margin-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="status" id="obs">OBS desconectado</p>
+
+    <h2>Filtro da câmera</h2>
+    <div class="grid" id="filtros"></div>
+    <div class="grid" style="margin-top: 6px"><button id="desligar">Desligar</button></div>
+
+    <div id="acoes-bloco" hidden>
+      <h2 id="acoes-titulo"></h2>
+      <div class="grid" id="acoes"></div>
+      <p class="note" id="dica"></p>
+    </div>
+
+    <details>
+      <summary>Conexão com o OBS</summary>
+      <input id="password" type="password" placeholder="Senha do obs-websocket" autocomplete="off" />
+    </details>
+
+    <script>
+      // The filters on the dock: filtros.html's id, the button's name, its one-offs ([id, name]) and a hint.
+      const FILTROS = [
+        { id: "phoenix", nome: "Phoenix", acoes: [["flash", "Flash"]], dica: "Fogo: as duas palmas abertas, de frente uma para a outra. O flash também sai com um estalo girando a mão." },
+        { id: "bola", nome: "Bola" },
+      ]
+
+      const $ = (id) => document.getElementById(id)
+      const KEY = "filtros"
+      const state = { obsPassword: "", ...JSON.parse(localStorage.getItem(KEY) || "{}") }
+      const save = () => localStorage.setItem(KEY, JSON.stringify(state))
+      const fromHash = new URLSearchParams(location.hash.slice(1)).get("obs")
+      if (fromHash) {
+        state.obsPassword = fromHash
+        save()
+        history.replaceState(null, "", location.pathname + location.search)
+      }
+      $("password").value = state.obsPassword
+      $("password").onchange = (e) => {
+        state.obsPassword = e.target.value
+        save()
+        obs?.close()
+      }
+
+      // --- obs-websocket --------------------------------------------------------------------------------------
+      let obs = null
+      let ready = false
+      let requests = 0
+      const sha256 = async (text) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))))
+      function connect() {
+        const ws = new WebSocket("ws://127.0.0.1:4455")
+        obs = ws
+        ws.onmessage = async ({ data }) => {
+          const { op, d } = JSON.parse(data)
+          if (op === 0) {
+            const identify = { rpcVersion: 1, eventSubscriptions: 0 }
+            if (d.authentication) {
+              const { challenge, salt } = d.authentication
+              identify.authentication = await sha256((await sha256(state.obsPassword + salt)) + challenge)
+            }
+            ws.send(JSON.stringify({ op: 1, d: identify }))
+          } else if (op === 2) {
+            ready = true
+            status()
+            send({ filtro: atual })
+          }
+        }
+        ws.onerror = () => ws.close()
+        ws.onclose = () => {
+          ready = false
+          status()
+          setTimeout(connect, 3000)
+        }
+      }
+      function send(data) {
+        if (!ready) return
+        const requestData = { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-filtro", event_data: data } }
+        obs.send(JSON.stringify({ op: 6, d: { requestType: "CallVendorRequest", requestId: String(++requests), requestData } }))
+      }
+      function status() {
+        $("obs").className = ready ? "status on" : "status"
+        $("obs").textContent = ready ? "OBS conectado" : state.obsPassword ? "OBS desconectado" : "OBS desconectado: falta a senha (abaixo)"
+      }
+
+      // --- the filters ----------------------------------------------------------------------------------------
+      let atual = "nenhum"
+      function escolher(id) {
+        atual = id
+        send({ filtro: atual })
+        desenhar()
+      }
+      function desenhar() {
+        for (const b of $("filtros").children) b.classList.toggle("active", b.dataset.id === atual)
+        const filtro = FILTROS.find((f) => f.id === atual)
+        $("acoes-bloco").hidden = !(filtro?.acoes || filtro?.dica)
+        $("acoes-titulo").textContent = filtro?.nome || ""
+        $("dica").textContent = filtro?.dica || ""
+        $("acoes").replaceChildren(
+          ...(filtro?.acoes || []).map(([acao, nome]) => {
+            const b = document.createElement("button")
+            b.textContent = nome
+            b.onclick = () => send({ acao })
+            return b
+          }),
+        )
+      }
+      for (const f of FILTROS) {
+        const b = document.createElement("button")
+        b.textContent = f.nome
+        b.dataset.id = f.id
+        b.onclick = () => escolher(atual === f.id ? "nenhum" : f.id)
+        $("filtros").append(b)
+      }
+      $("desligar").onclick = () => escolher("nenhum")
+      setInterval(() => send({ filtro: atual }), 4000)
+      desenhar()
+      status()
+      connect()
+    </script>
+  </body>
+</html>

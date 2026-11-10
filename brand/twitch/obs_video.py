@@ -17,7 +17,7 @@ import json
 import sys
 from pathlib import Path
 
-from obs_shorts import CAMERA, MIC, MONITOR, OBS, TRACK_ALL, TRACK_MIC, TRACK_STUDIO, item, source
+from obs_shorts import CAMERA, MIC, MONITOR, OBS, TRACK_ALL, TRACK_MIC, TRACK_STUDIO, camera_framing, item, source
 
 W, H = 1920, 1080
 CANVAS = (W, H)
@@ -27,7 +27,7 @@ CAMERA_AT, CAMERA_SIZE = (44, 740), (480, 270)
 
 screen = source("monitor_capture", "Tela", {"capture_cursor": False, "method": 0, "monitor_id": MONITOR})
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,
-                                         "deactivate_when_not_showing": False})
+                                         "deactivate_when_not_showing": False}, filters=[camera_framing(source)])
 # The live's own camera frame (jogo.html: the animated band, the site on its plate), without the day's record.
 frame = source("browser_source", "Moldura", {"url": "https://muanlartins.com.br/stream/jogo.html?placar=0",
                                             "width": W, "height": H, "fps_custom": True, "fps": 60,

@@ -47,3 +47,6 @@ __pycache__/
 
 # The Twitch Pix panel holds the Pix key (brand/build.py, PIX_BRCODE).
 brand/twitch/paineis/pix.*
+
+# Models for the camera filters that must not be published (a game character extracted from the game).
+public/stream/privado/

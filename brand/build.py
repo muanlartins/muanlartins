@@ -240,18 +240,22 @@ def pattern(width, height, mark_height):
     return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{lattice(width, height, mark_height, 0, 0, [])}', width, height)
 
 
-def webcam(width=3840, height=2160, side="left"):
+def webcam(width=3840, height=2160, side="left", frame=None):
     """A virtual background for the camera: the banner's look with the lockup up in a corner, since the
-    middle is where the person sits. The lattice fades out behind them and around the lockup."""
-    mark_height = height * 0.085
+    middle is where the person sits. The lattice fades out behind them and around the lockup. `frame` is the
+    part OBS keeps of the camera (x, y, w, h in this image's pixels): everything is laid out in it, as if it
+    were the whole image."""
+    fx, fy, fw, fh = frame or (0, 0, width, height)
+    mark_height = fh * 0.085
     w, h = lockup_size(mark_height)
-    margin = height * 0.045
+    margin = fh * 0.045
     # "dentro": the corner of what the shorts keep of the camera (its middle 1350 of 1920, the 1080×864 under the
     # play), so the lockup isn't cut there and still sits top left in the full frame.
-    inside = width * (1 - 1350 / 1920) / 2
-    x0 = {"left": margin, "right": width - w - margin, "dentro": inside + margin}[side]
-    y0 = margin
-    holes = [(width / 2, height * 0.8, width * 0.36, height * 0.75), (x0 + w / 2, y0 + h / 2, w * 0.75, h * 1.2)]
+    inside = fw * (1 - 1350 / 1920) / 2
+    # "centro": centred over the head, whole in the live and in the shorts alike.
+    x0 = fx + {"left": margin, "right": fw - w - margin, "dentro": inside + margin, "centro": (fw - w) / 2}[side]
+    y0 = fy + margin
+    holes = [(fx + fw / 2, fy + fh * 0.8, fw * 0.36, fh * 0.75), (x0 + w / 2, y0 + h / 2, w * 0.75, h * 1.2)]
     grid = lattice(width, height, mark_height, x0, y0, holes, step=2)
     return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}{placed(lockup(height=mark_height, background=None), x0, y0)}', width, height)
 
@@ -838,6 +842,16 @@ if __name__ == "__main__":
         write(f"webcam/webcam-{side}.svg", webcam(side=side))
         png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-3840x2160.png", 3840)
         png(f"webcam/webcam-{side}.svg", f"webcam/webcam-{side}-1920x1080.png", 1920)
+    # Since 2026-11-08 OBS crops the camera itself (NVIDIA Broadcast's auto frame is off): "enquadrado" is "dentro"
+    # laid out in what OBS keeps, the crop in brand/twitch/obs_shorts.py, so the lockup stays in the picture,
+    # centred at the top (Luan's pick, 2026-11-08).
+    sys.path.insert(0, str(ROOT / "twitch"))
+    from obs_shorts import CAMERA_CROP as c
+
+    k = 3840 / 1920
+    framed = (c["left"] * k, c["top"] * k, (1920 - c["left"] - c["right"]) * k, (1080 - c["top"] - c["bottom"]) * k)
+    write("webcam/webcam-enquadrado.svg", webcam(side="centro", frame=framed))
+    png("webcam/webcam-enquadrado.svg", "webcam/webcam-enquadrado-3840x2160.png", 3840)
     png("small/mark-small.svg", "youtube/watermark-150.png", 150)
     for name, (rank, lines) in THUMBNAILS.items():
         write(f"youtube/thumbnails/{name}.svg", thumbnail(lines, rank))

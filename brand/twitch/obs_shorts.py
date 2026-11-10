@@ -19,6 +19,16 @@ import uuid
 from pathlib import Path
 
 CAMERA = "Camera (NVIDIA Broadcast):"
+# The camera's framing: NVIDIA Broadcast keeps its virtual background but not its auto frame (Luan turned it off
+# on 2026-11-08), so the camera is cropped to him here, the same in every collection: 1.5×, down to the
+# frame's bottom edge (he sits low in it). A filter on the source, first, so the scenes, the effects' zoom and the
+# camera's own recording all get the framed picture. public/stream/filtros.html takes the same as ?zoom/?foco.
+# 1.5× (from 1.75×, 2026-11-08) leaves room for the background's lockup over his head.
+CAMERA_CROP = {"relative": True, "left": 310, "top": 360, "right": 330, "bottom": 0}
+
+
+def camera_framing(source):
+    return source("crop_filter", "Enquadramento", CAMERA_CROP)
 MIC = "{0.0.1.00000000}.{1bd84196-0816-4f00-8c22-a2b3950b995a}"
 # The main monitor (1920×1080 at 0,0; the other one is portrait). Without it OBS captures nothing.
 # The portrait monitor (1440×2560, right of the main one): the browser full screen there for the "Navegador" shorts.
@@ -58,7 +68,7 @@ def item(src, i, pos=(0, 0), bounds=None, canvas=(W, H)):
 # The screen as it is, at 1:1 from its top left corner: what's past the canvas (the studio's controls) is cut off.
 screen = source("monitor_capture", "Tela", {"capture_cursor": False, "method": 0, "monitor_id": MONITOR})
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,
-                                         "deactivate_when_not_showing": False})
+                                         "deactivate_when_not_showing": False}, filters=[camera_framing(source)])
 # Klein (#002FA7) as OBS writes colours: 0xAABBGGRR.
 line = source("color_source_v3", "Linha", {"color": 0xFFA72F00, "width": W, "height": LINE})
 browser = source("wasapi_process_output_capture", "Estúdio", {"window": "RLR - Brave:Chrome_WidgetWin_1:brave.exe", "priority": 2},

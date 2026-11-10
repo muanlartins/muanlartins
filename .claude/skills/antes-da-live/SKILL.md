@@ -22,6 +22,8 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 - Live captions (`scripts/legenda.py`, started at login like the narrator, log `~/.cache/muanlartins/legenda.log`):
   on only while the dock's "Legendas ao vivo" is ticked, then they hear the mic and run whisper on the GPU every
   second (~0.2 s each, ~1 GB VRAM). If the stream stutters with them on, untick it first; it frees the GPU at once.
+  whisper-server's own output from its last start is in `~/.cache/muanlartins/whisper-server.log`; it takes ~17 s to
+  load idle and over 30 s while OBS is opening (it waits up to 120 s, and retries 5 s after a failure).
 - Valorant (`scripts/valorant.py`, started at login too, log `~/.cache/muanlartins/valorant.log`): reads Luan's
   own presence from the Riot Client every 2 s (two `curl.exe` calls, negligible) for the Valorant scene's stand and
   rank plate. `http://127.0.0.1:8792/` shows what it knows; if the plate or the rounds stop, check that first.
@@ -59,6 +61,6 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 - OBS 33, profile "Live" ("Untitled" until 11-06), Advanced output. Recording: Hybrid MP4 (survives a crash, takes chapter marks),
   NVENC, tracks 1–4 (1 Tudo, 2 Microfone, 3 Jogo, 4 Discord); track 5 "Live" is the stream's. The camera also
   records to its own `… câmera.mkv` (Source Record filter "Gravar câmera").
-- Scenes: Começando, Jogo, Jogo + chat, Conversa, Já volto, Fim. `brand/twitch/obs.py` generates the scene
+- Scenes: Começando, RL + chat, Valorant + chat, Conversa, Já volto, Fim (and the effects' own). `brand/twitch/obs.py` generates the scene
   collection; anything added by hand in OBS (like the Spotify source) should also go there.
 - See the `obs` skill for talking to OBS from WSL.
