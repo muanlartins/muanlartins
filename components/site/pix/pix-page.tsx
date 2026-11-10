@@ -1,6 +1,5 @@
 "use client"
 
-import { Check } from "lucide-react"
 import Script from "next/script"
 import qrcode from "qrcode-generator"
 import { useEffect, useRef, useState, type ReactNode } from "react"
@@ -31,7 +30,6 @@ interface Draft {
   preset: number | null
   outro: string
   quando: "agora" | "entre"
-  mural: boolean
 }
 interface Recording {
   blob: Blob
@@ -56,7 +54,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-const blank: Draft = { nome: "", mensagem: "", modo: "texto", voz: "antonio", preset: 500, outro: "", quando: "agora", mural: false }
+const blank: Draft = { nome: "", mensagem: "", modo: "texto", voz: "antonio", preset: 500, outro: "", quando: "agora" }
 
 function readDraft(): Draft {
   try {
@@ -206,7 +204,6 @@ export function PixPage() {
         mensagem: draft.modo === "texto" ? draft.mensagem : "",
         voz: voices.some((v) => v.id === draft.voz) ? draft.voz : voices[0].id,
         quando: draft.quando,
-        mural: draft.mural,
       }
       if (draft.modo === "audio" && recording) order.audio = { tipo: recording.blob.type, dados: await base64(recording.blob) }
       const r = await reserve(order, login ? token : null)
@@ -341,17 +338,9 @@ export function PixPage() {
             </div>
           </Field>
 
+          {/* Every Pix goes on the mural by the name and message above; Twitch adds the sender's fan and their Σ. */}
           <div className="space-y-2">
-            <button
-              type="button"
-              role="switch"
-              aria-checked={draft.mural}
-              onClick={() => change({ mural: !draft.mural })}
-              className={cn(
-                "flex w-full items-start gap-4 rounded-md border-2 px-4 py-4 text-left transition-colors",
-                draft.mural ? "border-klein bg-klein/[0.07]" : "border-dashed border-klein/50 hover:border-klein hover:bg-klein/[0.03]",
-              )}
-            >
+            <div className="flex items-start gap-4 rounded-md border-2 border-klein/40 bg-klein/[0.04] px-4 py-4">
               <span className="flex w-[76px] shrink-0 justify-start pl-1">
                 {T && login ? (
                   <FanView T={T} fan={T.normalizar(look, login)} className="h-[72px] w-12" />
@@ -361,52 +350,37 @@ export function PixPage() {
                   </span>
                 )}
               </span>
-              <span className="flex-1 space-y-1.5">
-                <span className="block text-[18px] font-medium text-klein">{text.muralTitle}</span>
-                <span className="block text-[14px] leading-[1.5] text-ink">
-                  {text.muralNote} {!login && text.muralFan}
-                </span>
-                <span
-                  className={cn(
-                    "mt-1 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[14px] font-medium",
-                    draft.mural ? "bg-klein text-paper" : "border border-klein text-klein",
-                  )}
-                >
-                  <span className={cn("grid h-4 w-4 place-items-center rounded-sm", draft.mural ? "bg-paper text-klein" : "border border-klein")}>
-                    {draft.mural && <Check className="h-3 w-3" strokeWidth={3} />}
-                  </span>
-                  {draft.mural ? text.muralOn : text.muralOff}
-                </span>
-              </span>
-            </button>
+              <div className="min-w-0 flex-1 space-y-2">
+                <p className="text-[18px] font-medium text-klein">{text.muralTitle}</p>
+                <p className="text-[14px] leading-[1.5] text-ink">
+                  {text.muralNote} {!login && canSave && text.muralFan}
+                </p>
+                {canSave &&
+                  (token && login ? (
+                    <p className="text-[15px] text-ink">
+                      {text.sigmaSignedIn} <strong className="font-medium text-klein">{login}</strong>
+                      {Number.isInteger(centavos) && centavos > 0 && login !== CHANNEL && (
+                        <>
+                          {" · "}
+                          {text.sigmaGain} <strong className="font-medium text-klein tabular-nums">{Math.floor(centavos / 10).toLocaleString("pt-BR")} Σ</strong>
+                        </>
+                      )}{" "}
+                      <button type="button" onClick={leave} className="text-muted underline underline-offset-2 hover:text-klein">
+                        {text.signOut}
+                      </button>
+                    </p>
+                  ) : (
+                    <button type="button" onClick={goSignIn} className="rounded-sm bg-[#9146ff] px-4 py-2 text-[15px] font-medium text-white transition-opacity hover:opacity-90">
+                      {text.sigmaSignIn}
+                    </button>
+                  ))}
+                {canSave && <p className="text-[13px] text-muted">{text.sigmaNote}</p>}
+              </div>
+            </div>
             <a href={`/${MURAL_SLUG}`} target="_blank" className="inline-block text-[14px] text-muted underline underline-offset-2 hover:text-klein">
               {text.muralSee} →
             </a>
           </div>
-
-          {canSave && (
-            <div className="space-y-2 rounded-md border border-line bg-paper/70 px-4 py-3 text-[15px]">
-              {token && login ? (
-                <p className="text-ink">
-                  {text.sigmaSignedIn} <strong className="font-medium text-klein">{login}</strong>
-                  {Number.isInteger(centavos) && centavos > 0 && login !== CHANNEL && (
-                    <>
-                      {" · "}
-                      {text.sigmaGain} <strong className="font-medium text-klein tabular-nums">{Math.floor(centavos / 10).toLocaleString("pt-BR")} Σ</strong>
-                    </>
-                  )}{" "}
-                  <button type="button" onClick={leave} className="text-muted underline underline-offset-2 hover:text-klein">
-                    {text.signOut}
-                  </button>
-                </p>
-              ) : (
-                <button type="button" onClick={goSignIn} className="rounded-sm bg-[#9146ff] px-4 py-2 font-medium text-white transition-opacity hover:opacity-90">
-                  {text.sigmaSignIn}
-                </button>
-              )}
-              <p className="text-[13px] text-muted">{text.sigmaNote}</p>
-            </div>
-          )}
 
           <div className="space-y-3">
             <button

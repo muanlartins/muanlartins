@@ -17,7 +17,7 @@
       - Registrar Pix: when the phone missed one. The value pays its
         reservation, like a notification would; with none, it shows with the
         name typed here.
-      - Últimos Pix: repeat an alert; take one off the site's mural.
+      - Últimos Pix: repeat an alert; take one's name and message off the site's mural (its value stays, as anonymous).
       - Meta: the goal bar on the overlay, /pix and /mural; it counts from when it's set. A new one (or
         Encerrar) sends the one before to /mural's history; Ajustar changes the one on screen and keeps its count.
         Ticking "fora de meta", a new one (or Ajustar) counts from the first Pix since the last goal ended.
@@ -254,7 +254,8 @@
                     "div",
                     { className: "row" },
                     botao("Repetir", () => agir({ acao: "repetir", pix: p.sk })),
-                    p.mural ? botao(p.oculto ? "Voltar ao mural" : "Tirar do mural", () => agir({ acao: "ocultar", pix: p.sk, oculto: !p.oculto })) : "",
+                    // Every Pix with a name or words shows them on the mural (an old one too, ticked or not); taking it off leaves its value, as anonymous.
+                    p.nome || p.mensagem || p.transcricao ? botao(p.oculto ? "Voltar ao mural" : "Tirar do mural", () => agir({ acao: "ocultar", pix: p.sk, oculto: !p.oculto })) : "",
                   ),
                 ),
               )

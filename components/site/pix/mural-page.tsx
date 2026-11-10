@@ -25,12 +25,13 @@ interface Look {
   sigmas: Record<string, SigmaStats>
 }
 
+/** Each Pix: the sender's fan (or initial), name, value, badges, day and message; an anonymous one, a short line with its value and day. */
 function Supporters({ list, look: { T, fans, S, sigmas } }: { list: MuralPix[]; look: Look }) {
   return (
     <ul className="space-y-3">
       {list.map((p) => (
-        <li key={p.em} className="flex gap-4 rounded-md border border-line bg-paper/70 p-3">
-          <FanSpot T={T} fans={fans} login={p.login} name={p.nome} />
+        <li key={p.em} className={cn("flex gap-4 rounded-md border border-line bg-paper/70 p-3", !p.nome && !p.mensagem && !p.login && "items-center py-2")}>
+          <FanSpot T={T} fans={fans} login={p.login} name={p.nome} size={!p.nome && !p.mensagem && !p.login ? "sm" : "md"} />
           <div className="min-w-0 flex-1 space-y-2 py-1 pr-1">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
               <strong className="text-[16px] font-medium break-words text-ink">{p.nome || text.anonymous}</strong>
@@ -50,7 +51,6 @@ function Supporters({ list, look: { T, fans, S, sigmas } }: { list: MuralPix[]; 
 
 function GoalCard({ goal, current, look }: { goal: Goal; current?: boolean; look: Look }) {
   const reached = goal.arrecadado >= goal.alvo
-  const unnamed = goal.pix - goal.apoiadores.length
   return (
     <section className={cn("rounded-md border", current ? "border-klein/50 bg-paper/80" : "border-line bg-paper/60")}>
       <div className="space-y-4 px-4 pt-5 pb-5 sm:px-6 sm:pt-6">
@@ -74,11 +74,6 @@ function GoalCard({ goal, current, look }: { goal: Goal; current?: boolean; look
       <div className="space-y-3 border-t border-line px-4 pt-5 pb-5 sm:px-6">
         <p className={heading}>{text.supporters}</p>
         {goal.apoiadores.length ? <Supporters list={goal.apoiadores} look={look} /> : <p className="text-[15px] text-muted">{text.noneYet}</p>}
-        {unnamed > 0 && (
-          <p className="text-[14px] text-muted">
-            + {unnamed} {text.others}
-          </p>
-        )}
       </div>
     </section>
   )

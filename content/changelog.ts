@@ -118,6 +118,14 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "mural-do-pix-com-valores",
+    date: "2026-11-10",
+    tag: "site",
+    title: "Mural do Pix: todo Pix com seu valor",
+    text: "Cada meta lista todos os Pix, com o nome e a mensagem como aparecem na live. Com a Twitch conectada, seu torcedor vem junto e o Pix ainda dá Σ.",
+    href: "/mural",
+  },
+  {
     id: "rlr-em-portugues",
     date: "2026-11-10",
     tag: "rlr",

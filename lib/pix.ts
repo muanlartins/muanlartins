@@ -10,7 +10,7 @@ export interface Reservation {
   sigma: number
 }
 
-/** A Pix on the mural; `login` when its sender signed in with Twitch, to draw their fan. */
+/** A Pix on the mural; `login` when its sender signed in with Twitch, to draw their fan. No name, message or login: an anonymous Pix, its value only. */
 export interface MuralPix {
   em: string
   nome: string
@@ -19,7 +19,7 @@ export interface MuralPix {
   login?: string
 }
 
-/** A goal and what came in while it was up: every Pix counts; only those who chose to are named. */
+/** A goal and what came in while it was up: every Pix, each by its name and message unless it's anonymous. */
 export interface Goal {
   titulo: string
   alvo: number
@@ -43,7 +43,6 @@ export interface Order {
   mensagem: string
   voz: string
   quando: "agora" | "entre"
-  mural: boolean
   audio?: { tipo: string; dados: string }
 }
 

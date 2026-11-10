@@ -34,14 +34,12 @@ export const pix = {
   now: { pt: "Na hora", en: "Right away" },
   between: { pt: "Entre partidas", en: "Between matches" },
   betweenHint: { pt: "Espera a partida acabar, para não atrapalhar o jogo.", en: "Waits for the match to end, so it doesn't get in the way." },
-  muralTitle: { pt: "Apareça no mural", en: "Be on the mural" },
+  muralTitle: { pt: "Seu Pix no mural", en: "Your Pix on the mural" },
   muralNote: {
     pt: "Seu nome e sua mensagem ficam no mural do canal, junto da meta que você ajudou a bater.",
     en: "Your name and message stay on the channel's mural, next to the goal you helped reach.",
   },
   muralFan: { pt: "Com a Twitch conectada, seu torcedor aparece junto.", en: "With Twitch connected, your fan shows up too." },
-  muralOn: { pt: "Vou aparecer no mural", en: "I'll be on the mural" },
-  muralOff: { pt: "Quero aparecer no mural", en: "I want to be on the mural" },
   muralSee: { pt: "Ver o mural", en: "See the mural" },
   sigmaSignedIn: { pt: "Entrou como", en: "Signed in as" },
   sigmaGain: { pt: "Este Pix te dá", en: "This Pix gives you" },
@@ -72,7 +70,7 @@ export const pix = {
   goal: { pt: "Meta", en: "Goal" },
 } as const
 
-/** /mural: two tabs, the Pix (goal by goal, with whoever chose to show on each) and the audience (the ranking by Σ, the milestones). */
+/** /mural: two tabs, the Pix (goal by goal, every Pix with its value, by the name and message its sender wrote) and the audience (the ranking by Σ, the milestones). */
 export const mural = {
   title: { pt: "Mural", en: "Mural" },
   description: {
@@ -92,13 +90,12 @@ export const mural = {
   of: { pt: "de", en: "of" },
   toGo: { pt: "faltam", en: "to go:" },
   supporters: { pt: "Quem ajudou", en: "Who helped" },
-  others: { pt: "Pix sem nome no mural", en: "Pix with no name on the mural" },
-  noneYet: { pt: "Ninguém no mural ainda. O primeiro pode ser você.", en: "Nobody on the mural yet. The first could be you." },
+  noneYet: { pt: "Nenhum Pix nesta meta ainda. O primeiro pode ser você.", en: "No Pix for this goal yet. The first could be you." },
   outside: { pt: "Fora das metas", en: "Outside the goals" },
   anonymous: { pt: "Anônimo", en: "Anonymous" },
   privacy: {
-    pt: "O nome do banco de quem paga nunca aparece: nem na live, nem aqui. Para tirar um Pix seu do mural, fale com o Luan.",
-    en: "The payer's name at the bank never shows: not on the live, not here. To take a Pix of yours off the mural, ask Luan.",
+    pt: "O nome do banco de quem paga nunca aparece, nem na live nem aqui: só o nome que a pessoa escreveu no site. Para tirar um Pix seu do mural, fale com o Luan; o valor continua, como anônimo.",
+    en: "The payer's name at the bank never shows, not on the live and not here: only the name its sender wrote on the site. To take a Pix of yours off the mural, ask Luan; the amount stays, as anonymous.",
   },
   // The audience tab.
   audienceLead: {

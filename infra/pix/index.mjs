@@ -17,7 +17,7 @@
 //   meta/atual          the goal on screen, counting every Pix since it was set
 //   meta/<iso>          a goal that ended (sk: when it started), for the mural's history
 //
-// Public: POST /reservar, GET /reserva?id=, GET /mural (the site's /mural: the goals and who chose to show). The phone: POST /notificacao with x-token. The
+// Public: POST /reservar, GET /reserva?id=, GET /mural (the site's /mural: the goals and their Pix). The phone: POST /notificacao with x-token. The
 // stream: GET /canal, GET /audio?id= and POST /canal with x-chave (the Σ key, already in OBS).
 
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto"
@@ -192,7 +192,9 @@ async function reservar(event) {
         audio: audio?.tipo,
         voz: VOZ.test(p.voz) ? p.voz : undefined,
         quando: p.quando === "entre" ? "entre" : "agora",
-        mural: p.mural === true,
+        // Every Pix from the form shows on the mural by the name and message its sender wrote, as the live does
+        // (since 2026-11-10; before, only if they ticked the mural). The dock can take one off.
+        mural: true,
         login: login ?? undefined,
         pago: false,
         criada: agora,
@@ -238,9 +240,12 @@ async function semMeta() {
   return primeiro ? primeiro.sk.slice(0, 24) : iso(Date.now())
 }
 
-// The mural: each goal (the one on screen, then the ones before) with the Pix that came while it was up,
-// and the Pix of no goal. A Pix shows by name only if its sender ticked the mural; with their Twitch
-// login when they signed in, so the page can draw their fan. The rest count, without a name.
+// The mural: each goal (the one on screen, then the ones before) with every Pix that came while it was up, so its
+// list adds up to its bar, by the name and message it was sent with, as the live showed them (Luan's call, 2026-11-10,
+// for the ones from before too, when the form still asked about the mural), with their Twitch login when they signed
+// in, so the page can draw their fan; one the dock took off shows only its value and day, as anonymous. Outside the
+// goals only the Pix whose `mural` is set show (every one from the form since 2026-11-10): the rest are the channel's
+// tests from before the first goal.
 async function mural() {
   const [todosPix, metas] = await Promise.all([todos("pix"), todos("meta")])
   const atual = metas.find((m) => m.sk === "atual")
@@ -259,6 +264,7 @@ async function mural() {
     centavos: p.centavos,
     login: p.login,
   })
+  const anonimo = (p) => ({ em: p.sk.slice(0, 24), nome: "", mensagem: "", centavos: p.centavos })
   const contas = goals.map(() => ({ arrecadado: 0, pix: 0, apoiadores: [] }))
   const semMeta = []
   for (const p of todosPix.reverse()) {
@@ -266,10 +272,8 @@ async function mural() {
     if (i >= 0) {
       contas[i].arrecadado += p.centavos
       contas[i].pix++
-    }
-    if (!p.mural || p.oculto) continue
-    if (i >= 0) contas[i].apoiadores.push(mostra(p))
-    else semMeta.push(mostra(p))
+      contas[i].apoiadores.push(p.oculto ? anonimo(p) : mostra(p))
+    } else if (p.mural && !p.oculto) semMeta.push(mostra(p))
   }
   const lista = goals.map((g, i) => ({ ...g, ...contas[i] }))
   return out(200, {
