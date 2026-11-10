@@ -1,0 +1,144 @@
+{
+  "id": "2026-11-09-2026",
+  "game": "valorant",
+  "start": "2026-11-09T23:26:19Z",
+  "end": "2026-11-10T00:47:30Z",
+  "outputs": [
+    {
+      "kind": "record",
+      "start": "2026-11-09T23:26:19Z",
+      "end": "2026-11-10T00:33:15Z",
+      "file": "2026-11-09 20-26-19.mp4"
+    },
+    {
+      "kind": "record",
+      "start": "2026-11-10T00:33:51Z"
+    },
+    {
+      "kind": "stream",
+      "start": "2026-11-10T00:33:53Z"
+    }
+  ],
+  "matches": [
+    {
+      "id": "3407d4a3-3c11-4efe-ac50-88e6bec01dce",
+      "start": "2026-11-09T23:33:42Z",
+      "at": "2026-11-10T00:05:16Z",
+      "queue": "competitive",
+      "map": "Lotus",
+      "agent": "Phoenix",
+      "result": "win",
+      "score": [
+        13,
+        7
+      ],
+      "rounds": 20,
+      "me": {
+        "kills": 18,
+        "deaths": 14,
+        "assists": 8,
+        "score": 5747,
+        "headshots": 13,
+        "bodyshots": 28,
+        "legshots": 1,
+        "damage": 3706,
+        "firstKills": 9
+      },
+      "mates": [
+        {
+          "agent": "Sage",
+          "kills": 12,
+          "deaths": 12,
+          "assists": 4,
+          "score": 2870
+        },
+        {
+          "agent": "Jett",
+          "kills": 18,
+          "deaths": 16,
+          "assists": 1,
+          "score": 4389
+        },
+        {
+          "agent": "Clove",
+          "kills": 14,
+          "deaths": 14,
+          "assists": 10,
+          "score": 4001
+        },
+        {
+          "agent": "Sova",
+          "kills": 18,
+          "deaths": 11,
+          "assists": 8,
+          "score": 5094
+        }
+      ],
+      "rr": 27,
+      "rank": {
+        "tier": 9,
+        "rr": 73
+      }
+    },
+    {
+      "id": "94eae96a-3231-494d-ab55-97f4be9769bc",
+      "start": "2026-11-10T00:08:35Z",
+      "at": "2026-11-10T00:47:30Z",
+      "queue": "competitive",
+      "map": "Sunset",
+      "agent": "Phoenix",
+      "result": "win",
+      "score": [
+        13,
+        11
+      ],
+      "rounds": 24,
+      "me": {
+        "kills": 19,
+        "deaths": 17,
+        "assists": 5,
+        "score": 5778,
+        "headshots": 15,
+        "bodyshots": 44,
+        "legshots": 2,
+        "damage": 3865,
+        "firstKills": 3
+      },
+      "mates": [
+        {
+          "agent": "Hush",
+          "kills": 18,
+          "deaths": 23,
+          "assists": 6,
+          "score": 5046
+        },
+        {
+          "agent": "Gekko",
+          "kills": 16,
+          "deaths": 18,
+          "assists": 9,
+          "score": 4497
+        },
+        {
+          "agent": "Raze",
+          "kills": 27,
+          "deaths": 18,
+          "assists": 9,
+          "score": 7994
+        },
+        {
+          "agent": "Sage",
+          "kills": 14,
+          "deaths": 16,
+          "assists": 9,
+          "score": 4139
+        }
+      ],
+      "rr": 18,
+      "rank": {
+        "tier": 9,
+        "rr": 91
+      }
+    }
+  ]
+}
