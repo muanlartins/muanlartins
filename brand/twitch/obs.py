@@ -177,7 +177,7 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVE
 
 # --- Effects (the "Efeitos" dock, public/stream/efeitos.html) ---------------------------------------------------
 # Hotkeys are OBS's own, so they work with the game focused: the F-row, which Rocket League leaves free but for F1
-# (its console) and F10 (its stat graphs). F2 "Lance ruim", F3 "Terapia", F4 back to the game's main scene; the sounds
+# (its console) and F10 (its stat graphs). F2 "Lance ruim", F3 "Terapia", F4 back to the scene before; the sounds
 # palmas, uuuh and tambor on F5, F6 and F7, the VAR on F8. `--apply` refuses a key that OBS already uses for something else.
 # F2 and F4 are triggers, so the dock picks the game's scene (Rocket League's or Valorant's); they were the scenes'
 # own hotkeys until 2026-11-08, which RETIRED unbinds.

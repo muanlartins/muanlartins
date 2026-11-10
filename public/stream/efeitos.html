@@ -8,14 +8,20 @@
       OBS: Custom browser dock (Docks → Custom Browser Docks), off stream; keep it docked where it stays visible,
       since a hidden dock's timers slow down. It drives the stream's effects through obs-websocket, like Partidas:
 
-      - Lance ruim (F2): this dock cuts to the game's "Lance ruim" scene ("Lance ruim · Valorant" after a Valorant
+      - Lance ruim (F2): this dock cuts to the game's "Lance ruim" scene ("Lance ruim · Valorant" from a Valorant
         scene: the game's, with the camera on top, its sting and lance.html's speed lines), zooms the camera from its frame
         to the whole screen, shakes it a little, holds 4 s, shrinks it back and cuts to the scene it came from.
         Only by hand (Luan's choice, 2026-11-08): nothing fires it on its own.
-      - Terapia (F3): the calm scene (terapia.html), faded in; "Voltar ao jogo" (F4) leaves it for the scene before,
-        or goes to the game's main scene ("RL + chat" or "Valorant + chat"), faded from here.
-      F2, F4 and F8 are triggers like the sounds' ("Gatilho · …"), so the dock picks the game's scene; F3 is
-      the scene's own hotkey.
+      - Terapia (F3): the calm scene (terapia.html), faded in.
+      - Voltar (F4): back to the scene before, faded: from an effect (Terapia, Lance ruim, the VAR) the scene it came
+        from; from Conversa, Já volto and the like the last scene before it, skipping effects and the breaks
+        (Começando, Já volto, Fim); in a game scene already, nothing. Never a fixed scene (Luan, 2026-11-10). The
+        dock shows where it would go, under the buttons.
+      The game is always read from the scene's name (the one on screen, else the one before it), never remembered:
+      on 2026-11-10 the dock's remembered game was Valorant's through a whole Rocket League live (why wasn't found),
+      so F2 and F4 went to Valorant's scenes.
+      F2, F4 and F8 are triggers like the sounds' ("Gatilho · …"), so the dock picks the scene; F3 is the scene's
+      own hotkey.
       - Sons: palmas (F5), uuuh (F6) and tambor (F7). Each hotkey restarts a trigger in OBS, a media source
         "Som · …" playing a silent file (OBS plays every media source once when it loads, so real sounds there all
         went off at once); this dock hears the restart and has tocador.html, the "Sons" browser source, play the
@@ -243,8 +249,9 @@
     <div class="grid">
       <button class="primary" id="lance">Lance ruim <kbd>F2</kbd></button>
       <button id="terapia">Terapia <kbd>F3</kbd></button>
-      <button id="voltar">Voltar ao jogo <kbd>F4</kbd></button>
+      <button id="voltar">Voltar <kbd>F4</kbd></button>
     </div>
+    <p class="note" id="volta"></p>
 
     <h2>VAR</h2>
     <p class="status" id="buffer">Replay Buffer desligado</p>
@@ -307,7 +314,13 @@
       }
       const LANCES = Object.values(GAMES).map((g) => g.lance)
       const VARS = Object.values(GAMES).map((g) => g.var)
-      const gameOf = (scene) => Object.keys(GAMES).find((g) => GAMES[g].scenes.includes(scene) || GAMES[g].lance === scene || GAMES[g].var === scene)
+      const BREAKS = ["Começando", "Já volto", "Fim"] // the scenes without the sounds (brand/twitch/obs.py)
+      const EFFECTS = [TERAPIA, ...LANCES, ...VARS]
+      // A scene's game, by the tables above, else by its name (a scene renamed in OBS still finds its game).
+      const gameOf = (scene) =>
+        Object.keys(GAMES).find((g) => GAMES[g].scenes.includes(scene) || GAMES[g].lance === scene || GAMES[g].var === scene) ??
+        (/valorant/i.test(scene ?? "") ? "val" : /^RL\b|rocket league/i.test(scene ?? "") ? "rl" : undefined)
+      const isGameScene = (scene) => !!gameOf(scene) && !EFFECTS.includes(scene)
       // F2, F4 and F8: silent media sources, like the sounds', so the dock picks the game's scene.
       const GATILHOS = { "Gatilho · Lance ruim": () => lance(), "Gatilho · Voltar ao jogo": () => voltar(), "Gatilho · VAR": () => chamarVar() }
       const CAMERA = "Câmera"
@@ -416,14 +429,15 @@
 
       // --- Scenes ---------------------------------------------------------------------------------------------
       let current = null
-      let game = "rl" // the game of the last game scene, for F2 and F4
-      let before = GAMES.rl.main // the last scene that wasn't an effect, to go back to
+      let before = null // the last scene that wasn't an effect, to go back to
+      const history = [] // the scenes on screen since the dock connected, the latest last
       let zooming = false
       function changed(scene) {
         current = scene
-        game = gameOf(scene) ?? game
+        if (history.at(-1) !== scene) history.push(scene)
+        if (history.length > 30) history.shift()
         const isLance = LANCES.includes(scene)
-        if (!isLance && scene !== TERAPIA && !VARS.includes(scene)) before = scene
+        if (!EFFECTS.includes(scene)) before = scene
         // Leaving the VAR's scene by any other way (OBS, Partidas) closes the VAR.
         if (varAtual && !VARS.includes(scene) && !saindoDoVar) fecharVar(false)
         $("var").classList.toggle("active", VARS.includes(scene))
@@ -431,6 +445,26 @@
         $("terapia").classList.toggle("active", scene === TERAPIA)
         if (isLance) play("lance")
         if (isLance && !zooming) zoom(scene)
+        $("volta").textContent = (() => {
+          const to = anterior()
+          return to ? `F4 volta para ${to}` : isGameScene(current) ? "F4: já no jogo" : "F4: sem cena anterior"
+        })()
+      }
+      /** The game on screen: the scene's, else the one before it, else the last game scene seen. */
+      function jogoAgora() {
+        return gameOf(current) ?? gameOf(before) ?? gameOf(history.findLast(isGameScene))
+      }
+      /** The scene an effect goes back to: the one it came from, else (the dock opened during it) its game's. */
+      const volta = (effect) => before ?? (gameOf(effect) ? GAMES[gameOf(effect)].main : null)
+      /** Where F4 goes (see the header), or null to stay. */
+      function anterior() {
+        if (EFFECTS.includes(current)) return volta(current)
+        if (isGameScene(current)) return null
+        for (let i = history.length - 2; i >= 0; i--) {
+          const s = history[i]
+          if (s !== current && !EFFECTS.includes(s) && !BREAKS.includes(s)) return s
+        }
+        return null
       }
 
       // OBS's own cut and fade, by kind: their names are in OBS's language ("Cortar", "Esmaecer").
@@ -545,22 +579,26 @@
           await animate(scene, id, to, to, 450, (x) => x, 26 * (W / 1920))
           await wait(Math.max(0, HOLD - 300 - (performance.now() - started)))
           await animate(scene, id, to, from, 280, easeInCubic)
-          if (current === scene) await switchWith("cut", before)
+          if (current === scene && volta(scene)) await switchWith("cut", volta(scene))
         } finally {
           zooming = false
         }
       }
 
-      /** The game's Lance ruim: Valorant's after a Valorant scene, Rocket League's otherwise. */
+      /** The Lance ruim of the game on screen; none outside a game. */
       function lance() {
         whenFree(() => {
-          if (current && !LANCES.includes(current)) request("SetCurrentProgramScene", { sceneName: GAMES[game].lance })
+          const jogo = jogoAgora()
+          if (jogo && current && !LANCES.includes(current)) request("SetCurrentProgramScene", { sceneName: GAMES[jogo].lance })
         })
       }
       // Decided once free: pressed during the fade into Terapia, it leaves Terapia for the scene before.
       function voltar() {
         if (varAtual || VARS.includes(current)) return fecharVar(true)
-        whenFree(() => switchWith("fade", current === TERAPIA ? before : GAMES[game].main, 1500))
+        whenFree(() => {
+          const to = anterior()
+          if (to && to !== current) switchWith("fade", to, 1500)
+        })
       }
 
       $("lance").onclick = lance
@@ -645,12 +683,12 @@
           $("buffer").textContent = "Sem Replay Buffer: o VAR não tem o lance"
           return
         }
-        pedido = game
+        pedido = jogoAgora() ?? "rl"
         const ok = await request("SaveReplayBuffer")
         if (!ok) pedido = null
       }
       function salvo(path) {
-        const jogo = pedido ?? game
+        const jogo = pedido ?? jogoAgora() ?? "rl"
         pedido = null
         if (!path) return
         if (jogo === "val") return abrirVar(path, "val")
@@ -758,7 +796,7 @@
         enviarVar()
         if (voltar && VARS.includes(current)) {
           saindoDoVar = true
-          whenFree(() => switchWith("var", before, 1300))
+          whenFree(() => volta(current) && switchWith("var", volta(current), 1300))
           setTimeout(() => (saindoDoVar = false), 3000)
         }
         // Stopped once off screen, so the clip isn't held open.
@@ -922,7 +960,6 @@
       const CLIENT_ID = "dploislenvijye1obbcm5dqxcxu5y1" // the site's Twitch app (lib/profile.ts)
       const SCOPES = "channel:manage:redemptions"
       const HELIX = "https://api.twitch.tv/helix"
-      const BREAKS = ["Começando", "Já volto", "Fim"] // the scenes without the sounds (brand/twitch/obs.py)
       const KLEIN = "#002FA7"
       // The rewards this dock makes and plays: the sounds only (the scenes stay Luan's). Open to everyone; a viewer
       // earns about 300 points an hour, and each sound's cooldown keeps it from being spammed.

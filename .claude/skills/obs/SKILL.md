@@ -56,8 +56,12 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   (fade in), and the sounds: the browser source "Sons" (`public/stream/tocador.html`) plays them when the dock hears a
   hotkey restart its trigger, a media source "Som · …" with a silent file (media sources play once when OBS loads, so
   real sounds there went off all at once). Hotkeys are on the F-row (Rocket League binds F1 and F10): F2 Lance ruim,
-  F3 Terapia, F4 back to the game, F5 palmas, F6 uuuh, F7 tambor. F2 and F4 are triggers too ("Gatilho · …", since
-  2026-11-08), so the dock picks the game's scene; Lance ruim is only ever fired by hand.
+  F3 Terapia, F4 back to the scene before (from an effect, the scene it came from; from Conversa or Já volto, the
+  last scene before it; nothing in a game scene; never a fixed scene, Luan 2026-11-10), F5 palmas, F6 uuuh, F7 tambor.
+  F2 and F4 are triggers too ("Gatilho · …", since 2026-11-08), so the dock picks the scene; it reads the game from the
+  scene names on screen, never a remembered one, and shows under its buttons where F4 would go. Lance ruim is only
+  ever fired by hand. OBS's log lists every switch ("User switched to scene"), the dock's too: the place to see what
+  F2/F4 did during a live.
 - Valorant (2026-11-08): scenes "Valorant + chat" and "Lance ruim · Valorant", Rocket League's with their
   own capture "Captura · Valorant" (with "Gravar jogo"), "Overlay · Valorant [+ chat]" and "Torcida · Valorant"; the
   camera at (44, 44), over the minimap. Pix is the same source; pix.html moves its corner by the scene's name. `obs.py --apply` refuses a key OBS already uses. OBS's own
