@@ -43,7 +43,7 @@ const ENTRIES = SHIPPED.map((entry, index) => ({ entry, index }))
   .sort((a, b) => b.entry.date.localeCompare(a.entry.date) || a.index - b.index)
   .map(({ entry }) => entry)
 
-/** Who suggested what, in the order of PEOPLE, with everything of theirs (released or coming). */
+/** Who suggested (or told about) what, in the order of PEOPLE, with everything of theirs (released or coming). */
 const SUGGESTIONS = (Object.keys(PEOPLE) as PersonId[])
   .map((id) => ({ id, items: [...ENTRIES, ...UPCOMING].filter((item) => item.credit?.by === id) }))
   .filter((suggestion) => suggestion.items.length > 0)
@@ -162,7 +162,7 @@ function Community({ look }: { look: Fans }) {
             return (
               <li key={id}>
                 <a href={`#${items[0].id}`} className="group relative block h-[96px] w-16" aria-label={p.name}>
-                  <span className="absolute bottom-[calc(100%+12px)] left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap bg-navy/80 px-1.5 py-px text-[11px] font-semibold text-paper transition-colors group-hover:bg-klein">
+                  <span className="absolute bottom-[calc(100%+12px)] left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap bg-navy/80 px-1 py-px text-[10px] font-semibold text-paper transition-colors group-hover:bg-klein sm:px-1.5 sm:text-[11px]">
                     <PlatformIcon where={p.where} className="h-2.5 w-2.5" />
                     {p.name}
                   </span>
@@ -181,7 +181,7 @@ function Community({ look }: { look: Fans }) {
         </ul>
       </div>
 
-      <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+      <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {SUGGESTIONS.map(({ id, items }) => {
           const p = person(id)
           return (
@@ -197,16 +197,26 @@ function Community({ look }: { look: Fans }) {
                 <ArrowUpRight aria-hidden className="h-3.5 w-3.5 text-muted group-hover:text-klein" />
               </a>
               {p.note && <span className="ml-1.5 text-[13px] text-muted">{p.note}</span>}
-              <p className="mt-2 text-[12px] font-medium uppercase tracking-[0.1em] text-muted">{R.community.suggested}</p>
-              <ul className="mt-1 space-y-0.5">
-                {items.map((item) => (
-                  <li key={item.id}>
-                    <a href={`#${item.id}`} className="text-[14px] leading-[1.5] text-klein underline decoration-line underline-offset-4 hover:decoration-klein">
-                      {item.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              {[
+                { label: R.community.suggested, list: items.filter((item) => item.credit?.as !== "report") },
+                { label: R.community.reported, list: items.filter((item) => item.credit?.as === "report") },
+              ].map(
+                ({ label, list }) =>
+                  list.length > 0 && (
+                    <div key={label}>
+                      <p className="mt-2 text-[12px] font-medium uppercase tracking-[0.1em] text-muted">{label}</p>
+                      <ul className="mt-1 space-y-0.5">
+                        {list.map((item) => (
+                          <li key={item.id}>
+                            <a href={`#${item.id}`} className="text-[14px] leading-[1.5] text-klein underline decoration-line underline-offset-4 hover:decoration-klein">
+                              {item.title}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ),
+              )}
             </li>
           )
         })}
@@ -295,13 +305,13 @@ function PlatformIcon({ where, className }: { where: Person["where"]; className?
   return where === "twitch" ? <TwitchIcon className={className} /> : <YouTubeIcon className={className} />
 }
 
-/** "Ideia de <fan> Woody_fdp": their fan on a sliver of the stand, a link to their channel or to where they said it. */
+/** "Ideia de <fan> Woody_fdp" ("Avisado por" for a bug they told about): their fan on a sliver of the stand, a link to their channel or to where they said it. */
 function CreditLine({ credit, look, inverted }: { credit: Credit; look: Fans; inverted?: boolean }) {
   const p = person(credit.by)
   return (
     <div className={cn("mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px]", inverted ? "text-paper/85" : "text-muted")}>
       <Lightbulb aria-hidden className={cn("h-4 w-4", inverted ? "text-paper" : "text-klein")} />
-      {R.shipped.idea}
+      {credit.as === "report" ? R.shipped.reported : R.shipped.idea}
       <a
         href={p.url}
         target="_blank"

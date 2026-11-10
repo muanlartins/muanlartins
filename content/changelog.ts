@@ -33,12 +33,15 @@ export const PEOPLE = {
   woody_fdp: { name: "Woody_fdp", where: "twitch", login: "woody_fdp", url: "https://www.twitch.tv/woody_fdp" },
   victormendes: { name: "victormendes", where: "youtube", url: "https://www.youtube.com/@victormendes9510" },
   lucca_3098: { name: "lucca_3098", where: "twitch", login: "lucca_3098", url: "https://www.twitch.tv/lucca_3098", note: "meu irmão" },
+  jpmartins_1: { name: "jpmartins_1", where: "twitch", login: "jpmartins_1", url: "https://www.twitch.tv/jpmartins_1" },
 } satisfies Record<string, Person>
 
 export type PersonId = keyof typeof PEOPLE
 
 export interface Credit {
   by: PersonId
+  /** "report" when they told about a bug rather than suggesting something: "Avisado por" instead of "Ideia de". */
+  as?: "idea" | "report"
   /** Where the idea was given, when there's a link to it (a YouTube comment, a moment of a live). */
   link?: string
 }
@@ -185,6 +188,29 @@ export const SHIPPED: Shipped[] = [
     title: "Roadmap e changelog",
     text: "Esta página: o que vem por aí, tudo o que já entrou no canal e quem deu cada ideia.",
     credit: { by: "lucca_3098" },
+  },
+  {
+    id: "pix-uma-vez",
+    date: "2026-11-10",
+    tag: "live",
+    title: "Cada Pix toca uma vez só",
+    text: "Um Pix com mensagem longa, de mais de 30 segundos, voltava para a fila e tocava duas vezes na live. Agora toca uma vez, por mais longo que seja.",
+    credit: { by: "jpmartins_1", as: "report" },
+  },
+  {
+    id: "lives-inteiras",
+    date: "2026-11-10",
+    tag: "videos",
+    title: "Live picotada vira um vídeo só",
+    text: "Quando o OBS reinicia no meio da live, os pedaços da gravação viram um vídeo inteiro no YouTube e no site, com os capítulos no lugar certo.",
+    href: "/canal/lives",
+  },
+  {
+    id: "alertas-no-fone",
+    date: "2026-11-10",
+    tag: "live",
+    title: "Alertas no meu fone",
+    text: "Os alertas de inscrição e de pontos do canal agora tocam no meu fone também, então eu ouço na hora e agradeço ao vivo.",
   },
   {
     id: "filtros-na-camera",
