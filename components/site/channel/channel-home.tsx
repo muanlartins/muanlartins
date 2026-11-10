@@ -1,4 +1,4 @@
-import { ArrowRight, Clapperboard, Heart, MessagesSquare, PartyPopper, QrCode, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
+import { ArrowRight, Clapperboard, Heart, MessagesSquare, Milestone, PartyPopper, QrCode, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import type { ReactNode } from "react"
 import { FanStand } from "@/components/site/channel/fan-stand"
@@ -23,7 +23,7 @@ const MOMENT_ICONS: Record<string, LucideIcon> = { party: PartyPopper, chat: Mes
 /**
  * The channel's home, which is the site's: little to read, a lot to click. The next live (or the one on air) with
  * where to watch, the games with when each is live, the stand with the way to build your fan and the live's moments
- * in a line each, then the channel's other pages as icons.
+ * in a line each, then the channel's other pages as icons (the roadmap's among them).
  */
 export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
   return (
@@ -99,6 +99,7 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
           {PIX_API && <Tile href={`/${MURAL_SLUG}`} icon={Heart} title={T.mural.title} summary={T.mural.description} />}
           <Tile href={`/${profileSlug()}`} icon={UserRound} title={T.profile.title} summary={T.profile.description} />
           <Tile href={channelPath("backstage")} icon={Wrench} title={T.backstage.title} summary={T.backstage.description} />
+          <Tile href={channelPath("roadmap")} icon={Milestone} title={T.roadmap.title} summary={T.roadmap.tile} />
         </div>
       </section>
     </>
