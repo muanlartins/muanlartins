@@ -228,7 +228,10 @@ def live(args):
         playlist = api.playlists().insert(part="snippet,status", body={
             "snippet": {"title": name, "defaultLanguage": "pt-BR"}, "status": {"privacyStatus": "unlisted"}}).execute()
         print(f"Playlist “{name}”: criada, não listada")
-    inside = api.playlistItems().list(part="id", playlistId=playlist["id"], videoId=video_id).execute()["items"]
+        # Just made, it's empty, and listing it right away answers 404 (YouTube takes a moment to find it).
+        inside = []
+    else:
+        inside = api.playlistItems().list(part="id", playlistId=playlist["id"], videoId=video_id).execute()["items"]
     if not inside:
         api.playlistItems().insert(part="snippet", body={"snippet": {
             "playlistId": playlist["id"], "resourceId": {"kind": "youtube#video", "videoId": video_id}}}).execute()
