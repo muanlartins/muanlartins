@@ -34,6 +34,7 @@ export const PEOPLE = {
   victormendes: { name: "victormendes", where: "youtube", url: "https://www.youtube.com/@victormendes9510" },
   lucca_3098: { name: "lucca_3098", where: "twitch", login: "lucca_3098", url: "https://www.twitch.tv/lucca_3098" },
   jpmartins_1: { name: "jpmartins_1", where: "twitch", login: "jpmartins_1", url: "https://www.twitch.tv/jpmartins_1" },
+  maxchadoz: { name: "maxchadoz", where: "twitch", login: "maxchadoz", url: "https://www.twitch.tv/maxchadoz" },
 } satisfies Record<string, Person>
 
 export type PersonId = keyof typeof PEOPLE
@@ -106,6 +107,14 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
 export const UPCOMING: Upcoming[] = [
+  {
+    id: "loadout-dos-sonhos",
+    status: "agora",
+    tag: "site",
+    title: "Monte seu loadout dos sonhos no Valorant",
+    text: "Escolha a skin de cada arma entre todas do jogo, exporte numa imagem só e, entrando com a Twitch, deixe salvo no seu perfil.",
+    credit: { by: "maxchadoz" },
+  },
   {
     id: "analise-de-mira",
     status: "proximo",
