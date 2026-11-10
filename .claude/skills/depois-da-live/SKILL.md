@@ -42,6 +42,8 @@ studio), moving it breaks that page's copy: tell him to add it again from the ne
 scripts/.venv/bin/python scripts/live.py <date>
 ```
 
+The day's game is the one whose session the dock published (`content/matches/` for Rocket League,
+`content/valorant/` for its Valorant tab, since 11-09), and the chapters, summary and thumbnail's plate follow it.
 Transcribes the Microfone track (Windows whisper.cpp on CUDA), cleans it (hallucinations and repeats; names
 stay as said: Luan ended the blanking of names on 2026-11-08, "mostrar tudo sempre"), writes `content/lives/<date>.json` (chapters from
 the dock, a draft summary **for Luan to rewrite**: the copy is his) and `.transcript.json`, adds the day to
@@ -53,7 +55,8 @@ the dock, a draft summary **for Luan to rewrite**: the copy is his) and `.transc
    uploads are locked private) and gives the video id.
 2. `scripts/.venv/bin/python scripts/live.py <date> --video <id>`
 3. `scripts/.venv/bin/python scripts/youtube.py live <date> --dry-run`, show Luan, then without `--dry-run`:
-   title, description with chapters, tags, thumbnail, the unlisted playlist "Rocket League ao vivo", captions.
+   title, description with chapters, tags, thumbnail, the game's unlisted playlist ("Rocket League ao vivo",
+   "Valorant ao vivo": made the first time it's missing), captions. Per game in `GAMES` in `youtube.py`.
 
 ## 4. Free the disk
 

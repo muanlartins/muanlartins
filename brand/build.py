@@ -425,13 +425,13 @@ def episode_thumbnail(number, mode, rank, tier):
                             (f"{name.upper()} {tier}", color), (f"ranks/{rank}-{tier}.png", color))
 
 
-def live_thumbnail(day, rank=None, tier=None):
-    """A Twitch live's VOD: "Live" in Branco, and the day on the plate. A live that climbed shows the rank
-    and tier it reached."""
+def live_thumbnail(day, rank=None, tier=None, game="Rocket League"):
+    """A Twitch live's VOD: "Live" in Branco, the day on the plate and the game under it. A Rocket League live
+    that climbed shows the rank and tier it reached."""
     if not rank:
-        return plated_thumbnail([("Live", PAPER)], day, "Rocket League")
+        return plated_thumbnail([("Live", PAPER)], day, game)
     name, color = RANKS[rank]
-    return plated_thumbnail([("Live", PAPER)], day, "Rocket League",
+    return plated_thumbnail([("Live", PAPER)], day, game,
                             (f"{name.upper()} {tier}", color), (f"ranks/{rank}-{tier}.png", color))
 
 
@@ -446,6 +446,12 @@ LIVES = {
     "2026-10-28": ("diamond", 3),
     "2026-11-05": (None, None),
     "2026-11-06": (None, None),
+    "2026-11-09": (None, None),
+    "2026-11-10": ("diamond", 2),
+}
+# The lives of another game than Rocket League, by date: the game named on the thumbnail.
+LIVE_GAMES = {
+    "2026-11-09": "Valorant",
 }
 
 
@@ -860,7 +866,8 @@ if __name__ == "__main__":
         write(f"youtube/thumbnails/{mode}-{number:02d}.svg", episode_thumbnail(number, mode, rank, tier))
         png(f"youtube/thumbnails/{mode}-{number:02d}.svg", f"youtube/thumbnails/{mode}-{number:02d}.png", 1280)
     for date, (rank, tier) in LIVES.items():
-        write(f"youtube/thumbnails/live-{date}.svg", live_thumbnail(f"{date[8:]}/{date[5:7]}", rank, tier))
+        write(f"youtube/thumbnails/live-{date}.svg",
+              live_thumbnail(f"{date[8:]}/{date[5:7]}", rank, tier, LIVE_GAMES.get(date, "Rocket League")))
         png(f"youtube/thumbnails/live-{date}.svg", f"youtube/thumbnails/live-{date}.png", 1280)
     # Twitch panels, under the player. "Pix ao vivo" points at the site's /pix (the alert on stream, the voices);
     # the old one carries the bank's QR code, so it is drawn only when PIX_BRCODE (the "copia e cola" text) is set,
