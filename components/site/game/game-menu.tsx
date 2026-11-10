@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpRight, Clapperboard, Heart, House, QrCode, Route, Swords, Target, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
+import { ArrowUpRight, Clapperboard, Heart, House, Milestone, QrCode, Route, Swords, Target, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
 import { motion } from "motion/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -29,6 +29,7 @@ const ICONS = {
   mural: Heart,
   profile: UserRound,
   backstage: Wrench,
+  roadmap: Milestone,
 } satisfies Record<string, LucideIcon>
 
 /** Another game to switch to, with its own pages' addresses. */

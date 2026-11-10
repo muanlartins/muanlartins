@@ -100,6 +100,41 @@ export const channel = {
     },
   },
 
+  /** /canal/roadmap: what comes next and everything released, with credits. Its entries are in content/changelog.ts. */
+  roadmap: {
+    title: { pt: "Roadmap", en: "Roadmap" },
+    description: {
+      pt: "O que vem por aí e tudo o que já entrou no canal, no site, na live e nos vídeos, com o crédito de quem deu cada ideia.",
+      en: "What comes next and everything already in the channel, on the site, the stream and the videos, credited to whoever had each idea.",
+    },
+    /** The line under its tile on the channel's home. */
+    tile: { pt: "O que vem por aí e tudo o que já entrou.", en: "What comes next and everything already in." },
+    community: {
+      title: { pt: "Ideias da comunidade", en: "Ideas from the community" },
+      text: {
+        pt: "Tem uma ideia? Manda no chat da live ou comenta num vídeo. Se ela entrar, seu nome fica aqui.",
+        en: "Got an idea? Say it in the stream's chat or comment on a video. If it makes it in, your name stays here.",
+      },
+      suggested: { pt: "Sugeriu", en: "Suggested" },
+      comment: { pt: "o comentário", en: "the comment" },
+    },
+    next: {
+      title: { pt: "Próximos passos", en: "Next steps" },
+    },
+    shipped: {
+      title: { pt: "Changelog", en: "Changelog" },
+      /** "{n} novidades em {d} dias". */
+      summary: { pt: "{n} novidades em {d} dias", en: "{n} releases in {d} days" },
+      all: { pt: "Tudo", en: "All" },
+      day: { pt: "Dia", en: "Day" },
+      date: { pt: "Data", en: "Date" },
+      idea: { pt: "Ideia de", en: "Idea by" },
+      see: { pt: "Ver", en: "See" },
+      watch: { pt: "Assistir", en: "Watch" },
+      none: { pt: "Nada com essa marca ainda.", en: "Nothing with this tag yet." },
+    },
+  },
+
   backstage: {
     title: { pt: "Bastidores", en: "Behind the scenes" },
     description: {
