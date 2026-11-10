@@ -20,9 +20,11 @@
 // Public: POST /reservar, GET /reserva?id=, GET /mural (the site's /mural: the goals and their Pix). The phone: POST /notificacao with x-token. The
 // stream: GET /canal, GET /audio?id= and POST /canal with x-chave (the Σ key, already in OBS).
 
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto"
+import { createHash, randomBytes } from "node:crypto"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
+import { corpo as lerCorpo, igual, json as lerJson, out } from "./comum/http.mjs"
+import { quem } from "./comum/twitch.mjs"
 import { filtrar } from "./filtro.mjs"
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({}), { marshallOptions: { removeUndefinedValues: true } })
@@ -36,31 +38,15 @@ const MINIMO = 100 // R$ 1,00, for a reservation; a Pix that arrives by itself c
 const MAXIMO = 1_000_000 // R$ 10.000,00
 const POR_IP = 5 // reservations per IP every RESERVA
 const VOZ = /^[a-z0-9]{1,16}$/
-const LOGIN = /^[a-z0-9_]{1,25}$/
 const DONO = "muanlartins" // the channel's own login: its Pix are tests
 const AUDIO = /^audio\/(webm|ogg|mp4|mpeg)(;[\w=.,\s-]*)?$/
 const BASE64 = /^[A-Za-z0-9+/]+=*$/
 const MAX_AUDIO = 360_000 // base64 characters: ~270 KB, far more than 20 s of Opus
 
-const out = (statusCode, body) => ({ statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
 const novoId = () => randomBytes(9).toString("base64url")
 const expiraEm = (ms) => Math.floor((Date.now() + ms) / 1000)
 const iso = (t) => new Date(t).toISOString()
 const linha = (s, max) => [...String(s ?? "").replace(/\s+/g, " ").trim()].slice(0, max).join("").trim()
-const igual = (a, b) => typeof a === "string" && !!b && a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b))
-
-function lerCorpo(event) {
-  const b = event.body || ""
-  return event.isBase64Encoded ? Buffer.from(b, "base64").toString() : b
-}
-function lerJson(event) {
-  try {
-    const j = JSON.parse(lerCorpo(event) || "{}")
-    return j && typeof j === "object" ? j : null
-  } catch {
-    return null
-  }
-}
 
 async function todos(pk, { desde, desc = false, limite } = {}) {
   const itens = []
@@ -121,15 +107,6 @@ export function brcode(centavos) {
 }
 
 // Who is calling, if they signed in with Twitch on the site: their Pix earns them Σ.
-async function quem(headers) {
-  const token = (headers.authorization || "").replace(/^Bearer /, "")
-  if (!token) return null
-  const r = await fetch("https://id.twitch.tv/oauth2/validate", { headers: { Authorization: "OAuth " + token } })
-  if (!r.ok) return null
-  const v = await r.json()
-  return v.client_id === process.env.TWITCH_CLIENT_ID && LOGIN.test(v.login) ? v.login : null
-}
-
 // --- The viewer -------------------------------------------------------------------------------------
 
 async function demais(ip) {
