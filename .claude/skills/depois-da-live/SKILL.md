@@ -28,7 +28,8 @@ OBS's loose `2026-11-05 14-10-55.mp4`, `… câmera.mkv` and `… jogo.mkv` beco
 re-encoding so the studio can play it in the browser; the start time stays in the name:
 `live.py` reads it). Each match's replay is **copied**
 (the game lists them from its own folder) to `Videos\Lives\<date>\Replays\Partida NN - Vitória 5-4.replay`,
-matched to the dock's matches by score and save time. If Luan has a recording open in a browser (RLR's
+matched to the dock's matches by score and save time. The VAR's clips (OBS's Replay Buffer, loose as
+`Replay 2026-11-05 14-32-10.mp4`) go to `Videos\Lives\<date>\VAR\14-32-10 VAR.mp4`: shots for a short. If Luan has a recording open in a browser (RLR's
 studio), moving it breaks that page's copy: tell him to add it again from the new place.
 
 ## 2. The live's page, transcript and thumbnail
@@ -64,7 +65,7 @@ python3 scripts/videos.py --done <date>                        # after that day'
 
 - `Live.mp4` goes once its YouTube video is processed and as long as the file (checked through the API).
   A day without a Jogo recording (11-05 and before) keeps it like a Jogo: it's the studio's only copy of the matches.
-- `Jogo` and `Câmera` go when the day is marked `--done`; otherwise they stay as long as there's room, and only
+- `Jogo`, `Câmera` and the `VAR` clips go when the day is marked `--done`; otherwise they stay as long as there's room, and only
   when the disk would have less than 200 GB free (`FREE_GB`, what a live needs) the oldest days go first.
 - Replays stay (a few MB). Show Luan the list before `--apply`: nothing comes back.
 - Free space under ~150 GB before a live: tell him.

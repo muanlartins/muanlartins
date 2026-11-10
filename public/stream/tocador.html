@@ -9,7 +9,7 @@
       when the "Efeitos" dock (efeitos.html) tells it, through obs-browser's emit_event ("muanlartins-som",
       { som: "palmas" }). The dock does it when a sound's hotkey restarts its trigger in OBS: a media source
       "Som · …" that plays a silent file, since OBS plays every media source once when it loads, and a sound that
-      went off then would go off all at once. The bad play's sting plays as its scene goes live.
+      went off then would go off all at once. The bad play's sting plays as its scene goes live, and the VAR's whistle as it opens.
 
       The files: palmas.wav is a public-domain recording (brand/README.md says which), the rest are made by sons.js
       (brand/twitch/sons.mjs renders them). ?som=palmas plays one on a click, to try it in a browser.
@@ -24,7 +24,7 @@
   </head>
   <body>
     <script>
-      const SONS = ["palmas", "uuuh", "tambor", "lance"]
+      const SONS = ["palmas", "uuuh", "tambor", "lance", "apito"]
       const ctx = new AudioContext()
       const out = ctx.createGain()
       out.connect(ctx.destination)

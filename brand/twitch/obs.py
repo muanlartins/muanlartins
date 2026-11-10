@@ -175,7 +175,7 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVE
 # --- Effects (the "Efeitos" dock, public/stream/efeitos.html) ---------------------------------------------------
 # Hotkeys are OBS's own, so they work with the game focused: the F-row, which Rocket League leaves free but for F1
 # (its console) and F10 (its stat graphs). F2 "Lance ruim", F3 "Terapia", F4 back to the game's main scene; the sounds
-# palmas, uuuh and tambor on F5, F6 and F7. `--apply` refuses a key that OBS already uses for something else.
+# palmas, uuuh and tambor on F5, F6 and F7, the VAR on F8. `--apply` refuses a key that OBS already uses for something else.
 # F2 and F4 are triggers, so the dock picks the game's scene (Rocket League's or Valorant's); they were the scenes'
 # own hotkeys until 2026-11-08, which RETIRED unbinds.
 HOTKEYS = {"Terapia": "OBS_KEY_F3"}
@@ -198,7 +198,8 @@ player["settings"].update(width=64, height=64, fps=30, reroute_audio=True)
 player.update(monitoring_type=MONITOR_AND_OUTPUT, volume=0.7)
 sounds = [player] + [trigger(f"Som · {label}", key) for label, key in (
     ("Palmas", "OBS_KEY_F5"), ("Uuuh", "OBS_KEY_F6"), ("Tambor", "OBS_KEY_F7"))] + [
-    trigger("Gatilho · Lance ruim", "OBS_KEY_F2"), trigger("Gatilho · Voltar ao jogo", "OBS_KEY_F4")]
+    trigger("Gatilho · Lance ruim", "OBS_KEY_F2"), trigger("Gatilho · Voltar ao jogo", "OBS_KEY_F4"),
+    trigger("Gatilho · VAR", "OBS_KEY_F8")]
 # "Lance ruim": the game's scene with the camera on top, which the dock zooms; the bars play each time, and the dock
 # has "Sons" play the sting.
 bad_play = browser("Efeito · Lance ruim", "lance.html", restart=True)
@@ -207,6 +208,17 @@ bad_play = browser("Efeito · Lance ruim", "lance.html", restart=True)
 calm = browser("Tela · Terapia", "terapia.html", restart=True)
 calm["settings"].update(reroute_audio=True, shutdown=True)
 calm.update(monitoring_type=MONITOR_AND_OUTPUT)
+# The VAR: the clip the dock saves from OBS's Replay Buffer (the stream as it went out, with its sound: the game, Luan
+# then, Discord), played in var.html's monitor, looping while the chat votes; the dock points it at each clip and sets
+# its speed. In Luan's headphones too. var.html is the booth around it, the vote and the verdict; the stand in referee
+# kit is the game's own crowd source, so it keeps its people.
+replay = source("ffmpeg_source", "VAR · replay", {"local_file": "", "is_local_file": True, "looping": True,
+                                                   "restart_on_activate": True, "close_when_inactive": True,
+                                                   "clear_on_media_end": False, "hw_decode": True, "speed_percent": 100},
+                monitoring_type=MONITOR_AND_OUTPUT)
+booth = browser("Efeito · VAR", "var.html")
+in_var_monitor = {"pos": (64, 136), "bounds": (1216, 684)}
+in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
 
 # Hole positions match jogo.html and conversa.html.
 in_rocket_league = {"pos": (44, 740), "bounds": (480, 270)}
@@ -226,6 +238,10 @@ scenes = [
           (camera, in_rocket_league), (bad_play, {})),
     scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
           *alerts_in_game, (pix, {}), (camera, in_valorant), (bad_play, {})),
+    scene("VAR · Rocket League", (replay, in_var_monitor), (camera, in_var_camera), (booth, {}), (crowd, {}),
+          *alerts_in_game, (pix, {})),
+    scene("VAR · Valorant", (replay, in_var_monitor), (camera, in_var_camera), (booth, {}), (valorant_crowd, {}),
+          *alerts_in_game, (pix, {})),
     scene("Terapia", (camera, {"pos": (64, 64), "bounds": (560, 315)}), (calm, {}), *alerts_in_talk,
           (pix, {"pos": (154, 760), "crop": PIX_BAND})),
     scene("Já volto", (back, {})),
@@ -235,7 +251,8 @@ scenes = [
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
 HIDDEN = {"Jogo": {"Discord", "Navegador"}, "Jogo + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"},
           "Lance ruim": {"Discord", "Navegador"}, "Terapia": {"Discord"}, "Valorant": {"Discord", "Navegador"},
-          "Valorant + chat": {"Discord", "Navegador"}, "Lance ruim · Valorant": {"Discord", "Navegador"}}
+          "Valorant + chat": {"Discord", "Navegador"}, "Lance ruim · Valorant": {"Discord", "Navegador"},
+          "VAR · Rocket League": {"Discord", "Navegador"}, "VAR · Valorant": {"Discord", "Navegador"}}
 BREAKS = {"Começando", "Já volto", "Fim"}
 for each in scenes:
     extra = apps + ([] if each["name"] in BREAKS else sounds)
@@ -256,6 +273,10 @@ for captured in scenes:
 # Software decoding: hardware VP9 decoders drop the alpha channel.
 stinger = {"id": "obs_stinger_transition", "name": "muanlartins", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "stinger")),
            "settings": {"path": STINGER, "tp_type": 0, "transition_point": 600, "hw_decode": False}}
+# The VAR's own stinger (public/stream/transicao-var.html, rendered to .webm by transicao.mjs; `--apply` copies it
+# next to the other): the Efeitos dock sets it as the VAR scenes' override, in and out, by this name.
+var_stinger = {"id": "obs_stinger_transition", "name": "VAR", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "stinger-var")),
+               "settings": {"path": f"{FOLDER}/transicao-var.webm", "tp_type": 0, "transition_point": 600, "hw_decode": False}}
 # "Lance ruim" comes in on a cut (its first frame is the game scene's) and "Terapia" on a slow fade: OBS's own cut
 # and fade, which it names in its language and won't take from a collection, so the Efeitos dock finds them by kind
 # and sets the two scenes' transition overrides each time it connects.
@@ -266,11 +287,11 @@ collection = {
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
     "sources": scenes + [game, valorant, camera, game_overlay, game_chat_overlay, valorant_overlay, valorant_chat_overlay,
-                         chat_overlay, crowd, valorant_crowd, pix, starting, back, end, bad_play, calm] + apps + sounds
+                         chat_overlay, crowd, valorant_crowd, pix, starting, back, end, bad_play, calm, replay, booth] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
-    "transitions": [stinger],
+    "transitions": [stinger, var_stinger],
     "current_transition": "muanlartins",
     "transition_duration": 1300,
     "quick_transitions": [],
@@ -397,6 +418,10 @@ def apply(dry=False):
         silence.writeframes(bytes(2 * 4800))
     print("\n".join(added) or "nada novo na coleção")
     print(f"silêncio dos gatilhos em {sons}")
+    var_webm = Path(__file__).resolve().parents[2] / "public/stream/transicao-var.webm"
+    if var_webm.exists():
+        shutil.copy(var_webm, sons.parent / var_webm.name)
+        print(f"stinger do VAR copiado para {sons.parent}")
     print("dock Efeitos adicionado" if add_dock() else "dock Efeitos já estava lá")
     print(f"cópias de antes: {LIVE.name}.antes-{stamp}, user.ini.antes-{stamp}")
 

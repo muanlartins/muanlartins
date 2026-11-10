@@ -36,9 +36,15 @@
       While the stream is on, it credits Σ to whoever is in the chat, once a
       minute: ?sigma= the Σ API, and #chave= its key, set only in OBS.
 
+      The VAR (the Efeitos dock's "muanlartins-var" events; var.html draws the rest): while it's open everyone wears
+      the referee's kit (torcedor.js, ARBITRO) and the stand comes up even in a Valorant match; who votes in the
+      chat (!1, !2, !3, counted by the dock) holds up a card with their number. On the verdict, who voted for it
+      celebrates and the rest slump, and, on air and with the key, the Σ API credits each one who got it right
+      (POST /var, a little Σ, once per VAR however many sources send it).
+
       ?canal= as in the overlays. The channel stands with its viewers. ?demo fills the stand with sample people and
       plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça, r round nosso, t round deles,
-      w vitória, x derrota, f entra/sai de partida (with ?jogo=valorant, the stand tucks away),
+      w vitória, x derrota, f entra/sai de partida (with ?jogo=valorant, the stand tucks away), a VAR (abre, votos, veredito; de novo fecha),
       p pula, n dança, o ola, m mensagem, j chega alguém, s sai alguém,
       l uma legenda de exemplo, v liga/desliga as legendas de verdade (scripts/legenda.py).
     -->
@@ -419,6 +425,40 @@
         opacity: 0;
       }
 
+      /* The VAR: the stand's line goes referee yellow, and who voted raises an arm with a card of their number. */
+      .torcida.var .arquibancada::after {
+        background: #ffd23f;
+      }
+      .fa.vota .bracos {
+        opacity: 1;
+        transform: none;
+      }
+      .voto {
+        position: absolute;
+        /* Beside the head, in the raised hand, and under the name so it never covers it. */
+        left: 76%;
+        top: -8%;
+        width: 44%;
+        height: 50%;
+        display: grid;
+        place-items: center;
+        background: #ffd23f;
+        color: #2b2f38;
+        border: calc(2px * var(--s)) solid var(--navy);
+        box-shadow: calc(2px * var(--s)) calc(2px * var(--s)) 0 var(--navy);
+        font-size: calc(17px * var(--s));
+        font-weight: 700;
+        line-height: 1;
+        transform: rotate(10deg);
+        animation: ergue 0.35s var(--ease) both;
+      }
+      @keyframes ergue {
+        from {
+          transform: translateY(30%) rotate(-20deg);
+          opacity: 0;
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         .vivo,
         .arquibancada::before {
@@ -476,8 +516,10 @@
       // Free colours are a Σ unlock (sigma.js); the channel has them anyway.
       const aparencia = (login) => {
         const a = Torcedor.normalizar(escolhas.get(login), login)
-        return login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+        const propria = login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+        return varAberto ? { ...propria, ...Torcedor.ARBITRO } : propria
       }
+      let varAberto = false
 
       // --- Σ: each viewer's points (sigma.js), from the Σ API (infra/site.yml) ---------------------------
       // Asked with the looks. More Σ stands further in front, shows its rank's emblem by the name and weighs
@@ -739,7 +781,7 @@
       let emPartida = false
       let visivelAte = 0
       function recolher() {
-        torcida.classList.toggle("recolhida", RECOLHE && emPartida && Date.now() >= visivelAte)
+        torcida.classList.toggle("recolhida", RECOLHE && emPartida && !varAberto && Date.now() >= visivelAte)
       }
       function mostrar(ms) {
         visivelAte = Date.now() + ms
@@ -877,6 +919,77 @@
         },
       }
       addEventListener("muanlartins-torcida", ({ detail }) => jogo[detail?.tipo]?.(detail))
+
+      // --- The VAR (efeitos.html sends its whole state with every change; var.html draws the booth) ----------
+      let varId = null
+      let varVeredito = null
+      function cartao(p, numero) {
+        if (!p?.el) return
+        let c = p.el.querySelector(".voto")
+        if (!numero) return c?.remove(), p.el.classList.remove("vota")
+        if (!c) {
+          c = document.createElement("span")
+          c.className = "voto"
+          p.el.querySelector(".pose").append(c)
+        }
+        c.textContent = numero
+        p.el.classList.add("vota")
+      }
+      function vestirTodos() {
+        torcida.classList.toggle("var", varAberto)
+        for (const p of pessoas.values()) vestir(p)
+        recolher()
+      }
+      async function creditarVar(id, logins) {
+        if (!SIGMA_API || !CHAVE || Date.now() > noArAte) return
+        const certos = logins.filter((login) => login !== CHANNEL)
+        for (let i = 0; i < certos.length; i += 100) {
+          try {
+            await fetch(`${SIGMA_API}/var`, {
+              method: "POST",
+              headers: { "content-type": "application/json", "x-chave": CHAVE },
+              body: JSON.stringify({ id, logins: certos.slice(i, i + 100) }),
+            })
+          } catch {
+            // The API down: this VAR's Σ is lost, like a minute's.
+          }
+        }
+      }
+      addEventListener("muanlartins-var", ({ detail: v }) => {
+        if (!v) return
+        const aberto = v.fase !== "fechado"
+        if (aberto !== varAberto) {
+          varAberto = aberto
+          vestirTodos()
+        }
+        if (!aberto) {
+          varId = varVeredito = null
+          for (const p of pessoas.values()) {
+            cartao(p, 0)
+            p.el?.classList.remove("comemora", "lamenta")
+          }
+          return
+        }
+        if (v.id !== varId) {
+          varId = v.id
+          varVeredito = null
+          for (const p of pessoas.values()) cartao(p, 0)
+        }
+        const votos = v.votantes ?? {}
+        for (const [login, opcao] of Object.entries(votos)) {
+          chegar(login)
+          cartao(pessoas.get(login), opcao + 1)
+        }
+        if (v.fase === "veredito" && varVeredito === null) {
+          varVeredito = v.vencedora
+          for (const [login, opcao] of Object.entries(votos)) {
+            const el = pessoas.get(login)?.el
+            el?.classList.add(opcao === v.vencedora ? "comemora" : "lamenta")
+            setTimeout(() => el?.classList.remove("comemora", "lamenta"), 3500)
+          }
+          creditarVar(v.id, Object.keys(votos).filter((login) => votos[login] === v.vencedora))
+        }
+      })
 
       // --- From the chat ---------------------------------------------------------------------------
       const vez = new Map()
@@ -1019,6 +1132,20 @@
           w: () => jogo.partida({ vitoria: true, placar: "13–9" }),
           x: () => jogo.partida({ vitoria: false, placar: "9–13" }),
           f: () => jogo.fase({ fase: emPartida ? "menu" : "partida" }),
+          // The VAR as the dock sends it: opens with votes coming in, then the verdict; again, it closes.
+          a: () => {
+            const enviar = (v) => dispatchEvent(new CustomEvent("muanlartins-var", { detail: v }))
+            if (varAberto) return enviar({ fase: "fechado" })
+            const id = String(Date.now())
+            const votantes = {}
+            enviar({ fase: "votacao", id, votantes })
+            const logins = [...pessoas.keys()].filter((l) => l !== CHANNEL)
+            logins.forEach((login, i) => setTimeout(() => {
+              votantes[login] = Math.random() < 0.65 ? 0 : 1
+              enviar({ fase: "votacao", id, votantes: { ...votantes } })
+            }, 600 + i * 350))
+            setTimeout(() => enviar({ fase: "veredito", id, votantes, vencedora: 0 }), 1200 + logins.length * 350)
+          },
           p: () => say(random(), "!pula"),
           n: () => say(random(), "!dança"),
           o: () => say(random(), "!ola"),

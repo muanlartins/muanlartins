@@ -1,5 +1,5 @@
 // The stream's synthesized sound effects (no samples, so no rights to clear: they may go into the recording and the
-// YouTube VOD): the bad play's sting, the crowd's "uuuh" and the drum roll. Each recipe plays into any AudioContext,
+// YouTube VOD): the bad play's sting, the crowd's "uuuh", the drum roll and the VAR's whistle. Each recipe plays into any AudioContext,
 // live or offline; brand/twitch/sons.mjs renders them to WAV files in public/stream/sons/, which tocador.html plays
 // (the applause there is a public-domain recording instead: see brand/README.md). Plain script, no build: sets
 // window.Sons.
@@ -162,6 +162,41 @@
         drum(ctx, r, t, { from: 220, to: 170, seconds: 0.06, peak: level * 0.3, click: 0 })
       }
       drum(ctx, r, 1.75, { from: 90, to: 45, seconds: 0.9, peak: 1 })
+    } },
+
+    // The referee's whistle for the VAR: two short blasts and a long one. A pea whistle: a high tone the pea
+    // trills (wobbling its pitch and level ~30 times a second), with breath under it.
+    apito: { seconds: 1.9, play(ctx, out) {
+      const r = room(ctx, out, { seconds: 0.9, wet: 0.18, decay: 4 })
+      for (const [t, s] of [[0, 0.13], [0.22, 0.13], [0.46, 1.05]]) {
+        const g = envelope(ctx, t, { attack: 0.012, hold: s, release: 0.06, peak: 0.5 })
+        g.connect(r)
+        const trill = ctx.createOscillator()
+        trill.frequency.value = 27 + Math.random() * 8
+        const pitch = ctx.createGain()
+        pitch.gain.value = 110
+        const level = ctx.createGain()
+        level.gain.value = 0.35
+        const am = ctx.createGain()
+        am.gain.value = 0.65
+        trill.connect(pitch)
+        trill.connect(level).connect(am.gain)
+        am.connect(g)
+        for (const [f, peak] of [[2950, 1], [5900, 0.12]]) {
+          const osc = ctx.createOscillator()
+          osc.frequency.setValueAtTime(f * 0.97, t)
+          osc.frequency.linearRampToValueAtTime(f, t + 0.03)
+          pitch.connect(osc.frequency)
+          const k = ctx.createGain()
+          k.gain.value = peak
+          osc.connect(k).connect(am)
+          osc.start(t)
+          osc.stop(t + s + 0.1)
+        }
+        trill.start(t)
+        trill.stop(t + s + 0.1)
+        burst(ctx, g, t, { seconds: s + 0.05, frequency: 3000, q: 1.5, peak: 0.12, attack: 0.01 })
+      }
     } },
   }
 
