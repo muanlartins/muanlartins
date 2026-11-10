@@ -70,7 +70,7 @@ def read_game():
     if not found:
         return None
     puuid, ask = valorant_api(found)
-    loadout = ask(f"/personalization/v2/players/{puuid}/playerloadout")["Guns"]
+    loadout = ask(f"/personalization/v3/players/{puuid}/playerloadout")["Guns"]
     owned = lambda kind: {e["ItemID"].lower() for e in ask(f"/store/v1/entitlements/{puuid}/{kind}")["Entitlements"]}
     return {
         "equipped": {g["ID"].lower(): {"skin": g["SkinID"].lower(), "chroma": g["ChromaID"].lower()} for g in loadout},

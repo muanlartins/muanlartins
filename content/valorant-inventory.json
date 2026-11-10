@@ -1,5 +1,5 @@
 {
- "read": null,
+ "read": "2026-11-09T23:05:08Z",
  "weapons": [
   {
    "id": "classic",
@@ -18,8 +18,8 @@
    "id": "shorty",
    "name": "Shorty",
    "category": "sidearms",
-   "skin": "48ad078a-4dae-2b85-a945-f4b6d1efecbb",
-   "chroma": "95608504-4c8b-1408-1612-0f8200421c49",
+   "skin": "4542410b-46ba-36f2-898d-c2815b504002",
+   "chroma": "b051ee64-4cda-2899-d34a-d396fd9edbb6",
    "ideal": {
     "skin": "4542410b-46ba-36f2-898d-c2815b504002",
     "variants": [
@@ -45,8 +45,8 @@
    "id": "ghost",
    "name": "Ghost",
    "category": "sidearms",
-   "skin": "1c63b43b-43c4-04e4-01c9-7aa1bffa5ac1",
-   "chroma": "947a28b6-4e0f-61fb-e795-bc9a5e7b7129",
+   "skin": "a9d11586-488a-c93e-c3cc-1ca5d9b6faa9",
+   "chroma": "a31f040c-44b4-a9a0-4b52-94875b1984f8",
    "ideal": {
     "skin": "a9d11586-488a-c93e-c3cc-1ca5d9b6faa9",
     "variants": [
@@ -130,8 +130,8 @@
    "id": "guardian",
    "name": "Guardian",
    "category": "rifles",
-   "skin": "3bf1e8e0-47e8-f27a-6054-929575f41a54",
-   "chroma": "0f934388-418a-a9e7-42a7-21b27402e46c",
+   "skin": "8966067d-4023-c88a-db56-2691f163d335",
+   "chroma": "3f621c8c-4fa8-b50c-969f-c5b4e8bdc3c9",
    "ideal": {
     "skin": "8966067d-4023-c88a-db56-2691f163d335",
     "variants": [
@@ -156,8 +156,8 @@
    "id": "vandal",
    "name": "Vandal",
    "category": "rifles",
-   "skin": "27f21d97-4c4b-bd1c-1f08-31830ab0be84",
-   "chroma": "19629ae1-4996-ae98-7742-24a240d41f99",
+   "skin": "18609205-4edb-5966-cff8-0fba0230ba1e",
+   "chroma": "403f7d3e-4e96-6566-42f3-01b7a803d660",
    "ideal": {
     "skin": "18609205-4edb-5966-cff8-0fba0230ba1e",
     "variants": [
@@ -200,8 +200,8 @@
    "id": "operator",
    "name": "Operator",
    "category": "snipers",
-   "skin": "d1f2920f-469a-3431-ad96-96afbd0017f2",
-   "chroma": "4914f50d-49f9-6424-ca80-9486c45a138d",
+   "skin": "d722313d-43cb-b38d-7841-75880a3ed2cb",
+   "chroma": "296dcddb-4fbf-8834-bc01-44acac66dc60",
    "ideal": {
     "skin": "d722313d-43cb-b38d-7841-75880a3ed2cb",
     "variants": [
@@ -230,8 +230,8 @@
    "id": "melee",
    "name": "Melee",
    "category": "melee",
-   "skin": "12cc9ed2-4430-d2fe-3064-f7a19b1ba7c7",
-   "chroma": "cac83e5c-47a1-3519-5420-1db1fdbc4892",
+   "skin": "7d45aaad-4ac9-77b1-e7ca-3991be5721dd",
+   "chroma": "beaac174-44a6-0ee8-4607-939405782cae",
    "ideal": {
     "skin": "987e847d-47d2-6ab3-2369-0497b6c39a7e",
     "variants": [
@@ -241,8 +241,20 @@
   }
  ],
  "owned": {
-  "skins": [],
-  "chromas": []
+  "skins": [
+   "18609205-4edb-5966-cff8-0fba0230ba1e",
+   "4542410b-46ba-36f2-898d-c2815b504002",
+   "8966067d-4023-c88a-db56-2691f163d335",
+   "a9d11586-488a-c93e-c3cc-1ca5d9b6faa9",
+   "d722313d-43cb-b38d-7841-75880a3ed2cb"
+  ],
+  "chromas": [
+   "296dcddb-4fbf-8834-bc01-44acac66dc60",
+   "403f7d3e-4e96-6566-42f3-01b7a803d660",
+   "a31f040c-44b4-a9a0-4b52-94875b1984f8",
+   "a9873bd5-41f9-170d-27f0-abb68fea0ce9",
+   "b051ee64-4cda-2899-d34a-d396fd9edbb6"
+  ]
  },
  "skins": {
   "f454efd1-49cb-372f-7096-d394df615308": {
@@ -391,6 +403,20 @@
     }
    ]
   },
+  "337cb216-4a6e-d85d-88c2-f29ab317784c": {
+   "name": "Standard Phantom",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "52221ba2-4e4c-ec76-8c81-3483506d5242",
+     "name": "Base",
+     "image": "/valorant/skins/52221ba2-4e4c-ec76-8c81-3483506d5242.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
   "c1b96274-4346-2ea4-65f4-ec957d217922": {
    "name": "Ayakashi Phantom",
    "standard": false,
@@ -429,15 +455,15 @@
     }
    ]
   },
-  "337cb216-4a6e-d85d-88c2-f29ab317784c": {
-   "name": "Standard Phantom",
+  "acd26127-48ff-8b9e-7ba6-b989af8a4b24": {
+   "name": "Standard Judge",
    "standard": true,
    "tier": null,
    "chromas": [
     {
-     "id": "52221ba2-4e4c-ec76-8c81-3483506d5242",
+     "id": "b71ae8d6-44bb-aa4c-0d2a-dc9ed9e66410",
      "name": "Base",
-     "image": "/valorant/skins/52221ba2-4e4c-ec76-8c81-3483506d5242.webp",
+     "image": "/valorant/skins/b71ae8d6-44bb-aa4c-0d2a-dc9ed9e66410.webp",
      "swatch": null,
      "video": null
     }
@@ -478,20 +504,6 @@
      "image": "/valorant/skins/ec9caa7a-43ff-8f04-52a7-27a46de24f6e.webp",
      "swatch": "/valorant/skins/ec9caa7a-43ff-8f04-52a7-27a46de24f6e-amostra.webp",
      "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/51da2dd8-00cb-43d2-b13b-b55ab4646d29_default_universal.mp4"
-    }
-   ]
-  },
-  "acd26127-48ff-8b9e-7ba6-b989af8a4b24": {
-   "name": "Standard Judge",
-   "standard": true,
-   "tier": null,
-   "chromas": [
-    {
-     "id": "b71ae8d6-44bb-aa4c-0d2a-dc9ed9e66410",
-     "name": "Base",
-     "image": "/valorant/skins/b71ae8d6-44bb-aa4c-0d2a-dc9ed9e66410.webp",
-     "swatch": null,
-     "video": null
     }
    ]
   },
@@ -693,6 +705,20 @@
     }
    ]
   },
+  "48ad078a-4dae-2b85-a945-f4b6d1efecbb": {
+   "name": "Standard Shorty",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "95608504-4c8b-1408-1612-0f8200421c49",
+     "name": "Base",
+     "image": "/valorant/skins/95608504-4c8b-1408-1612-0f8200421c49.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
   "4542410b-46ba-36f2-898d-c2815b504002": {
    "name": "Primordium Shorty",
    "standard": false,
@@ -728,20 +754,6 @@
      "image": "/valorant/skins/5d977a6f-45c8-e782-c9bb-86a1f92a13e5.webp",
      "swatch": "/valorant/skins/5d977a6f-45c8-e782-c9bb-86a1f92a13e5-amostra.webp",
      "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/3b46dc40-4d3a-b5a8-f2a7-c889edd71bc3_default_universal.mp4"
-    }
-   ]
-  },
-  "48ad078a-4dae-2b85-a945-f4b6d1efecbb": {
-   "name": "Standard Shorty",
-   "standard": true,
-   "tier": null,
-   "chromas": [
-    {
-     "id": "95608504-4c8b-1408-1612-0f8200421c49",
-     "name": "Base",
-     "image": "/valorant/skins/95608504-4c8b-1408-1612-0f8200421c49.webp",
-     "swatch": null,
-     "video": null
     }
    ]
   },
@@ -797,20 +809,6 @@
     }
    ]
   },
-  "3bf1e8e0-47e8-f27a-6054-929575f41a54": {
-   "name": "Standard Guardian",
-   "standard": true,
-   "tier": null,
-   "chromas": [
-    {
-     "id": "0f934388-418a-a9e7-42a7-21b27402e46c",
-     "name": "Base",
-     "image": "/valorant/skins/0f934388-418a-a9e7-42a7-21b27402e46c.webp",
-     "swatch": null,
-     "video": null
-    }
-   ]
-  },
   "8966067d-4023-c88a-db56-2691f163d335": {
    "name": "Ruination Guardian",
    "standard": false,
@@ -849,6 +847,20 @@
     }
    ]
   },
+  "3bf1e8e0-47e8-f27a-6054-929575f41a54": {
+   "name": "Standard Guardian",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "0f934388-418a-a9e7-42a7-21b27402e46c",
+     "name": "Base",
+     "image": "/valorant/skins/0f934388-418a-a9e7-42a7-21b27402e46c.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
   "740b9572-44b1-57bf-767e-6aa01811f94d": {
    "name": "Standard Outlaw",
    "standard": true,
@@ -858,20 +870,6 @@
      "id": "66c8d241-4f7c-6652-3aaa-51bafffbd493",
      "name": "Base",
      "image": "/valorant/skins/66c8d241-4f7c-6652-3aaa-51bafffbd493.webp",
-     "swatch": null,
-     "video": null
-    }
-   ]
-  },
-  "fd44b2d5-49ee-77ab-fa56-588f3ac0c268": {
-   "name": "Standard Marshal",
-   "standard": true,
-   "tier": null,
-   "chromas": [
-    {
-     "id": "1afec971-4170-f29b-1c94-07a0eff270ab",
-     "name": "Base",
-     "image": "/valorant/skins/1afec971-4170-f29b-1c94-07a0eff270ab.webp",
      "swatch": null,
      "video": null
     }
@@ -915,6 +913,34 @@
     }
    ]
   },
+  "fd44b2d5-49ee-77ab-fa56-588f3ac0c268": {
+   "name": "Standard Marshal",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "1afec971-4170-f29b-1c94-07a0eff270ab",
+     "name": "Base",
+     "image": "/valorant/skins/1afec971-4170-f29b-1c94-07a0eff270ab.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
+  "f01d1307-4299-42f5-2c5e-7dab7e69ab19": {
+   "name": "Standard Spectre",
+   "standard": true,
+   "tier": null,
+   "chromas": [
+    {
+     "id": "a9aaccca-4cdc-02ea-1d7e-89bbacecc0e2",
+     "name": "Base",
+     "image": "/valorant/skins/a9aaccca-4cdc-02ea-1d7e-89bbacecc0e2.webp",
+     "swatch": null,
+     "video": null
+    }
+   ]
+  },
   "b160a897-4b92-0034-58ff-2b9b8c2d7340": {
    "name": "Primordium Spectre",
    "standard": false,
@@ -950,20 +976,6 @@
      "image": "/valorant/skins/0aba6ed5-4df4-9d95-6262-5bac3ff92524.webp",
      "swatch": "/valorant/skins/0aba6ed5-4df4-9d95-6262-5bac3ff92524-amostra.webp",
      "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/00c51c3b-491b-117c-fb50-3cb27713ed80_default_universal.mp4"
-    }
-   ]
-  },
-  "f01d1307-4299-42f5-2c5e-7dab7e69ab19": {
-   "name": "Standard Spectre",
-   "standard": true,
-   "tier": null,
-   "chromas": [
-    {
-     "id": "a9aaccca-4cdc-02ea-1d7e-89bbacecc0e2",
-     "name": "Base",
-     "image": "/valorant/skins/a9aaccca-4cdc-02ea-1d7e-89bbacecc0e2.webp",
-     "swatch": null,
-     "video": null
     }
    ]
   },
@@ -1030,6 +1042,23 @@
      "image": "/valorant/skins/d8323b21-4661-1f2b-107b-70a1c77ac851.webp",
      "swatch": "/valorant/skins/d8323b21-4661-1f2b-107b-70a1c77ac851-amostra.webp",
      "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/03217acb-42a8-088d-55a3-1e9745eb48c6_default_universal.mp4"
+    }
+   ]
+  },
+  "7d45aaad-4ac9-77b1-e7ca-3991be5721dd": {
+   "name": "Celestial Fan",
+   "standard": false,
+   "tier": {
+    "name": "Exclusive",
+    "color": "#f5955b"
+   },
+   "chromas": [
+    {
+     "id": "beaac174-44a6-0ee8-4607-939405782cae",
+     "name": "Base",
+     "image": "/valorant/skins/beaac174-44a6-0ee8-4607-939405782cae.webp",
+     "swatch": null,
+     "video": "https://valorant.dyn.riotcdn.net/x/videos/release-13.09/0fce6b0c-4162-6b5b-d4a7-bc8adb193f91_default_universal.mp4"
     }
    ]
   }
