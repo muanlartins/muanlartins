@@ -43,6 +43,10 @@ export const privacy = {
           en: "Stored, on Amazon Web Services, are your username and the fan you built (colors, head, outfit, accessory, celebration, arrival shout and stickers), so it can stand in the live's crowd while you're in the chat. Whoever watches the live sees your fan with your name, as they already see your name in the chat.",
         },
         {
+          pt: "Se você salva um loadout dos sonhos no inventário do Valorant, ele fica guardado junto, com o seu nome de usuário, e qualquer pessoa pode abri-lo pelo link com o seu nome. Sem entrar com a Twitch, o loadout fica só no seu navegador. Para apagá-lo, use “Limpar” no inventário.",
+          en: "If you save a dream loadout on Valorant's inventory, it's kept alongside, with your username, and anyone can open it through the link with your name. Without signing in with Twitch, the loadout stays only in your browser. To delete it, use “Clear” on the inventory.",
+        },
+        {
           pt: "O acesso da Twitch fica só no seu navegador. Para apagar o seu torcedor, use “Apagar meu torcedor” no perfil; para cortar o acesso, use “Sair” ou desconecte o app em https://www.twitch.tv/settings/connections",
           en: "The Twitch access stays in your browser only. To delete your fan, use “Delete my fan” on the profile; to cut the access, use “Sign out” or disconnect the app at https://www.twitch.tv/settings/connections",
         },

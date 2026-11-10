@@ -77,6 +77,13 @@ python3 scripts/videos.py --done <date>                        # after that day'
 - Replays stay (a few MB). Show Luan the list before `--apply`: nothing comes back.
 - Free space under ~150 GB before a live: tell him.
 
+## 4b. Valorant's skins (Valorant days)
+
+`python3 scripts/valorant_catalogo.py --ver` says whether a patch brought skins since the catalogue was made. If it
+lists new ones, run it without `--ver`: `public/valorant/catalogo.json` goes in the release commit, so the
+inventory's builder has them. The inventory itself needs nothing: `valorant.py` sent the game's reading to the site
+during the live (its log, `~/.cache/muanlartins/valorant.log`, says "inventário no site").
+
 ## 5. Release
 
 `pnpm lint`, `pnpm build` and `pnpm build:en`, delete `out/`. Commit (imperative, short, no names) and **ask
