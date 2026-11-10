@@ -83,7 +83,8 @@ plays on hover). The channel exists only on the Portuguese site, so the entries 
 **When you release something new, add it there in the same commit.** Not only the site's features: a new overlay,
 dock feature, scene or effect on the live, a script that changes what viewers get, an RLR feature (RLR is another
 repository, but its releases are listed here too), new brand art, a change only in Luan's OBS that the live shows,
-and a fix viewers noticed (credit whoever told about it with `as: "report"`, shown as "Avisado por"). Not a
+and a fix viewers noticed (credit whoever told about it with `as: "report"`, shown as "Avisado por", and `about`
+saying what they reported, like "Pix tocando duas vezes": their card lists that, not the fix's title). Not a
 release: ranked sessions, a live's page, a video's metadata, and fixes or internal tooling nobody watching or
 visiting would notice.
 
