@@ -25,6 +25,23 @@
               a snap with a turn of the hand (thumb on the middle finger, then a quick twist) puts his flash's
               orb in the hand; moving the hand left or right throws it that way, curving, while a ring closes on
               it, and it pops into a warm glare of about 2.5 s (key 4, or the dock's Flash).
+        Sova  (key 7): Valorant's Sova the same way (privado/sova.glb, out of git): his slicked-back hair on the
+              head, the fur collar, the cape and the folded bow on the back on the shoulders. His abilities,
+              drawn (none of them is a model): the bow, by its gesture, only while he's on: one arm stretched out
+              to the side and the other hand near the face, as if pulling the string; the bow shows in the far
+              hand with an arrow that glows as it's held; letting go shoots a Recon Bolt to the edge of the
+              camera, where it sends two sonar rings out and whoever they cross is revealed, in Valorant's red
+              outline with the marker over the head (key E, or the dock's Flecha, draws and shoots it by
+              itself). From the dock only: the Shock Bolt (Q: an arrow that bursts in an electric blast by him,
+              the camera shakes), the Owl Drone (C: an owl-like drone flies in, hovers by his head, tags him with
+              a dart, which reveals him, and leaves) and Hunter's Fury (X: the camera darkens and three blasts
+              cross it, through him, one after another).
+        Octane (key 8) and Fennec (key 9): his face as Rocket League's car, Pixar-style: the car sits on the head
+              seen a little from above, turning with it, his own eyes on its windshield and his mouth on its
+              bumper (cut from the camera, so it blinks and talks). The dock's Demolição blows it up as in a
+              demo and it respawns 2 s later (key D); Flip front-flips it (key F). Models by Jako (CC BY 4.0),
+              public/models/. ?carro=<cm across> (30), ?inclinacao=<degrees from above> (24),
+              ?comprimento=<length kept, 0..1> (0.8), ?posicao=x,y,z (cm on the face) to tune.
       Kept here but off the dock (Luan, 2026-11-10: only Phoenix and the ball for now):
         Pop   (key 1): the body cut out, in blues, with fire coming off its outline, a pop-art burst behind
               that follows the head, flying shapes the hands push away; it comes in with shards.
@@ -33,10 +50,10 @@
       Key 0 turns the filter off.
 
       ?debug shows fps, how long each model takes and the hands seen; ?cpu runs the models on the CPU;
-      ?modo=pop|bola|phoenix|lente starts with a filter on; ?texto=A|B the title's two lines in Pop; it frames the camera as OBS's
+      ?modo=pop|bola|phoenix|sova|octane|fennec|lente starts with a filter on; ?texto=A|B the title's two lines in Pop; it frames the camera as OBS's
       "Enquadramento" crop does (NVIDIA Broadcast's auto frame is off), or ?zoom=1.3 and ?foco=x,y (0..1 of the
-      camera's frame, from its top left) for another framing, ?zoom=1 for none; ?phoenix=<url> another
-      copy of his model.
+      camera's frame, from its top left) for another framing, ?zoom=1 for none; ?phoenix=<url> and ?sova=<url>
+      other copies of their models.
     -->
     <script type="importmap">
       {
@@ -137,6 +154,7 @@
       import * as THREE from "three"
       import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
       import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js"
+      import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js"
       import { FilesetResolver, GestureRecognizer, ImageSegmenter, FaceLandmarker, PoseLandmarker } from "@mediapipe/tasks-vision"
 
       const q = new URLSearchParams(location.search)
@@ -160,6 +178,7 @@
         "RL + chat": [44, 740, 480, 270],
         "Valorant + chat": [44, 44, 480, 270],
         Conversa: [64, 64, 1280, 720],
+        Fim: [64, 64, 1280, 720],
         Terapia: [64, 64, 560, 315],
       }
       let box = q.get("caixa") ? q.get("caixa").split(",").map(Number) : IN_OBS ? null : [0, 0, 1920, 1080]
@@ -355,6 +374,34 @@
         uRing: { value: 0 },
         uFlashAt: { value: new THREE.Vector2(0.5, 0.6) },
         uFlashAmt: { value: 0 },
+        // Sova: the bow (how much of it shows, the hand holding it, the hand pulling the string, the charge),
+        // the arrow in flight (from, to, how far along, recon or shock), the dart stuck where it landed (x, y,
+        // how much), its two sonar rings (seconds since each went out, −1 before), the red reveal everywhere
+        // (drone, ultimate), the marker over the head, the shock's blast (x, y, seconds since) and the ultimate
+        // (seconds since it started, the side the blasts come from, each blast's height, where it aims).
+        uBowAmt: { value: 0 },
+        uBowA: { value: new THREE.Vector2(0.75, 0.5) },
+        uBowB: { value: new THREE.Vector2(0.6, 0.5) },
+        uBowSize: { value: 0.12 },
+        uCharge: { value: 0 },
+        uArrowK: { value: -1 },
+        uArrowFrom: { value: new THREE.Vector2() },
+        uArrowTo: { value: new THREE.Vector2() },
+        uArrowKind: { value: 0 },
+        uDart: { value: new THREE.Vector3(0, 0, 0) },
+        uPulse: { value: new THREE.Vector2(-1, -1) },
+        uReveal: { value: 0 },
+        uMark: { value: new THREE.Vector3(0.5, 0.9, 0) },
+        uShock: { value: new THREE.Vector3(0.5, 0.5, -1) },
+        uUltT: { value: -1 },
+        uUltSide: { value: 1 },
+        uUltY: { value: new THREE.Vector3(0.6, 0.45, 0.7) },
+        uUltAim: { value: new THREE.Vector2(0.5, 0.5) },
+        uDartLine: { value: new THREE.Vector4() },
+        uDartLineAmt: { value: 0 },
+        // The cars' demolition: where (x, y, radius) and seconds since.
+        uBoom: { value: new THREE.Vector3(0.5, 0.5, 0.2) },
+        uBoomT: { value: -1 },
       }
 
       // Layer 0: the camera, or Pop's burst and fire where its shards have come in.
@@ -625,6 +672,297 @@
       })
       const flashScene = quad(flashMat)
 
+      // Sova's abilities, drawn over everything in the camera's box: the bow with its arrow, the arrow in flight,
+      // the Recon Bolt's dart with its two sonar rings, Valorant's red reveal on Luan (the body mask's outline)
+      // with the marker over the head, the Shock Bolt's blast, the drone's dart and Hunter's Fury's three blasts.
+      // Premultiplied: solid things go over, light adds.
+      const sovaMat = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: VERT,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.CustomBlending,
+        blendSrc: THREE.OneFactor,
+        blendDst: THREE.OneMinusSrcAlphaFactor,
+        blendSrcAlpha: THREE.OneFactor,
+        blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+        fragmentShader: /* glsl */ `
+          ${GLSL_COMMON}
+          uniform float uBowAmt;
+          uniform vec2 uBowA;
+          uniform vec2 uBowB;
+          uniform float uBowSize;
+          uniform float uCharge;
+          uniform float uArrowK;
+          uniform vec2 uArrowFrom;
+          uniform vec2 uArrowTo;
+          uniform float uArrowKind;
+          uniform vec3 uDart;
+          uniform vec2 uPulse;
+          uniform float uReveal;
+          uniform vec3 uMark;
+          uniform vec3 uShock;
+          uniform float uUltT;
+          uniform float uUltSide;
+          uniform vec3 uUltY;
+          uniform vec2 uUltAim;
+          uniform vec4 uDartLine;
+          uniform float uDartLineAmt;
+          const vec3 SKY = vec3(0.3, 0.82, 1.0);
+          const vec3 ICE = vec3(0.86, 0.97, 1.0);
+          const vec3 RED = vec3(1.0, 0.27, 0.33);
+          const float RING_SPEED = 1.5;
+          float seg(vec2 p, vec2 a, vec2 b) {
+            vec2 pa = p - a, ba = b - a;
+            return length(pa - ba * clamp(dot(pa, ba) / max(dot(ba, ba), 1e-8), 0.0, 1.0));
+          }
+          void over(inout vec4 o, vec3 c, float a) { o = vec4(c * a, a) + o * (1.0 - a); }
+          // An arrow lying from tail to tip: shaft, glowing head, light along it.
+          void arrow(inout vec4 o, inout vec3 glow, vec2 p, vec2 tail, vec2 tip, float L, float charge, float kind) {
+            vec2 u = normalize(tip - tail);
+            vec2 n = vec2(-u.y, u.x);
+            float shaft = seg(p, tail, tip - u * L * 0.12);
+            over(o, mix(vec3(0.75, 0.8, 0.9), ICE, kind), smoothstep(L * 0.022, L * 0.012, shaft));
+            vec2 h = p - tip;
+            float along = dot(h, u), across = dot(h, n);
+            // The head: a long diamond, cyan for the recon, white-hot for the shock.
+            float head = abs(across) / (L * 0.07) + abs(along + L * 0.09) / (L * 0.12);
+            vec3 hc = mix(SKY, ICE, kind);
+            over(o, mix(hc, vec3(1.0), 0.35), smoothstep(1.05, 0.9, head));
+            float r = length(h + u * L * 0.08);
+            glow += hc * (exp(-r / (L * (0.08 + 0.12 * charge))) * (0.35 + 0.9 * charge) + exp(-shaft / (L * 0.03)) * 0.25 * charge);
+          }
+          void main() {
+            vec2 A = vec2(uAspect, 1.0);
+            vec2 p = vUv * A;
+            vec4 o = vec4(0.0);
+            vec3 glow = vec3(0.0);
+
+            // Hunter's Fury: the camera darkens while it lasts.
+            if (uUltT >= 0.0) {
+              float dim = smoothstep(0.0, 0.5, uUltT) * (1.0 - smoothstep(3.3, 3.9, uUltT));
+              float vig = length((vUv - 0.5) * vec2(1.0, 0.8));
+              over(o, vec3(0.01, 0.03, 0.12), dim * (0.3 + 0.5 * vig));
+            }
+
+            // The sonar rings, and how revealed this pixel is.
+            float rv = uReveal;
+            if (uDart.z > 0.0) {
+              float d = length(p - uDart.xy * A);
+              for (int i = 0; i < 2; i++) {
+                float t = i == 0 ? uPulse.x : uPulse.y;
+                if (t < 0.0) continue;
+                float R = t * RING_SPEED;
+                float passed = R - d;
+                if (passed > 0.0) rv = max(rv, exp(-passed / (RING_SPEED * 0.9)));
+                float e = abs(d - R);
+                float fade = 1.0 - smoothstep(1.6, 2.4, R);
+                glow += SKY * (smoothstep(0.005, 0.0, e) + exp(-e / 0.016) * 0.3 * step(d, R)) * fade;
+                if (passed > 0.0 && passed < 0.07) glow += SKY * 0.2 * step(0.5, fract(d * 180.0 - uTime * 4.0)) * (1.0 - passed / 0.07) * fade;
+              }
+            }
+            // Revealed: Valorant's red outline round the body and a light red over it.
+            if (rv > 0.003) {
+              float body = maskAt(vUv, 0.0);
+              float halo = (1.0 - smoothstep(0.35, 0.6, body)) * smoothstep(0.06, 0.32, maskAt(vUv, 2.4));
+              float rim = smoothstep(0.45, 0.6, body) * (1.0 - smoothstep(0.75, 0.95, maskAt(vUv, 1.4)));
+              over(o, RED, 0.2 * smoothstep(0.45, 0.6, body) * rv);
+              glow += RED * (halo * 0.9 + rim * 0.8) * rv;
+            }
+
+            // The drone's dart: a streak from the drone to Luan.
+            if (uDartLineAmt > 0.0) {
+              vec2 a = uDartLine.xy * A, b = uDartLine.zw * A;
+              float d = seg(p, a, b);
+              glow += SKY * (smoothstep(0.004, 0.0, d) + exp(-d / 0.012) * 0.4) * uDartLineAmt;
+            }
+
+            // The Shock Bolt's blast: a white flash, a ring, jagged bolts that flicker.
+            if (uShock.z >= 0.0) {
+              float t = uShock.z;
+              vec2 d = p - uShock.xy * A;
+              float r = length(d);
+              float R = 0.2 * (1.0 - exp(-t * 9.0));
+              float fade = 1.0 - smoothstep(0.35, 0.9, t);
+              glow += ICE * exp(-r / 0.035) * exp(-t * 4.0) * 2.0;
+              glow += SKY * smoothstep(0.006, 0.0, abs(r - R)) * fade;
+              float flick = floor(t * 24.0);
+              for (int k = 0; k < 7; k++) {
+                float fk = float(k);
+                float th = hash(fk * 3.1 + flick) * 6.2831853;
+                vec2 u = vec2(cos(th), sin(th));
+                float along = dot(d, u);
+                float perp = dot(d, vec2(-u.y, u.x)) - (noise(vec2(along * 45.0 + fk * 7.0, flick)) - 0.5) * 0.035;
+                if (along > 0.0 && along < R * 1.35) {
+                  float w = 1.0 - along / (R * 1.35);
+                  glow += (ICE * smoothstep(0.0035, 0.0, abs(perp)) + SKY * exp(-abs(perp) / 0.009) * 0.5) * fade * w;
+                }
+              }
+            }
+
+            // Hunter's Fury: three blasts crossing the camera from one side, each after a thin aiming line.
+            if (uUltT >= 0.0) {
+              for (int i = 0; i < 3; i++) {
+                float fi = float(i);
+                float tau = uUltT - (0.75 + 0.95 * fi);
+                if (tau < -0.4 || tau > 0.6) continue;
+                float y = i == 0 ? uUltY.x : i == 1 ? uUltY.y : uUltY.z;
+                vec2 P = vec2(uUltAim.x, y) * A;
+                float ang = (fi - 1.0) * 0.07 * uUltSide;
+                vec2 dir = vec2(cos(ang), sin(ang)) * -uUltSide;
+                vec2 n = vec2(-dir.y, dir.x);
+                float dp = abs(dot(p - P, n));
+                float s = uUltSide > 0.0 ? uAspect - p.x : p.x;
+                if (tau < 0.0) {
+                  glow += SKY * smoothstep(0.0025, 0.0, dp) * 0.7 * smoothstep(-0.4, -0.25, tau);
+                  continue;
+                }
+                float w = 0.06 * min(1.0, tau / 0.05) * (1.0 - smoothstep(0.12, 0.6, tau));
+                float reach = step(s, tau * 8.0);
+                float nz = noise(vec2(s * 26.0 - tau * 90.0, dp * 50.0));
+                float dq = dp + (nz - 0.5) * w * 0.5;
+                float core = smoothstep(w * 0.42, w * 0.1, dq);
+                float mid = smoothstep(w, w * 0.35, dq);
+                glow += (ICE * core * 1.3 + SKY * mid * 0.9 + vec3(0.15, 0.4, 1.0) * exp(-dq / (w * 0.9 + 0.001)) * 0.55) * reach;
+              }
+            }
+
+            // The dart stuck where the Recon Bolt landed: a spiky cyan light, pulsing.
+            if (uDart.z > 0.0) {
+              vec2 d = p - uDart.xy * A;
+              float r = length(d);
+              float spikes = pow(max(0.0, cos(atan(d.y, d.x) * 4.0 + uTime * 2.0)), 6.0);
+              float beat = 0.8 + 0.2 * sin(uTime * 14.0);
+              over(o, ICE, smoothstep(0.011, 0.007, r) * uDart.z);
+              glow += SKY * (exp(-r / 0.022) * 0.8 + spikes * exp(-r / 0.03) * 0.5) * uDart.z * beat;
+            }
+
+            // The bow: an arc through the hand holding it, its tips curving back, the string to the hand pulling it
+            // and the arrow on it.
+            if (uBowAmt > 0.0) {
+              vec2 a = uBowA * A, b = uBowB * A;
+              vec2 u = normalize(a - b + vec2(1e-5, 0.0));
+              vec2 n = vec2(-u.y, u.x);
+              float L = uBowSize * uBowAmt;
+              float Rc = 1.336 * L;
+              vec2 C = a - u * Rc;
+              vec2 cp = p - C;
+              float ang = acos(clamp(dot(normalize(cp + 1e-6), u), -1.0, 1.0));
+              float th = L * (0.075 - 0.04 * ang / 0.846);
+              float dArc = abs(length(cp) - Rc);
+              if (ang < 0.846) {
+                over(o, vec3(0.07, 0.09, 0.17), smoothstep(th, th * 0.7, dArc) * uBowAmt);
+                float edge = abs(length(cp) - (Rc + th * 0.45));
+                glow += SKY * (smoothstep(th * 0.25, 0.0, edge) * 0.9 + exp(-dArc / (L * 0.05)) * 0.2) * uBowAmt;
+              }
+              vec2 t1 = C + Rc * (u * cos(0.846) + n * sin(0.846));
+              vec2 t2 = C + Rc * (u * cos(0.846) - n * sin(0.846));
+              glow += SKY * (exp(-length(p - t1) / (L * 0.04)) + exp(-length(p - t2) / (L * 0.04))) * 0.7 * uBowAmt;
+              float nockAmt = uCharge >= 0.0 ? 1.0 : 0.0;
+              vec2 nock = mix(a - u * L * 0.45, b, nockAmt);
+              float str = min(seg(p, t1, nock), seg(p, t2, nock));
+              over(o, ICE, smoothstep(L * 0.014, L * 0.006, str) * uBowAmt);
+              if (uCharge >= 0.0) arrow(o, glow, p, b, a + u * L * 0.55, L * 2.2, uCharge, 0.0);
+            }
+
+            // The arrow in flight, with its trail.
+            if (uArrowK >= 0.0) {
+              vec2 f = uArrowFrom * A, to = uArrowTo * A;
+              vec2 u = normalize(to - f + vec2(1e-5, 0.0));
+              vec2 P = mix(f, to, uArrowK);
+              vec2 tail = P - u * min(0.45, length(P - f) + 0.02);
+              float d = seg(p, tail, P);
+              float k = clamp(dot(p - tail, u) / max(length(P - tail), 1e-4), 0.0, 1.0);
+              vec3 tc = mix(SKY, ICE, uArrowKind);
+              glow += tc * (smoothstep(0.004, 0.0, d) * 0.8 + exp(-d / 0.01) * 0.4) * k * k;
+              arrow(o, glow, p, P - u * 0.09, P, 0.26, 1.0, uArrowKind);
+            }
+
+            // The marker over a revealed head.
+            if (uMark.z > 0.0) {
+              vec2 m = (p - uMark.xy * A) / 0.021;
+              float dd = abs(m.x) + abs(m.y) * 0.75;
+              over(o, vec3(1.0, 0.93, 0.93), smoothstep(1.32, 1.22, dd) * uMark.z);
+              over(o, RED, smoothstep(1.05, 0.95, dd) * uMark.z);
+              glow += RED * exp(-length(m) / 1.6) * 0.35 * uMark.z;
+            }
+
+            o.rgb += glow;
+            o.a = max(o.a, clamp(max(glow.r, max(glow.g, glow.b)), 0.0, 1.0));
+            if (o.a <= 0.002) discard;
+            gl_FragColor = o;
+          }`,
+      })
+      const sovaScene = quad(sovaMat)
+
+      // The cars' demolition, after the game's: a white flash and a shock ring, a fireball in flat bands that burns
+      // inwards, sparks thrown out and falling, dark smoke puffing out last.
+      const boomMat = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: VERT,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.CustomBlending,
+        blendSrc: THREE.OneFactor,
+        blendDst: THREE.OneMinusSrcAlphaFactor,
+        blendSrcAlpha: THREE.OneFactor,
+        blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+        fragmentShader: /* glsl */ `
+          ${GLSL_COMMON}
+          uniform vec3 uBoom;
+          uniform float uBoomT;
+          void over(inout vec4 o, vec3 c, float a) { o = vec4(c * a, a) + o * (1.0 - a); }
+          void main() {
+            float t = uBoomT;
+            vec2 d = (vUv - uBoom.xy) * vec2(uAspect, 1.0) / uBoom.z;
+            float r = length(d);
+            float ang = atan(d.y, d.x);
+            vec4 o = vec4(0.0);
+            vec3 glow = vec3(0.0);
+            // Smoke, under the fire: puffs pushed out and up, fading.
+            float smokeA = smoothstep(0.15, 0.5, t) * (1.0 - smoothstep(1.1, 1.9, t));
+            if (smokeA > 0.0) {
+              float s = 0.0;
+              for (int i = 0; i < 9; i++) {
+                float fi = float(i);
+                float th = fi / 9.0 * 6.2831853 + hash(fi) * 0.5;
+                vec2 c = vec2(cos(th), sin(th)) * (0.6 + 0.35 * t) + vec2(0.0, 0.3 * t);
+                s = max(s, smoothstep(0.34 + 0.12 * t, 0.24 + 0.1 * t, length(d - c)));
+              }
+              float shade = 0.12 + 0.1 * step(0.55, fbm(d * 3.0 + vec2(0.0, -t)));
+              over(o, vec3(shade, shade * 0.95, shade * 1.05), s * smokeA * 0.9);
+            }
+            // The fireball.
+            float grow = 1.0 - exp(-t * 8.0);
+            float n = fbm(vec2(ang * 1.6 + 2.0, r * 2.5 - t * 2.5));
+            float edge = 1.15 * grow * (0.8 + 0.4 * n);
+            float burn = smoothstep(1.6, 0.9, t) * step(r, edge);
+            float k = r / max(edge, 1e-3) + t * 0.65 + (n - 0.5) * 0.25;
+            vec3 col = k < 0.35 ? vec3(1.0, 0.98, 0.86) : k < 0.6 ? vec3(1.0, 0.82, 0.25) : k < 0.85 ? vec3(1.0, 0.47, 0.08)
+              : k < 1.1 ? vec3(0.85, 0.15, 0.05) : vec3(0.0);
+            over(o, col, burn * step(k, 1.1));
+            // The flash and the ring.
+            glow += vec3(1.0, 0.95, 0.85) * exp(-r * 1.6) * exp(-t * 9.0) * 2.5;
+            float R = 2.4 * (1.0 - exp(-t * 6.0));
+            glow += vec3(1.0, 0.85, 0.6) * smoothstep(0.06, 0.0, abs(r - R)) * (1.0 - smoothstep(0.15, 0.5, t));
+            // Sparks.
+            for (int i = 0; i < 16; i++) {
+              float fi = float(i);
+              float th = hash(fi + 4.0) * 6.2831853;
+              float sp = 1.4 + hash(fi + 9.0) * 1.6;
+              vec2 c = vec2(cos(th), sin(th) + 0.5) * sp * t - vec2(0.0, 1.6 * t * t);
+              glow += vec3(1.0, 0.75, 0.3) * smoothstep(0.07, 0.0, length(d - c)) * (1.0 - smoothstep(0.6, 1.1, t));
+            }
+            o.rgb += glow;
+            o.a = max(o.a, clamp(max(glow.r, max(glow.g, glow.b)), 0.0, 1.0));
+            if (o.a <= 0.002) discard;
+            gl_FragColor = o;
+          }`,
+      })
+      const boomScene = quad(boomMat)
+
       // ---------- Pop's flying shapes ----------
       const shapeCam = new THREE.PerspectiveCamera(50, W / H, 0.1, 100)
       shapeCam.position.z = 10
@@ -734,30 +1072,24 @@
       const headScale = new THREE.Vector3()
       let headSeen = false
 
-      // ---------- Phoenix ----------
-      // Valorant's Phoenix from his own model (public/stream/privado/phoenix.glb, kept out of git and the site:
-      // it was extracted from the game). Two pieces of it, both made to be seen from the front, each triangle
-      // sorted by the bones that move it: his hair with the faded scalp under it, on Luan's head (eyes on eyes:
-      // MediaPipe's canonical face has them 6.3 cm apart, 2.6 cm up), and his jacket and shirt with the upper
-      // arms, on Luan's shoulders in 3D. Luan's face and hands are drawn back over the jacket.
-      const PHOENIX_URL = q.get("phoenix") || "privado/phoenix.glb"
-      // Painting Luan's hair around Phoenix's over in the background's colour: off unless ?apagar (it showed as
+      // ---------- Valorant's agents: Phoenix, Sova ----------
+      // Each from his own model (public/stream/privado/, kept out of git and the site: they were extracted from the
+      // game; both are ILilMitch's uploads on Sketchfab, made under Riot's "Legal Jibber Jabber"). Two pieces of
+      // each, both made to be seen from the front, each triangle sorted by the bones that move it: his hair with
+      // the scalp under it, on Luan's head (eyes on eyes: MediaPipe's canonical face has them 6.3 cm apart, 2.6 cm
+      // up), and his clothes with the upper arms, on Luan's shoulders in 3D. Luan's face and hands are drawn back
+      // over the clothes. Sova's torso also takes the folded bow on his back (its own materials, `extra`), and his
+      // long locks hang beside the face, so his face and hands are drawn back over his hair too (`behind`).
+      const AGENTS = {
+        phoenix: { url: q.get("phoenix") || "privado/phoenix.glb" },
+        sova: { url: q.get("sova") || "privado/sova.glb", extra: /BowProp|Bow_Emissive/, behind: true },
+      }
+      // Painting Luan's hair around the agent's over in the background's colour: off unless ?apagar (it showed as
       // a blue wedge around the head).
       const ERASE = q.has("apagar")
-      const hair = new THREE.Group()
-      hair.visible = false
-      head.add(hair)
-      // An invisible head inside, so the back of the hair hides behind it when Luan turns.
-      const occluder = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), new THREE.MeshBasicMaterial({ colorWrite: false }))
-      occluder.scale.set(7.4, 9.2, 9.6)
-      occluder.position.set(0, 2.2, -3.4)
-      occluder.renderOrder = -1
-      hair.add(occluder)
-      const torso = new THREE.Group()
-      torso.visible = false
-      torso.matrixAutoUpdate = false
-      ballScene.add(torso)
-      const phoenixModel = { width: 0.415 }
+      // An invisible head inside each hair piece, so the back of the hair hides behind it when Luan turns.
+      const occluderGeo = new THREE.SphereGeometry(1, 32, 24)
+      const occluderMat = new THREE.MeshBasicMaterial({ colorWrite: false })
       const EYES_CM = 6.33
       const EYES_AT = new THREE.Vector3(0, 2.63, 2.4)
       // Fine-tuning: the head piece's size and how far down it sits (cm); the torso's size and how far down
@@ -770,9 +1102,9 @@
       const groupOf = (name) =>
         /Head|Jaw|Mouth|Brow|Eye|Lid|Neck/.test(name) ? "head"
         : /Hand|Thumb|Index|Middle|Pinky|Ring|WeaponPoint/.test(name) ? "hand"
-        : /Elbow/.test(name) ? "forearm"
+        : /Elbow|Gauntlet/.test(name) ? "forearm"
         : /Shoulder/.test(name) ? "arm"
-        : /Spine|Collar|Clavicle|Jacket/.test(name) ? "torso"
+        : /Spine|Collar|Clavicle|Jacket|Cloak/.test(name) ? "torso"
         : "legs"
       const ARMS = q.get("bracos") === "0" ? [] : q.get("bracos") === "2" ? ["arm", "forearm"] : ["arm"]
       // A static copy of a skinned mesh in its rest pose, in the model's world space (each vertex through its bones,
@@ -830,83 +1162,103 @@
         if (sm.material.map) sm.material.map.colorSpace = THREE.NoColorSpace
         return new THREE.Mesh(g, sm.material)
       }
-      new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
-        PHOENIX_URL,
-        (gltf) => {
-          const root = gltf.scene
-          root.updateMatrixWorld(true)
-          const bone = {}
-          const meshes = []
-          root.traverse((o) => {
-            if (o.isBone) bone[o.name] = o.getWorldPosition(new THREE.Vector3())
-            if (o.isSkinnedMesh) meshes.push(o)
-          })
-          const body = meshes.find((m) => /Body/.test(m.material.name))
-          const hairMesh = meshes.find((m) => /Hair/.test(m.material.name))
-          const eyes = bone.L_Eyeball.clone().add(bone.R_Eyeball).multiplyScalar(0.5)
-          const browY = (bone.L_Brows.y + bone.R_Brows.y) / 2
-          const front = eyes.z + 0.03
-          // The model faces −z with its left at −x; turned half a turn it faces the camera like Luan.
-          const turn = (v) => new THREE.Vector3(-v.x, v.y, -v.z)
+      for (const [id, a] of Object.entries(AGENTS)) {
+        Object.assign(a, {
+          id,
+          amt: 0,
+          ready: false,
+          width: 0.415,
+          neck: 0.1,
+          squash: null,
+          hair: new THREE.Group(),
+          torso: new THREE.Group(),
+          pos: new THREE.Vector3(),
+          quat: new THREE.Quaternion(),
+          scale: 1,
+          seen: false,
+        })
+        a.hair.visible = false
+        head.add(a.hair)
+        const occluder = new THREE.Mesh(occluderGeo, occluderMat)
+        occluder.scale.set(7.4, 9.2, 9.6)
+        occluder.position.set(0, 2.2, -3.4)
+        occluder.renderOrder = -1
+        a.hair.add(occluder)
+        a.torso.visible = false
+        a.torso.matrixAutoUpdate = false
+        ballScene.add(a.torso)
+        new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(a.url, (gltf) => buildAgent(a, gltf.scene), undefined, (e) => fail(id, e))
+      }
+      const agentList = Object.values(AGENTS)
+      function buildAgent(a, root) {
+        root.updateMatrixWorld(true)
+        const bone = {}
+        const meshes = []
+        root.traverse((o) => {
+          if (o.isBone) bone[o.name] = o.getWorldPosition(new THREE.Vector3())
+          if (o.isSkinnedMesh) meshes.push(o)
+        })
+        const body = meshes.find((m) => /Body/.test(m.material.name))
+        const hairMesh = meshes.find((m) => /Hair/.test(m.material.name))
+        const extras = a.extra ? meshes.filter((m) => a.extra.test(m.material.name)) : []
+        const eyes = bone.L_Eyeball.clone().add(bone.R_Eyeball).multiplyScalar(0.5)
+        const browY = (bone.L_Brows.y + bone.R_Brows.y) / 2
+        const front = eyes.z + 0.03
+        // The model faces −z with its left at −x; turned half a turn it faces the camera like Luan.
+        const turn = (v) => new THREE.Vector3(-v.x, v.y, -v.z)
 
-          // Head piece, in the canonical face's centimetres.
-          const s = EYES_CM / bone.L_Eyeball.distanceTo(bone.R_Eyeball)
-          const headPiece = new THREE.Group()
-          headPiece.rotation.y = Math.PI
-          headPiece.scale.setScalar(s * HEAD_K)
-          headPiece.position.copy(EYES_AT).sub(turn(eyes).multiplyScalar(s * HEAD_K))
-          headPiece.position.y -= HEAD_DOWN
-          headPiece.add(piece(hairMesh, () => true))
-          // The scalp: above the brows at the forehead; on the sides the fade comes down to the top of the ears
-          // (they stick out of the skull only ~1 cm, so they're cut by where they are: 11 cm deep from 2 cm
-          // behind the eyes), down to the brows at the temples before them, lower behind them.
-          const scalp = (p) => {
-            const side = Math.abs(p.x - eyes.x) > 0.068
-            const depth = p.z - eyes.z
-            if (side && depth > 0.021 && depth < 0.131) return p.y > browY + 0.015
-            if (side && depth <= 0.021) return p.y > browY + 0.005
-            return p.y > (p.z < front ? browY + 0.035 : browY - 0.03)
-          }
-          headPiece.add(piece(body, (i, p, g) => g === "head" && scalp(p)))
-          hair.add(headPiece)
+        // Head piece, in the canonical face's centimetres.
+        const s = EYES_CM / bone.L_Eyeball.distanceTo(bone.R_Eyeball)
+        const headPiece = new THREE.Group()
+        headPiece.rotation.y = Math.PI
+        headPiece.scale.setScalar(s * HEAD_K)
+        headPiece.position.copy(EYES_AT).sub(turn(eyes).multiplyScalar(s * HEAD_K))
+        headPiece.position.y -= HEAD_DOWN
+        headPiece.add(piece(hairMesh, () => true))
+        // The scalp: above the brows at the forehead; on the sides the fade comes down to the top of the ears
+        // (they stick out of the skull only ~1 cm, so they're cut by where they are: 11 cm deep from 2 cm
+        // behind the eyes), down to the brows at the temples before them, lower behind them.
+        const scalp = (p) => {
+          const side = Math.abs(p.x - eyes.x) > 0.068
+          const depth = p.z - eyes.z
+          if (side && depth > 0.021 && depth < 0.131) return p.y > browY + 0.015
+          if (side && depth <= 0.021) return p.y > browY + 0.005
+          return p.y > (p.z < front ? browY + 0.035 : browY - 0.03)
+        }
+        headPiece.add(piece(body, (i, p, g) => g === "head" && scalp(p)))
+        a.hair.add(headPiece)
 
-          // Torso piece, in metres with the shoulders' midpoint at the origin; placed each frame.
-          const mid = bone.L_Shoulder.clone().add(bone.R_Shoulder).multiplyScalar(0.5)
-          phoenixModel.width = bone.L_Shoulder.distanceTo(bone.R_Shoulder)
-          phoenixModel.neck = bone.Neck.y - mid.y
-          const torsoPiece = new THREE.Group()
-          torsoPiece.rotation.y = Math.PI
-          torsoPiece.position.copy(turn(mid).multiplyScalar(-1))
-          torsoPiece.position.y -= TORSO_DOWN
-          const squash = new THREE.Group()
-          squash.scale.y = TORSO_Y
-          squash.add(torsoPiece)
-          phoenixModel.squash = squash
-          torsoPiece.add(piece(body, (i, p, g) => g === "torso" || ARMS.includes(g)))
-          torso.add(squash)
-          phoenixModel.ready = true
-        },
-        undefined,
-        (e) => fail("phoenix", e),
-      )
+        // Torso piece, in metres with the shoulders' midpoint at the origin; placed each frame.
+        const mid = bone.L_Shoulder.clone().add(bone.R_Shoulder).multiplyScalar(0.5)
+        a.width = bone.L_Shoulder.distanceTo(bone.R_Shoulder)
+        a.neck = bone.Neck.y - mid.y
+        const torsoPiece = new THREE.Group()
+        torsoPiece.rotation.y = Math.PI
+        torsoPiece.position.copy(turn(mid).multiplyScalar(-1))
+        torsoPiece.position.y -= TORSO_DOWN
+        const squash = new THREE.Group()
+        squash.scale.y = TORSO_Y
+        squash.add(torsoPiece)
+        a.squash = squash
+        torsoPiece.add(piece(body, (i, p, g) => g === "torso" || ARMS.includes(g)))
+        for (const m of extras) torsoPiece.add(piece(m, () => true))
+        a.torso.add(squash)
+        a.ready = true
+      }
 
       // Luan's shoulders in the 3D camera's space (cm): the body tracker gives them on screen and their depth
       // relative to each other; the face's transform gives how far he is.
       const pose = { seen: false, left: new THREE.Vector2(), right: new THREE.Vector2(), dz: 0 }
-      const torsoPos = new THREE.Vector3()
-      const torsoQuat = new THREE.Quaternion()
-      let torsoScale = 1
-      let torsoSeen = false
       function onRay(u, v, z) {
         const p = new THREE.Vector3(u * 2 - 1, v * 2 - 1, 0.5).unproject(headCam)
         return p.multiplyScalar(z / p.z)
       }
-      function placeTorso() {
+      function placeTorso(a) {
         const z = headPos.z
         const L = onRay(pose.left.x, pose.left.y, z - pose.dz / 2)
         const R = onRay(pose.right.x, pose.right.y, z + pose.dz / 2)
         const x = L.clone().sub(R)
-        const scale = x.length() / phoenixModel.width
+        const scale = x.length() / a.width
         x.normalize()
         const zAxis = new THREE.Vector3().crossVectors(x, new THREE.Vector3(0, 1, 0)).normalize()
         const y = new THREE.Vector3().crossVectors(zAxis, x)
@@ -914,24 +1266,23 @@
         const at = L.clone().add(R).multiplyScalar(0.5)
         // The neck: how high Luan's chin is over his shoulders sets how tall the torso is, so its collar opens
         // under his chin whether he sits up or looks down at the screen.
-        if (faceLm && phoenixModel.squash) {
+        if (faceLm && a.squash) {
           const [cu, cv] = toScreen(faceLm[152].x, faceLm[152].y)
           const chin = onRay(cu, cv, z)
           const neck = chin.sub(at).dot(y)
-          const want = THREE.MathUtils.clamp((neck * NECK) / (phoenixModel.neck * scale * TORSO_K), 0.3, 1.2)
-          phoenixModel.squash.scale.y += (want - phoenixModel.squash.scale.y) * 0.4
+          const want = THREE.MathUtils.clamp((neck * NECK) / (a.neck * scale * TORSO_K), 0.3, 1.2)
+          a.squash.scale.y += (want - a.squash.scale.y) * 0.4
         }
-        if (torsoSeen) {
-          torsoPos.lerp(at, 0.45)
-          torsoQuat.slerp(qt, 0.45)
-          torsoScale += (scale - torsoScale) * 0.45
+        if (a.seen) {
+          a.pos.lerp(at, 0.45)
+          a.quat.slerp(qt, 0.45)
+          a.scale += (scale - a.scale) * 0.45
         } else {
-          torsoPos.copy(at)
-          torsoQuat.copy(qt)
-          torsoScale = scale
+          a.pos.copy(at)
+          a.quat.copy(qt)
+          a.scale = scale
         }
-        torsoSeen = true
-        torso.matrix.compose(torsoPos, torsoQuat, new THREE.Vector3(torsoScale, torsoScale, torsoScale))
+        a.seen = true
       }
 
       // Luan's face and hands, drawn back over the jacket: a small mask of the face's outline and each hand's
@@ -1008,6 +1359,550 @@
       })
       const keepScene = quad(keepMat)
 
+      // ---------- Sova's abilities ----------
+      // All in the camera box's screen space (0..1, y up), drawn by sovaMat; times in ms (performance.now()).
+      const sova = {
+        bow: { state: "idle", since: 0, lost: 0, amt: 0, charge: 0, auto: 0, a: new THREE.Vector2(0.75, 0.5), b: new THREE.Vector2(0.6, 0.5) },
+        arrow: null, // { kind, from, to, t0, dur }
+        dart: null, // { at, t0 }: the Recon Bolt's dart; its rings go out PULSES seconds after it lands
+        shock: null, // { at, t0 }
+        ult: null, // { t0, side, ys, aim, fired }
+        drone: null, // { t0, side }
+        maskUntil: 0, // the body mask is needed (for the reveal) until then
+        shakeUntil: 0,
+        shakeLen: 1,
+        shakeAmp: 0,
+      }
+      const PULSES = [0.15, 1.4]
+      const RING_SPEED = 1.5 // as in the shader: screen heights a second
+      const ULT_BLASTS = [0.75, 1.7, 2.65]
+      const ASPECT = W / H
+      const clamp01 = (v, lo = 0.05, hi = 0.95) => Math.min(hi, Math.max(lo, v))
+      // The face on screen: its centre (the nose), width, the top of the forehead and its height.
+      function faceBox() {
+        if (!faceLm) return { c: new THREE.Vector2(0.5, 0.55), w: 0.15, top: new THREE.Vector2(0.5, 0.75), h: 0.3 }
+        const S = (i) => new THREE.Vector2(...toScreen(faceLm[i].x, faceLm[i].y))
+        const c = S(1), top = S(10), chin = S(152)
+        return { c, w: Math.abs(S(454).x - S(234).x), top, h: top.y - chin.y }
+      }
+      // Where a ray from p along dir leaves the box, a little inside it.
+      function toEdge(p, dir, inset = 0.03) {
+        let s = Infinity
+        if (dir.x > 1e-6) s = Math.min(s, (1 - inset - p.x) / dir.x)
+        if (dir.x < -1e-6) s = Math.min(s, (inset - p.x) / dir.x)
+        if (dir.y > 1e-6) s = Math.min(s, (1 - inset - p.y) / dir.y)
+        if (dir.y < -1e-6) s = Math.min(s, (inset - p.y) / dir.y)
+        return p.clone().addScaledVector(dir, Math.max(0, s))
+      }
+      function shake(ms, px, now) {
+        if (now + ms > sova.shakeUntil) Object.assign(sova, { shakeUntil: now + ms, shakeLen: ms, shakeAmp: px })
+      }
+      function sovaReset() {
+        Object.assign(sova, { arrow: null, dart: null, shock: null, ult: null, drone: null, shakeUntil: 0 })
+        Object.assign(sova.bow, { state: "idle", auto: 0, amt: 0, charge: 0 })
+        drone.visible = false
+        const u = uniforms
+        u.uBowAmt.value = u.uDart.value.z = u.uReveal.value = u.uMark.value.z = u.uDartLineAmt.value = 0
+        u.uArrowK.value = u.uShock.value.z = u.uUltT.value = -1
+      }
+
+      // The bow by gesture: one hand far out to the side (holding it) and the other closed by the face (pulling
+      // the string), about level. Held 0.3 s, the bow shows and the arrow charges; after at least 0.45 s of
+      // pulling, opening that hand or moving it away lets the arrow go, the way it points.
+      function sovaHands(hands, now) {
+        const bow = sova.bow
+        if (bow.auto) return
+        let pose = null
+        if (faceLm && hands.length >= 2 && !sova.arrow) {
+          const va = video.videoWidth / video.videoHeight || 16 / 9
+          const fw = Math.abs(faceLm[454].x - faceLm[234].x) * va
+          const nose = faceLm[1]
+          const d = (p) => Math.hypot((p.x - nose.x) * va, p.y - nose.y)
+          const [near, far] = hands
+            .slice(0, 2)
+            .map((h) => ({ h, d: d(h[9]) }))
+            .sort((x, y) => x.d - y.d)
+          const h = near.h
+          const palm = dist(h[0], h[9])
+          const open = [8, 12, 16].filter((t) => dist(h[t], h[0]) > 1.45 * palm).length >= 2
+          const dx = Math.abs(far.h[9].x - h[9].x) * va
+          const dy = Math.abs(far.h[9].y - h[9].y)
+          if (!open && near.d < 1.3 * fw && far.d > 1.9 * fw && dy < 0.7 * dx) {
+            const g = far.h
+            const grip = [5, 9, 13, 17].reduce((s, k) => ({ x: s.x + g[k].x / 4, y: s.y + g[k].y / 4 }), { x: 0, y: 0 })
+            pose = { a: toScreen(grip.x, grip.y), b: toScreen((h[4].x + h[8].x) / 2, (h[4].y + h[8].y) / 2) }
+          }
+        }
+        if (pose) {
+          const k = bow.state === "idle" ? 1 : 0.5
+          bow.a.lerp(new THREE.Vector2(...pose.a), k)
+          bow.b.lerp(new THREE.Vector2(...pose.b), k)
+          bow.lost = 0
+          if (bow.state === "idle") Object.assign(bow, { state: "aim", since: now })
+          else if (bow.state === "aim" && now - bow.since > 300) Object.assign(bow, { state: "draw", since: now })
+        } else if (bow.state !== "idle") {
+          bow.lost ||= now
+          // A short loss is the tracker blinking; a longer one is the release.
+          if (now - bow.lost > 120) {
+            if (bow.state === "draw" && now - bow.since > 450) shoot("recon", now)
+            bow.state = "idle"
+          }
+        }
+        if (bow.state !== "idle") handInfo += ` · arco (${bow.state === "aim" ? "mirando" : "puxando"})`
+      }
+      // The dock's Flecha: the bow drawn beside the face, toward the side with more room, shot by itself.
+      function autoBow(now) {
+        if (sova.arrow || sova.bow.auto) return
+        const f = faceBox()
+        const side = f.c.x < 0.5 ? 1 : -1
+        sova.bow.a.set(clamp01(f.c.x + side * f.w * 2.3, 0.08, 0.92), f.c.y - f.w * 0.5)
+        sova.bow.b.set(f.c.x + side * f.w * 0.5, f.c.y - f.w * 0.45)
+        Object.assign(sova.bow, { state: "draw", since: now, auto: now })
+      }
+      function shoot(kind, now) {
+        const bow = sova.bow
+        const dir = bow.a.clone().sub(bow.b)
+        if (dir.lengthSq() < 1e-8) dir.set(1, 0)
+        dir.normalize()
+        const from = bow.a.clone().addScaledVector(dir, 0.02)
+        const to = toEdge(from, dir)
+        sova.arrow = { kind, from, to, t0: now, dur: Math.max(120, (from.distanceTo(to) / 2.4) * 1000) }
+        sova.maskUntil = now + 5500
+      }
+      // The dock's Shock Bolt: it comes in from above on the far side and bursts by his shoulder.
+      function shockBolt(now) {
+        if (sova.arrow) return
+        const f = faceBox()
+        const side = f.c.x < 0.5 ? 1 : -1
+        const to = new THREE.Vector2(clamp01(f.c.x + side * f.w * 1.3), clamp01(f.c.y - f.w * 1.4))
+        const from = new THREE.Vector2(side > 0 ? 1.05 : -0.05, 0.95)
+        sova.arrow = { kind: "choque", from, to, t0: now, dur: 300 }
+      }
+      function startUlt(now) {
+        if (sova.ult) return
+        const f = faceBox()
+        const ys = [f.c.y - f.w * 0.1, f.c.y - f.w * 1.5, f.c.y + f.w * 0.2].map((y) => clamp01(y, 0.1, 0.9))
+        sova.ult = { t0: now, side: f.c.x < 0.5 ? 1 : -1, ys, aim: f.c.clone(), fired: 0 }
+        sova.maskUntil = now + 4500
+      }
+      function startDrone(now) {
+        if (sova.drone) return
+        sova.drone = { t0: now, side: faceBox().c.x > 0.5 ? -1 : 1 }
+        sova.maskUntil = now + 7500
+      }
+
+      // The Owl Drone, made of shapes (no model of it): a white body, a dark visor with a big cyan eye, owl's ear
+      // tufts and two arms with spinning rotors. It lives in the 3D camera's space, in centimetres.
+      const droneScene = new THREE.Scene()
+      droneScene.add(new THREE.HemisphereLight(0xffffff, 0x334466, 2.4))
+      const droneSun = new THREE.DirectionalLight(0xffffff, 2.2)
+      droneSun.position.set(0.3, 1, 1)
+      droneScene.add(droneSun)
+      const drone = new THREE.Group()
+      drone.visible = false
+      droneScene.add(drone)
+      const rotors = []
+      const droneEye = new THREE.Object3D()
+      {
+        const shell = new THREE.MeshStandardMaterial({ color: 0xe9eef7, metalness: 0.15, roughness: 0.45 })
+        const dark = new THREE.MeshStandardMaterial({ color: 0x1b2440, metalness: 0.45, roughness: 0.4 })
+        const glowMat = new THREE.MeshBasicMaterial({ color: 0x7ee8ff })
+        const body = new THREE.Mesh(new THREE.SphereGeometry(3, 24, 16), shell)
+        body.scale.set(1, 0.88, 1.05)
+        drone.add(body)
+        const visor = new THREE.Mesh(new THREE.SphereGeometry(2.3, 24, 12, 0, Math.PI * 2, 0, 1.0), dark)
+        visor.rotation.x = Math.PI / 2
+        visor.position.z = 1.2
+        drone.add(visor)
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 12), glowMat)
+        eye.position.z = 3.25
+        drone.add(eye)
+        droneEye.position.z = 3.6
+        drone.add(droneEye)
+        const halo = document.createElement("canvas")
+        halo.width = halo.height = 64
+        const hc = halo.getContext("2d")
+        const grad = hc.createRadialGradient(32, 32, 0, 32, 32, 32)
+        grad.addColorStop(0, "rgba(126,232,255,0.9)")
+        grad.addColorStop(1, "rgba(126,232,255,0)")
+        hc.fillStyle = grad
+        hc.fillRect(0, 0, 64, 64)
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(halo), blending: THREE.AdditiveBlending, depthWrite: false }))
+        sprite.scale.setScalar(5.5)
+        sprite.position.z = 3.4
+        drone.add(sprite)
+        for (const s of [-1, 1]) {
+          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.75, 2.1, 4), dark)
+          ear.position.set(s * 1.5, 2.7, 0.2)
+          ear.rotation.z = -s * 0.35
+          drone.add(ear)
+          const arm = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.45, 1.5), dark)
+          arm.position.set(s * 4.3, 0.5, -0.3)
+          arm.rotation.z = s * 0.22
+          drone.add(arm)
+          const ring = new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.22, 8, 24), dark)
+          ring.position.set(s * 6.7, 1.0, -0.3)
+          ring.rotation.x = Math.PI / 2
+          drone.add(ring)
+          const blur = new THREE.Mesh(
+            new THREE.CircleGeometry(1.75, 24),
+            new THREE.MeshBasicMaterial({ color: 0x7ee8ff, transparent: true, opacity: 0.25, depthWrite: false, side: THREE.DoubleSide }),
+          )
+          blur.position.copy(ring.position)
+          blur.rotation.x = -Math.PI / 2
+          drone.add(blur)
+          const rotor = new THREE.Group()
+          rotor.position.copy(ring.position)
+          for (const r of [0, Math.PI / 2]) {
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.08, 0.32), shell)
+            blade.rotation.y = r
+            rotor.add(blade)
+          }
+          drone.add(rotor)
+          rotors.push(rotor)
+        }
+      }
+      const DRONE = { IN: 1.2, TAG: 3.4, OUT: 5.8, END: 7.0 }
+      const ease = (t) => t * t * (3 - 2 * t)
+      // Places the drone for this frame; returns how revealed Luan is by its dart.
+      function updateDrone(now, dt) {
+        const d = sova.drone
+        const u = uniforms
+        u.uDartLineAmt.value = 0
+        if (!d) return 0
+        const t = (now - d.t0) / 1000
+        if (t > DRONE.END) {
+          sova.drone = null
+          drone.visible = false
+          return 0
+        }
+        const base = headSeen ? headPos.clone() : new THREE.Vector3(0, 0, -60)
+        const hover = base.clone().add(new THREE.Vector3(d.side * 21, 9, 4))
+        const away = base.clone().add(new THREE.Vector3(d.side * 75, 30, -10))
+        const p = t < DRONE.IN ? away.clone().lerp(hover, ease(t / DRONE.IN)) : t < DRONE.OUT ? hover : hover.clone().lerp(away, ease((t - DRONE.OUT) / (DRONE.END - DRONE.OUT)))
+        p.y += Math.sin(t * 3) * 0.9
+        drone.position.lerp(p, drone.visible ? 0.35 : 1)
+        drone.rotation.set(0.1, -d.side * 0.6, Math.sin(t * 2.1) * 0.12 + (t < DRONE.IN ? d.side * 0.3 : 0))
+        drone.scale.setScalar(1.15)
+        drone.visible = true
+        for (const r of rotors) r.rotation.y += dt * 40
+        // The dart: a streak from its eye to his face, then he's revealed.
+        const tt = t - DRONE.TAG
+        if (tt >= 0 && tt < 0.5) {
+          drone.updateMatrixWorld(true)
+          const e = droneEye.getWorldPosition(new THREE.Vector3()).project(headCam)
+          const f = faceBox()
+          u.uDartLine.value.set(e.x * 0.5 + 0.5, e.y * 0.5 + 0.5, f.c.x, f.c.y)
+          u.uDartLineAmt.value = tt < 0.3 ? 1 : 1 - (tt - 0.3) / 0.2
+        }
+        return tt >= 0.15 ? 1 - THREE.MathUtils.smoothstep(tt, 1.9, 2.4) : 0
+      }
+
+      function updateSova(now, dt) {
+        const u = uniforms
+        const bow = sova.bow
+        if (bow.auto && now - bow.auto > 750) {
+          shoot("recon", now)
+          Object.assign(bow, { auto: 0, state: "idle" })
+        }
+        const drawing = bow.state === "draw"
+        const lingering = sova.arrow?.kind === "recon" && now - sova.arrow.t0 < 160
+        bow.amt = THREE.MathUtils.clamp(bow.amt + (drawing || bow.state === "aim" || lingering ? dt / 0.15 : -dt / 0.25), 0, 1)
+        bow.charge = drawing ? Math.min(1, (now - bow.since) / 1100) : bow.state === "aim" ? 0 : -1
+        const f = faceBox()
+        u.uBowAmt.value = bow.amt
+        u.uBowA.value.copy(bow.a)
+        u.uBowB.value.copy(bow.b)
+        u.uBowSize.value = THREE.MathUtils.clamp(f.w * ASPECT * 0.8, 0.06, 0.2)
+        u.uCharge.value = bow.charge
+        // The arrow, until it lands: the recon leaves its dart, the shock bursts.
+        u.uArrowK.value = -1
+        if (sova.arrow) {
+          const a = sova.arrow
+          const k = (now - a.t0) / a.dur
+          if (k >= 1) {
+            if (a.kind === "recon") sova.dart = { at: a.to.clone(), t0: now }
+            else {
+              sova.shock = { at: a.to.clone(), t0: now }
+              shake(380, 10, now)
+            }
+            sova.arrow = null
+          } else {
+            u.uArrowK.value = k
+            u.uArrowFrom.value.copy(a.from)
+            u.uArrowTo.value.copy(a.to)
+            u.uArrowKind.value = a.kind === "recon" ? 0 : 1
+          }
+        }
+        // The dart and its rings; how revealed the head is, for the marker.
+        let headRv = 0
+        const markAt = new THREE.Vector2(f.top.x, Math.min(0.94, f.top.y + f.h * 0.7))
+        u.uDart.value.z = 0
+        u.uPulse.value.set(-1, -1)
+        if (sova.dart) {
+          const t = (now - sova.dart.t0) / 1000
+          if (t > 3.8) sova.dart = null
+          else {
+            const tp = PULSES.map((p) => t - p)
+            u.uPulse.value.set(tp[0] >= 0 ? tp[0] : -1, tp[1] >= 0 ? tp[1] : -1)
+            u.uDart.value.set(sova.dart.at.x, sova.dart.at.y, Math.min(1, t / 0.1) * (1 - THREE.MathUtils.smoothstep(t, 3.1, 3.8)))
+            const dd = Math.hypot((markAt.x - sova.dart.at.x) * ASPECT, markAt.y - sova.dart.at.y)
+            for (const x of tp) {
+              const passed = x * RING_SPEED - dd
+              if (x >= 0 && passed > 0) headRv = Math.max(headRv, Math.exp(-passed / (RING_SPEED * 0.9)))
+            }
+          }
+        }
+        u.uShock.value.z = -1
+        if (sova.shock) {
+          const t = (now - sova.shock.t0) / 1000
+          if (t > 0.9) sova.shock = null
+          else u.uShock.value.set(sova.shock.at.x, sova.shock.at.y, t)
+        }
+        // Hunter's Fury: each blast shakes the camera and reveals him.
+        let reveal = 0
+        u.uUltT.value = -1
+        if (sova.ult) {
+          const ult = sova.ult
+          const t = (now - ult.t0) / 1000
+          if (t > 3.9) sova.ult = null
+          else {
+            u.uUltT.value = t
+            u.uUltSide.value = ult.side
+            u.uUltY.value.set(...ult.ys)
+            u.uUltAim.value.copy(ult.aim)
+            while (ult.fired < 3 && t >= ULT_BLASTS[ult.fired]) {
+              shake(260, 14, now)
+              ult.fired++
+            }
+            for (const b of ULT_BLASTS) if (t >= b) reveal = Math.max(reveal, Math.exp(-(t - b) / 0.6))
+          }
+        }
+        reveal = Math.max(reveal, updateDrone(now, dt))
+        u.uReveal.value = reveal
+        u.uMark.value.set(markAt.x, markAt.y, Math.max(reveal, headRv) > 0.15 ? Math.min(1, Math.max(reveal, headRv) * 1.5) : 0)
+      }
+
+      // ---------- the cars on the face: Octane, Fennec ----------
+      // Rocket League's cars by Jako (CC BY 4.0, public/models/) as Luan's head, Pixar-style: seen a little from
+      // above, turning with the head, his own eyes on the windshield and his mouth on the bumper, cut from the
+      // camera every frame (so it blinks and talks). The models face +x with +y up.
+      const CARS = { octane: { url: "../models/octane.glb" }, fennec: { url: "../models/fennec.glb" } }
+      const CAR_W = Number(q.get("carro") || 26)
+      const CAR_PITCH = THREE.MathUtils.degToRad(Number(q.get("inclinacao") ?? 10))
+      const CAR_LEN = Number(q.get("comprimento") || 0.6)
+      const CAR_AT = (q.get("posicao") || "0,0.5,-8").split(",").map(Number)
+      // An eye's height for its width (the camera's cut has the same shape).
+      const EYE_H = 0.75
+      // Reflections for the paint, from a neutral room.
+      let carEnv = null
+      // The eyes and the mouth, cut from the camera into one small canvas: the eyes side by side over the mouth.
+      const partsCanvas = document.createElement("canvas")
+      partsCanvas.width = 512
+      partsCanvas.height = 256
+      const partsCtx = partsCanvas.getContext("2d")
+      const partsTex = new THREE.CanvasTexture(partsCanvas)
+      partsTex.colorSpace = THREE.NoColorSpace
+      partsTex.minFilter = THREE.LinearFilter
+      partsTex.generateMipmaps = false
+      // A part: an ellipse of the canvas, with a dark rim like a cartoon's line.
+      function partMat(rect) {
+        return new THREE.ShaderMaterial({
+          uniforms: { uTex: { value: partsTex }, uRect: { value: new THREE.Vector4(...rect) } },
+          vertexShader: /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+          fragmentShader: /* glsl */ `
+            uniform sampler2D uTex;
+            uniform vec4 uRect;
+            varying vec2 vUv;
+            void main() {
+              float e = length((vUv - 0.5) * 2.0);
+              if (e > 1.0) discard;
+              vec3 c = texture2D(uTex, uRect.xy + vUv * uRect.zw).rgb;
+              c = mix(c, vec3(0.03, 0.03, 0.08), smoothstep(0.85, 0.89, e));
+              gl_FragColor = vec4(c, smoothstep(1.0, 0.96, e));
+            }`,
+          transparent: true,
+          depthWrite: false,
+          polygonOffset: true,
+          polygonOffsetFactor: -4,
+          polygonOffsetUnits: -4,
+        })
+      }
+      for (const [id, c] of Object.entries(CARS)) {
+        Object.assign(c, { id, amt: 0, ready: false, group: new THREE.Group(), body: new THREE.Group(), boom: -1, flip: -1 })
+        c.group.visible = false
+        c.group.add(c.body)
+        head.add(c.group)
+        new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(c.url, (gltf) => buildCar(c, gltf.scene), undefined, (e) => fail(id, e))
+      }
+      const carList = Object.values(CARS)
+      function buildCar(c, m) {
+        if (!carEnv) {
+          const pm = new THREE.PMREMGenerator(renderer)
+          carEnv = pm.fromScene(new RoomEnvironment(), 0.04).texture
+          pm.dispose()
+        }
+        m.updateMatrixWorld(true)
+        const meshes = []
+        m.traverse((o) => {
+          if (!o.isMesh) return
+          meshes.push(o)
+          if (o.material.map) o.material.map.colorSpace = THREE.NoColorSpace
+          o.material.envMap = carEnv
+          // A dark, quiet windshield, so the eyes on it read.
+          if (/Window/.test(o.material.name)) Object.assign(o.material, { envMapIntensity: 0.25, roughness: 0.6, color: new THREE.Color(0x0b1020) })
+        })
+        const box = new THREE.Box3().setFromObject(m)
+        const size = box.getSize(new THREE.Vector3())
+        const center = box.getCenter(new THREE.Vector3())
+        const inner = new THREE.Group()
+        inner.position.copy(center).multiplyScalar(-1)
+        inner.add(m)
+        // The windshield: the glass facing forward and up (its centre, its normal, how wide it is).
+        const ws = { at: new THREE.Vector3(), n: new THREE.Vector3(), area: 0, zMin: Infinity, zMax: -Infinity }
+        const A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), N = new THREE.Vector3(), E = new THREE.Vector3()
+        for (const o of meshes.filter((o) => /Window/.test(o.material.name))) {
+          const pos = o.geometry.getAttribute("position")
+          const idx = o.geometry.index
+          const count = idx ? idx.count : pos.count
+          for (let t = 0; t < count; t += 3) {
+            const [i, j, k] = idx ? [idx.getX(t), idx.getX(t + 1), idx.getX(t + 2)] : [t, t + 1, t + 2]
+            A.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld)
+            B.fromBufferAttribute(pos, j).applyMatrix4(o.matrixWorld)
+            C.fromBufferAttribute(pos, k).applyMatrix4(o.matrixWorld)
+            N.subVectors(B, A).cross(E.subVectors(C, A))
+            const area = N.length() / 2
+            if (!area) continue
+            N.normalize()
+            if (N.y < 0) N.negate()
+            if (N.x < 0.3 || N.y < 0.25) continue
+            ws.zMin = Math.min(ws.zMin, A.z, B.z, C.z)
+            ws.zMax = Math.max(ws.zMax, A.z, B.z, C.z)
+            ws.at.addScaledVector(A.add(B).add(C), area / 3)
+            ws.n.addScaledVector(N, area)
+            ws.area += area
+          }
+        }
+        const eyeAt = ws.area ? ws.at.divideScalar(ws.area) : new THREE.Vector3(center.x + size.x * 0.1, box.max.y - size.y * 0.2, center.z)
+        const eyeN = ws.area ? ws.n.normalize() : new THREE.Vector3(0.6, 0.8, 0).normalize()
+        const eyeW = ws.area ? ws.zMax - ws.zMin : size.z * 0.6
+        // The mouth: on the front, a little above the bottom, where a ray from ahead meets it.
+        const mouthY = box.min.y + size.y * 0.27
+        const hit = new THREE.Raycaster(new THREE.Vector3(box.max.x + 100, mouthY, center.z), new THREE.Vector3(-1, 0, 0)).intersectObjects(meshes, false)[0]
+        const mouthAt = hit ? hit.point.clone() : new THREE.Vector3(box.max.x, mouthY, center.z)
+        // Screen right once the car faces the camera is the model's −z.
+        const right = new THREE.Vector3(0, 0, -1)
+        const along = (n) => right.clone().addScaledVector(n, -right.dot(n)).normalize()
+        const patch = (at, n, w, h, rect, out = 0.6) => {
+          const r = along(n)
+          const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), partMat(rect))
+          p.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(r, new THREE.Vector3().crossVectors(n, r), n))
+          p.position.copy(at).addScaledVector(n, out)
+          p.renderOrder = 2
+          inner.add(p)
+        }
+        // The eyes face halfway between the glass and straight ahead, so they stay round seen from the front, a
+        // little up the glass and out of it so the hood doesn't cut them; at least big enough to read on a small
+        // windshield like the Octane's.
+        const span = Math.max(eyeW, size.z * 0.62)
+        const ew = span * 0.44
+        const en = eyeN.clone().add(new THREE.Vector3(1, 0, 0)).normalize()
+        const r = along(en)
+        const at = eyeAt.clone().addScaledVector(new THREE.Vector3().crossVectors(en, r), ew * EYE_H * 0.22)
+        patch(at.clone().addScaledVector(r, -span * 0.245), en, ew, ew * EYE_H, [0, 0.5, 0.5, 0.5], 3)
+        patch(at.clone().addScaledVector(r, span * 0.245), en, ew, ew * EYE_H, [0.5, 0.5, 0.5, 0.5], 3)
+        const mw = size.z * 0.36
+        patch(mouthAt, new THREE.Vector3(1, 0, 0), mw, mw * 0.46, [0, 0, 1, 0.5])
+        // CAR_W cm across, facing the camera, its length shortened a little (less perspective, more cartoon).
+        const s = CAR_W / size.z
+        c.body.rotation.y = -Math.PI / 2
+        c.body.scale.set(s * CAR_LEN, s, s)
+        c.body.add(inner)
+        c.group.position.set(...CAR_AT)
+        c.ready = true
+      }
+      // His eyes (with the brows) and mouth from the camera, levelled (the car leans with the head by itself).
+      function drawParts() {
+        const vw = video.videoWidth
+        const vh = video.videoHeight
+        const P = (i) => [faceLm[i].x * vw, faceLm[i].y * vh]
+        const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+        const len = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1])
+        const eyes = [
+          [33, 133],
+          [362, 263],
+        ]
+          .map(([i, j]) => ({ c: mid(P(i), P(j)), w: len(P(i), P(j)) }))
+          .sort((a, b) => a.c[0] - b.c[0])
+        const ang = Math.atan2(eyes[1].c[1] - eyes[0].c[1], eyes[1].c[0] - eyes[0].c[0])
+        const up = [Math.sin(ang), -Math.cos(ang)]
+        const ctx = partsCtx
+        const cut = (cx, cy, w, h, dx, dy, dw, dh) => {
+          ctx.save()
+          ctx.filter = "brightness(1.15) contrast(1.12) saturate(1.1)"
+          ctx.beginPath()
+          ctx.rect(dx, dy, dw, dh)
+          ctx.clip()
+          ctx.translate(dx + dw / 2, dy + dh / 2)
+          ctx.scale(dw / w, dh / h)
+          ctx.rotate(-ang)
+          ctx.translate(-cx, -cy)
+          ctx.drawImage(video, 0, 0, vw, vh)
+          ctx.restore()
+        }
+        eyes.forEach((e, i) => {
+          const w = e.w * 2.2
+          cut(e.c[0] + up[0] * e.w * 0.15, e.c[1] + up[1] * e.w * 0.15, w, w * EYE_H, i * 256, 0, 256, 128)
+        })
+        const mc = mid(mid(P(61), P(291)), mid(P(0), P(17)))
+        const mw = len(P(61), P(291)) * 1.7
+        cut(mc[0], mc[1], mw, mw * 0.46, 0, 128, 512, 128)
+        partsTex.needsUpdate = true
+      }
+      function updateCars(now) {
+        for (const c of carList) {
+          c.group.visible = c.amt > 0 && c.ready
+          if (!c.group.visible) continue
+          let k = easeOutBack(c.amt)
+          // Demolished: gone for 2.2 s, then back with a pop.
+          if (c.boom >= 0) {
+            const t = (now - c.boom) / 1000
+            k *= t < 0.06 ? 1 - t / 0.06 : t < 2.2 ? 0 : easeOutBack(Math.min(1, (t - 2.2) / 0.35))
+            if (t > 2.6) c.boom = -1
+          }
+          let flip = 0
+          if (c.flip >= 0) {
+            const t = (now - c.flip) / 450
+            flip = t < 1 ? (1 - (1 - t) ** 3) * Math.PI * 2 : 0
+            if (t >= 1) c.flip = -1
+          }
+          c.group.scale.setScalar(Math.max(k, 1e-4))
+          c.group.rotation.x = CAR_PITCH + flip
+        }
+        // The explosion follows where the car was.
+        const c = carList.find((c) => c.boom >= 0)
+        uniforms.uBoomT.value = -1
+        if (c && headSeen) {
+          const t = (now - c.boom) / 1000
+          if (t < 2.4) {
+            c.group.updateWorldMatrix(true, false)
+            const at = c.group.getWorldPosition(new THREE.Vector3())
+            const p = at.clone().project(headCam)
+            const q2 = at.clone().add(new THREE.Vector3(CAR_W / 2, 0, 0)).project(headCam)
+            uniforms.uBoom.value.set(p.x * 0.5 + 0.5, p.y * 0.5 + 0.5, Math.max(0.05, (Math.abs(q2.x - p.x) / 2) * ASPECT))
+            uniforms.uBoomT.value = t
+          }
+        }
+      }
+      function demo(now) {
+        const c = CARS[mode]
+        if (c && c.boom < 0) c.boom = now
+      }
+      function flipCar(now) {
+        const c = CARS[mode]
+        if (c && c.flip < 0 && c.boom < 0) c.flip = now
+      }
+
       // ---------- models ----------
       let gestures, segmenter, faces, poses, delegate
       async function loadModels() {
@@ -1037,12 +1932,11 @@
       }
 
       // ---------- state ----------
-      const MODES = ["bola", "phoenix", "pop", "lente"]
+      const MODES = ["bola", "phoenix", "sova", "octane", "fennec", "pop", "lente"]
       let mode = MODES.includes(q.get("modo")) ? q.get("modo") : "nenhum"
       let pop = 0
       let ballIn = 0
       const ms = { gesto: 0, corpo: 0, rosto: 0, ombros: 0 }
-      let phoenix = 0
       const fire = { on: false, demo: false, amt: 0, at: new THREE.Vector3(0.5, 0.35, 0.1), lastOn: -1e9 }
       const bang = { t0: -1, key: null, startX: 0, hand: new THREE.Vector2(0.75, 0.45), thrown: false }
       const snaps = new Map()
@@ -1058,16 +1952,24 @@
       function setMode(m) {
         mode = MODES.includes(m) ? m : "nenhum"
         titulo.classList.toggle("on", mode === "pop")
-        // Phoenix's flash goes with him.
+        // Each agent's abilities go with him.
         if (mode !== "phoenix") {
           bang.t0 = -1
           uniforms.uOrbAmt.value = uniforms.uFlashAmt.value = 0
         }
+        if (mode !== "sova") sovaReset()
+      }
+      // A one-off, from the dock or a key: only for the filter that has it.
+      function acao(a) {
+        const now = performance.now()
+        if (mode === "phoenix" && a === "flash") startBang(0.75, 0.45, null)
+        if (mode === "sova") ({ recon: autoBow, choque: shockBolt, drone: startDrone, ult: startUlt })[a]?.(now)
+        if (CARS[mode]) ({ demo, flip: flipCar })[a]?.(now)
       }
       // The dock's word (obs-browser's emit_event): the filter that should be on, or a one-off.
       addEventListener("muanlartins-filtro", ({ detail }) => {
         if (detail?.filtro && detail.filtro !== mode) setMode(detail.filtro)
-        if (detail?.acao === "flash" && mode === "phoenix") startBang(0.75, 0.45, null)
+        if (detail?.acao) acao(detail.acao)
       })
       addEventListener("keydown", (e) => {
         if (e.key === "1") setMode(mode === "pop" ? "nenhum" : "pop")
@@ -1076,9 +1978,16 @@
         if (e.key === "4") startBang(0.75, 0.45, null)
         if (e.key === "5") fire.demo = !fire.demo
         if (e.key === "6") setMode(mode === "lente" ? "nenhum" : "lente")
+        if (e.key === "7") setMode(mode === "sova" ? "nenhum" : "sova")
+        if (e.key === "8") setMode(mode === "octane" ? "nenhum" : "octane")
+        if (e.key === "9") setMode(mode === "fennec" ? "nenhum" : "fennec")
+        const k = e.key.toLowerCase()
+        const keys = { e: "recon", q: "choque", c: "drone", x: "ult", d: "demo", f: "flip" }
+        if (keys[k]) acao(keys[k])
         if (e.key === "0") setMode("nenhum")
       })
       setMode(mode)
+      if (q.has("debug")) window.filtros = { sova, AGENTS, CARS, uniforms, acao, get mode() { return mode } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -1097,6 +2006,7 @@
         const ls = mode === "lente" ? hands.filter(isL) : []
         handInfo = `${hands.length} mão(s), ${ls.length} em L`
         if (mode === "phoenix") phoenixHands(r, now)
+        if (mode === "sova") sovaHands(hands, now)
         if (ls.length === 2) {
           ls.sort((a, b) => a[0].x - b[0].x)
           const [L, R] = ls
@@ -1367,12 +2277,16 @@
           hud.textContent = `parado: ${!showing ? "fonte fora da tela" : !box ? `sem caixa de câmera na cena "${sceneName}"` : "sem câmera"}` + (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
           return
         }
+        const phoenix = AGENTS.phoenix.amt
+        const agentOn = agentList.some((a) => a.amt > 0) || !!AGENTS[mode]
+        const carOn = carList.some((c) => c.amt > 0) || !!CARS[mode]
+        const sovaOn = mode === "sova" || AGENTS.sova.amt > 0
         if (gestures && video.readyState >= 2 && video.currentTime !== lastFrame) {
           lastFrame = video.currentTime
           try {
             videoFrames++
             // The hands are tracked only for the filters that use them (no gesture switches a filter).
-            if (mode === "phoenix" || phoenix > 0 || mode === "pop" || pop > 0 || mode === "lente") runGestures(now)
+            if (mode === "phoenix" || phoenix > 0 || sovaOn || mode === "pop" || pop > 0 || mode === "lente") runGestures(now)
             else {
               lastHands = []
               pushes = []
@@ -1380,28 +2294,35 @@
               fire.on = false
               handInfo = "mãos sem uso"
             }
-            if (mode === "pop" || pop > 0) runBody(now)
-            const ph = mode === "phoenix" || phoenix > 0
-            if (mode === "bola" || ballIn > 0 || ph) runFace(now)
-            if (ph) {
-              if (ERASE && mode !== "pop" && pop <= 0) runBody(now)
+            // The body mask: Pop, and Sova's reveals while one may be on screen.
+            const sovaMask = sovaOn && now < sova.maskUntil
+            if (mode === "pop" || pop > 0 || sovaMask) runBody(now)
+            if (mode === "bola" || ballIn > 0 || agentOn || carOn) runFace(now)
+            if (agentOn) {
+              if (ERASE && mode !== "pop" && pop <= 0 && !sovaMask) runBody(now)
               if (videoFrames % 2 === 0) runPose(now)
               if (ERASE && videoFrames % 15 === 0) sampleBackground()
             }
+            if (carOn && faceLm) drawParts()
           } catch (e) {
             fail("modelos", e)
           }
         }
         pop = THREE.MathUtils.clamp(pop + (mode === "pop" ? dt / 0.55 : -dt / 0.4), 0, 1)
         ballIn = THREE.MathUtils.clamp(ballIn + (mode === "bola" ? dt / 0.35 : -dt / 0.25), 0, 1)
-        phoenix = THREE.MathUtils.clamp(phoenix + (mode === "phoenix" ? dt / 0.4 : -dt / 0.3), 0, 1)
+        for (const a of agentList) a.amt = THREE.MathUtils.clamp(a.amt + (mode === a.id ? dt / 0.4 : -dt / 0.3), 0, 1)
+        for (const c of carList) c.amt = THREE.MathUtils.clamp(c.amt + (mode === c.id ? dt / 0.35 : -dt / 0.25), 0, 1)
+        const agentAmt = Math.max(...agentList.map((a) => a.amt))
+        const carAmt = Math.max(...carList.map((c) => c.amt))
         const fireWanted = phoenix > 0 && (fire.on || fire.demo)
         if (fire.demo && !fire.on) fire.at.set(0.5, 0.3, 0.11)
         fire.amt = THREE.MathUtils.clamp(fire.amt + (fireWanted ? dt / 0.25 : -dt / 0.35), 0, 1)
-        uniforms.uErase.value = headSeen && ERASE ? phoenix : 0
+        uniforms.uErase.value = headSeen && ERASE ? agentAmt : 0
         uniforms.uFire.value.copy(fire.at)
         uniforms.uFireAmt.value = fire.amt
         if (bang.t0 >= 0) updateBang(now)
+        if (sovaOn) updateSova(now, dt)
+        updateCars(now)
         lens.amt = THREE.MathUtils.clamp(lens.amt + (lens.on ? dt / 0.15 : -dt / 0.2), 0, 1)
         energy *= Math.pow(0.25, dt)
 
@@ -1416,10 +2337,17 @@
         renderer.setViewport(0, 0, W, H)
         renderer.clear()
         const [bx, by, bw, bh] = box
-        renderer.setViewport(bx, H - by - bh, bw, bh)
+        // Sova's shocks shake the camera: the whole box's picture moves a few pixels, inside the box.
+        let sx = 0, sy = 0
+        if (now < sova.shakeUntil) {
+          const k = ((sova.shakeUntil - now) / sova.shakeLen) * sova.shakeAmp * (bw / 480) ** 0.5
+          sx = Math.round((Math.random() * 2 - 1) * k)
+          sy = Math.round((Math.random() * 2 - 1) * k)
+        }
+        renderer.setViewport(bx + sx, H - by - bh + sy, bw, bh)
         renderer.setScissor(bx, H - by - bh, bw, bh)
         renderer.setScissorTest(true)
-        if (!IN_OBS || mode !== "nenhum" || pop > 0 || ballIn > 0 || phoenix > 0) renderer.render(baseScene, ortho)
+        if (!IN_OBS || mode !== "nenhum" || pop > 0 || ballIn > 0 || agentAmt > 0 || carAmt > 0) renderer.render(baseScene, ortho)
         if (pop > 0) {
           updateShapes(dt, pop, pushes)
           renderer.clearDepth()
@@ -1428,34 +2356,50 @@
           renderer.clearDepth()
           renderer.render(front, shapeCam)
         }
-        if (phoenix > 0 && phoenixModel.ready) {
+        // The agents' clothes on the shoulders, then Luan's face and hands back over them.
+        const ready = agentList.filter((a) => a.amt > 0 && a.ready)
+        for (const a of ready) {
           if (pose.seen && headSeen) {
-            placeTorso()
-            const k = torsoScale * TORSO_K * easeOutBack(phoenix)
-            torso.matrix.compose(torsoPos, torsoQuat, new THREE.Vector3(k, k, k))
-            torso.visible = true
+            placeTorso(a)
+            const k = a.scale * TORSO_K * easeOutBack(a.amt)
+            a.torso.matrix.compose(a.pos, a.quat, new THREE.Vector3(k, k, k))
+            a.torso.visible = true
             head.visible = false
             renderer.clearDepth()
             renderer.render(ballScene, headCam)
-            torso.visible = false
-          } else torsoSeen = false
+            a.torso.visible = false
+          } else a.seen = false
+        }
+        if (ready.length) {
           drawKeep()
           renderer.render(keepScene, ortho)
         }
-        hair.visible = phoenix > 0
-        hair.scale.set(1, easeOutBack(phoenix), 1)
+        for (const a of agentList) {
+          a.hair.visible = a.amt > 0
+          a.hair.scale.set(1, easeOutBack(a.amt), 1)
+        }
         ball.visible = ballIn > 0
-        // The ball's metal wants strong light; Phoenix's painted textures wash out under it.
-        sky.intensity = phoenix > 0 ? 1.7 : 3.2
-        key.intensity = phoenix > 0 ? 1.5 : 3
-        if ((ballIn > 0 || phoenix > 0) && headSeen) {
+        // The ball's metal wants strong light; the agents' painted textures wash out under it; the cars have
+        // their reflections.
+        sky.intensity = agentAmt > 0 ? 1.7 : carAmt > 0 ? 1.4 : 3.2
+        key.intensity = agentAmt > 0 ? 1.5 : carAmt > 0 ? 1.8 : 3
+        if ((ballIn > 0 || agentAmt > 0 || carAmt > 0) && headSeen) {
           head.visible = true
           ball.scale.setScalar(easeOutBack(ballIn))
           // It turns slowly on the head, on top of the head's own turning (?giro= turns a second, 0 for still).
           ball.rotation.y += dt * BALL_SPIN
           renderer.clearDepth()
           renderer.render(ballScene, headCam)
+          if (ready.some((a) => a.behind)) renderer.render(keepScene, ortho)
         }
+        if (sovaOn) {
+          renderer.render(sovaScene, ortho)
+          if (drone.visible) {
+            renderer.clearDepth()
+            renderer.render(droneScene, headCam)
+          }
+        }
+        if (uniforms.uBoomT.value >= 0) renderer.render(boomScene, ortho)
         if (fire.amt > 0) renderer.render(fireScene, ortho)
         if (lens.amt > 0) renderer.render(lensScene, ortho)
         if (uniforms.uOrbAmt.value > 0) renderer.render(bangScene, ortho)
@@ -1467,11 +2411,13 @@
           fps = (frames * 1000) / (now - fpsAt)
           frames = 0
           fpsAt = now
+          const ag = AGENTS[mode] || CARS[mode]
           hud.textContent =
             `${fps.toFixed(0)} fps · ${delegate || "…"} · ${camLabel}\n` +
             `gesto ${ms.gesto.toFixed(1)} ms · corpo ${ms.corpo.toFixed(1)} ms · rosto ${ms.rosto.toFixed(1)} ms · ombros ${ms.ombros.toFixed(1)} ms\n` +
             `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}` +
-            (mode === "phoenix" ? `\nphoenix: modelo ${phoenixModel.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"} · ombros ${pose.seen ? "sim" : "não"}` : "") +
+            (ag ? `\n${mode}: modelo ${ag.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"}${AGENTS[mode] ? ` · ombros ${pose.seen ? "sim" : "não"}` : ""}` : "") +
+            (mode === "sova" ? `\nsova: arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? " · flecha" : ""}${sova.dart ? " · dardo" : ""}${sova.shock ? " · choque" : ""}${sova.drone ? " · coruja" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
             (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
         }
       }

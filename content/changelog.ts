@@ -127,6 +127,18 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "filtros-sova-e-carros",
+    date: "2026-11-10",
+    tag: "live",
+    title: "Filtros na câmera: Sova, Octane e Fennec",
+    text: "O Sova com arco, flecha de reconhecimento que me revela em vermelho, choque, coruja e ultimate; e a minha cara virando um Octane ou um Fennec, com os meus olhos no para-brisa e a boca no para-choque, que ainda explode numa demolição.",
+    media: [
+      media("filtros-sova", "Luan de Sova, revelado em vermelho pela flecha de reconhecimento"),
+      media("filtros-octane", "Luan com a cara de Octane: os olhos dele no para-brisa e a boca no para-choque"),
+      media("filtros-fennec", "Luan com a cara de Fennec: os olhos dele no para-brisa e a boca no para-choque"),
+    ],
+  },
+  {
     id: "creditos-da-live",
     date: "2026-11-10",
     tag: "live",

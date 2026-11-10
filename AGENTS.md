@@ -154,7 +154,7 @@ How the page works:
 - GLTFLoader rewrites node names, so find parts by material name: the Octane's paint is the material `Octane_Body`.
 - Models are compressed with `npx @gltf-transform/cli@4 optimize in.glb out.glb --compress meshopt --texture-compress webp --texture-size <px> --palette false`. Keep `--palette false`, or the body paint is merged into a shared palette material and can't be recoloured.
 - Rank emblems come from `github.com/manucabral/rocket-league-rank-viewer` (`overlay/ranks/`), trimmed and converted to 192 px WebP. The Rocket League wiki's CDN refuses scripted downloads.
-- Credits, shown on the page: Rocket League and the rank emblems are Psyonix/Epic Games'; the site is unofficial. The Octane and ball models are by Jako (CC BY 4.0).
+- Credits, shown on the page: Rocket League and the rank emblems are Psyonix/Epic Games'; the site is unofficial. The Octane, Fennec and ball models are by Jako (CC BY 4.0); the Fennec is only on the stream's camera filters (`filtros.html`), where the Octane is too. The Valorant agents on the filters (`public/stream/privado/`, gitignored) are rips from the game (ILilMitch's Sketchfab uploads): never commit or publish them.
 - Each game's `credits` are shown under its pages. Valorant's are Riot's "Legal Jibber Jabber" text, which fan sites using its art must show; its rank emblems are Riot's, from `valorant-api.com` (`/v1/competitivetiers`, the latest table), trimmed to 192 px WebP in `public/ranks/valorant/`.
 
 ## Checking changes

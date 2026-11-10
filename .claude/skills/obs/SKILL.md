@@ -24,14 +24,15 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   under 1 VMAF point apart and ~40% smaller). Change it only with OBS closed.
 - Camera filters (`public/stream/filtros.html`): switched from the "Filtros" dock
   (`filtros-painel.html`, served from localhost:8126 too; `obs.py --apply` adds it with OBS closed), never by
-  gestures (Luan, 2026-11-10). The dock lists Phoenix and the ball (`FILTROS` there; Pop and the lens stay in the
-  page, off the dock) and tells the page with obs-browser's emit_event `muanlartins-filtro`
-  (`{"filtro": "bola" | "phoenix" | "nenhum"}`, `{"acao": "flash"}`), which `scripts/obs.mjs` can send as well
-  (`CallVendorRequest`). A new filter is a line in the dock's `FILTROS` and its id in the page's `MODES`. One browser
+  gestures (Luan, 2026-11-10). The dock lists Phoenix, Sova, the ball, the Octane and the Fennec (`FILTROS` there;
+  Pop and the lens stay in the page, off the dock) and tells the page with obs-browser's emit_event
+  `muanlartins-filtro` (`{"filtro": "phoenix" | "sova" | "bola" | "octane" | "fennec" | "nenhum"}`, and the one-offs
+  `{"acao": ...}`: Phoenix's `flash`; Sova's `recon`, `choque`, `drone`, `ult`; the cars' `demo`, `flip`), which
+  `scripts/obs.mjs` can send as well (`CallVendorRequest`). A new filter is a line in the dock's `FILTROS` and its id in the page's `MODES`. One browser
   source "Filtros", full screen and just above Câmera in RL + chat, Valorant + chat, Conversa and
   Terapia (page permission 2, so it can ask for the scene; the page draws in that scene's camera box and stays clear
   with no filter). It loads `http://localhost:8126/stream/filtros.html`, served from this working copy by
-  "Filtros muanlartins.vbs" in Startup (log `~/.cache/muanlartins/filtros.log`), because Phoenix's model
+  "Filtros muanlartins.vbs" in Startup (log `~/.cache/muanlartins/filtros.log`), because Phoenix's and Sova's models
   (`public/stream/privado/`, gitignored) must never reach the site. OBS has to start with
   `--enable-media-stream --use-fake-ui-for-media-stream` (set on the Public Desktop shortcut and a user Start Menu
   one, "OBS Studio (filtros)", and since 2026-11-09 the system Start Menu one too, edited elevated with Luan's UAC OK;
@@ -39,6 +40,10 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   logs `câmera NotAllowedError`; its HUD shows only with `?debug`). To debug,
   add `?debug` to the source's URL: the HUD shows fps, model times and why it's idle; its console errors land in
   OBS's log as `[obs-browser: 'Filtros']`.
+  To see a filter without OBS (not while he's live): headless Chrome with `--use-fake-device-for-media-stream
+  --use-fake-ui-for-media-stream --use-file-for-fake-video-capture=<clip>.y4m` (a few seconds of a live's
+  `Câmera.mkv` through ffmpeg, already framed, so add `?zoom=1`); `?debug` also exposes `window.filtros` (state,
+  uniforms, `acao`). Swiftshader runs it at about 1 fps, so slow the page's `performance.now` to catch an effect.
 - The camera's framing is OBS's, not NVIDIA Broadcast's: auto frame is off (Luan, 2026-11-08; the virtual
   background stays on) and a "Enquadramento" crop filter, first on Câmera in all three collections (Live, Shorts,
   Vídeo), crops him at about 1.75× (`CAMERA_CROP` in `brand/twitch/obs_shorts.py`). If he moves the camera, retune

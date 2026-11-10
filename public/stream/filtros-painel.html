@@ -119,7 +119,20 @@
       // The filters on the dock: filtros.html's id, the button's name, its one-offs ([id, name]) and a hint.
       const FILTROS = [
         { id: "phoenix", nome: "Phoenix", acoes: [["flash", "Flash"]], dica: "Fogo: as duas palmas abertas, de frente uma para a outra. O flash também sai com um estalo girando a mão." },
+        {
+          id: "sova",
+          nome: "Sova",
+          acoes: [
+            ["recon", "Flecha"],
+            ["choque", "Choque"],
+            ["drone", "Coruja"],
+            ["ult", "Ultimate"],
+          ],
+          dica: "Arco: estique um braço para o lado e feche a outra mão perto do rosto, como quem puxa a corda; abra a mão para atirar a flecha de reconhecimento.",
+        },
         { id: "bola", nome: "Bola" },
+        { id: "octane", nome: "Octane", acoes: [["demo", "Demolição"], ["flip", "Flip"]] },
+        { id: "fennec", nome: "Fennec", acoes: [["demo", "Demolição"], ["flip", "Flip"]] },
       ]
 
       const $ = (id) => document.getElementById(id)
