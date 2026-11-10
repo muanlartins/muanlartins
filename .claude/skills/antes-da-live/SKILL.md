@@ -52,6 +52,10 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 - The "Efeitos" dock open, for the VAR above all: it starts OBS's Replay Buffer with the stream or the recording
   and its "Replay Buffer" line says when it's off in Settings (Output → Replay Buffer, ~20 s). Without the dock, F8
   does nothing.
+- The "Efeitos" dock **connected to Twitch** too: it collects the day's follows, subs, gifts, bits and raids for the
+  credits that roll in "Fim" at the end. If its "Créditos de hoje" line asks to connect again (a sign-in from before
+  2026-11-10 lacks the scopes), Luan clicks Conectar there and types the code at twitch.tv/activate. To end the live,
+  "Fim" and let the credits roll to the closing card (about a minute, longer with a bigger audience).
 - **Save the replay after each match** (they land in `Documents\My Games\Rocket League\TAGame\DemosEpic`).
 - Music for the stream (StreamBeats) plays through the "Spotify" source, which goes to **track 5 only**: the
   stream hears it, the recording (tracks 1–4) doesn't, so YouTube stays free of claims.

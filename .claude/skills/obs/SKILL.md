@@ -43,6 +43,12 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   background stays on) and a "Enquadramento" crop filter, first on Câmera in all three collections (Live, Shorts,
   Vídeo), crops him at about 1.75× (`CAMERA_CROP` in `brand/twitch/obs_shorts.py`). If he moves the camera, retune
   it there and on the three sources (SetSourceFilterSettings, switching collections while he's not live).
+- The end of the live, "Fim" (2026-11-10): the credits (`public/stream/creditos.html`, source "Tela · Créditos",
+  restart when active) over Câmera at (64, 64) 1280×720, as in Conversa, with Filtros between them (its box for Fim is
+  Conversa's). The old "Tela · Fim" (`intervalo.html?tela=fim`) left the collection through `RETIRED_ITEMS` in
+  `obs.py`. Follows, subs, gifts, bits and raids reach the credits only from the Efeitos dock signed in to Twitch with
+  the credits' scopes (its "Créditos de hoje" line says when it needs Conectar again) and open during the live: it
+  keeps the day and sends it as `muanlartins-creditos`. Viewers, Pix, the score and the next live come without it.
 - Twitch's alerts ("Alertas", the Alerts Box) are on tracks 1 and 5 and on "Monitorar e enviar", like Pix and
   Sons, so Luan hears them too: the installed source had monitoring off until 2026-11-10 (the stream heard the subs,
   he didn't). The page's "AlertsFeatureLaunchFlags: unauthenticated" GraphQL error on load is in every log since

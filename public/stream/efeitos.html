@@ -57,6 +57,13 @@
       sound and is marked done, or is refunded when it can't play (a scene without the sounds). Only the sounds: the
       scenes stay Luan's. Redemptions left over from a closed dock are refunded when it opens. The
       points don't give Σ: Twitch already pays them for watching, which Σ counts on its own.
+
+      Credits: with the same sign-in (and the scopes moderator:read:followers, channel:read:subscriptions and
+      bits:read; a token from before them asks to connect again), the dock hears the day's follows, subs (new, resubs,
+      gifted), gifts, bits and raids over the same EventSub socket, and asks Twitch for the day's follows when it
+      opens, so a follow while it was closed still counts. The day (Brasília's) is kept in the dock's storage and goes
+      to creditos.html, the "Fim" scene's rolling credits, as the event "muanlartins-creditos": every 5 s, like
+      Partidas, and right as Fim goes on air.
     -->
     <style>
       html,
@@ -290,13 +297,17 @@
     <p class="status" id="twitch">Twitch desconectada</p>
     <ul class="log" id="resgates"></ul>
 
+    <h2>Créditos de hoje</h2>
+    <p class="status" id="creditos">Twitch desconectada</p>
+    <ul class="log" id="creditos-log"></ul>
+
     <details>
       <summary>Conexão com o OBS</summary>
       <input id="password" type="password" placeholder="Senha do obs-websocket" autocomplete="off" />
     </details>
     <details id="twitch-conexao">
       <summary>Conexão com a Twitch</summary>
-      <p class="note" id="twitch-passo">Entre com a conta do canal para os resgates virarem efeitos.</p>
+      <p class="note" id="twitch-passo">Entre com a conta do canal para os resgates virarem efeitos e os follows, subs e raids irem para os créditos.</p>
       <div class="grid" style="margin-top: 8px">
         <button id="twitch-entrar">Conectar</button>
         <button id="twitch-sair">Desconectar</button>
@@ -434,6 +445,7 @@
       let zooming = false
       function changed(scene) {
         current = scene
+        fimNoAr(scene)
         if (history.at(-1) !== scene) history.push(scene)
         if (history.length > 30) history.shift()
         const isLance = LANCES.includes(scene)
@@ -958,7 +970,9 @@
 
       // --- Channel points -------------------------------------------------------------------------------------
       const CLIENT_ID = "dploislenvijye1obbcm5dqxcxu5y1" // the site's Twitch app (lib/profile.ts)
-      const SCOPES = "channel:manage:redemptions"
+      // The rewards need the first; the credits (below) the other three.
+      const SCOPES = "channel:manage:redemptions moderator:read:followers channel:read:subscriptions bits:read"
+      const SCOPES_CREDITOS = ["moderator:read:followers", "channel:read:subscriptions", "bits:read"]
       const HELIX = "https://api.twitch.tv/helix"
       const KLEIN = "#002FA7"
       // The rewards this dock makes and plays: the sounds only (the scenes stay Luan's). Open to everyone; a viewer
@@ -1057,11 +1071,17 @@
         const me = await helix("GET", "/users")
         tw.user = me?.data?.[0]
         if (!tw.user) return twStatus("Twitch desconectada: conecte abaixo")
+        await checarEscopos()
+        seguidoresDeHoje()
         if (tw.user.broadcaster_type !== "affiliate" && tw.user.broadcaster_type !== "partner") return twStatus("Twitch: o canal ainda não tem pontos")
         await ensureRewards()
         await refundLeftovers()
         airing = null
         onAir(stateOnAir)
+        // Signing in again (for new scopes) starts a fresh socket: the old one would hear every redemption twice.
+        const antigo = events
+        events = null
+        antigo?.close()
         listen()
       }
 
@@ -1145,18 +1165,26 @@
             watchdog()
             // A reconnect carries the subscription over: only a fresh session needs it.
             if (previous && url !== "wss://eventsub.wss.twitch.tv/ws") return previous.close()
+            const transport = { method: "websocket", session_id: payload.session.id }
             const sub = await helix("POST", "/eventsub/subscriptions", {
               type: "channel.channel_points_custom_reward_redemption.add",
               version: "1",
               condition: { broadcaster_user_id: tw.user.id },
-              transport: { method: "websocket", session_id: payload.session.id },
+              transport,
             })
             if (!sub) twStatus("Twitch: não deu para ouvir os resgates")
+            if (!escoposOk) return
+            const falhas = []
+            for (const [tipo, version, condition] of EVENTOS_CREDITOS(tw.user.id)) {
+              if (!(await helix("POST", "/eventsub/subscriptions", { type: tipo, version, condition, transport }))) falhas.push(tipo)
+            }
+            if (falhas.length) creditosStatus(`Créditos: não deu para ouvir ${falhas.join(", ")}`)
           } else if (type === "session_keepalive") {
             watchdog()
           } else if (type === "notification") {
             watchdog()
-            redeemed(payload.event)
+            if (metadata.subscription_type === "channel.channel_points_custom_reward_redemption.add") redeemed(payload.event)
+            else creditar(metadata.subscription_type, payload.event)
           } else if (type === "session_reconnect") {
             listen(payload.session.reconnect_url)
           }
@@ -1169,13 +1197,143 @@
         }
       }
 
+      // --- Credits: the day on Twitch, for creditos.html -------------------------------------------------
+      // Who followed, subscribed, gifted, cheered and raided today (Brasília's day), kept here so a reload or OBS
+      // restarting mid-live loses nothing; a new day starts empty.
+      const diaDe = (t) => new Date(t).toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
+      const vazio = () => ({ dia: diaDe(Date.now()), seguidores: [], inscritos: [], presentes: [], bits: [], raids: [] })
+      let creditos = (() => {
+        try {
+          const salvo = JSON.parse(localStorage.getItem("efeitos-creditos"))
+          if (salvo?.dia === diaDe(Date.now())) return { ...vazio(), ...salvo }
+        } catch {}
+        return vazio()
+      })()
+      let escoposOk = false
+      const EVENTOS_CREDITOS = (id) => [
+        ["channel.follow", "2", { broadcaster_user_id: id, moderator_user_id: id }],
+        ["channel.subscribe", "1", { broadcaster_user_id: id }],
+        ["channel.subscription.message", "1", { broadcaster_user_id: id }],
+        ["channel.subscription.gift", "1", { broadcaster_user_id: id }],
+        ["channel.cheer", "1", { broadcaster_user_id: id }],
+        ["channel.raid", "1", { to_broadcaster_user_id: id }],
+      ]
+
+      function creditosStatus(text, on = false) {
+        $("creditos").className = on ? "status on" : "status"
+        $("creditos").textContent = text
+      }
+      function resumo() {
+        const c = creditos
+        const n = (k, um, varios) => (c[k].length ? `${c[k].length} ${c[k].length === 1 ? um : varios}` : null)
+        const soma = (k, campo) => c[k].reduce((t, x) => t + (x[campo] || 0), 0)
+        const presentes = soma("presentes", "total")
+        const bits = soma("bits", "bits")
+        const partes = [n("seguidores", "follow", "follows"), n("inscritos", "inscrição", "inscrições"),
+          presentes ? `${presentes} ${presentes === 1 ? "sub" : "subs"} de presente` : null, bits ? `${bits} bits` : null, n("raids", "raid", "raids")].filter(Boolean)
+        creditosStatus(escoposOk ? `Hoje: ${partes.join(" · ") || "nada ainda"}` : "Créditos: conecte a Twitch de novo (faltam permissões)", escoposOk)
+      }
+      function guardar() {
+        try {
+          localStorage.setItem("efeitos-creditos", JSON.stringify(creditos))
+        } catch {}
+        resumo()
+        emitirCreditos()
+      }
+      function linhaCredito(text) {
+        const li = document.createElement("li")
+        li.textContent = `${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} ${text}`
+        $("creditos-log").prepend(li)
+        while ($("creditos-log").children.length > 6) $("creditos-log").lastChild.remove()
+      }
+      /** The day turned while the dock was open: start it empty. */
+      function hojeEmDia() {
+        if (creditos.dia !== diaDe(Date.now())) creditos = vazio()
+      }
+
+      // Which scopes the token has: one from before the credits lacks three, and only signing in again adds them.
+      async function checarEscopos() {
+        const r = await fetch("https://id.twitch.tv/oauth2/validate", { headers: { Authorization: `OAuth ${tw.token}` } }).catch(() => null)
+        const v = r?.ok ? await r.json() : null
+        escoposOk = Boolean(v && SCOPES_CREDITOS.every((s) => v.scopes?.includes(s)))
+        resumo()
+      }
+
+      // Today's follows from Twitch's list (newest first), for the ones that came while the dock was closed.
+      async function seguidoresDeHoje() {
+        if (!tw.user || !escoposOk) return
+        const r = await helix("GET", `/channels/followers?broadcaster_id=${tw.user.id}&first=100`)
+        hojeEmDia()
+        let novos = 0
+        for (const f of r?.data ?? []) {
+          if (diaDe(f.followed_at) !== creditos.dia) break
+          if (creditos.seguidores.some((s) => s.login === f.user_login)) continue
+          creditos.seguidores.push({ login: f.user_login, nome: f.user_name, em: f.followed_at })
+          novos++
+        }
+        if (novos) {
+          creditos.seguidores.sort((a, b) => (a.em < b.em ? -1 : 1))
+          guardar()
+        }
+      }
+      setInterval(seguidoresDeHoje, 5 * 60000)
+
+      /** One EventSub notification for the credits. */
+      function creditar(tipo, e) {
+        hojeEmDia()
+        const c = creditos
+        const agora = new Date().toISOString()
+        const quem = e.is_anonymous ? { login: null, nome: "Anônimo" } : { login: e.user_login, nome: e.user_name }
+        if (tipo === "channel.follow") {
+          if (c.seguidores.some((s) => s.login === e.user_login)) return
+          c.seguidores.push({ ...quem, em: e.followed_at ?? agora })
+          linhaCredito(`${e.user_name} seguiu`)
+        } else if (tipo === "channel.subscribe" || tipo === "channel.subscription.message") {
+          const tier = Number(e.tier) / 1000 || 1
+          const ja = c.inscritos.find((s) => s.login === e.user_login)
+          const meses = e.cumulative_months ?? ja?.meses ?? 1
+          if (ja) Object.assign(ja, { tier, meses: Math.max(ja.meses ?? 1, meses) })
+          else c.inscritos.push({ ...quem, tier, meses, presente: Boolean(e.is_gift), em: agora })
+          linhaCredito(`${e.user_name} ${e.is_gift ? "ganhou um sub" : meses > 1 ? `renovou (${meses} meses)` : "se inscreveu"}`)
+        } else if (tipo === "channel.subscription.gift") {
+          const ja = c.presentes.find((s) => s.login === quem.login && s.nome === quem.nome)
+          if (ja) ja.total += e.total
+          else c.presentes.push({ ...quem, total: e.total })
+          linhaCredito(`${quem.nome} presenteou ${e.total}`)
+        } else if (tipo === "channel.cheer") {
+          const ja = c.bits.find((s) => s.login === quem.login && s.nome === quem.nome)
+          if (ja) ja.bits += e.bits
+          else c.bits.push({ ...quem, bits: e.bits })
+          linhaCredito(`${quem.nome}: ${e.bits} bits`)
+        } else if (tipo === "channel.raid") {
+          c.raids.push({ login: e.from_broadcaster_user_login, nome: e.from_broadcaster_user_name, viewers: e.viewers, em: agora })
+          linhaCredito(`raid de ${e.from_broadcaster_user_name} (${e.viewers})`)
+        } else return
+        guardar()
+      }
+
+      /** The day to the credits page (obs-browser hands it to every browser source). */
+      function emitirCreditos() {
+        if (!ready) return
+        hojeEmDia()
+        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-creditos", event_data: creditos } })
+      }
+      // Pages that load later get it within 5 s; the Fim scene's, which starts over each time it goes on air, sooner.
+      setInterval(emitirCreditos, 5000)
+      function fimNoAr(scene) {
+        if (scene !== "Fim") return
+        for (const ms of [0, 800, 2000, 3500]) setTimeout(emitirCreditos, ms)
+      }
+
       $("twitch-entrar").onclick = signIn
       $("twitch-sair").onclick = () => {
         Object.assign(tw, { token: null, refresh: null, user: null })
         saveTw()
         events?.close()
         events = null
+        escoposOk = false
         twStatus("Twitch desconectada: conecte abaixo")
+        creditosStatus("Twitch desconectada")
       }
 
       status()

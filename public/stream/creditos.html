@@ -1,0 +1,1027 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Créditos · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <link rel="stylesheet" href="torcedor.css" />
+    <!--
+      OBS: Browser source, 1920×1080, above the camera, in the "Fim" scene; it starts over each time the scene goes on
+      air. The end of the live as a film's end: the camera where Conversa has it (1280×720 at 64, 64), the credits
+      rolling up the right-hand column where Conversa has the chat, and under the camera the stand with everyone who
+      watched today, each as their fan (torcedor.js, their look from /perfil). As a name rolls past the middle of the
+      column, its fan in the stand celebrates (their own celebration), so the stand ripples along with the list.
+
+      The credits, each section only when it has someone:
+        Estrelando · O placar de hoje (Rocket League from the Partidas dock's "muanlartins-partidas", Valorant from
+        jogo.html's day kept in this site's storage) · Gols/Vitórias dedicados (torcida.html keeps the day's
+        dedications in the same storage) · Raid · Seguiram hoje · Inscritos · Presentearam subs · Bits (the Efeitos
+        dock signed in to Twitch, "muanlartins-creditos") · Pix (the mural's, only who chose to be on it) · Primeira
+        vez aqui · Na arquibancada (the Σ API's GET /live: who was in today's live, most minutes first) · Próxima live
+        (/agenda.json) · and the closing card, which stays.
+      OBS's browser sources share this site's storage, so the stand's dedications and Valorant's day reach this page;
+      the docks' storage is their own, so the Efeitos dock sends its part as an event (every 5 s, and right as Fim
+      goes on air). The page waits ?espera= seconds (default 4) on its title for all of it, then rolls at
+      ?velocidade= px/s (default 55).
+
+      The chat still talks: what a viewer says shows in a balloon over their fan, and whoever comes into the chat
+      joins the stand. ?api=, ?sigma=, ?pix= point at stand-ins for the profile, Σ and Pix APIs; ?canal= as in the
+      overlays; ?demo fills everything with sample people.
+    -->
+    <style>
+      .ground {
+        /* Everything but the camera's hole, as in conversa.html. */
+        clip-path: path(evenodd, "M0 0H1920V1080H0Z M64 64H1344V784H64Z");
+      }
+      .hole {
+        position: absolute;
+        left: 64px;
+        top: 64px;
+        width: 1280px;
+        height: 720px;
+      }
+      #plate {
+        left: 48px;
+        top: 774px;
+        z-index: 70;
+      }
+
+      /* --- The credits column ------------------------------------------------------------------------- */
+      .side {
+        position: absolute;
+        left: 1392px;
+        top: 64px;
+        width: 464px;
+        height: 952px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .side > .eyebrow {
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgb(133 167 255 / 0.4);
+      }
+      .rolo {
+        position: relative;
+        flex: 1;
+        overflow: hidden;
+        mask-image: linear-gradient(transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%);
+      }
+      .lista {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        text-align: center;
+        will-change: transform;
+      }
+      .bloco {
+        margin: 0 0 84px;
+      }
+      .bloco.chega {
+        animation: rise 0.9s var(--ease) both;
+      }
+      .papel {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 0 0 22px;
+        color: var(--klein-claro);
+        font-size: 16px;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .papel::before,
+      .papel::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: rgb(133 167 255 / 0.4);
+      }
+      .pessoa {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        min-height: 58px;
+        margin: 0 0 10px;
+      }
+      .mini {
+        position: relative;
+        flex: none;
+        width: 28px;
+        height: 42px;
+      }
+      .pessoa .quem {
+        min-width: 0;
+        text-align: left;
+      }
+      .pessoa .nome-c {
+        display: block;
+        max-width: 360px;
+        font-size: 32px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .pessoa .nome-c img {
+        height: 0.8em;
+        margin-left: 0.3em;
+        vertical-align: -0.05em;
+      }
+      .pessoa .det {
+        display: block;
+        margin-top: 2px;
+        color: var(--klein-claro);
+        font-size: 18px;
+        font-weight: 500;
+      }
+      /* The day's long list (everyone in the stand) goes a size smaller. */
+      .bloco.muitos .pessoa {
+        min-height: 48px;
+        margin-bottom: 6px;
+      }
+      .bloco.muitos .nome-c {
+        font-size: 26px;
+      }
+      .bloco.muitos .det {
+        font-size: 16px;
+      }
+      .grande {
+        margin: 0;
+        font-size: 44px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+      }
+      .grande .accent,
+      .accent {
+        color: var(--klein-claro);
+      }
+      .linha {
+        margin: 10px 0 0;
+        color: var(--klein-claro);
+        font-size: 22px;
+        font-weight: 500;
+      }
+      .ranque {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 16px;
+        font-size: 28px;
+        font-weight: 500;
+      }
+      .ranque img {
+        width: 56px;
+        height: 56px;
+      }
+
+      /* The title at the start and the card at the end, each centred in the column when it's there. */
+      .abertura .marca {
+        width: 150px;
+        height: 150px;
+        margin: -24px auto -18px;
+      }
+      .marca svg {
+        width: 100%;
+        height: 100%;
+      }
+      .abertura h1 {
+        margin: 14px 0 0;
+        font-size: 64px;
+        font-weight: 500;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .abertura .jogo {
+        margin: 16px 0 0;
+        color: var(--klein-claro);
+        font-size: 28px;
+        font-weight: 500;
+      }
+      .final {
+        margin: 0;
+      }
+      .final .marca {
+        width: 230px;
+        height: 230px;
+        margin: -40px auto -30px;
+      }
+      .final h2 {
+        margin: 14px 0 0;
+        font-size: 54px;
+        font-weight: 500;
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+      }
+      .final .site {
+        margin: 22px 0 0;
+        font-size: 26px;
+        font-weight: 500;
+      }
+      .final .site span {
+        color: var(--klein-claro);
+      }
+      .rise {
+        animation: rise 0.9s var(--ease) both;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(24px);
+        }
+      }
+
+      /* --- The stand under the camera: torcida.html's, wider ------------------------------------------ */
+      .torcida {
+        position: absolute;
+        left: 64px;
+        width: 1280px;
+        bottom: 0;
+        height: 270px;
+      }
+      .arquibancada {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 34px;
+        background: var(--navy);
+        clip-path: polygon(34px 0, calc(100% - 34px) 0, 100% 100%, 0 100%);
+        overflow: hidden;
+      }
+      .arquibancada::before {
+        content: "";
+        position: absolute;
+        inset: -48px;
+        background:
+          repeating-linear-gradient(45deg, transparent 0 calc(var(--unit) * 0.7071 - 1px), var(--lattice-line) 0 calc(var(--unit) * 0.7071)),
+          repeating-linear-gradient(-45deg, transparent 0 calc(var(--unit) * 0.7071 - 1px), var(--lattice-line) 0 calc(var(--unit) * 0.7071));
+        animation: drift 12s linear infinite;
+      }
+      .arquibancada::after {
+        content: "";
+        position: absolute;
+        left: 34px;
+        right: 34px;
+        top: 0;
+        height: 2px;
+        background: var(--klein-claro);
+      }
+      .fa {
+        --s: 1;
+        position: absolute;
+        width: calc(40px * var(--s));
+        height: calc(60px * var(--s));
+        margin-left: calc(-20px * var(--s));
+        transition:
+          left 0.8s var(--ease),
+          bottom 0.8s var(--ease),
+          width 0.8s var(--ease),
+          height 0.8s var(--ease),
+          margin 0.8s var(--ease);
+      }
+      .pose {
+        position: absolute;
+        inset: 0;
+        transform-origin: 50% 100%;
+      }
+      .vivo {
+        position: absolute;
+        inset: 0;
+        animation: respira 3.2s ease-in-out infinite;
+        animation-delay: var(--atraso, 0s);
+      }
+      @keyframes respira {
+        50% {
+          transform: translateY(-1.5px);
+        }
+      }
+      .nome {
+        position: absolute;
+        z-index: 1;
+        left: 50%;
+        bottom: calc(100% + 9px * var(--s));
+        translate: -50% 0;
+        max-width: calc(84px * max(1, var(--s)));
+        padding: 1px 5px 2px;
+        background: rgb(0 20 71 / 0.78);
+        font-size: max(11px, 13px * var(--s));
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .nome img {
+        height: 1.2em;
+        margin-right: 0.25em;
+        vertical-align: -0.25em;
+      }
+      .fa.atras .nome {
+        color: var(--klein-claro);
+        font-weight: 500;
+      }
+      .fa.foco {
+        z-index: 40 !important;
+      }
+      .fa.foco .nome {
+        max-width: none;
+        font-size: max(11px, 13px * var(--s)) !important;
+        background: var(--paper);
+        color: var(--klein);
+      }
+      .fa.chegando {
+        animation: chega 1.1s var(--ease) both;
+      }
+      @keyframes chega {
+        0% {
+          transform: translateX(var(--de, 400px));
+          opacity: 0;
+        }
+        60% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        75% {
+          transform: translateY(-10px);
+        }
+      }
+      /* What a fan says in the chat, as in torcida.html. */
+      .fala {
+        position: absolute;
+        z-index: 55;
+        width: max-content;
+        max-width: 280px;
+        padding: 6px 12px 8px;
+        background: var(--paper);
+        color: var(--klein);
+        font-size: 17px;
+        font-weight: 500;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+        animation: fala-entra 0.35s var(--ease) both;
+      }
+      .fala::after {
+        content: "";
+        position: absolute;
+        left: var(--ponta, 50%);
+        top: 100%;
+        width: 12px;
+        height: 8px;
+        translate: -50% 0;
+        background: var(--paper);
+        clip-path: polygon(0 0, 100% 0, 50% 100%);
+      }
+      .fala.some {
+        animation: fala-sai 0.4s var(--ease) both;
+      }
+      @keyframes fala-entra {
+        from {
+          opacity: 0;
+          transform: translateY(8px) scale(0.9);
+        }
+      }
+      @keyframes fala-sai {
+        to {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .vivo,
+        .arquibancada::before {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <div class="ground"></div>
+      <div class="hole"></div>
+      <section class="torcida" id="torcida" aria-label="A torcida de hoje">
+        <div class="arquibancada"></div>
+      </section>
+      <div id="plate"></div>
+      <aside class="side">
+        <p class="eyebrow">Créditos</p>
+        <div class="rolo" id="rolo">
+          <div class="lista" id="lista"></div>
+        </div>
+      </aside>
+    </main>
+    <script src="stream.js"></script>
+    <script src="torcedor.js"></script>
+    <script src="sigma.js"></script>
+    <script>
+      const $ = (id) => document.getElementById(id)
+      const DEMO = params.has("demo")
+      const API = params.get("api") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
+      const SIGMA_API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
+      const PIX_API = params.get("pix") ?? "https://g2x6kdnhr0.execute-api.us-east-1.amazonaws.com"
+      const VELOCIDADE = Number(params.get("velocidade")) || 55
+      const ESPERA_MS = (Number(params.get("espera")) || 4) * 1000
+      // The name the channel goes by in the credits (copy: Luan's to change).
+      const ESTRELA = { nome: "Luan Martins", det: "como ele mesmo" }
+
+      const TZ = "America/Sao_Paulo"
+      const diaDe = (t) => new Date(t).toLocaleDateString("sv", { timeZone: TZ })
+      const HOJE = diaDe(Date.now())
+      const reais = (centavos) => (centavos / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+      const horas = (min) => (min >= 60 ? `${Math.floor(min / 60)}h${String(min % 60).padStart(2, "0")}` : `${min} min`)
+
+      // --- Who: everyone credited stands in the stand ------------------------------------------------------
+      const gente = new Map() // login → { login, nome, minutos, sigma, sequencia, primeira, el }
+      const escolhas = new Map() // login → their look from /perfil
+      const nomes = new Map() // login → display name, from Twitch (the dock, the chat)
+      const nomeDe = (login) => nomes.get(login) ?? gente.get(login)?.nome ?? login
+      const sigma = (login) => gente.get(login)?.sigma ?? 0
+      let JOGO = "rocket-league"
+      const aparencia = (login) => {
+        const a = Torcedor.normalizar(escolhas.get(login), login)
+        return login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+      }
+
+      /** Someone to the stand (once): `dados` adds what's known about them. */
+      function pessoa(login, dados = {}) {
+        if (!login) return null
+        login = login.toLowerCase()
+        if (BOTS.has(login) || login.startsWith("justinfan")) return null
+        let p = gente.get(login)
+        if (!p) {
+          p = { login, nome: login, minutos: 0, sigma: 0, sequencia: 0 }
+          gente.set(login, p)
+        }
+        Object.assign(p, dados)
+        if (dados.nome) nomes.set(login, dados.nome)
+        return p
+      }
+
+      // Their looks and Σ, for everyone at once, again when people arrive.
+      let pedido
+      function pedirEscolhas() {
+        clearTimeout(pedido)
+        pedido = setTimeout(async () => {
+          const logins = [...gente.keys()].filter((l) => !escolhas.has(l))
+          if (DEMO || !API || !logins.length) return
+          try {
+            for (let i = 0; i < logins.length; i += 100) {
+              const r = await fetch(`${API}/torcedores?logins=${logins.slice(i, i + 100).join(",")}`)
+              if (!r.ok) return
+              const achadas = await r.json()
+              for (const [login, escolha] of Object.entries(achadas)) if (escolha) escolhas.set(login, escolha)
+            }
+            gente.forEach(vestir)
+          } catch {
+            // Offline: everyone keeps the look their login gives.
+          }
+        }, 300)
+      }
+
+      // --- The stand ---------------------------------------------------------------------------------------
+      const torcida = $("torcida")
+      const LARGURA = 1280
+      const MARGEM = 60
+      // Bigger than torcida.html's, twelve to a row: the stand has the screen's bottom to itself here.
+      const POR_FILEIRA = 12
+      const FILEIRAS = [
+        { s: 1.2, base: 24 },
+        { s: 0.95, base: 86 },
+        { s: 0.78, base: 138 },
+        { s: 0.64, base: 180 },
+      ]
+      let montada = false
+
+      function desenhar(p, chegando) {
+        const el = document.createElement("div")
+        el.className = "fa torcedor" + (chegando ? " chegando" : "")
+        el.innerHTML = `<span class="nome"></span><div class="pose"><div class="vivo"></div></div>`
+        el.querySelector(".vivo").style.setProperty("--atraso", `${-Math.random() * 3}s`)
+        el.addEventListener("animationend", (e) => e.target === el && el.classList.remove("chegando"))
+        torcida.append(el)
+        p.el = el
+        vestir(p)
+        return el
+      }
+      function vestir(p) {
+        if (!p?.el) return
+        const a = aparencia(p.login)
+        p.el.dataset.comemoracao = a.comemoracao
+        p.el.querySelector(".vivo").innerHTML = Torcedor.figura(a)
+        const nome = p.el.querySelector(".nome")
+        const src = p.login !== CHANNEL ? Sigma.ranque(p.sigma, "pt", JOGO).emblema : null
+        const emblema = document.createElement("img")
+        emblema.alt = ""
+        if (src) emblema.src = src
+        nome.replaceChildren(...(src ? [emblema] : []), nomeDe(p.login))
+        caber(nome)
+      }
+      // A long name gets smaller before it gets cut: down to 10px, then the ellipsis.
+      function caber(nome) {
+        nome.style.fontSize = ""
+        const cabe = (nome.clientWidth - 10) / (nome.scrollWidth - 10)
+        if (cabe < 1) nome.style.fontSize = `${Math.max(10, Math.floor(parseFloat(getComputedStyle(nome).fontSize) * cabe * 2) / 2)}px`
+      }
+
+      // The channel in front, then who watched longest today, then Σ; past the last row, no place.
+      const ordem = () =>
+        [...gente.values()].sort(
+          (a, b) => (b.login === CHANNEL) - (a.login === CHANNEL) || b.minutos - a.minutos || b.sigma - a.sigma || (a.login < b.login ? -1 : 1),
+        )
+      function arrumar() {
+        const lista = ordem()
+        lista.forEach((p, i) => {
+          const fila = Math.floor(i / POR_FILEIRA)
+          if (fila >= FILEIRAS.length) {
+            p.el?.remove()
+            p.el = null
+            return
+          }
+          const { s, base } = FILEIRAS[fila]
+          const naFila = Math.min(POR_FILEIRA, lista.length - fila * POR_FILEIRA)
+          const passo = (LARGURA - 2 * MARGEM) / POR_FILEIRA
+          const x = LARGURA / 2 + (i % POR_FILEIRA - (naFila - 1) / 2) * passo + (fila % 2 ? passo / 2 : 0)
+          p.el ??= desenhar(p, montada)
+          p.el.style.left = `${x}px`
+          p.el.style.bottom = `${base}px`
+          p.el.style.zIndex = 30 - fila
+          p.el.style.setProperty("--s", s)
+          p.el.style.setProperty("--x", Math.round(x))
+          p.el.classList.toggle("atras", fila > 0)
+          caber(p.el.querySelector(".nome"))
+        })
+        const quantos = lista.filter((p) => p.login !== CHANNEL).length
+        placa(quantos ? `A torcida de hoje <span class="accent">· ${quantos}</span>` : `muanlartins<span class="accent">.com.br</span>`)
+      }
+
+      /** A fan celebrates their own way, their name lit, as their line rolls by. */
+      function comemorar(login) {
+        const el = gente.get(login)?.el
+        if (!el) return
+        el.classList.remove("comemora")
+        void el.offsetWidth
+        el.classList.add("comemora", "foco")
+        clearTimeout(el.festa)
+        el.festa = setTimeout(() => el.classList.remove("comemora", "foco"), 2800)
+      }
+
+      // --- The chat: balloons over the fans, and whoever arrives joins ------------------------------------
+      const FALA_MS = 5000
+      const FALAS = 3
+      const FALA_MAX = 80
+      const falas = []
+      function falar(p, texto) {
+        if (!p?.el) return
+        falas.filter((f) => f.p === p).forEach(calar)
+        const el = document.createElement("span")
+        el.className = "fala"
+        const chars = Array.from(texto.trim())
+        el.textContent = chars.length > FALA_MAX ? chars.slice(0, FALA_MAX - 1).join("") + "…" : chars.join("")
+        torcida.append(el)
+        const fileiras = Math.min(FILEIRAS.length, Math.ceil(gente.size / POR_FILEIRA))
+        const { s, base } = FILEIRAS[Math.max(0, fileiras - 1)]
+        const x = Number(p.el.style.getPropertyValue("--x"))
+        const w = el.offsetWidth
+        const left = Math.min(Math.max(x - w / 2, 0), LARGURA - w)
+        const chao = base + 60 * s + 30
+        let bottom = chao
+        for (const outra of falas.filter((f) => !f.saindo)) {
+          const o = outra.el
+          if (left < o.offsetLeft + o.offsetWidth + 6 && o.offsetLeft < left + w + 6) bottom = Math.max(bottom, parseFloat(o.style.bottom) + o.offsetHeight + 12)
+        }
+        // The stand's own height is the ceiling (the camera's frame is above it): past that, the balloons in the way
+        // go and this one takes the lowest place.
+        if (bottom + el.offsetHeight > 262) {
+          for (const outra of falas.filter((f) => !f.saindo)) {
+            const o = outra.el
+            if (left < o.offsetLeft + o.offsetWidth + 6 && o.offsetLeft < left + w + 6) calar(outra)
+          }
+          bottom = chao
+        }
+        el.style.left = `${left}px`
+        el.style.bottom = `${bottom}px`
+        el.style.setProperty("--ponta", `${x - left}px`)
+        p.el.classList.add("foco")
+        const fala = { el, p }
+        falas.push(fala)
+        const ativas = falas.filter((f) => !f.saindo)
+        if (ativas.length > FALAS) calar(ativas[0])
+        setTimeout(() => calar(fala), FALA_MS)
+      }
+      function calar(fala) {
+        if (fala.saindo) return
+        fala.saindo = true
+        fala.el.classList.add("some")
+        setTimeout(() => {
+          fala.el.remove()
+          falas.splice(falas.indexOf(fala), 1)
+          if (!falas.some((f) => f.p === fala.p) && !fala.p.el?.classList.contains("comemora")) fala.p.el?.classList.remove("foco")
+        }, 400)
+      }
+      function chegar(login, nome) {
+        const novo = !gente.has(login?.toLowerCase())
+        const p = pessoa(login, nome ? { nome } : {})
+        if (!p) return null
+        if (novo) {
+          arrumar()
+          pedirEscolhas()
+        } else if (nome) vestir(p)
+        return p
+      }
+      function aplicar(line) {
+        const { tags, prefix, command, trailing } = parseIrc(line)
+        const login = prefix.split("!")[0]
+        if (command === "JOIN") chegar(login)
+        else if (command === "PRIVMSG") {
+          const p = chegar(login, tags["display-name"] || login)
+          if (!trailing.startsWith("!")) falar(p, trailing.replace(/^\u0001ACTION (.*)\u0001$/, "$1"))
+        } else if (command === "353") trailing.split(" ").forEach((name) => name && chegar(name))
+      }
+
+      // --- What the day was, from everywhere ---------------------------------------------------------------
+      const dia = { live: null, twitch: null, partidas: null, valorant: null, dedicatorias: [], pix: [], agenda: null }
+
+      // The Partidas dock's Rocket League record and the Efeitos dock's Twitch day, every few seconds.
+      addEventListener("muanlartins-partidas", ({ detail }) => (dia.partidas = detail))
+      addEventListener("muanlartins-creditos", ({ detail }) => {
+        if (detail?.dia !== HOJE) return
+        dia.twitch = detail
+        for (const lista of ["seguidores", "inscritos", "presentes", "bits"]) for (const x of detail[lista] ?? []) x.login && nomes.set(x.login, x.nome)
+        if (montada) acrescentar()
+      })
+
+      // What jogo.html and torcida.html kept today in this site's storage (shared by OBS's browser sources).
+      function guardados() {
+        try {
+          const v = JSON.parse(localStorage.getItem("valorant:dia") || "null")
+          if (v?.date === new Date().toLocaleDateString("en-CA") && v.wins + v.losses > 0) dia.valorant = v
+          const d = JSON.parse(localStorage.getItem("torcida:dedicatorias") || "null")
+          if (d?.dia === HOJE) dia.dedicatorias = d.lista ?? []
+        } catch {
+          // No storage: those sections stay out.
+        }
+      }
+
+      async function buscar() {
+        const json = (url) => fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+        const [live, mural, agenda] = await Promise.all([
+          SIGMA_API ? json(`${SIGMA_API}/live`) : null,
+          PIX_API ? json(`${PIX_API}/mural`) : null,
+          json("/agenda.json"),
+        ])
+        dia.agenda = agenda
+        if (live?.pessoas) {
+          dia.live = live
+          for (const x of live.pessoas) pessoa(x.login, { minutos: x.minutosLive ?? 0, sigma: x.sigma ?? 0, sequencia: x.sequencia ?? 0, primeira: x.primeira })
+        }
+        if (mural) {
+          const todos = [...(mural.meta?.apoiadores ?? []), ...(mural.metas ?? []).flatMap((m) => m.apoiadores ?? []), ...(mural.pix ?? [])]
+          dia.pix = todos.filter((p) => p.nome && p.em && diaDe(p.em) === HOJE).sort((a, b) => (a.em < b.em ? -1 : 1))
+        }
+      }
+
+      // --- The next live, from the agenda (weekly slots in Brasília time) --------------------------------
+      const DIAS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
+      function proximaLive(agenda) {
+        if (!agenda?.slots?.length) return null
+        const parts = Object.fromEntries(
+          new Intl.DateTimeFormat("en-US", { timeZone: agenda.timeZone || TZ, hourCycle: "h23", weekday: "short", hour: "numeric", minute: "numeric" })
+            .formatToParts(new Date())
+            .map((x) => [x.type, x.value]),
+        )
+        const hoje = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(parts.weekday) + 1
+        const agora = +parts.hour * 60 + +parts.minute
+        const min = (hhmm) => hhmm.split(":").reduce((h, m) => +h * 60 + +m)
+        for (let mais = 0; mais < 8; mais++) {
+          const wd = ((hoje - 1 + mais) % 7) + 1
+          const slot = agenda.slots
+            .filter((s) => s.days.includes(wd) && (mais > 0 || min(s.start) > agora))
+            .sort((a, b) => min(a.start) - min(b.start))[0]
+          if (slot) {
+            const quando = mais === 0 ? "hoje" : mais === 1 ? "amanhã" : DIAS[wd - 1]
+            return { quando, hora: slot.start.replace(":", "h").replace(/h00$/, "h"), jogo: slot.name ?? slot.game }
+          }
+        }
+        return null
+      }
+      /** Today's game by the agenda (the slot today), for the title and the ranks' emblems. */
+      function jogoDeHoje(agenda) {
+        const wd = ((new Date(new Date().toLocaleString("en-US", { timeZone: TZ })).getDay() + 6) % 7) + 1
+        return agenda?.slots?.find((s) => s.days.includes(wd)) ?? null
+      }
+
+      // --- The credits -------------------------------------------------------------------------------------
+      const lista = $("lista")
+      const rolo = $("rolo")
+
+      function el(tag, classe, html) {
+        const e = document.createElement(tag)
+        if (classe) e.className = classe
+        if (html != null) e.innerHTML = html
+        return e
+      }
+      /** A section: its role, then its people ({ login, nome, det }). */
+      function bloco(papel, pessoas, { muitos = false } = {}) {
+        if (!pessoas.length) return null
+        const b = el("section", "bloco" + (muitos ? " muitos" : ""))
+        b.append(el("p", "papel", papel))
+        for (const x of pessoas) b.append(linhaDePessoa(x))
+        return b
+      }
+      function linhaDePessoa({ login, nome, det, emblema }) {
+        const row = el("div", "pessoa")
+        if (login) {
+          row.dataset.login = login
+          const a = aparencia(login)
+          const mini = el("div", "mini torcedor", `<div class="pose">${Torcedor.figura(a)}</div>`)
+          mini.dataset.comemoracao = a.comemoracao
+          row.append(mini)
+        }
+        const quem = el("div", "quem")
+        const n = el("span", "nome-c")
+        n.textContent = nome
+        if (emblema) {
+          const img = document.createElement("img")
+          img.alt = ""
+          img.src = emblema
+          n.append(img)
+        }
+        quem.append(n)
+        if (det) quem.append(el("span", "det", det))
+        row.append(quem)
+        return row
+      }
+      const comNome = (x) => ({ login: x.login ?? null, nome: x.login ? nomeDe(x.login) : x.nome })
+
+      function abertura() {
+        const b = el("section", "bloco abertura")
+        const data = new Date().toLocaleDateString("pt-BR", { timeZone: TZ, day: "numeric", month: "long" })
+        b.innerHTML = `<div class="marca" id="marca-abre"></div><p class="eyebrow rise" style="animation-delay:.4s">Fim da live</p>
+          <h1 class="rise" style="animation-delay:.5s"></h1><p class="jogo rise" id="jogo-hoje" style="animation-delay:.6s"></p>`
+        b.querySelector("h1").textContent = data
+        return b
+      }
+
+      function placar() {
+        const b = el("section", "bloco")
+        const vd = (w, l) => `${w} ${w === 1 ? "vitória" : "vitórias"} <span class="accent">·</span> ${l} ${l === 1 ? "derrota" : "derrotas"}`
+        const p = dia.partidas
+        let tem = false
+        if (p && p.wins + p.losses > 0) {
+          tem = true
+          b.append(el("p", "papel", "O placar de hoje"))
+          b.append(el("p", "grande", vd(p.wins, p.losses)))
+          const extra = [`Ranqueada ${p.mode}`, p.points ? `${p.points > 0 ? "+" : ""}${p.points} pts` : null]
+          b.append(el("p", "linha", extra.filter(Boolean).join(" · ")))
+          if (p.tier) {
+            const r = el("div", "ranque", `<img alt="" src="/ranks/${p.tier}.webp"><span></span>`)
+            r.querySelector("span").textContent = rankName(p.tier) + (hasDivisions(p.tier) && p.division ? `, divisão ${DIVISIONS[p.division - 1]}` : "")
+            b.append(r)
+          }
+        }
+        if (dia.valorant) {
+          if (!tem) b.append(el("p", "papel", "O placar de hoje"))
+          if (tem) b.append(el("p", "linha", "Valorant"))
+          b.append(el("p", "grande", vd(dia.valorant.wins, dia.valorant.losses)))
+          b.append(el("p", "linha", "Competitiva"))
+          tem = true
+        }
+        return tem ? b : null
+      }
+
+      function dedicatorias() {
+        const blocos = []
+        const gols = dia.dedicatorias.filter((d) => d.tipo === "gol")
+        const vitorias = dia.dedicatorias.filter((d) => d.tipo === "vitoria")
+        blocos.push(bloco(gols.length === 1 ? "Gol dedicado a" : "Gols dedicados a", gols.map((d, i) => ({ ...comNome(d), det: [`${i + 1}º gol`, d.detalhe ? `${d.detalhe} km/h` : null].filter(Boolean).join(" · ") }))))
+        blocos.push(bloco(vitorias.length === 1 ? "Vitória dedicada a" : "Vitórias dedicadas a", vitorias.map((d) => ({ ...comNome(d), det: d.detalhe ?? null }))))
+        return blocos
+      }
+
+      function twitch() {
+        const t = dia.twitch
+        if (!t) return []
+        const subs = t.inscritos ?? []
+        return [
+          bloco((t.raids ?? []).length === 1 ? "Chegou de raid" : "Chegaram de raid", (t.raids ?? []).map((r) => ({ login: r.login, nome: r.nome, det: `com ${r.viewers} ${r.viewers === 1 ? "pessoa" : "pessoas"}` }))),
+          bloco("Seguiram hoje", (t.seguidores ?? []).map((s) => ({ login: s.login, nome: s.nome }))),
+          bloco("Inscritos", subs.map((s) => ({
+            login: s.login,
+            nome: s.nome,
+            det: [s.presente ? "ganhou de presente" : s.meses > 1 ? `${s.meses} meses` : "primeiro mês", s.tier > 1 ? `nível ${s.tier}` : null].filter(Boolean).join(" · "),
+          }))),
+          bloco("Presentearam subs", (t.presentes ?? []).map((g) => ({ login: g.login, nome: g.nome, det: `${g.total} ${g.total === 1 ? "sub" : "subs"}` }))),
+          bloco("Bits", (t.bits ?? []).sort((a, b) => b.bits - a.bits).map((c) => ({ login: c.login, nome: c.nome, det: `${c.bits} bits` }))),
+        ]
+      }
+
+      function pix() {
+        return bloco("Apoiaram por Pix", dia.pix.map((p) => ({ login: p.login ?? null, nome: p.nome, det: reais(p.centavos) })))
+      }
+
+      function estreantes() {
+        const novos = [...gente.values()].filter((p) => p.primeira === HOJE && p.login !== CHANNEL)
+        return bloco("Primeira vez aqui", novos.map((p) => ({ login: p.login, nome: nomeDe(p.login) })))
+      }
+
+      function arquibancada() {
+        const todos = ordem().filter((p) => p.login !== CHANNEL)
+        return bloco(
+          "Na arquibancada",
+          todos.map((p) => ({
+            login: p.login,
+            nome: nomeDe(p.login),
+            emblema: Sigma.ranque(p.sigma, "pt", JOGO).emblema,
+            det: [p.minutos ? horas(p.minutos) : null, p.sequencia >= 2 ? `${p.sequencia} lives seguidas` : null].filter(Boolean).join(" · ") || null,
+          })),
+          { muitos: todos.length > 8 },
+        )
+      }
+
+      function proxima() {
+        const n = proximaLive(dia.agenda)
+        if (!n) return null
+        const b = el("section", "bloco")
+        b.append(el("p", "papel", "Próxima live"))
+        const g = el("p", "grande")
+        g.innerHTML = `${n.quando}, <span class="accent">${n.hora}</span>`
+        b.append(g)
+        b.append(el("p", "linha", n.jogo))
+        return b
+      }
+
+      function final() {
+        const b = el("section", "bloco final")
+        b.innerHTML = `<div class="marca" id="marca-fim"></div><h2>Valeu por assistir!</h2><p class="site">muanlartins<span>.com.br</span></p>`
+        return b
+      }
+
+      // --- Rolling ----------------------------------------------------------------------------------------
+      let y = 0
+      let fim = null // where the list stops: the closing card in the middle
+      let inicio = 0
+      let rolando = false
+      const vistos = new WeakSet()
+
+      function centralizar(bloco) {
+        return rolo.clientHeight / 2 - (bloco.offsetTop + bloco.offsetHeight / 2)
+      }
+      function posicionar() {
+        lista.style.transform = `translateY(${y}px)`
+      }
+
+      function rolar(t) {
+        if (!rolando) return
+        const alvo = centralizar(fim)
+        y = Math.max(alvo, inicio - ((t - rolando) / 1000) * VELOCIDADE)
+        posicionar()
+        // A line rolling past the middle: its fan in the stand celebrates, and its little fan here too.
+        const meio = rolo.clientHeight * 0.55
+        for (const row of lista.querySelectorAll(".pessoa")) {
+          if (vistos.has(row)) continue
+          const centro = row.offsetTop + row.offsetHeight / 2 + y
+          if (centro > meio) break
+          vistos.add(row)
+          if (row.dataset.login) comemorar(row.dataset.login)
+          const mini = row.querySelector(".mini")
+          if (mini) {
+            mini.classList.add("comemora")
+            setTimeout(() => mini.classList.remove("comemora"), 2600)
+          }
+        }
+        requestAnimationFrame(rolar)
+      }
+
+      // Whoever the docks bring in after the roll began (a follow during the credits) still joins the stand.
+      function acrescentar() {
+        const t = dia.twitch
+        let novos = false
+        for (const k of ["seguidores", "inscritos", "presentes", "bits", "raids"])
+          for (const x of t?.[k] ?? []) if (x.login && !gente.has(x.login.toLowerCase())) (chegar(x.login, x.nome), (novos = true))
+        if (novos) pedirEscolhas()
+      }
+
+      function montar() {
+        guardados()
+        const hoje = jogoDeHoje(dia.agenda)
+        if (hoje?.game === "valorant" || (!dia.partidas?.wins && !dia.partidas?.losses && dia.valorant)) JOGO = "valorant"
+        if (hoje) $("jogo-hoje").textContent = hoje.name ?? hoje.game
+        // The stand: the channel, today's viewers, and everyone the credits name.
+        pessoa(CHANNEL, { nome: "muanlartins" })
+        for (const k of ["seguidores", "inscritos", "presentes", "bits", "raids"]) for (const x of dia.twitch?.[k] ?? []) pessoa(x.login, { nome: x.nome })
+        for (const d of dia.dedicatorias) pessoa(d.login, { nome: d.nome })
+        for (const p of dia.pix) pessoa(p.login)
+        gente.forEach(vestir)
+        arrumar()
+        pedirEscolhas()
+
+        const estrela = bloco("Estrelando", [{ login: CHANNEL, nome: ESTRELA.nome, det: ESTRELA.det }])
+        const blocos = [estrela, placar(), ...dedicatorias(), ...twitch(), pix(), estreantes(), arquibancada(), proxima()].filter(Boolean)
+        fim = final()
+        for (const b of [...blocos, fim]) {
+          b.classList.add("chega")
+          lista.append(b)
+        }
+        desenharMarca($("marca-fim"))
+        montada = true
+        // The looks arrive a moment later: redress the little fans in the list too.
+        setTimeout(() => {
+          for (const row of lista.querySelectorAll(".pessoa[data-login]")) {
+            const a = aparencia(row.dataset.login)
+            const mini = row.querySelector(".mini")
+            mini.dataset.comemoracao = a.comemoracao
+            mini.querySelector(".pose").innerHTML = Torcedor.figura(a)
+          }
+        }, 2500)
+        inicio = y
+        requestAnimationFrame((t) => {
+          rolando = t
+          requestAnimationFrame(rolar)
+        })
+      }
+
+      function desenharMarca(alvo) {
+        mark(alvo).then((copies) => {
+          const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2)
+          const clamp = (x) => Math.min(1, Math.max(0, x))
+          const start = performance.now()
+          const frame = (now) => {
+            const t = ((now - start) / 1000) % 12
+            const out = clamp((t - 11.2) / 0.6)
+            drawCopy(copies.branco, ease(clamp(t / 0.9)) * (1 - ease(out)))
+            drawCopy(copies.claro, ease(clamp((t - 0.3) / 0.9)) * (1 - ease(clamp((t - 11.35) / 0.6))))
+            requestAnimationFrame(frame)
+          }
+          requestAnimationFrame(frame)
+        })
+      }
+
+      // --- The plate under the camera ------------------------------------------------------------------
+      const border = frame(document.querySelector(".hole"), { band: 16, fill: "#001447" })
+      let placaFeita = null
+      function placa(html) {
+        if (!placaFeita) {
+          placaFeita = plate($("plate"), html)
+          return
+        }
+        const line = $("plate").querySelector(".line")
+        if (line && line.innerHTML !== html) line.innerHTML = html
+      }
+      setInterval(() => border.glint(), 9000)
+
+      // --- Start: the title, the data (at most ESPERA_MS), then the roll -----------------------------------
+      const abre = abertura()
+      lista.append(abre)
+      desenharMarca($("marca-abre"))
+      document.fonts.ready.then(() => {
+        y = centralizar(abre)
+        posicionar()
+      })
+
+      if (DEMO) demo()
+      else {
+        irc(aplicar, { membership: true })
+        Promise.all([buscar(), new Promise((r) => setTimeout(r, ESPERA_MS))]).then(montar)
+      }
+
+      function demo() {
+        const nomesDemo = ["rafa", "Giovana_GC", "tiago.mendes", "marinamarina", "lucas_s", "bia.lima", "DuduSantos",
+          "kingkong", "ceci", "manomenezes", "zezinho", "Ana_Clara", "otto", "jujuba", "PedroH", "luiza.f", "caio_br", "nandinha"]
+        const um = (l) => l[Math.floor(Math.random() * l.length)]
+        nomesDemo.forEach((n, i) => {
+          const login = n.toLowerCase()
+          if (i % 2) escolhas.set(login, { cabeca: um(Torcedor.CABECAS), roupa: um(Torcedor.ROUPAS), acessorio: um(Torcedor.ACESSORIOS), comemoracao: um(Torcedor.COMEMORACOES) })
+          pessoa(login, { nome: n, minutos: Math.max(4, Math.round(150 * Math.random() ** 0.7)), sigma: Math.round(20000 * Math.random() ** 3), sequencia: i % 4 === 0 ? 2 + (i % 5) : 0, primeira: i === 6 || i === 15 ? HOJE : undefined })
+        })
+        dia.partidas = { mode: "2v2", tier: "diamond-2", division: 3, wins: 6, losses: 3, streak: 3, points: 41 }
+        dia.dedicatorias = [
+          { login: "rafa", nome: "rafa", tipo: "gol", detalhe: 87 },
+          { login: "giovana_gc", nome: "Giovana_GC", tipo: "gol", detalhe: 104 },
+          { login: "ceci", nome: "ceci", tipo: "gol", detalhe: null },
+        ]
+        dia.twitch = {
+          dia: HOJE,
+          seguidores: [{ login: "luiza.f", nome: "luiza.f" }, { login: "caio_br", nome: "caio_br" }, { login: "nandinha", nome: "nandinha" }],
+          inscritos: [{ login: "otto", nome: "otto", tier: 1, meses: 3 }, { login: "jujuba", nome: "jujuba", tier: 1, meses: 1, presente: true }],
+          presentes: [{ login: "kingkong", nome: "kingkong", total: 5 }],
+          bits: [{ login: "zezinho", nome: "zezinho", bits: 500 }],
+          raids: [{ login: "manomenezes", nome: "manomenezes", viewers: 12 }],
+        }
+        dia.pix = [{ login: "bia.lima", nome: "Bia", centavos: 1000 }, { nome: "Anônimo de Floripa", centavos: 500 }]
+        dia.agenda = { timeZone: TZ, slots: [{ days: [2, 4, 5], start: "14:30", end: "16:30", game: "rocket-league", name: "Rocket League" }, { days: [1, 3], start: "21:00", end: "23:00", game: "valorant", name: "Valorant" }] }
+        setTimeout(montar, ESPERA_MS)
+        const FRASES = ["gg!!", "valeu pela live", "tchau Luan", "até quinta!", "que live", "boa noite pessoal", "ganhamos hoje 🔥"]
+        setInterval(() => {
+          const p = um([...gente.values()].filter((x) => x.el && x.login !== CHANNEL))
+          if (p) falar(p, um(FRASES))
+        }, 2600)
+      }
+    </script>
+  </body>
+</html>

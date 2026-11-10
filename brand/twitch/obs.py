@@ -148,7 +148,9 @@ pix_in_talk = (pix, {"pos": (154, 548), "crop": PIX_BAND})
 # Restarts when shown, so its drawing starts over each time the scene goes live. No countdown (Luan, 2026-11-06).
 starting = browser("Tela · Começando", "intervalo.html?tela=comecando", restart=True)
 back = browser("Tela · Já volto", "intervalo.html?tela=volto")
-end = browser("Tela · Fim", "intervalo.html?tela=fim")
+# The end of the live: the credits rolling beside the camera, where Conversa has it, over the stand of everyone who
+# watched (creditos.html, 2026-11-10; it was intervalo.html?tela=fim). Starts over each time it goes on air.
+end = browser("Tela · Créditos", "creditos.html", restart=True)
 # Twitch's Alerts Box, drawn by brand/twitch/alertas/: a band 168 px tall, centred in the source.
 ALERTS_SIZE = (1100, 200)
 alerts = ALERTS and source("browser_source", "Alertas", {"url": ALERTS, "width": ALERTS_SIZE[0], "height": ALERTS_SIZE[1],
@@ -183,6 +185,9 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVE
 # own hotkeys until 2026-11-08, which RETIRED unbinds.
 HOTKEYS = {"Terapia": "OBS_KEY_F3"}
 RETIRED = {("Lance ruim", "OBSBasic.SelectScene", "OBS_KEY_F2"), ("Jogo + chat", "OBSBasic.SelectScene", "OBS_KEY_F4")}
+# Sources taken out of a scene (and out of the collection, once no scene has them): the old end screen gave its place
+# to the credits on 2026-11-10.
+RETIRED_ITEMS = {("Fim", "Tela · Fim")}
 
 
 def trigger(name, key):
@@ -251,7 +256,7 @@ scenes = [
     scene("Terapia", (camera, {"pos": (64, 64), "bounds": (560, 315)}), (filters, {}), (calm, {}), *alerts_in_talk,
           (pix, {"pos": (154, 760), "crop": PIX_BAND})),
     scene("Já volto", (back, {})),
-    scene("Fim", (end, {})),
+    scene("Fim", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (filters, {}), (end, {})),
 ]
 # Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
@@ -333,6 +338,17 @@ def merge(live, new):
             live["sources"].append(s)
             by_name[s["name"]] = s
             added.append(f"fonte {s['name']}")
+    for scene_name, item_name in RETIRED_ITEMS:
+        mine = by_name.get(scene_name)
+        items = (mine or {}).get("settings", {}).get("items", [])
+        if any(i["name"] == item_name for i in items):
+            mine["settings"]["items"] = [i for i in items if i["name"] != item_name]
+            added.append(f"{item_name} tirado da cena {scene_name}")
+        used = any(i["name"] == item_name for s in live["sources"] if s["id"] == "scene" for i in s["settings"].get("items", []))
+        if not used and item_name in by_name and item_name not in {s["name"] for s in new["sources"]}:
+            live["sources"] = [s for s in live["sources"] if s["name"] != item_name]
+            del by_name[item_name]
+            added.append(f"fonte {item_name} removida")
     uuids = {name: s["uuid"] for name, s in by_name.items()}
     for s in new["sources"]:
         if s["id"] != "scene":
