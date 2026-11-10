@@ -33,6 +33,7 @@ import json
 import re
 import shutil
 import struct
+import time
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
@@ -59,7 +60,7 @@ def recordings():
     """(file, where it goes) for each OBS recording still loose in Videos."""
     for file in sorted(VIDEOS.iterdir()):
         found = LOOSE.match(file.name)
-        # Source Record leaves an empty file when OBS opens a scene after recording stops: those stay put.
+        # Source Record leaves an empty file when OBS opens a scene after recording stops: not a recording (main() deletes it).
         if file.is_file() and found and file.stat().st_size > 1_000_000:
             day, time, kind, ext = found.groups()
             yield file, LIVES / day / f"{time} {KINDS[kind]}.{ext}"
@@ -160,8 +161,9 @@ def expendable():
             gone += [(file, "dia marcado como feito") for file in sorted(kept)]
         elif kept:
             material.append((folder.name, sorted(kept)))
-    yield from gone
+    # Measured before handing them out: with --apply, clean() deletes each one as it comes.
     free = shutil.disk_usage(VIDEOS).free + sum(file.stat().st_size for file, _ in gone)
+    yield from gone
     while material and free < FREE_GB * 1e9:
         _, files = material.pop(0)
         for file in files:
@@ -289,6 +291,15 @@ def main():
         if args.apply:
             target.parent.mkdir(parents=True, exist_ok=True)
             source.rename(target)
+    # Source Record's near-empty files (OBS opening a scene after the recording stopped) are nothing: they go once
+    # an hour old, so one OBS may still be writing stays.
+    for file in sorted(VIDEOS.iterdir()):
+        found = LOOSE.match(file.name)
+        if found and file.is_file() and file.stat().st_size <= 1_000_000 and time.time() - file.stat().st_mtime > 3600 \
+                and (not args.day or found.group(1) == args.day):
+            print(f"delete  {file.name}  (vazio)")
+            if args.apply:
+                file.unlink(missing_ok=True)
     for source, target in replays():
         if target.exists() or (args.day and target.parent.parent.name != args.day):
             continue

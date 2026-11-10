@@ -5,6 +5,8 @@ See "After each live" in handoff/README.md.
     scripts/.venv/bin/python scripts/live.py <date> --video <id>    # once it's on YouTube: the video's id
     scripts/.venv/bin/python scripts/youtube.py live <date>         # then the video itself
 
+- The game is the one whose session the dock published that day: Rocket League (content/matches/) or Valorant
+  (content/valorant/), and so are the chapters and the summary.
 - The recording is the one the "Partidas" dock saw OBS make that day (the session's `outputs`), or else the
   largest in Videos named for that day. Its start is second 0 of the VOD.
 - The transcript is whisper (Windows, CUDA, with VAD) on the microphone's own track, cleaned of hallucinations and
@@ -24,7 +26,7 @@ import sys
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from content import LIVES, ROOT, clock, sessions
+from content import LIVES, ROOT, SESSIONS, clock, sessions
 from windows import PROGRAMS, TEMP, VIDEOS, run, to_windows
 
 TIME_ZONE = ZoneInfo("America/Sao_Paulo")
@@ -42,6 +44,14 @@ TIER_NAMES = {
     "supersonic-legend": ("Lenda Supersônica", "Supersonic Legend"),
 }
 DIVISIONS = ["I", "II", "III", "IV"]
+# Valorant's ranks by Riot's tier number: 3 Ferro 1 … 26 Imortal 3, 27 Radiante (as lib/valorant.ts).
+VALORANT_TIERS = [("Ferro", "Iron"), ("Bronze", "Bronze"), ("Prata", "Silver"), ("Ouro", "Gold"),
+                  ("Platina", "Platinum"), ("Diamante", "Diamond"), ("Ascendente", "Ascendant"), ("Imortal", "Immortal")]
+VALORANT_QUEUES = {"competitive": ("Competitivo", "Competitive"), "unrated": ("Sem classificação", "Unrated"),
+                   "swiftplay": ("Frenético", "Swiftplay"), "spikerush": ("Disparada", "Spike Rush"),
+                   "deathmatch": ("Mata-mata", "Deathmatch"), "hurm": ("Mata-mata em equipe", "Team Deathmatch")}
+# The thumbnail's plate names the game.
+GAME_NAMES = {"rocket-league": "Rocket League", "valorant": "Valorant"}
 
 
 # --- The recording ------------------------------------------------------------------------------------
@@ -209,6 +219,39 @@ def summary(day):
     return {language: " ".join(lines) for language, lines in parts.items()}
 
 
+def valorant_rank(rank, language):
+    tier = rank["tier"]
+    name = ("Radiante", "Radiant")[language] if tier >= 27 else f"{VALORANT_TIERS[(tier - 3) // 3][language]} {(tier - 3) % 3 + 1}"
+    return f"{name} ({rank['rr']} RR)"
+
+
+def valorant_summary(day):
+    """A draft from the numbers: per queue, the record; in Competitivo, the RR won or lost and the rank at the end."""
+    parts = {"pt": [], "en": []}
+    played = sorted((m for s in day for m in s["matches"]), key=lambda m: m["at"])
+    for queue in dict.fromkeys(m["queue"] for m in played):
+        these = [m for m in played if m["queue"] == queue]
+        wins = sum(m["result"] == "win" for m in these)
+        losses = sum(m["result"] == "loss" for m in these)
+        draws = len(these) - wins - losses
+        name = VALORANT_QUEUES.get(queue, (queue, queue))
+        pt = f"{name[0]}: {wins} vitória{'s' * (wins != 1)} e {losses} derrota{'s' * (losses != 1)}"
+        en = f"{name[1]}: {wins} win{'s' * (wins != 1)} and {losses} loss{'es' * (losses != 1)}"
+        if draws:
+            pt += f" e {draws} empate{'s' * (draws != 1)}"
+            en += f" and {draws} draw{'s' * (draws != 1)}"
+        rated = [m for m in these if m.get("rank")]
+        if queue == "competitive" and rated:
+            rr = sum(m.get("rr") or 0 for m in these)
+            pt += f" ({'+' if rr >= 0 else '−'}{abs(rr)} RR), terminando em {valorant_rank(rated[-1]['rank'], 0)}"
+            en += f" ({'+' if rr >= 0 else '−'}{abs(rr)} RR), ending at {valorant_rank(rated[-1]['rank'], 1)}"
+        parts["pt"].append(pt + ".")
+        parts["en"].append(en + ".")
+    if not parts["pt"]:
+        return {"pt": "Sem partidas registradas.", "en": "No matches recorded."}
+    return {language: " ".join(lines) for language, lines in parts.items()}
+
+
 def reached(day):
     """(rank, tier) for the thumbnail, if any mode climbed a tier; the highest reached."""
     best = None
@@ -223,20 +266,23 @@ def reached(day):
     return rank, int(tier)
 
 
-def thumbnail(date, rank, tier):
-    """Adds the day to LIVES in brand/build.py and draws its thumbnail."""
+def thumbnail(date, rank, tier, game):
+    """Adds the day to LIVES in brand/build.py (and to LIVE_GAMES when it isn't Rocket League) and draws its
+    thumbnail."""
     build = ROOT / "brand" / "build.py"
     text = build.read_text()
-    if f'"{date}":' not in text:
-        block = re.search(r"\nLIVES = \{\n(.*?)\n\}\n", text, re.S)
-        entry = f'    "{date}": ({rank!r}, {tier!r}),'.replace("'", '"')
-        text = text[:block.end(1)] + "\n" + entry + text[block.end(1):]
-        build.write_text(text)
+    for table, entry in (("LIVES", f'    "{date}": ({rank!r}, {tier!r}),'.replace("'", '"')),
+                         ("LIVE_GAMES", f'    "{date}": "{GAME_NAMES[game]}",' if game != "rocket-league" else None)):
+        block = re.search(rf"\n{table} = \{{\n(.*?)\n?\}}\n", text, re.S)
+        if entry and f'"{date}":' not in block.group(1):
+            text = text[:block.end(1)] + (f"\n{entry}" if block.group(1) else f"{entry}\n") + text[block.end(1):]
+    build.write_text(text)
     python = ROOT / "brand" / ".venv" / "bin" / "python"
     subprocess.run([str(python), "-c", (
         "import build\n"
         f"rank, tier = build.LIVES[{date!r}]\n"
-        f"build.write('youtube/thumbnails/live-{date}.svg', build.live_thumbnail('{date[8:]}/{date[5:7]}', rank, tier))\n"
+        f"build.write('youtube/thumbnails/live-{date}.svg', build.live_thumbnail('{date[8:]}/{date[5:7]}', rank, tier, "
+        f"build.LIVE_GAMES.get({date!r}, 'Rocket League')))\n"
         f"build.png('youtube/thumbnails/live-{date}.svg', 'youtube/thumbnails/live-{date}.png', 1280)\n"
     )], cwd=ROOT / "brand", check=True)
 
@@ -269,7 +315,9 @@ def main():
         print(f"Vídeo {args.video} em {page.relative_to(ROOT)}. Agora: scripts/youtube.py live {args.date}")
         return
 
-    day = sessions(args.date)
+    # The day's game: the one whose dock published a session that day (Rocket League's Partidas, or its Valorant tab).
+    game = next((g for g in SESSIONS if sessions(args.date, g)), "rocket-league")
+    day = sessions(args.date, game)
     file, start = recording(args.date, day)
     length = duration(file)
     print(f"Gravação: {file.name}, {clock(length)}.")
@@ -284,14 +332,15 @@ def main():
     if page.exists() and not args.force:
         print(f"{page.relative_to(ROOT)} já existe: mantida.")
     else:
-        # The lives are Rocket League's for now; a live of another game sets its id by hand.
-        live = {"date": args.date, "game": "rocket-league", "video": args.video or "", "summary": summary(day),
+        live = {"date": args.date, "game": game, "video": args.video or "",
+                "summary": valorant_summary(day) if game == "valorant" else summary(day),
                 "chapters": chapters(day, placer(file, start), length)}
         write_live(page, live)
         print(f"Página: {len(live['chapters'])} capítulos em {page.relative_to(ROOT)}. O resumo é um rascunho.")
 
-    rank, tier = reached(day)
-    thumbnail(args.date, rank, tier)
+    # A climb shows on the thumbnail with Rocket League's emblems; Valorant's lives get the plain one for now.
+    rank, tier = reached(day) if game == "rocket-league" else (None, None)
+    thumbnail(args.date, rank, tier, game)
     print(f"Thumbnail: brand/youtube/thumbnails/live-{args.date}.png" + (f" ({rank} {tier})" if rank else ""))
     if not args.video:
         print(f"Depois de subir no Studio: scripts/live.py {args.date} --video <id>")

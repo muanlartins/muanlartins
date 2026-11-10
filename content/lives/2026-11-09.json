@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-09",
+  "game": "valorant",
+  "video": "",
+  "summary": {
+    "pt": "Competitivo: 2 vitórias e 0 derrotas (+45 RR), terminando em Prata 1 (91 RR).",
+    "en": "Competitive: 2 wins and 0 losses (+45 RR), ending at Silver 1 (91 RR)."
+  },
+  "chapters": [
+    { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
+    { "at": "25:31", "match": "3407d4a3-3c11-4efe-ac50-88e6bec01dce" },
+    { "at": "1:00:24", "match": "94eae96a-3231-494d-ab55-97f4be9769bc" },
+    { "at": "1:38:46", "title": { "pt": "Fim", "en": "The end" } }
+  ]
+}

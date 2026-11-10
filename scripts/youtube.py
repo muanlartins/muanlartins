@@ -86,17 +86,33 @@ def playlists(_):
 # --- A live's video ---------------------------------------------------------------------------------
 
 SITE = "https://muanlartins.com.br"
-GAME = f"{SITE}/conteudo/rocket-league"
-LINKS = [
-    ("Esta live no site, com cada partida e a transcrição", f"{SITE}/canal/lives/{{date}}"),
-    ("Minhas ranqueadas", f"{GAME}/ranked"),
-    ("Os fundamentos, organizados por rank", f"{GAME}/fundamentals"),
-    ("Os fundamentos em vídeo", "https://www.youtube.com/playlist?list=PLPogzmM3roPc"),
-    ("Ao vivo na Twitch", "https://www.twitch.tv/muanlartins"),
-]
-PLAYLIST = "Rocket League ao vivo"
-TAGS = ["rocket league", "ao vivo", "ranqueada", "pt-br", "brasil", "muanlartins"]
-HASHTAGS = "#RocketLeague #RocketLeagueAoVivo"
+THIS_LIVE = ("Esta live no site, com cada partida e a transcrição", f"{SITE}/canal/lives/{{date}}")
+TWITCH = ("Ao vivo na Twitch", "https://www.twitch.tv/muanlartins")
+# Each game's lives (content/lives/<date>.json's "game"): the name in the title, the links, the unlisted playlist
+# (made when it's missing), the tags and the hashtags.
+GAMES = {
+    "rocket-league": {
+        "name": "Rocket League",
+        "links": [THIS_LIVE,
+                  ("Minhas ranqueadas", f"{SITE}/conteudo/rocket-league/ranked"),
+                  ("Os fundamentos, organizados por rank", f"{SITE}/conteudo/rocket-league/fundamentals"),
+                  ("Os fundamentos em vídeo", "https://www.youtube.com/playlist?list=PLPogzmM3roPc"),
+                  TWITCH],
+        "playlist": "Rocket League ao vivo",
+        "tags": ["rocket league", "ao vivo", "ranqueada", "pt-br", "brasil", "muanlartins"],
+        "hashtags": "#RocketLeague #RocketLeagueAoVivo",
+    },
+    "valorant": {
+        "name": "Valorant",
+        "links": [THIS_LIVE,
+                  ("Minhas competitivas", f"{SITE}/conteudo/valorant/ranked"),
+                  ("Meu treino de mira", f"{SITE}/conteudo/valorant/aim"),
+                  TWITCH],
+        "playlist": "Valorant ao vivo",
+        "tags": ["valorant", "ao vivo", "competitivo", "pt-br", "brasil", "muanlartins"],
+        "hashtags": "#Valorant #ValorantAoVivo",
+    },
+}
 GAMING = "20"
 CAPTION_NAME = "Português (transcrição)"
 
@@ -105,8 +121,12 @@ def chapter_title(chapter, matches):
     if "title" in chapter:
         return chapter["title"]["pt"]
     match = matches[chapter["match"]]
-    result = "Vitória" if match["result"] == "win" else "Derrota"
+    result = {"win": "Vitória", "loss": "Derrota"}.get(match["result"], "Empate")
     score = f" {match['score'][0]}–{match['score'][1]}" if match.get("score") else ""
+    if "queue" in match:  # Valorant's: the map, and the RR in Competitivo
+        rr = match.get("rr")
+        rr = f" ({'+' if rr > 0 else '−'}{abs(rr)} RR)" if rr else ""
+        return f"{result}{score} em {match['map']}{rr}" if match.get("map") else f"{result}{score}{rr}"
     overtime = " na prorrogação" if match.get("overtime") else ""
     points = match.get("points")
     points = f" ({'+' if points > 0 else '−'}{abs(points)})" if points else ""
@@ -133,21 +153,22 @@ def describe(date):
     ranks, lives = brand_tables()
     rank, tier = lives.get(date, (None, None))
     year, month, day = date.split("-")
+    game = GAMES[live.get("game", "rocket-league")]
     reached = f" ({ranks[rank][0]} {tier})" if rank else ""
-    title = f"Rocket League ao vivo{reached} - {day}/{month}/{year}"
+    title = f"{game['name']} ao vivo{reached} - {day}/{month}/{year}"
 
     matches = matches_by_id()
     marks = chapters(live, matches)
     lines = [live["summary"]["pt"], ""]
-    lines += [f"{label}: {url.format(date=date)}" for label, url in LINKS]
+    lines += [f"{label}: {url.format(date=date)}" for label, url in game["links"]]
     if marks:
         lines += ["", "Capítulos", *marks]
-    lines += ["", HASHTAGS]
+    lines += ["", game["hashtags"]]
 
-    # The modes played: the matches', and any the summary names (a live without match chapters).
-    modes = {matches[c["match"]]["mode"] for c in live["chapters"] if "match" in c}
+    # Rocket League's modes played: the matches', and any the summary names (a live without match chapters).
+    modes = {matches[c["match"]].get("mode") for c in live["chapters"] if "match" in c} - {None}
     modes = sorted(modes | set(re.findall(r"\b[1-4]v[1-4]\b", live["summary"]["pt"])))
-    return live, title, "\n".join(lines), TAGS[:3] + modes + TAGS[3:]
+    return live, title, "\n".join(lines), game["tags"][:3] + modes + game["tags"][3:]
 
 
 def srt(lines):
@@ -173,7 +194,8 @@ def live(args):
     video_id = record["video"]
     thumbnail = ROOT / "brand" / "youtube" / "thumbnails" / f"live-{args.date}.png"
     transcript = LIVES / f"{args.date}.transcript.json"
-    print(f"Vídeo {video_id}\n\n{title}\n\n{description}\n\nTags: {', '.join(tags)}\n")
+    print(f"Vídeo {video_id}\n\n{title}\n\n{description}\n\nTags: {', '.join(tags)}\n"
+          f"Playlist: {GAMES[record.get('game', 'rocket-league')]['playlist']} (criada não listada se faltar)\n")
     if args.dry_run:
         return
 
@@ -199,15 +221,18 @@ def live(args):
     else:
         print(f"Thumbnail: falta {thumbnail.relative_to(ROOT)} (rode brand/build.py)")
 
-    playlist = next((p for p in all_playlists(api) if p["snippet"]["title"] == PLAYLIST), None)
+    name = GAMES[record.get("game", "rocket-league")]["playlist"]
+    playlist = next((p for p in all_playlists(api) if p["snippet"]["title"] == name), None)
     if not playlist:
-        print(f"Playlist: não achei “{PLAYLIST}”")
-    else:
-        inside = api.playlistItems().list(part="id", playlistId=playlist["id"], videoId=video_id).execute()["items"]
-        if not inside:
-            api.playlistItems().insert(part="snippet", body={"snippet": {
-                "playlistId": playlist["id"], "resourceId": {"kind": "youtube#video", "videoId": video_id}}}).execute()
-        print(f"Playlist “{PLAYLIST}”: ok")
+        # Like Rocket League's: unlisted, the lives kept whole, in pt-BR.
+        playlist = api.playlists().insert(part="snippet,status", body={
+            "snippet": {"title": name, "defaultLanguage": "pt-BR"}, "status": {"privacyStatus": "unlisted"}}).execute()
+        print(f"Playlist “{name}”: criada, não listada")
+    inside = api.playlistItems().list(part="id", playlistId=playlist["id"], videoId=video_id).execute()["items"]
+    if not inside:
+        api.playlistItems().insert(part="snippet", body={"snippet": {
+            "playlistId": playlist["id"], "resourceId": {"kind": "youtube#video", "videoId": video_id}}}).execute()
+    print(f"Playlist “{name}”: ok")
 
     if transcript.exists() and not args.no_captions:
         body = srt(json.loads(transcript.read_text())).encode()

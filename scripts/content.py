@@ -1,4 +1,5 @@
-"""The repository's content the scripts share: ranked sessions (content/matches/) and lives (content/lives/)."""
+"""The repository's content the scripts share: ranked sessions (content/matches/ for Rocket League,
+content/valorant/ for Valorant) and lives (content/lives/)."""
 
 import ast
 import json
@@ -7,16 +8,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MATCHES = ROOT / "content" / "matches"
 LIVES = ROOT / "content" / "lives"
+# Each game's sessions, by its id in content/projects.ts.
+SESSIONS = {"rocket-league": MATCHES, "valorant": ROOT / "content" / "valorant"}
 
 
-def sessions(date=""):
-    """Published sessions, oldest first; with `date` (YYYY-MM-DD), only that day's."""
-    return [json.loads(path.read_text()) for path in sorted(MATCHES.glob(f"{date}*.json"))
+def sessions(date="", game="rocket-league"):
+    """A game's published sessions, oldest first; with `date` (YYYY-MM-DD), only that day's."""
+    return [json.loads(path.read_text()) for path in sorted(SESSIONS[game].glob(f"{date}*.json"))
             if not path.name.endswith(".events.json")]
 
 
 def matches_by_id():
-    return {match["id"]: match for session in sessions() for match in session["matches"]}
+    """Every game's matches by id (Rocket League's from the dock, Valorant's are Riot's ids)."""
+    return {match["id"]: match for game in SESSIONS for session in sessions(game=game) for match in session["matches"]}
 
 
 def seconds(at: str) -> int:
