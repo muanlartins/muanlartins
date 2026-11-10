@@ -78,15 +78,21 @@
   "matches": [
     {
       "id": "manual-1793987129844",
-      "at": "2026-11-06T17:45:29.844Z",
+      "at": "2026-11-06T17:40:33.000Z",
       "mode": "3v3",
       "ranked": true,
       "result": "win",
       "rank": {
         "tier": "diamond-1",
         "division": 1,
-        "mmr": 836
-      }
+        "mmr": 827
+      },
+      "points": 9,
+      "mmr": 836,
+      "score": [
+        3,
+        1
+      ]
     },
     {
       "id": "1364200411F1DA0ACAF880959C9B171C",
@@ -374,7 +380,8 @@
           "saves": 0,
           "shots": 6,
           "touches": 62,
-          "demos": 3
+          "demos": 3,
+          "login": "haxzsv"
         },
         {
           "score": 128,
@@ -383,7 +390,8 @@
           "saves": 0,
           "shots": 1,
           "touches": 34,
-          "demos": 1
+          "demos": 1,
+          "login": "pao_919"
         }
       ],
       "rank": {
@@ -425,7 +433,8 @@
           "saves": 0,
           "shots": 7,
           "touches": 43,
-          "demos": 0
+          "demos": 0,
+          "login": "haxzsv"
         },
         {
           "score": 274,
@@ -434,7 +443,8 @@
           "saves": 0,
           "shots": 2,
           "touches": 16,
-          "demos": 0
+          "demos": 0,
+          "login": "pao_919"
         }
       ],
       "rank": {
@@ -442,8 +452,8 @@
         "division": 2,
         "mmr": 856
       },
-      "points": -846,
-      "mmr": 10
+      "points": 10,
+      "mmr": 866
     },
     {
       "id": "C6A2FA9811F1DA12208CC9A6736BCBEC",
@@ -476,7 +486,8 @@
           "saves": 1,
           "shots": 4,
           "touches": 69,
-          "demos": 0
+          "demos": 0,
+          "login": "haxzsv"
         },
         {
           "score": 184,
@@ -485,15 +496,16 @@
           "saves": 0,
           "shots": 1,
           "touches": 36,
-          "demos": 0
+          "demos": 0,
+          "login": "pao_919"
         }
       ],
       "rank": {
         "tier": "diamond-1",
         "division": 2,
-        "mmr": 10
+        "mmr": 866
       },
-      "points": 865,
+      "points": 9,
       "mmr": 875
     },
     {
@@ -527,7 +539,8 @@
           "saves": 0,
           "shots": 6,
           "touches": 50,
-          "demos": 1
+          "demos": 1,
+          "login": "haxzsv"
         },
         {
           "score": 113,
@@ -536,7 +549,8 @@
           "saves": 1,
           "shots": 0,
           "touches": 15,
-          "demos": 2
+          "demos": 2,
+          "login": "pao_919"
         }
       ],
       "rank": {
@@ -578,7 +592,8 @@
           "saves": 0,
           "shots": 3,
           "touches": 21,
-          "demos": 0
+          "demos": 0,
+          "login": "haxzsv"
         },
         {
           "score": 180,
@@ -587,7 +602,8 @@
           "saves": 0,
           "shots": 1,
           "touches": 10,
-          "demos": 0
+          "demos": 0,
+          "login": "spike32001"
         }
       ],
       "rank": {
@@ -629,7 +645,8 @@
           "saves": 2,
           "shots": 2,
           "touches": 32,
-          "demos": 0
+          "demos": 0,
+          "login": "haxzsv"
         },
         {
           "score": 222,
@@ -638,7 +655,8 @@
           "saves": 1,
           "shots": 2,
           "touches": 20,
-          "demos": 0
+          "demos": 0,
+          "login": "spike32001"
         }
       ],
       "rank": {
@@ -680,7 +698,8 @@
           "saves": 2,
           "shots": 5,
           "touches": 78,
-          "demos": 1
+          "demos": 1,
+          "login": "haxzsv"
         },
         {
           "score": 506,
@@ -689,7 +708,8 @@
           "saves": 3,
           "shots": 7,
           "touches": 56,
-          "demos": 0
+          "demos": 0,
+          "login": "spike32001"
         }
       ],
       "rank": {
@@ -731,7 +751,8 @@
           "saves": 1,
           "shots": 5,
           "touches": 41,
-          "demos": 1
+          "demos": 1,
+          "login": "haxzsv"
         },
         {
           "score": 312,
@@ -740,7 +761,8 @@
           "saves": 1,
           "shots": 2,
           "touches": 24,
-          "demos": 0
+          "demos": 0,
+          "login": "spike32001"
         }
       ],
       "rank": {
@@ -814,7 +836,7 @@
       "mode": "3v3",
       "tier": "diamond-1",
       "division": 2,
-      "mmr": 10
+      "mmr": 866
     },
     {
       "at": "2026-11-06T18:58:21.275Z",
