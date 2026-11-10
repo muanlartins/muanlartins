@@ -1,0 +1,75 @@
+{
+  "id": "2026-11-09-2133",
+  "game": "valorant",
+  "start": "2026-11-10T00:33:52.668Z",
+  "end": "2026-11-10T00:47:30Z",
+  "outputs": [
+    {
+      "kind": "stream",
+      "start": "2026-11-10T00:33:52.668Z",
+      "end": "2026-11-10T01:15:22.828Z"
+    }
+  ],
+  "matches": [
+    {
+      "id": "94eae96a-3231-494d-ab55-97f4be9769bc",
+      "start": "2026-11-10T00:08:35Z",
+      "at": "2026-11-10T00:47:30Z",
+      "queue": "competitive",
+      "map": "Sunset",
+      "agent": "Phoenix",
+      "result": "win",
+      "score": [
+        13,
+        11
+      ],
+      "rounds": 24,
+      "me": {
+        "kills": 19,
+        "deaths": 17,
+        "assists": 5,
+        "score": 5778,
+        "headshots": 15,
+        "bodyshots": 44,
+        "legshots": 2,
+        "damage": 3865,
+        "firstKills": 3
+      },
+      "mates": [
+        {
+          "agent": "Raze",
+          "kills": 27,
+          "deaths": 18,
+          "assists": 9,
+          "score": 7994
+        },
+        {
+          "agent": "Hush",
+          "kills": 18,
+          "deaths": 23,
+          "assists": 6,
+          "score": 5046
+        },
+        {
+          "agent": "Sage",
+          "kills": 14,
+          "deaths": 16,
+          "assists": 9,
+          "score": 4139
+        },
+        {
+          "agent": "Gekko",
+          "kills": 16,
+          "deaths": 18,
+          "assists": 9,
+          "score": 4497
+        }
+      ],
+      "rr": 18,
+      "rank": {
+        "tier": 9,
+        "rr": 91
+      }
+    }
+  ]
+}
