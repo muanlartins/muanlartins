@@ -32,7 +32,7 @@ export interface Person {
 export const PEOPLE = {
   woody_fdp: { name: "Woody_fdp", where: "twitch", login: "woody_fdp", url: "https://www.twitch.tv/woody_fdp" },
   victormendes: { name: "victormendes", where: "youtube", url: "https://www.youtube.com/@victormendes9510" },
-  lucca_3098: { name: "lucca_3098", where: "twitch", login: "lucca_3098", url: "https://www.twitch.tv/lucca_3098", note: "meu irmão" },
+  lucca_3098: { name: "lucca_3098", where: "twitch", login: "lucca_3098", url: "https://www.twitch.tv/lucca_3098" },
   jpmartins_1: { name: "jpmartins_1", where: "twitch", login: "jpmartins_1", url: "https://www.twitch.tv/jpmartins_1" },
 } satisfies Record<string, Person>
 
