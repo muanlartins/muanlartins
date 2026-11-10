@@ -20,10 +20,11 @@ Luan Martins' personal site and the home of the muanlartins channel: improving a
 - `brand/` is the source of truth for the identity (see `brand/README.md`). Don't delete anything in it, explorations included.
 - Small changes go straight to `main`; bigger features go through a branch and PR. A push to `main` is a release (below), so run `pnpm lint` first.
 - Commit messages are imperative and short, with no names.
-- **Everything new that's released goes on the roadmap page** (`/canal/roadmap`, `content/changelog.ts`), in the same commit
-  as the feature: a new entry at the top of `SHIPPED`, with the credit of whoever suggested it, and the item taken out of
-  `UPCOMING` if it was there. This holds for features made in RLR, in OBS or in the scripts too, not only the site's.
-  See "The roadmap and the changelog" below.
+- **Every feature goes on the roadmap page** (`/canal/roadmap`, `content/changelog.ts`). When Luan decides on a
+  feature that won't be released the same day, add it to `UPCOMING` right then, in its own commit if need be. When a
+  feature is released, add its entry at the top of `SHIPPED` in the same commit as the feature, with the credit of
+  whoever suggested it, and take it out of `UPCOMING`. This holds for features made in RLR, in OBS or in the scripts
+  too, not only the site's. See "The roadmap and the changelog" below.
 
 ## Routines (skills)
 
@@ -76,9 +77,13 @@ Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand token
 `content/channel.ts` under `roadmap`; Luan's brother lucca_3098 suggested it) is the channel's roadmap and changelog:
 who suggested what, standing on a strip of the stream's stand as their fans; what comes next (`UPCOMING`, by `status`:
 `agora` = being made, `proximo` = decided, `ideia` = may change); and everything released (`SHIPPED`) as a timeline like
-the personal page's (`components/lifeline/`): the day since the site went up (`FIRST_DAY`), the date, each release with
+the personal page's, filtered by tag or by "Comunidade" (every entry with a credit) (`components/lifeline/`): the day since the site went up (`FIRST_DAY`), the date, each release with
 its tag, a line, its links and its pictures and clips as tilted cards (`LifelinePhotoCard`: drag, click to open, a clip
 plays on hover). The channel exists only on the Portuguese site, so the entries are Portuguese only.
+
+**Planned features go in `UPCOMING` as soon as Luan decides on them**: only what he asked for or decided, in his
+order, never ideas taken from elsewhere (the handoff's backlog included) unless he says so. A feature he'll make and
+release the same day can go straight to `SHIPPED`. Keep `UPCOMING` true: what's being made now is `agora`.
 
 **When you release something new, add it there in the same commit.** Not only the site's features: a new overlay,
 dock feature, scene or effect on the live, a script that changes what viewers get, an RLR feature (RLR is another
@@ -106,8 +111,7 @@ visiting would notice.
   `colorkey=black`), a stream page screenshot with headless Chrome (`?demo` where a page has one), or the site
   itself. **Never show other players' names** (lobby lists, the kill feed, RLR's name tags, the top-right feed in
   Rocket League): crop, blur or pick another frame. Viewers' names in the stand are fine; the chat's messages, keep out.
-- When a feature from `UPCOMING` ships, delete it there; add new upcoming items only from what Luan decided or said
-  he wants (`handoff/README.md` keeps his ideas), never things he rejected there.
+- When a feature from `UPCOMING` ships, delete it there and write its `SHIPPED` entry (keep the credit).
 
 ## Fundamentals: "Como estou aprendendo"
 
