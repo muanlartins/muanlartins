@@ -1,0 +1,20 @@
+{
+  "id": "2026-11-08-1702",
+  "start": "2026-11-08T20:02:09.835Z",
+  "end": "2026-11-08T20:02:09.835Z",
+  "startRanks": {
+    "3v3": {
+      "tier": "diamond-1",
+      "division": 4,
+      "mmr": 907
+    },
+    "2v2": {
+      "tier": "diamond-3",
+      "division": 2,
+      "mmr": 1024
+    }
+  },
+  "outputs": [],
+  "matches": [],
+  "ranks": []
+}
