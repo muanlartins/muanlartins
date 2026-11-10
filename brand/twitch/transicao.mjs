@@ -1,8 +1,9 @@
 // Renders public/stream/transicao.html into public/stream/transicao.webm, the
 // OBS stinger: 60 fps, VP9 with transparency, at the OBS canvas size
-// (default 2560×1440; the page scales itself to it).
+// (default 2560×1440; the page scales itself to it). A second argument renders
+// another stinger page the same way: transicao-var, the VAR's.
 //
-//   CHROME=/path/to/chrome node brand/twitch/transicao.mjs [width]
+//   CHROME=/path/to/chrome node brand/twitch/transicao.mjs [width] [page]
 //
 // Needs Node, ffmpeg, a Chrome or Chromium binary and playwright-core
 // (npm i --no-save playwright-core). Serves public/ itself, since the page
@@ -16,7 +17,8 @@ import { chromium } from "playwright-core"
 
 const SITE = new URL("../..", import.meta.url).pathname
 const PUBLIC = join(SITE, "public")
-const OUT = join(PUBLIC, "stream", "transicao.webm")
+const PAGE = process.argv[3] ?? "transicao"
+const OUT = join(PUBLIC, "stream", `${PAGE}.webm`)
 const FPS = 60
 const WIDTH = Number(process.argv[2] ?? 2560)
 const TYPES = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".svg": "image/svg+xml", ".ttf": "font/ttf" }
@@ -24,7 +26,8 @@ const TYPES = { ".html": "text/html", ".css": "text/css", ".js": "text/javascrip
 const server = createServer((req, res) => {
   const path = join(PUBLIC, normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)))
   try {
-    res.writeHead(200, { "content-type": TYPES[extname(path)] ?? "application/octet-stream" }).end(readFileSync(path))
+    const body = readFileSync(path)
+    res.writeHead(200, { "content-type": TYPES[extname(path)] ?? "application/octet-stream" }).end(body)
   } catch {
     res.writeHead(404).end()
   }
@@ -33,11 +36,11 @@ const { port } = server.address()
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME, args: ["--no-sandbox"] })
 const page = await browser.newPage({ viewport: { width: WIDTH, height: Math.round((WIDTH * 9) / 16) } })
-await page.goto(`http://localhost:${port}/stream/transicao.html?render`)
+await page.goto(`http://localhost:${port}/stream/${PAGE}.html?render`)
 await page.evaluate(() => Promise.all([window.ready, document.fonts.ready]))
 const duration = await page.evaluate(() => window.DURATION)
 
-const frames = mkdtempSync(join(tmpdir(), "transicao-"))
+const frames = mkdtempSync(join(tmpdir(), `${PAGE}-`))
 const count = Math.round(duration * FPS) + 1
 for (let i = 0; i < count; i++) {
   await page.evaluate((t) => window.render(t), i / FPS)

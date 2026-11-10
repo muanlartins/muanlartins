@@ -47,6 +47,9 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
   `C:\Program Files\Epic Games\rocketleague\TAGame\Config\DefaultStatsAPI.ini`. Game updates reset it to 0
   (11-05), and then the dock sees no match. `node scripts/obs.mjs` warns when it's off; fix it, then restart the
   game (it reads the file at start).
+- The "Efeitos" dock open, for the VAR above all: it starts OBS's Replay Buffer with the stream or the recording
+  and its "Replay Buffer" line says when it's off in Settings (Output → Replay Buffer, ~20 s). Without the dock, F8
+  does nothing.
 - **Save the replay after each match** (they land in `Documents\My Games\Rocket League\TAGame\DemosEpic`).
 - Music for the stream (StreamBeats) plays through the "Spotify" source, which goes to **track 5 only**: the
   stream hears it, the recording (tracks 1–4) doesn't, so YouTube stays free of claims.

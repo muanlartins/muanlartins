@@ -13,7 +13,8 @@
 // GET /eu with the viewer's Twitch token: their own, with what they sent. POST /presenca comes from the crowd
 // overlay once a minute while the stream is on, with who's in the chat and the key: each gets 1 Σ a minute
 // (once, however many calls), and on their first minute of a live 10 Σ plus 5 for each live in a row before
-// it, up to 50. A live is a day, in Luan's time.
+// it, up to 50. A live is a day, in Luan's time. POST /var comes from the crowd overlay too, with the key, when the
+// chat's verdict on a VAR comes out: who voted for it gets VAR_SIGMA, once per VAR (its id), however many calls.
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { BatchGetCommand, DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
@@ -23,6 +24,8 @@ const T = process.env.TABLE
 const LOGIN = /^[a-z0-9_]{1,25}$/
 const CANAL = "#canal"
 const DONO = "muanlartins" // the channel itself: in its own stand, but it neither earns Σ nor shows any
+// Getting the VAR right: very little, three minutes of watching (Luan's call, 2026-11-09).
+const VAR_SIGMA = 3
 const out = (statusCode, body) => ({ statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
 const lista = (l) => [...new Set(l.map((x) => String(x).toLowerCase()))].filter((x) => LOGIN.test(x)).slice(0, 100)
 const diaDe = (t) => new Date(t).toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
@@ -127,6 +130,43 @@ async function presenca(event) {
   return out(200, { creditados })
 }
 
+// Who voted for the chat's verdict on VAR `id` (the dock's, a timestamp): VAR_SIGMA each. `ultimoVar` keeps the
+// last one credited, so a second call (the two crowd sources both send it) changes nothing.
+async function acertouVar(event) {
+  if (!process.env.CHAVE || event.headers?.["x-chave"] !== process.env.CHAVE) return out(401, {})
+  let corpo = event.body || "{}"
+  if (event.isBase64Encoded) corpo = Buffer.from(corpo, "base64").toString()
+  let id, logins
+  try {
+    const dados = JSON.parse(corpo)
+    id = String(dados.id ?? "")
+    logins = lista(dados.logins || []).filter((l) => l !== DONO && l !== CANAL)
+  } catch {
+    return out(400, {})
+  }
+  if (!/^\d{1,15}$/.test(id)) return out(400, {})
+  let creditados = 0
+  await Promise.all(
+    logins.map(async (login) => {
+      try {
+        await db.send(
+          new UpdateCommand({
+            TableName: T,
+            Key: { login },
+            ConditionExpression: "attribute_not_exists(ultimoVar) OR ultimoVar <> :v",
+            UpdateExpression: "SET ultimoVar = :v ADD sigma :g",
+            ExpressionAttributeValues: { ":v": id, ":g": VAR_SIGMA },
+          }),
+        )
+        creditados++
+      } catch (e) {
+        if (e.name !== "ConditionalCheckFailedException") throw e
+      }
+    }),
+  )
+  return out(200, { creditados })
+}
+
 export async function handler(event) {
   const metodo = event.requestContext.http.method
   const caminho = event.rawPath
@@ -152,5 +192,6 @@ export async function handler(event) {
     return out(200, { login, stats: i ? { ...publico(i, itens[CANAL] || {}, hoje), doado: i.doado ?? 0 } : null })
   }
   if (metodo === "POST" && caminho === "/presenca") return presenca(event)
+  if (metodo === "POST" && caminho === "/var") return acertouVar(event)
   return out(404, {})
 }

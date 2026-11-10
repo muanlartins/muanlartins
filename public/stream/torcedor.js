@@ -184,7 +184,12 @@
     oculos: `<path d="M6.4 4.8 H11 V7.8 H6.4 Z M13 4.8 H17.6 V7.8 H13 Z M11 5.6 H13 V6.6 H11 Z" fill="#001447"/>`,
     fone: `<path d="M5.4 7.5 A6.6 6.6 0 0 1 18.6 7.5" fill="none" stroke-width="1.6" stroke="currentColor"/><path class="contorno" d="M3.9 5.8 H6.6 V10.6 H3.9 Z M17.4 5.8 H20.1 V10.6 H17.4 Z"/>`,
     cartola: `<path class="contorno" d="M7.8 1.6 V-5.6 H16.2 V1.6 Z M5 1.6 H19 V3.2 H5 Z"/>`,
+    // The referee's whistle on its cord: only for the VAR's kit (ARBITRO), never offered on the profile.
+    apito: `<path d="M8.6 14.6 L12 21 L15.4 14.6" fill="none" stroke="#f4f5f7" stroke-width="0.9"/><path class="contorno" fill="#c9ced8" d="M10.4 20.6 H15.2 A1.9 1.9 0 0 1 15.2 24.4 H10.4 Z"/><path d="M15.2 20.6 V18.8 H17.2 V21.4" fill="#c9ced8"/>`,
   }
+  // While the VAR is open (torcida.html), everyone wears the referee's kit over their own look: a yellow shirt with a
+  // black collar and the whistle. Head and name stay theirs; it's never saved to their profile.
+  const ARBITRO = { cor: "#ffd23f", detalhe: PRETO, roupa: "gola", acessorio: "apito" }
   /** The fan as SVG, 24×36 units, feet at the bottom; arms show only while cheering (.bracos). */
   function figura(aparencia) {
     const { cor, detalhe, cabeca, roupa, numero, acessorio } = aparencia
@@ -197,6 +202,6 @@
 
   window.Torcedor = {
     CORES, CABECAS, ROUPAS, TRES_CORES, ACESSORIOS, COMEMORACOES, STICKERS, FRASE_MAX, STICKERS_MAX, TIMES, TIME_MAX,
-    padrao, normalizar, soPaleta, figura, umEmoji,
+    padrao, normalizar, soPaleta, figura, umEmoji, ARBITRO,
   }
 })()
