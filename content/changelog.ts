@@ -118,6 +118,14 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "rlr-em-portugues",
+    date: "2026-11-10",
+    tag: "rlr",
+    title: "RLR em português",
+    text: "Toda a interface do RLR agora em português: o player, o jogar daqui, a prancheta e o estúdio.",
+    href: "/rlr/",
+  },
+  {
     id: "politica-de-privacidade",
     date: "2026-11-10",
     tag: "site",

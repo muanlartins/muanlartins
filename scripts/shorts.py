@@ -4,7 +4,7 @@
     scripts/.venv/bin/python scripts/shorts.py --apply    # make them
 
 A take is Videos\\Shorts\\<date> <time> short.mp4, 1080×1920: the play on top, his camera under it; tracks 1 Tudo,
-2 Microfone (3 Estúdio in takes before 11-07); one chapter per play, named by the studio ("Match 2 · Goal · 113 km/h"). Each chapter
+2 Microfone (3 Estúdio in takes before 11-07); one chapter per play, named by the studio ("Partida 2 · Gol · 113 km/h"). Each chapter
 becomes a short, the same way every time:
 
 - cut from just before he starts talking to just after he stops (silence on the microphone's track);
