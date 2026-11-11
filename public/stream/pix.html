@@ -24,6 +24,14 @@
       reservation is rendered while the viewer pays, so the alert never waits.
       Without the narrator, the band still shows, silent but for the chime.
 
+      A song (from R$ 5, made by the Pix API with Google's Lyria) waits in the
+      queue until it's ready, letting the others by; then the band announces
+      it ("Fulano mandou 5 reais e uma música!"), shrinks, and the song plays
+      under it, at most 60 s, faded out at the end, a little quieter than it
+      comes (about −16 LUFS, like the effects). The dock's "Pular música" fades
+      it out (or, before it starts, leaves only the announcement). A song that
+      couldn't be made plays as a plain alert, name and amount.
+
       "Entre partidas" holds a Pix until the match ends, as the Partidas dock
       says (partidas.html, through obs-browser's emit_event); an alert never
       plays twice, and the dock can ask for one again.
@@ -114,6 +122,14 @@
       }
       .mensagem:empty {
         display: none;
+      }
+      /* A song: once announced, the band shrinks up out of the way while it plays. */
+      .faixa {
+        transform-origin: top center;
+        transition: transform 0.7s var(--ease);
+      }
+      .alerta.mini .faixa {
+        transform: scale(0.55);
       }
       @keyframes wipe {
         from {
@@ -257,6 +273,13 @@
       }
       // The masked words aren't read out.
       const legivel = (t) => t.replace(/•••/g, " ").replace(/\s+/g, " ").trim()
+      // A song: at most 60 s on the live, faded out over the last 3, at 0.6 (Lyria's ~−12 LUFS to ~−16).
+      const MUSICA_MAX = 60
+      const MUSICA_FADE = 3
+      const MUSICA_GANHO = 0.6
+      const ESTILOS = { funk: "Funk", sertanejo: "Sertanejo", pagode: "Pagode", forro: "Forró", rock: "Rock", rap: "Rap", eletronica: "Eletrônica", pop: "Pop" }
+      // Ready to play: a plain Pix, a song made, or one that couldn't be (it plays as a plain alert).
+      const pronto = (p) => !p.musica || p.musica.estado === "pronta" || p.musica.estado === "falhou"
 
       // Chrome only plays after a click (OBS needs none): the page says so while it's muted.
       const som = new AudioContext()
@@ -295,6 +318,33 @@
         })
       }
       const decodificar = (dados) => som.decodeAudioData(dados).catch(() => null)
+      let pararMusica = null // fades the song playing out, for the dock's "Pular música"
+      function tocarMusica(buffer) {
+        return new Promise((fim) => {
+          const fonte = som.createBufferSource()
+          const ganho = som.createGain()
+          fonte.buffer = buffer
+          fonte.connect(ganho).connect(som.destination)
+          const t0 = som.currentTime
+          const dura = Math.min(buffer.duration, MUSICA_MAX)
+          ganho.gain.setValueAtTime(MUSICA_GANHO, t0)
+          ganho.gain.setValueAtTime(MUSICA_GANHO, t0 + Math.max(0, dura - MUSICA_FADE))
+          ganho.gain.linearRampToValueAtTime(0.0001, t0 + dura)
+          fonte.onended = () => {
+            pararMusica = null
+            fim()
+          }
+          pararMusica = () => {
+            const t = som.currentTime
+            ganho.gain.cancelScheduledValues(t)
+            ganho.gain.setValueAtTime(ganho.gain.value, t)
+            ganho.gain.linearRampToValueAtTime(0.0001, t + 1)
+            fonte.stop(t + 1)
+          }
+          fonte.start(t0)
+          fonte.stop(t0 + dura)
+        })
+      }
 
       // --- The voices, rendered ahead: one entry per reservation (or per Pix without one) ---------------
       const prontas = new Map() // id → Promise<{ fala: AudioBuffer[], texto }>
@@ -316,6 +366,18 @@
         const abertura = `${nome} mandou ${falado(r.centavos)}.`
         const voz = r.voz && r.voz !== "propria" ? r.voz : "antonio"
         const id = r.id ?? r.reserva
+        // A song: the announcement, and the song itself from the site; one that couldn't be made, the amount alone.
+        if (r.musica) {
+          if (r.musica.estado !== "pronta" || !r.musica.url) return { fala: [await falar(abertura, voz)], texto: "" }
+          const [fala, musica] = await Promise.all([
+            falar(`${nome} mandou ${falado(r.centavos)} e uma música!`, voz),
+            fetch(r.musica.url)
+              .then((x) => (x.ok ? x.arrayBuffer() : null))
+              .then((b) => b && decodificar(b))
+              .catch(() => null),
+          ])
+          return { fala: [fala], texto: `♪ ${ESTILOS[r.musica.estilo] ?? "Música"}${r.musica.sobre ? ` · ${r.musica.sobre}` : ""}`, musica }
+        }
         if (!r.audio) return { fala: [await falar(legivel(`${abertura} ${r.mensagem || ""}`), voz)], texto: r.mensagem || "" }
         // A recording: whisper's transcript goes on screen (and to the mural, filtered by the API); the
         // recording plays in the voice, unless the filter caught something, then the voice reads the rest.
@@ -338,7 +400,8 @@
         return { fala, texto }
       }
       function preparar(r, pix) {
-        const id = r.id ?? r.reserva ?? r.sk
+        // A song made again is a new file, so it's rendered again.
+        const id = `${r.id ?? r.reserva ?? r.sk}${r.musica ? `:${r.musica.arquivo ?? r.musica.estado}` : ""}`
         if (!prontas.has(id)) prontas.set(id, render(r, pix).catch(() => ({ fala: [], texto: r.mensagem || "" })))
         return prontas.get(id)
       }
@@ -362,7 +425,7 @@
 
       async function proximo() {
         if (tocando) return
-        const i = fila.findIndex((p) => p.quando !== "entre" || !segurando())
+        const i = fila.findIndex((p) => pronto(p) && (p.quando !== "entre" || !segurando()))
         if (i < 0) return
         const [pix] = fila.splice(i, 1)
         tocando = true
@@ -372,11 +435,15 @@
           const texto = pronta?.texto ?? pix.mensagem ?? ""
           // A recording transcribed while its reservation waited: the paid Pix keeps the words for the mural.
           if (pix.audio && !pix.transcricao && texto && !DEMO) pedir("/canal", { acao: "transcricao", pix: pix.sk, texto }).catch(() => {})
-          $(".rotulo").textContent = `Pix · R$ ${reais(pix.centavos)}`
+          $(".rotulo").textContent = `${pix.musica?.estado === "pronta" && !pix.pular ? "Música" : "Pix"} · R$ ${reais(pix.centavos)}`
           $(".nome").textContent = pix.nome || "Anônimo"
           $(".mensagem").textContent = texto
           const falas = (pronta?.fala ?? []).filter(Boolean)
-          const segundos = Math.max(7, Math.min(40, 1.2 + falas.reduce((t, b) => t + b.duration, 0) + 1.5), 6 + texto.length * 0.05)
+          const musica = pix.pular ? null : pronta?.musica
+          const falando = falas.reduce((t, b) => t + b.duration, 0)
+          const segundos = musica
+            ? 1.2 + falando + Math.min(musica.duration, MUSICA_MAX) + 1
+            : Math.max(7, Math.min(40, 1.2 + falando + 1.5), 6 + texto.length * 0.05)
           const alerta = $(".alerta")
           alerta.style.setProperty("--dura", `${segundos}s`)
           alerta.classList.remove("tocando")
@@ -385,8 +452,11 @@
           chime()
           await new Promise((r) => setTimeout(r, 1200))
           for (const b of falas) await tocar(b)
-          await new Promise((r) => setTimeout(r, Math.max(0, segundos * 1000 - 1200 - falas.reduce((t, b) => t + b.duration * 1000, 0))))
-          alerta.classList.remove("tocando")
+          if (musica) {
+            alerta.classList.add("mini")
+            await tocarMusica(musica)
+          } else await new Promise((r) => setTimeout(r, Math.max(0, segundos * 1000 - 1200 - falando * 1000)))
+          alerta.classList.remove("tocando", "mini")
           vistos.set(pix.sk, Date.now())
           if (!DEMO) await pedir("/canal", { acao: "exibido", pix: pix.sk, reserva: pix.reserva }).catch(() => {})
         } finally {
@@ -409,10 +479,15 @@
         const estado = await pedir("/canal").catch(() => null)
         if (!estado) return
         meta(estado.meta)
-        for (const r of estado.reservas) preparar(r)
+        // A song's announcement waits for the song.
+        for (const r of estado.reservas) if (!r.musica) preparar(r)
         const recente = new Date(estado.agora - 6 * 3600 * 1000).toISOString()
         // Oldest first, so they play in the order they came.
         for (const p of [...estado.pix].reverse()) {
+          // What changed since it was queued: a song made, a skip from the dock.
+          const naFila = fila.find((f) => f.sk === p.sk)
+          if (naFila) Object.assign(naFila, p)
+          if (p.sk === atual && p.pular) pararMusica?.()
           const visto = vistos.get(p.sk)
           if (p.exibido || p.sk === atual || p.sk < recente || fila.some((f) => f.sk === p.sk) || (visto && Date.now() - visto < 30000)) continue
           vistos.set(p.sk, Date.now())

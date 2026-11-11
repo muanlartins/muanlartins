@@ -7,8 +7,25 @@ import { PageIntro } from "@/components/site/page-intro"
 import { GoalBar } from "@/components/site/pix/goal-bar"
 import { VoicePicker } from "@/components/site/pix/voice-picker"
 import { FanView } from "@/components/site/profile/fan-view"
-import { mural as muralCopy, pix, VOICES } from "@/content/pix"
-import { centavosDe, loadMural, MINIMO, PIX_API, reais, reservationStatus, reserve, type Goal, type Order, type Reservation } from "@/lib/pix"
+import { mural as muralCopy, pix, STYLES, VOICES } from "@/content/pix"
+import {
+  centavosDe,
+  editSong,
+  LETRA_MAX,
+  loadMural,
+  MINIMO,
+  MINIMO_MUSICA,
+  PIX_API,
+  PixError,
+  reais,
+  reservationStatus,
+  reserve,
+  SOBRE_MAX,
+  type Goal,
+  type Order,
+  type Reservation,
+  type SongStatus,
+} from "@/lib/pix"
 import { canSave, keptToken, loadMine, signIn, signOut, SignedOut, type Choice, type Torcedor } from "@/lib/profile"
 import { localize, MURAL_SLUG, PIX_SLUG } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
@@ -17,12 +34,14 @@ import { cn } from "@/lib/utils"
 const text = localize(pix)
 const of = localize(muralCopy.of)
 const PRESETS = [100, 500, 1000, 2000]
+const SONG_PRESETS = [500, 1000, 2000]
 const MAX_SECONDS = 15
 const DRAFT_KEY = "pix:rascunho"
 
 type Step = "form" | "pay" | "done" | "late"
 type Mode = "texto" | "audio"
 interface Draft {
+  tipo: "mensagem" | "musica"
   nome: string
   mensagem: string
   modo: Mode
@@ -30,6 +49,10 @@ interface Draft {
   preset: number | null
   outro: string
   quando: "agora" | "entre"
+  estilo: string
+  modoLetra: "sobre" | "letra"
+  sobre: string
+  letra: string
 }
 interface Recording {
   blob: Blob
@@ -54,7 +77,29 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-const blank: Draft = { nome: "", mensagem: "", modo: "texto", voz: "antonio", preset: 500, outro: "", quando: "agora" }
+const blank: Draft = {
+  tipo: "mensagem",
+  nome: "",
+  mensagem: "",
+  modo: "texto",
+  voz: "antonio",
+  preset: 500,
+  outro: "",
+  quando: "agora",
+  estilo: STYLES[0].id,
+  modoLetra: "sobre",
+  sobre: "",
+  letra: "",
+}
+
+const hour = (t: number) => new Date(t).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+
+/** A song's new state; on its way into a refusal, the text the viewer wrote comes back to the field to change. */
+function nextSong(next: SongStatus, before: { current: SongStatus | null }, setSong: (s: SongStatus) => void, setRetry: (t: string) => void) {
+  if (next.estado === "recusada" && before.current?.estado !== "recusada") setRetry(next.letra ?? next.sobre ?? "")
+  before.current = next
+  setSong(next)
+}
 
 function readDraft(): Draft {
   try {
@@ -97,8 +142,17 @@ export function PixPage() {
   const [T, setT] = useState<Torcedor | null>(null)
   const [look, setLook] = useState<Choice | null>(null)
   const recorder = useRef<MediaRecorder | null>(null)
+  // The song of the Pix being paid (null for a message): its state on the way, and a refused one's new text.
+  const [song, setSong] = useState<SongStatus | null>(null)
+  const songRef = useRef<SongStatus | null>(null)
+  const [songError, setSongError] = useState("")
+  const [retry, setRetry] = useState("")
+  const [retrying, setRetrying] = useState(false)
 
   const change = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }))
+  const isSong = draft.tipo === "musica"
+  const songText = draft.modoLetra === "sobre" ? draft.sobre.trim() : draft.letra.trim()
+  const songState = song?.estado
   const centavos = draft.preset ?? centavosDe(draft.outro)
   const voices = VOICES.filter((v) => (draft.modo === "texto" ? v.text : v.recording))
 
@@ -130,6 +184,7 @@ export function PixPage() {
     const watch = setInterval(async () => {
       const status = await reservationStatus(reservation.id).catch(() => null)
       if (!status) return
+      if (status.musica) nextSong(status.musica, songRef, setSong, setRetry)
       if (status.pago) setStep("done")
       else if (Date.now() > status.expira) setStep("late")
       if (status.pago || Date.now() > status.ate) clearInterval(watch)
@@ -139,6 +194,30 @@ export function PixPage() {
       clearInterval(watch)
     }
   }, [reservation, step])
+
+  // Once paid, the song: every 3 s until it's made or given up (a refusal waits for its new text, or for time to run out).
+  useEffect(() => {
+    if (step !== "done" || !reservation || !songState || songState === "pronta" || songState === "falhou") return
+    const watch = setInterval(async () => {
+      const status = await reservationStatus(reservation.id).catch(() => null)
+      if (status?.musica) nextSong(status.musica, songRef, setSong, setRetry)
+    }, 3000)
+    return () => clearInterval(watch)
+  }, [step, reservation, songState])
+
+  async function resend(e: React.FormEvent) {
+    e.preventDefault()
+    if (!reservation || !song) return
+    setRetrying(true)
+    setSongError("")
+    try {
+      nextSong(await editSong(reservation.id, song.letra ? { letra: retry } : { sobre: retry }), songRef, setSong, setRetry)
+    } catch (err) {
+      setSongError(err instanceof Error && err.message && !/^\d+$/.test(err.message) ? err.message : text.error)
+    } finally {
+      setRetrying(false)
+    }
+  }
 
   function goSignIn() {
     try {
@@ -191,28 +270,35 @@ export function PixPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!Number.isInteger(centavos) || centavos < MINIMO) {
-      setError(text.minimum)
+    if (!Number.isInteger(centavos) || centavos < (isSong ? MINIMO_MUSICA : MINIMO)) {
+      setError(isSong ? text.songMinimum : text.minimum)
       return
     }
     setBusy(true)
     setError("")
+    setSongError("")
     try {
-      const order: Order = {
-        centavos,
-        nome: draft.nome,
-        mensagem: draft.modo === "texto" ? draft.mensagem : "",
-        voz: voices.some((v) => v.id === draft.voz) ? draft.voz : voices[0].id,
-        quando: draft.quando,
-      }
-      if (draft.modo === "audio" && recording) order.audio = { tipo: recording.blob.type, dados: await base64(recording.blob) }
+      const order: Order = isSong
+        ? { centavos, nome: draft.nome, mensagem: "", voz: "antonio", quando: draft.quando, musica: draft.modoLetra === "sobre" ? { estilo: draft.estilo, sobre: songText } : { estilo: draft.estilo, letra: songText } }
+        : {
+            centavos,
+            nome: draft.nome,
+            mensagem: draft.modo === "texto" ? draft.mensagem : "",
+            voz: voices.some((v) => v.id === draft.voz) ? draft.voz : voices[0].id,
+            quando: draft.quando,
+          }
+      if (!isSong && draft.modo === "audio" && recording) order.audio = { tipo: recording.blob.type, dados: await base64(recording.blob) }
       const r = await reserve(order, login ? token : null)
+      songRef.current = isSong ? { estado: "esperando" } : null
+      setSong(songRef.current)
       setReservation(r)
       setNow(r.expira - 15 * 60_000) // the server's clock: when it was reserved
       setStep("pay")
       scrollTo({ top: 0 })
     } catch (err) {
-      setError(err instanceof Error && err.message && !/^\d+$/.test(err.message) ? err.message : text.error)
+      const message = err instanceof Error && err.message && !/^\d+$/.test(err.message) ? err.message : text.error
+      if (err instanceof PixError && err.campo === "musica") setSongError(message)
+      else setError(message)
     } finally {
       setBusy(false)
     }
@@ -228,8 +314,12 @@ export function PixPage() {
   function again() {
     setReservation(null)
     setStep("form")
-    setDraft((d) => ({ ...d, mensagem: "" }))
+    setDraft((d) => ({ ...d, mensagem: "", sobre: "", letra: "" }))
     setRecording(null)
+    songRef.current = null
+    setSong(null)
+    setRetry("")
+    setSongError("")
   }
 
   const qr = (() => {
@@ -261,57 +351,115 @@ export function PixPage() {
         <p className="text-[15px] text-muted">{text.soon}</p>
       ) : step === "form" ? (
         <form onSubmit={submit} className="max-w-[34rem] space-y-7">
+          <Field label={text.kind}>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" aria-pressed={!isSong} onClick={() => change({ tipo: "mensagem" })} className={choice(!isSong)}>
+                {text.kindMessage}
+              </button>
+              <button
+                type="button"
+                aria-pressed={isSong}
+                onClick={() => change({ tipo: "musica", quando: "entre", preset: draft.preset !== null && draft.preset < MINIMO_MUSICA ? MINIMO_MUSICA : draft.preset })}
+                className={choice(isSong)}
+              >
+                ♪ {text.kindSong} <span className={isSong ? "text-paper/75" : "text-muted"}>· {text.kindSongPrice}</span>
+              </button>
+            </div>
+          </Field>
+
           <Field label={text.name}>
             <input value={draft.nome} maxLength={25} autoComplete="nickname" placeholder={text.namePlaceholder} onChange={(e) => change({ nome: e.target.value })} className={field} />
           </Field>
 
-          <Field label={text.message}>
-            <div className="flex gap-2">
-              {(["texto", "audio"] as const).map((modo) => (
-                <button
-                  key={modo}
-                  type="button"
-                  aria-pressed={draft.modo === modo}
-                  onClick={() => change({ modo, voz: VOICES.find((v) => (modo === "texto" ? v.text : v.recording))!.id })}
-                  className={choice(draft.modo === modo)}
-                >
-                  {modo === "texto" ? text.write : text.record}
-                </button>
-              ))}
-            </div>
-            {draft.modo === "texto" ? (
-              <>
-                <textarea value={draft.mensagem} maxLength={200} rows={3} placeholder={text.messagePlaceholder} onChange={(e) => change({ mensagem: e.target.value })} className={cn(field, "resize-y")} />
-                <p className="text-right text-[13px] tabular-nums text-muted">{draft.mensagem.length}/200</p>
-              </>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-3">
-                  {recordingNow ? (
-                    <button type="button" onClick={() => recorder.current?.stop()} className={choice(true)}>
-                      ■ {text.recordStop} · {Math.floor(recordingNow)}s / {MAX_SECONDS}s
+          {isSong ? (
+            <>
+              <Field label={text.style}>
+                <div className="flex flex-wrap gap-2">
+                  {STYLES.map((s) => (
+                    <button key={s.id} type="button" aria-pressed={draft.estilo === s.id} onClick={() => change({ estilo: s.id })} className={choice(draft.estilo === s.id)}>
+                      {s.name}
                     </button>
-                  ) : (
-                    <button type="button" onClick={startRecording} className={choice(false)}>
-                      ● {recording ? text.recordAgain : text.recordStart}
-                    </button>
-                  )}
-                  {recording && !recordingNow && (
-                    <audio src={recording.url} controls className="h-9 max-w-full" />
-                  )}
+                  ))}
                 </div>
-                <p className="text-[13px] text-muted">{recordError ? text.recordDenied : text.recordLimit}</p>
-              </div>
-            )}
-          </Field>
+              </Field>
 
-          <Field label={text.voice} hint={draft.modo === "texto" ? text.voiceHint : text.voiceRecordingHint}>
-            <VoicePicker voices={voices} value={voices.some((v) => v.id === draft.voz) ? draft.voz : voices[0].id} onChange={(voz) => change({ voz })} />
-          </Field>
+              <Field label={text.lyrics} hint={text.songHint}>
+                <div className="flex flex-wrap gap-2">
+                  {(["sobre", "letra"] as const).map((modoLetra) => (
+                    <button key={modoLetra} type="button" aria-pressed={draft.modoLetra === modoLetra} onClick={() => change({ modoLetra })} className={choice(draft.modoLetra === modoLetra)}>
+                      {modoLetra === "sobre" ? text.about : text.writeLyrics}
+                    </button>
+                  ))}
+                </div>
+                {draft.modoLetra === "sobre" ? (
+                  <>
+                    <input value={draft.sobre} maxLength={SOBRE_MAX} placeholder={text.aboutPlaceholder} onChange={(e) => change({ sobre: e.target.value })} className={field} />
+                    <p className="text-right text-[13px] tabular-nums text-muted">
+                      {draft.sobre.length}/{SOBRE_MAX}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <textarea value={draft.letra} maxLength={LETRA_MAX} rows={7} placeholder={text.lyricsPlaceholder} onChange={(e) => change({ letra: e.target.value })} className={cn(field, "resize-y")} />
+                    <p className="text-right text-[13px] tabular-nums text-muted">
+                      {draft.letra.length}/{LETRA_MAX}
+                    </p>
+                  </>
+                )}
+                {songError && <p className="text-[15px] text-[#c0392b]">{songError}</p>}
+              </Field>
+            </>
+          ) : (
+            <>
+              <Field label={text.message}>
+                <div className="flex gap-2">
+                  {(["texto", "audio"] as const).map((modo) => (
+                    <button
+                      key={modo}
+                      type="button"
+                      aria-pressed={draft.modo === modo}
+                      onClick={() => change({ modo, voz: VOICES.find((v) => (modo === "texto" ? v.text : v.recording))!.id })}
+                      className={choice(draft.modo === modo)}
+                    >
+                      {modo === "texto" ? text.write : text.record}
+                    </button>
+                  ))}
+                </div>
+                {draft.modo === "texto" ? (
+                  <>
+                    <textarea value={draft.mensagem} maxLength={200} rows={3} placeholder={text.messagePlaceholder} onChange={(e) => change({ mensagem: e.target.value })} className={cn(field, "resize-y")} />
+                    <p className="text-right text-[13px] tabular-nums text-muted">{draft.mensagem.length}/200</p>
+                  </>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-3">
+                      {recordingNow ? (
+                        <button type="button" onClick={() => recorder.current?.stop()} className={choice(true)}>
+                          ■ {text.recordStop} · {Math.floor(recordingNow)}s / {MAX_SECONDS}s
+                        </button>
+                      ) : (
+                        <button type="button" onClick={startRecording} className={choice(false)}>
+                          ● {recording ? text.recordAgain : text.recordStart}
+                        </button>
+                      )}
+                      {recording && !recordingNow && (
+                        <audio src={recording.url} controls className="h-9 max-w-full" />
+                      )}
+                    </div>
+                    <p className="text-[13px] text-muted">{recordError ? text.recordDenied : text.recordLimit}</p>
+                  </div>
+                )}
+              </Field>
+
+              <Field label={text.voice} hint={draft.modo === "texto" ? text.voiceHint : text.voiceRecordingHint}>
+                <VoicePicker voices={voices} value={voices.some((v) => v.id === draft.voz) ? draft.voz : voices[0].id} onChange={(voz) => change({ voz })} />
+              </Field>
+            </>
+          )}
 
           <Field label={text.amount}>
             <div className="flex flex-wrap gap-2">
-              {PRESETS.map((c) => (
+              {(isSong ? SONG_PRESETS : PRESETS).map((c) => (
                 <button key={c} type="button" aria-pressed={draft.preset === c} onClick={() => change({ preset: c })} className={cn(choice(draft.preset === c), "min-w-16")}>
                   R$ {c / 100}
                 </button>
@@ -384,7 +532,7 @@ export function PixPage() {
 
           <div className="space-y-3">
             <button
-              disabled={busy || Boolean(recordingNow) || (draft.modo === "audio" && !recording)}
+              disabled={busy || (isSong ? !songText : Boolean(recordingNow) || (draft.modo === "audio" && !recording))}
               className="w-full rounded-sm bg-klein px-5 py-3 text-[17px] font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-40"
             >
               {busy ? text.generating : `${text.generate}${Number.isInteger(centavos) && centavos > 0 ? ` · R$ ${reais(centavos)}` : ""}`}
@@ -394,8 +542,49 @@ export function PixPage() {
         </form>
       ) : step === "done" ? (
         <section className="max-w-[34rem] space-y-3 rounded-md border border-line bg-paper/70 px-5 py-5">
-          <h2 className="text-2xl font-medium text-klein">{text.doneTitle}</h2>
-          <p className="text-[15px] text-ink">{text.doneNote}</p>
+          {song?.estado === "recusada" ? (
+            <form onSubmit={resend} className="space-y-3">
+              <h2 className="text-2xl font-medium text-klein">{text.songRefused}</h2>
+              {song.motivo && <p className="text-[15px] text-ink">{song.motivo}</p>}
+              {song.letra ? (
+                <textarea value={retry} maxLength={LETRA_MAX} rows={7} onChange={(e) => setRetry(e.target.value)} className={cn(field, "resize-y")} />
+              ) : (
+                <input value={retry} maxLength={SOBRE_MAX} onChange={(e) => setRetry(e.target.value)} className={field} />
+              )}
+              {songError && <p className="text-[15px] text-[#c0392b]">{songError}</p>}
+              <button disabled={retrying || !retry.trim()} className="w-full rounded-sm bg-klein px-5 py-3 text-[17px] font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-40">
+                {retrying ? text.songRetrying : text.songRetry}
+              </button>
+              {song.edicoes !== undefined && song.ate && (
+                <p className="text-[13px] text-muted">{text.songTries.replace("{n}", String(song.edicoes)).replace("{hora}", hour(song.ate))}</p>
+              )}
+            </form>
+          ) : (
+            <>
+              <h2 className="text-2xl font-medium text-klein">{text.doneTitle}</h2>
+              {!song ? (
+                <p className="text-[15px] text-ink">{text.doneNote}</p>
+              ) : song.estado === "pronta" ? (
+                <>
+                  <p className="text-[15px] text-ink">{text.songReady}</p>
+                  <p className="text-[15px] text-ink">{text.songReadyNote}</p>
+                  <a href={`/${MURAL_SLUG}`} className="inline-block text-[14px] text-muted underline underline-offset-2 hover:text-klein">
+                    {text.muralSee} →
+                  </a>
+                </>
+              ) : song.estado === "falhou" ? (
+                <p className="text-[15px] text-ink">{text.songFailed}</p>
+              ) : (
+                <>
+                  <p className="flex items-center gap-2 text-[15px] text-ink">
+                    <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-klein" />
+                    {text.songMaking}
+                  </p>
+                  <p className="text-[13px] text-muted">{text.songMakingNote}</p>
+                </>
+              )}
+            </>
+          )}
           <button onClick={again} className={choice(false)}>
             {text.again}
           </button>
