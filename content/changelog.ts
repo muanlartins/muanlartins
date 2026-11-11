@@ -108,6 +108,13 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
+    id: "musica-no-pix",
+    status: "agora",
+    tag: "live",
+    title: "Música feita por IA no Pix",
+    text: "A partir de R$ 5: você escolhe o estilo e diz sobre o que é a música (ou escreve a letra), ela toca na live e depois fica no mural pra você ouvir e baixar.",
+  },
+  {
     id: "analise-de-mira",
     status: "proximo",
     tag: "site",
