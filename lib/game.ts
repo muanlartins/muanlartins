@@ -26,7 +26,7 @@ export interface Game {
   ranked?: { title: L10n; description: L10n }
   /** The aim training page (Valorant's: Voltaic's routine and benchmarks, from content/voltaic/). */
   aim?: { title: L10n; description: L10n }
-  /** The weapon skins page (Valorant's: the skin on each weapon now and the collection being built, from content/valorant-inventory.json). */
+  /** The weapon skins page (Valorant's: the channel's collection, the skin on each weapon now, and anyone's dream loadout; lib/valorant-inventory.ts). */
   inventory?: { title: L10n; description: L10n }
   /** Apps and playlists elsewhere, listed in the menu and on the home page. */
   links: Project[]

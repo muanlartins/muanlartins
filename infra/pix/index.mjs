@@ -17,15 +17,33 @@
 //   meta/atual          the goal on screen, counting every Pix since it was set
 //   meta/<iso>          a goal that ended (sk: when it started), for the mural's history
 //
-// Public: POST /reservar, GET /reserva?id=, GET /mural (the site's /mural: the goals and their Pix). The phone: POST /notificacao with x-token. The
-// stream: GET /canal, GET /audio?id= and POST /canal with x-chave (the Σ key, already in OBS).
+// Public: POST /reservar, GET /reserva?id=, POST /musica (a refused song's new text), GET /mural (the site's /mural:
+// the goals and their Pix). The phone: POST /notificacao with x-token. The stream: GET /canal, GET /audio?id= and
+// POST /canal with x-chave (the Σ key, already in OBS).
+//
+// A song (musica.mjs), from R$ 5: the form sends a style and a theme or lyrics, checked by the word filter and by
+// Gemini before the QR. Once paid, the Pix's `musica` is "gerando" and this function invokes itself with
+// { musica: <pix sk> } (InvocationType Event), so the request that paid never waits for Google: Lyria makes it in
+// ~25 s and it goes to the site's bucket as pt/musicas/<random>.mp3, which the site serves at /musicas/ (CI's sync
+// leaves that folder alone): "pronta". Google refusing the text makes it "recusada": the viewer, still on /pix, may
+// change it EDICOES times within ESPERA, else it plays as a plain alert ("falhou"). Trouble on the way throws, and
+// Lambda tries an async event twice more; the third failure is "falhou" too, and the dock can make it again. The
+// stream plays a song once it's "pronta" (or the plain alert once "falhou"), and the mural shows it, to listen and
+// download, only after it played on the live (`tocou`).
 
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto"
+import { createHash, randomBytes } from "node:crypto"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda"
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
+import { corpo as lerCorpo, igual, json as lerJson, out } from "./comum/http.mjs"
+import { quem } from "./comum/twitch.mjs"
 import { filtrar } from "./filtro.mjs"
+import { EDICOES, ESPERA, estadoDe, gerar, MINIMO_MUSICA, PERDIDA, pedidoDe, revisar, segundosDe } from "./musica.mjs"
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({}), { marshallOptions: { removeUndefinedValues: true } })
+const s3 = new S3Client({})
+const lambda = new LambdaClient({})
 const T = process.env.TABLE
 const MINUTO = 60_000
 const DIA = 24 * 60 * MINUTO
@@ -36,31 +54,20 @@ const MINIMO = 100 // R$ 1,00, for a reservation; a Pix that arrives by itself c
 const MAXIMO = 1_000_000 // R$ 10.000,00
 const POR_IP = 5 // reservations per IP every RESERVA
 const VOZ = /^[a-z0-9]{1,16}$/
-const LOGIN = /^[a-z0-9_]{1,25}$/
 const DONO = "muanlartins" // the channel's own login: its Pix are tests
 const AUDIO = /^audio\/(webm|ogg|mp4|mpeg)(;[\w=.,\s-]*)?$/
 const BASE64 = /^[A-Za-z0-9+/]+=*$/
 const MAX_AUDIO = 360_000 // base64 characters: ~270 KB, far more than 20 s of Opus
+// Where the site serves the songs; a local stand-in points it at itself.
+const MUSICAS_URL = process.env.MUSICAS_URL ?? "/musicas/"
+const FALHAS = 3 // tries at making a song before it plays as a plain alert: one and Lambda's two retries
+const RODANDO = 110_000 // a run that claimed a song this long ago died (Google's own wait is 95 s, the function's 120 s)
+const SUJA = "Tem uma palavra aí que não pode tocar na live. Mude o texto e tente de novo."
 
-const out = (statusCode, body) => ({ statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
 const novoId = () => randomBytes(9).toString("base64url")
 const expiraEm = (ms) => Math.floor((Date.now() + ms) / 1000)
 const iso = (t) => new Date(t).toISOString()
 const linha = (s, max) => [...String(s ?? "").replace(/\s+/g, " ").trim()].slice(0, max).join("").trim()
-const igual = (a, b) => typeof a === "string" && !!b && a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b))
-
-function lerCorpo(event) {
-  const b = event.body || ""
-  return event.isBase64Encoded ? Buffer.from(b, "base64").toString() : b
-}
-function lerJson(event) {
-  try {
-    const j = JSON.parse(lerCorpo(event) || "{}")
-    return j && typeof j === "object" ? j : null
-  } catch {
-    return null
-  }
-}
 
 async function todos(pk, { desde, desc = false, limite } = {}) {
   const itens = []
@@ -121,15 +128,6 @@ export function brcode(centavos) {
 }
 
 // Who is calling, if they signed in with Twitch on the site: their Pix earns them Σ.
-async function quem(headers) {
-  const token = (headers.authorization || "").replace(/^Bearer /, "")
-  if (!token) return null
-  const r = await fetch("https://id.twitch.tv/oauth2/validate", { headers: { Authorization: "OAuth " + token } })
-  if (!r.ok) return null
-  const v = await r.json()
-  return v.client_id === process.env.TWITCH_CLIENT_ID && LOGIN.test(v.login) ? v.login : null
-}
-
 // --- The viewer -------------------------------------------------------------------------------------
 
 async function demais(ip) {
@@ -152,13 +150,26 @@ async function reservar(event) {
   if (!p) return out(400, { erro: "Pedido inválido." })
   const pedido = Number(p.centavos)
   if (!Number.isInteger(pedido) || pedido < MINIMO || pedido > MAXIMO) return out(400, { erro: "Escolha um valor entre R$ 1 e R$ 10.000." })
+  let musica
+  if (p.musica !== undefined) {
+    musica = pedidoDe(p.musica)
+    if (musica.erro) return out(400, { erro: musica.erro, campo: "musica" })
+    if (pedido < MINIMO_MUSICA) return out(400, { erro: "A música é a partir de R$ 5." })
+    if (!process.env.GEMINI_CHAVE) return out(503, { erro: "A música ainda não está disponível. Mande uma mensagem por enquanto." })
+    if (filtrar(musica.sobre ?? musica.letra).sujo) return out(422, { erro: SUJA, campo: "musica" })
+  }
   let audio
-  if (p.audio) {
+  if (p.audio && !musica) {
     const { tipo, dados } = p.audio
     if (!AUDIO.test(tipo) || typeof dados !== "string" || dados.length > MAX_AUDIO || !BASE64.test(dados)) return out(400, { erro: "Não deu para enviar o áudio. Grave de novo, mais curto." })
     audio = { tipo, dados }
   }
   if (await demais(event.requestContext.http.sourceIp)) return out(429, { erro: "Muitas reservas seguidas. Espere alguns minutos e tente de novo." })
+  if (musica) {
+    const v = await revisar(musica, { chave: process.env.GEMINI_CHAVE })
+    if (v.sem) console.log("musica: revisão pulada", v.sem)
+    if (!v.ok) return out(422, { erro: v.motivo, campo: "musica" })
+  }
   const login = await quem(event.headers || {})
   const agora = Date.now()
   const id = novoId()
@@ -188,9 +199,10 @@ async function reservar(event) {
         sk: id,
         centavos,
         nome: filtrar(linha(p.nome, 25)).texto,
-        mensagem: audio ? "" : filtrar(linha(p.mensagem, 200)).texto,
+        mensagem: audio || musica ? "" : filtrar(linha(p.mensagem, 200)).texto,
         audio: audio?.tipo,
-        voz: VOZ.test(p.voz) ? p.voz : undefined,
+        voz: musica ? "antonio" : VOZ.test(p.voz) ? p.voz : undefined,
+        musica,
         quando: p.quando === "entre" ? "entre" : "agora",
         // Every Pix from the form shows on the mural by the name and message its sender wrote, as the live does
         // (since 2026-11-10; before, only if they ticked the mural). The dock can take one off.
@@ -208,7 +220,45 @@ async function reservar(event) {
 
 async function situacao(id) {
   const r = typeof id === "string" && id.length < 32 ? await ler("reserva", id) : null
-  return out(200, r ? { pago: r.pago, expira: r.expira, ate: r.expira + FOLGA } : { pago: false, expira: 0, ate: 0 })
+  if (!r) return out(200, { pago: false, expira: 0, ate: 0 })
+  const base = { pago: r.pago, expira: r.expira, ate: r.expira + FOLGA }
+  if (!r.musica) return out(200, base)
+  const m = r.pix ? (await ler("pix", r.pix))?.musica : null
+  return out(200, { ...base, musica: m ? paraQuemPediu(m) : { estado: r.pago ? "gerando" : "esperando" } })
+}
+
+/** The song as its sender sees it on /pix: its state, and after a refusal why, what they wrote and how long they have. */
+function paraQuemPediu(m) {
+  const estado = estadoDe(m)
+  return {
+    estado,
+    estilo: m.estilo,
+    sobre: m.sobre,
+    letra: m.letra,
+    ...(estado === "recusada" ? { motivo: m.motivo, edicoes: EDICOES - (m.edicoes ?? 0), ate: (m.recusadaEm ?? 0) + ESPERA } : {}),
+  }
+}
+
+/** A refused song's new text, from its sender (the reservation's id is their proof): checked again, then made again. */
+async function editarMusica(event) {
+  const p = lerJson(event)
+  const r = p && typeof p.id === "string" && p.id.length < 32 ? await ler("reserva", p.id) : null
+  if (!r?.pix || !r.musica) return out(404, { erro: "Não achei esse Pix." })
+  const m = (await ler("pix", r.pix))?.musica
+  if (!m || estadoDe(m) !== "recusada" || (m.edicoes ?? 0) >= EDICOES) return out(409, { erro: "Essa música não está mais esperando um texto novo." })
+  const novo = pedidoDe({ estilo: p.estilo ?? m.estilo, sobre: p.sobre, letra: p.letra })
+  if (novo.erro) return out(400, { erro: novo.erro })
+  if (filtrar(novo.sobre ?? novo.letra).sujo) return out(422, { erro: SUJA })
+  const v = await revisar(novo, { chave: process.env.GEMINI_CHAVE })
+  if (!v.ok) return out(422, { erro: v.motivo })
+  const ok = await mudarMusica(
+    r.pix,
+    { estilo: novo.estilo, ...(novo.letra ? { letra: novo.letra } : { sobre: novo.sobre }), estado: "gerando", pedidoEm: Date.now(), edicoes: (m.edicoes ?? 0) + 1, falhas: 0 },
+    { remover: [novo.letra ? "sobre" : "letra", "motivo", "recusadaEm"], se: "musica.estado = :r", valores: { ":r": "recusada" } },
+  )
+  if (!ok) return out(409, { erro: "Essa música não está mais esperando um texto novo." })
+  await disparar(r.pix)
+  return out(200, { musica: paraQuemPediu({ ...m, ...novo, estado: "gerando" }) })
 }
 
 async function meta() {
@@ -263,6 +313,10 @@ async function mural() {
     mensagem: p.mensagem || p.transcricao || "",
     centavos: p.centavos,
     login: p.login,
+    musica:
+      p.musica?.tocou && p.musica.arquivo
+        ? { url: MUSICAS_URL + p.musica.arquivo, estilo: p.musica.estilo, sobre: p.musica.sobre, letra: p.musica.letraCantada, segundos: p.musica.segundos }
+        : undefined,
   })
   const anonimo = (p) => ({ em: p.sk.slice(0, 24), nome: "", mensagem: "", centavos: p.centavos })
   const contas = goals.map(() => ({ arrecadado: 0, pix: 0, apoiadores: [] }))
@@ -304,6 +358,7 @@ async function registrar(r, origem) {
     reserva: r.sk,
     origem,
     exibido: false,
+    musica: r.musica ? { estilo: r.musica.estilo, sobre: r.musica.sobre, letra: r.musica.letra, estado: "gerando", pedidoEm: agora, edicoes: 0, falhas: 0 } : undefined,
   }
   await db.send(new PutCommand({ TableName: T, Item: item }))
   // The channel earns no Σ of its own: its Pix are tests.
@@ -317,7 +372,80 @@ async function registrar(r, origem) {
       }),
     )
   }
+  if (item.musica) {
+    // The sender's /pix follows the song through its reservation.
+    if (r.sk) await atualizar("reserva", r.sk, { pix: item.sk })
+    await disparar(item.sk)
+  }
   return item
+}
+
+// --- A song -------------------------------------------------------------------------------------------
+
+/** SET (and REMOVE) fields of a Pix's `musica`, if it has one and `se` holds. */
+function mudarMusica(sk, sets, { remover = [], se, valores = {} } = {}) {
+  const nomes = {}
+  const vals = { ...valores }
+  const partes = Object.entries(sets).map(([k, v], i) => {
+    nomes[`#m${i}`] = k
+    vals[`:m${i}`] = v
+    return `musica.#m${i} = :m${i}`
+  })
+  const fora = remover.map((k, i) => {
+    nomes[`#r${i}`] = k
+    return `musica.#r${i}`
+  })
+  return seCondicao(
+    db.send(
+      new UpdateCommand({
+        TableName: T,
+        Key: { pk: "pix", sk },
+        ConditionExpression: `attribute_exists(musica)${se ? ` AND (${se})` : ""}`,
+        UpdateExpression: [partes.length && `SET ${partes.join(", ")}`, fora.length && `REMOVE ${fora.join(", ")}`].filter(Boolean).join(" "),
+        ExpressionAttributeNames: nomes,
+        ...(Object.keys(vals).length ? { ExpressionAttributeValues: vals } : {}),
+      }),
+    ),
+  )
+}
+
+/** Makes the song apart from this request: this same function, invoked without waiting. */
+async function disparar(sk) {
+  try {
+    await lambda.send(new InvokeCommand({ FunctionName: process.env.AWS_LAMBDA_FUNCTION_NAME, InvocationType: "Event", Payload: Buffer.from(JSON.stringify({ musica: sk })) }))
+  } catch (e) {
+    console.error("musica: não deu para começar", sk, e)
+    await mudarMusica(sk, { estado: "falhou", motivo: "Não deu para começar a música." })
+  }
+}
+
+/** One try at a Pix's song (see the header). Throws on trouble while tries are left, so Lambda runs it again. */
+async function fazerMusica(sk) {
+  const m = (await ler("pix", sk))?.musica
+  if (!m || m.estado !== "gerando") return
+  const agora = Date.now()
+  // One run at a time: a second delivery of the event, or a retry while the first still runs, leaves.
+  const minha = await mudarMusica(sk, { rodando: agora }, { se: "musica.estado = :g AND (attribute_not_exists(musica.rodando) OR musica.rodando < :velha)", valores: { ":g": "gerando", ":velha": agora - RODANDO } })
+  if (!minha) return
+  let r = await gerar(m, { chave: process.env.GEMINI_CHAVE })
+  if (r.ok) {
+    const arquivo = `${novoId()}.mp3`
+    try {
+      await s3.send(new PutObjectCommand({ Bucket: process.env.BUCKET, Key: `pt/musicas/${arquivo}`, Body: r.audio, ContentType: r.mime, CacheControl: "public, max-age=31536000, immutable" }))
+      await mudarMusica(sk, { estado: "pronta", arquivo, letraCantada: r.letra, segundos: segundosDe(r.audio.length), prontaEm: Date.now() }, { remover: ["rodando", "motivo"] })
+      return
+    } catch (e) {
+      r = { ok: false, recusada: false, motivo: `Não deu para guardar a música (${String(e.message ?? e).slice(0, 80)}).` }
+    }
+  }
+  if (r.recusada) {
+    const fim = (m.edicoes ?? 0) >= EDICOES
+    await mudarMusica(sk, { estado: fim ? "falhou" : "recusada", motivo: r.motivo, recusadaEm: Date.now() }, { remover: ["rodando"] })
+    return
+  }
+  const falhas = (m.falhas ?? 0) + 1
+  await mudarMusica(sk, { falhas, motivo: r.motivo, ...(falhas >= FALHAS ? { estado: "falhou" } : {}) }, { remover: ["rodando"] })
+  if (falhas < FALHAS) throw new Error(`musica ${sk}: ${r.motivo}`)
 }
 
 /** The reservation, now paid, unless it was already (each pays once). Frees its value. */
@@ -417,13 +545,14 @@ async function canal() {
     todos("reserva"),
     meta(),
   ])
+  const comMusica = (p) => (p.musica ? { ...p, musica: { ...p.musica, estado: estadoDe(p.musica, agora), url: p.musica.arquivo ? MUSICAS_URL + p.musica.arquivo : undefined } } : p)
   return out(200, {
     agora,
-    pix,
+    pix: pix.map(comMusica),
     pendentes,
     reservas: reservas
       .filter((r) => !r.pago && r.expira + FOLGA >= agora)
-      .map(({ sk, centavos, nome, mensagem, audio, transcricao, sujo, voz, quando, expira }) => ({ id: sk, centavos, nome, mensagem, audio, transcricao, sujo, voz, quando, expira })),
+      .map(({ sk, centavos, nome, mensagem, audio, transcricao, sujo, voz, quando, expira, musica }) => ({ id: sk, centavos, nome, mensagem, audio, transcricao, sujo, voz, quando, expira, musica: musica && { estilo: musica.estilo } })),
     meta: m,
   })
 }
@@ -464,9 +593,26 @@ async function acao(p) {
   }
   if (acao === "exibido" || acao === "repetir") {
     if (typeof p.pix !== "string") return out(400, {})
-    const ok = await atualizar("pix", p.pix, { exibido: acao === "exibido" })
+    const ok = await atualizar("pix", p.pix, acao === "exibido" ? { exibido: true } : { exibido: false, pular: false })
     if (ok && acao === "exibido" && typeof p.reserva === "string") await apagar("audio", p.reserva)
+    // A song that played goes on the mural, to listen and download (a skipped one too: it was on the live).
+    if (ok && acao === "exibido") await mudarMusica(p.pix, { tocou: true }, { se: "musica.estado = :p", valores: { ":p": "pronta" } })
     return out(ok ? 200 : 404, {})
+  }
+  // Make a song again (it failed, or Luan didn't like it): it plays again once it's ready.
+  if (acao === "musica") {
+    if (typeof p.pix !== "string") return out(400, {})
+    const agora = Date.now()
+    const ok = await mudarMusica(p.pix, { estado: "gerando", pedidoEm: agora, falhas: 0 }, { remover: ["motivo", "rodando", "recusadaEm"], se: "musica.estado <> :g OR musica.pedidoEm < :perdida", valores: { ":g": "gerando", ":perdida": agora - PERDIDA } })
+    if (!ok) return out(409, { erro: "Essa música já está sendo feita." })
+    await atualizar("pix", p.pix, { exibido: false, pular: false })
+    await disparar(p.pix)
+    return out(200, {})
+  }
+  // Cut a song short: the overlay fades it out (or, before it starts, plays only the announcement).
+  if (acao === "pular") {
+    if (typeof p.pix !== "string") return out(400, {})
+    return out((await atualizar("pix", p.pix, { pular: true })) ? 200 : 404, {})
   }
   if (acao === "ocultar") {
     if (typeof p.pix !== "string") return out(400, {})
@@ -498,12 +644,15 @@ async function acao(p) {
 }
 
 export async function handler(event) {
+  // A song, made apart from the request that paid it (disparar).
+  if (typeof event?.musica === "string") return fazerMusica(event.musica)
   const metodo = event.requestContext.http.method
   const caminho = event.rawPath
   // The $default route takes the browser's preflight too; API Gateway adds the CORS headers.
   if (metodo === "OPTIONS") return { statusCode: 204 }
   if (metodo === "POST" && caminho === "/reservar") return reservar(event)
   if (metodo === "GET" && caminho === "/reserva") return situacao(event.queryStringParameters?.id)
+  if (metodo === "POST" && caminho === "/musica") return editarMusica(event)
   if (metodo === "GET" && caminho === "/mural") return mural()
   if (metodo === "POST" && caminho === "/notificacao") return notificacao(event)
 

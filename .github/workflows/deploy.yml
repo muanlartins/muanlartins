@@ -29,6 +29,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      # The profile API's routes against a table in memory; the Pix API (songs above all) against DynamoDB, S3 and
+      # Lambda in memory (infra/pix/local) and a fake Google.
+      - run: node --test infra/perfil/index.test.mjs
+      - run: node --import ./infra/pix/local/registrar.mjs --test infra/pix/index.test.mjs
 
       - name: Build
         run: |
@@ -42,7 +46,8 @@ jobs:
           aws-region: us-east-1
 
       # Hashed assets never change; pages are re-fetched by browsers and
-      # held by CloudFront until the invalidation below.
+      # held by CloudFront until the invalidation below. musicas/ isn't the
+      # build's: it's the Pix songs, which the Pix API writes there.
       - name: Publish
         if: env.PUBLISH == 'true'
         env:
@@ -51,21 +56,29 @@ jobs:
           for locale in pt en; do
             aws s3 sync "out-$locale/_next/static" "s3://$BUCKET/$locale/_next/static" \
               --cache-control "public, max-age=31536000, immutable"
-            aws s3 sync "out-$locale" "s3://$BUCKET/$locale" --delete --exclude "_next/static/*" \
+            aws s3 sync "out-$locale" "s3://$BUCKET/$locale" --delete --exclude "_next/static/*" --exclude "musicas/*" \
               --cache-control "public, max-age=0, s-maxage=31536000, must-revalidate"
           done
           aws cloudfront create-invalidation --distribution-id "${{ vars.DISTRIBUTION_PT }}" --paths "/*"
           aws cloudfront create-invalidation --distribution-id "${{ vars.DISTRIBUTION_EN }}" --paths "/*"
 
-      # The Pix function (infra/pix). Off until the stack has it and its name is in the repo's variables.
-      - name: Publish the Pix function
-        if: env.PUBLISH == 'true' && vars.PIX_FUNCTION != ''
+      # The APIs' functions (infra/<name>, each with infra/comum linked in as ./comum): each is deployed once the
+      # repository variable naming it (the stack's output) is set. cp -L turns the link into the files themselves;
+      # tests and local/ (the Pix API's stand-ins for running it on a laptop) stay out of the zip.
+      - name: Publish the functions
+        if: env.PUBLISH == 'true'
+        env:
+          PERFIL: ${{ vars.PERFIL_FUNCTION }}
+          SIGMA: ${{ vars.SIGMA_FUNCTION }}
+          PIX: ${{ vars.PIX_FUNCTION }}
         run: |
-          (cd infra/pix && zip -q -r ../../pix.zip . -x '*.test.*')
-          aws lambda update-function-code --function-name "${{ vars.PIX_FUNCTION }}" --zip-file fileb://pix.zip > /dev/null
-      # The Σ function (infra/sigma), the same way: off until its name (the stack's output SigmaFunction) is set.
-      - name: Publish the Σ function
-        if: env.PUBLISH == 'true' && vars.SIGMA_FUNCTION != ''
-        run: |
-          (cd infra/sigma && zip -q -r ../../sigma.zip . -x '*.test.*')
-          aws lambda update-function-code --function-name "${{ vars.SIGMA_FUNCTION }}" --zip-file fileb://sigma.zip > /dev/null
+          publish() {
+            if [ -z "$2" ]; then echo "$1: no function named yet, skipped"; return; fi
+            rm -rf "build/$1" && mkdir -p build && cp -rL "infra/$1" "build/$1"
+            (cd "build/$1" && zip -q -r "../$1.zip" . -x '*.test.*' 'local/*')
+            aws lambda update-function-code --function-name "$2" --zip-file "fileb://build/$1.zip" > /dev/null
+            echo "$1: published"
+          }
+          publish perfil "$PERFIL"
+          publish sigma "$SIGMA"
+          publish pix "$PIX"

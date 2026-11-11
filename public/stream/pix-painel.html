@@ -18,6 +18,9 @@
         reservation, like a notification would; with none, it shows with the
         name typed here.
       - Últimos Pix: repeat an alert; take one's name and message off the site's mural (its value stays, as anonymous).
+        A song shows its state (being made, ready, refused and waiting for its sender's new text, couldn't be made,
+        with why): Ouvir plays it here only (the dock's sound isn't on the stream), Pular música cuts it on the live
+        (or leaves only the announcement), Gerar de novo makes it again (US$ 0,08) and plays it again once ready.
       - Meta: the goal bar on the overlay, /pix and /mural; it counts from when it's set. A new one (or
         Encerrar) sends the one before to /mural's history; Ajustar changes the one on screen and keeps its count.
         Ticking "fora de meta", a new one (or Ajustar) counts from the first Pix since the last goal ended.
@@ -110,6 +113,15 @@
         color: rgb(244 245 247 / 0.8);
         font-size: 13px;
       }
+      .musica {
+        display: block;
+        margin-top: 2px;
+        color: rgb(244 245 247 / 0.8);
+        font-size: 13px;
+      }
+      .musica.ruim {
+        color: #ffcc4d;
+      }
       .pendente {
         border-left: 3px solid #ffcc4d;
         padding-left: 8px;
@@ -191,6 +203,20 @@
         return e
       }
       const botao = (texto, acao) => el("button", { type: "button", textContent: texto, onclick: acao })
+      const ESTILOS = { funk: "Funk", sertanejo: "Sertanejo", pagode: "Pagode", forro: "Forró", rock: "Rock", rap: "Rap", eletronica: "Eletrônica", pop: "Pop" }
+      const ESTADOS = { gerando: "fazendo…", pronta: "pronta", recusada: "recusada, esperando o texto novo de quem mandou", falhou: "não saiu: toca só o anúncio" }
+      // A song's line: style, theme (or "letra própria"), state and, when it went wrong, why.
+      function musica(m) {
+        const ruim = m.estado === "recusada" || m.estado === "falhou"
+        return el("span", { className: `musica${ruim ? " ruim" : ""}`, textContent: `♪ ${ESTILOS[m.estilo] ?? "Música"} · ${m.sobre || "letra própria"} · ${ESTADOS[m.estado] ?? m.estado}${ruim && m.motivo ? ` (${m.motivo})` : ""}` })
+      }
+      let ouvindo = null
+      function ouvir(url) {
+        const mesmo = ouvindo?.src === url && !ouvindo.paused
+        ouvindo?.pause()
+        ouvindo = mesmo ? null : new Audio(url)
+        ouvindo?.play()
+      }
 
       async function pedir(caminho, corpo) {
         const r = await fetch(API + caminho, {
@@ -249,11 +275,15 @@
                     ` · ${p.nome || "Anônimo"} `,
                     el("span", { className: "quando", textContent: `${dia(p.sk)} ${hora(p.sk)}${p.exibido ? "" : " · na fila"}${p.quando === "entre" ? " · entre partidas" : ""}${p.origem === "manual" ? " · registrado" : ""}` }),
                     el("span", { className: "msg", textContent: p.mensagem || p.transcricao || (p.audio ? "(áudio)" : "") }),
+                    p.musica ? musica(p.musica) : "",
                   ),
                   el(
                     "div",
                     { className: "row" },
                     botao("Repetir", () => agir({ acao: "repetir", pix: p.sk })),
+                    p.musica?.url ? botao("Ouvir", () => ouvir(p.musica.url)) : "",
+                    p.musica?.estado === "pronta" && !p.exibido && !p.pular ? botao("Pular música", () => agir({ acao: "pular", pix: p.sk })) : "",
+                    p.musica && p.musica.estado !== "gerando" ? botao("Gerar de novo", () => confirm("Gerar a música de novo? Custa uns R$ 0,45, e ela toca de novo quando ficar pronta.") && agir({ acao: "musica", pix: p.sk })) : "",
                     // Every Pix with a name or words shows them on the mural (an old one too, ticked or not); taking it off leaves its value, as anonymous.
                     p.nome || p.mensagem || p.transcricao ? botao(p.oculto ? "Voltar ao mural" : "Tirar do mural", () => agir({ acao: "ocultar", pix: p.sk, oculto: !p.oculto })) : "",
                   ),

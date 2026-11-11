@@ -897,8 +897,8 @@
         narrador({ ligado }) {
           narradorLigado = !!ligado
         },
-        legenda({ ligado }) {
-          Legenda.ligar(!!ligado)
+        legenda({ ligado, fala, em }) {
+          Legenda.ligar(!!ligado, fala, em)
         },
         defesa({ epica }) {
           momento("defesa", 800)

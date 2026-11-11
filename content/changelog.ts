@@ -108,14 +108,6 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
-    id: "loadout-dos-sonhos",
-    status: "agora",
-    tag: "site",
-    title: "Monte seu loadout dos sonhos no Valorant",
-    text: "Escolha a skin de cada arma entre todas do jogo, exporte numa imagem só e, entrando com a Twitch, deixe salvo no seu perfil.",
-    credit: { by: "maxchadoz" },
-  },
-  {
     id: "analise-de-mira",
     status: "proximo",
     tag: "site",
@@ -128,7 +120,7 @@ export const UPCOMING: Upcoming[] = [
 export const SHIPPED: Shipped[] = [
   {
     id: "filtros-sova-e-carros",
-    date: "2026-11-10",
+    date: "2026-11-11",
     tag: "live",
     title: "Filtros na câmera: Sova, Octane, Fennec e as habilidades do Phoenix",
     text: "O Phoenix com as quatro habilidades feitas com os efeitos do próprio jogo: Labareda, Bola Curva, Mãos Quentes e a ultimate. O Sova com arco, flecha de reconhecimento que me revela em vermelho, choque, coruja e ultimate. E a minha cabeça virando um Octane ou um Fennec, com os meus olhos no para-brisa e a boca no para-choque, que dá flip e explode numa demolição. Tudo escolhido num painel novo no OBS.",
@@ -138,6 +130,33 @@ export const SHIPPED: Shipped[] = [
       media("filtros-octane", "Luan com a cara de Octane: os olhos dele no para-brisa e a boca no para-choque"),
       media("filtros-fennec", "Luan com a cara de Fennec: os olhos dele no para-brisa e a boca no para-choque"),
     ],
+  },
+  {
+    id: "musica-no-pix",
+    date: "2026-11-10",
+    tag: "live",
+    title: "Música feita por IA no Pix",
+    text: "A partir de R$ 5: escolha o estilo e diga sobre o que é a música, ou escreva a letra. A IA canta em português, a música toca na live e depois fica no mural pra você ouvir e baixar.",
+    href: "/pix",
+    media: [media("musica-no-pix", "O Pix com a opção de música: os estilos, de funk a pop, e o campo pra dizer sobre o que é a música")],
+  },
+  {
+    id: "legendas-traduzidas",
+    date: "2026-11-10",
+    tag: "live",
+    title: "Legendas traduzidas",
+    text: "A legenda da live pode sair em inglês enquanto eu falo português, ou em português quando eu falo inglês: traduzida na hora, aqui no meu PC.",
+    media: [media("legendas-traduzidas", "A legenda da live em inglês, \"Whoa! What is that?\", enquanto eu falava em português no menu do Rocket League")],
+  },
+  {
+    id: "loadout-dos-sonhos",
+    date: "2026-11-10",
+    tag: "site",
+    title: "Monte seu loadout dos sonhos no Valorant",
+    text: "Escolha a skin de cada arma entre todas do jogo e exporte numa imagem só. Entrando com a Twitch, fica salvo no seu perfil, com um link pra mostrar. E a minha coleção agora se atualiza sozinha direto do jogo.",
+    href: "/conteudo/valorant/inventory#montar",
+    credit: { by: "maxchadoz" },
+    media: [media("loadout-dos-sonhos", "A minha coleção dos sonhos exportada como imagem: as 21 armas, 13 com skin escolhida")],
   },
   {
     id: "creditos-da-live",

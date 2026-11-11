@@ -7,7 +7,7 @@ import { Audience } from "@/components/site/pix/audience"
 import { FanSpot } from "@/components/site/pix/fan-spot"
 import { GoalBar } from "@/components/site/pix/goal-bar"
 import { BadgeChips } from "@/components/site/profile/badges"
-import { mural as muralCopy } from "@/content/pix"
+import { mural as muralCopy, STYLES } from "@/content/pix"
 import { loadMural, PIX_API, reais, type Goal, type Mural, type MuralPix } from "@/lib/pix"
 import { loadFans, loadSigmas, type Choice, type Sigma, type SigmaStats, type Torcedor } from "@/lib/profile"
 import { LOCALE, localize, PIX_SLUG } from "@/lib/site"
@@ -42,10 +42,36 @@ function Supporters({ list, look: { T, fans, S, sigmas } }: { list: MuralPix[]; 
               <span className="text-[12px] text-muted tabular-nums">{day(p.em)}</span>
             </div>
             {p.mensagem && <p className="text-[15px] leading-[1.55] break-words text-ink">{p.mensagem}</p>}
+            {p.musica && <Song song={p.musica} name={p.nome} />}
           </div>
         </li>
       ))}
     </ul>
+  )
+}
+
+/** A Pix's song, once it played on the live: to listen to, download and read. */
+function Song({ song, name }: { song: NonNullable<MuralPix["musica"]>; name: string }) {
+  const style = STYLES.find((s) => s.id === song.estilo)?.name
+  return (
+    <div className="space-y-2 pt-1">
+      <p className="text-[14px] font-medium break-words text-klein">
+        ♪ {style}
+        {song.sobre && ` · ${song.sobre}`}
+      </p>
+      <audio controls preload="metadata" src={song.url} className="h-9 w-full max-w-[26rem]" />
+      <div className="flex flex-wrap gap-x-5 gap-y-1 text-[14px]">
+        <a href={song.url} download={`${name || text.anonymous} - muanlartins.mp3`} className="text-muted underline underline-offset-2 hover:text-klein">
+          {text.songDownload}
+        </a>
+      </div>
+      {song.letra && (
+        <details className="text-[14px]">
+          <summary className="cursor-pointer text-muted hover:text-klein">{text.songLyrics}</summary>
+          <p className="mt-2 leading-[1.6] whitespace-pre-line text-ink">{song.letra}</p>
+        </details>
+      )}
+    </div>
   )
 }
 

@@ -4,8 +4,9 @@ Description: >-
   holding both static builds, one CloudFront distribution per domain, and the
   role GitHub Actions assumes to deploy. Both domains also serve RLR, the
   replay player, at /rlr/ from its own GitHub Pages site. The viewers'
-  profiles (how their fan looks in the stream's crowd) live in a DynamoDB
-  table behind a small HTTP API, signed in with Twitch; their Σ (points
+  profiles (how their fan looks in the stream's crowd, their dream Valorant
+  loadout) live in a DynamoDB table behind a small HTTP API, signed in with
+  Twitch; their Σ (points
   earned watching the lives) in another, behind its own; the Pix sent during
   the lives in a third, behind a function CI deploys. Create in us-east-1,
   where CloudFront certificates must live.
@@ -53,6 +54,11 @@ Parameters:
     NoEcho: true
     MinLength: 24
     Description: The token the phone sends with each bank notification; it lives only here and in MacroDroid
+  GeminiChave:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: The Gemini API key (Google AI Studio, project muanlartins) that checks and makes the Pix songs; empty turns songs off
 
 Conditions:
   CreateOidcProvider: !Equals [!Ref CreateGitHubOidcProvider, "true"]
@@ -312,14 +318,16 @@ Resources:
                 Resource:
                   - !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionPt}
                   - !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${DistributionEn}
-              # The Pix and Σ functions' code lives in infra/pix and infra/sigma and ships with each push, like the site.
+              # The functions' code lives in infra/perfil, infra/sigma and infra/pix and ships with each push, like the site.
               - Effect: Allow
                 Action: lambda:UpdateFunctionCode
                 Resource:
                   - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-pix
                   - !GetAtt Sigma.Arn
+                  - !GetAtt Perfil.Arn
 
-  # --- Viewer profiles: /perfil on the site saves each viewer's fan; the stream's crowd reads them ---------
+  # --- Viewer profiles: /perfil saves each viewer's fan (the stream's crowd reads them), the Valorant inventory
+  # their dream loadout, and the stream PC the channel's own inventory as the game has it -----------------------
 
   Torcedores:
     Type: AWS::DynamoDB::Table
@@ -346,12 +354,14 @@ Resources:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
-                Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:DeleteItem, dynamodb:BatchGetItem]
+                # UpdateItem: the fan and the loadout are saved field by field, so one never erases the other.
+                Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:DeleteItem, dynamodb:BatchGetItem, dynamodb:UpdateItem]
                 Resource: !GetAtt Torcedores.Arn
 
-  # GET /torcedores?logins=a,b is public: the looks of whoever is in the stand. GET, PUT and DELETE /eu
-  # take the viewer's Twitch token, checked with Twitch on each call; what's saved is only what the
-  # fan looks like, under their login, and the overlay ignores anything it doesn't know.
+  # The code is infra/perfil (rotas.mjs tells the whole story: the fan, the dream loadout, the channel's game
+  # reading); CI deploys it into this function on every push to main once the repository variable PERFIL_FUNCTION
+  # names it (output PerfilFunction). The code below is the first version, before the loadout: CloudFormation leaves
+  # the deployed code alone as long as this block doesn't change, so don't edit it.
   Perfil:
     Type: AWS::Lambda::Function
     Properties:
@@ -364,6 +374,8 @@ Resources:
         Variables:
           TABLE: !Ref Torcedores
           TWITCH_CLIENT_ID: !Ref TwitchClientId
+          # The stream's key: scripts/valorant.py sends the channel's inventory with it (POST /canal/jogo).
+          CHAVE: !Ref SigmaChave
       Code:
         ZipFile: |
           const { DynamoDBClient } = require("@aws-sdk/client-dynamodb")
@@ -648,6 +660,14 @@ Resources:
               - Effect: Allow
                 Action: dynamodb:UpdateItem
                 Resource: !GetAtt Sigmas.Arn
+              # A Pix's song goes to the site's bucket, which serves it at /musicas/ (CI's sync leaves that folder alone).
+              - Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub ${Bucket.Arn}/pt/musicas/*
+              # The function makes a song apart from the request that paid it, by invoking itself without waiting.
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-pix
 
   PixFunction:
     Type: AWS::Lambda::Function
@@ -657,11 +677,14 @@ Resources:
       Handler: index.handler
       Role: !GetAtt PixRole.Arn
       MemorySize: 256
-      Timeout: 10
+      # A song takes Google ~25 s (it gives up at 95 s); the API's own requests stay under API Gateway's 30 s.
+      Timeout: 120
       Environment:
         Variables:
           TABLE: !Ref Pix
           SIGMAS: !Ref Sigmas
+          GEMINI_CHAVE: !Ref GeminiChave
+          BUCKET: !Ref Bucket
           CHAVE: !Ref SigmaChave
           PIX_CHAVE: !Ref PixChave
           PIX_NOME: !Ref PixNome
@@ -671,6 +694,16 @@ Resources:
       Code:
         ZipFile: |
           exports.handler = async () => ({ statusCode: 503, headers: { "content-type": "application/json" }, body: '{"erro":"O Pix ainda não foi publicado."}' })
+
+  # A song that failed is tried twice more, as Lambda does by default; one not made within 15 minutes is given up
+  # (the dock can make it again) rather than turning up hours later.
+  PixMusica:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+      FunctionName: !Ref PixFunction
+      Qualifier: $LATEST
+      MaximumRetryAttempts: 2
+      MaximumEventAgeInSeconds: 900
 
   PixApi:
     Type: AWS::ApiGatewayV2::Api
@@ -708,6 +741,8 @@ Resources:
 Outputs:
   PerfilApiUrl:
     Value: !GetAtt PerfilApi.ApiEndpoint
+  PerfilFunction:
+    Value: !Ref Perfil
   SigmaApiUrl:
     Value: !GetAtt SigmaApi.ApiEndpoint
   SigmaFunction:

@@ -2,11 +2,15 @@
 // GPU, a second or so behind). The "Partidas" dock switches them on and off ("Legendas ao vivo"); only while on does
 // the page listen, and only while someone listens does legenda.py hear the microphone. The line being said shows in
 // Klein claro and turns white when it ends; the last one fades a few seconds after he stops. Two rows at most: a long
-// line keeps its end. ?legenda= the service's address, ?legenda=0 for none.
+// line keeps its end. The dock also picks the language he speaks and the captions' (pt, en); when they differ,
+// legenda.py translates. ?legenda= the service's address, ?legenda=0 for none; ?fala= and ?em= the languages for
+// the demo's v.
 const Legenda = (() => {
   const params = new URLSearchParams(location.search)
   const SERVICO = params.get("legenda") ?? "http://127.0.0.1:8790"
   const SOME_MS = 4000
+  const FALA = params.get("fala") ?? "pt"
+  const EM = params.get("em") ?? "pt"
 
   const el = document.createElement("p")
   el.className = "legenda"
@@ -14,6 +18,7 @@ const Legenda = (() => {
   document.querySelector(".stage").append(el)
 
   let fonte = null
+  let endereco = ""
   let some = 0
   let escondidaAte = 0
 
@@ -36,16 +41,27 @@ const Legenda = (() => {
   }
 
   return {
-    ligar(ligado) {
-      if (SERVICO === "0" || !!fonte === ligado) return
+    ligar(ligado, fala = FALA, em = EM) {
+      if (SERVICO === "0") return
       if (!ligado) {
+        if (!fonte) return
         fonte.close()
         fonte = null
         el.classList.remove("visivel")
         return
       }
+      const novo = `${SERVICO}/legendas?fala=${encodeURIComponent(fala)}&em=${encodeURIComponent(em)}`
+      if (novo === endereco && fonte) return
+      // Other languages: the new stream opens before the old one closes, since legenda.py stops (and lets the GPU
+      // go) the moment nobody listens.
+      const antiga = fonte
+      if (antiga) antiga.onmessage = null
+      endereco = novo
+      el.lang = em
       // EventSource reconnects by itself while legenda.py is down or starting.
-      fonte = new EventSource(`${SERVICO}/legendas`)
+      fonte = new EventSource(novo)
+      fonte.onopen = () => antiga?.close()
+      fonte.onerror = () => antiga?.close()
       fonte.onmessage = ({ data }) => {
         const { texto, final } = JSON.parse(data)
         if (texto) mostrar(texto, final)

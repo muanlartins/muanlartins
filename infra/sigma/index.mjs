@@ -20,15 +20,15 @@
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { BatchGetCommand, DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
+import { daLive, LOGIN, out } from "./comum/http.mjs"
+import { quem } from "./comum/twitch.mjs"
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 const T = process.env.TABLE
-const LOGIN = /^[a-z0-9_]{1,25}$/
 const CANAL = "#canal"
 const DONO = "muanlartins" // the channel itself: in its own stand, but it neither earns Σ nor shows any
 // Getting the VAR right: very little, three minutes of watching (Luan's call, 2026-11-09).
 const VAR_SIGMA = 3
-const out = (statusCode, body) => ({ statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
 const lista = (l) => [...new Set(l.map((x) => String(x).toLowerCase()))].filter((x) => LOGIN.test(x)).slice(0, 100)
 const diaDe = (t) => new Date(t).toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
 
@@ -81,17 +81,8 @@ const publico = (i, canal, hoje) => ({
 })
 
 // Who is calling, with their Twitch token issued to this site's app.
-async function quem(headers) {
-  const token = (headers.authorization || "").replace(/^Bearer /, "")
-  if (!token) return null
-  const r = await fetch("https://id.twitch.tv/oauth2/validate", { headers: { Authorization: "OAuth " + token } })
-  if (!r.ok) return null
-  const v = await r.json()
-  return v.client_id === process.env.TWITCH_CLIENT_ID && LOGIN.test(v.login) ? v.login : null
-}
-
 async function presenca(event) {
-  if (!process.env.CHAVE || event.headers?.["x-chave"] !== process.env.CHAVE) return out(401, {})
+  if (!daLive(event)) return out(401, {})
   let corpo = event.body || "{}"
   if (event.isBase64Encoded) corpo = Buffer.from(corpo, "base64").toString()
   let logins
@@ -148,7 +139,7 @@ async function presenca(event) {
 // Who voted for the chat's verdict on VAR `id` (the dock's, a timestamp): VAR_SIGMA each. `ultimoVar` keeps the
 // last one credited, so a second call (the two crowd sources both send it) changes nothing.
 async function acertouVar(event) {
-  if (!process.env.CHAVE || event.headers?.["x-chave"] !== process.env.CHAVE) return out(401, {})
+  if (!daLive(event)) return out(401, {})
   let corpo = event.body || "{}"
   if (event.isBase64Encoded) corpo = Buffer.from(corpo, "base64").toString()
   let id, logins

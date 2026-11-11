@@ -68,7 +68,50 @@ export const pix = {
   },
   again: { pt: "Mandar outro Pix", en: "Send another Pix" },
   goal: { pt: "Meta", en: "Goal" },
+  // The song (from R$ 5): a style and a theme or the lyrics; Google's AI writes and sings it.
+  kind: { pt: "O que você quer mandar", en: "What you're sending" },
+  kindMessage: { pt: "Mensagem", en: "Message" },
+  kindSong: { pt: "Música feita por IA", en: "AI-made song" },
+  kindSongPrice: { pt: "a partir de R$ 5", en: "from R$ 5" },
+  style: { pt: "Estilo", en: "Style" },
+  lyrics: { pt: "A letra", en: "The lyrics" },
+  about: { pt: "Dizer sobre o que é", en: "Say what it's about" },
+  writeLyrics: { pt: "Escrever a letra", en: "Write the lyrics" },
+  aboutPlaceholder: { pt: "Ex.: o Luan perdendo gol feito no Rocket League", en: "E.g. Luan missing an open goal in Rocket League" },
+  lyricsPlaceholder: { pt: "[Refrão]\nÔ Luan, chuta essa bola…", en: "[Chorus]\nÔ Luan, chuta essa bola…" },
+  songHint: {
+    pt: "A IA escreve (ou canta a sua letra) em português. Sem nome de cantor nem letra de música que já existe. Na live, toca até 1 minuto; depois, fica no mural pra você ouvir e baixar.",
+    en: "The AI writes it (or sings your lyrics) in Portuguese. No singers' names, no lyrics from existing songs. On the live it plays up to a minute; then it stays on the mural for you to listen to and download.",
+  },
+  songMinimum: { pt: "A música é a partir de R$ 5.", en: "Songs start at R$ 5." },
+  songMaking: { pt: "Fazendo sua música…", en: "Making your song…" },
+  songMakingNote: { pt: "Leva uns 30 segundos. Pode esperar aqui.", en: "It takes about 30 seconds. You can wait here." },
+  songReady: { pt: "Sua música ficou pronta e entrou na fila da live.", en: "Your song is ready and in the live's queue." },
+  songReadyNote: { pt: "Depois que ela tocar na live, fica no mural pra você ouvir e baixar.", en: "Once it plays on the live, it stays on the mural for you to listen to and download." },
+  songRefused: { pt: "A música não saiu com esse texto", en: "The song didn't come out with that text" },
+  songRetry: { pt: "Tentar de novo", en: "Try again" },
+  songRetrying: { pt: "Conferindo…", en: "Checking…" },
+  songTries: {
+    pt: "Pode mudar até {n}× até as {hora}; depois disso, seu Pix toca na live só com o seu nome.",
+    en: "You can change it up to {n}× until {hora}; after that, your Pix plays on the live with just your name.",
+  },
+  songFailed: {
+    pt: "Não deu pra fazer a sua música. Seu Pix toca na live com o seu nome, e o Luan vê no painel o que aconteceu.",
+    en: "Your song couldn't be made. Your Pix plays on the live with your name, and Luan sees what happened in his panel.",
+  },
 } as const
+
+/** The song's styles on the form; the musical direction behind each is ESTILOS in infra/pix/musica.mjs. */
+export const STYLES: { id: string; name: string }[] = [
+  { id: "funk", name: "Funk" },
+  { id: "sertanejo", name: "Sertanejo" },
+  { id: "pagode", name: "Pagode" },
+  { id: "forro", name: "Forró" },
+  { id: "rock", name: "Rock" },
+  { id: "rap", name: "Rap" },
+  { id: "eletronica", name: "Eletrônica" },
+  { id: "pop", name: "Pop" },
+]
 
 /** /mural: two tabs, the Pix (goal by goal, every Pix with its value, by the name and message its sender wrote) and the audience (the ranking by Σ, the milestones). */
 export const mural = {
@@ -93,6 +136,8 @@ export const mural = {
   noneYet: { pt: "Nenhum Pix nesta meta ainda. O primeiro pode ser você.", en: "No Pix for this goal yet. The first could be you." },
   outside: { pt: "Fora das metas", en: "Outside the goals" },
   anonymous: { pt: "Anônimo", en: "Anonymous" },
+  songDownload: { pt: "Baixar a música", en: "Download the song" },
+  songLyrics: { pt: "Ver a letra", en: "Show the lyrics" },
   privacy: {
     pt: "O nome do banco de quem paga nunca aparece, nem na live nem aqui: só o nome que a pessoa escreveu no site. Para tirar um Pix seu do mural, fale com o Luan; o valor continua, como anônimo.",
     en: "The payer's name at the bank never shows, not on the live and not here: only the name its sender wrote on the site. To take a Pix of yours off the mural, ask Luan; the amount stays, as anonymous.",
