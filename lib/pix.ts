@@ -17,6 +17,8 @@ export interface MuralPix {
   mensagem: string
   centavos: number
   login?: string
+  /** Its song, once it played on the live. */
+  musica?: { url: string; estilo: string; sobre?: string; letra?: string; segundos?: number }
 }
 
 /** A goal and what came in while it was up: every Pix, each by its name and message unless it's anonymous. */
@@ -37,6 +39,13 @@ export interface Mural {
   pix: MuralPix[]
 }
 
+/** A song's order: a style (STYLES in content/pix.ts, ESTILOS in infra/pix/musica.mjs) and a theme or the lyrics. */
+export interface SongOrder {
+  estilo: string
+  sobre?: string
+  letra?: string
+}
+
 export interface Order {
   centavos: number
   nome: string
@@ -44,6 +53,30 @@ export interface Order {
   voz: string
   quando: "agora" | "entre"
   audio?: { tipo: string; dados: string }
+  musica?: SongOrder
+}
+
+/**
+ * A song as its sender follows it on /pix: waiting for the Pix, being made, ready (queued for the live), refused by
+ * Google (`motivo`, `edicoes` left, until `ate`) or given up (it plays as a plain alert).
+ */
+export interface SongStatus {
+  estado: "esperando" | "gerando" | "pronta" | "recusada" | "falhou"
+  estilo?: string
+  sobre?: string
+  letra?: string
+  motivo?: string
+  edicoes?: number
+  ate?: number
+}
+
+/** The API's refusal, with the field it's about ("musica") when there's one. */
+export class PixError extends Error {
+  campo?: string
+  constructor(message: string, campo?: string) {
+    super(message)
+    this.campo = campo
+  }
 }
 
 /** R$ for cents, as Brazilians write it: 1234 → "12,34". */
@@ -62,11 +95,11 @@ export async function reserve(order: Order, token: string | null): Promise<Reser
     body: JSON.stringify(order),
   })
   const body = await response.json().catch(() => ({}))
-  if (!response.ok) throw new Error(body.erro ?? String(response.status))
+  if (!response.ok) throw new PixError(body.erro ?? String(response.status), body.campo)
   return body as Reservation
 }
 
-export async function reservationStatus(id: string): Promise<{ pago: boolean; expira: number; ate: number }> {
+export async function reservationStatus(id: string): Promise<{ pago: boolean; expira: number; ate: number; musica?: SongStatus }> {
   const response = await fetch(`${PIX_API}/reserva?id=${encodeURIComponent(id)}`)
   if (!response.ok) throw new Error(String(response.status))
   return response.json()
@@ -78,5 +111,17 @@ export async function loadMural(): Promise<Mural> {
   return response.json()
 }
 
-/** The smallest Pix the form takes: R$ 1. */
+/** A refused song's new text: checked again, then made again. */
+export async function editSong(id: string, text: { sobre: string } | { letra: string }): Promise<SongStatus> {
+  const response = await fetch(`${PIX_API}/musica`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, ...text }) })
+  const body = await response.json().catch(() => ({}))
+  if (!response.ok) throw new PixError(body.erro ?? String(response.status), "musica")
+  return body.musica as SongStatus
+}
+
+/** The smallest Pix the form takes: R$ 1; with a song, R$ 5. */
 export const MINIMO = 100
+export const MINIMO_MUSICA = 500
+/** How long a song's theme and lyrics may be (infra/pix/musica.mjs checks them again). */
+export const SOBRE_MAX = 120
+export const LETRA_MAX = 800
