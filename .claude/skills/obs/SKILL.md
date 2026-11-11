@@ -59,6 +59,11 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   (`intervalo.html?tela=comecando` without `?minutos`) counts down to the end of the opening break. Its header has the
   rules. The first break it runs by hand checks whether Twitch restarts its timer; if not, the dock turns the
   between-matches break off for good (its storage, `reinicia`).
+- When F2/F4/F8 or the sounds do nothing, check the docks first: OBS's log should show 4 websocket clients from
+  127.0.0.1 within seconds of "Startup complete" (Partidas, Efeitos, Filtros, Anúncios). A dock that never connects
+  died loading: open its URL with `#obs=x` in headless Chrome and look for a page error (on 11-10/11 Efeitos' top-level
+  `const history` shadowed window.history, so the `#obs=` handling threw and F2/F4/F8 were dead until fb3ab5f). Then
+  fire the trigger yourself (`TriggerMediaInputAction` RESTART on "Gatilho · …") and watch `CurrentProgramSceneChanged`.
 - OBS must always be started from a shortcut (all three carry `--enable-media-stream --use-fake-ui-for-media-stream`),
   never `obs64.exe` bare: on 2026-11-11 a Windows session restarted it bare and the camera filters lost the camera
   (`câmera NotAllowedError` every 5 s in the log). From WSL: `cmd.exe /c start "" "C:\Users\Public\Desktop\OBS Studio.lnk"`;
