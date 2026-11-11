@@ -6,8 +6,10 @@
     <link rel="stylesheet" href="stream.css" />
     <!--
       OBS: Custom browser dock "Filtros" (brand/twitch/obs.py --apply adds it), off stream. It switches the camera
-      filters of filtros.html, the "Filtros" browser source: one button per filter, one on at a time (the lit one;
-      clicking it again, or Desligar, turns it off), and under them the one-offs of the filter that's on.
+      filters of filtros.html, the "Filtros" browser source: one button per filter (Phoenix, Sova, Rocket League), one
+      on at a time (the lit one; clicking it again, or Desligar, turns it off), and under them, for the one that's on,
+      its looks (Rocket League: Octane, Fennec, the ball; its button turns on the last one picked) and the look's
+      one-offs (each agent's abilities with their keys, the cars' Demolição and Flip).
 
       It's served like filtros.html, from this working copy on localhost:8126 ("Filtros muanlartins.vbs" in Startup),
       so a new filter needs no release: a line in FILTROS here and its drawing there.
@@ -54,11 +56,6 @@
       .status.on::before {
         background: var(--klein-claro);
       }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-        gap: 6px;
-      }
       button {
         font: inherit;
         font-size: 14px;
@@ -76,6 +73,78 @@
         background: var(--klein);
         border-color: var(--paper);
         box-shadow: 0 0 0 2px rgb(244 245 247 / 0.35);
+      }
+      /* The three filters: big, with the look that's on under the name. */
+      .grupos {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 6px;
+      }
+      .grupos button {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 12px 10px;
+        font-size: 16px;
+        font-weight: 500;
+      }
+      .grupos small {
+        display: block;
+        margin-top: 2px;
+        min-height: 1.3em;
+        color: rgb(244 245 247 / 0.6);
+        font-size: 12px;
+        font-weight: 400;
+      }
+      .grupos button.active small {
+        color: rgb(244 245 247 / 0.85);
+      }
+      #desligar {
+        margin-top: 6px;
+        width: 100%;
+        padding: 7px 10px;
+        font-size: 13px;
+        text-align: center;
+        background: none;
+      }
+      /* Inside a filter: its looks as one segmented row, then its abilities. */
+      .visuais {
+        display: flex;
+        margin-bottom: 8px;
+      }
+      .visuais button {
+        flex: 1;
+        text-align: center;
+        padding: 8px 6px;
+      }
+      .visuais button + button {
+        margin-left: -1px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 6px;
+      }
+      .grid button {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      kbd {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--navy);
+        background: var(--klein-claro);
+      }
+      button.disparou {
+        border-color: var(--paper);
+        background: rgb(133 167 255 / 0.35);
       }
       .note {
         margin: 8px 0 0;
@@ -101,14 +170,15 @@
     <p class="status" id="obs">OBS desconectado</p>
 
     <h2>Filtro da câmera</h2>
-    <div class="grid" id="filtros"></div>
-    <div class="grid" style="margin-top: 6px"><button id="desligar">Desligar</button></div>
+    <div class="grupos" id="grupos"></div>
+    <button id="desligar">Desligar</button>
 
-    <div id="acoes-bloco" hidden>
-      <h2 id="acoes-titulo"></h2>
+    <section id="painel" hidden>
+      <h2 id="titulo"></h2>
+      <div class="visuais" id="visuais"></div>
       <div class="grid" id="acoes"></div>
       <p class="note" id="dica"></p>
-    </div>
+    </section>
 
     <details>
       <summary>Conexão com o OBS</summary>
@@ -116,28 +186,60 @@
     </details>
 
     <script>
-      // The filters on the dock: filtros.html's id, the button's name, its one-offs ([id, name]) and a hint.
-      const FILTROS = [
-        { id: "phoenix", nome: "Phoenix", acoes: [["flash", "Flash"]], dica: "Fogo: as duas palmas abertas, de frente uma para a outra. O flash também sai com um estalo girando a mão." },
+      // The dock's filters: one button each; inside, its looks (filtros.html's ids: one for an agent, several for
+      // Rocket League) and each look's one-offs ([id, key, name]: the key is the ability's in Valorant, or none).
+      const GRUPOS = [
+        {
+          id: "phoenix",
+          nome: "Phoenix",
+          jogo: "Valorant",
+          visuais: [
+            {
+              id: "phoenix",
+              nome: "Phoenix",
+              acoes: [
+                ["blaze", "C", "Labareda"],
+                ["flash", "Q", "Bola Curva"],
+                ["molotov", "E", "Mãos Quentes"],
+                ["ult", "X", "Ultimate"],
+              ],
+            },
+          ],
+          dica: "Fogo: as duas palmas abertas, de frente uma para a outra. O flash também sai com um estalo girando a mão.",
+        },
         {
           id: "sova",
           nome: "Sova",
-          acoes: [
-            ["recon", "Flecha"],
-            ["choque", "Choque"],
-            ["drone", "Coruja"],
-            ["ult", "Ultimate"],
+          jogo: "Valorant",
+          visuais: [
+            {
+              id: "sova",
+              nome: "Sova",
+              acoes: [
+                ["drone", "C", "Drone Coruja"],
+                ["choque", "Q", "Flecha de Choque"],
+                ["recon", "E", "Flecha de Reconhecimento"],
+                ["ult", "X", "Ultimate"],
+              ],
+            },
           ],
           dica: "Arco: estique um braço para o lado e feche a outra mão perto do rosto, como quem puxa a corda; abra a mão para atirar a flecha de reconhecimento.",
         },
-        { id: "bola", nome: "Bola" },
-        { id: "octane", nome: "Octane", acoes: [["demo", "Demolição"], ["flip", "Flip"]] },
-        { id: "fennec", nome: "Fennec", acoes: [["demo", "Demolição"], ["flip", "Flip"]] },
+        {
+          id: "rl",
+          nome: "Rocket League",
+          visuais: [
+            { id: "octane", nome: "Octane", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]] },
+            { id: "fennec", nome: "Fennec", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]] },
+            { id: "bola", nome: "Bola" },
+          ],
+        },
       ]
 
       const $ = (id) => document.getElementById(id)
       const KEY = "filtros"
-      const state = { obsPassword: "", ...JSON.parse(localStorage.getItem(KEY) || "{}") }
+      // Kept: the password and, per filter, the last look picked inside it (what its button turns on next time).
+      const state = { obsPassword: "", visual: {}, ...JSON.parse(localStorage.getItem(KEY) || "{}") }
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
       const fromHash = new URLSearchParams(location.hash.slice(1)).get("obs")
       if (fromHash) {
@@ -194,32 +296,62 @@
 
       // --- the filters ----------------------------------------------------------------------------------------
       let atual = "nenhum"
+      const grupoDe = (id) => GRUPOS.find((g) => g.visuais.some((v) => v.id === id))
+      const visualDe = (g) => g.visuais.find((v) => v.id === state.visual[g.id]) || g.visuais[0]
       function escolher(id) {
         atual = id
+        const g = grupoDe(id)
+        if (g) {
+          state.visual[g.id] = id
+          save()
+        }
         send({ filtro: atual })
         desenhar()
       }
+      const botao = (html, onclick) => {
+        const b = document.createElement("button")
+        b.innerHTML = html
+        b.onclick = onclick
+        return b
+      }
+      const texto = (t) => t.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
       function desenhar() {
-        for (const b of $("filtros").children) b.classList.toggle("active", b.dataset.id === atual)
-        const filtro = FILTROS.find((f) => f.id === atual)
-        $("acoes-bloco").hidden = !(filtro?.acoes || filtro?.dica)
-        $("acoes-titulo").textContent = filtro?.nome || ""
-        $("dica").textContent = filtro?.dica || ""
-        $("acoes").replaceChildren(
-          ...(filtro?.acoes || []).map(([acao, nome]) => {
-            const b = document.createElement("button")
-            b.textContent = nome
-            b.onclick = () => send({ acao })
+        const ativo = grupoDe(atual)
+        $("grupos").replaceChildren(
+          ...GRUPOS.map((g) => {
+            const on = g === ativo
+            // Clicking the filter that's on turns it off; another one turns on its last look.
+            const b = botao(`${texto(g.nome)}<small>${texto(g.visuais.length > 1 ? visualDe(g).nome : g.jogo || "")}</small>`, () =>
+              escolher(on ? "nenhum" : visualDe(g).id),
+            )
+            b.classList.toggle("active", on)
             return b
           }),
         )
-      }
-      for (const f of FILTROS) {
-        const b = document.createElement("button")
-        b.textContent = f.nome
-        b.dataset.id = f.id
-        b.onclick = () => escolher(atual === f.id ? "nenhum" : f.id)
-        $("filtros").append(b)
+        $("painel").hidden = !ativo
+        if (!ativo) return
+        const visual = ativo.visuais.find((v) => v.id === atual)
+        $("titulo").textContent = ativo.nome
+        $("visuais").hidden = ativo.visuais.length < 2
+        $("visuais").replaceChildren(
+          ...ativo.visuais.map((v) => {
+            const b = botao(texto(v.nome), () => escolher(v.id))
+            b.classList.toggle("active", v.id === atual)
+            return b
+          }),
+        )
+        $("acoes").replaceChildren(
+          ...(visual.acoes || []).map(([acao, tecla, nome]) => {
+            const b = botao(`${tecla ? `<kbd>${texto(tecla)}</kbd>` : ""}<span>${texto(nome)}</span>`, () => {
+              send({ acao })
+              // A short flash on the button: the click went out.
+              b.classList.add("disparou")
+              setTimeout(() => b.classList.remove("disparou"), 250)
+            })
+            return b
+          }),
+        )
+        $("dica").textContent = ativo.dica || ""
       }
       $("desligar").onclick = () => escolher("nenhum")
       setInterval(() => send({ filtro: atual }), 4000)

@@ -24,7 +24,14 @@
               starting a clap, hold a fire between them that grows with the gap (key 5 shows it in the middle);
               a snap with a turn of the hand (thumb on the middle finger, then a quick twist) puts his flash's
               orb in the hand; moving the hand left or right throws it that way, curving, while a ring closes on
-              it, and it pops into a warm glare of about 2.5 s (key 4, or the dock's Flash).
+              it, and it pops into a warm glare of about 2.5 s (key 4, or the dock's Bola Curva).
+              With the game's own effects (vfx.js, vfx-phoenix.js, textures in privado/valorant/): the orb is
+              Curveball's (dark core, fire shell, its glow, sparks and ribbon, its pop before the glare), and the
+              dock has his other abilities: Labareda (C, the Blaze: fire in the left hand, then a wall racing
+              across the bottom of the box, 6 s), Mãos Quentes (E, Hot Hands: a fireball from the right hand thrown
+              to the bottom of the box, its blast and 4 s of fire there) and Ultimate (X, Run It Back: his shoulders
+              and elbows on fire with the marker below him and the box's edge glowing, 10 s or ?ult=<s>, then the
+              burst he comes back in). Keys C, Q, E, X in a browser.
         Sova  (key 7): Valorant's Sova the same way (privado/sova.glb, out of git): his slicked-back hair on the
               head, the fur collar, the cape and the folded bow on the back on the shoulders. His abilities,
               drawn (none of them is a model): the bow, by its gesture, only while he's on: one arm stretched out
@@ -159,6 +166,8 @@
       import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
       import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js"
       import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js"
+      import { createVfx } from "./vfx.js"
+      import * as PHX from "./vfx-phoenix.js"
       import { FilesetResolver, GestureRecognizer, ImageSegmenter, FaceLandmarker, PoseLandmarker } from "@mediapipe/tasks-vision"
 
       const q = new URLSearchParams(location.search)
@@ -367,6 +376,11 @@
         uPlate: { value: null },
         uPlateFix: { value: new THREE.Vector3() },
         uPlateOk: { value: 0 },
+        // Phoenix's ultimate: the warm edge on the box while it lasts.
+        uUltVig: { value: 0 },
+        // Where the erasing stops below the face (fades between these, in the face's half heights from its middle):
+        // agents keep the jaw, the cars take the whole head down to the chin.
+        uEraseLow: { value: new THREE.Vector2(-0.55, -0.3) },
         // What's been seen behind him (memory below) and his face's mask (drawKeep: r the whole face and ears,
         // g the face as drawn back over the agent).
         uMem: { value: null },
@@ -431,6 +445,7 @@
           uniform sampler2D uPlate;
           uniform vec3 uPlateFix;
           uniform float uPlateOk;
+          uniform vec2 uEraseLow;
           uniform sampler2D uMem;
           uniform sampler2D uKeep;
           vec3 burst(vec2 uv, float t) {
@@ -476,12 +491,13 @@
             if (uErase > 0.0) {
               vec2 d = (vUv - uFace.xy) * vec2(uAspect, 1.0);
               d = vec2(dot(d, vec2(uFaceUp.y, -uFaceUp.x)), dot(d, uFaceUp));
-              float zone = length(d / (uFace.zw * vec2(2.6, 2.8)));
-              if (zone < 1.0 && d.y > -uFace.w * 0.55) {
+              // As wide as the head is tall, at least: turned, the face is narrow but the hair behind it isn't.
+              float zone = length(d / (vec2(max(uFace.z, uFace.w * 0.9), uFace.w) * vec2(2.6, 2.8)));
+              if (zone < 1.0 && d.y > uFace.w * uEraseLow.x) {
                 // Up to his face's outline (and ears), wherever the mask, widened a little, says he is; soft at
                 // the zone's edges, so no line shows where the erasing stops.
                 float m = smoothstep(0.03, 0.2, maskAt(vUv, 2.0));
-                float k = (1.0 - smoothstep(0.2, 0.8, texture2D(uKeep, vUv).r)) * smoothstep(1.0, 0.9, zone) * smoothstep(-0.55, -0.3, d.y / uFace.w);
+                float k = (1.0 - smoothstep(0.2, 0.8, texture2D(uKeep, vUv).r)) * smoothstep(1.0, 0.9, zone) * smoothstep(uEraseLow.x, uEraseLow.y, d.y / uFace.w);
                 vec2 v = camUv(vUv);
                 vec4 mem = texture2D(uMem, v);
                 vec3 bg = mix(texture2D(uPlate, v).rgb + uPlateFix, mem.rgb, mem.a);
@@ -724,6 +740,29 @@
           }`,
       })
       const flashScene = quad(flashMat)
+      // Run It Back's edge: the box's border glowing like embers, flickering, while the ultimate lasts.
+      const vigMat = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: VERT,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.CustomBlending,
+        blendSrc: THREE.OneFactor,
+        blendDst: THREE.OneMinusSrcAlphaFactor,
+        fragmentShader: /* glsl */ `
+          ${GLSL_COMMON}
+          uniform float uUltVig;
+          void main() {
+            vec2 e = min(vUv, 1.0 - vUv) * vec2(uAspect, 1.0);
+            float d = min(e.x, e.y);
+            float n = noise(vec2(vUv.x * 9.0 + vUv.y * 3.0, uTime * 1.3)) * 0.5 + noise(vec2(vUv.y * 11.0, uTime * 0.9 + 4.0)) * 0.5;
+            float g = exp(-d * (14.0 - 6.0 * n)) * (0.55 + 0.45 * n);
+            float a = clamp(g * uUltVig * 0.75, 0.0, 1.0);
+            gl_FragColor = vec4(mix(vec3(0.85, 0.2, 0.03), vec3(1.0, 0.62, 0.2), n) * a, a);
+          }`,
+      })
+      const vigScene = quad(vigMat)
 
       // Sova's abilities, drawn over everything in the camera's box: the bow with its arrow, the arrow in flight,
       // the Recon Bolt's dart with its two sonar rings, Valorant's red reveal on Luan (the body mask's outline)
@@ -1315,7 +1354,7 @@
 
       // Luan's shoulders in the 3D camera's space (cm): the body tracker gives them on screen and their depth
       // relative to each other; the face's transform gives how far he is.
-      const pose = { seen: false, left: new THREE.Vector2(), right: new THREE.Vector2(), dz: 0 }
+      const pose = { seen: false, left: new THREE.Vector2(), right: new THREE.Vector2(), dz: 0, elbows: [null, null] }
       function onRay(u, v, z) {
         const p = new THREE.Vector3(u * 2 - 1, v * 2 - 1, 0.5).unproject(headCam)
         return p.multiplyScalar(z / p.z)
@@ -1352,6 +1391,160 @@
         a.seen = true
       }
 
+      // ---------- Phoenix's abilities, with the game's own effects (vfx.js, vfx-phoenix.js) ----------
+      // From the dock (or keys C, Q, E, X): Blaze, a wall of fire racing across the bottom of the box from his left
+      // hand; Curveball, his flash (also by its snap gesture); Hot Hands, a fireball from his right hand that
+      // leaves fire burning at the bottom; Run It Back, his shoulders and elbows on fire for 10 s with the marker
+      // below him, then the burst he comes back in. Without the game's textures (privado/), Curveball keeps its
+      // drawn orb and the rest do nothing.
+      const vfx = createVfx(renderer, headCam)
+      const phx = { orb: vfx.orb(), orbAt: new THREE.Vector3(), held: null, trail: null, e: null, c: null, x: null }
+      // A point on the camera box (0..1, y up) at the depth of his face, dz centimetres closer.
+      const at3 = (u, v, dz = 0) => onRay(u, v, (headSeen ? headPos.z : -65) + dz)
+      // The hand to cast from: the one seen furthest to that side of the box (1 right, -1 left), else a spot
+      // low on that side.
+      function handAt(side) {
+        const seen = lastHands.map((h) => toScreen((h[0].x + h[9].x) / 2, (h[0].y + h[9].y) / 2))
+        if (seen.length) return seen.sort((a, b) => side * (b[0] - a[0]))[0]
+        return [0.5 + side * 0.28, 0.3]
+      }
+      function phxReset() {
+        vfx.clear()
+        phx.orb.visible = false
+        Object.assign(phx, { held: null, trail: null, e: null, c: null, x: null })
+        uniforms.uUltVig.value = 0
+      }
+      // Curveball, on the orb the flash's path moves (updateBang): held, it glows and throws sparks; in flight it
+      // leaves its ribbon; where it lands it pops before the glare.
+      function phxCurveball(t) {
+        if (!vfx.ok) return
+        const { HOLD, FLY } = BANG
+        const o = uniforms.uOrb.value
+        const on = uniforms.uOrbAmt.value > 0 && t < HOLD + FLY
+        phx.orb.visible = on
+        if (on) {
+          phx.orbAt.copy(at3(o.x, o.y, 6))
+          phx.orb.position.copy(phx.orbAt)
+          const d = 9 * (o.z / 0.035)
+          phx.orb.scale.set(d, d, 1)
+          if (!phx.held) phx.held = vfx.spawn(PHX.Q.held, (v) => v.copy(phx.orbAt), { scale: 0.8 })
+          if (t >= HOLD && !phx.trail) phx.trail = vfx.spawn(PHX.Q.trail, (v) => v.copy(phx.orbAt), { scale: 0.8 })
+        } else if (phx.held) {
+          phx.held.stop()
+          phx.trail?.stop()
+          phx.held = phx.trail = null
+          if (t >= HOLD + FLY) {
+            const p = phx.orbAt.clone()
+            vfx.spawn(PHX.Q.explode, (v) => v.copy(p), { scale: 0.12, dur: 0.05 })
+          }
+        }
+      }
+      // Hot Hands: in the right hand while it's equipped, thrown up and down to the bottom of the box on that
+      // side, the blast, then about 4 s of fire there.
+      const HH = { EQUIP: 0.7, FLY: 0.55, BURN: 4 }
+      function startHotHands(now) {
+        if (phx.e || !vfx.ok) return
+        const [u, v] = handAt(1)
+        const side = u > 0.5 ? 1 : -1
+        phx.e = { t0: now, from: [u, v], to: [0.5 + side * 0.2, 0.05], pos: new THREE.Vector3(), held: null, trail: null, stage: 0 }
+      }
+      function updateHotHands(now) {
+        const e = phx.e
+        const t = (now - e.t0) / 1000
+        if (t < HH.EQUIP) {
+          if (lastHands.length) e.from = handAt(e.to[0] > 0.5 ? 1 : -1)
+          e.pos.copy(at3(e.from[0], e.from[1], 8))
+          e.held ||= vfx.spawn(PHX.E.held, (v) => v.copy(e.pos), { scale: 0.75 })
+        } else if (t < HH.EQUIP + HH.FLY) {
+          const k = (t - HH.EQUIP) / HH.FLY
+          const u = THREE.MathUtils.lerp(e.from[0], e.to[0], k)
+          const v = THREE.MathUtils.lerp(e.from[1], e.to[1], k * k) + Math.sin(Math.PI * k) * 0.18
+          e.pos.copy(at3(u, v, 8 - 2 * k))
+          e.trail ||= vfx.spawn(PHX.E.trail, (v) => v.copy(e.pos), { scale: 0.7 })
+        } else if (e.stage === 0) {
+          e.held?.stop()
+          e.trail?.stop()
+          const p = at3(e.to[0], e.to[1], 6)
+          vfx.spawn(PHX.E.explode, (v) => v.copy(p), { scale: 0.08, dur: 0.1 })
+          const g = at3(e.to[0], 0.0, 10)
+          vfx.spawn(PHX.E.ground, (v) => v.copy(g), { scale: 0.13, dur: HH.BURN })
+          e.stage = 1
+        } else if (t > HH.EQUIP + HH.FLY + HH.BURN + 2) phx.e = null
+      }
+      // Blaze: the flame in the left hand while it's equipped, then the wall's head runs across the bottom of the
+      // box from that side, the wall rising behind it, burning 6 s.
+      const BZ = { EQUIP: 0.8, RUN: 0.75, BURN: 6 }
+      function startBlaze(now) {
+        if (phx.c || !vfx.ok) return
+        const [u, v] = handAt(-1)
+        const side = u < 0.5 ? -1 : 1
+        phx.c = { t0: now, hand: [u, v], side, handPos: new THREE.Vector3(), pos: new THREE.Vector3(), held: null, head: null, wall: null, k: 0 }
+      }
+      function updateBlaze(now) {
+        const c = phx.c
+        const t = (now - c.t0) / 1000
+        const from = at3(c.side < 0 ? -0.05 : 1.05, 0.02, 14)
+        const to = at3(c.side < 0 ? 1.05 : -0.05, 0.02, 14)
+        if (t < BZ.EQUIP) {
+          if (lastHands.length) c.hand = handAt(c.side)
+          c.handPos.copy(at3(c.hand[0], c.hand[1], 8))
+          c.held ||= vfx.spawn(PHX.C.held, (v) => v.copy(c.handPos), { scale: 0.8 })
+          return
+        }
+        c.held?.stop()
+        c.k = Math.min(1, (t - BZ.EQUIP) / BZ.RUN)
+        c.pos.lerpVectors(from, to, c.k)
+        if (!c.wall) {
+          c.head = vfx.spawn(PHX.C.head, (v) => v.copy(c.pos), { scale: 0.11, dur: BZ.RUN })
+          // The wall's particles spread over what the head has crossed so far.
+          c.wall = vfx.spawn(PHX.C.wall, (v) => v.copy(from), { scale: 0.11, dur: BZ.RUN + BZ.BURN, segment: (r) => to.clone().sub(from).multiplyScalar(r * c.k) })
+        }
+        if (t > BZ.EQUIP + BZ.RUN + BZ.BURN + 2.5) phx.c = null
+      }
+      // Run It Back: a burst in his hands, the marker below him, his shoulders and elbows burning for 10 s
+      // (with a warm edge on the box), then the burst he comes back in.
+      const RB = { CAST: 0.8, LAST: Number(q.get("ult") || 10) }
+      function startRunItBack(now) {
+        if (phx.x || !vfx.ok) return
+        const hands = [handAt(-1), handAt(1)]
+        const mu = pose.seen ? (pose.left.x + pose.right.x) / 2 : 0.5
+        const marker = at3(mu, 0.02, 4)
+        phx.x = { t0: now, limbs: [], back: false }
+        for (const h of hands) {
+          const p = at3(h[0], h[1], 8)
+          vfx.spawn(PHX.X.cast, (v) => v.copy(p), { scale: 0.8, dur: 1.2 })
+        }
+        vfx.spawn(PHX.X.marker, (v) => v.copy(marker), { scale: 0.16, dur: RB.CAST + RB.LAST })
+      }
+      function updateRunItBack(now) {
+        const x = phx.x
+        const t = (now - x.t0) / 1000
+        const k = THREE.MathUtils.clamp(Math.min((t - 0.3) / 0.6, (RB.CAST + RB.LAST - t) / 0.5), 0, 1)
+        uniforms.uUltVig.value = k
+        if (t > 0.4 && !x.limbs.length) {
+          // Shoulders, then elbows (where they're seen), each with its own flames, following him.
+          const spot = (i) => (v) => {
+            const p = i < 2 ? (i ? pose.right : pose.left) : pose.elbows[i - 2]
+            if (!p || !pose.seen) return v.set(0, -1e4, 0)
+            return v.copy(at3(p.x, p.y + (i < 2 ? 0.02 : 0), i < 2 ? (i ? pose.dz / 2 : -pose.dz / 2) : 0))
+          }
+          for (let i = 0; i < 4; i++) x.limbs.push(vfx.spawn(PHX.X.limb, spot(i), { scale: 0.4, dur: RB.LAST + RB.CAST - 0.4 }))
+        }
+        if (t > RB.CAST + RB.LAST && !x.back) {
+          x.back = true
+          const c = pose.seen ? new THREE.Vector2().addVectors(pose.left, pose.right).multiplyScalar(0.5) : new THREE.Vector2(0.5, 0.3)
+          const p = at3(c.x, c.y + 0.08, 10)
+          vfx.spawn(PHX.X.back, (v) => v.copy(p), { scale: 0.2, dur: 0.8 })
+        }
+        if (t > RB.CAST + RB.LAST + 3) phx.x = null
+      }
+      function updatePhoenix(now, dt) {
+        if (phx.e) updateHotHands(now)
+        if (phx.c) updateBlaze(now)
+        if (phx.x) updateRunItBack(now)
+        vfx.update(dt)
+      }
+
       // Luan's face and hands, drawn back over the jacket: a small mask of the face's outline and each hand's
       // outline, painted with the camera.
       const FACE_OVAL = [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109]
@@ -1377,7 +1570,8 @@
         return lower.slice(0, -1).concat(upper.slice(0, -1))
       }
       // trim: where the face stops above the brows, as a part of the brows-to-chin height (none: the whole oval).
-      function drawKeep(trim) {
+      // face: false for the cars, which cover it (only the hands are kept).
+      function drawKeep(trim, face = true) {
         const c = keepCtx
         c.clearRect(0, 0, 960, 540)
         c.fillStyle = c.strokeStyle = "#fff"
@@ -1396,7 +1590,7 @@
           c.lineWidth = pad
           c.stroke()
         }
-        if (faceLm) {
+        if (faceLm && face) {
           let oval = FACE_OVAL.map((i) => px(faceLm[i]))
           // In red only, under the rest: the whole oval and the ears beside it, which the hair around is erased
           // up to (the ears stick out from where the oval meets the head, between the brows and the nose's base).
@@ -1787,6 +1981,8 @@
       const CAR_W = Number(q.get("carro") || 26)
       const CAR_PITCH = THREE.MathUtils.degToRad(Number(q.get("inclinacao") ?? 10))
       const CAR_LEN = Number(q.get("comprimento") || 0.6)
+      // ?perfil=: its length seen from the side (the head is deeper than it's wide).
+      const CAR_LEN_SIDE = Number(q.get("perfil") || 0.85)
       const CAR_AT = (q.get("posicao") || "0,0.5,-8").split(",").map(Number)
       // An eye's height for its width (the camera's cut has the same shape).
       const EYE_H = 0.75
@@ -1825,7 +2021,7 @@
         })
       }
       for (const [id, c] of Object.entries(CARS)) {
-        Object.assign(c, { id, amt: 0, ready: false, group: new THREE.Group(), body: new THREE.Group(), boom: -1, flip: -1 })
+        Object.assign(c, { id, amt: 0, ready: false, group: new THREE.Group(), body: new THREE.Group(), boom: -1, flip: -1, shown: 0, s: 1, len: CAR_LEN })
         c.group.visible = false
         c.group.add(c.body)
         head.add(c.group)
@@ -1912,6 +2108,7 @@
         // CAR_W cm across, facing the camera, its length shortened a little (less perspective, more cartoon).
         const s = CAR_W / size.z
         c.body.rotation.y = -Math.PI / 2
+        c.s = s
         c.body.scale.set(s * CAR_LEN, s, s)
         c.body.add(inner)
         c.group.position.set(...CAR_AT)
@@ -1966,14 +2163,28 @@
             k *= t < 0.06 ? 1 - t / 0.06 : t < 2.2 ? 0 : easeOutBack(Math.min(1, (t - 2.2) / 0.35))
             if (t > 2.6) c.boom = -1
           }
-          let flip = 0
+          // Flip: like a dodge in the game, a hop up, a front flip at the top and a little squash landing.
+          let flip = 0, hop = 0, squash = 1
           if (c.flip >= 0) {
-            const t = (now - c.flip) / 450
-            flip = t < 1 ? (1 - (1 - t) ** 3) * Math.PI * 2 : 0
-            if (t >= 1) c.flip = -1
+            const t = (now - c.flip) / 700
+            if (t < 1) {
+              hop = Math.sin(Math.min(1, t / 0.85) * Math.PI) * CAR_W * 0.35
+              const f = THREE.MathUtils.clamp((t - 0.12) / 0.6, 0, 1)
+              flip = (f < 0.5 ? 4 * f ** 3 : 1 - (-2 * f + 2) ** 3 / 2) * Math.PI * 2
+              squash = t > 0.85 ? 1 - Math.sin(((t - 0.85) / 0.15) * Math.PI) * 0.12 : 1
+            } else c.flip = -1
           }
-          c.group.scale.setScalar(Math.max(k, 1e-4))
+          c.group.scale.set(Math.max(k, 1e-4), Math.max(k * squash, 1e-4), Math.max(k, 1e-4))
+          c.group.position.set(CAR_AT[0], CAR_AT[1] + hop, CAR_AT[2])
+          // It flips about the car's own crosswise axis (screen x once it faces the camera).
           c.group.rotation.x = CAR_PITCH + flip
+          c.shown = Math.min(1, k)
+          // Longer as he turns: short from the front (more cartoon), but from the side long enough to cover his
+          // head from the nose to the back of his hair.
+          const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(headQuat)
+          const side = Math.min(1, Math.abs(fwd.x))
+          c.len += ((CAR_LEN + (CAR_LEN_SIDE - CAR_LEN) * side) - c.len) * 0.3
+          c.body.scale.x = c.s * c.len
         }
         // The explosion follows where the car was.
         const c = carList.find((c) => c.boom >= 0)
@@ -2052,13 +2263,17 @@
         if (mode !== "phoenix") {
           bang.t0 = -1
           uniforms.uOrbAmt.value = uniforms.uFlashAmt.value = 0
+          phxReset()
         }
         if (mode !== "sova") sovaReset()
       }
       // A one-off, from the dock or a key: only for the filter that has it.
       function acao(a) {
         const now = performance.now()
-        if (mode === "phoenix" && a === "flash") startBang(0.75, 0.45, null)
+        if (mode === "phoenix") {
+          if (a === "flash") startBang(...handAt(1), null)
+          else ({ molotov: startHotHands, blaze: startBlaze, ult: startRunItBack })[a]?.(now)
+        }
         if (mode === "sova") ({ recon: autoBow, choque: shockBolt, drone: startDrone, ult: startUlt })[a]?.(now)
         if (CARS[mode]) ({ demo, flip: flipCar })[a]?.(now)
       }
@@ -2078,12 +2293,12 @@
         if (e.key === "8") setMode(mode === "octane" ? "nenhum" : "octane")
         if (e.key === "9") setMode(mode === "fennec" ? "nenhum" : "fennec")
         const k = e.key.toLowerCase()
-        const keys = { e: "recon", q: "choque", c: "drone", x: "ult", d: "demo", f: "flip" }
+        const keys = mode === "phoenix" ? { c: "blaze", q: "flash", e: "molotov", x: "ult" } : { e: "recon", q: "choque", c: "drone", x: "ult", d: "demo", f: "flip" }
         if (keys[k]) acao(keys[k])
         if (e.key === "0") setMode("nenhum")
       })
       setMode(mode)
-      if (q.has("debug")) window.filtros = { sova, AGENTS, CARS, uniforms, acao, get mode() { return mode } }
+      if (q.has("debug")) window.filtros = { sova, AGENTS, CARS, uniforms, acao, vfx, phx, get mode() { return mode } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -2225,6 +2440,8 @@
             pose.dz = dz
           }
           pose.seen = true
+          // The elbows, when they're in the picture (Phoenix's ultimate burns on them too).
+          pose.elbows = [13, 14].map((i) => (lm[i].visibility > 0.5 ? new THREE.Vector2(...toScreen(lm[i].x, lm[i].y)) : null))
         } else pose.seen = false
         ms.ombros = performance.now() - t0
       }
@@ -2298,11 +2515,14 @@
           const g = t - HOLD - FLY
           u.uOrbAmt.value = Math.max(0, 1 - g / 0.12)
           u.uFlashAt.value.copy(u.uTo.value)
-          u.uFlashAmt.value = Math.min(1, g / 0.06) * (g < GLARE ? 1 : (1 - (g - GLARE) / FADE) ** 1.6)
+          // With the game's pop (vfx), the glare comes a moment after it, as the game's flash whites out.
+          const pop = vfx.ok ? 0.15 : 0
+          u.uFlashAmt.value = THREE.MathUtils.clamp((g - pop) / 0.06, 0, 1) * (g < GLARE ? 1 : (1 - (g - GLARE) / FADE) ** 1.6)
         } else {
           bang.t0 = -1
           u.uOrbAmt.value = 0
         }
+        phxCurveball(t)
       }
 
       // Both palms open, fingers up, seen edge on (facing each other), side by side: a fire between them.
@@ -2410,10 +2630,11 @@
             const sovaMask = sovaOn && now < sova.maskUntil
             if (mode === "pop" || pop > 0 || sovaMask) runBody(now)
             if (mode === "bola" || ballIn > 0 || agentOn || carOn) runFace(now)
-            if (agentOn) {
-              if (ERASE && mode !== "pop" && pop <= 0 && !sovaMask) runBody(now)
-              if (videoFrames % 2 === 0) runPose(now)
-              if (ERASE && (plate.off === undefined || videoFrames % 15 === 0)) sampleBackground()
+            if (agentOn && videoFrames % 2 === 0) runPose(now)
+            // The body mask and the background's check, for erasing his hair (agents) or his head (cars).
+            if ((agentOn || carOn) && ERASE) {
+              if (mode !== "pop" && pop <= 0 && !sovaMask) runBody(now)
+              if (plate.off === undefined || videoFrames % 15 === 0) sampleBackground()
             }
             if (carOn && faceLm) drawParts()
           } catch (e) {
@@ -2429,13 +2650,22 @@
         const fireWanted = phoenix > 0 && (fire.on || fire.demo)
         if (fire.demo && !fire.on) fire.at.set(0.5, 0.3, 0.11)
         fire.amt = THREE.MathUtils.clamp(fire.amt + (fireWanted ? dt / 0.25 : -dt / 0.35), 0, 1)
-        uniforms.uErase.value = headSeen && ERASE ? agentAmt : 0
         uniforms.uPlateOk.value = plate.ok ? 1 : 0
         uniforms.uFire.value.copy(fire.at)
         uniforms.uFireAmt.value = fire.amt
         if (bang.t0 >= 0) updateBang(now)
+        if (mode === "phoenix" || vfx.active()) updatePhoenix(now, dt)
         if (sovaOn) updateSova(now, dt)
         updateCars(now)
+        // Erasing his hair: around an agent's, or his whole head under a car (back while it's demolished).
+        const carShown = Math.max(0, ...carList.map((c) => (c.group.visible ? c.shown : 0)))
+        uniforms.uErase.value = headSeen && ERASE ? Math.max(agentAmt, carShown) : 0
+        uniforms.uEraseLow.value.set(...(carShown > agentAmt ? [-1.05, -0.85] : [-0.55, -0.3]))
+        // Under a car, centred on the middle of his head rather than his face, which turns off to a side.
+        if (carShown > agentAmt && headSeen) {
+          const mid = new THREE.Vector3(...CAR_AT).applyMatrix4(head.matrix).project(headCam)
+          uniforms.uFace.value.x += (mid.x * 0.5 + 0.5 - uniforms.uFace.value.x) * 0.7
+        }
         lens.amt = THREE.MathUtils.clamp(lens.amt + (lens.on ? dt / 0.15 : -dt / 0.2), 0, 1)
         energy *= Math.pow(0.25, dt)
 
@@ -2446,10 +2676,14 @@
         lens.pts.forEach((v, i) => uniforms.uLens.value[i].copy(v))
         uniforms.uCover.value.set(cover.sx, cover.sy, cover.ox, cover.oy)
 
+        // Phoenix's effects into their own target first (that switches render targets).
+        const vfxOn = vfx.active()
+        if (vfxOn) vfx.render(box[2], box[3])
         // The face's mask and what's behind Luan, before the camera's layer, which erases his hair with them.
         const ready = agentList.filter((a) => a.amt > 0 && a.ready)
         if (ready.length) drawKeep(ready.find((a) => a.trim)?.trim)
-        if (agentAmt > 0 && ERASE && maskFresh) {
+        else if (carAmt > 0) drawKeep(undefined, false)
+        if ((agentAmt > 0 || carAmt > 0) && ERASE && maskFresh) {
           remember()
           maskFresh = false
         }
@@ -2519,7 +2753,10 @@
         if (uniforms.uBoomT.value >= 0) renderer.render(boomScene, ortho)
         if (fire.amt > 0) renderer.render(fireScene, ortho)
         if (lens.amt > 0) renderer.render(lensScene, ortho)
-        if (uniforms.uOrbAmt.value > 0) renderer.render(bangScene, ortho)
+        if (uniforms.uOrbAmt.value > 0 && !vfx.ok) renderer.render(bangScene, ortho)
+        // Phoenix's abilities, drawn by vfx into its own target, tone mapped over the box.
+        if (vfxOn) renderer.render(vfx.compositeScene, ortho)
+        if (uniforms.uUltVig.value > 0) renderer.render(vigScene, ortho)
         // The glare stays in the camera's box (Luan's call), from where the orb popped.
         if (uniforms.uFlashAmt.value > 0) renderer.render(flashScene, ortho)
 

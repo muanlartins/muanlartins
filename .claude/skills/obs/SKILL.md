@@ -24,16 +24,20 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   under 1 VMAF point apart and ~40% smaller). Change it only with OBS closed.
 - Camera filters (`public/stream/filtros.html`): switched from the "Filtros" dock
   (`filtros-painel.html`, served from localhost:8126 too; `obs.py --apply` adds it with OBS closed), never by
-  gestures (Luan, 2026-11-10). The dock lists Phoenix, Sova, the ball, the Octane and the Fennec (`FILTROS` there;
-  Pop and the lens stay in the page, off the dock) and tells the page with obs-browser's emit_event
-  `muanlartins-filtro` (`{"filtro": "phoenix" | "sova" | "bola" | "octane" | "fennec" | "nenhum"}`, and the one-offs
-  `{"acao": ...}`: Phoenix's `flash`; Sova's `recon`, `choque`, `drone`, `ult`; the cars' `demo`, `flip`), which
-  `scripts/obs.mjs` can send as well (`CallVendorRequest`). A new filter is a line in the dock's `FILTROS` and its id in the page's `MODES`. One browser
+  gestures (Luan, 2026-11-10). The dock has a button per filter, Phoenix, Sova and Rocket League (`GRUPOS`
+  there), and inside the one that's on its looks (Rocket League: Octane, Fennec, the ball; its button turns on the
+  last one picked) and the look's one-offs: each agent's abilities with their keys, the cars' Demolição and Flip (Pop
+  and the lens stay in the page, off the dock). It tells the page with obs-browser's emit_event `muanlartins-filtro`
+  (`{"filtro": "phoenix" | "sova" | "bola" | "octane" | "fennec" | "nenhum"}`, and the one-offs `{"acao": ...}`:
+  Phoenix's `blaze`, `flash`, `molotov`, `ult`; Sova's `recon`, `choque`, `drone`, `ult`; the cars' `demo`, `flip`),
+  which `scripts/obs.mjs` can send as well (`CallVendorRequest`). A new filter is a look in the dock's `GRUPOS` and
+  its id in the page's `MODES`. Phoenix's effects are drawn by `vfx.js` from the game's textures and values
+  (`vfx-phoenix.js`, textures in `privado/valorant/`); without them his abilities other than the flash do nothing. One browser
   source "Filtros", full screen and just above Câmera in RL + chat, Valorant + chat, Conversa and
   Terapia (page permission 2, so it can ask for the scene; the page draws in that scene's camera box and stays clear
   with no filter). It loads `http://localhost:8126/stream/filtros.html`, served from this working copy by
   "Filtros muanlartins.vbs" in Startup (log `~/.cache/muanlartins/filtros.log`), because Phoenix's and Sova's models
-  (`public/stream/privado/`, gitignored) must never reach the site. OBS has to start with
+  and the game's extracted effects (`public/stream/privado/`, gitignored) must never reach the site. OBS has to start with
   `--enable-media-stream --use-fake-ui-for-media-stream` (set on the Public Desktop shortcut and a user Start Menu
   one, "OBS Studio (filtros)", and since 2026-11-09 the system Start Menu one too, edited elevated with Luan's UAC OK;
   an OBS update may recreate it without them), or the page's camera is refused (the page then retries every 5 s and
@@ -43,7 +47,9 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   To see a filter without OBS (not while he's live): headless Chrome with `--use-fake-device-for-media-stream
   --use-fake-ui-for-media-stream --use-file-for-fake-video-capture=<clip>.y4m` (a few seconds of a live's
   `Câmera.mkv` through ffmpeg, already framed, so add `?zoom=1`); `?debug` also exposes `window.filtros` (state,
-  uniforms, `acao`). Swiftshader runs it at about 1 fps, so slow the page's `performance.now` to catch an effect.
+  uniforms, `acao`). Swiftshader runs it at about 1 fps: to catch an effect at a given moment, replace
+  `requestAnimationFrame` and `performance.now` with a clock that moves 50 ms per frame, and screenshot when it
+  reaches the time wanted.
   With an agent on, Luan's hair around the agent's is painted over with the camera's background:
   `public/stream/camera-fundo.png` (NVIDIA Broadcast's virtual background, from `brand/build.py`) plus what the
   page has seen behind him since it loaded; if he changes the virtual background, rebuild it (the page checks it

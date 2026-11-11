@@ -130,9 +130,10 @@ export const SHIPPED: Shipped[] = [
     id: "filtros-sova-e-carros",
     date: "2026-11-10",
     tag: "live",
-    title: "Filtros na câmera: Sova, Octane e Fennec",
-    text: "O Sova com arco, flecha de reconhecimento que me revela em vermelho, choque, coruja e ultimate; e a minha cara virando um Octane ou um Fennec, com os meus olhos no para-brisa e a boca no para-choque, que ainda explode numa demolição.",
+    title: "Filtros na câmera: Sova, Octane, Fennec e as habilidades do Phoenix",
+    text: "O Phoenix com as quatro habilidades feitas com os efeitos do próprio jogo: Labareda, Bola Curva, Mãos Quentes e a ultimate. O Sova com arco, flecha de reconhecimento que me revela em vermelho, choque, coruja e ultimate. E a minha cabeça virando um Octane ou um Fennec, com os meus olhos no para-brisa e a boca no para-choque, que dá flip e explode numa demolição. Tudo escolhido num painel novo no OBS.",
     media: [
+      media("filtros-phoenix-habilidades", "Luan de Phoenix com as quatro habilidades: a Labareda, a Bola Curva na mão, o fogo das Mãos Quentes e a ultimate"),
       media("filtros-sova", "Luan de Sova, revelado em vermelho pela flecha de reconhecimento"),
       media("filtros-octane", "Luan com a cara de Octane: os olhos dele no para-brisa e a boca no para-choque"),
       media("filtros-fennec", "Luan com a cara de Fennec: os olhos dele no para-brisa e a boca no para-choque"),
