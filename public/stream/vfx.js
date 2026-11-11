@@ -4,35 +4,41 @@
 // from its mipmaps) over the camera, so colours like the game's (30, 3, 1.75) come out white-hot in the middle
 // and orange at the edges, as they do there.
 //
-// The textures are extracted from the installed game into privado/valorant/ (gitignored, never published: see
-// its README.txt); without them `ok` turns false and the page keeps its own drawn effects.
+// The textures are extracted from the installed game into privado/valorant/<agent>/ (gitignored, never
+// published: see its README.txt); without them `ok` turns false.
 import * as THREE from "three"
 
-const ROOT = "privado/valorant/phoenix/files/ShooterGame/Content/"
-// Each texture: its path, where its mask is ("a" alpha, "r" red), its flipbook's columns and rows, and whether
-// its colour channels shade it (the flipbooks' grey base with brighter detail), and whether it needs fading at the
-// quad's edge (a starburst whose rays run off it would show the sprite's square under bright colours).
+const ROOT = "privado/valorant/"
+const P = "phoenix/files/ShooterGame/Content/"
+// Each texture: its path, where its mask is ("a" alpha, "r" red, "g" green, "max" the brightest of the colours, for
+// textures that pack strands in different colours), its flipbook's columns and rows, and whether its colour
+// channels shade it (the flipbooks' grey base with brighter detail), and whether it needs fading at the quad's
+// edge (a starburst whose rays run off it would show the sprite's square under bright colours). Each agent's
+// effects add their own (addTextures).
 const TEX = {
-  flare: ["Characters/Phoenix/S0/VFX/Textures/solar_flare_4x4", "a", [4, 4], 0.6],
-  embers: ["VFX/Textures/Old/DebrisBlur_TEX", "a", [2, 2], 0],
-  glow: ["VFX/Textures/AlphaGradient/GlowA01_DIFF", "r", [1, 1], 0],
-  star: ["VFX/Textures/Mask/FlashLocation_TEX", "r", [1, 1], 0, true],
-  shaft: ["VFX/Textures/Mask/LightShaft_TEX", "r", [1, 1], 0],
-  wiggly: ["VFX/Textures/AlphaGradient/T_Mask_Ramp_Bar_Horizontal_Wiggly_Center", "r", [1, 1], 0],
-  pan: ["Characters/Phoenix/S0/VFX/Textures/Phoenix_FirePan_TFX", "r", [1, 1], 0],
-  radial: ["Characters/Phoenix/S0/VFX/Textures/phoenix_radial_burst", "a", [4, 2], 0.5],
-  muzzle: ["VFX/Textures/Mask/GMuzzleB_TEX", "r", [2, 2], 0, true],
-  flame: ["Characters/Phoenix/S0/VFX/Textures/Phoenix_Molotov_Flame", "r", [1, 1], 0],
-  flameB: ["Characters/Phoenix/S0/VFX/Textures/Phoenix_Molotov_Flame_b", "r", [1, 1], 0],
-  wallEquip: ["Characters/Phoenix/S0/VFX/Textures/Wall_Equip_FlameAnim", "a", [2, 4], 0.5],
-  ballInner: ["Characters/Phoenix/S0/VFX/Textures/FireBallShapesInner_TFX", "r", [8, 1], 0],
-  smoke: ["VFX/Textures/Flipbook/burst_anim2", "a", [8, 2], 0.6],
-  wrap: ["VFX/Radianite/Textures/Smoke_wraparound", "a", [1, 1], 0],
-  ground: ["VFX/Radianite/Textures/Radianite_radial_burst", "r", [1, 1], 0],
-  circle: ["Characters/Phoenix/S0/VFX/Textures/T_Mask_Circle_Gradient_02", "r", [1, 1], 0],
-  collapse: ["VFX/Textures/Flipbook/flash_energy_collapse", "a", [4, 4], 0.4],
-  crawl: ["VFX/Textures/Mask/FireCrawlA01", "r", [1, 1], 0],
+  flare: [P + "Characters/Phoenix/S0/VFX/Textures/solar_flare_4x4", "a", [4, 4], 0.6],
+  embers: [P + "VFX/Textures/Old/DebrisBlur_TEX", "a", [2, 2], 0],
+  glow: [P + "VFX/Textures/AlphaGradient/GlowA01_DIFF", "r", [1, 1], 0],
+  star: [P + "VFX/Textures/Mask/FlashLocation_TEX", "r", [1, 1], 0, true],
+  shaft: [P + "VFX/Textures/Mask/LightShaft_TEX", "r", [1, 1], 0],
+  wiggly: [P + "VFX/Textures/AlphaGradient/T_Mask_Ramp_Bar_Horizontal_Wiggly_Center", "r", [1, 1], 0],
+  pan: [P + "Characters/Phoenix/S0/VFX/Textures/Phoenix_FirePan_TFX", "r", [1, 1], 0],
+  radial: [P + "Characters/Phoenix/S0/VFX/Textures/phoenix_radial_burst", "a", [4, 2], 0.5],
+  muzzle: [P + "VFX/Textures/Mask/GMuzzleB_TEX", "r", [2, 2], 0, true],
+  flame: [P + "Characters/Phoenix/S0/VFX/Textures/Phoenix_Molotov_Flame", "r", [1, 1], 0],
+  flameB: [P + "Characters/Phoenix/S0/VFX/Textures/Phoenix_Molotov_Flame_b", "r", [1, 1], 0],
+  wallEquip: [P + "Characters/Phoenix/S0/VFX/Textures/Wall_Equip_FlameAnim", "a", [2, 4], 0.5],
+  ballInner: [P + "Characters/Phoenix/S0/VFX/Textures/FireBallShapesInner_TFX", "r", [8, 1], 0],
+  smoke: [P + "VFX/Textures/Flipbook/burst_anim2", "a", [8, 2], 0.6],
+  wrap: [P + "VFX/Radianite/Textures/Smoke_wraparound", "a", [1, 1], 0],
+  ground: [P + "VFX/Radianite/Textures/Radianite_radial_burst", "r", [1, 1], 0],
+  circle: [P + "Characters/Phoenix/S0/VFX/Textures/T_Mask_Circle_Gradient_02", "r", [1, 1], 0],
+  collapse: [P + "VFX/Textures/Flipbook/flash_energy_collapse", "a", [4, 4], 0.4],
+  crawl: [P + "VFX/Textures/Mask/FireCrawlA01", "r", [1, 1], 0],
 }
+export const addTextures = (t) => Object.assign(TEX, t)
+// How the composite grades each agent's colours before its tone mapper (see uTint below).
+export const TINTS = { phoenix: [1, 0.85, 0.38], sova: [1, 1, 1] }
 
 const rand = (a, b) => a + Math.random() * (b - a)
 const pick = (v) => (Array.isArray(v) ? rand(v[0], v[1]) : v)
@@ -83,6 +89,8 @@ export function createVfx(renderer, camera) {
     attribute vec4 iMisc;
     attribute vec3 iDir;
     uniform float uAlign;
+    uniform float uPivot;
+    uniform float uUvRot;
     varying vec2 vUv;
     varying vec4 vColor;
     varying float vFrame;
@@ -94,18 +102,20 @@ export function createVfx(renderer, camera) {
         vec3 d = (modelViewMatrix * vec4(iDir, 0.0)).xyz;
         if (dot(d.xy, d.xy) > 1e-8) ang = atan(d.y, d.x) - 1.5707963;
       }
-      vec2 o = position.xy * iMisc.xy;
+      // A beam's pivot is its start (the sprite runs from there along its direction).
+      vec2 o = (position.xy + vec2(0.0, uPivot * 0.5)) * iMisc.xy;
       float cs = cos(ang), sn = sin(ang);
       c.xy += vec2(o.x * cs - o.y * sn, o.x * sn + o.y * cs);
       gl_Position = projectionMatrix * c;
-      vUv = uv;
+      vUv = uUvRot > 0.5 ? vec2(uv.y, 1.0 - uv.x) : uv;
       vColor = iColor;
       vFrame = iMisc.w;
     }`
   const spriteFrag = /* glsl */ `
     uniform sampler2D uTex;
     uniform vec2 uGrid;
-    uniform float uMaskA;
+    uniform vec4 uMaskW;
+    uniform float uMaskMax;
     uniform float uShade;
     uniform float uAdd;
     uniform float uBlendFrames;
@@ -125,7 +135,7 @@ export function createVfx(renderer, camera) {
       vec4 t = texture2D(uTex, cell(f0));
       if (uBlendFrames > 0.5) t = mix(t, texture2D(uTex, cell(f0 + 1.0)), fract(vFrame));
       // The textures' faint background would glow under colours in the hundreds: cut it off.
-      float m = smoothstep(uFloor, 1.0, mix(t.r, t.a, uMaskA));
+      float m = smoothstep(uFloor, 1.0, uMaskMax > 0.5 ? max(t.r, max(t.g, t.b)) : dot(t, uMaskW));
       if (uRound > 0.5) m *= smoothstep(0.5, 0.3, length(vUv - 0.5));
       vec3 shade = mix(vec3(1.0), t.rgb * 2.2, uShade);
       float a = m * vColor.a;
@@ -155,11 +165,14 @@ export function createVfx(renderer, camera) {
         uniforms: {
           uTex: { value: tex(def.tex) },
           uGrid: { value: new THREE.Vector2(...grid) },
-          uMaskA: { value: maskCh === "a" ? 1 : 0 },
+          uMaskW: { value: new THREE.Vector4(maskCh === "r" ? 1 : 0, maskCh === "g" ? 1 : 0, 0, maskCh === "a" ? 1 : 0) },
+          uMaskMax: { value: maskCh === "max" ? 1 : 0 },
           uShade: { value: def.shade ?? shade },
           uAdd: { value: def.add ? 1 : 0 },
           uBlendFrames: { value: def.frames === "blend" ? 1 : 0 },
-          uAlign: { value: def.align === "vel" ? 1 : 0 },
+          uAlign: { value: def.align || def.beam ? 1 : 0 },
+          uPivot: { value: def.beam ? 1 : 0 },
+          uUvRot: { value: def.uvRot ? 1 : 0 },
           uFloor: { value: def.floor ?? 0.06 },
           uRound: { value: round ? 1 : 0 },
         },
@@ -186,7 +199,7 @@ export function createVfx(renderer, camera) {
   function emit(sys, def, n) {
     const l = layerOf(def)
     const k = sys.scale
-    const at = sys.anchor(v.set(0, 0, 0))
+    const at = sys.anchor(v.set(0, 0, 0)).clone()
     for (let i = 0; i < n && l.ps.length < MAX; i++) {
       const s0 = Array.isArray(def.size?.[0]) ? def.size.map((x) => x) : [def.size, def.size]
       const u = Math.random()
@@ -194,7 +207,7 @@ export function createVfx(renderer, camera) {
       const sh = lerp(s0[0][1] ?? s0[0], s0[1][1] ?? s0[1], def.sizeTogether === false ? Math.random() : u)
       const p = { age: 0, life: pick(def.life), sw: sw * k, sh: sh * k, rot: pick(def.rot ?? [0, 1]) * Math.PI * 2, spin: pick(def.spin ?? 0) * Math.PI * 2 }
       p.alpha = pick(def.alpha ?? 1)
-      p.frame0 = def.frames === "random" ? Math.floor(Math.random() * l.frames) : 0
+      p.frame0 = def.frames === "random" || def.fps ? Math.floor(Math.random() * l.frames) : 0
       // Where it starts: on a sphere, a box, along a segment, or at the anchor.
       let ox = 0, oy = 0, oz = 0
       if (def.sphere) {
@@ -232,17 +245,51 @@ export function createVfx(renderer, camera) {
         vel[2] += (oz / len) * r
       }
       p.vel = vel
+      // Along where a moving anchor went since the last frame (a trail stays continuous at any frame rate).
+      let ax = at.x, ay = at.y, az = at.z
+      if (def.interp && sys.prev) {
+        const t = Math.random()
+        ax = lerp(sys.prev.x, at.x, t)
+        ay = lerp(sys.prev.y, at.y, t)
+        az = lerp(sys.prev.z, at.z, t)
+      }
+      // A beam: from the system's start to its end (sys.beam() → [a, b]), its height the distance between.
+      if (def.beam && sys.beam) {
+        const [a, b] = sys.beam()
+        const len = a.distanceTo(b)
+        ax = a.x
+        ay = a.y
+        az = a.z
+        p.dir = [b.x - a.x, b.y - a.y, b.z - a.z]
+        p.sh = len * (def.beamLen ? pick(def.beamLen) : 1)
+      } else if (def.align === "sys" && sys.dir) {
+        const d = sys.dir()
+        p.dir = [d.x, d.y, d.z]
+      }
       if (def.local) Object.assign(p, { sys, ox, oy, oz, x: 0, y: 0, z: 0 })
-      else Object.assign(p, { x: at.x + ox, y: at.y + oy, z: at.z + oz })
+      else Object.assign(p, { x: ax + ox, y: ay + oy, z: az + oz })
       l.ps.push(p)
     }
   }
   // spawn(defs, anchor, opts): a system of emitters, each def with its own delay, duration, rate and burst.
   vfx.spawn = (defs, anchor, opts = {}) => {
-    const sys = { defs, anchor, t: 0, scale: opts.scale ?? 1, dur: opts.dur ?? Infinity, segment: opts.segment, stopped: false, acc: new Map(), burst: new Set() }
+    const sys = { defs, anchor, t: 0, scale: opts.scale ?? 1, dur: opts.dur ?? Infinity, segment: opts.segment, beam: opts.beam, dir: opts.dir, stopped: false, acc: new Map(), burst: new Set(), prev: null }
     sys.stop = () => (sys.stopped = true)
     vfx.systems.push(sys)
     return sys
+  }
+  // Loads an agent's textures and builds its layers ahead (an effect's first use would otherwise be over before its
+  // texture arrived): every def found in `tree` (a module of defs, nested as it likes).
+  vfx.preload = (tree) => {
+    const walk = (o) => {
+      if (Array.isArray(o)) o.forEach(walk)
+      else if (o && typeof o === "object") {
+        if (typeof o.tex === "string" && TEX[o.tex]) layerOf(o)
+        else Object.values(o).forEach(walk)
+      }
+    }
+    walk(tree)
+    renderer.compile(vfx.scene, camera)
   }
   vfx.clear = () => {
     vfx.systems.length = 0
@@ -255,20 +302,22 @@ export function createVfx(renderer, camera) {
       sys.t += dt
       for (const def of sys.defs) {
         const t = sys.t - (def.delay ?? 0)
-        if (t < 0 || sys.stopped || sys.t > sys.dur) continue
+        if (t < 0 || sys.stopped) continue
+        // A burst always goes off once, however long the frame (a one-off's whole system lasts a frame or two).
         if (def.burst && !sys.burst.has(def)) {
           sys.burst.add(def)
           emit(sys, def, def.burst)
         }
-        if (def.rate && t < (def.dur ?? Infinity)) {
+        if (def.rate && sys.t <= sys.dur && t < (def.dur ?? Infinity)) {
           const a = (sys.acc.get(def) || 0) + def.rate * dt
           const n = Math.floor(a)
           sys.acc.set(def, a - n)
           if (n) emit(sys, def, n)
         }
       }
+      sys.prev = (sys.prev || new THREE.Vector3()).copy(sys.anchor(v.set(0, 0, 0)))
     }
-    vfx.systems = vfx.systems.filter((s) => !s.stopped && s.t <= s.dur + 0.05)
+    vfx.systems = vfx.systems.filter((s) => !s.stopped && (s.t <= s.dur + 0.05 || s.defs.some((d) => d.burst && !s.burst.has(d))))
     for (const [def, l] of layers) {
       l.ps = l.ps.filter((p) => (p.age += dt) < p.life)
       const drag = def.drag ?? 0
@@ -298,12 +347,21 @@ export function createVfx(renderer, camera) {
         const kx = sl?.x ? curve(sl.x, t) : curve(sl, t)
         const ky = sl?.y ? curve(sl.y, t) : curve(sl, t)
         const cs = curve(def.colorLife, t)
-        const c = def.color || [1, 1, 1]
-        const frame = def.frames === "life" || def.frames === "blend" ? t * (l.frames - (def.frames === "blend" ? 1.001 : 0.001)) : def.frames === "random" ? p.frame0 : 0
+        const c0 = def.color || [1, 1, 1]
+        const c = def.color2 ? [0, 1, 2].map((j) => lerp(c0[j], def.color2[j], t)) : c0
+        const frame =
+          def.frames === "life" || def.frames === "blend"
+            ? t * (l.frames - (def.frames === "blend" ? 1.001 : 0.001))
+            : def.frames === "random"
+              ? p.frame0
+              : def.fps
+                ? (p.frame0 + Math.floor(p.age * def.fps)) % l.frames
+                : 0
         l.aPos.setXYZ(i, x, y, z)
         l.aColor.setXYZW(i, c[0] * cs, c[1] * cs, c[2] * cs, p.alpha * curve(def.alphaLife, t))
         l.aMisc.setXYZW(i, p.sw * kx, p.sh * ky, p.rot, frame)
-        l.aDir.setXYZ(i, p.vel[0], p.vel[1], p.vel[2])
+        const d = p.dir || p.vel
+        l.aDir.setXYZ(i, d[0], d[1], d[2])
       })
       l.geo.instanceCount = l.ps.length
       for (const a of [l.aPos, l.aColor, l.aMisc, l.aDir]) a.needsUpdate = true
@@ -380,6 +438,7 @@ export function createVfx(renderer, camera) {
     magFilter: THREE.LinearFilter,
   })
   vfx.exposure = 0.2
+  vfx.tint = new THREE.Vector3(...TINTS.phoenix)
   const composite = new THREE.ShaderMaterial({
     uniforms: { uFx: { value: target.texture }, uExposure: { value: vfx.exposure }, uBloom: { value: 0.4 }, uTint: { value: new THREE.Vector3(1, 0.85, 0.38) } },
     vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
@@ -412,6 +471,7 @@ export function createVfx(renderer, camera) {
     const h = Math.max(2, Math.round(bh / 2))
     if (target.width !== w || target.height !== h) target.setSize(w, h)
     composite.uniforms.uExposure.value = vfx.exposure
+    composite.uniforms.uTint.value.copy(vfx.tint)
     const prev = renderer.getRenderTarget()
     const clear = renderer.getClearColor(new THREE.Color())
     const clearA = renderer.getClearAlpha()

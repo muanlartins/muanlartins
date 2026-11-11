@@ -31,8 +31,11 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   (`{"filtro": "phoenix" | "sova" | "bola" | "octane" | "fennec" | "nenhum"}`, and the one-offs `{"acao": ...}`:
   Phoenix's `blaze`, `flash`, `molotov`, `ult`; Sova's `recon`, `choque`, `drone`, `ult`; the cars' `demo`, `flip`),
   which `scripts/obs.mjs` can send as well (`CallVendorRequest`). A new filter is a look in the dock's `GRUPOS` and
-  its id in the page's `MODES`. Phoenix's effects are drawn by `vfx.js` from the game's textures and values
-  (`vfx-phoenix.js`, textures in `privado/valorant/`); without them his abilities other than the flash do nothing. One browser
+  its id in the page's `MODES`. Phoenix's and Sova's effects are drawn by `vfx.js` from the game's textures and values
+  (`vfx-phoenix.js`, `vfx-sova.js`, textures in `privado/valorant/`), and Sova's bow, arrows and Owl Drone are the
+  game's models from there too; without them his abilities do nothing and Phoenix's other than the flash neither.
+  Two gestures stay on purpose (Luan, 2026-11-11: one signature ability each): Phoenix's flash (a snap) and Sova's
+  drone (a bird's shadow with the hands, thumbs hooked), besides Sova's bow (drawing it shoots the Recon Bolt). One browser
   source "Filtros", full screen and just above Câmera in RL + chat, Valorant + chat, Conversa and
   Terapia (page permission 2, so it can ask for the scene; the page draws in that scene's camera box and stays clear
   with no filter). It loads `http://localhost:8126/stream/filtros.html`, served from this working copy by

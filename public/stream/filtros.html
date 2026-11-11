@@ -33,16 +33,20 @@
               and elbows on fire with the marker below him and the box's edge glowing, 10 s or ?ult=<s>, then the
               burst he comes back in). Keys C, Q, E, X in a browser.
         Sova  (key 7): Valorant's Sova the same way (privado/sova.glb, out of git): his slicked-back hair on the
-              head, the fur collar, the cape and the folded bow on the back on the shoulders. His abilities,
-              drawn (none of them is a model): the bow, by its gesture, only while he's on: one arm stretched out
-              to the side and the other hand near the face, as if pulling the string; the bow shows in the far
-              hand with an arrow that glows as it's held; letting go shoots a Recon Bolt to the edge of the
-              camera, where it sends two sonar rings out and whoever they cross is revealed, in Valorant's red
-              outline with the marker over the head (key E, or the dock's Flecha, draws and shoots it by
-              itself). From the dock only: the Shock Bolt (Q: an arrow that bursts in an electric blast by him,
-              the camera shakes), the Owl Drone (C: an owl-like drone flies in, hovers by his head, tags him with
-              a dart, which reveals him, and leaves) and Hunter's Fury (X: the camera darkens and three blasts
-              cross it, through him, one after another).
+              head, the fur collar, the cape and the folded bow on the back on the shoulders. His abilities are the
+              game's own (privado/valorant/sova/, out of git: its bow, arrows and Owl Drone in 3D, its effects
+              through vfx.js and vfx-sova.js). Two by gesture, only while he's on: the bow (one arm stretched out to
+              the side and the other hand closed by the face, as if pulling the string: his bow shows in the far
+              hand with its string pulled to the near one; opening that hand shoots a Recon Bolt to the edge of the
+              camera, where it sticks, its head spins and two sonar pulses go out; whoever they cross is revealed,
+              in Valorant's red outline with the marker over the head) and the Owl Drone (a bird's shadow: both
+              hands open, thumbs hooked together, fingers spread like wings: the drone opens between the hands,
+              flies up beside his head, tags him with its dart, which reveals him twice, and flies off). From the
+              dock (or keys E, Q, C, X): Flecha de Reconhecimento (E: the bow drawn and shot by itself), Flecha de
+              Choque (Q: the Shock Bolt drawn and shot up, off the top of the box and bursting by his shoulder, the
+              camera shakes), Drone Coruja (C) and Ultimate (X, Hunter's Fury: his bow turned to energy, three
+              shots charged and fired across the box, the camera darkened a little). ?arco=<scale> (30) and
+              ?coruja=<scale> (30) size the bow and the drone.
               With either agent, Luan's own hair around theirs is painted over with what the camera sees behind
               him (NVIDIA Broadcast's virtual background, camera-fundo.png, or ?fundo=<url>, and whatever's been
               seen there since, his chair too), so theirs is the head's outline; off while the background doesn't
@@ -166,8 +170,9 @@
       import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
       import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js"
       import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js"
-      import { createVfx } from "./vfx.js"
+      import { createVfx, TINTS } from "./vfx.js"
       import * as PHX from "./vfx-phoenix.js"
+      import * as SOVA from "./vfx-sova.js"
       import { FilesetResolver, GestureRecognizer, ImageSegmenter, FaceLandmarker, PoseLandmarker } from "@mediapipe/tasks-vision"
 
       const q = new URLSearchParams(location.search)
@@ -398,31 +403,11 @@
         uRing: { value: 0 },
         uFlashAt: { value: new THREE.Vector2(0.5, 0.6) },
         uFlashAmt: { value: 0 },
-        // Sova: the bow (how much of it shows, the hand holding it, the hand pulling the string, the charge),
-        // the arrow in flight (from, to, how far along, recon or shock), the dart stuck where it landed (x, y,
-        // how much), its two sonar rings (seconds since each went out, −1 before), the red reveal everywhere
-        // (drone, ultimate), the marker over the head, the shock's blast (x, y, seconds since) and the ultimate
-        // (seconds since it started, the side the blasts come from, each blast's height, where it aims).
-        uBowAmt: { value: 0 },
-        uBowA: { value: new THREE.Vector2(0.75, 0.5) },
-        uBowB: { value: new THREE.Vector2(0.6, 0.5) },
-        uBowSize: { value: 0.12 },
-        uCharge: { value: 0 },
-        uArrowK: { value: -1 },
-        uArrowFrom: { value: new THREE.Vector2() },
-        uArrowTo: { value: new THREE.Vector2() },
-        uArrowKind: { value: 0 },
-        uDart: { value: new THREE.Vector3(0, 0, 0) },
-        uPulse: { value: new THREE.Vector2(-1, -1) },
+        // Sova: the red reveal on Luan (the drone's dart, the Recon Bolt's pulses), the marker over the head
+        // and the ultimate (seconds since it started, −1 when it's not on: the camera darkens a little).
         uReveal: { value: 0 },
         uMark: { value: new THREE.Vector3(0.5, 0.9, 0) },
-        uShock: { value: new THREE.Vector3(0.5, 0.5, -1) },
         uUltT: { value: -1 },
-        uUltSide: { value: 1 },
-        uUltY: { value: new THREE.Vector3(0.6, 0.45, 0.7) },
-        uUltAim: { value: new THREE.Vector2(0.5, 0.5) },
-        uDartLine: { value: new THREE.Vector4() },
-        uDartLineAmt: { value: 0 },
         // The cars' demolition: where (x, y, radius) and seconds since.
         uBoom: { value: new THREE.Vector3(0.5, 0.5, 0.2) },
         uBoomT: { value: -1 },
@@ -764,10 +749,9 @@
       })
       const vigScene = quad(vigMat)
 
-      // Sova's abilities, drawn over everything in the camera's box: the bow with its arrow, the arrow in flight,
-      // the Recon Bolt's dart with its two sonar rings, Valorant's red reveal on Luan (the body mask's outline)
-      // with the marker over the head, the Shock Bolt's blast, the drone's dart and Hunter's Fury's three blasts.
-      // Premultiplied: solid things go over, light adds.
+      // What Sova's abilities draw flat over the camera's box (the rest is the game's pieces and effects): Valorant's
+      // red reveal on Luan (the body mask's outline) with the marker over the head, and the camera darkening a little
+      // while Hunter's Fury lasts, so its blasts read. Premultiplied: solid things go over, light adds.
       const sovaMat = new THREE.ShaderMaterial({
         uniforms,
         vertexShader: VERT,
@@ -781,80 +765,24 @@
         blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
         fragmentShader: /* glsl */ `
           ${GLSL_COMMON}
-          uniform float uBowAmt;
-          uniform vec2 uBowA;
-          uniform vec2 uBowB;
-          uniform float uBowSize;
-          uniform float uCharge;
-          uniform float uArrowK;
-          uniform vec2 uArrowFrom;
-          uniform vec2 uArrowTo;
-          uniform float uArrowKind;
-          uniform vec3 uDart;
-          uniform vec2 uPulse;
           uniform float uReveal;
           uniform vec3 uMark;
-          uniform vec3 uShock;
           uniform float uUltT;
-          uniform float uUltSide;
-          uniform vec3 uUltY;
-          uniform vec2 uUltAim;
-          uniform vec4 uDartLine;
-          uniform float uDartLineAmt;
-          const vec3 SKY = vec3(0.3, 0.82, 1.0);
-          const vec3 ICE = vec3(0.86, 0.97, 1.0);
           const vec3 RED = vec3(1.0, 0.27, 0.33);
-          const float RING_SPEED = 1.5;
-          float seg(vec2 p, vec2 a, vec2 b) {
-            vec2 pa = p - a, ba = b - a;
-            return length(pa - ba * clamp(dot(pa, ba) / max(dot(ba, ba), 1e-8), 0.0, 1.0));
-          }
           void over(inout vec4 o, vec3 c, float a) { o = vec4(c * a, a) + o * (1.0 - a); }
-          // An arrow lying from tail to tip: shaft, glowing head, light along it.
-          void arrow(inout vec4 o, inout vec3 glow, vec2 p, vec2 tail, vec2 tip, float L, float charge, float kind) {
-            vec2 u = normalize(tip - tail);
-            vec2 n = vec2(-u.y, u.x);
-            float shaft = seg(p, tail, tip - u * L * 0.12);
-            over(o, mix(vec3(0.75, 0.8, 0.9), ICE, kind), smoothstep(L * 0.022, L * 0.012, shaft));
-            vec2 h = p - tip;
-            float along = dot(h, u), across = dot(h, n);
-            // The head: a long diamond, cyan for the recon, white-hot for the shock.
-            float head = abs(across) / (L * 0.07) + abs(along + L * 0.09) / (L * 0.12);
-            vec3 hc = mix(SKY, ICE, kind);
-            over(o, mix(hc, vec3(1.0), 0.35), smoothstep(1.05, 0.9, head));
-            float r = length(h + u * L * 0.08);
-            glow += hc * (exp(-r / (L * (0.08 + 0.12 * charge))) * (0.35 + 0.9 * charge) + exp(-shaft / (L * 0.03)) * 0.25 * charge);
-          }
           void main() {
             vec2 A = vec2(uAspect, 1.0);
             vec2 p = vUv * A;
             vec4 o = vec4(0.0);
             vec3 glow = vec3(0.0);
-
             // Hunter's Fury: the camera darkens while it lasts.
             if (uUltT >= 0.0) {
-              float dim = smoothstep(0.0, 0.5, uUltT) * (1.0 - smoothstep(3.3, 3.9, uUltT));
+              float dim = smoothstep(0.0, 0.6, uUltT) * (1.0 - smoothstep(4.1, 4.6, uUltT));
               float vig = length((vUv - 0.5) * vec2(1.0, 0.8));
-              over(o, vec3(0.01, 0.03, 0.12), dim * (0.3 + 0.5 * vig));
-            }
-
-            // The sonar rings, and how revealed this pixel is.
-            float rv = uReveal;
-            if (uDart.z > 0.0) {
-              float d = length(p - uDart.xy * A);
-              for (int i = 0; i < 2; i++) {
-                float t = i == 0 ? uPulse.x : uPulse.y;
-                if (t < 0.0) continue;
-                float R = t * RING_SPEED;
-                float passed = R - d;
-                if (passed > 0.0) rv = max(rv, exp(-passed / (RING_SPEED * 0.9)));
-                float e = abs(d - R);
-                float fade = 1.0 - smoothstep(1.6, 2.4, R);
-                glow += SKY * (smoothstep(0.005, 0.0, e) + exp(-e / 0.016) * 0.3 * step(d, R)) * fade;
-                if (passed > 0.0 && passed < 0.07) glow += SKY * 0.2 * step(0.5, fract(d * 180.0 - uTime * 4.0)) * (1.0 - passed / 0.07) * fade;
-              }
+              over(o, vec3(0.01, 0.03, 0.1), dim * (0.18 + 0.4 * vig));
             }
             // Revealed: Valorant's red outline round the body and a light red over it.
+            float rv = uReveal;
             if (rv > 0.003) {
               float body = maskAt(vUv, 0.0);
               float halo = (1.0 - smoothstep(0.35, 0.6, body)) * smoothstep(0.06, 0.32, maskAt(vUv, 2.4));
@@ -862,115 +790,6 @@
               over(o, RED, 0.2 * smoothstep(0.45, 0.6, body) * rv);
               glow += RED * (halo * 0.9 + rim * 0.8) * rv;
             }
-
-            // The drone's dart: a streak from the drone to Luan.
-            if (uDartLineAmt > 0.0) {
-              vec2 a = uDartLine.xy * A, b = uDartLine.zw * A;
-              float d = seg(p, a, b);
-              glow += SKY * (smoothstep(0.004, 0.0, d) + exp(-d / 0.012) * 0.4) * uDartLineAmt;
-            }
-
-            // The Shock Bolt's blast: a white flash, a ring, jagged bolts that flicker.
-            if (uShock.z >= 0.0) {
-              float t = uShock.z;
-              vec2 d = p - uShock.xy * A;
-              float r = length(d);
-              float R = 0.2 * (1.0 - exp(-t * 9.0));
-              float fade = 1.0 - smoothstep(0.35, 0.9, t);
-              glow += ICE * exp(-r / 0.035) * exp(-t * 4.0) * 2.0;
-              glow += SKY * smoothstep(0.006, 0.0, abs(r - R)) * fade;
-              float flick = floor(t * 24.0);
-              for (int k = 0; k < 7; k++) {
-                float fk = float(k);
-                float th = hash(fk * 3.1 + flick) * 6.2831853;
-                vec2 u = vec2(cos(th), sin(th));
-                float along = dot(d, u);
-                float perp = dot(d, vec2(-u.y, u.x)) - (noise(vec2(along * 45.0 + fk * 7.0, flick)) - 0.5) * 0.035;
-                if (along > 0.0 && along < R * 1.35) {
-                  float w = 1.0 - along / (R * 1.35);
-                  glow += (ICE * smoothstep(0.0035, 0.0, abs(perp)) + SKY * exp(-abs(perp) / 0.009) * 0.5) * fade * w;
-                }
-              }
-            }
-
-            // Hunter's Fury: three blasts crossing the camera from one side, each after a thin aiming line.
-            if (uUltT >= 0.0) {
-              for (int i = 0; i < 3; i++) {
-                float fi = float(i);
-                float tau = uUltT - (0.75 + 0.95 * fi);
-                if (tau < -0.4 || tau > 0.6) continue;
-                float y = i == 0 ? uUltY.x : i == 1 ? uUltY.y : uUltY.z;
-                vec2 P = vec2(uUltAim.x, y) * A;
-                float ang = (fi - 1.0) * 0.07 * uUltSide;
-                vec2 dir = vec2(cos(ang), sin(ang)) * -uUltSide;
-                vec2 n = vec2(-dir.y, dir.x);
-                float dp = abs(dot(p - P, n));
-                float s = uUltSide > 0.0 ? uAspect - p.x : p.x;
-                if (tau < 0.0) {
-                  glow += SKY * smoothstep(0.0025, 0.0, dp) * 0.7 * smoothstep(-0.4, -0.25, tau);
-                  continue;
-                }
-                float w = 0.06 * min(1.0, tau / 0.05) * (1.0 - smoothstep(0.12, 0.6, tau));
-                float reach = step(s, tau * 8.0);
-                float nz = noise(vec2(s * 26.0 - tau * 90.0, dp * 50.0));
-                float dq = dp + (nz - 0.5) * w * 0.5;
-                float core = smoothstep(w * 0.42, w * 0.1, dq);
-                float mid = smoothstep(w, w * 0.35, dq);
-                glow += (ICE * core * 1.3 + SKY * mid * 0.9 + vec3(0.15, 0.4, 1.0) * exp(-dq / (w * 0.9 + 0.001)) * 0.55) * reach;
-              }
-            }
-
-            // The dart stuck where the Recon Bolt landed: a spiky cyan light, pulsing.
-            if (uDart.z > 0.0) {
-              vec2 d = p - uDart.xy * A;
-              float r = length(d);
-              float spikes = pow(max(0.0, cos(atan(d.y, d.x) * 4.0 + uTime * 2.0)), 6.0);
-              float beat = 0.8 + 0.2 * sin(uTime * 14.0);
-              over(o, ICE, smoothstep(0.011, 0.007, r) * uDart.z);
-              glow += SKY * (exp(-r / 0.022) * 0.8 + spikes * exp(-r / 0.03) * 0.5) * uDart.z * beat;
-            }
-
-            // The bow: an arc through the hand holding it, its tips curving back, the string to the hand pulling it
-            // and the arrow on it.
-            if (uBowAmt > 0.0) {
-              vec2 a = uBowA * A, b = uBowB * A;
-              vec2 u = normalize(a - b + vec2(1e-5, 0.0));
-              vec2 n = vec2(-u.y, u.x);
-              float L = uBowSize * uBowAmt;
-              float Rc = 1.336 * L;
-              vec2 C = a - u * Rc;
-              vec2 cp = p - C;
-              float ang = acos(clamp(dot(normalize(cp + 1e-6), u), -1.0, 1.0));
-              float th = L * (0.075 - 0.04 * ang / 0.846);
-              float dArc = abs(length(cp) - Rc);
-              if (ang < 0.846) {
-                over(o, vec3(0.07, 0.09, 0.17), smoothstep(th, th * 0.7, dArc) * uBowAmt);
-                float edge = abs(length(cp) - (Rc + th * 0.45));
-                glow += SKY * (smoothstep(th * 0.25, 0.0, edge) * 0.9 + exp(-dArc / (L * 0.05)) * 0.2) * uBowAmt;
-              }
-              vec2 t1 = C + Rc * (u * cos(0.846) + n * sin(0.846));
-              vec2 t2 = C + Rc * (u * cos(0.846) - n * sin(0.846));
-              glow += SKY * (exp(-length(p - t1) / (L * 0.04)) + exp(-length(p - t2) / (L * 0.04))) * 0.7 * uBowAmt;
-              float nockAmt = uCharge >= 0.0 ? 1.0 : 0.0;
-              vec2 nock = mix(a - u * L * 0.45, b, nockAmt);
-              float str = min(seg(p, t1, nock), seg(p, t2, nock));
-              over(o, ICE, smoothstep(L * 0.014, L * 0.006, str) * uBowAmt);
-              if (uCharge >= 0.0) arrow(o, glow, p, b, a + u * L * 0.55, L * 2.2, uCharge, 0.0);
-            }
-
-            // The arrow in flight, with its trail.
-            if (uArrowK >= 0.0) {
-              vec2 f = uArrowFrom * A, to = uArrowTo * A;
-              vec2 u = normalize(to - f + vec2(1e-5, 0.0));
-              vec2 P = mix(f, to, uArrowK);
-              vec2 tail = P - u * min(0.45, length(P - f) + 0.02);
-              float d = seg(p, tail, P);
-              float k = clamp(dot(p - tail, u) / max(length(P - tail), 1e-4), 0.0, 1.0);
-              vec3 tc = mix(SKY, ICE, uArrowKind);
-              glow += tc * (smoothstep(0.004, 0.0, d) * 0.8 + exp(-d / 0.01) * 0.4) * k * k;
-              arrow(o, glow, p, P - u * 0.09, P, 0.26, 1.0, uArrowKind);
-            }
-
             // The marker over a revealed head.
             if (uMark.z > 0.0) {
               vec2 m = (p - uMark.xy * A) / 0.021;
@@ -979,7 +798,6 @@
               over(o, RED, smoothstep(1.05, 0.95, dd) * uMark.z);
               glow += RED * exp(-length(m) / 1.6) * 0.35 * uMark.z;
             }
-
             o.rgb += glow;
             o.a = max(o.a, clamp(max(glow.r, max(glow.g, glow.b)), 0.0, 1.0));
             if (o.a <= 0.002) discard;
@@ -1604,7 +1422,8 @@
             c.ellipse(p[0] + Math.cos(roll) * side * fw * 0.05, p[1] + Math.sin(roll) * side * fw * 0.05, fw * 0.1, fw * 0.2, roll, 0, Math.PI * 2)
             c.fill()
           }
-          c.fillStyle = c.strokeStyle = "#fff"
+          // The face in red and green (not blue: blue is the hands alone, drawn back over Sova's bow).
+          c.fillStyle = c.strokeStyle = "#ff0"
           if (trim) {
             // Points above the line `trim` over the brows come down onto it, along the face's up.
             const chinP = px(faceLm[152])
@@ -1625,6 +1444,7 @@
           const cx = (jl[0] + jr[0]) / 2
           shape([jl, jr, [jr[0] - inset, chin[1] + down * 0.7], [cx, chin[1] + down * 1.25], [jl[0] + inset, chin[1] + down * 0.7]], 6)
         }
+        c.fillStyle = c.strokeStyle = "#fff"
         for (const h of lastHands) {
           const pts = h.map(px)
           const palm = Math.hypot(pts[0][0] - pts[9][0], pts[0][1] - pts[9][1])
@@ -1648,26 +1468,40 @@
           }`,
       })
       const keepScene = quad(keepMat)
+      // His hands alone (the keep's blue), over Sova's bow: they hold it and pull its string.
+      const keepHandsMat = keepMat.clone()
+      keepHandsMat.uniforms = keepMat.uniforms
+      keepHandsMat.fragmentShader = keepMat.fragmentShader.replace("texture2D(uKeep, vUv).g", "texture2D(uKeep, vUv).b")
+      const keepHandsScene = quad(keepHandsMat)
 
       // ---------- Sova's abilities ----------
-      // All in the camera box's screen space (0..1, y up), drawn by sovaMat; times in ms (performance.now()).
+      // With the game's own pieces (privado/valorant/sova/files/, extracted read-only from the installed game, never
+      // published): his bow (its string bone pulled back to Luan's hand), the Recon, Shock and Hunter's Fury arrows,
+      // the Recon Bolt's head spinning where it lands and the Owl Drone, lit in the 3D camera's space (centimetres);
+      // their effects through vfx (vfx-sova.js, the game's values). In the box's screen space (0..1, y up) only the
+      // red reveal, the marker over the head and the ultimate's darkening (sovaMat). Times in ms (performance.now()).
       const sova = {
-        bow: { state: "idle", since: 0, lost: 0, amt: 0, charge: 0, auto: 0, a: new THREE.Vector2(0.75, 0.5), b: new THREE.Vector2(0.6, 0.5) },
-        arrow: null, // { kind, from, to, t0, dur }
-        dart: null, // { at, t0 }: the Recon Bolt's dart; its rings go out PULSES seconds after it lands
-        shock: null, // { at, t0 }
-        ult: null, // { t0, side, ys, aim, fired }
-        drone: null, // { t0, side }
+        // The bow: by gesture or the dock (auto, with the arrow it'll shoot); its hands on screen (a holds it, b
+        // pulls the string), how much of it shows, how far it's drawn.
+        bow: { state: "idle", since: 0, lost: 0, amt: 0, draw: 0, auto: 0, kind: "recon", a: new THREE.Vector2(0.75, 0.5), b: new THREE.Vector2(0.6, 0.5) },
+        arrow: null, // { kind, pts: [Vector3...], legs: [ms...], t0, leg, sys }: in flight
+        dart: null, // { tip, dir, t0, d, pulses: [...] }: the Recon Bolt stuck where it landed
+        ult: null, // { t0, fired, charging, sys }
+        drone: null, // { t0, from, side, darted, reveals: [ms...] }
+        bird: { since: 0 }, // the drone's gesture, while it's held
+        reveals: [], // when the red reveal flashed (ms), for its fading
         maskUntil: 0, // the body mask is needed (for the reveal) until then
         shakeUntil: 0,
         shakeLen: 1,
         shakeAmp: 0,
       }
-      const PULSES = [0.15, 1.4]
-      const RING_SPEED = 1.5 // as in the shader: screen heights a second
-      const ULT_BLASTS = [0.75, 1.7, 2.65]
+      const PULSES = [0.4, 1.9] // the Recon Bolt's two sonar pulses, seconds after it lands
+      const DART_LIFE = 4.2
+      const ULT = { SHOTS: [1.2, 2.5, 3.8], CHARGE: 0.9, END: 4.6 }
+      const DRONE = { OPEN: 0.5, FLY: 1.7, DART: 3.0, LEAVE: 5.6, END: 6.8 }
       const ASPECT = W / H
       const clamp01 = (v, lo = 0.05, hi = 0.95) => Math.min(hi, Math.max(lo, v))
+      const ease = (t) => t * t * (3 - 2 * t)
       // The face on screen: its centre (the nose), width, the top of the forehead and its height.
       function faceBox() {
         if (!faceLm) return { c: new THREE.Vector2(0.5, 0.55), w: 0.15, top: new THREE.Vector2(0.5, 0.75), h: 0.3 }
@@ -1684,30 +1518,171 @@
         if (dir.y < -1e-6) s = Math.min(s, (inset - p.y) / dir.y)
         return p.clone().addScaledVector(dir, Math.max(0, s))
       }
+      // A camera-space point on the box (0..1, y up), and back.
+      const onBox = (p) => {
+        const s = p.clone().project(headCam)
+        return new THREE.Vector2(s.x * 0.5 + 0.5, s.y * 0.5 + 0.5)
+      }
+      const headAt = () => (headSeen ? headPos.clone() : at3(0.5, 0.55))
       function shake(ms, px, now) {
         if (now + ms > sova.shakeUntil) Object.assign(sova, { shakeUntil: now + ms, shakeLen: ms, shakeAmp: px })
       }
-      function sovaReset() {
-        Object.assign(sova, { arrow: null, dart: null, shock: null, ult: null, drone: null, shakeUntil: 0 })
-        Object.assign(sova.bow, { state: "idle", auto: 0, amt: 0, charge: 0 })
-        drone.visible = false
-        const u = uniforms
-        u.uBowAmt.value = u.uDart.value.z = u.uReveal.value = u.uMark.value.z = u.uDartLineAmt.value = 0
-        u.uArrowK.value = u.uShock.value.z = u.uUltT.value = -1
+      function reveal(now) {
+        sova.reveals.push(now)
+        sova.maskUntil = Math.max(sova.maskUntil, now + 1500)
+      }
+
+      // The pieces, each lit by the cars' room (their reflections) and two lights.
+      const HUNTER = "privado/valorant/sova/files/ShooterGame/Content/Characters/Hunter/S0/"
+      const sv3 = { held: new THREE.Scene(), free: new THREE.Scene() }
+      for (const sc of [sv3.held, sv3.free]) {
+        sc.add(new THREE.HemisphereLight(0xe4ecff, 0x2a3042, 1.7))
+        const sun = new THREE.DirectionalLight(0xffffff, 2.2)
+        sun.position.set(0.4, 1, 1)
+        sc.add(sun)
+      }
+      function loadPiece(path, done) {
+        new GLTFLoader().load(
+          HUNTER + path,
+          (g) => {
+            const env = roomEnv()
+            g.scene.traverse((o) => {
+              if (!o.isMesh) return
+              o.frustumCulled = false
+              // The energy inlays glow (the game draws them emissive).
+              if (/Emissive/.test(o.material.name)) {
+                o.material = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.35, 0.85, 1), name: o.material.name })
+                return
+              }
+              if (o.material.map) o.material.map.colorSpace = THREE.NoColorSpace
+              o.material.envMap = env
+              o.material.envMapIntensity = 0.8
+            })
+            done(g.scene)
+          },
+          undefined,
+          (e) => fail("sova", e),
+        )
+      }
+      const glowMat = (color) => new THREE.MeshBasicMaterial({ color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+
+      // His bow (the ultimate's model, the one all his abilities draw): in its own metres the arrow points +x, the
+      // limbs run along y and the string rests 0.408 behind the grip, 0.129 above it, where the arrow lies.
+      // Its size: drawn fully, its string reaches the pulling hand (so it's as big as his reach), within a range
+      // round ?arco= (centimetres per game metre, 30).
+      const BOW_K = Number(q.get("arco") || 30)
+      const BOW = { REST: -0.408, PULL: 0.42, LINE: 0.129 }
+      const bow3 = { root: new THREE.Group(), model: null, string: null, glow: null, arrows: {}, arrow: null, k: BOW_K }
+      bow3.root.matrixAutoUpdate = false
+      bow3.root.visible = false
+      sv3.held.add(bow3.root)
+      loadPiece("Ability_X/1P/Models/AB_Hunter_S0_X_Bow_Skelmesh.glb", (m) => {
+        m.scale.setScalar(BOW_K)
+        bow3.root.add(m)
+        bow3.model = m
+        bow3.string = m.getObjectByName("String")
+        m.traverse((o) => {
+          if (!o.isMesh) return
+          // The string: a line of light. The energy inlays: lit up for the ultimate.
+          if (/String/.test(o.material.name)) o.material = glowMat(new THREE.Color(0.55, 0.9, 1))
+          else if (/Emissive/.test(o.material.name)) bow3.glow = o.material
+        })
+      })
+      // The arrows, nocked on the string (children of the bow's model, in its metres: tail at 0, head at +0.8).
+      const ARROWS = { recon: "Ability_Q/1P/Models/AB_Hunter_S0_Q_Arrow_Staticmesh.glb", choque: "Ability_4/1P/Models/AB_Hunter_S0_4_Arrow_Staticmesh.glb", ult: "Ability_X/1P/Models/AB_Hunter_S0_X_Arrow_Staticmesh.glb" }
+      const ARROW_LEN = 0.8
+      // One in flight, one stuck in a wall: copies scaled like the bow, outside it.
+      const flying = new THREE.Group(), stuck = new THREE.Group()
+      let stuckArrow = null
+      flying.visible = stuck.visible = false
+      sv3.free.add(flying, stuck)
+      for (const [kind, path] of Object.entries(ARROWS))
+        loadPiece(path, (m) => {
+          m.visible = false
+          bow3.arrows[kind] = m
+          const tryAdd = () => (bow3.model ? bow3.model.add(m) : setTimeout(tryAdd, 200))
+          tryAdd()
+          if (kind === "ult") {
+            m.traverse((o) => o.isMesh && (o.material = glowMat(new THREE.Color(0.3, 0.75, 1))))
+            return
+          }
+          const c = m.clone()
+          c.scale.setScalar(BOW_K)
+          c.name = kind
+          c.visible = false
+          flying.add(c)
+          if (kind === "recon") {
+            stuckArrow = m.clone()
+            stuckArrow.scale.setScalar(BOW_K)
+            stuckArrow.visible = true
+            stuck.add(stuckArrow)
+          }
+        })
+      // The Recon Bolt's head, opened where it lands: it spins on the bolt.
+      const reconHead = new THREE.Group()
+      stuck.add(reconHead)
+      loadPiece("VFX/Models/Hunter_Q_FX_Rotate_S0_Staticmesh_v2.glb", (m) => {
+        m.scale.setScalar(1.75)
+        // Its material's diffuse is the bow's (the export took the white one).
+        const df = new THREE.TextureLoader().load(HUNTER + "3P/Models/Materials/HunterBow_S0_DF.png")
+        df.flipY = false
+        df.colorSpace = THREE.NoColorSpace
+        m.traverse((o) => o.isMesh && o.material.isMeshStandardMaterial && ((o.material.map = df), (o.material.needsUpdate = true)))
+        reconHead.add(m)
+      })
+
+      // Points on the bow, for the effects: the arrow's head, the nock and the string's ends.
+      const bowPt = (x, y, z = 0) => (bow3.model ? bow3.model.localToWorld(new THREE.Vector3(x, y, z)) : new THREE.Vector3())
+      function arrowTip() {
+        const a = bow3.arrow
+        return a ? a.localToWorld(new THREE.Vector3(ARROW_LEN - 0.03, 0, 0)) : bowPt(0.39, BOW.LINE)
+      }
+      // Places the bow: its grip at G, the string pulled towards N (both in camera space), `draw` (0..1) of the way
+      // from rest to a full draw, scaled by `amt` as it shows.
+      const bowAxis = new THREE.Vector3(1, 0, 0)
+      function placeBow(G, N, draw, amt, kind) {
+        const u = G.clone().sub(N)
+        if (u.lengthSq() < 1e-6) u.set(1, 0, 0)
+        u.normalize()
+        bowAxis.copy(u)
+        // Upright in the picture whichever way it aims, its face to the camera.
+        const v = new THREE.Vector3(0, 1, 0).addScaledVector(u, -u.y)
+        if (v.lengthSq() < 1e-4) v.set(-u.y, u.x, 0)
+        v.normalize()
+        const w = u.clone().cross(v)
+        const k = Math.max(1e-3, easeOutBack(amt))
+        bow3.root.matrix.makeBasis(u, v, w).scale(new THREE.Vector3(k, k, k)).setPosition(G)
+        bow3.root.matrixWorldNeedsUpdate = true
+        bow3.root.visible = amt > 0
+        if (!bow3.model) return
+        const reach = THREE.MathUtils.clamp(G.distanceTo(N) / (-BOW.REST + BOW.PULL), BOW_K * 0.7, BOW_K * 1.5)
+        bow3.k += (reach - bow3.k) * (amt < 1 ? 1 : 0.3)
+        bow3.model.scale.setScalar(bow3.k)
+        bow3.root.updateMatrixWorld(true)
+        const sx = BOW.REST - BOW.PULL * draw
+        if (bow3.string) {
+          const t = bow3.model.localToWorld(new THREE.Vector3(sx, BOW.LINE, 0))
+          bow3.string.parent.updateMatrixWorld(true)
+          bow3.string.position.copy(bow3.string.parent.worldToLocal(t))
+        }
+        for (const [k2, a] of Object.entries(bow3.arrows)) a.visible = k2 === kind
+        bow3.arrow = bow3.arrows[kind] || null
+        if (bow3.arrow) bow3.arrow.position.set(sx, BOW.LINE, 0)
       }
 
       // The bow by gesture: one hand far out to the side (holding it) and the other closed by the face (pulling
-      // the string), about level. Held 0.3 s, the bow shows and the arrow charges; after at least 0.45 s of
-      // pulling, opening that hand or moving it away lets the arrow go, the way it points.
+      // the string), about level. Held 0.3 s, the bow shows and he draws; after at least 0.45 s of pulling, opening
+      // that hand or moving it away lets a Recon Bolt go, the way it points.
       function sovaHands(hands, now) {
+        birdHands(hands, now)
         const bow = sova.bow
-        if (bow.auto) return
-        let pose = null
+        if (bow.auto || sova.ult) return
+        let p = null
         if (faceLm && hands.length >= 2 && !sova.arrow) {
           const va = video.videoWidth / video.videoHeight || 16 / 9
           const fw = Math.abs(faceLm[454].x - faceLm[234].x) * va
           const nose = faceLm[1]
-          const d = (p) => Math.hypot((p.x - nose.x) * va, p.y - nose.y)
+          const d = (x) => Math.hypot((x.x - nose.x) * va, x.y - nose.y)
           const [near, far] = hands
             .slice(0, 2)
             .map((h) => ({ h, d: d(h[9]) }))
@@ -1720,15 +1695,15 @@
           if (!open && near.d < 1.3 * fw && far.d > 1.9 * fw && dy < 0.7 * dx) {
             const g = far.h
             const grip = [5, 9, 13, 17].reduce((s, k) => ({ x: s.x + g[k].x / 4, y: s.y + g[k].y / 4 }), { x: 0, y: 0 })
-            pose = { a: toScreen(grip.x, grip.y), b: toScreen((h[4].x + h[8].x) / 2, (h[4].y + h[8].y) / 2) }
+            p = { a: toScreen(grip.x, grip.y), b: toScreen((h[4].x + h[8].x) / 2, (h[4].y + h[8].y) / 2) }
           }
         }
-        if (pose) {
+        if (p) {
           const k = bow.state === "idle" ? 1 : 0.5
-          bow.a.lerp(new THREE.Vector2(...pose.a), k)
-          bow.b.lerp(new THREE.Vector2(...pose.b), k)
+          bow.a.lerp(new THREE.Vector2(...p.a), k)
+          bow.b.lerp(new THREE.Vector2(...p.b), k)
           bow.lost = 0
-          if (bow.state === "idle") Object.assign(bow, { state: "aim", since: now })
+          if (bow.state === "idle") Object.assign(bow, { state: "aim", since: now, kind: "recon" })
           else if (bow.state === "aim" && now - bow.since > 300) Object.assign(bow, { state: "draw", since: now })
         } else if (bow.state !== "idle") {
           bow.lost ||= now
@@ -1740,237 +1715,369 @@
         }
         if (bow.state !== "idle") handInfo += ` · arco (${bow.state === "aim" ? "mirando" : "puxando"})`
       }
-      // The dock's Flecha: the bow drawn beside the face, toward the side with more room, shot by itself.
-      function autoBow(now) {
-        if (sova.arrow || sova.bow.auto) return
+      // The Owl Drone's gesture, a bird's shadow: both hands open, palms out, thumbs hooked together and the
+      // fingers spread out to the sides like wings. Held 0.35 s, the drone opens between the hands.
+      function isBird(hands) {
+        if (hands.length < 2) return false
+        const [A, B] = hands
+        const pa = dist(A[0], A[9]), pb = dist(B[0], B[9])
+        const p = (pa + pb) / 2
+        const open = (h, palm) => [8, 12, 16, 20].filter((t) => dist(h[t], h[0]) > 1.5 * palm).length >= 3
+        return dist(A[4], B[4]) < 1.1 * p && dist(A[0], B[0]) < 2 * p && dist(A[8], B[8]) > 2.4 * p && dist(A[20], B[20]) > 2.2 * p && open(A, pa) && open(B, pb)
+      }
+      function birdHands(hands, now) {
+        const b = sova.bird
+        if (!isBird(hands)) {
+          b.since = 0
+          return
+        }
+        b.since ||= now
+        handInfo += " · coruja"
+        if (now - b.since > 350 && !sova.drone) {
+          const [A, B] = hands
+          const m = toScreen((A[4].x + B[4].x) / 2, (A[4].y + B[4].y) / 2)
+          startDrone(now, at3(m[0], m[1], 12))
+          b.since = Infinity
+        }
+      }
+
+      // The dock's Flecha de Reconhecimento and Flecha de Choque: the bow drawn beside the face, toward the side with
+      // more room, shot by itself.
+      function autoBow(kind, now) {
+        if (sova.arrow || sova.bow.auto || sova.ult) return
         const f = faceBox()
         const side = f.c.x < 0.5 ? 1 : -1
         sova.bow.a.set(clamp01(f.c.x + side * f.w * 2.3, 0.08, 0.92), f.c.y - f.w * 0.5)
         sova.bow.b.set(f.c.x + side * f.w * 0.5, f.c.y - f.w * 0.45)
-        Object.assign(sova.bow, { state: "draw", since: now, auto: now })
+        Object.assign(sova.bow, { state: "draw", since: now, auto: now, kind })
       }
+      // The arrow leaves the bow: the Recon Bolt flies to the edge of the box where it points and sticks there; the
+      // Shock Bolt flies up, bounces off the top of the box and bursts by his shoulder on that side.
       function shoot(kind, now) {
-        const bow = sova.bow
-        const dir = bow.a.clone().sub(bow.b)
-        if (dir.lengthSq() < 1e-8) dir.set(1, 0)
-        dir.normalize()
-        const from = bow.a.clone().addScaledVector(dir, 0.02)
-        const to = toEdge(from, dir)
-        sova.arrow = { kind, from, to, t0: now, dur: Math.max(120, (from.distanceTo(to) / 2.4) * 1000) }
-        sova.maskUntil = now + 5500
-      }
-      // The dock's Shock Bolt: it comes in from above on the far side and bursts by his shoulder.
-      function shockBolt(now) {
-        if (sova.arrow) return
-        const f = faceBox()
-        const side = f.c.x < 0.5 ? 1 : -1
-        const to = new THREE.Vector2(clamp01(f.c.x + side * f.w * 1.3), clamp01(f.c.y - f.w * 1.4))
-        const from = new THREE.Vector2(side > 0 ? 1.05 : -0.05, 0.95)
-        sova.arrow = { kind: "choque", from, to, t0: now, dur: 300 }
+        const tip = arrowTip()
+        const from = onBox(tip)
+        const dir2 = onBox(tip.clone().add(bowAxis)).sub(from).normalize()
+        const depth = (p) => at3(p.x, p.y, tip.z - (headSeen ? headPos.z : -65))
+        let pts
+        if (kind === "recon") pts = [tip, depth(toEdge(from, dir2, 0.02))]
+        else {
+          const f = faceBox()
+          const side = Math.sign(sova.bow.a.x - f.c.x) || 1
+          const up = toEdge(from, new THREE.Vector2(dir2.x * 0.5, 1).normalize(), 0.03)
+          const land = new THREE.Vector2(clamp01(f.c.x + side * f.w * 1.5), clamp01(f.c.y - f.w * 1.5))
+          pts = [tip, depth(up), depth(land)]
+        }
+        const legs = pts.slice(1).map((p, i) => Math.max(110, (onBox(p).distanceTo(onBox(pts[i])) / 2.6) * 1000))
+        const a = { kind, pts, legs, t0: now, leg: 0, at: tip.clone(), dir: pts[1].clone().sub(tip).normalize(), k: bow3.k }
+        a.sys = vfx.spawn(kind === "recon" ? SOVA.E.trail : SOVA.Q.trail, (v) => v.copy(a.at), { scale: 0.3, dir: () => a.dir })
+        sova.arrow = a
+        sova.maskUntil = now + 6500
+        Object.assign(sova.bow, { state: "idle", auto: 0 })
       }
       function startUlt(now) {
         if (sova.ult) return
+        sova.arrow?.sys.stop()
+        sova.arrow = null
         const f = faceBox()
-        const ys = [f.c.y - f.w * 0.1, f.c.y - f.w * 1.5, f.c.y + f.w * 0.2].map((y) => clamp01(y, 0.1, 0.9))
-        sova.ult = { t0: now, side: f.c.x < 0.5 ? 1 : -1, ys, aim: f.c.clone(), fired: 0 }
-        sova.maskUntil = now + 4500
+        const side = f.c.x < 0.5 ? 1 : -1
+        sova.bow.a.set(clamp01(f.c.x + side * f.w * 2.4, 0.08, 0.92), f.c.y - f.w * 0.35)
+        sova.bow.b.set(f.c.x + side * f.w * 0.5, f.c.y - f.w * 0.35)
+        Object.assign(sova.bow, { state: "idle", auto: 0 })
+        sova.ult = { t0: now, fired: 0, charging: -1, sys: vfx.spawn(SOVA.X.bow, (v) => v.copy(limbPoint()), { scale: bow3.k / 100 }) }
       }
-      function startDrone(now) {
-        if (sova.drone) return
-        sova.drone = { t0: now, side: faceBox().c.x > 0.5 ? -1 : 1 }
-        sova.maskUntil = now + 7500
-      }
+      // A point along the bow's limbs, at random (where Amb_EnergyBow1P_VFX's loops crawl: 17 to 53 cm from the grip).
+      const LIMB = [0.17, 0.28, 0.36, -0.34, -0.45, -0.53]
+      const limbPoint = () => bowPt(-0.06, LIMB[Math.floor(Math.random() * LIMB.length)] * (0.9 + Math.random() * 0.25), 0.01)
 
-      // The Owl Drone, made of shapes (no model of it): a white body, a dark visor with a big cyan eye, owl's ear
-      // tufts and two arms with spinning rotors. It lives in the 3D camera's space, in centimetres.
-      const droneScene = new THREE.Scene()
-      droneScene.add(new THREE.HemisphereLight(0xffffff, 0x334466, 2.4))
-      const droneSun = new THREE.DirectionalLight(0xffffff, 2.2)
-      droneSun.position.set(0.3, 1, 1)
-      droneScene.add(droneSun)
-      const drone = new THREE.Group()
-      drone.visible = false
-      droneScene.add(drone)
-      const rotors = []
-      const droneEye = new THREE.Object3D()
-      {
-        const shell = new THREE.MeshStandardMaterial({ color: 0xe9eef7, metalness: 0.15, roughness: 0.45 })
-        const dark = new THREE.MeshStandardMaterial({ color: 0x1b2440, metalness: 0.45, roughness: 0.4 })
-        const glowMat = new THREE.MeshBasicMaterial({ color: 0x7ee8ff })
-        const body = new THREE.Mesh(new THREE.SphereGeometry(3, 24, 16), shell)
-        body.scale.set(1, 0.88, 1.05)
-        drone.add(body)
-        const visor = new THREE.Mesh(new THREE.SphereGeometry(2.3, 24, 12, 0, Math.PI * 2, 0, 1.0), dark)
-        visor.rotation.x = Math.PI / 2
-        visor.position.z = 1.2
-        drone.add(visor)
-        const eye = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 12), glowMat)
-        eye.position.z = 3.25
-        drone.add(eye)
-        droneEye.position.z = 3.6
-        drone.add(droneEye)
-        const halo = document.createElement("canvas")
-        halo.width = halo.height = 64
-        const hc = halo.getContext("2d")
-        const grad = hc.createRadialGradient(32, 32, 0, 32, 32, 32)
-        grad.addColorStop(0, "rgba(126,232,255,0.9)")
-        grad.addColorStop(1, "rgba(126,232,255,0)")
-        hc.fillStyle = grad
-        hc.fillRect(0, 0, 64, 64)
-        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(halo), blending: THREE.AdditiveBlending, depthWrite: false }))
-        sprite.scale.setScalar(5.5)
-        sprite.position.z = 3.4
-        drone.add(sprite)
-        for (const s of [-1, 1]) {
-          const ear = new THREE.Mesh(new THREE.ConeGeometry(0.75, 2.1, 4), dark)
-          ear.position.set(s * 1.5, 2.7, 0.2)
-          ear.rotation.z = -s * 0.35
-          drone.add(ear)
-          const arm = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.45, 1.5), dark)
-          arm.position.set(s * 4.3, 0.5, -0.3)
-          arm.rotation.z = s * 0.22
-          drone.add(arm)
-          const ring = new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.22, 8, 24), dark)
-          ring.position.set(s * 6.7, 1.0, -0.3)
-          ring.rotation.x = Math.PI / 2
-          drone.add(ring)
-          const blur = new THREE.Mesh(
-            new THREE.CircleGeometry(1.75, 24),
-            new THREE.MeshBasicMaterial({ color: 0x7ee8ff, transparent: true, opacity: 0.25, depthWrite: false, side: THREE.DoubleSide }),
-          )
-          blur.position.copy(ring.position)
-          blur.rotation.x = -Math.PI / 2
-          drone.add(blur)
-          const rotor = new THREE.Group()
-          rotor.position.copy(ring.position)
-          for (const r of [0, Math.PI / 2]) {
-            const blade = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.08, 0.32), shell)
-            blade.rotation.y = r
-            rotor.add(blade)
-          }
-          drone.add(rotor)
-          rotors.push(rotor)
+      // The Owl Drone: in its metres it faces +x, up +y, its two eyes 2.5 cm either side of the middle, its ducted
+      // turbines at ±0.18 on z (their rings face forward). It opens where it's thrown
+      // (between the hands, by the gesture), flies up beside his head, looks at him, tags him with its dart (which
+      // reveals him twice) and flies off.
+      const DRONE_K = Number(q.get("coruja") || 30)
+      const drone3 = { root: new THREE.Group(), model: null, discs: [] }
+      drone3.root.visible = false
+      sv3.free.add(drone3.root)
+      const DRONE_EYE = new THREE.Vector3(0.085, 0.04, 0)
+      loadPiece("Ability_E/1P/Models/AB_Hunter_S0_E_Skelmesh.glb", (m) => {
+        m.scale.setScalar(DRONE_K)
+        // Its +x to the group's +z, so the group's lookAt points it.
+        m.rotation.y = -Math.PI / 2
+        drone3.root.add(m)
+        drone3.model = m
+        // The turbines' blades, blurred spinning (Hunter_C_Propellers: the blur in (0, 3, 10)).
+        const blur = new THREE.TextureLoader().load(HUNTER + "VFX/Textures/Hunter_C_Propellers_Blur.png")
+        blur.colorSpace = THREE.NoColorSpace
+        for (const z of [-0.18, 0.18]) {
+          const disc = new THREE.Mesh(new THREE.CircleGeometry(0.085, 40), new THREE.MeshBasicMaterial({ map: blur, color: new THREE.Color(0.35, 0.75, 1), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))
+          disc.position.set(0.072, -0.018, z)
+          disc.rotation.y = Math.PI / 2
+          m.add(disc)
+          drone3.discs.push(disc)
         }
+      })
+      function startDrone(now, from) {
+        if (sova.drone) return
+        const f = faceBox()
+        const side = f.c.x > 0.5 ? -1 : 1
+        const start = from || at3(clamp01(f.c.x + side * f.w * 1.6), clamp01(f.c.y - f.w * 2.2), 12)
+        sova.drone = { t0: now, from: start, side, darted: false, sys: null, eye: new THREE.Vector3() }
+        sova.maskUntil = now + (DRONE.END + 0.5) * 1000
       }
-      const DRONE = { IN: 1.2, TAG: 3.4, OUT: 5.8, END: 7.0 }
-      const ease = (t) => t * t * (3 - 2 * t)
-      // Places the drone for this frame; returns how revealed Luan is by its dart.
+      const droneEye = () => (drone3.model ? drone3.model.localToWorld(DRONE_EYE.clone()) : new THREE.Vector3())
       function updateDrone(now, dt) {
         const d = sova.drone
-        const u = uniforms
-        u.uDartLineAmt.value = 0
-        if (!d) return 0
+        if (!d) return
         const t = (now - d.t0) / 1000
-        if (t > DRONE.END) {
-          sova.drone = null
-          drone.visible = false
-          return 0
+        if (t > DRONE.END || !drone3.model) {
+          if (t > DRONE.END) {
+            d.sys?.stop()
+            sova.drone = null
+          }
+          drone3.root.visible = false
+          return
         }
-        const base = headSeen ? headPos.clone() : new THREE.Vector3(0, 0, -60)
-        const hover = base.clone().add(new THREE.Vector3(d.side * 21, 9, 4))
-        const away = base.clone().add(new THREE.Vector3(d.side * 75, 30, -10))
-        const p = t < DRONE.IN ? away.clone().lerp(hover, ease(t / DRONE.IN)) : t < DRONE.OUT ? hover : hover.clone().lerp(away, ease((t - DRONE.OUT) / (DRONE.END - DRONE.OUT)))
-        p.y += Math.sin(t * 3) * 0.9
-        drone.position.lerp(p, drone.visible ? 0.35 : 1)
-        drone.rotation.set(0.1, -d.side * 0.6, Math.sin(t * 2.1) * 0.12 + (t < DRONE.IN ? d.side * 0.3 : 0))
-        drone.scale.setScalar(1.15)
-        drone.visible = true
-        for (const r of rotors) r.rotation.y += dt * 40
-        // The dart: a streak from its eye to his face, then he's revealed.
-        const tt = t - DRONE.TAG
-        if (tt >= 0 && tt < 0.5) {
-          drone.updateMatrixWorld(true)
-          const e = droneEye.getWorldPosition(new THREE.Vector3()).project(headCam)
-          const f = faceBox()
-          u.uDartLine.value.set(e.x * 0.5 + 0.5, e.y * 0.5 + 0.5, f.c.x, f.c.y)
-          u.uDartLineAmt.value = tt < 0.3 ? 1 : 1 - (tt - 0.3) / 0.2
+        const head = headAt()
+        const hover = head.clone().add(new THREE.Vector3(d.side * 23, 9, 8))
+        const away = head.clone().add(new THREE.Vector3(d.side * 95, 50, -25))
+        // Up from the hands in an arc, then hovering (bobbing), then off; facing the camera as it opens, then where
+        // it flies, him while it hovers, and where it goes as it leaves, banked a little.
+        let p
+        let ahead
+        if (t < DRONE.OPEN) {
+          p = d.from.clone()
+          ahead = new THREE.Vector3(0, 0, 1)
+        } else if (t < DRONE.FLY) {
+          const k = ease((t - DRONE.OPEN) / (DRONE.FLY - DRONE.OPEN))
+          const ctl = d.from.clone().lerp(hover, 0.5).add(new THREE.Vector3(-d.side * 6, 22, 6))
+          p = d.from.clone().multiplyScalar((1 - k) ** 2).addScaledVector(ctl, 2 * k * (1 - k)).addScaledVector(hover, k * k)
+          // The curve's direction, turning towards him as it arrives.
+          const vel = ctl.clone().sub(d.from).multiplyScalar(1 - k).addScaledVector(hover.clone().sub(ctl), k).setY(0)
+          ahead = vel.normalize().lerp(head.clone().sub(p).setY(0).normalize(), k * k)
+        } else if (t < DRONE.LEAVE) {
+          p = hover.clone()
+          ahead = head.clone().sub(p)
+        } else {
+          p = hover.clone().lerp(away, ease((t - DRONE.LEAVE) / (DRONE.END - DRONE.LEAVE)))
+          ahead = away.clone().sub(hover).setY(0)
         }
-        return tt >= 0.15 ? 1 - THREE.MathUtils.smoothstep(tt, 1.9, 2.4) : 0
+        p.y += Math.sin(t * 3.1) * 0.8
+        drone3.root.position.copy(p)
+        const s = t < DRONE.OPEN ? easeOutBack(t / DRONE.OPEN) : 1
+        drone3.root.scale.setScalar(Math.max(1e-3, s))
+        if (ahead.lengthSq() < 1e-6) ahead.set(0, 0, 1)
+        drone3.root.lookAt(p.clone().add(ahead.normalize()))
+        drone3.root.rotateZ(Math.sin(t * 2.3) * 0.08)
+        drone3.root.visible = true
+        for (const c of drone3.discs) c.rotateZ(dt * 38)
+        drone3.root.updateMatrixWorld(true)
+        d.eye.copy(droneEye())
+        if (!d.sys) {
+          const eyes = [0.025, -0.025].map((z) => () => drone3.model.localToWorld(new THREE.Vector3(DRONE_EYE.x, DRONE_EYE.y, z)))
+          const sys = eyes.map((e) => vfx.spawn(SOVA.C.eye, (v) => v.copy(e()), { scale: DRONE_K / 100 }))
+          d.sys = { stop: () => sys.forEach((x) => x.stop()) }
+          vfx.spawn(SOVA.C.equip, (v) => v.copy(d.eye), { scale: DRONE_K / 100, dur: 0.05 })
+        }
+        // The dart: from the eye to his face; it reveals him as it hits, and again a second later.
+        if (t >= DRONE.DART && !d.darted) {
+          d.darted = true
+          const at = d.eye.clone(), to = head.clone().add(new THREE.Vector3(0, 0, 6))
+          const dart = { p: at.clone(), t0: now }
+          const dir = to.clone().sub(at).normalize()
+          const sys = vfx.spawn(SOVA.C.dart, (v) => v.copy(dart.p), { scale: 1, dir: () => dir })
+          d.dartFly = { dart, at, to, sys }
+        }
+        if (d.dartFly) {
+          const f = d.dartFly
+          const k = Math.min(1, (now - f.dart.t0) / 150)
+          f.dart.p.copy(f.at).lerp(f.to, k)
+          if (k >= 1) {
+            f.sys.stop()
+            vfx.spawn(SOVA.C.hit, (v) => v.copy(f.to), { scale: 0.3, dur: 0.05 })
+            shake(160, 4, now)
+            reveal(now)
+            d.revealAgain = now + 1100
+            d.dartFly = null
+          }
+        }
+        if (d.revealAgain && now >= d.revealAgain) {
+          reveal(now)
+          d.revealAgain = 0
+        }
+      }
+
+      function sovaReset() {
+        vfx.clear()
+        sova.bow.fx = null
+        Object.assign(sova, { arrow: null, dart: null, ult: null, drone: null, reveals: [], shakeUntil: 0 })
+        Object.assign(sova.bow, { state: "idle", auto: 0, amt: 0, draw: 0 })
+        bow3.root.visible = drone3.root.visible = flying.visible = stuck.visible = false
+        uniforms.uReveal.value = uniforms.uMark.value.z = 0
+        uniforms.uUltT.value = -1
       }
 
       function updateSova(now, dt) {
         const u = uniforms
         const bow = sova.bow
-        if (bow.auto && now - bow.auto > 750) {
-          shoot("recon", now)
-          Object.assign(bow, { auto: 0, state: "idle" })
-        }
-        const drawing = bow.state === "draw"
-        const lingering = sova.arrow?.kind === "recon" && now - sova.arrow.t0 < 160
-        bow.amt = THREE.MathUtils.clamp(bow.amt + (drawing || bow.state === "aim" || lingering ? dt / 0.15 : -dt / 0.25), 0, 1)
-        bow.charge = drawing ? Math.min(1, (now - bow.since) / 1100) : bow.state === "aim" ? 0 : -1
         const f = faceBox()
-        u.uBowAmt.value = bow.amt
-        u.uBowA.value.copy(bow.a)
-        u.uBowB.value.copy(bow.b)
-        u.uBowSize.value = THREE.MathUtils.clamp(f.w * ASPECT * 0.8, 0.06, 0.2)
-        u.uCharge.value = bow.charge
-        // The arrow, until it lands: the recon leaves its dart, the shock bursts.
-        u.uArrowK.value = -1
-        if (sova.arrow) {
-          const a = sova.arrow
-          const k = (now - a.t0) / a.dur
-          if (k >= 1) {
-            if (a.kind === "recon") sova.dart = { at: a.to.clone(), t0: now }
+        // The dock's bow: drawn over 0.6 s, then shot.
+        if (bow.auto && now - bow.auto > 750) shoot(bow.kind, now)
+        // The ultimate: the bow out for its three shots, each charged 0.9 s.
+        const ult = sova.ult
+        let ultDraw = 0
+        if (ult) {
+          const t = (now - ult.t0) / 1000
+          if (t > ULT.END) {
+            ult.sys.stop()
+            vfx.spawn(SOVA.X.outro, (v) => v.copy(bowPt(-0.05, 0)), { scale: bow3.k / 100, dur: 0.05 })
+            sova.ult = null
+          } else {
+            const next = ULT.SHOTS[ult.fired]
+            if (next !== undefined) {
+              const c = (t - (next - ULT.CHARGE)) / ULT.CHARGE
+              if (c >= 0 && ult.charging !== ult.fired) {
+                ult.charging = ult.fired
+                // Its third-person effect, made to read from across a map: smaller here.
+                ult.charge = vfx.spawn(SOVA.X.charge, (v) => v.copy(arrowTip()), { scale: 0.12 })
+                ult.aim = vfx.spawn(SOVA.X.aim, (v) => v.copy(arrowTip()), { scale: 1, beam: () => [arrowTip(), ultEnd()] })
+              }
+              ultDraw = THREE.MathUtils.clamp(c, 0, 1)
+              if (t >= next) {
+                ult.charge?.stop()
+                ult.aim?.stop()
+                const a = arrowTip(), b = ultEnd()
+                vfx.spawn(SOVA.X.blast, (v) => v.copy(a), { scale: 0.32, dur: 0.05, beam: () => [a, b] })
+                shake(320, 13, now)
+                ult.fired++
+              }
+            }
+          }
+        }
+        // How much of the bow shows and how far it's drawn.
+        const drawing = bow.state === "draw" || bow.state === "aim"
+        const held = drawing || !!sova.ult
+        bow.amt = THREE.MathUtils.clamp(bow.amt + (held ? dt / 0.18 : -dt / 0.25), 0, 1)
+        if (sova.ult) bow.draw = ultDraw
+        else if (bow.state === "draw") bow.draw = Math.min(1, bow.draw + dt / (bow.auto ? 0.5 : 0.35))
+        else if (bow.state === "aim") bow.draw = Math.max(0, bow.draw - dt / 0.2)
+        else bow.draw = Math.max(0, bow.draw - dt / 0.06)
+        const kind = sova.ult ? (ultDraw > 0 ? "ult" : null) : bow.state === "idle" ? null : bow.kind
+        // The grip and the pulling hand at the depth of his face, a little nearer the camera.
+        const G = at3(bow.a.x, bow.a.y, 10), N = at3(bow.b.x, bow.b.y, 10)
+        placeBow(G, N, bow.draw, bow.amt, kind)
+        if (bow3.glow) bow3.glow.color.setRGB(0.35, 0.85, 1).multiplyScalar(sova.ult ? 1.6 : 1)
+        // While it's drawn: zaps on the string, the glow on the head (the shock's lightning instead).
+        const showFx = bow.amt > 0.5 && kind && kind !== "ult"
+        if (showFx && !bow.fx) {
+          const k = bow3.k / 100
+          bow.fx = [
+            vfx.spawn(SOVA.E.string, (v) => v.copy(bowPt(BOW.REST - BOW.PULL * bow.draw, BOW.LINE)), { scale: k, beam: () => [bowPt(BOW.REST - BOW.PULL * bow.draw, BOW.LINE), bowPt(-0.375, 0.816)] }),
+            vfx.spawn(SOVA.E.string, (v) => v.copy(bowPt(BOW.REST - BOW.PULL * bow.draw, BOW.LINE)), { scale: k, beam: () => [bowPt(BOW.REST - BOW.PULL * bow.draw, BOW.LINE), bowPt(-0.375, -0.706)] }),
+            vfx.spawn(kind === "choque" ? SOVA.Q.held : SOVA.E.tip, (v) => v.copy(arrowTip()), { scale: k }),
+          ]
+        } else if (!showFx && bow.fx) {
+          bow.fx.forEach((s) => s.stop())
+          bow.fx = null
+        }
+
+        // The arrow in flight, leg by leg.
+        flying.visible = false
+        const a = sova.arrow
+        if (a) {
+          let t = now - a.t0
+          let leg = 0
+          while (leg < a.legs.length && t > a.legs[leg]) t -= a.legs[leg++]
+          if (leg > a.leg) {
+            // A bounce (the shock's ricochet off the top of the box).
+            if (leg < a.legs.length) vfx.spawn(SOVA.Q.ricochet, ((p) => (v) => v.copy(p))(a.pts[leg].clone()), { scale: 0.12, dur: 0.05 })
+            a.leg = leg
+          }
+          if (leg >= a.legs.length) {
+            a.sys.stop()
+            const end = a.pts[a.pts.length - 1]
+            if (a.kind === "recon") land(end, a.dir.clone(), a.k, now)
             else {
-              sova.shock = { at: a.to.clone(), t0: now }
+              // The game's blast is 4 m across; here about two faces.
+              vfx.spawn(SOVA.Q.boom, (v) => v.copy(end), { scale: 0.07, dur: 0.05 })
               shake(380, 10, now)
             }
             sova.arrow = null
           } else {
-            u.uArrowK.value = k
-            u.uArrowFrom.value.copy(a.from)
-            u.uArrowTo.value.copy(a.to)
-            u.uArrowKind.value = a.kind === "recon" ? 0 : 1
+            const p0 = a.pts[leg], p1 = a.pts[leg + 1]
+            a.dir.copy(p1).sub(p0).normalize()
+            a.at.copy(p0).lerp(p1, t / a.legs[leg])
+            const m = flying.getObjectByName(a.kind)
+            if (m) {
+              flying.children.forEach((c) => (c.visible = c === m))
+              // The arrow's head at `at`, pointing along the leg.
+              m.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), a.dir)
+              m.scale.setScalar(a.k)
+              m.position.copy(a.at).addScaledVector(a.dir, -ARROW_LEN * a.k)
+              flying.visible = true
+            }
           }
         }
-        // The dart and its rings; how revealed the head is, for the marker.
-        let headRv = 0
+
+        // The Recon Bolt where it landed: its head spinning, two sonar pulses that reveal him as they pass.
+        stuck.visible = false
+        const dt0 = sova.dart
+        if (dt0) {
+          const t = (now - dt0.t0) / 1000
+          if (t > DART_LIFE) {
+            dt0.sys.stop()
+            vfx.spawn(SOVA.E.destroyed, (v) => v.copy(dt0.tip), { scale: 0.3, dur: 0.05 })
+            sova.dart = null
+          } else {
+            stuck.visible = true
+            if (stuckArrow) {
+              stuckArrow.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), dt0.dir)
+              stuckArrow.scale.setScalar(dt0.k)
+              stuckArrow.position.copy(dt0.tip).addScaledVector(dt0.dir, -ARROW_LEN * dt0.k * 0.85)
+            }
+            reconHead.scale.setScalar(dt0.k)
+            reconHead.position.copy(dt0.tip).addScaledVector(dt0.dir, -2)
+            reconHead.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), dt0.dir)
+            reconHead.rotateX(t * 6.3)
+            const d = headAt().distanceTo(dt0.tip)
+            PULSES.forEach((p, i) => {
+              if (t >= p && !dt0.pulsed[i]) {
+                dt0.pulsed[i] = true
+                // Its ring grows to 30 × 8 game centimetres across in a second: scaled to reach 1.3 times as far as
+                // his head, which it crosses 0.63 s in (where its size curve passes 6.15).
+                vfx.spawn(SOVA.E.pulse, (v) => v.copy(dt0.tip), { scale: (2.6 * d) / 240, dur: 0.05 })
+                dt0.ringAt[i] = now + 634
+              }
+              if (dt0.ringAt[i] && now >= dt0.ringAt[i]) {
+                reveal(now)
+                dt0.ringAt[i] = 0
+              }
+            })
+          }
+        }
+        updateDrone(now, dt)
+
+        // The red reveal: each flash fades over 0.9 s; the marker over the head while it shows.
+        sova.reveals = sova.reveals.filter((r) => now - r < 1600)
+        let rv = 0
+        for (const r of sova.reveals) rv = Math.max(rv, Math.exp(-(now - r) / 600))
+        u.uReveal.value = rv
         const markAt = new THREE.Vector2(f.top.x, Math.min(0.94, f.top.y + f.h * 0.7))
-        u.uDart.value.z = 0
-        u.uPulse.value.set(-1, -1)
-        if (sova.dart) {
-          const t = (now - sova.dart.t0) / 1000
-          if (t > 3.8) sova.dart = null
-          else {
-            const tp = PULSES.map((p) => t - p)
-            u.uPulse.value.set(tp[0] >= 0 ? tp[0] : -1, tp[1] >= 0 ? tp[1] : -1)
-            u.uDart.value.set(sova.dart.at.x, sova.dart.at.y, Math.min(1, t / 0.1) * (1 - THREE.MathUtils.smoothstep(t, 3.1, 3.8)))
-            const dd = Math.hypot((markAt.x - sova.dart.at.x) * ASPECT, markAt.y - sova.dart.at.y)
-            for (const x of tp) {
-              const passed = x * RING_SPEED - dd
-              if (x >= 0 && passed > 0) headRv = Math.max(headRv, Math.exp(-passed / (RING_SPEED * 0.9)))
-            }
-          }
-        }
-        u.uShock.value.z = -1
-        if (sova.shock) {
-          const t = (now - sova.shock.t0) / 1000
-          if (t > 0.9) sova.shock = null
-          else u.uShock.value.set(sova.shock.at.x, sova.shock.at.y, t)
-        }
-        // Hunter's Fury: each blast shakes the camera and reveals him.
-        let reveal = 0
-        u.uUltT.value = -1
-        if (sova.ult) {
-          const ult = sova.ult
-          const t = (now - ult.t0) / 1000
-          if (t > 3.9) sova.ult = null
-          else {
-            u.uUltT.value = t
-            u.uUltSide.value = ult.side
-            u.uUltY.value.set(...ult.ys)
-            u.uUltAim.value.copy(ult.aim)
-            while (ult.fired < 3 && t >= ULT_BLASTS[ult.fired]) {
-              shake(260, 14, now)
-              ult.fired++
-            }
-            for (const b of ULT_BLASTS) if (t >= b) reveal = Math.max(reveal, Math.exp(-(t - b) / 0.6))
-          }
-        }
-        reveal = Math.max(reveal, updateDrone(now, dt))
-        u.uReveal.value = reveal
-        u.uMark.value.set(markAt.x, markAt.y, Math.max(reveal, headRv) > 0.15 ? Math.min(1, Math.max(reveal, headRv) * 1.5) : 0)
+        u.uMark.value.set(markAt.x, markAt.y, rv > 0.15 ? Math.min(1, rv * 1.5) : 0)
+        u.uUltT.value = sova.ult ? (now - sova.ult.t0) / 1000 : -1
+      }
+      // Where the ultimate's shot goes: out of the box along the bow, a little past the edge.
+      function ultEnd() {
+        const tip = arrowTip()
+        const from = onBox(tip)
+        const dir2 = onBox(tip.clone().add(bowAxis)).sub(from).normalize()
+        const e = toEdge(from, dir2, -0.1)
+        return at3(e.x, e.y, tip.z - (headSeen ? headPos.z : -65))
+      }
+      // The Recon Bolt lands: the flash, its glows and arcs while it sits there.
+      function land(tip, dir, k, now) {
+        vfx.spawn(SOVA.E.impact, (v) => v.copy(tip), { scale: 0.3, dur: 0.05 })
+        const dart = { tip: tip.clone(), dir, k, t0: now, pulsed: [], ringAt: [] }
+        dart.sys = vfx.spawn(SOVA.E.stuck, (v) => v.copy(dart.tip), { scale: 0.3 })
+        sova.dart = dart
       }
 
       // ---------- the cars on the face: Octane, Fennec ----------
@@ -1988,6 +2095,15 @@
       const EYE_H = 0.75
       // Reflections for the paint, from a neutral room.
       let carEnv = null
+      // A neutral room's reflections (the cars' paint, Sova's bow and drone), made once.
+      function roomEnv() {
+        if (!carEnv) {
+          const pm = new THREE.PMREMGenerator(renderer)
+          carEnv = pm.fromScene(new RoomEnvironment(), 0.04).texture
+          pm.dispose()
+        }
+        return carEnv
+      }
       // The eyes and the mouth, cut from the camera into one small canvas: the eyes side by side over the mouth.
       const partsCanvas = document.createElement("canvas")
       partsCanvas.width = 512
@@ -2029,11 +2145,7 @@
       }
       const carList = Object.values(CARS)
       function buildCar(c, m) {
-        if (!carEnv) {
-          const pm = new THREE.PMREMGenerator(renderer)
-          carEnv = pm.fromScene(new RoomEnvironment(), 0.04).texture
-          pm.dispose()
-        }
+        roomEnv()
         m.updateMatrixWorld(true)
         const meshes = []
         m.traverse((o) => {
@@ -2266,6 +2378,9 @@
           phxReset()
         }
         if (mode !== "sova") sovaReset()
+        // Each agent's effects' textures, loaded as he comes on.
+        if (mode === "phoenix") vfx.preload(PHX)
+        if (mode === "sova") vfx.preload(SOVA)
       }
       // A one-off, from the dock or a key: only for the filter that has it.
       function acao(a) {
@@ -2274,7 +2389,7 @@
           if (a === "flash") startBang(...handAt(1), null)
           else ({ molotov: startHotHands, blaze: startBlaze, ult: startRunItBack })[a]?.(now)
         }
-        if (mode === "sova") ({ recon: autoBow, choque: shockBolt, drone: startDrone, ult: startUlt })[a]?.(now)
+        if (mode === "sova") ({ recon: () => autoBow("recon", now), choque: () => autoBow("choque", now), drone: () => startDrone(now), ult: () => startUlt(now) })[a]?.()
         if (CARS[mode]) ({ demo, flip: flipCar })[a]?.(now)
       }
       // The dock's word (obs-browser's emit_event): the filter that should be on, or a one-off.
@@ -2298,7 +2413,7 @@
         if (e.key === "0") setMode("nenhum")
       })
       setMode(mode)
-      if (q.has("debug")) window.filtros = { sova, AGENTS, CARS, uniforms, acao, vfx, phx, get mode() { return mode } }
+      if (q.has("debug")) window.filtros = { sova, AGENTS, CARS, uniforms, acao, vfx, phx, isBird, bow3, drone3, SOVA, at3, get mode() { return mode } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -2678,6 +2793,7 @@
 
         // Phoenix's effects into their own target first (that switches render targets).
         const vfxOn = vfx.active()
+        vfx.tint.set(...(sovaOn ? TINTS.sova : TINTS.phoenix))
         if (vfxOn) vfx.render(box[2], box[3])
         // The face's mask and what's behind Luan, before the camera's layer, which erases his hair with them.
         const ready = agentList.filter((a) => a.amt > 0 && a.ready)
@@ -2743,11 +2859,18 @@
           renderer.render(ballScene, headCam)
           if (ready.some((a) => a.behind)) renderer.render(keepScene, ortho)
         }
+        // Sova's bow in his hand, over his clothes and hair, under his hands (drawn back over it, they hold it and
+        // pull the string).
+        if (sovaOn && bow3.root.visible) {
+          renderer.clearDepth()
+          renderer.render(sv3.held, headCam)
+          renderer.render(keepHandsScene, ortho)
+        }
         if (sovaOn) {
           renderer.render(sovaScene, ortho)
-          if (drone.visible) {
+          if (drone3.root.visible || flying.visible || stuck.visible) {
             renderer.clearDepth()
-            renderer.render(droneScene, headCam)
+            renderer.render(sv3.free, headCam)
           }
         }
         if (uniforms.uBoomT.value >= 0) renderer.render(boomScene, ortho)
@@ -2771,7 +2894,7 @@
             `gesto ${ms.gesto.toFixed(1)} ms · corpo ${ms.corpo.toFixed(1)} ms · rosto ${ms.rosto.toFixed(1)} ms · ombros ${ms.ombros.toFixed(1)} ms\n` +
             `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}` +
             (ag ? `\n${mode}: modelo ${ag.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"}${AGENTS[mode] ? ` · ombros ${pose.seen ? "sim" : "não"} · fundo ${!ERASE ? "desligado" : plate.off === undefined ? "…" : `${plate.ok ? "ok" : "não bate"} (${plate.off.toFixed(1)})`}` : ""}` : "") +
-            (mode === "sova" ? `\nsova: arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? " · flecha" : ""}${sova.dart ? " · dardo" : ""}${sova.shock ? " · choque" : ""}${sova.drone ? " · coruja" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
+            (mode === "sova" ? `\nsova: peças ${bow3.model ? "ok" : "…"} · arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? ` · flecha (${sova.arrow.kind})` : ""}${sova.dart ? " · reconhecimento" : ""}${sova.drone ? " · coruja" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
             (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
         }
       }
