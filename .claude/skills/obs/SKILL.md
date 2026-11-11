@@ -44,6 +44,11 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   --use-fake-ui-for-media-stream --use-file-for-fake-video-capture=<clip>.y4m` (a few seconds of a live's
   `Câmera.mkv` through ffmpeg, already framed, so add `?zoom=1`); `?debug` also exposes `window.filtros` (state,
   uniforms, `acao`). Swiftshader runs it at about 1 fps, so slow the page's `performance.now` to catch an effect.
+  With an agent on, Luan's hair around the agent's is painted over with the camera's background:
+  `public/stream/camera-fundo.png` (NVIDIA Broadcast's virtual background, from `brand/build.py`) plus what the
+  page has seen behind him since it loaded; if he changes the virtual background, rebuild it (the page checks it
+  against the frame and stops erasing while they don't match: `?debug` shows "fundo ok" or "não bate"). For a
+  headless test with a framed clip, pass `?fundo=` a copy cropped like Enquadramento.
 - The camera's framing is OBS's, not NVIDIA Broadcast's: auto frame is off (Luan, 2026-11-08; the virtual
   background stays on) and a "Enquadramento" crop filter, first on Câmera in all three collections (Live, Shorts,
   Vídeo), crops him at about 1.75× (`CAMERA_CROP` in `brand/twitch/obs_shorts.py`). If he moves the camera, retune

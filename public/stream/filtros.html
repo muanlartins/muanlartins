@@ -36,6 +36,10 @@
               the camera shakes), the Owl Drone (C: an owl-like drone flies in, hovers by his head, tags him with
               a dart, which reveals him, and leaves) and Hunter's Fury (X: the camera darkens and three blasts
               cross it, through him, one after another).
+              With either agent, Luan's own hair around theirs is painted over with what the camera sees behind
+              him (NVIDIA Broadcast's virtual background, camera-fundo.png, or ?fundo=<url>, and whatever's been
+              seen there since, his chair too), so theirs is the head's outline; off while the background doesn't
+              match, or with ?apagar=0. Sova's forehead covers Luan's down to just above the brows.
         Octane (key 8) and Fennec (key 9): his face as Rocket League's car, Pixar-style: the car sits on the head
               seen a little from above, turning with it, his own eyes on its windshield and his mouth on its
               bumper (cut from the camera, so it blinks and talks). The dock's Demolição blows it up as in a
@@ -355,12 +359,18 @@
         uEnergy: { value: 0 },
         uLens: { value: [0, 1, 2, 3].map(() => new THREE.Vector2()) },
         uLensAmt: { value: 0 },
-        // Phoenix: the face's oval (centre, half width and height, its up direction), where Luan's own hair
-        // around it is painted over in the background's colour.
+        // The agents: the face's oval (centre, half width and height, its up direction), around which Luan's own
+        // hair is painted over with the camera's background (uPlate, evened out to the frame by uPlateFix).
         uErase: { value: 0 },
         uFace: { value: new THREE.Vector4(0.5, 0.6, 0.1, 0.15) },
         uFaceUp: { value: new THREE.Vector2(0, 1) },
-        uBg: { value: new THREE.Color(0x002fa7) },
+        uPlate: { value: null },
+        uPlateFix: { value: new THREE.Vector3() },
+        uPlateOk: { value: 0 },
+        // What's been seen behind him (memory below) and his face's mask (drawKeep: r the whole face and ears,
+        // g the face as drawn back over the agent).
+        uMem: { value: null },
+        uKeep: { value: null },
         uFire: { value: new THREE.Vector3(0.5, 0.4, 0.1) },
         uFireAmt: { value: 0 },
         // Phoenix's flash: the orb (x, y, radius) and how much of it shows, the curve it flies along (from,
@@ -418,7 +428,11 @@
           uniform float uErase;
           uniform vec4 uFace;
           uniform vec2 uFaceUp;
-          uniform vec3 uBg;
+          uniform sampler2D uPlate;
+          uniform vec3 uPlateFix;
+          uniform float uPlateOk;
+          uniform sampler2D uMem;
+          uniform sampler2D uKeep;
           vec3 burst(vec2 uv, float t) {
             vec2 p = (uv - uCenter) * vec2(uAspect, 1.0);
             float r = length(p);
@@ -462,11 +476,16 @@
             if (uErase > 0.0) {
               vec2 d = (vUv - uFace.xy) * vec2(uAspect, 1.0);
               d = vec2(dot(d, vec2(uFaceUp.y, -uFaceUp.x)), dot(d, uFaceUp));
-              float keep = length(d / (uFace.zw * vec2(1.03, 1.0)));
-              float zone = length(d / (uFace.zw * vec2(2.4, 2.0)));
-              if (keep > 1.0 && zone < 1.0 && d.y > -uFace.w * 0.3) {
-                float m = smoothstep(0.06, 0.3, maskAt(vUv, 1.6));
-                col = mix(col, uBg, m * uErase * smoothstep(1.0, 1.04, keep));
+              float zone = length(d / (uFace.zw * vec2(2.6, 2.8)));
+              if (zone < 1.0 && d.y > -uFace.w * 0.55) {
+                // Up to his face's outline (and ears), wherever the mask, widened a little, says he is; soft at
+                // the zone's edges, so no line shows where the erasing stops.
+                float m = smoothstep(0.03, 0.2, maskAt(vUv, 2.0));
+                float k = (1.0 - smoothstep(0.2, 0.8, texture2D(uKeep, vUv).r)) * smoothstep(1.0, 0.9, zone) * smoothstep(-0.55, -0.3, d.y / uFace.w);
+                vec2 v = camUv(vUv);
+                vec4 mem = texture2D(uMem, v);
+                vec3 bg = mix(texture2D(uPlate, v).rgb + uPlateFix, mem.rgb, mem.a);
+                col = mix(col, bg, m * uErase * k * max(mem.a, uPlateOk));
               }
             }
             gl_FragColor = vec4(col, 1.0);
@@ -548,6 +567,40 @@
       const baseScene = quad(baseMat)
       const bodyScene = quad(bodyMat)
       const lensScene = quad(lensMat)
+
+      // What's behind Luan, remembered in the video's own uv: each time the mask is new, the camera's pixels where
+      // he clearly isn't (his chair, the background) are kept, so what's painted over his hair is what was really
+      // there; where he's never moved away from, the plate (when it matches).
+      const memRT = [0, 1].map(() => new THREE.WebGLRenderTarget(1280, 720, { depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter }))
+      let memI = 0
+      let maskFresh = false
+      const memMat = new THREE.ShaderMaterial({
+        uniforms: { uCam: uniforms.uCam, uMask: uniforms.uMask, uPrev: { value: memRT[1].texture } },
+        vertexShader: VERT,
+        depthTest: false,
+        depthWrite: false,
+        fragmentShader: /* glsl */ `
+          uniform sampler2D uCam;
+          uniform sampler2D uMask;
+          uniform sampler2D uPrev;
+          varying vec2 vUv;
+          void main() {
+            // The same widened mask the erasing uses, so what it paints is what was learnt.
+            float m = textureLod(uMask, vec2(vUv.x, 1.0 - vUv.y), 2.0).r;
+            vec4 prev = texture2D(uPrev, vUv);
+            vec3 cam = texture2D(uCam, vUv).rgb;
+            gl_FragColor = m < 0.03 ? vec4(prev.a > 0.0 ? mix(prev.rgb, cam, 0.35) : cam, 1.0) : prev;
+          }`,
+      })
+      const memScene = quad(memMat)
+      function remember() {
+        memMat.uniforms.uPrev.value = memRT[memI].texture
+        memI = 1 - memI
+        renderer.setRenderTarget(memRT[memI])
+        renderer.render(memScene, ortho)
+        renderer.setRenderTarget(null)
+        uniforms.uMem.value = memRT[memI].texture
+      }
 
       // Phoenix's fire between the palms: a flame shaped like a drop pointing up, licking upwards, with
       // embers and a glow, added on top (it lights what's behind it).
@@ -1082,11 +1135,25 @@
       // long locks hang beside the face, so his face and hands are drawn back over his hair too (`behind`).
       const AGENTS = {
         phoenix: { url: q.get("phoenix") || "privado/phoenix.glb" },
-        sova: { url: q.get("sova") || "privado/sova.glb", extra: /BowProp|Bow_Emissive/, behind: true },
+        // Sova's forehead comes down to the brows (`forehead`: how far above them his skin starts, in metres) and
+        // Luan's face stops a little above them (`trim`: of the brows-to-chin height), since Luan's curls fall
+        // over his forehead and would show under Sova's hair.
+        sova: { url: q.get("sova") || "privado/sova.glb", extra: /BowProp|Bow_Emissive/, behind: true, forehead: 0.008, trim: 0.13 },
       }
-      // Painting Luan's hair around the agent's over in the background's colour: off unless ?apagar (it showed as
-      // a blue wedge around the head).
-      const ERASE = q.has("apagar")
+      // Luan's own hair around the agent's, painted over with what the camera shows behind him: NVIDIA Broadcast's
+      // virtual background (brand/webcam/webcam-enquadrado, at 1920×1080: camera-fundo.png, from brand/build.py;
+      // ?fundo=<url> another).
+      // Checked against the frame where the mask says he isn't, and evened out to it; it stays off while they
+      // don't match (another background, or none), since a flat colour showed as a blue wedge. ?apagar=0 turns it off.
+      const ERASE = q.get("apagar") !== "0"
+      const plate = { ok: false, img: null, canvas: document.createElement("canvas") }
+      new THREE.TextureLoader().load(q.get("fundo") || "camera-fundo.png", (t) => {
+        t.colorSpace = THREE.NoColorSpace
+        t.minFilter = t.magFilter = THREE.LinearFilter
+        t.generateMipmaps = false
+        uniforms.uPlate.value = t
+        plate.img = t.image
+      })
       // An invisible head inside each hair piece, so the back of the hair hides behind it when Luan turns.
       const occluderGeo = new THREE.SphereGeometry(1, 32, 24)
       const occluderMat = new THREE.MeshBasicMaterial({ colorWrite: false })
@@ -1223,7 +1290,7 @@
           const depth = p.z - eyes.z
           if (side && depth > 0.021 && depth < 0.131) return p.y > browY + 0.015
           if (side && depth <= 0.021) return p.y > browY + 0.005
-          return p.y > (p.z < front ? browY + 0.035 : browY - 0.03)
+          return p.y > (p.z < front ? browY + (a.forehead ?? 0.035) : browY - 0.03)
         }
         headPiece.add(piece(body, (i, p, g) => g === "head" && scalp(p)))
         a.hair.add(headPiece)
@@ -1293,6 +1360,7 @@
       keepCanvas.height = 540
       const keepCtx = keepCanvas.getContext("2d")
       const keepTex = new THREE.CanvasTexture(keepCanvas)
+      uniforms.uKeep.value = keepTex
       let lastHands = []
       function hull(points) {
         const p = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1])
@@ -1308,16 +1376,18 @@
         }
         return lower.slice(0, -1).concat(upper.slice(0, -1))
       }
-      function drawKeep() {
+      // trim: where the face stops above the brows, as a part of the brows-to-chin height (none: the whole oval).
+      function drawKeep(trim) {
         const c = keepCtx
         c.clearRect(0, 0, 960, 540)
         c.fillStyle = c.strokeStyle = "#fff"
-        c.filter = "blur(4px)"
         c.lineJoin = "round"
         const px = (lm) => {
           const [u, v] = toScreen(lm.x, lm.y)
           return [u * 960, (1 - v) * 540]
         }
+        // Softer the bigger the face is on screen.
+        c.filter = faceLm ? `blur(${Math.max(4, Math.hypot(...[0, 1].map((k) => px(faceLm[234])[k] - px(faceLm[454])[k])) * 0.025).toFixed(1)}px)` : "blur(4px)"
         const shape = (pts, pad) => {
           c.beginPath()
           pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y)))
@@ -1327,7 +1397,33 @@
           c.stroke()
         }
         if (faceLm) {
-          shape(FACE_OVAL.map((i) => px(faceLm[i])), 6)
+          let oval = FACE_OVAL.map((i) => px(faceLm[i]))
+          // In red only, under the rest: the whole oval and the ears beside it, which the hair around is erased
+          // up to (the ears stick out from where the oval meets the head, between the brows and the nose's base).
+          c.fillStyle = c.strokeStyle = "#f00"
+          shape(oval, 6)
+          const [l, r] = [234, 454].map((i) => px(faceLm[i]))
+          const fw = Math.hypot(r[0] - l[0], r[1] - l[1])
+          const roll = Math.atan2(r[1] - l[1], r[0] - l[0])
+          for (const [p, side] of [[l, -1], [r, 1]]) {
+            c.beginPath()
+            c.ellipse(p[0] + Math.cos(roll) * side * fw * 0.05, p[1] + Math.sin(roll) * side * fw * 0.05, fw * 0.1, fw * 0.2, roll, 0, Math.PI * 2)
+            c.fill()
+          }
+          c.fillStyle = c.strokeStyle = "#fff"
+          if (trim) {
+            // Points above the line `trim` over the brows come down onto it, along the face's up.
+            const chinP = px(faceLm[152])
+            const topP = px(faceLm[10])
+            const brow = [105, 334].map((i) => px(faceLm[i]))
+            const len = Math.hypot(topP[0] - chinP[0], topP[1] - chinP[1])
+            const up = [(topP[0] - chinP[0]) / len, (topP[1] - chinP[1]) / len]
+            const h = (p) => (p[0] - chinP[0]) * up[0] + (p[1] - chinP[1]) * up[1]
+            const hb = (h(brow[0]) + h(brow[1])) / 2
+            const limit = hb * (1 + trim)
+            oval = oval.map((p) => (h(p) > limit ? [p[0] - up[0] * (h(p) - limit), p[1] - up[1] * (h(p) - limit)] : p))
+          }
+          shape(oval, 6)
           const [jl, jr, chin, top] = [172, 397, 152, 10].map((i) => px(faceLm[i]))
           // Tapering to a V like a shirt's neckline, so it doesn't end in a straight cut.
           const down = (chin[1] - top[1]) * 0.3
@@ -1352,7 +1448,7 @@
           ${GLSL_COMMON}
           uniform sampler2D uKeep;
           void main() {
-            float k = smoothstep(0.2, 0.8, texture2D(uKeep, vUv).r);
+            float k = smoothstep(0.2, 0.8, texture2D(uKeep, vUv).g);
             if (k <= 0.0) discard;
             gl_FragColor = vec4(texture2D(uCam, camUv(vUv)).rgb, k);
           }`,
@@ -2056,6 +2152,7 @@
           prevMask = prevMask || new Uint8Array(MW * MH)
           prevMask.set(maskData)
           maskTex.needsUpdate = true
+          maskFresh = true
           energy = Math.max(energy, Math.min(1, diff / (MW * MH * 255) / 0.02))
           if (sum > 50 && top >= 0) {
             const [cx, cy] = toScreen(sx / sum / MW, Math.min(1, top / MH + 0.14))
@@ -2132,19 +2229,34 @@
         ms.ombros = performance.now() - t0
       }
 
-      // The background's colour, from what the mask says isn't Luan in the frame's top half, for painting
-      // over his hair (NVIDIA Broadcast's virtual background is plain blue behind him).
+      // Does the background plate match the frame? Compared where the mask says Luan isn't, in the frame's top
+      // half: the mean difference evens out the camera's colours (uPlateFix), and what's left after it must be
+      // small (the lattice's lines are a few levels off the blue; another picture is tens).
       function sampleBackground() {
+        if (!plate.img) return
+        const c = plate.canvas
+        if (c.width !== MW || c.height !== MH) Object.assign(c, { width: MW, height: MH })
+        const pctx = c.getContext("2d", { willReadFrequently: true })
+        pctx.drawImage(plate.img, 0, 0, MW, MH)
         const px = smallCtx.getImageData(0, 0, MW, MH >> 1).data
-        let r = 0, g = 0, b = 0, n = 0
-        for (let i = 0; i < px.length / 4; i += 3) {
+        const pl = pctx.getImageData(0, 0, MW, MH >> 1).data
+        const sum = [0, 0, 0]
+        let n = 0
+        for (let i = 0; i < px.length / 4; i += 2) {
           if (maskData[i] > 40) continue
-          r += px[i * 4]
-          g += px[i * 4 + 1]
-          b += px[i * 4 + 2]
+          for (let k = 0; k < 3; k++) sum[k] += px[i * 4 + k] - pl[i * 4 + k]
           n++
         }
-        if (n > 50) uniforms.uBg.value.lerp(new THREE.Color(r / n / 255, g / n / 255, b / n / 255), 0.2)
+        if (n < 200) return
+        const fix = sum.map((v) => v / n)
+        let off = 0
+        for (let i = 0; i < px.length / 4; i += 2) {
+          if (maskData[i] > 40) continue
+          for (let k = 0; k < 3; k++) off += Math.abs(px[i * 4 + k] - pl[i * 4 + k] - fix[k])
+        }
+        plate.off = off / n / 3
+        plate.ok = plate.off < 12
+        uniforms.uPlateFix.value.lerp(new THREE.Vector3(fix[0] / 255, fix[1] / 255, fix[2] / 255), 0.3)
       }
 
       function startBang(x, y, key) {
@@ -2301,7 +2413,7 @@
             if (agentOn) {
               if (ERASE && mode !== "pop" && pop <= 0 && !sovaMask) runBody(now)
               if (videoFrames % 2 === 0) runPose(now)
-              if (ERASE && videoFrames % 15 === 0) sampleBackground()
+              if (ERASE && (plate.off === undefined || videoFrames % 15 === 0)) sampleBackground()
             }
             if (carOn && faceLm) drawParts()
           } catch (e) {
@@ -2318,6 +2430,7 @@
         if (fire.demo && !fire.on) fire.at.set(0.5, 0.3, 0.11)
         fire.amt = THREE.MathUtils.clamp(fire.amt + (fireWanted ? dt / 0.25 : -dt / 0.35), 0, 1)
         uniforms.uErase.value = headSeen && ERASE ? agentAmt : 0
+        uniforms.uPlateOk.value = plate.ok ? 1 : 0
         uniforms.uFire.value.copy(fire.at)
         uniforms.uFireAmt.value = fire.amt
         if (bang.t0 >= 0) updateBang(now)
@@ -2332,6 +2445,14 @@
         uniforms.uLensAmt.value = lens.amt
         lens.pts.forEach((v, i) => uniforms.uLens.value[i].copy(v))
         uniforms.uCover.value.set(cover.sx, cover.sy, cover.ox, cover.oy)
+
+        // The face's mask and what's behind Luan, before the camera's layer, which erases his hair with them.
+        const ready = agentList.filter((a) => a.amt > 0 && a.ready)
+        if (ready.length) drawKeep(ready.find((a) => a.trim)?.trim)
+        if (agentAmt > 0 && ERASE && maskFresh) {
+          remember()
+          maskFresh = false
+        }
 
         renderer.setScissorTest(false)
         renderer.setViewport(0, 0, W, H)
@@ -2357,7 +2478,6 @@
           renderer.render(front, shapeCam)
         }
         // The agents' clothes on the shoulders, then Luan's face and hands back over them.
-        const ready = agentList.filter((a) => a.amt > 0 && a.ready)
         for (const a of ready) {
           if (pose.seen && headSeen) {
             placeTorso(a)
@@ -2370,10 +2490,7 @@
             a.torso.visible = false
           } else a.seen = false
         }
-        if (ready.length) {
-          drawKeep()
-          renderer.render(keepScene, ortho)
-        }
+        if (ready.length) renderer.render(keepScene, ortho)
         for (const a of agentList) {
           a.hair.visible = a.amt > 0
           a.hair.scale.set(1, easeOutBack(a.amt), 1)
@@ -2416,7 +2533,7 @@
             `${fps.toFixed(0)} fps · ${delegate || "…"} · ${camLabel}\n` +
             `gesto ${ms.gesto.toFixed(1)} ms · corpo ${ms.corpo.toFixed(1)} ms · rosto ${ms.rosto.toFixed(1)} ms · ombros ${ms.ombros.toFixed(1)} ms\n` +
             `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}` +
-            (ag ? `\n${mode}: modelo ${ag.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"}${AGENTS[mode] ? ` · ombros ${pose.seen ? "sim" : "não"}` : ""}` : "") +
+            (ag ? `\n${mode}: modelo ${ag.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"}${AGENTS[mode] ? ` · ombros ${pose.seen ? "sim" : "não"} · fundo ${!ERASE ? "desligado" : plate.off === undefined ? "…" : `${plate.ok ? "ok" : "não bate"} (${plate.off.toFixed(1)})`}` : ""}` : "") +
             (mode === "sova" ? `\nsova: arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? " · flecha" : ""}${sova.dart ? " · dardo" : ""}${sova.shock ? " · choque" : ""}${sova.drone ? " · coruja" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
             (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
         }
