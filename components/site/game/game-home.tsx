@@ -4,6 +4,7 @@ import { PageList } from "@/components/site/game/page-list"
 import { RoadmapProgress, ShowroomStage } from "@/components/site/game/game-home-client"
 import { Ladder } from "@/components/site/game/ladder"
 import { Range } from "@/components/site/game/range"
+import { CollectionGlimpse } from "@/components/site/inventory/collection-glimpse"
 import { divisionOf, longDate, tierOf, type RankInfo } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { channelPath } from "@/lib/channel"
@@ -14,7 +15,8 @@ import { MODES, summarize, type Mode, type Session } from "@/lib/ranked"
 import { entries } from "@/lib/roadmap"
 import { localize } from "@/lib/site"
 import { summarizeValorant, tierId, type ValorantSession } from "@/lib/valorant"
-import { inventory } from "@/lib/valorant-inventory"
+import { catalog } from "@/lib/valorant-catalog-file"
+import { seed } from "@/lib/valorant-inventory"
 import { rankById, summarizeVoltaic, type VoltaicDay } from "@/lib/voltaic"
 
 const T = localize({
@@ -80,7 +82,6 @@ export function GameHome({
   const aim = game.aim ? summarizeVoltaic(voltaic) : undefined
   const aimLatest = aim?.benchmarks.at(-1)
   const aimRank = rankById(aimLatest?.rank)
-  const collection = game.inventory ? inventory().weapons.flatMap((weapon) => (weapon.ideal ? [weapon.ideal] : [])) : []
 
   return (
     <>
@@ -183,18 +184,7 @@ export function GameHome({
                       icon: "inventory" as const,
                       title: localize(game.inventory.title),
                       summary: localize(game.inventory.description),
-                      glimpse: (
-                        <span className="w-full max-w-48 space-y-1.5">
-                          <span className="block text-[13px] tabular-nums text-muted">
-                            {collection.filter((skin) => skin.owned).length} {T.of} {collection.length} {T.collected}
-                          </span>
-                          <span className="flex h-1.5 gap-[2px]" aria-hidden>
-                            {collection.map((skin, index) => (
-                              <span key={index} className={skin.owned ? "flex-1 rounded-full bg-navy" : "flex-1 rounded-full bg-zinc-200"} />
-                            ))}
-                          </span>
-                        </span>
-                      ),
+                      glimpse: <CollectionGlimpse weapons={catalog().armas.map((weapon) => weapon.id)} start={seed()} of={T.of} collected={T.collected} />,
                     },
                   ]
                 : []),

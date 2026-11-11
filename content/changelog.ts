@@ -108,14 +108,6 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
-    id: "loadout-dos-sonhos",
-    status: "agora",
-    tag: "site",
-    title: "Monte seu loadout dos sonhos no Valorant",
-    text: "Escolha a skin de cada arma entre todas do jogo, exporte numa imagem só e, entrando com a Twitch, deixe salvo no seu perfil.",
-    credit: { by: "maxchadoz" },
-  },
-  {
     id: "analise-de-mira",
     status: "proximo",
     tag: "site",
@@ -126,6 +118,16 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "loadout-dos-sonhos",
+    date: "2026-11-10",
+    tag: "site",
+    title: "Monte seu loadout dos sonhos no Valorant",
+    text: "Escolha a skin de cada arma entre todas do jogo e exporte numa imagem só. Entrando com a Twitch, fica salvo no seu perfil, com um link pra mostrar. E a minha coleção agora se atualiza sozinha direto do jogo.",
+    href: "/conteudo/valorant/inventory#montar",
+    credit: { by: "maxchadoz" },
+    media: [media("loadout-dos-sonhos", "A minha coleção dos sonhos exportada como imagem: as 21 armas, 13 com skin escolhida")],
+  },
   {
     id: "creditos-da-live",
     date: "2026-11-10",

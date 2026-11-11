@@ -11,7 +11,9 @@ end. When a match ends it asks Valorant's own match history (with the tokens the
 only) for its summary: result, score, map, agent, Luan's kills, deaths, assists, combat score, shots by body part,
 damage and first kills, the RR it won or lost and the rank after, and his teammates' numbers without their names
 (but for the viewers in public/stream/aliados.json who agreed to be named, by their Riot ID). The "Partidas" dock
-keeps those as the Valorant session and publishes it to content/valorant/, which the site reads. Nothing touches the
+keeps those as the Valorant session and publishes it to content/valorant/, which the site reads. When Valorant opens,
+after each match and every 15 minutes in the menus, it sends his inventory to the site when it changed
+(valorant_inventory.py: the skin on each weapon and what he owns, for the inventory page). Nothing touches the
 game itself; the Riot Client's local API and Valorant's are unofficial, so a patch can change them. The Riot Client
 only answers most of this while Valorant is open.
 
@@ -48,6 +50,7 @@ PORT = 8792
 CURL = "/mnt/c/Windows/System32/curl.exe"
 LOCKFILE = home() / "AppData" / "Local" / "Riot Games" / "Riot Client" / "Config" / "lockfile"
 EVERY = 2.0
+INVENTORY_EVERY = 15 * 60
 ORIGINS = {"https://muanlartins.com.br", "https://muanlartins.com", "http://localhost:3000", "http://localhost:8130"}
 # Queues whose score counts rounds; deathmatch and its kin count kills.
 ROUNDS = {"competitive", "unrated", "swiftplay", "premier", "spikerush", "newmap", ""}
@@ -122,9 +125,16 @@ def fetch_rr():
         print(time.strftime("%H:%M:%S"), "RR ainda não:", type(error).__name__, flush=True)
 
 
+def sync_inventory():
+    """The inventory on the site, when it changed (valorant_inventory.py)."""
+    from valorant_inventory import sync
+    sync(lambda text: print(time.strftime("%H:%M:%S"), text, flush=True))
+
+
 def watch():
     puuid = None
     last_score = None  # (ours, theirs) during the match being played
+    inventory_at = 0.0
     while True:
         match = {}
         try:
@@ -163,6 +173,7 @@ def watch():
             ours, theirs = last_score
             send({"tipo": "partida", "vitoria": ours > theirs, "placar": f"{ours}–{theirs}"})
             threading.Thread(target=summarize_latest, daemon=True).start()
+            inventory_at = 0.0
         if phase != "partida":
             last_score = None
 
@@ -177,6 +188,12 @@ def watch():
         now.update(fase=phase, mapa=map_name, fila=queue_id, placar=score, tier=tier, aberto=open_)
         if opened:
             threading.Thread(target=fetch_rr, daemon=True).start()
+        # On opening, after a match (above) and every so often in the menus, where skins are bought and equipped.
+        if open_ and phase == "menu" and time.time() - inventory_at > INVENTORY_EVERY:
+            inventory_at = time.time()
+            threading.Thread(target=sync_inventory, daemon=True).start()
+        if not open_:
+            inventory_at = 0.0
         time.sleep(EVERY)
 
 

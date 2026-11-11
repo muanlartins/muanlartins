@@ -14,6 +14,11 @@ export const profile = {
     en: "Only to know your Twitch name, which is your fan's name. The site sees nothing else of your account. You can build first and sign in just to save.",
   },
   signedInAs: { pt: "Você é", en: "You're" },
+  loadout: { pt: "Seu loadout dos sonhos no Valorant", en: "Your dream Valorant loadout" },
+  loadoutHint: {
+    pt: "Monte com qualquer skin do jogo e exporte numa imagem; entrando com a Twitch, fica salvo aqui no seu perfil.",
+    en: "Build it from any skin in the game and export it as one image; signed in with Twitch, it's kept in your profile.",
+  },
   you: { pt: "você", en: "you" },
   signOut: { pt: "Sair", en: "Sign out" },
   save: { pt: "Salvar", en: "Save" },
