@@ -120,7 +120,7 @@ export const UPCOMING: Upcoming[] = [
 export const SHIPPED: Shipped[] = [
   {
     id: "musica-no-pix",
-    date: "2026-11-11",
+    date: "2026-11-10",
     tag: "live",
     title: "Música feita por IA no Pix",
     text: "A partir de R$ 5: escolha o estilo e diga sobre o que é a música, ou escreva a letra. A IA canta em português, a música toca na live e depois fica no mural pra você ouvir e baixar.",
