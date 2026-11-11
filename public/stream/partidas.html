@@ -242,6 +242,18 @@
         gap: 8px;
         margin: 10px 0 0;
       }
+      .idiomas {
+        margin: 6px 0 0 21px;
+      }
+      .idiomas label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+      }
+      .idiomas select {
+        padding: 3px 6px;
+      }
       .games {
         margin: 12px 0 0;
       }
@@ -268,6 +280,10 @@
     <p class="twin" id="twin" hidden>Outra cópia deste painel está aberta (no navegador?). Feche uma: as duas mandam placar e gols para a live.</p>
     <label class="check"><input type="checkbox" id="narrador" /> Galvão narrando os gols</label>
     <label class="check"><input type="checkbox" id="legenda" /> Legendas ao vivo</label>
+    <p class="row idiomas" id="idiomas" title="Idiomas diferentes: a legenda é traduzida (um pouco mais de atraso e de GPU)">
+      <label>Falo <select id="legenda-fala"><option value="pt">Português</option><option value="en">Inglês</option></select></label>
+      <label>Legenda em <select id="legenda-em"><option value="pt">Português</option><option value="en">Inglês</option></select></label>
+    </p>
     <p class="row tabs games" id="games"><button data-jogo="rocket-league">Rocket League</button><button data-jogo="valorant">Valorant</button></p>
 
     <section id="val-tab" hidden>
@@ -351,7 +367,7 @@
       // ?demo plays fake matches into its own storage, so the real sessions stay untouched.
       const KEY = params.has("demo") ? "partidas:demo" : "partidas:v1"
       const state = Object.assign(
-        { mode: "3v3", ranks: {}, sessions: [], jogo: "rocket-league", val: { sessions: [], tier: null, rr: null }, show: true, autoScene: true, narrador: false, legenda: true, me: null, obsPassword: "", token: "" },
+        { mode: "3v3", ranks: {}, sessions: [], jogo: "rocket-league", val: { sessions: [], tier: null, rr: null }, show: true, autoScene: true, narrador: false, legenda: true, legendaFala: "pt", legendaEm: "pt", me: null, obsPassword: "", token: "" },
         JSON.parse(localStorage.getItem(KEY) || "{}"),
       )
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
@@ -437,6 +453,9 @@
         $("auto-scene").checked = state.autoScene
         $("narrador").checked = state.narrador
         $("legenda").checked = state.legenda
+        $("idiomas").hidden = !state.legenda
+        $("legenda-fala").value = state.legendaFala
+        $("legenda-em").value = state.legendaEm
         $("count").textContent = session.matches.length || ""
         $("empty").hidden = session.matches.length > 0
         $("matches").replaceChildren(...[...session.matches].reverse().map((m) => matchItem(session, m)))
@@ -605,7 +624,11 @@
       $("show").onchange = () => ((state.show = $("show").checked), save(), render())
       $("auto-scene").onchange = () => ((state.autoScene = $("auto-scene").checked), save())
       $("narrador").onchange = () => ((state.narrador = $("narrador").checked), save(), broadcast())
-      $("legenda").onchange = () => ((state.legenda = $("legenda").checked), save(), broadcast())
+      $("legenda").onchange = () => ((state.legenda = $("legenda").checked), ($("idiomas").hidden = !state.legenda), save(), broadcast())
+      // The captions' languages: what Luan speaks, what the stand shows; when they differ, legenda.py translates
+      // (its LANGUAGES lists the codes it takes).
+      $("legenda-fala").onchange = () => ((state.legendaFala = $("legenda-fala").value), save(), broadcast())
+      $("legenda-em").onchange = () => ((state.legendaEm = $("legenda-em").value), save(), broadcast())
       $("obs-password").onchange = () => ((state.obsPassword = $("obs-password").value), save(), obs.close())
       $("token").onchange = () => ((state.token = $("token").value.trim()), save())
       $("new-session").onclick = () => (state.jogo === "valorant" ? ((valCurrent(), state.val.sessions.push({ id: sessionId(new Date()), start: new Date().toISOString(), outputs: [], matches: [], dirty: false })), save()) : newSession(), render())
@@ -892,7 +915,7 @@
         const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, emPartida, ...record(current(), state.mode) }
         emit("muanlartins-partidas", detail)
         emit("muanlartins-torcida", { tipo: "narrador", ligado: state.narrador })
-        emit("muanlartins-torcida", { tipo: "legenda", ligado: state.legenda })
+        emit("muanlartins-torcida", { tipo: "legenda", ligado: state.legenda, fala: state.legendaFala, em: state.legendaEm })
         // The stand credits Σ only while the stream is on.
         request("GetStreamStatus").then((r) => r && emit("muanlartins-torcida", { tipo: "noar", ligado: r.outputActive }))
         // Tells any other copy of this dock that this one is open.

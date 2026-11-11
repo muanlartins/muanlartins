@@ -119,6 +119,14 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "legendas-traduzidas",
+    date: "2026-11-10",
+    tag: "live",
+    title: "Legendas traduzidas",
+    text: "A legenda da live pode sair em inglês enquanto eu falo português, ou em português quando eu falo inglês: traduzida na hora, aqui no meu PC.",
+    media: [media("legendas-traduzidas", "A legenda da live em inglês, \"Whoa! What is that?\", enquanto eu falava em português no menu do Rocket League")],
+  },
+  {
     id: "loadout-dos-sonhos",
     date: "2026-11-10",
     tag: "site",

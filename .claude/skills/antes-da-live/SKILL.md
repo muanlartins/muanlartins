@@ -24,6 +24,10 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
   second (~0.2 s each, ~1 GB VRAM). If the stream stutters with them on, untick it first; it frees the GPU at once.
   whisper-server's own output from its last start is in `~/.cache/muanlartins/whisper-server.log`; it takes ~17 s to
   load idle and over 30 s while OBS is opening (it waits up to 120 s, and retries 5 s after a failure).
+  With the dock's "Falo" and "Legenda em" on different languages, each line is also translated by Gemma 4 E4B
+  on llama-server (~3 GB more VRAM, GPU use about the same as whisper's), started only then: the first lines go out
+  untranslated while it loads, and its output is in `~/.cache/muanlartins/tradutor.log`. Same languages again
+  stops it.
 - Valorant (`scripts/valorant.py`, started at login too, log `~/.cache/muanlartins/valorant.log`): reads Luan's
   own presence from the Riot Client every 2 s (two `curl.exe` calls, negligible) for the Valorant scene's stand and
   rank plate. `http://127.0.0.1:8792/` shows what it knows; if the plate or the rounds stop, check that first.
