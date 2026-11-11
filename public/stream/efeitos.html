@@ -441,13 +441,15 @@
       // --- Scenes ---------------------------------------------------------------------------------------------
       let current = null
       let before = null // the last scene that wasn't an effect, to go back to
-      const history = [] // the scenes on screen since the dock connected, the latest last
+      // Not `history`: a top-level const of that name shadows window.history, and the #obs= handling above (which
+      // calls history.replaceState) then throws before the dock connects (11-10 to 11-11: F2, F4, F8 and the sounds dead).
+      const cenas = [] // the scenes on screen since the dock connected, the latest last
       let zooming = false
       function changed(scene) {
         current = scene
         fimNoAr(scene)
-        if (history.at(-1) !== scene) history.push(scene)
-        if (history.length > 30) history.shift()
+        if (cenas.at(-1) !== scene) cenas.push(scene)
+        if (cenas.length > 30) cenas.shift()
         const isLance = LANCES.includes(scene)
         if (!EFFECTS.includes(scene)) before = scene
         // Leaving the VAR's scene by any other way (OBS, Partidas) closes the VAR.
@@ -464,7 +466,7 @@
       }
       /** The game on screen: the scene's, else the one before it, else the last game scene seen. */
       function jogoAgora() {
-        return gameOf(current) ?? gameOf(before) ?? gameOf(history.findLast(isGameScene))
+        return gameOf(current) ?? gameOf(before) ?? gameOf(cenas.findLast(isGameScene))
       }
       /** The scene an effect goes back to: the one it came from, else (the dock opened during it) its game's. */
       const volta = (effect) => before ?? (gameOf(effect) ? GAMES[gameOf(effect)].main : null)
@@ -472,8 +474,8 @@
       function anterior() {
         if (EFFECTS.includes(current)) return volta(current)
         if (isGameScene(current)) return null
-        for (let i = history.length - 2; i >= 0; i--) {
-          const s = history[i]
+        for (let i = cenas.length - 2; i >= 0; i--) {
+          const s = cenas[i]
           if (s !== current && !EFFECTS.includes(s) && !BREAKS.includes(s)) return s
         }
         return null
