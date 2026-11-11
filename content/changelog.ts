@@ -119,6 +119,14 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "anuncio-no-intervalo",
+    date: "2026-11-11",
+    tag: "live",
+    title: "Anúncio só no intervalo",
+    text: "Quem chega na live não vê anúncio. Em troca, um intervalo de 3 min por hora, rodado entre uma partida e outra, e o primeiro durante o Começando, que conta até ele acabar.",
+    media: [media("anuncio-no-intervalo", "A tela de Começando contando 3:10 até o fim do anúncio de abertura, quando a live começa")],
+  },
+  {
     id: "musica-no-pix",
     date: "2026-11-10",
     tag: "live",

@@ -13,7 +13,8 @@ alerts. Import with Scene Collection → Import. Devices and the canvas below ar
 --apply merges instead of replacing: it adds to the collection OBS already has (and its secrets: the alerts URL,
 the overlays' keys) only what's missing here — sources, scenes, items in existing scenes, transitions, hotkeys
 not yet bound — and never changes or removes anything, but for the hotkeys in RETIRED, which it unbinds. It also copies the sound effects (brand/twitch/sons/) next
-to the stinger and adds the "Efeitos" and "Filtros" docks. OBS must be closed: it rewrites these files when it exits.
+to the stinger and adds the "Efeitos", "Filtros" and "Anúncios" docks (and takes out the ones in RETIRED_DOCKS). OBS must
+be closed: it rewrites these files when it exits.
 """
 import json
 import re
@@ -317,9 +318,15 @@ collection = {
 OBS = Path("/mnt/c/Users/muanl/AppData/Roaming/obs-studio")
 # The collection OBS has open (Luan renamed it "Live" on 11-07), from its user.ini.
 LIVE = OBS / "basic/scenes" / re.search(r"^SceneCollectionFile=(.+)$", (OBS / "user.ini").read_text(encoding="utf-8-sig"), re.M)[1].strip()
-# The docks this adds: Efeitos, from the site, and Filtros (the camera filters' switches), served from this working
-# copy like filtros.html itself.
-DOCKS = [("Efeitos", f"{SITE}/efeitos.html"), ("Filtros", "http://localhost:8126/stream/filtros-painel.html")]
+# The docks this adds: Efeitos and Anúncios (Twitch's ad breaks), from the site, and Filtros (the camera filters'
+# switches), served from this working copy like filtros.html itself.
+DOCKS = [
+    ("Efeitos", f"{SITE}/efeitos.html"),
+    ("Filtros", "http://localhost:8126/stream/filtros-painel.html"),
+    ("Anúncios", f"{SITE}/anuncios.html"),
+]
+# Docks this takes out: "Ads", a local PowerShell server's page that Anúncios replaced (2026-11-11).
+RETIRED_DOCKS = ["Ads"]
 
 
 def merge(live, new):
@@ -383,13 +390,15 @@ def merge(live, new):
 
 def add_docks():
     """Our docks in OBS's custom browser docks, each with the websocket password in its URL (never printed).
-    Returns the titles it added."""
+    Returns what it changed."""
     ini = OBS / "user.ini"
     text = ini.read_text(encoding="utf-8-sig")
     line = re.search(r"^ExtraBrowserDocks=(.*)$", text, re.M)
     docks = json.loads(line.group(1)) if line else []
+    retired = [d for d in docks if d.get("title") in RETIRED_DOCKS]
+    docks = [d for d in docks if d not in retired]
     missing = [d for d in DOCKS if not any(have.get("title") == d[0] for have in docks)]
-    if not missing:
+    if not missing and not retired:
         return []
     password = json.loads((OBS / "plugin_config/obs-websocket/config.json").read_text())["server_password"]
     docks += [{"title": title, "url": f"{url}#obs={password}", "uuid": str(uuid.uuid4())} for title, url in missing]
@@ -397,7 +406,7 @@ def add_docks():
     # A function as the replacement, so re.sub leaves the value's backslashes alone.
     text = re.sub(r"^ExtraBrowserDocks=.*$", lambda _: value, text, count=1, flags=re.M) if line else text.replace("[BasicWindow]\n", f"[BasicWindow]\n{value}\n", 1)
     ini.write_text(text, encoding="utf-8")
-    return [title for title, _ in missing]
+    return [title for title, _ in missing] + [f"{d['title']} (tirado)" for d in retired]
 
 
 def clashes(live):
@@ -449,7 +458,7 @@ def apply(dry=False):
     if var_webm.exists():
         shutil.copy(var_webm, sons.parent / var_webm.name)
         print(f"stinger do VAR copiado para {sons.parent}")
-    print(f"docks adicionados: {', '.join(docks)}" if (docks := add_docks()) else "os docks já estavam lá")
+    print(f"docks: {', '.join(docks)}" if (docks := add_docks()) else "os docks já estavam lá")
     print(f"cópias de antes: {LIVE.name}.antes-{stamp}, user.ini.antes-{stamp}")
 
 
