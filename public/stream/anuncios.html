@@ -1,0 +1,1194 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Anúncios · painel · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: Custom browser dock "Anúncios" (brand/twitch/obs.py --apply adds it), off stream. Twitch's ad breaks, kept to
+      the fewest that keep pre-rolls off and put where nothing happens. Keep it docked where it stays visible: a hidden
+      dock's timers slow down (its scene and Valorant triggers still fire at once; the countdown and the reads lag).
+
+      The plan (Luan, 2026-11-11): no pre-roll for whoever arrives, and as few ads as that allows, at a time he knows
+      and can explain. Twitch's Ads Manager does the schedule: Manual, 3 min every 60 min (the least that turns
+      "Pre-roll Ads for Incoming Viewers" fully off: 1 s of mid-roll buys 20 s without pre-rolls), First Ad Delay 1 min,
+      Auto Snooze off, subs ad-free, the chat's countdown on. This dock adds:
+
+      - The opening: Twitch runs the first break 1 min after the stream starts, so Luan opens in Começando and stays
+        until it ends. The dock says when, warns (with a sound) if the stream starts in another scene, and sends the
+        end of the opening break to intervalo.html, whose Começando screen counts down to it.
+      - The hour's break between matches ("No intervalo entre partidas", on by default): from 5 min before the
+        scheduled time it runs the break as soon as Luan is between matches (scenes Conversa or Já volto, where the
+        Partidas dock cuts after a Rocket League match, or Valorant's menus while a Valorant scene is on, from
+        scripts/valorant.py on 127.0.0.1:8792). Mid-match at 1 min to go, it snoozes 5 min (Twitch allows 3, one back
+        an hour) and runs the break at the next break between matches. Nothing new before the opening: that one stays
+        Twitch's. Running a break by hand is meant to restart Twitch's timer; the first time it happens, the dock checks
+        the next scheduled time and, if Twitch kept the old one, turns this off for good (a second break 10 minutes
+        later would be the worst outcome) and says so.
+      - Sounds for Luan only (the dock plays them on Windows' default output; OBS captures no desktop audio): 15 min,
+        5 min, 1 min when the break will really fall in play, the break's start and end, the auto snooze, a stream that
+        starts outside Começando and pre-rolls turning back on.
+      - The breaks of the live, how each came (opening, between matches, by hand, on schedule) and how long.
+
+      Twitch: device flow with the site's Twitch app, like the Efeitos dock; scopes channel:read:ads (the schedule),
+      channel:manage:ads (snooze) and channel:edit:commercial (run). The tokens stay in this dock's storage. It reads
+      GET /channels/ads every 15 s live (5 s close to a break), Unix seconds, 0 meaning none. OBS (obs-websocket, the
+      password in the dock's storage, #obs=<password> fills it): the scene on air, whether it's streaming and since
+      when, and every 5 s the event "muanlartins-anuncios" through obs-browser's emit_event, to the browser sources:
+      { aoVivo, proximo, duracao, rodandoAte, comecaEm, livreAte } (ms on this PC's clock; comecaEm is when the opening
+      break ends, 0 once it's over). ?demo=abertura|contando|janela|adiado|perto|rodando|exposto|fora draws a state
+      with made-up times and touches nothing.
+    -->
+    <style>
+      :root {
+        --amarelo: #ffcc4d;
+        --vermelho: #ff5a5a;
+        --tenue: rgb(244 245 247 / 0.6);
+        --linha: rgb(133 167 255 / 0.4);
+      }
+      html,
+      body {
+        overflow: auto;
+        background: var(--navy);
+      }
+      body {
+        padding: 14px;
+        font-size: 15px;
+        line-height: 1.35;
+      }
+      h2 {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 20px 0 8px;
+        color: var(--klein-claro);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      h2 small {
+        color: var(--tenue);
+        font-size: 12px;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+      .topo {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 14px;
+      }
+      .status {
+        margin: 0;
+        color: var(--tenue);
+        font-size: 12px;
+      }
+      .status::before {
+        content: "";
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background: var(--vermelho);
+      }
+      .status.on::before {
+        background: var(--klein-claro);
+      }
+      .som {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+        color: var(--tenue);
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      /* The countdown: the lattice comes up behind it while a break runs, as on the stream's own screens. */
+      .placar {
+        position: relative;
+        overflow: hidden;
+        margin-top: 12px;
+        padding: 12px 14px 14px;
+        border: 1px solid var(--linha);
+        background: rgb(0 47 167 / 0.22);
+        transition:
+          border-color 0.3s,
+          background-color 0.3s;
+      }
+      .placar .ground {
+        opacity: 0;
+        transition: opacity 0.5s var(--ease);
+      }
+      .placar > :not(.ground) {
+        position: relative;
+      }
+      .rotulo {
+        margin: 0;
+        color: var(--klein-claro);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .tempo {
+        margin: 4px 0 0;
+        font-size: 58px;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .linha {
+        min-height: 1.35em;
+        margin: 8px 0 0;
+        color: rgb(244 245 247 / 0.78);
+        font-size: 13px;
+      }
+      .barra {
+        height: 3px;
+        margin-top: 12px;
+        background: rgb(133 167 255 / 0.18);
+      }
+      .barra i {
+        display: block;
+        width: 0;
+        height: 100%;
+        background: var(--klein-claro);
+      }
+      .placar[data-estado="fora"] .tempo {
+        color: rgb(244 245 247 / 0.35);
+      }
+      .placar[data-estado="janela"] {
+        border-color: var(--klein-claro);
+        background: rgb(0 47 167 / 0.45);
+      }
+      .placar[data-estado="adiado"],
+      .placar[data-estado="abertura"] {
+        border-color: var(--amarelo);
+      }
+      .placar[data-estado="adiado"] .rotulo,
+      .placar[data-estado="abertura"] .rotulo {
+        color: var(--amarelo);
+      }
+      .placar[data-estado="perto"] {
+        border-color: var(--vermelho);
+        animation: pulso 1s steps(2, jump-none) infinite;
+      }
+      .placar[data-estado="perto"] .rotulo,
+      .placar[data-estado="perto"] .tempo {
+        color: var(--vermelho);
+      }
+      .placar[data-estado="perto"] .barra i {
+        background: var(--vermelho);
+      }
+      @keyframes pulso {
+        50% {
+          background-color: rgb(255 90 90 / 0.16);
+        }
+      }
+      .placar[data-estado="rodando"] {
+        border-color: var(--paper);
+      }
+      .placar[data-estado="rodando"] .ground {
+        opacity: 1;
+      }
+      .placar[data-estado="rodando"] .rotulo {
+        color: var(--paper);
+      }
+      .placar[data-estado="rodando"] .linha {
+        color: var(--paper);
+      }
+      .placar[data-estado="rodando"] .barra {
+        background: rgb(244 245 247 / 0.25);
+      }
+      .placar[data-estado="rodando"] .barra i {
+        background: var(--paper);
+      }
+
+      .aviso {
+        margin: 8px 0 0;
+        padding: 8px 10px;
+        border-left: 3px solid var(--amarelo);
+        background: rgb(255 204 77 / 0.08);
+        font-size: 13px;
+      }
+      .aviso.grave {
+        border-color: var(--vermelho);
+        background: rgb(255 90 90 / 0.12);
+      }
+
+      .acoes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      button {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1px;
+        font: inherit;
+        font-size: 14px;
+        color: var(--paper);
+        background: rgb(0 47 167 / 0.45);
+        border: 1px solid var(--linha);
+        padding: 9px 10px;
+        cursor: pointer;
+        text-align: left;
+      }
+      button:hover:not(:disabled) {
+        border-color: var(--klein-claro);
+      }
+      button small {
+        color: var(--tenue);
+        font-size: 11px;
+      }
+      button.armado {
+        background: rgb(255 90 90 / 0.22);
+        border-color: var(--vermelho);
+      }
+      button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .note {
+        margin: 8px 0 0;
+        color: rgb(244 245 247 / 0.55);
+        font-size: 12px;
+      }
+      #msg:empty {
+        display: none;
+      }
+
+      .dado {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 14px;
+      }
+      .dado b {
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+      }
+      .bom {
+        color: var(--klein-claro);
+      }
+      .meio {
+        color: var(--amarelo);
+      }
+      .ruim {
+        color: var(--vermelho);
+      }
+      .barra.fina {
+        height: 2px;
+        margin-top: 8px;
+      }
+
+      .log {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 13px;
+      }
+      .log li {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 5px 0;
+        border-bottom: 1px solid rgb(133 167 255 / 0.18);
+      }
+      .log li:last-child {
+        border-bottom: 0;
+      }
+      .log span:last-child {
+        color: var(--tenue);
+      }
+      .log .vazio {
+        color: rgb(244 245 247 / 0.5);
+      }
+
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .check input:disabled + span {
+        opacity: 0.5;
+      }
+      details {
+        margin-top: 18px;
+        font-size: 13px;
+      }
+      summary {
+        cursor: pointer;
+        color: var(--tenue);
+      }
+      details input[type="password"] {
+        width: 100%;
+        margin-top: 6px;
+        font: inherit;
+        color: var(--paper);
+        background: rgb(0 47 167 / 0.45);
+        border: 1px solid var(--linha);
+        padding: 6px 9px;
+      }
+      details .acoes button {
+        align-items: center;
+        text-align: center;
+      }
+      .code {
+        font-size: 22px;
+        letter-spacing: 0.12em;
+        color: var(--paper);
+      }
+      .testar {
+        margin-top: 6px;
+        width: 100%;
+        align-items: center;
+        background: none;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topo">
+      <p class="status" id="obs">OBS desconectado</p>
+      <p class="status" id="twitch">Twitch desconectada</p>
+      <label class="som"><input type="checkbox" id="som" /> Som</label>
+    </div>
+
+    <section class="placar" id="placar" data-estado="fora">
+      <div class="ground"></div>
+      <p class="rotulo" id="rotulo">Anúncios</p>
+      <p class="tempo" id="tempo">—</p>
+      <p class="linha" id="linha"></p>
+      <div class="barra"><i id="barra"></i></div>
+    </section>
+    <p class="aviso" id="aviso" hidden></p>
+
+    <div class="acoes">
+      <button id="rodar"><span>Rodar agora</span><small id="rodar-sub">3 min · dois cliques</small></button>
+      <button id="adiar"><span>Adiar 5 min</span><small id="adiar-sub"></small></button>
+    </div>
+    <p class="note" id="msg"></p>
+
+    <h2>Pre-roll</h2>
+    <div class="dado"><span id="preroll-rotulo">Quem chega</span><b id="preroll">—</b></div>
+    <div class="barra fina"><i id="preroll-barra"></i></div>
+    <p class="note" id="preroll-nota" hidden></p>
+
+    <h2><span id="lista-titulo">Nesta live</span> <small id="lista-total"></small></h2>
+    <ul class="log" id="lista"></ul>
+
+    <h2>Intervalo</h2>
+    <label class="check"><input type="checkbox" id="auto" /> <span>No intervalo entre partidas</span></label>
+    <p class="note" id="auto-nota"></p>
+
+    <details id="tw-det">
+      <summary>Conexão com a Twitch</summary>
+      <p class="note" id="tw-passo">Entre com a conta do canal: o painel lê o horário dos anúncios, adia e roda.</p>
+      <div class="acoes">
+        <button id="tw-entrar">Conectar</button>
+        <button id="tw-sair">Desconectar</button>
+      </div>
+    </details>
+    <details>
+      <summary>Conexão com o OBS</summary>
+      <input id="password" type="password" placeholder="Senha do obs-websocket" autocomplete="off" />
+    </details>
+    <details>
+      <summary>Sons</summary>
+      <p class="note">Só no seu fone: o OBS não capta o som da área de trabalho.</p>
+      <button class="testar" id="testar">Testar os sons</button>
+    </details>
+
+    <script>
+      const $ = (id) => document.getElementById(id)
+      const params = new URLSearchParams(location.search)
+      const DEMO = params.get("demo")
+      const CLIENT_ID = "dploislenvijye1obbcm5dqxcxu5y1" // the site's Twitch app (lib/profile.ts), as in the Efeitos dock
+      const SCOPES = "channel:read:ads channel:manage:ads channel:edit:commercial"
+      const HELIX = "https://api.twitch.tv/helix"
+      const VALORANT = params.get("valorant") ?? "http://127.0.0.1:8792"
+      const COMECANDO = "Começando"
+      // Between matches: where the Partidas dock cuts after a Rocket League match, and the break screen.
+      const PAUSAS = ["Conversa", "Já volto"]
+      const MIN = 60e3
+      const JANELA = 5 * MIN // how early the hour's break may run, between matches
+      const ADIAR = MIN // mid-match this close to it, snooze
+      const DURACAO = 180
+      const COMO = { abertura: "abertura", intervalo: "entre partidas", mao: "na mão", horario: "no horário" }
+
+      // --- storage --------------------------------------------------------------------------------------------
+      const ler = (k, d = {}) => {
+        try {
+          return JSON.parse(localStorage.getItem(k)) ?? d
+        } catch {
+          return d
+        }
+      }
+      const gravar = (k, v) => {
+        try {
+          localStorage.setItem(k, JSON.stringify(v))
+        } catch {}
+      }
+      // reinicia: whether a break run by hand restarts Twitch's timer (null until seen once).
+      const cfg = { obsPassword: "", som: true, intervalo: true, reinicia: null, inicio: 0, ...ler("anuncios") }
+      const salvar = () => DEMO || gravar("anuncios", cfg)
+      const tw = { token: null, refresh: null, user: null, ...ler("anuncios-twitch") }
+      const salvarTw = () => gravar("anuncios-twitch", { token: tw.token, refresh: tw.refresh })
+      let historico = ler("anuncios-historico", []) // [{ em, s, como }], the latest 40
+      const salvarHist = () => DEMO || gravar("anuncios-historico", historico.slice(-40))
+
+      const fromHash = new URLSearchParams(location.hash.slice(1)).get("obs")
+      if (fromHash) {
+        cfg.obsPassword = fromHash
+        salvar()
+        history.replaceState(null, "", location.pathname + location.search)
+      }
+
+      // --- time -----------------------------------------------------------------------------------------------
+      const dd = (n) => String(n).padStart(2, "0")
+      function relogio(ms) {
+        const s = Math.max(0, Math.ceil(ms / 1000))
+        const h = Math.floor(s / 3600)
+        const m = Math.floor((s % 3600) / 60)
+        return h ? `${h}:${dd(m)}:${dd(s % 60)}` : `${m}:${dd(s % 60)}`
+      }
+      const hora = (ms) => new Date(ms).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+      const duracao = (s) => (s % 60 ? `${Math.floor(s / 60)}:${dd(s % 60)} min` : `${s / 60} min`)
+      // Helix gives Unix seconds with 0 for none; an RFC 3339 string is read too, in case that ever changes.
+      function quando(v) {
+        if (v == null || v === "") return 0
+        const n = Number(v)
+        if (Number.isFinite(n)) return n > 0 ? (n < 1e12 ? n * 1000 : n) : 0
+        const t = Date.parse(v)
+        return Number.isNaN(t) ? 0 : t
+      }
+
+      // --- state ----------------------------------------------------------------------------------------------
+      let ag = null // the schedule: { proximo, ultimo, duracao, livreAte, adiamentos, maisUmEm }
+      let aoVivo = false
+      let inicio = 0 // when the stream started
+      let cena = ""
+      let obsOk = false
+      const val = { fase: null, aberto: false }
+      let localAte = 0 // when a break this dock started ends
+      let ultimaDuracao = 0
+      let esperando = false // snoozed, waiting for the match to end
+      const tentouAdiar = new Set() // scheduled times the auto snooze already tried
+      let cooldownAte = 0
+      let conferirDesde = 0 // a break run by hand at this time: is Twitch's next one an hour on?
+      let ocupado = false
+      let erroTwitch = ""
+
+      const durAtual = () => ag?.duracao || DURACAO
+      function rodandoAte() {
+        const now = Date.now()
+        let ate = localAte
+        if (ag?.ultimo) ate = Math.max(ate, ag.ultimo + (ultimaDuracao || durAtual()) * 1000)
+        // The scheduled time came and Twitch hasn't said yet: assume it's on, until the next read says otherwise.
+        if (ag?.proximo && now >= ag.proximo && now < ag.proximo + durAtual() * 1000) ate = Math.max(ate, ag.proximo + durAtual() * 1000)
+        return ate > now ? ate : 0
+      }
+      const desdeLive = () => (inicio || cfg.inicio || Date.now() - 6 * 3600e3) - 30e3
+      const adsDaLive = () => historico.filter((a) => a.em >= desdeLive())
+      const jaRodou = () => adsDaLive().length > 0 || Boolean(rodandoAte())
+      function emPausa() {
+        if (PAUSAS.includes(cena)) return true
+        return /valorant/i.test(cena) && val.aberto && val.fase === "menu"
+      }
+      // The end of the opening break, for Começando's countdown; 0 once it's over.
+      function comecaEm() {
+        if (!aoVivo) return 0
+        const ate = rodandoAte()
+        const lista = adsDaLive()
+        // The break running is the opening when it's the live's first (or the only one logged, still on).
+        if (ate) return !lista.length || (lista.length === 1 && lista[0].em + lista[0].s * 1000 > Date.now() - 5e3) ? ate : 0
+        if (!lista.length && ag?.proximo > Date.now()) return ag.proximo + durAtual() * 1000
+        return 0
+      }
+
+      function registrar(em, s, como) {
+        if (historico.some((a) => Math.abs(a.em - em) < 90e3)) return
+        historico.push({ em, s, como })
+        historico.sort((a, b) => a.em - b.em)
+        salvarHist()
+      }
+
+      // --- sounds (Windows' default output: Luan's headset) ---------------------------------------------------
+      let ac = null
+      const SONS = {
+        aviso: [[660, 0.22]],
+        janela: [
+          [660, 0.16],
+          [880, 0.24],
+        ],
+        perto: [
+          [988, 0.12],
+          [988, 0.12],
+          [988, 0.12],
+        ],
+        inicio: [
+          [523, 0.22],
+          [784, 0.5],
+        ],
+        fim: [
+          [784, 0.18],
+          [1047, 0.42],
+        ],
+        adiado: [
+          [587, 0.2],
+          [440, 0.36],
+        ],
+        perigo: [
+          [440, 0.35],
+          [330, 0.6],
+        ],
+      }
+      function tocar(nome, forcar = false) {
+        if ((!cfg.som && !forcar) || DEMO) return
+        try {
+          ac ??= new AudioContext()
+          if (ac.state === "suspended") ac.resume()
+          let t = ac.currentTime + 0.02
+          for (const [f, d] of SONS[nome]) {
+            const o = ac.createOscillator()
+            const g = ac.createGain()
+            o.type = "triangle"
+            o.frequency.value = f
+            g.gain.setValueAtTime(0.0001, t)
+            g.gain.exponentialRampToValueAtTime(0.35, t + 0.02)
+            g.gain.exponentialRampToValueAtTime(0.0001, t + d)
+            o.connect(g).connect(ac.destination)
+            o.start(t)
+            o.stop(t + d + 0.05)
+            t += d + 0.07
+          }
+        } catch {}
+      }
+      $("som").checked = cfg.som
+      $("som").onchange = (e) => {
+        cfg.som = e.target.checked
+        salvar()
+        if (cfg.som) tocar("aviso")
+      }
+      $("testar").onclick = () => {
+        const fila = ["aviso", "janela", "perto", "inicio", "fim"]
+        fila.forEach((nome, i) => setTimeout(() => tocar(nome, true), i * 900))
+      }
+
+      // --- Twitch ---------------------------------------------------------------------------------------------
+      const form = (url, fields) =>
+        fetch(url, { method: "POST", body: new URLSearchParams({ client_id: CLIENT_ID, ...fields }) })
+          .then(async (r) => ({ ok: r.ok, body: await r.json().catch(() => ({})) }))
+          .catch(() => ({ ok: false, body: {} }))
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+
+      let renovando = null
+      function renovar() {
+        renovando ??= (async () => {
+          if (!tw.refresh) return false
+          const { ok, body } = await form("https://id.twitch.tv/oauth2/token", { grant_type: "refresh_token", refresh_token: tw.refresh })
+          if (!ok) {
+            // A public client's refresh token lasts 30 days: past that, sign in again.
+            Object.assign(tw, { token: null, refresh: null, user: null })
+            salvarTw()
+            return false
+          }
+          Object.assign(tw, { token: body.access_token, refresh: body.refresh_token })
+          salvarTw()
+          return true
+        })().finally(() => (renovando = null))
+        return renovando
+      }
+
+      /** Calls Helix, refreshing the token once when it has expired. */
+      async function helix(method, path, body, retried = false) {
+        if (!tw.token) return { ok: false, status: 401, body: {} }
+        let r
+        try {
+          r = await fetch(HELIX + path, {
+            method,
+            headers: { "Client-Id": CLIENT_ID, Authorization: `Bearer ${tw.token}`, ...(body ? { "Content-Type": "application/json" } : {}) },
+            body: body ? JSON.stringify(body) : undefined,
+          })
+        } catch {
+          return { ok: false, status: 0, body: { message: "sem internet" } }
+        }
+        if (r.status === 401 && !retried && (await renovar())) return helix(method, path, body, true)
+        const json = r.status === 204 ? {} : await r.json().catch(() => ({}))
+        if (!r.ok) console.warn("Twitch", method, path, r.status, json.message)
+        return { ok: r.ok, status: r.status, body: json }
+      }
+
+      // Sign in with a code shown here and typed at twitch.tv/activate, so OBS's dock needs no redirect.
+      async function entrar() {
+        const { ok, body } = await form("https://id.twitch.tv/oauth2/device", { scopes: SCOPES })
+        if (!ok) return ($("tw-passo").textContent = "Não deu para pedir o código. Tente de novo.")
+        $("tw-passo").innerHTML = `Abra <b>twitch.tv/activate</b> com a conta do canal e digite:<br><span class="code"></span>`
+        $("tw-passo").querySelector(".code").textContent = body.user_code
+        const ate = Date.now() + body.expires_in * 1000
+        while (Date.now() < ate) {
+          await wait(body.interval * 1000)
+          const got = await form("https://id.twitch.tv/oauth2/token", {
+            scopes: SCOPES,
+            device_code: body.device_code,
+            grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+          })
+          if (got.ok) {
+            Object.assign(tw, { token: got.body.access_token, refresh: got.body.refresh_token })
+            salvarTw()
+            $("tw-passo").textContent = "Conectado."
+            return iniciarTwitch()
+          }
+          if (got.body.message !== "authorization_pending") break
+        }
+        $("tw-passo").textContent = "O código expirou. Clique em Conectar de novo."
+      }
+      $("tw-entrar").onclick = entrar
+      $("tw-sair").onclick = async () => {
+        if (tw.token) await form("https://id.twitch.tv/oauth2/revoke", { token: tw.token })
+        Object.assign(tw, { token: null, refresh: null, user: null })
+        salvarTw()
+        ag = null
+        erroTwitch = ""
+        $("tw-passo").textContent = "Desconectado."
+        statusTwitch()
+      }
+
+      async function iniciarTwitch() {
+        erroTwitch = ""
+        if (!tw.token) return statusTwitch()
+        const me = await helix("GET", "/users")
+        tw.user = me.body?.data?.[0] ?? null
+        if (tw.user) {
+          const v = await fetch("https://id.twitch.tv/oauth2/validate", { headers: { Authorization: `OAuth ${tw.token}` } })
+            .then((r) => r.json())
+            .catch(() => null)
+          if (v?.scopes && !SCOPES.split(" ").every((s) => v.scopes.includes(s))) {
+            erroTwitch = "conecte de novo (faltam permissões)"
+            tw.user = null
+          }
+        }
+        statusTwitch()
+        ciclo()
+      }
+      function statusTwitch() {
+        const ok = Boolean(tw.user) && !erroTwitch
+        $("twitch").className = ok ? "status on" : "status"
+        $("twitch").textContent = ok ? `Twitch: ${tw.user.login}` : erroTwitch ? `Twitch: ${erroTwitch}` : "Twitch desconectada"
+        $("tw-det").open = !ok
+      }
+
+      async function lerAgenda() {
+        const r = await helix("GET", `/channels/ads?broadcaster_id=${tw.user.id}`)
+        const d = r.body?.data?.[0]
+        if (!r.ok || !d) {
+          erroTwitch = r.status === 401 ? "conecte de novo" : ""
+          if (r.status === 401) tw.user = null
+          statusTwitch()
+          return
+        }
+        const antes = ag
+        ag = {
+          proximo: quando(d.next_ad_at),
+          ultimo: quando(d.last_ad_at),
+          duracao: Number(d.duration) || 0,
+          livreAte: Date.now() + (Number(d.preroll_free_time) || 0) * 1000,
+          adiamentos: Number(d.snooze_count) || 0,
+          maisUmEm: quando(d.snooze_refresh_at),
+        }
+        if (aoVivo && ag.ultimo && ag.ultimo !== antes?.ultimo && ag.ultimo >= desdeLive()) {
+          // Ours is already logged; another is the opening or Twitch's schedule.
+          if (Math.abs(ag.ultimo - (localAte - ultimaDuracao * 1000)) > 90e3) ultimaDuracao = 0
+          registrar(ag.ultimo, ultimaDuracao || ag.duracao || DURACAO, adsDaLive().length ? "horario" : "abertura")
+          esperando = false
+        }
+        conferir()
+      }
+
+      // After a break run by hand: an hour on means Twitch restarted its timer; the old time means it didn't, and the
+      // automatic breaks between matches would double up, so they go off.
+      function conferir() {
+        if (!conferirDesde || !ag?.proximo || ag.proximo <= conferirDesde) return
+        const reinicia = ag.proximo > conferirDesde + 30 * MIN
+        conferirDesde = 0
+        if (cfg.reinicia === reinicia) return
+        cfg.reinicia = reinicia
+        if (!reinicia) {
+          cfg.intervalo = false
+          mensagem(`A Twitch não reiniciou o horário: o próximo automático continua às ${hora(ag.proximo)} (Adiar empurra). Desliguei o intervalo entre partidas.`)
+        }
+        salvar()
+      }
+
+      async function lerLive() {
+        const r = await helix("GET", `/streams?user_id=${tw.user.id}`)
+        if (!r.ok) return
+        const s = r.body.data?.[0]
+        mudarLive(Boolean(s), s ? quando(s.started_at) : 0)
+      }
+
+      // One read at a time: a call while one is out asks for another right after it.
+      let timer = 0
+      let lendo = false
+      let deNovo = false
+      async function ciclo() {
+        clearTimeout(timer)
+        if (DEMO) return
+        if (lendo) return (deNovo = true)
+        lendo = true
+        try {
+          if (tw.user && !obsOk) await lerLive()
+          if (tw.user) await lerAgenda()
+        } finally {
+          lendo = false
+        }
+        if (deNovo) {
+          deNovo = false
+          return ciclo()
+        }
+        timer = setTimeout(ciclo, proximaLeitura())
+      }
+      function proximaLeitura() {
+        if (!aoVivo) return obsOk ? 60e3 : 20e3
+        const now = Date.now()
+        const falta = ag?.proximo ? ag.proximo - now : Infinity
+        const ate = rodandoAte()
+        if (falta < 2 * MIN || (ate && ate - now < 30e3) || conferirDesde || esperando) return 5e3
+        return 15e3
+      }
+
+      function mudarLive(agora, desde) {
+        const era = aoVivo
+        aoVivo = agora
+        if (agora) {
+          inicio = desde || inicio || Date.now()
+          if (!era) {
+            cfg.inicio = inicio
+            salvar()
+            avisouAbertura = false
+            ciclo()
+          }
+        } else if (era) {
+          esperando = false
+          localAte = 0
+        }
+      }
+
+      // --- running and snoozing -------------------------------------------------------------------------------
+      function mensagem(t) {
+        $("msg").textContent = t || ""
+      }
+
+      async function rodar(como) {
+        if (ocupado || !tw.user) return
+        ocupado = true
+        const r = await helix("POST", "/channels/commercial", { broadcaster_id: tw.user.id, length: DURACAO })
+        const d = r.body?.data?.[0]
+        if (r.ok && d) {
+          const now = Date.now()
+          ultimaDuracao = Number(d.length) || DURACAO
+          localAte = now + ultimaDuracao * 1000
+          cooldownAte = now + (Number(d.retry_after) || 480) * 1000
+          esperando = false
+          registrar(now, ultimaDuracao, adsDaLive().length ? como : "abertura")
+          conferirDesde = now
+          mensagem(como === "intervalo" ? `Rodou entre partidas (${duracao(ultimaDuracao)}).` : `Anúncio de ${duracao(ultimaDuracao)} rodando.`)
+        } else {
+          const m = r.body?.message || "sem resposta"
+          if (r.status === 429) cooldownAte = Date.now() + MIN
+          mensagem(`Não rodou: ${r.status === 429 ? "a Twitch pede um tempo entre um anúncio e outro" : m}.`)
+        }
+        ocupado = false
+        ciclo()
+      }
+
+      async function adiar(auto) {
+        if (ocupado || !tw.user || !ag) return
+        ocupado = true
+        if (auto) tentouAdiar.add(ag.proximo)
+        const r = await helix("POST", `/channels/ads/schedule/snooze?broadcaster_id=${tw.user.id}`)
+        const d = r.body?.data?.[0]
+        if (r.ok && d) {
+          ag.proximo = quando(d.next_ad_at) || ag.proximo
+          ag.adiamentos = Number(d.snooze_count) || 0
+          ag.maisUmEm = quando(d.snooze_refresh_at)
+          esperando = cfg.intervalo
+          tocar("adiado")
+          const volta = ag.livreAte < ag.proximo ? ` O pre-roll volta às ${hora(ag.livreAte)} até lá.` : ""
+          mensagem(`${auto ? "Partida rolando: adiei" : "Adiado"} para as ${hora(ag.proximo)}.${volta}`)
+        } else {
+          mensagem(`Não adiou: ${r.status === 429 ? "acabaram os adiamentos" : r.body?.message || "sem resposta"}.`)
+        }
+        ocupado = false
+        ciclo()
+      }
+
+      // The hour's break: between matches from 5 min before; mid-match at 1 min, wait for the match to end.
+      function decidir() {
+        if (DEMO || !cfg.intervalo || !aoVivo || !ag?.proximo || ocupado || !tw.user) return
+        if (!adsDaLive().length || rodandoAte() || Date.now() < cooldownAte) return
+        const falta = ag.proximo - Date.now()
+        if (emPausa() && (esperando || falta <= JANELA) && falta > -10e3) return rodar("intervalo")
+        if (!emPausa() && falta <= ADIAR && falta > 5e3 && ag.adiamentos > 0 && !tentouAdiar.has(ag.proximo)) adiar(true)
+      }
+
+      let armadoEm = 0
+      $("rodar").onclick = () => {
+        if (Date.now() - armadoEm > 4000) {
+          armadoEm = Date.now()
+          return desenhar()
+        }
+        armadoEm = 0
+        rodar("mao")
+      }
+      $("adiar").onclick = () => adiar(false)
+
+      $("auto").onchange = (e) => {
+        cfg.intervalo = e.target.checked
+        if (!cfg.intervalo) esperando = false
+        salvar()
+        desenhar()
+      }
+
+      // --- obs-websocket --------------------------------------------------------------------------------------
+      let obs = null
+      let pedidos = 0
+      const pendentes = new Map()
+      const sha256 = async (text) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))))
+      function pedir(requestType, requestData = {}) {
+        if (!obsOk || obs?.readyState !== WebSocket.OPEN) return Promise.resolve(null)
+        const requestId = String(++pedidos)
+        obs.send(JSON.stringify({ op: 6, d: { requestType, requestId, requestData } }))
+        return new Promise((r) => {
+          pendentes.set(requestId, r)
+          setTimeout(() => pendentes.delete(requestId) && r(null), 5000)
+        })
+      }
+      function conectar() {
+        if (DEMO) return
+        const ws = new WebSocket("ws://127.0.0.1:4455")
+        obs = ws
+        ws.onmessage = async ({ data }) => {
+          const { op, d } = JSON.parse(data)
+          if (op === 0) {
+            // Events: Scenes (1 << 2) and Outputs (1 << 6).
+            const identify = { rpcVersion: 1, eventSubscriptions: (1 << 2) | (1 << 6) }
+            if (d.authentication) {
+              const { challenge, salt } = d.authentication
+              identify.authentication = await sha256((await sha256(cfg.obsPassword + salt)) + challenge)
+            }
+            ws.send(JSON.stringify({ op: 1, d: identify }))
+          } else if (op === 2) {
+            obsOk = true
+            statusObs()
+            const [c, s] = await Promise.all([pedir("GetCurrentProgramScene"), pedir("GetStreamStatus")])
+            cena = c?.currentProgramSceneName ?? c?.sceneName ?? ""
+            if (s) mudarLive(s.outputActive, s.outputActive ? Date.now() - (s.outputDuration || 0) : 0)
+            ciclo()
+          } else if (op === 5) {
+            if (d.eventType === "CurrentProgramSceneChanged") {
+              cena = d.eventData.sceneName
+              decidir()
+            } else if (d.eventType === "StreamStateChanged") {
+              const { outputActive, outputState } = d.eventData
+              if (outputState === "OBS_WEBSOCKET_OUTPUT_STARTED" || outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED") mudarLive(outputActive, Date.now())
+            }
+          } else if (op === 7) {
+            pendentes.get(d.requestId)?.(d.requestStatus?.result ? d.responseData ?? {} : null)
+            pendentes.delete(d.requestId)
+          }
+        }
+        ws.onerror = () => ws.close()
+        ws.onclose = () => {
+          obsOk = false
+          statusObs()
+          setTimeout(conectar, 3000)
+        }
+      }
+      function statusObs() {
+        $("obs").className = obsOk ? "status on" : "status"
+        $("obs").textContent = obsOk ? "OBS" : cfg.obsPassword ? "OBS desconectado" : "OBS: falta a senha"
+      }
+      $("password").value = cfg.obsPassword
+      $("password").onchange = (e) => {
+        cfg.obsPassword = e.target.value
+        salvar()
+        obs?.close()
+      }
+
+      // To the browser sources (Começando's countdown, and any overlay later).
+      function emitir() {
+        if (!obsOk || DEMO) return
+        const event_data = {
+          aoVivo,
+          proximo: ag?.proximo || 0,
+          duracao: durAtual(),
+          rodandoAte: rodandoAte(),
+          comecaEm: comecaEm(),
+          livreAte: ag?.livreAte || 0,
+        }
+        pedir("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-anuncios", event_data } })
+      }
+
+      // Valorant's menus count as between matches (scripts/valorant.py; nothing happens without it).
+      function ouvirValorant() {
+        if (DEMO) return
+        const fonte = new EventSource(`${VALORANT}/eventos`)
+        fonte.onmessage = ({ data }) => {
+          try {
+            const e = JSON.parse(data)
+            if (e.tipo !== "fase") return
+            Object.assign(val, { fase: e.fase, aberto: Boolean(e.aberto) })
+            decidir()
+          } catch {}
+        }
+      }
+
+      // --- alerts ---------------------------------------------------------------------------------------------
+      const tocados = new Set()
+      let marcosDe = 0
+      let rodavaAte = 0
+      let avisouAbertura = false
+      let livreAntes = 0
+      function alertas(now) {
+        const ate = rodandoAte()
+        if (ate && !rodavaAte) tocar("inicio")
+        if (!ate && rodavaAte && rodavaAte - now < 5e3) tocar("fim")
+        rodavaAte = ate
+        if (!aoVivo || !ag) return
+
+        // Pre-rolls back on with the stream live (after a snooze, or no break for too long).
+        const livre = ag.livreAte - now
+        if (livreAntes > 0 && livre <= 0 && !ate && jaRodou()) tocar("perigo")
+        livreAntes = livre
+
+        // The opening outside Começando lands on the game.
+        if (!jaRodou() && ag.proximo && cena && cena !== COMECANDO && !avisouAbertura) {
+          avisouAbertura = true
+          tocar("perigo")
+        }
+
+        if (!ag.proximo || ate) return
+        const falta = ag.proximo - now
+        const marcos = [
+          [15 * MIN, "aviso"],
+          [JANELA, "janela"],
+          [MIN, "perto"],
+        ]
+        if (marcosDe !== ag.proximo) {
+          // A new time (a snooze, a new hour): what's already behind it stays silent.
+          marcosDe = ag.proximo
+          for (const [t] of marcos) if (falta <= t) tocados.add(`${ag.proximo}:${t}`)
+        }
+        for (const [t, som] of marcos) {
+          const k = `${ag.proximo}:${t}`
+          if (falta > t || tocados.has(k)) continue
+          tocados.add(k)
+          if (som === "janela" && (esperando || !jaRodou())) continue
+          if (som === "perto" && vaiSeResolver()) continue
+          tocar(som)
+        }
+      }
+      // At 1 min, the dock itself will run it between matches or snooze it: no alarm.
+      const vaiSeResolver = () => cfg.intervalo && jaRodou() && (emPausa() || ag.adiamentos > 0)
+
+      // --- drawing --------------------------------------------------------------------------------------------
+      function desenhar() {
+        const now = Date.now()
+        const ate = rodandoAte()
+        let estado = "calmo"
+        let rotulo = "Próximo anúncio"
+        let tempo = "—"
+        let linha = ""
+        let barra = 0
+        let aviso = null
+
+        if (!tw.user) {
+          estado = "fora"
+          rotulo = "Anúncios"
+          linha = "Conecte a Twitch abaixo."
+        } else if (!aoVivo) {
+          estado = "fora"
+          rotulo = "Fora do ar"
+          linha = "A abertura roda 1 min depois de entrar ao vivo: comece no Começando."
+        } else if (ate) {
+          estado = "rodando"
+          rotulo = comecaEm() ? "Anúncio de abertura" : "Anúncio rodando"
+          tempo = relogio(ate - now)
+          linha = comecaEm() ? `Comece às ${hora(ate)} · subs não veem` : `Acaba às ${hora(ate)} · subs não veem`
+          const total = (ultimaDuracao || durAtual()) * 1000
+          barra = 1 - (ate - now) / total
+        } else if (ag?.proximo > now) {
+          const falta = ag.proximo - now
+          const dur = duracao(durAtual())
+          tempo = relogio(falta)
+          barra = ag.ultimo && ag.proximo > ag.ultimo ? (now - ag.ultimo) / (ag.proximo - ag.ultimo) : 0
+          if (!jaRodou()) {
+            estado = "abertura"
+            rotulo = "Abertura em"
+            linha = `${dur} às ${hora(ag.proximo)} · comece às ${hora(ag.proximo + durAtual() * 1000)}`
+            if (cena && cena !== COMECANDO) aviso = { grave: true, texto: `Você está em ${cena}: a abertura vai cair aí. Vá pro Começando.` }
+          } else if (esperando) {
+            estado = falta <= ADIAR && !vaiSeResolver() ? "perto" : "adiado"
+            rotulo = "Esperando a partida acabar"
+            const n = ag.adiamentos
+            linha = n ? `Roda no próximo intervalo · ${n} ${n === 1 ? "adiamento" : "adiamentos"}` : `Sem adiamentos: roda às ${hora(ag.proximo)}`
+          } else if (cfg.intervalo && falta <= JANELA) {
+            estado = falta <= ADIAR && !vaiSeResolver() ? "perto" : "janela"
+            rotulo = "Roda no próximo intervalo"
+            linha = `${dur} · no máximo às ${hora(ag.proximo)}`
+          } else {
+            estado = falta <= ADIAR ? "perto" : "calmo"
+            linha = `${dur} às ${hora(ag.proximo)}` + (cfg.intervalo ? ` · entre partidas a partir das ${hora(ag.proximo - JANELA)}` : "")
+          }
+          if (jaRodou() && ag.livreAte <= now) aviso = { grave: true, texto: "Pre-roll ligado: quem chega agora vê anúncio." }
+        } else if (ag) {
+          linha = "A Twitch não marcou o próximo. Confira o Ads Manager."
+        } else {
+          linha = "Lendo a Twitch…"
+        }
+
+        const placar = $("placar")
+        placar.dataset.estado = estado
+        $("rotulo").textContent = rotulo
+        $("tempo").textContent = tempo
+        $("linha").textContent = linha
+        $("barra").style.width = `${Math.round(Math.min(1, Math.max(0, barra)) * 1000) / 10}%`
+        $("aviso").hidden = !aviso
+        if (aviso) {
+          $("aviso").className = aviso.grave ? "aviso grave" : "aviso"
+          $("aviso").textContent = aviso.texto
+        }
+
+        // Buttons.
+        const armado = now - armadoEm <= 4000
+        const podeRodar = Boolean(tw.user) && aoVivo && !ate && now >= cooldownAte && !ocupado
+        $("rodar").disabled = !podeRodar
+        $("rodar").classList.toggle("armado", armado && podeRodar)
+        $("rodar").firstChild.textContent = armado && podeRodar ? "Confirmar" : "Rodar agora"
+        $("rodar-sub").textContent = now < cooldownAte && !ate ? `liberado às ${hora(cooldownAte)}` : armado && podeRodar ? "clique de novo" : "3 min · dois cliques"
+        const n = ag?.adiamentos ?? 0
+        $("adiar").disabled = !(aoVivo && ag?.proximo > now && n > 0 && !ate && !ocupado)
+        $("adiar-sub").textContent = !ag || !aoVivo ? "" : n ? `${n} ${n === 1 ? "restante" : "restantes"}` : ag.maisUmEm ? `mais um às ${hora(ag.maisUmEm)}` : "nenhum"
+
+        // Pre-roll.
+        let pr = "—"
+        let prClasse = ""
+        let prBarra = 0
+        let prNota = ""
+        if (aoVivo && ag) {
+          const livre = ag.livreAte - now
+          if (livre > 0) {
+            pr = `sem anúncio por ${relogio(livre)}`
+            prClasse = "bom"
+            prBarra = livre / (60 * MIN)
+            if (ag.proximo && ag.livreAte < ag.proximo - 30e3) prNota = `Volta às ${hora(ag.livreAte)}, antes do próximo anúncio (${hora(ag.proximo)}).`
+          } else if (ate) {
+            pr = "anúncio rodando"
+          } else if (!jaRodou()) {
+            pr = "até a abertura"
+            prClasse = "meio"
+          } else {
+            pr = "vê anúncio agora"
+            prClasse = "ruim"
+            prNota = "Rodar um anúncio agora desliga de novo."
+          }
+        }
+        $("preroll").textContent = pr
+        $("preroll").className = prClasse
+        $("preroll-barra").style.width = `${Math.round(Math.min(1, prBarra) * 1000) / 10}%`
+        $("preroll-nota").hidden = !prNota
+        $("preroll-nota").textContent = prNota
+
+        // The live's breaks.
+        const lista = adsDaLive()
+        $("lista-titulo").textContent = aoVivo ? "Nesta live" : "Última live"
+        const total = lista.reduce((s, a) => s + a.s, 0)
+        $("lista-total").textContent = lista.length ? `${lista.length} · ${duracao(total)}` : ""
+        const itens = lista.map((a) => {
+          const li = document.createElement("li")
+          li.innerHTML = "<span></span><span></span>"
+          li.firstChild.textContent = `${hora(a.em)} · ${duracao(a.s)}`
+          li.lastChild.textContent = COMO[a.como] ?? a.como
+          return li
+        })
+        if (!itens.length) {
+          const li = document.createElement("li")
+          li.className = "vazio"
+          li.textContent = aoVivo ? "Nenhum anúncio ainda." : "Nada registrado."
+          itens.push(li)
+        }
+        $("lista").replaceChildren(...itens)
+
+        // The switch.
+        const bloqueado = cfg.reinicia === false
+        $("auto").checked = cfg.intervalo && !bloqueado
+        $("auto").disabled = bloqueado
+        $("auto-nota").textContent = bloqueado
+          ? "Desligado: a Twitch não reinicia o horário quando um anúncio roda na mão, então rodar antes somaria anúncios."
+          : `A partir de 5 min antes do horário, roda quando você vai pra Conversa, Já volto ou o menu do Valorant. No meio de uma partida, adia 5 min (até 3×) e roda quando ela acabar.${cfg.reinicia === null ? " Na 1ª vez, confere se a Twitch reinicia o horário." : ""}`
+      }
+
+      // --- demo -----------------------------------------------------------------------------------------------
+      if (DEMO) {
+        const now = Date.now()
+        tw.user = { id: "0", login: "muanlartins" }
+        obsOk = true
+        aoVivo = DEMO !== "fora"
+        inicio = now - 52 * MIN
+        cena = "RL + chat"
+        ag = { proximo: now + 8 * MIN + 12e3, ultimo: now - 51 * MIN, duracao: 180, livreAte: now + 9 * MIN, adiamentos: 3, maisUmEm: 0 }
+        historico = [{ em: inicio + 62e3, s: 180, como: "abertura" }]
+        if (DEMO === "abertura") {
+          inicio = now - 18e3
+          cena = "Valorant + chat"
+          Object.assign(ag, { proximo: now + 42e3, ultimo: 0, livreAte: now })
+          historico = []
+        } else if (DEMO === "janela") {
+          ag.proximo = now + 3 * MIN + 20e3
+        } else if (DEMO === "adiado") {
+          esperando = true
+          Object.assign(ag, { proximo: now + 4 * MIN + 6e3, adiamentos: 2, livreAte: now + 2 * MIN })
+        } else if (DEMO === "perto") {
+          cfg.intervalo = false
+          Object.assign(ag, { proximo: now + 41e3, adiamentos: 0, maisUmEm: now + 38 * MIN })
+        } else if (DEMO === "rodando") {
+          ultimaDuracao = 180
+          localAte = now + 2 * MIN + 31e3
+          historico.push({ em: now - 29e3, s: 180, como: "intervalo" })
+          Object.assign(ag, { proximo: 0, livreAte: now + 59 * MIN })
+        } else if (DEMO === "exposto") {
+          Object.assign(ag, { proximo: now + 6 * MIN, livreAte: now - 1, adiamentos: 0 })
+        } else if (DEMO === "fora") {
+          ag = null
+        }
+      }
+
+      statusObs()
+      statusTwitch()
+      setInterval(() => {
+        const now = Date.now()
+        alertas(now)
+        decidir()
+        desenhar()
+      }, 250)
+      setInterval(emitir, 5000)
+      desenhar()
+      conectar()
+      ouvirValorant()
+      if (!DEMO) iniciarTwitch()
+    </script>
+  </body>
+</html>

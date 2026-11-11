@@ -56,6 +56,10 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 - The "Efeitos" dock open, for the VAR above all: it starts OBS's Replay Buffer with the stream or the recording
   and its "Replay Buffer" line says when it's off in Settings (Output → Replay Buffer, ~20 s). Without the dock, F8
   does nothing.
+- **Open in "Começando"** and stay until its clock ends (about 4 min): Twitch runs the live's opening ad break a
+  minute in, and the "Anúncios" dock warns (and beeps) if the stream starts in another scene. That dock open and
+  connected to Twitch (its first sign-in: Conectar, then the code at twitch.tv/activate) runs the hour's break between
+  matches; without it Twitch runs it on the hour, wherever he is.
 - The "Efeitos" dock **connected to Twitch** too: it collects the day's follows, subs, gifts, bits and raids for the
   credits that roll in "Fim" at the end. If its "Créditos de hoje" line asks to connect again (a sign-in from before
   2026-11-10 lacks the scopes), Luan clicks Conectar there and types the code at twitch.tv/activate. To end the live,
