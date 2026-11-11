@@ -36,7 +36,7 @@
         referee kit) on the "VAR" stinger. The chat votes with !1, !2, !3 (one vote per login, the last counts;
         read here, anonymously): 30 s in Rocket League, 20 s in Valorant, or "Encerrar" sooner. The chat's verdict
         is final; a tie waits for Luan's pick here. The verdict holds 7 s and the dock goes back to the scene before;
-        F4 closes the VAR at any moment. While it's open the replay can start over, slow down (50%, 25%) or pause,
+        F4 closes the VAR at any moment, and closing it empties "VAR · replay" again. While it's open the replay can start over, slow down (50%, 25%) or pause,
         and a line dragged on its picture here crosses the replay on stream. Who voted for the verdict gets a little
         Σ (torcida.html asks the Σ API, which only it has the key for). Everything goes to the pages as one event,
         "muanlartins-var", with the VAR's whole state (var.html lists it).
@@ -813,8 +813,14 @@
           whenFree(() => volta(current) && switchWith("var", volta(current), 1300))
           setTimeout(() => (saindoDoVar = false), 3000)
         }
-        // Stopped once off screen, so the clip isn't held open.
-        setTimeout(() => request("TriggerMediaInputAction", { inputName: REPLAY, mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP" }), 2500)
+        // Stopped once off screen, so the clip isn't held open, and emptied: depois-da-live files the clips in
+        // Videos\Lives, and OBS then opened every time asking for the missing file (11-10 to 11-11). Not if
+        // another VAR opened meanwhile, nor emptied while the booth is still on screen.
+        setTimeout(() => {
+          if (varAtual) return
+          request("TriggerMediaInputAction", { inputName: REPLAY, mediaAction: "OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP" })
+          if (!VARS.includes(current)) request("SetInputSettings", { inputName: REPLAY, inputSettings: { local_file: "" } })
+        }, 2500)
       }
 
       // The chat's votes: !1, !2, !3, one per login (the last counts), not the channel's nor the bots'. The
