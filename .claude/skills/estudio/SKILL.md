@@ -108,11 +108,91 @@ only that take is new.
    Ask Luan before "fixing" a word that sounds odd: "portaria do prata" was what he said. 11-07 also used `--topo "12-56-21:0-39=live-pix.mp4@3"`.
 5. To redo a short, delete its .mp4 in `prontos` and run again.
 
+## Edição caprichada: `scripts/edicao.py` (since 2026-11-11)
+
+For the shorts worth more than `shorts.py`'s straight cut (Luan, 11-10: "efeitos visuais e sonoros, hook, dinamismo,
+bons cortes"). It re-edits a take **frame by frame from a roteiro** (a beat sheet, `scripts/roteiros/<date>-<slug>.py`):
+the top re-cut into shots from any moment of the take (forwards, rewound, slowed, sped up with motion blur, frozen),
+each zoomed on what matters with a blurred copy behind; jump cuts on every pause; the camera alternating framings at
+the cuts; impacts (shake, flash, zoom kick), a VHS rewind look, crisp brand overlays (comment card, chips, a stamp, a
+ring that follows the picture); synthesised sound effects plus the stream's own (`brand/twitch/sons`); `shorts.py`'s
+seam captions with the roteiro's key words bigger and Klein claro. First one: "Jogar o replay" (take 2026-11-10
+23-20-03, 42.7 s → 37.5 s, no outro); its roteiro is the template, read it before writing a new one. Luan's verdict
+on it (11-11): "o sem outro ficou EXCELENTE. A edição ficou EXCELENTE": the rules below and the roteiro's sound gains
+are the approved baseline.
+
+**The split:** choosing the moments (which footage under which words, where the hook is, which effect) is judgment,
+Claude's with Luan; everything after is deterministic. The run:
+
+1. Not live (`node scripts/obs.mjs status`): a render is ~6 min of all 12 cores. Never during a live.
+2. `scripts/.venv/bin/python scripts/edicao.py scripts/roteiros/<file>.py --palavras` (with a stub roteiro: TAKE,
+   NOME, TROCAS, and `roteiro(at)` returning one shot) prints each word with its second in the short and in the take.
+   Map the take's screen too: grids of the stage every 0.3 s with timestamps (OpenCV, crop `PALCO`) show what's on
+   screen when: the moments the beats need (11-11: the goal at 27.0, the menu click at 31.05, "Defendeu!" at 39.08).
+3. Write the roteiro: `at("palavra")` (`#2` the second time, `>` its end, `|` the middle of the pause after it,
+   where cuts go), `at(12.5)` a take second, `("fonte", 31.0)` the moment a shot shows take second 31.0 (for clicks
+   and impacts on what's on screen). Shots cut on pauses; camera framings change on the same pauses.
+4. `--quadros 0.3,4.0,…` writes stills (no captions) to `~/.cache/muanlartins/edicao/<take>/quadros`; look at a
+   sheet of them, fix framing, then render without flags. `--ate 8 --rapido` is a quick look at the start.
+5. Output: `prontos\<date> <time> - <NOME>.mp4`, ending on the payoff with no outro (`--outro` also writes
+   `… (com outro).mp4`, not wanted so far). For Instagram's cover, save a frame of the payoff with his reaction as
+   `… (capa).jpg` next to it (`ffmpeg -ss <s> -i <short> -frames:v 1 -q:v 2`). `shorts.py` would remake the take
+   as "Short 1": run it with `--nome "<hh-mm-ss>=<NOME>"`, and delete the take and its cache folder once Luan
+   approves the short (until then they stay for a second pass).
+
+**What we found (11-11), as rules for the next roteiros:**
+- **Hook:** frame 0 already in motion, never a still page; open on the payoff or its setup (here: the goal against
+  sped in with a boom → rewound like a tape on "voltar" → him in control, frozen right before the touch on "erro?").
+  The picture, his line and the captions point at the same thing, and it reads with the sound off.
+- **Pace:** pauses over 0.2 s shrink to 0.12 s (0.22 s after a sentence): ~12 % shorter with nothing lost; a new
+  shot every 1.5-3 s; the camera jumps 1.0 ↔ 1.10-1.12 on the cuts and pushes in slowly on the hook question and
+  the ending.
+- **Framing:** gameplay at zoom ~1.85-2.0 with the tool's UI cut off (`recorte`), the picture sitting at the top of
+  the frame (`cy` = `TOPO`) so the blurred copy lies under it, behind the captions, and the car stays above them;
+  UI moments zoom on the element. Small text doesn't survive the zoom: draw it again crisp as an overlay (RLR's
+  title, the .replay file chip, "Jogando como muanlartins") instead of upscaling it.
+- **One emphasis per moment:** slow motion on the miss, a red flash on the goal against, slow motion and a hit on
+  the save's touch, the stamp and applause on "Defendeu!"; never all at once.
+- **Sound:** effects 12-18 dB under the voice. Whoosh only at beat changes, not on every cut; pop on cards and chips;
+  click on UI clicks; boom/hit on impacts; a riser into the payoff; ding + applause (`palmas`) on it; `uuuh` on the
+  goal against. Loudness in two passes: −14.7 LUFS (the true-peak limit keeps the last 0.7 dB).
+- **Safe zones (1080×1920):** YouTube Shorts covers the top 288 px, the bottom 672 px and the right 192 px; Reels
+  and TikTok about the same. Overlays go in x 120-888, y 288-1248; the seam captions (y ~960-1040) are safe.
+- **Credit on screen:** the suggestion's real comment as a card, read through `youtube.py`'s client
+  (`comments().list(part="snippet", id=<lc id from the changelog's link>)`), quoted as written, the key part in Klein.
+
+**For the takes (tell Luan before he records):**
+- The zooms are soft because the Navegador take had RLR in a 1920-wide window shrunk to 1080: a 2× zoom upscales a
+  picture already at 56 %. Record the browser at its own size (RLR's short mode, or full-screen Brave captured 1:1)
+  and the same zooms stay sharp.
+- Open with the hook line in one breath, keep the talk in the order of what's on screen, and end on the payoff
+  line while the payoff is on screen ("e defender meu gol" with "Defendeu!").
+
+**Open, Luan's call:**
+- ~~Outro or not~~: decided 11-11, no outro (the research agrees: ~5 % of top clips have one, end ≤ 1 s after the
+  payoff). What to watch instead: Studio's "viewed vs. swiped away" and average % viewed of the caprichados against
+  the straight-cut shorts (no official thresholds: ~70-80 % viewed and 70-90 % average are community numbers).
+- Music: none yet (most top clips have none). If wanted: a YouTube Audio Library track 18-24 dB under the voice with
+  ducking (not built), or Instagram's trending audio added in the app at low volume.
+- The effects are synthesised and Claude can't hear them: Luan heard the first short's and approved (11-11); keep
+  its gains as the reference and ask him again only for a new kind of sound.
+- His face sits at y ~1400-1750, under the platforms' title and buttons on all three: a layout question for
+  `obs_shorts.py` (smaller camera, or higher).
+- A loop: a last line that runs into the first, so replays look seamless (every replay counts as a view since 2025).
+
+Sources (11-11 research): YouTube on Shorts views and the "viewed vs. swiped" metric
+(support.google.com/youtube/answer/12220281, /answer/12942217), safe zones (support.google.com/google-ads/answer/9128498),
+Jenny Hoyos' hooks (vidiq.com/blog/post/how-jenny-hoyos-gets-10m-views-per-youtube-short), Paddy Galloway's 5,400
+Shorts (threadreaderapp.com/thread/1646898356419981315.html), YouTube's −14 LUFS
+(productionadvice.co.uk/stats-for-nerds). Most editing advice (cut rate, SFX, caption style) is practitioners'
+folklore with no data behind it: treat it as defaults to test, not facts.
+
 ## Publishing shorts (YouTube and Instagram)
 
 - **Schedule:** at most one or two a day, spread out; Luan approves the table first. No audience data behind it yet:
   late afternoon/evening for Brazil, and a game's short on the day of that game's live, a few hours before
-  (11-09: Valorant's aim short Mon 18:00, before the 21:00 Valorant live; affiliate Tue 18:00). Times in Brasília.
+  (11-09: Valorant's aim short Mon 18:00, before the 21:00 Valorant live; affiliate Tue 18:00; 11-12: RLR's "Jogar o
+  replay" Thu 12:00, before the 14:30 Rocket League live, at lunch). Times in Brasília.
 - **YouTube:** the upload is Luan's, in Studio, as private (an unverified app's uploads stay locked private). He
   gives the ids; each short has `content/videos/<date>-<slug>.json` (id, title ending in the game's hashtag,
   description with the site page of the subject, Twitch and the site, tags, `publish_at` ISO with -03:00), then
