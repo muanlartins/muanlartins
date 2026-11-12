@@ -138,7 +138,10 @@ def expendable():
         except ValueError:
             continue
         page = PAGES / f"{folder.name}.json"
-        video = json.loads(page.read_text()).get("video") if page.exists() else None
+        record = json.loads(page.read_text()) if page.exists() else {}
+        video = record.get("video")
+        # thumb.py reads his microphone off Live.mp4 to find his reactions: it stays until the thumbnail is picked.
+        thumb = record.get("youtube", {}).get("thumb")
         done = (folder / DONE).exists()
         # Before 11-06 there was no Jogo recording: the stream's is then the studio's only copy of the matches.
         alone = not any(folder.glob("??-??-?? Jogo.*"))
@@ -154,6 +157,9 @@ def expendable():
             elif abs(online - length(file)) > 5:
                 print(f"keep  {file.relative_to(VIDEOS)}: o vídeo {video} tem {online} s e o arquivo {length(file):.0f} s")
             elif alone and not done:
+                kept.append(file)
+            elif not thumb and not done:
+                print(f"keep  {file.relative_to(VIDEOS)}: a thumb ainda não foi escolhida (scripts/thumb.py {folder.name})")
                 kept.append(file)
             else:
                 gone.append((file, f"no YouTube ({video})"))

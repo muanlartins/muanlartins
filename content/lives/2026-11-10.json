@@ -6,6 +6,14 @@
     "pt": "3v3 ranqueado: 7 vitórias e 3 derrotas, de Diamante 1 IV (907) a Diamante 2 II (945).",
     "en": "Ranked 3v3: 7 wins and 3 losses, from Diamond 1 IV (907) to Diamond 2 II (945)."
   },
+  "youtube": {
+    "thumb": {
+      "quadro": "3a",
+      "segundo": 1643.15,
+      "texto": "SUBI PRO|DIAMANTE 2",
+      "emblema": true
+    }
+  },
   "chapters": [
     { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
     { "at": "3:54", "match": "9EC6D4BE11F1DD2C558936BBF4CBF7D5" },

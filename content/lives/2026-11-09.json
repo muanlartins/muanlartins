@@ -6,6 +6,15 @@
     "pt": "Competitivo: 2 vitórias e 0 derrotas (+45 RR), terminando em Prata 1 (91 RR).",
     "en": "Competitive: 2 wins and 0 losses (+45 RR), ending at Silver 1 (91 RR)."
   },
+  "youtube": {
+    "title": "Deu certo, deu certo! 2 vitórias em 2 jogos | Valorant ao vivo",
+    "thumb": {
+      "quadro": "1b",
+      "segundo": 1289.75,
+      "texto": "DEU CERTO,|DEU CERTO",
+      "emblema": false
+    }
+  },
   "chapters": [
     { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
     { "at": "25:31", "match": "3407d4a3-3c11-4efe-ac50-88e6bec01dce" },

@@ -63,13 +63,18 @@ recommendations, so nothing else mattered.
 scripts/.venv/bin/python scripts/thumb.py <date>        # the candidates sheet: Videos\Lives\<date>\Thumb\candidatos.jpg
 ```
 
+Make the sheet **before freeing the disk** (step 4): it reads his microphone off `Live.mp4`, and a day without
+`partes.json` also needs the file to place the camera's frames. `videos.py --clean` keeps a `Live.mp4` until the
+live's `youtube.thumb` exists.
+
 The sheet is his twelve strongest reactions (the microphone track's loudest moments, the transcript's "meu Deus",
 "que isso", "golaço", laughs, his goals from the dock, the VAR's plays), three camera frames each (`7a`, `7b`, `7c`)
 with what he said there. **Picking is Luan's** (judgment only where it beats a rule):
 
-1. Render two or three drafts with `--saida "Videos\Lives\<date>\Thumb\rascunho A.jpg"` and ask him which, with the
-   title, in one question. Favour a big, readable emotion (laughing, hands on the head, pointing up after a goal)
-   over a talking face.
+1. Render two or three drafts with `--saida "Videos\Lives\<date>\Thumb\rascunho A.jpg"`, look at each, and ask him
+   which, with the title, in one question (the drafts' paths in the question: the dialog hides the rest). Favour a
+   big, readable emotion (laughing, an arm up after a goal, hands on the head, a hand over the mouth) over a
+   talking face or one looking down.
 2. The hook is 2 to 4 words, uppercase, `LINHA 1|LINHA 2` (the second on the Branco plate): the day's story (`SUBI
    PRO|DIAMANTE 3` with `--emblema` when it climbed) or **his own line from the live** (`VÃO HUMILHAR|A GENTE`, said at
    15:43 on 11-11). Never a teammate's or opponent's name.
@@ -81,7 +86,22 @@ What it does on its own, and why: his cutout from the camera recording (its back
 so the blue is keyed out, no model; the lockup and specks go), a Branco outline and a shadow, on the right half and
 never under the hook; behind him the game at that moment from `Jogo.mp4`, blurred so no player's name can be read
 (the in-game "X MARCOU" banner was legible at a lighter blur), darkened to Klein on the left; "AO VIVO · dd/mm" on a
-Klein plate. Look at the result before uploading.
+Klein plate. A fist raised past the camera's top edge goes out through the thumbnail's top too (it used to end in a
+straight cut outlined in Branco); then his arm may pass under the hook, which is fine while his face stays clear.
+Look at the result before uploading. `--refazer` needs the day's recordings (Câmera, Jogo, and `Live.mp4` when
+there's no `partes.json`).
+
+**What worked so far** (Luan on the first two, 2026-11-12: "ficaram excelentes"): keep the style, vary the moment.
+
+| Live | Frame | Hook | Title |
+| --- | --- | --- | --- |
+| 11-12 RL | laughing (11a) | `SUBI PRO\|DIAMANTE 3` + emblem | Subi pro Diamante 3! 10 vitórias em 14 jogos |
+| 11-11 Valorant | laughing (3a) | his line `VÃO HUMILHAR\|A GENTE` | Esses caras vão humilhar a gente… |
+| 11-10 RL | arm up after his goal (3a) | `SUBI PRO\|DIAMANTE 2` + emblem | Subi pro Diamante 2! 7 vitórias em 10 jogos |
+| 11-09 Valorant | laughing after a play (1b) | his line `DEU CERTO,\|DEU CERTO` | Deu certo, deu certo! 2 vitórias em 2 jogos |
+
+The pattern: a laugh or a celebration; the climb when the day had one, otherwise his own line from that moment. The
+lives before 11-09 (10-28, 11-05, 11-06) keep the plain plate: their camera recordings are gone.
 
 **The title** (`youtube.title` in `content/lives/<date>.json`, else a template in `youtube.py`): what happened first,
 the game after, under 70 characters, no date (it's in the description and on the thumbnail): `Subi pro Diamante 3! 10
@@ -121,8 +141,12 @@ scripts/.venv/bin/python scripts/videos.py --clean --apply    # deletes it, for 
 python3 scripts/videos.py --done <date>                        # after that day's shorts and commented videos
 ```
 
-- `Live.mp4` goes once its YouTube video is processed and as long as the file (checked through the API).
-  A day without a Jogo recording (11-05 and before) keeps it like a Jogo: it's the studio's only copy of the matches.
+- `Live.mp4` goes once its YouTube video is processed and as long as the file (checked through the API), and the
+  thumbnail is picked (`youtube.thumb`, step 2b). A day without a Jogo recording (11-05 and before) keeps it like a
+  Jogo: it's the studio's only copy of the matches.
+- `Live.mp4` is also the shorts' clock (`clipe.py`, `cortes.py`, `destaque.py`: the `estudio` skill). `--apply`
+  deletes every day's at once, so when a day's shorts are still being picked, ask Luan first (2026-11-12: only 11-09
+  and 11-10 went; 11-11 and 11-12 stayed for their shorts).
 - `Jogo`, `Câmera` and the `VAR` clips go when the day is marked `--done`; otherwise they stay as long as there's room, and only
   when the disk would have less than 200 GB free (`FREE_GB`, what a live needs) the oldest days go first.
 - Replays stay (a few MB). Show Luan the list before `--apply`: nothing comes back.

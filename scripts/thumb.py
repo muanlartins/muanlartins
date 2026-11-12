@@ -56,6 +56,7 @@ STEP = 0.25  # seconds per loudness reading
 FRAMES = (-0.6, 0.0, 0.6)  # a, b, c around each moment
 CANDIDATES = 12
 APART = 40  # seconds between two candidates
+OUTLINE = 9  # px of Branco around him
 
 
 def folder(date):
@@ -147,7 +148,7 @@ def candidates(date):
     for i in order[:400]:
         found.append((i * STEP, "grito"))
     lines = json.loads((LIVES / f"{date}.transcript.json").read_text())
-    said = lambda s: next((f"“{t}”" for at, t in sorted(lines, key=lambda l: abs(l[0] - s)) if abs(at - s) <= 6), "")  # noqa: E731
+    said = lambda s: next((f"“{t}”" for at, t in sorted(lines, key=lambda line: abs(line[0] - s)) if abs(at - s) <= 6), "")  # noqa: E731
     found = [(s, why if why.startswith("“") else f"{why} {said(s)}".strip()) for s, why in found]
     kept = []
     for s, why in sorted(found, key=lambda c: -loud_at(c[0])):
@@ -212,7 +213,8 @@ def sheet(date):
 # --- The thumbnail -------------------------------------------------------------------------------------------
 
 def cutout(picture):
-    """Luan without the camera's Klein background: an alpha mask from how blue each pixel is."""
+    """Luan without the camera's Klein background: an alpha mask from how blue each pixel is. Also whether he goes
+    out of the frame at the top (a fist raised past the camera)."""
     rgb = np.asarray(picture).astype(np.int16)
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     blue = (b - np.maximum(r, g)).clip(0, 255)
@@ -236,7 +238,8 @@ def cutout(picture):
     edge = (data[..., 3] > 0) & (data[..., 3] < 250)
     data[..., 2][edge] = np.minimum(data[..., 2][edge], np.maximum(data[..., 0][edge], data[..., 1][edge]) + 20)
     person = Image.fromarray(data.astype(np.uint8), "RGBA")
-    return person.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)) if len(xs) else person
+    out_top = int((alpha[0] > 128).sum()) > 5
+    return (person.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1)) if len(xs) else person), out_top
 
 
 def connected(alpha):
@@ -253,8 +256,8 @@ def connected(alpha):
     return np.minimum(alpha, np.asarray(keep))
 
 
-def outlined(person, width=9):
-    """The cutout with a Branco outline and a soft shadow, on a canvas big enough for both."""
+def outlined(person, width=OUTLINE):
+    """The cutout with a Branco outline and a soft shadow, on a canvas OUTLINE * 4 bigger on each side."""
     pad = width * 4
     canvas = Image.new("RGBA", (person.width + pad * 2, person.height + pad * 2))
     alpha = Image.new("L", canvas.size)
@@ -308,13 +311,19 @@ def compose(date, pick, hook, fundo=None, emblem=False, out=None, at=None):
             else frame(recording(date, "Live"), (back_at - pieces(date, "Live")[0][0]).total_seconds()))
 
     thumb = background(game)
-    person = cutout(camera)
+    person, out_top = cutout(camera)
     # On the right half: big (his head about half the height), never wider than 62% of the frame, so the hook
     # on the left never covers his face.
     scale = min(H * 0.95 / person.height, W * 0.62 / person.width)
+    if out_top:
+        # A fist that left the camera's frame leaves the thumbnail's too, instead of ending in a straight cut
+        # outlined in Branco: tall enough to reach the top (up to 90% of the width: his raised arm may go under the
+        # hook, which Luan sees on the drafts).
+        scale = max(scale, min(H / person.height, W * 0.9 / person.width))
     person = person.resize((round(person.width * scale), round(person.height * scale)), Image.LANCZOS)
+    top = H - person.height if not out_top or person.height < H else 0
     person = outlined(person)
-    thumb.alpha_composite(person, (W - person.width + 24, H - person.height + 36))
+    thumb.alpha_composite(person, (W - person.width + 24, top - OUTLINE * 4))
 
     draw = ImageDraw.Draw(thumb)
     lines = [line.strip().upper() for line in hook.split("|")]
