@@ -112,7 +112,7 @@ export const UPCOMING: Upcoming[] = [
     status: "agora",
     tag: "live",
     title: "VAR com replay de verdade",
-    text: "O replay do jogo limpo, num mini player no canto enquanto a partida segue, com câmera lenta no gol ou na defesa como nos replays do Rocket League. E a votação do chat aparecendo direito.",
+    text: "O replay instantâneo do jogo limpo, sem câmera nem overlay: passa uma vez normal e outra em câmera lenta, num mini player no canto enquanto a partida segue. E a votação do chat aparecendo direito.",
   },
   {
     id: "analise-de-mira",

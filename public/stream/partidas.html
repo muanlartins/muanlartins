@@ -717,23 +717,10 @@
         // the stand took for a goal of theirs at the next kickoff.
         if (event === "GoalScored" && !match.inPlay) return
         if (event === "GoalScored") match.inPlay = false
-        const eu = me()?.Name
         if (event === "GoalScored") {
-          const nosso = data.Scorer?.TeamNum === team
-          emit("muanlartins-torcida", { tipo: "gol", nosso, kmh: kmh(data.GoalSpeed) })
-          lanceVar("gol", data.Scorer?.Name === eu ? "Gol seu" : nosso ? "Gol do time" : "Gol deles")
-        } else if (event === "StatfeedEvent" && (data.EventName === "Save" || data.EventName === "EpicSave") && data.MainTarget?.TeamNum === team) {
+          emit("muanlartins-torcida", { tipo: "gol", nosso: data.Scorer?.TeamNum === team, kmh: kmh(data.GoalSpeed) })
+        } else if (event === "StatfeedEvent" && (data.EventName === "Save" || data.EventName === "EpicSave") && data.MainTarget?.TeamNum === team)
           emit("muanlartins-torcida", { tipo: "defesa", epica: data.EventName === "EpicSave" })
-          const sua = data.MainTarget?.Name === eu
-          lanceVar("defesa", data.EventName === "EpicSave" ? (sua ? "Defesaça sua" : "Defesaça do time") : sua ? "Defesa sua" : "Defesa do time")
-        } else if (event === "StatfeedEvent" && data.EventName === "Demolish" && (data.MainTarget?.Name === eu || data.SecondaryTarget?.Name === eu))
-          lanceVar("demolicao", data.MainTarget?.Name === eu ? "Demolição sua" : "Você demolido")
-      }
-
-      // The VAR's marks: when each play happened, to the Efeitos dock (a dock-to-dock event over obs-websocket), so a
-      // replay saved there knows where in it the goal or the save is and slows down on it. Kinds and labels only.
-      function lanceVar(tipo, rotulo) {
-        request("BroadcastCustomEvent", { eventData: { lance: { tipo, rotulo, em: Date.now() } } })
       }
 
       // --- The match's log: what happened, when, by whom -------------------------------------------

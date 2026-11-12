@@ -32,16 +32,14 @@
         plays: no overlays, the game's sound only) and the stream as it went out (OBS's Replay Buffer, which this dock
         starts with the stream or the recording: the fallback when the game's isn't there). scripts/replay.py (WSL, on
         127.0.0.1:8794, started at Windows login) finds the clip in Videos and serves it; var.html plays it in a
-        <video>, muted (the game's sound stays the live game's), and so does this dock's preview. In Rocket League
-        the Partidas dock tells this one each goal, save and demo as it happens (a BroadcastCustomEvent), so a replay
-        knows where they are in it: they're marked on the timeline and the latest goal (else save) is the play in
-        focus (Valorant has no events to mark: its replay is the clip's last seconds). The replay plays on its own
-        (Luan doesn't steer it live, 2026-11-12): the script (`replay.roteiro`, ROTEIRO in stream.js) plays the play's
-        stretch once at full speed and again at 50% (Valorant zooms on the crosshair meanwhile), and for the vote's
-        last 8 s var.html shows the closing screen, frozen on the play, while the last votes come in. The preview is
-        still a player (play/pause, ±1 s, ±5 s, frame by frame, the speed, a timeline to scrub, the play in focus,
-        "Lance aqui"): touching it drops the script and the clip follows the controls, easing into slow motion around
-        the play and back (FOCO in stream.js). Two layouts, each game's
+        <video>, muted (the game's sound stays the live game's), and so does this dock's preview. It's an instant
+        replay: the clip's last seconds, as long as the vote fits twice, with no looking for the play (Luan,
+        2026-11-12: "simplesmente como um Replay Instantâneo é bom o suficiente"; the goals and saves the Partidas dock
+        used to send for it are gone). It plays on its own (he doesn't steer it live): the script (`replay.roteiro`,
+        ROTEIRO in stream.js) plays the stretch once at full speed and again at 50% (Valorant zooms on the crosshair
+        meanwhile), and for the vote's last 8 s var.html shows the closing screen, frozen on the stretch's last frame,
+        while the last votes come in. The preview is still a player (play/pause, ±1 s, ±5 s, frame by frame, the
+        speed, a timeline to scrub): touching it drops the script and the clip follows the controls. Two layouts, each game's
         default kept here: "mini", the clip in the top right corner over the game scene, which stays on (Rocket
         League's: the match goes on; jogo.html fades its chat meanwhile), and "cabine", the game's VAR scene ("VAR ·
         Rocket League" or "VAR · Valorant": var.html's booth, the live camera, the stand in referee kit) on the "VAR"
@@ -322,27 +320,6 @@
         width: 0;
         background: var(--paper);
       }
-      .linha-tempo .marcas span {
-        position: absolute;
-        top: 6px;
-        width: 3px;
-        height: 14px;
-        margin-left: -1px;
-        background: var(--klein-claro);
-        pointer-events: none;
-      }
-      .linha-tempo .marcas span.foco {
-        top: 7px;
-        width: 12px;
-        height: 12px;
-        margin-left: -6px;
-        background: #ffd23f;
-        transform: rotate(45deg);
-      }
-      .linha-tempo .marcas span.foco.desligado {
-        background: var(--navy);
-        box-shadow: inset 0 0 0 2px #ffd23f;
-      }
       .linha-tempo input {
         position: absolute;
         inset: 0;
@@ -390,23 +367,6 @@
       }
       .velocidades {
         margin-top: 6px;
-      }
-      .lance {
-        margin-top: 4px;
-      }
-      .lance .check {
-        margin-top: 6px;
-        font-size: 13px;
-      }
-      .marcas-lance {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-        margin-top: 6px;
-      }
-      .marcas-lance button {
-        font-size: 12px;
-        padding: 4px 8px;
       }
       .replays {
         display: grid;
@@ -484,7 +444,6 @@
         </div>
         <div class="linha-tempo" id="linha-tempo">
           <div class="trilho"><span class="feito" id="feito"></span></div>
-          <div class="marcas" id="marcas-trilho"></div>
           <input type="range" id="busca" min="0" max="1" step="0.001" value="0" aria-label="Posição no replay" />
         </div>
         <div class="transporte">
@@ -494,19 +453,13 @@
           <button class="tocar" id="tocar" title="Tocar ou pausar"><svg viewBox="0 0 20 20" class="icone-play"><path d="M5 3l12 7-12 7z" /></svg><svg viewBox="0 0 20 20" class="icone-pausa"><path d="M5 3h4v14H5zM11 3h4v14h-4z" /></svg></button>
           <button data-pulo="1" title="Avançar 1 s">+1</button>
           <button data-pulo="5" title="Avançar 5 s">+5</button>
-          <button data-pulo="lance" title="Ir ao lance (2 s antes)"><svg viewBox="0 0 20 20"><path d="M10 2l8 8-8 8-8-8z" /></svg></button>
         </div>
         <div class="transporte quadros">
           <button data-quadro="-1">‹ quadro</button>
           <button data-quadro="1">quadro ›</button>
         </div>
         <div class="segmentos velocidades" id="velocidades"><button data-base="1">100%</button><button data-base="0.5">50%</button><button data-base="0.25">25%</button><button data-base="0.1">10%</button></div>
-        <div class="lance">
-          <label class="check"><input type="checkbox" id="foco-ligado" /> Câmera lenta no lance</label>
-          <label class="check"><input type="checkbox" id="foco-zoom" /> Zoom no meio</label>
-          <div class="grid" style="margin-top: 6px"><button id="foco-aqui">Lance aqui</button><button id="linha-apagar">Apagar linha</button></div>
-          <div class="marcas-lance" id="marcas-lance"></div>
-        </div>
+        <div class="grid" style="margin-top: 6px"><button id="linha-apagar">Apagar linha</button></div>
         <div class="segmentos" id="layout-agora" style="margin-top: 8px"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
         <label class="check"><input type="checkbox" id="som-replay" /> Som do replay</label>
       </div>
@@ -631,7 +584,6 @@
               bufferPreciso()
             }
             if (d.eventType === "ReplayBufferStateChanged" && !d.eventData.outputState.endsWith("ING")) bufferStatus()
-            if (d.eventType === "CustomEvent" && d.eventData?.lance) lanceOuvido(d.eventData.lance)
           } else if (op === 7) {
             pending.get(d.requestId)?.(d.requestStatus.result ? (d.responseData ?? {}) : null)
             pending.delete(d.requestId)
@@ -876,9 +828,6 @@
       let fimVotacao = null
       let fimVeredito = null
       let reenvio = null
-      // Rocket League's plays as the Partidas dock heard them ({ tipo, rotulo, em }, its BroadcastCustomEvent), so a
-      // replay knows where its goal or save is. The last three hours.
-      const lances = []
       const hoje = [] // today's clips, from replay.py, newest first
 
       // The fields keep the last question and options used.
@@ -974,9 +923,8 @@
           ...hoje.map((c) => {
             const b = document.createElement("button")
             const hora = new Date(c.fim).toLocaleTimeString("pt-BR")
-            const lance = focoDe(marcasDe(c.fim, 20))?.rotulo
             b.innerHTML = `<span></span><small></small>`
-            b.firstChild.textContent = `${hora} · ${c.fonte === "jogo" ? "jogo" : "live"}${lance ? ` · ${lance}` : ""}`
+            b.firstChild.textContent = `${hora} · ${c.fonte === "jogo" ? "jogo" : "live"}`
             b.lastChild.textContent = "abrir"
             b.onclick = async () => {
               if (varAtual) return
@@ -988,15 +936,6 @@
         )
       }
 
-      /** The plays inside a clip that ended at `fim` (epoch ms) and lasts `duracao` s, at their times in it. */
-      function marcasDe(fim, duracao) {
-        return lances
-          .filter((l) => l.em <= fim + 500 && l.em >= fim - duracao * 1000)
-          .map((l) => ({ t: Math.max(0, Math.round((duracao - (fim - l.em) / 1000) * 100) / 100), rotulo: l.rotulo, tipo: l.tipo }))
-      }
-      // Which play the replay focuses on: the latest goal, else save, else whatever came last.
-      const PESO = { gol: 3, defesa: 2, demolicao: 1 }
-      const focoDe = (marcas) => [...marcas].sort((a, b) => (PESO[b.tipo] ?? 0) - (PESO[a.tipo] ?? 0) || b.t - a.t)[0] ?? null
 
       /**
        * F8 (and "Só guardar"): has OBS save the last seconds, the game alone (Source Record's buffer on the game's
@@ -1057,15 +996,13 @@
         const { pergunta, opcoes } = lerCampos()
         const duracao = state.varJogo[jogo].voto * 1000
         const layout = layoutPara(jogo)
-        const marcas = marcasDe(clip.fimSalvo ?? clip.fim, clip.duracao)
-        const alvo = focoDe(marcas)
-        const foco = { t: alvo?.t ?? null, ligado: !!alvo, zoom: jogo === "val" }
-        const roteiro = roteiroPara(clip.duracao, alvo?.t ?? null, duracao)
+        const roteiro = roteiroPara(clip.duracao, duracao)
         varAtual = {
           id: String(Date.now()), jogo, layout, fase: "votacao", pergunta, opcoes: opcoes.length >= 2 ? opcoes : PRESETS[0],
           votos: [], votantes: {}, ate: Date.now() + duracao, duracao, vencedora: null, empatadas: [], linha: null,
           replay: {
-            url: clip.url, nome: clip.nome, duracao: clip.duracao, fonte: clip.fonte, marcas, foco, roteiro,
+            // Valorant's slow pass zooms on the crosshair, the screen's middle.
+            url: clip.url, nome: clip.nome, duracao: clip.duracao, fonte: clip.fonte, zoom: jogo === "val", roteiro,
             // The clock the player takes over from if Luan touches it; muted (Luan, 2026-11-12).
             t: roteiro.de, em: Date.now(), tocando: true, base: 1, som: false, acao: 0,
           },
@@ -1241,13 +1178,12 @@
             faseVista = s?.fase ?? null
             if (s) seguirPrevia(true)
           }
-          const taxa = s ? s.taxa : Math.max(0.0625, replayTaxa(t, r))
+          const taxa = s ? s.taxa : (r.base ?? 1)
           if (Math.abs(previa.playbackRate - taxa) > 0.005) previa.playbackRate = taxa
-          const w = s ? s.peso : focoPeso(t, r.foco)
           const tocando = s ? s.tocando : r.tocando
           const pct = Math.round(taxa * 100)
           $("selo").textContent = s?.fase === "fim" ? "FIM · ÚLTIMOS VOTOS" : s?.fase === "espera" ? "CARREGANDO" : !tocando ? "PAUSADO"
-            : (s ? s.fase === "lenta" : w > 0.5) ? `CÂMERA LENTA ${pct}%` : `REPLAY ${pct}%`
+            : s?.fase === "lenta" ? `CÂMERA LENTA ${pct}%` : `REPLAY ${pct}%`
           const agora = pos()
           $("tempo").textContent = `${segundos(agora)} / ${segundos(r.duracao)} s`
           $("feito").style.width = `${(agora / (r.duracao || 1)) * 100}%`
@@ -1263,11 +1199,7 @@
           mudar((r) => {
             const p = b.dataset.pulo
             if (p === "inicio") r.t = 0
-            else if (p === "lance") {
-              if (r.foco?.t == null) return
-              r.t = r.foco.t - 2
-              r.tocando = true
-            } else r.t += Number(p)
+            else r.t += Number(p)
           })
       for (const b of document.querySelectorAll("[data-quadro]"))
         b.onclick = () =>
@@ -1283,9 +1215,6 @@
         mudar((r) => (r.t = Number(busca.value) * r.duracao))
       }
       busca.onchange = () => (arrastando = false)
-      $("foco-ligado").onchange = (e) => mudar((r) => (r.foco = { ...r.foco, ligado: e.target.checked && r.foco?.t != null }))
-      $("foco-zoom").onchange = (e) => mudar((r) => (r.foco = { ...r.foco, zoom: e.target.checked }))
-      $("foco-aqui").onclick = () => mudar((r) => (r.foco = { ...r.foco, t: Math.round(r.t * 100) / 100, ligado: true }))
       // The sound (off since 2026-11-12) isn't the clock: it leaves the script running.
       $("som-replay").onchange = (e) => {
         if (!varAtual?.replay) return
@@ -1317,30 +1246,7 @@
         document.querySelector(".player").classList.toggle("tocando", r.tocando)
         for (const b of $("velocidades").children) b.classList.toggle("active", Number(b.dataset.base) === r.base)
         for (const b of $("layout-agora").children) b.classList.toggle("active", b.dataset.valor === v.layout)
-        $("foco-ligado").checked = !!r.foco?.ligado
-        $("foco-ligado").disabled = r.foco?.t == null
-        $("foco-zoom").checked = !!r.foco?.zoom
         $("som-replay").checked = !!r.som
-        document.querySelector('[data-pulo="lance"]').disabled = r.foco?.t == null
-        // The plays on the timeline (and as buttons that put the focus on them), and the focus.
-        const em = (t) => `${Math.min(100, Math.max(0, (t / (r.duracao || 1)) * 100))}%`
-        const chave = JSON.stringify([r.marcas, r.foco, r.duracao])
-        if ($("marcas-trilho").dataset.de !== chave) {
-          $("marcas-trilho").dataset.de = chave
-          $("marcas-trilho").replaceChildren(
-            ...r.marcas.map((m) => Object.assign(document.createElement("span"), { title: m.rotulo, style: `left:${em(m.t)}` })),
-            ...(r.foco?.t != null ? [Object.assign(document.createElement("span"), { className: `foco${r.foco.ligado ? "" : " desligado"}`, style: `left:${em(r.foco.t)}` })] : []),
-          )
-          $("marcas-lance").replaceChildren(
-            ...r.marcas.map((m) => {
-              const b = document.createElement("button")
-              b.textContent = `${m.rotulo} · ${segundos(m.t)} s`
-              b.classList.toggle("active", r.foco?.t === m.t)
-              b.onclick = () => mudar((x) => (x.foco = { ...x.foco, t: m.t, ligado: true }))
-              return b
-            }),
-          )
-        }
         desenharTela()
       }
       $("var-encerrar").onclick = encerrarVotacao
@@ -1390,14 +1296,6 @@
         varAtual.linha = null
         desenharTela()
         enviarVar()
-      }
-
-      // The plays from the Partidas dock (BroadcastCustomEvent { lance: { tipo, rotulo, em } }).
-      function lanceOuvido(l) {
-        if (!l?.em) return
-        lances.push(l)
-        while (lances.length && lances[0].em < Date.now() - 3 * 3600 * 1000) lances.shift()
-        if (lances.length > 500) lances.shift()
       }
 
       // --- Sounds ---------------------------------------------------------------------------------------------
