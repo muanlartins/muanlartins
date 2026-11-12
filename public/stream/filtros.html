@@ -202,7 +202,6 @@
       import * as SOVA from "./vfx-sova.js"
       import * as SAGE from "./vfx-sage.js"
       import { createSfx } from "./sfx.js"
-      import { FilesetResolver, GestureRecognizer, ImageSegmenter, FaceLandmarker, PoseLandmarker } from "@mediapipe/tasks-vision"
 
       const q = new URLSearchParams(location.search)
       const W = 1920
@@ -263,8 +262,9 @@
       const video = document.getElementById("cam")
       async function openCamera() {
         const want = (q.get("cam") || "NVIDIA Broadcast").toLowerCase()
-        // The format OBS's own Câmera uses, since NVIDIA Broadcast's camera serves several apps at once only in one format.
-        const size = { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } }
+        // The format OBS's own Câmera uses, since NVIDIA Broadcast's camera serves several apps at once only in one format:
+        // 1280×720 at 60 since 2026-11-12 (at 30 a second, the filter's camera stepped beside OBS's own at 60).
+        const size = { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 60 } }
         const open = (deviceId) => navigator.mediaDevices.getUserMedia({ video: { ...size, deviceId: { exact: deviceId } }, audio: false })
         // The wanted camera by its name, never the system's default first: that's often the physical webcam, which
         // NVIDIA Broadcast holds for itself ("device in use"). Names show only once some camera was opened, so
@@ -307,7 +307,7 @@
       camTex.colorSpace = THREE.NoColorSpace
       camTex.minFilter = camTex.magFilter = THREE.LinearFilter
 
-      // The body mask, from a small copy of the frame; mipmaps blur it for free, which is what the outline and
+      // The body mask, 256 wide (rastreio.js); mipmaps blur it for free, which is what the outline and
       // the fire are made of.
       const MW = 256
       let MH = 144
@@ -321,8 +321,6 @@
         t.needsUpdate = true
         return t
       }
-      const small = document.createElement("canvas")
-      const smallCtx = small.getContext("2d", { willReadFrequently: true })
 
       // Screen uv (0..1, y up) ↔ video uv: the video covers the canvas, zoomed in on ?foco by ?zoom.
       const cover = { sx: 1, sy: 1, ox: 0, oy: 0 }
@@ -1058,7 +1056,7 @@
       // Checked against the frame where the mask says he isn't, and evened out to it; it stays off while they
       // don't match (another background, or none), since a flat colour showed as a blue wedge. ?apagar=0 turns it off.
       const ERASE = q.get("apagar") !== "0"
-      const plate = { ok: false, img: null, canvas: document.createElement("canvas") }
+      const plate = { ok: false, img: null, canvas: document.createElement("canvas"), at: -1e9 }
       new THREE.TextureLoader().load(q.get("fundo") || "camera-fundo.png", (t) => {
         t.colorSpace = THREE.NoColorSpace
         t.minFilter = t.magFilter = THREE.LinearFilter
@@ -1243,7 +1241,7 @@
 
       // Luan's shoulders in the 3D camera's space (cm): the body tracker gives them on screen and their depth
       // relative to each other; the face's transform gives how far he is.
-      const pose = { seen: false, left: new THREE.Vector2(), right: new THREE.Vector2(), dz: 0, elbows: [null, null] }
+      const pose = { seen: false, left: new THREE.Vector2(), right: new THREE.Vector2(), dz: 0, elbows: [null, null], target: null, sentAt: -1e9 }
       function onRay(u, v, z) {
         const p = new THREE.Vector3(u * 2 - 1, v * 2 - 1, 0.5).unproject(headCam)
         return p.multiplyScalar(z / p.z)
@@ -3011,31 +3009,69 @@
         sfx.play("carro-flip", { pan, delay: 0.08 })
       }
 
-      // ---------- models ----------
-      let gestures, segmenter, faces, poses, delegate
-      async function loadModels() {
-        const files = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.2/wasm")
-        const make = async (Task, path, opts, d) =>
-          Task.createFromOptions(files, { baseOptions: { modelAssetPath: MODELS + path, delegate: d }, runningMode: "VIDEO", ...opts })
-        const all = async (d) => {
-          delegate = d
-          return Promise.all([
-            make(GestureRecognizer, "gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task", { numHands: 2 }, d),
-            make(
-              ImageSegmenter,
-              "image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite",
-              { outputConfidenceMasks: true, outputCategoryMask: false },
-              d,
-            ),
-            make(FaceLandmarker, "face_landmarker/face_landmarker/float16/1/face_landmarker.task", { numFaces: 1, outputFacialTransformationMatrixes: true }, d),
-            make(PoseLandmarker, "pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task", { numPoses: 1 }, d),
-          ])
+      // ---------- trackers ----------
+      // MediaPipe's trackers run in workers (rastreio.js), three of them so that their calls overlap: the face alone
+      // (the hair and the cars sit on it), the hands alone, and the shoulders with the body mask. Each call ends by
+      // reading its answer back from the GPU, which on the page's own thread held the whole frame: four calls a
+      // frame took Phoenix to ~15 fps on the 4070 (2026-11-12). Now the camera is drawn on every frame whatever the
+      // trackers do, each tracker takes the newest frame whenever it's free, and what sits on Luan is carried along
+      // his motion between their answers (`follow`).
+      const GROUPS = { rosto: ["rosto"], maos: ["maos"], corpo: ["ombros", "corpo"] }
+      const trackers = {}
+      let delegate = ""
+      function loadModels() {
+        for (const [name, which] of Object.entries(GROUPS)) {
+          const tr = (trackers[name] = { which, ok: false, busy: true, n: 0, rate: 0, w: new Worker("rastreio.js", { type: "module" }) })
+          tr.w.onmessage = ({ data }) => {
+            if (data.type === "pronto") {
+              Object.assign(tr, { ok: true, busy: false })
+              delegate = data.delegate
+            } else if (data.type === "falha") fail("modelos", data.erro)
+            else if (data.type === "resultado") {
+              tr.busy = false
+              tr.n++
+              try {
+                received(data)
+              } catch (e) {
+                fail("modelos", e)
+              }
+            }
+          }
+          tr.w.onerror = (e) => fail("modelos", e.message || e)
+          tr.w.postMessage({ type: "carregar", cpu: q.has("cpu"), which, gestos: q.get("gestos") !== "0" })
         }
-        try {
-          ;[gestures, segmenter, faces, poses] = await all(q.has("cpu") ? "CPU" : "GPU")
-        } catch (e) {
-          console.warn("GPU failed, trying CPU", e)
-          ;[gestures, segmenter, faces, poses] = await all("CPU")
+      }
+      const trackersReady = () => Object.values(trackers).some((t) => t.ok)
+      // The newest frame, to each free tracker that has something wanted of it.
+      function sendFrame(want, now) {
+        for (const tr of Object.values(trackers)) {
+          if (!tr.ok || tr.busy) continue
+          const quer = {}
+          for (const k of tr.which) if (want[k]) quer[k] = true
+          if (quer.corpo && want.fundo) quer.fundo = true
+          if (!Object.keys(quer).length) continue
+          tr.busy = true
+          if (quer.ombros) pose.sentAt = now
+          if (quer.fundo) plate.at = now
+          createImageBitmap(video).then(
+            (bitmap) => tr.w.postMessage({ type: "quadro", bitmap, t: now, quer }, [bitmap]),
+            (e) => {
+              tr.busy = false
+              fail("quadro", e)
+            },
+          )
+        }
+      }
+      const MS_NAMES = { maos: "gesto", corpo: "corpo", rosto: "rosto", ombros: "ombros" }
+      function received(d) {
+        for (const k in d.ms) ms[MS_NAMES[k]] = d.ms[k]
+        if (d.erro) fail("modelos", d.erro)
+        if (d.maos && handsOn) applyHands(d.maos, d.t)
+        if ("rosto" in d) applyFace(d.rosto, d.t)
+        if (d.ombros) applyPose(d.ombros)
+        if (d.corpo) {
+          applyBody(d.corpo)
+          if (d.corpo.topo) sampleBackground(d.corpo.topo)
         }
       }
 
@@ -3050,6 +3086,9 @@
       const snaps = new Map()
       let faceLm = null
       let videoFrames = 0
+      let handsOn = false
+      // When the newest camera frame came in: what's on screen, which the trackers' answers are carried up to.
+      let shownAt = 0
       const lens = { amt: 0, pts: [0, 1, 2, 3].map(() => new THREE.Vector2(0.5, 0.5)), on: false }
       let prevMask = null
       let energy = 0
@@ -3126,7 +3165,7 @@
       })
       setMode(mode)
       const DEBUG = q.has("debug")
-      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, isPray, get mode() { return mode }, get trackers() { return !!(gestures && segmenter && faces && poses) } }
+      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, isPray, get mode() { return mode }, get trackers() { return trackersReady() } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -3135,13 +3174,13 @@
         return dist(h[8], h[5]) > 0.55 * palm && dist(h[4], h[8]) > 0.6 * palm && dist(h[12], h[0]) < 1.25 * palm && dist(h[16], h[0]) < 1.2 * palm
       }
 
-      function runGestures(now) {
-        const t0 = performance.now()
-        // ?debug: window.__hands(now) can stand in for the tracker (made-up hands, for checking the gestures).
-        const r = (DEBUG && window.__hands?.(now)) || gestures.recognizeForVideo(video, now)
-        ms.gesto = performance.now() - t0
+      // The hands' answer (or ?debug's made-up hands): the gestures, the lens, Pop's pushes.
+      function applyHands(r, now) {
         const hands = r.landmarks || []
-        lastHands = hands
+        handsTrack.prev = alignHands(handsTrack.cur, hands)
+        handsTrack.prevT = handsTrack.t
+        handsTrack.cur = hands
+        handsTrack.t = now
         // The lens: both hands in an L, while it's the filter on.
         const ls = mode === "lente" ? hands.filter(isL) : []
         handInfo = `${hands.length} mão(s), ${ls.length} em L`
@@ -3157,11 +3196,12 @@
         } else lens.on = false
         // Fast hands push Pop's shapes and stir its fire.
         pushes = []
+        const step = Math.max(0.016, (now - handsTrack.prevT) / 1000)
         hands.forEach((h, i) => {
           const [sx, sy] = toScreen(h[9].x, h[9].y)
           const prev = prevHands.get(i)
           if (prev) {
-            const v = Math.hypot(sx - prev[0], sy - prev[1]) * 30
+            const v = Math.hypot(sx - prev[0], sy - prev[1]) / step
             if (v > 0.6) pushes.push({ x: (sx - 0.5) * 2 * halfW, y: (sy - 0.5) * 2 * halfH, v: Math.min(v, 4) * 0.8 })
             energy = Math.max(energy, Math.min(1, v / 3))
           }
@@ -3170,70 +3210,141 @@
         if (!hands.length) prevHands.clear()
       }
 
-      function runBody(now) {
-        const t0 = performance.now()
-        smallCtx.drawImage(video, 0, 0, MW, MH)
-        const r = segmenter.segmentForVideo(small, now)
-        const m = r.confidenceMasks?.[0]
-        if (m) {
-          const f = m.getAsFloat32Array()
-          let sum = 0, sx = 0, top = -1, diff = 0
-          for (let y = 0; y < MH; y++) {
-            let row = 0
-            for (let x = 0; x < MW; x++) {
-              const i = y * MW + x
-              const v = f[i]
-              const b = (v * 255) | 0
-              if (prevMask) diff += Math.abs(b - prevMask[i])
-              maskData[i] = b
-              if (v > 0.5) {
-                sum++
-                sx += x
-                row++
-              }
+      // The body mask's answer (256 wide, 0–255).
+      function applyBody({ mask, w, h }) {
+        if (w !== MW || h !== MH || !mask) return
+        let sum = 0, sx = 0, top = -1, diff = 0
+        for (let y = 0; y < MH; y++) {
+          let row = 0
+          for (let x = 0; x < MW; x++) {
+            const i = y * MW + x
+            const b = mask[i]
+            if (prevMask) diff += Math.abs(b - prevMask[i])
+            if (b > 127) {
+              sum++
+              sx += x
+              row++
             }
-            if (top < 0 && row > MW * 0.03) top = y
           }
-          prevMask = prevMask || new Uint8Array(MW * MH)
-          prevMask.set(maskData)
-          maskTex.needsUpdate = true
-          maskFresh = true
-          energy = Math.max(energy, Math.min(1, diff / (MW * MH * 255) / 0.02))
-          if (sum > 50 && top >= 0) {
-            const [cx, cy] = toScreen(sx / sum / MW, Math.min(1, top / MH + 0.14))
-            uniforms.uCenter.value.lerp(new THREE.Vector2(cx, cy), 0.15)
-          }
+          if (top < 0 && row > MW * 0.03) top = y
         }
-        r.close()
-        ms.corpo = performance.now() - t0
+        maskData.set(mask)
+        prevMask = prevMask || new Uint8Array(MW * MH)
+        prevMask.set(maskData)
+        maskTex.needsUpdate = true
+        maskFresh = true
+        energy = Math.max(energy, Math.min(1, diff / (MW * MH * 255) / 0.02))
+        if (sum > 50 && top >= 0) {
+          const [cx, cy] = toScreen(sx / sum / MW, Math.min(1, top / MH + 0.14))
+          uniforms.uCenter.value.lerp(new THREE.Vector2(cx, cy), 0.15)
+        }
       }
 
-      function runFace(now) {
-        const t0 = performance.now()
-        const r = faces.detectForVideo(video, now)
-        const mat = r.facialTransformationMatrixes?.[0]
-        if (mat) {
-          const m = new THREE.Matrix4().fromArray(mat.data)
-          const p = new THREE.Vector3(), qt = new THREE.Quaternion(), s = new THREE.Vector3()
-          m.decompose(p, qt, s)
-          if (headSeen) {
-            headPos.lerp(p, 0.6)
-            headQuat.slerp(qt, 0.6)
-            headScale.lerp(s, 0.6)
-          } else {
-            headPos.copy(p)
-            headQuat.copy(qt)
-            headScale.copy(s)
-          }
-          headSeen = true
-          head.matrix.compose(headPos, headQuat, headScale)
-          faceLm = r.faceLandmarks?.[0] || null
-          if (faceLm) faceOval(faceLm)
-        } else {
+      // The face's answer: the head's pose (the transformation matrix) and the face's points, kept with the one
+      // before them for `follow`.
+      const headTrack = { p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3(), pp: new THREE.Vector3(), pq: new THREE.Quaternion(), t: 0, prevT: -1e9, prev: false }
+      const faceTrack = { cur: null, prev: null, t: 0, prevT: -1e9 }
+      const handsTrack = { cur: null, prev: null, t: 0, prevT: -1e9 }
+      function applyFace(r, t) {
+        if (!r) {
           headSeen = false
           faceLm = null
+          faceTrack.cur = null
+          return
         }
-        ms.rosto = performance.now() - t0
+        const fresh = !headSeen
+        headTrack.pp.copy(headTrack.p)
+        headTrack.pq.copy(headTrack.q)
+        headTrack.prevT = headTrack.t
+        headTrack.prev = !fresh
+        new THREE.Matrix4().fromArray(r.matrix).decompose(headTrack.p, headTrack.q, headTrack.s)
+        headTrack.t = t
+        if (fresh) {
+          headPos.copy(headTrack.p)
+          headQuat.copy(headTrack.q)
+          headScale.copy(headTrack.s)
+          head.matrix.compose(headPos, headQuat, headScale)
+        }
+        headSeen = true
+        faceTrack.prev = fresh ? null : faceTrack.cur
+        faceTrack.prevT = faceTrack.t
+        faceTrack.cur = r.landmarks
+        faceTrack.t = t
+        if (!r.landmarks) faceLm = null
+        else if (fresh || !faceLm) {
+          faceLm = r.landmarks.map((p) => ({ ...p }))
+          faceOval(faceLm)
+        }
+      }
+
+      // Where Luan is now, between the trackers' answers: the last answer carried along the motion between the two
+      // last ones, for as long as it's older than the frame on screen (up to 1.5 of their gaps, ×?adiante, 0.8),
+      // then eased into over ?suave ms (25), so nothing steps at the trackers' rate on a 60 fps picture.
+      const LEAD = Number(q.get("adiante") ?? 0.8)
+      const EASE = Number(q.get("suave") ?? 25) / 1000
+      function aheadOf(tr) {
+        const gap = tr.t - tr.prevT
+        if (!tr.prev || gap <= 0 || gap > 200) return 0
+        return Math.min(1.5, Math.max(0, shownAt - tr.t) / gap) * LEAD
+      }
+      function carry(cur, prev, a, out, k) {
+        if (!out || out.length !== cur.length) out = cur.map((p) => ({ ...p }))
+        for (let i = 0; i < cur.length; i++) {
+          const c = cur[i], o = out[i], b = prev ? prev[i] : null
+          const x = b ? c.x + (c.x - b.x) * a : c.x
+          const y = b ? c.y + (c.y - b.y) * a : c.y
+          const z = b ? c.z + (c.z - b.z) * a : c.z
+          o.x += (x - o.x) * k
+          o.y += (y - o.y) * k
+          o.z += (z - o.z) * k
+          o.visibility = c.visibility
+        }
+        return out
+      }
+      // Each hand's previous answer, by the nearest wrist (the tracker's order can change).
+      function alignHands(prev, cur) {
+        return cur.map((h) => {
+          let best = null, bd = 0.08
+          for (const p of prev || []) {
+            const d = dist(p[0], h[0])
+            if (d < bd) (bd = d), (best = p)
+          }
+          return best
+        })
+      }
+      function follow(dt) {
+        const k = 1 - Math.exp(-dt / Math.max(0.001, EASE))
+        if (headSeen && headTrack.t) {
+          const a = aheadOf(headTrack)
+          const p = headTrack.p.clone()
+          const qt = headTrack.q.clone()
+          if (a > 0) {
+            p.lerpVectors(headTrack.pp, headTrack.p, 1 + a)
+            qt.copy(headTrack.pq).slerp(headTrack.q, 1 + a)
+          }
+          headPos.lerp(p, k)
+          headQuat.slerp(qt, k)
+          headScale.lerp(headTrack.s, k)
+          head.matrix.compose(headPos, headQuat, headScale)
+        }
+        if (headSeen && faceTrack.cur && faceLm) {
+          const prev = faceTrack.prev && faceTrack.prev.length === faceTrack.cur.length ? faceTrack.prev : null
+          faceLm = carry(faceTrack.cur, prev, aheadOf(faceTrack), faceLm, k)
+          faceOval(faceLm)
+        }
+        if (handsOn && handsTrack.cur) {
+          const a = aheadOf(handsTrack)
+          const cur = handsTrack.cur
+          if (lastHands.length !== cur.length) lastHands = cur.map((h) => h.map((p) => ({ ...p })))
+          else lastHands = cur.map((h, i) => carry(h, handsTrack.prev?.[i] || null, a, lastHands[i], k))
+        }
+        // The shoulders change slowly: eased, not carried.
+        if (pose.seen && pose.target) {
+          const ks = 1 - Math.exp(-dt / 0.05)
+          pose.left.lerp(pose.target.left, ks)
+          pose.right.lerp(pose.target.right, ks)
+          pose.dz += (pose.target.dz - pose.dz) * ks
+        }
       }
 
       // The face's oval on screen (forehead top, chin, cheeks), for painting over the hair around it.
@@ -3251,42 +3362,41 @@
         uniforms.uFaceUp.value.copy(up)
       }
 
-      function runPose(now) {
-        const t0 = performance.now()
-        const r = poses.detectForVideo(video, now)
-        const lm = r.landmarks?.[0]
-        const world = r.worldLandmarks?.[0]
+      // The shoulders' answer.
+      function applyPose(r) {
+        const lm = r.landmarks
+        const world = r.world
         if (lm && world && lm[11].visibility > 0.4 && lm[12].visibility > 0.4) {
           const l = new THREE.Vector2(...toScreen(lm[11].x, lm[11].y))
           const rr = new THREE.Vector2(...toScreen(lm[12].x, lm[12].y))
           const dz = (world[11].z - world[12].z) * 100
-          if (pose.seen) {
-            pose.left.lerp(l, 0.5)
-            pose.right.lerp(rr, 0.5)
-            pose.dz += (dz - pose.dz) * 0.5
-          } else {
+          if (!pose.seen) {
             pose.left.copy(l)
             pose.right.copy(rr)
             pose.dz = dz
           }
+          pose.target = { left: l, right: rr, dz }
           pose.seen = true
           // The elbows, when they're in the picture (Phoenix's ultimate burns on them too).
           pose.elbows = [13, 14].map((i) => (lm[i].visibility > 0.5 ? new THREE.Vector2(...toScreen(lm[i].x, lm[i].y)) : null))
         } else pose.seen = false
-        ms.ombros = performance.now() - t0
       }
 
       // Does the background plate match the frame? Compared where the mask says Luan isn't, in the frame's top
-      // half: the mean difference evens out the camera's colours (uPlateFix), and what's left after it must be
-      // small (the lattice's lines are a few levels off the blue; another picture is tens).
-      function sampleBackground() {
+      // half (`px`, from the body mask's tracker, same frame): the mean difference evens out the camera's colours
+      // (uPlateFix), and what's left after it must be small (the lattice's lines are a few levels off the blue;
+      // another picture is tens).
+      function sampleBackground(px) {
         if (!plate.img) return
         const c = plate.canvas
-        if (c.width !== MW || c.height !== MH) Object.assign(c, { width: MW, height: MH })
-        const pctx = c.getContext("2d", { willReadFrequently: true })
-        pctx.drawImage(plate.img, 0, 0, MW, MH)
-        const px = smallCtx.getImageData(0, 0, MW, MH >> 1).data
-        const pl = pctx.getImageData(0, 0, MW, MH >> 1).data
+        if (c.width !== MW || c.height !== MH || !plate.px) {
+          Object.assign(c, { width: MW, height: MH })
+          const pctx = c.getContext("2d", { willReadFrequently: true })
+          pctx.drawImage(plate.img, 0, 0, MW, MH)
+          plate.px = pctx.getImageData(0, 0, MW, MH >> 1).data
+        }
+        const pl = plate.px
+        if (px.length !== pl.length) return
         const sum = [0, 0, 0]
         let n = 0
         for (let i = 0; i < px.length / 4; i += 2) {
@@ -3435,12 +3545,18 @@
 
       // ---------- loop ----------
       let lastFrame = -1
+      let partsFrame = -1
       let last = performance.now()
       let frames = 0, fps = 0, fpsAt = last
       let camLabel = ""
+      // ?fps=60 draws at most that many frames a second (a browser at 144 Hz drawing like OBS's 60 fps source).
+      const FPS_CAP = Number(q.get("fps")) || 0
+      let lastDraw = 0
       function tick() {
         requestAnimationFrame(tick)
         const now = performance.now()
+        if (FPS_CAP && now - lastDraw < 1000 / FPS_CAP - 2) return
+        lastDraw = now
         const dt = Math.min(0.05, (now - last) / 1000)
         last = now
         const camReady = video.readyState >= 2 && video.videoWidth > 0
@@ -3455,34 +3571,43 @@
         const agentOn = agentList.some((a) => a.amt > 0) || !!AGENTS[mode]
         const carOn = carList.some((c) => c.amt > 0) || !!CARS[mode]
         const sovaOn = mode === "sova" || AGENTS.sova.amt > 0
-        if (gestures && video.readyState >= 2 && video.currentTime !== lastFrame) {
+        if (trackersReady() && video.currentTime !== lastFrame) {
           lastFrame = video.currentTime
+          shownAt = now
+          videoFrames++
           try {
-            videoFrames++
-            // The hands are tracked only for the filters that use them (no gesture switches a filter).
-            if (mode === "phoenix" || phoenix > 0 || sovaOn || mode === "sage" || mode === "pop" || pop > 0 || mode === "lente") runGestures(now)
+            const want = {}
+            // The hands are tracked only for the filters that use them (no gesture switches a filter); ?debug's
+            // window.__hands(now) can stand in for the tracker (made-up hands, for checking the gestures).
+            handsOn = mode === "phoenix" || phoenix > 0 || sovaOn || mode === "sage" || mode === "pop" || pop > 0 || mode === "lente"
+            const fake = handsOn && DEBUG && window.__hands?.(now)
+            if (fake) applyHands(fake, now)
+            else if (handsOn) want.maos = true
             else {
               lastHands = []
+              handsTrack.cur = null
               pushes = []
               lens.on = false
               fire.on = false
               handInfo = "mãos sem uso"
             }
-            // The body mask: Pop, and Sova's reveals while one may be on screen.
-            // (And Sage's heal and frost on him.)
+            // The body mask: Pop, Sova's reveals while one may be on screen, Sage's heal and frost on him, and erasing
+            // his hair (agents) or his head (cars), with the background's check now and then.
             const sovaMask = (sovaOn && (now < sova.maskUntil || sova.patrol.amt > 0)) || (mode === "sage" && now < sage.maskUntil)
-            if (mode === "pop" || pop > 0 || sovaMask) runBody(now)
-            if (mode === "bola" || ballIn > 0 || agentOn || carOn || mode === "sage") runFace(now)
-            if ((agentOn || mode === "sage") && videoFrames % 2 === 0) runPose(now)
-            // The body mask and the background's check, for erasing his hair (agents) or his head (cars).
-            if ((agentOn || carOn) && ERASE) {
-              if (mode !== "pop" && pop <= 0 && !sovaMask) runBody(now)
-              if (plate.off === undefined || videoFrames % 15 === 0) sampleBackground()
-            }
-            if (carOn && faceLm) drawParts()
+            if (mode === "pop" || pop > 0 || sovaMask || ((agentOn || carOn) && ERASE)) want.corpo = true
+            if ((agentOn || carOn) && ERASE && (plate.off === undefined || now - plate.at > 250)) want.fundo = true
+            if (mode === "bola" || ballIn > 0 || agentOn || carOn || mode === "sage") want.rosto = true
+            // The shoulders change slowly: ~15 a second is plenty.
+            if ((agentOn || mode === "sage") && now - pose.sentAt > 60) want.ombros = true
+            sendFrame(want, now)
           } catch (e) {
             fail("modelos", e)
           }
+        }
+        follow(dt)
+        if (carOn && faceLm && video.currentTime !== partsFrame) {
+          partsFrame = video.currentTime
+          drawParts()
         }
         pop = THREE.MathUtils.clamp(pop + (mode === "pop" ? dt / 0.55 : -dt / 0.4), 0, 1)
         ballIn = THREE.MathUtils.clamp(ballIn + (mode === "bola" ? dt / 0.35 : -dt / 0.25), 0, 1)
@@ -3534,7 +3659,7 @@
         if (vfxOn) vfx.render(box[2], box[3])
         // The face's mask and what's behind Luan, before the camera's layer, which erases his hair with them.
         const ready = agentList.filter((a) => a.amt > 0 && a.ready)
-        if (ready.length) drawKeep(ready.find((a) => a.trim)?.trim)
+        if (ready.length && q.get("keep") !== "0") drawKeep(ready.find((a) => a.trim)?.trim)
         else if (carAmt > 0) drawKeep(undefined, false)
         if ((agentAmt > 0 || carAmt > 0) && ERASE && maskFresh) {
           remember()
@@ -3636,15 +3761,22 @@
         // The glare stays in the camera's box (Luan's call), from where the orb popped.
         if (uniforms.uFlashAmt.value > 0) renderer.render(flashScene, ortho)
 
+        // ?debug: a test bench can take this frame (the drawing buffer is only readable right after drawing).
+        if (DEBUG && window.__foto) window.__foto(renderer.domElement)
         frames++
         if (now - fpsAt > 500) {
           fps = (frames * 1000) / (now - fpsAt)
+          for (const tr of Object.values(trackers)) {
+            tr.rate = (tr.n * 1000) / (now - fpsAt)
+            tr.n = 0
+          }
           frames = 0
           fpsAt = now
           const ag = AGENTS[mode] || CARS[mode]
           hud.textContent =
             `${fps.toFixed(0)} fps · ${delegate || "…"} · ${camLabel}\n` +
             `gesto ${ms.gesto.toFixed(1)} ms · corpo ${ms.corpo.toFixed(1)} ms · rosto ${ms.rosto.toFixed(1)} ms · ombros ${ms.ombros.toFixed(1)} ms\n` +
+            `respostas/s: ${Object.entries(trackers).map(([k, t]) => `${k} ${t.rate.toFixed(0)}`).join(" · ")}\n` +
             `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}` +
             (ag ? `\n${mode}: modelo ${ag.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"}${AGENTS[mode] ? ` · ombros ${pose.seen ? "sim" : "não"} · fundo ${!ERASE ? "desligado" : plate.off === undefined ? "…" : `${plate.ok ? "ok" : "não bate"} (${plate.off.toFixed(1)})`}` : ""}` : "") +
             (mode === "sova" ? `\nsova: peças ${bow3.model ? "ok" : "…"} · arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? ` · flecha (${sova.arrow.kind})` : ""}${sova.dart ? " · reconhecimento" : ""}${sova.drone ? " · coruja" : ""}${sova.patrol.amt > 0 ? " · coruja sobrevoando" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
@@ -3670,12 +3802,10 @@
         maskTex.dispose()
         maskTex = makeMaskTex()
         uniforms.uMask.value = maskTex
-        small.width = MW
-        small.height = MH
       }
       startCamera()
       tick()
-      loadModels().catch((e) => fail("modelos", e))
+      loadModels()
     </script>
   </body>
 </html>
