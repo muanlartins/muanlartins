@@ -65,7 +65,7 @@ scripts/.venv/bin/python scripts/thumb.py <date>        # the candidates sheet: 
 
 Make the sheet **before freeing the disk** (step 4): it reads his microphone off `Live.mp4`, and a day without
 `partes.json` also needs the file to place the camera's frames. `videos.py --clean` keeps a `Live.mp4` until the
-live's `youtube.thumb` exists.
+day is marked `--done`, which comes after the thumbnail and the shorts.
 
 The sheet is his twelve strongest reactions (the microphone track's loudest moments, the transcript's "meu Deus",
 "que isso", "golaço", laughs, his goals from the dock, the VAR's plays), three camera frames each (`7a`, `7b`, `7c`)
@@ -138,17 +138,16 @@ utilizarmos".
 ```sh
 scripts/.venv/bin/python scripts/videos.py --clean            # lists what goes, and why
 scripts/.venv/bin/python scripts/videos.py --clean --apply    # deletes it, for good
-python3 scripts/videos.py --done <date>                        # after that day's shorts and commented videos
+python3 scripts/videos.py --done <date>                        # after that day's thumbnail, shorts and commented videos
 ```
 
-- `Live.mp4` goes once its YouTube video is processed and as long as the file (checked through the API), and the
-  thumbnail is picked (`youtube.thumb`, step 2b). A day without a Jogo recording (11-05 and before) keeps it like a
-  Jogo: it's the studio's only copy of the matches.
-- `Live.mp4` is also the shorts' clock (`clipe.py`, `cortes.py`, `destaque.py`: the `estudio` skill). `--apply`
-  deletes every day's at once, so when a day's shorts are still being picked, ask Luan first (2026-11-12: only 11-09
-  and 11-10 went; 11-11 and 11-12 stayed for their shorts).
-- `Jogo`, `Câmera` and the `VAR` clips go when the day is marked `--done`; otherwise they stay as long as there's room, and only
-  when the disk would have less than 200 GB free (`FREE_GB`, what a live needs) the oldest days go first.
+- A day's `Live.mp4`, `Jogo`, `Câmera` and `VAR` clips go together when the day is marked `--done`; otherwise they
+  stay as long as there's room, and only when the disk would have less than 200 GB free (`FREE_GB`, what a live
+  needs) the oldest days go first.
+- `Live.mp4` waits for the day too (Luan, 2026-11-12: "vamos esperar os shorts"): thumb.py reads his microphone off
+  it (step 2b), the shorts' tools take it as their clock (`clipe.py`, `cortes.py`, `destaque.py`: the `estudio`
+  skill), and before 11-06 it's the studio's only copy of the matches. It never goes before its YouTube video is
+  processed and as long as the file (checked through the API), not even for space.
 - Replays stay (a few MB). Show Luan the list before `--apply`: nothing comes back.
 - Free space under ~150 GB before a live: tell him.
 

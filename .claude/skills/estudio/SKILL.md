@@ -23,7 +23,7 @@ description: Making Luan's shorts and commented-match videos from a live's mater
   `<hh-mm-ss> Live.mp4` (1080p60, webcam and overlays baked in at the bottom-left, tracks 1 Tudo, 2 Microfone,
   3 Jogo, 4 Discord), `<hh-mm-ss> Câmera.mkv` (the webcam alone), `<hh-mm-ss> Jogo.mp4` (the game alone, from
   11-06 on: what the studio plays for shorts and commented videos, so Luan's camera goes on top only once) and `Replays\Partida NN - ….replay`.
-- They don't last: `Live.mp4` goes once it's on YouTube; `Jogo`/`Câmera` when the day is marked done or, oldest
+- They don't last: `Live.mp4` (once it's on YouTube), `Jogo` and `Câmera` go when the day is marked done or, oldest
   first, when the disk runs short (`depois-da-live`, "Free the disk"). After a day's shorts and commented videos,
   `python3 scripts/videos.py --done <date>`.
 - The session: `content/matches/<id>.json` (`outputs`: when the recording started; each match's `start` and
