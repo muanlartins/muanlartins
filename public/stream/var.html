@@ -29,7 +29,8 @@
 
       The dock sends the VAR's whole state on every change, and every second while it plays, as obs-browser's
       emit_event "muanlartins-var" with the state as JSON text in `estado` (varDe() in stream.js): { fase: "votacao" |
-      "empate" | "veredito" | "fechado", id, layout, pergunta, opcoes, votos, ate (when the vote ends, epoch ms),
+      "empate" | "veredito" | "fechado", id, layout, pergunta, opcoes, votos, ate (when the vote ends, epoch ms), sorteio
+      (the verdict was a tie's draw),
       duracao (the vote's), vencedora, empatadas, linha, replay: { url, duracao, fonte, zoom, roteiro, t, em, tocando,
       base, som, acao } }. `t` at epoch ms `em` is the dock's preview
       (or the script's, while there is one); this page carries it forward (replayPosicao() in stream.js) and only seeks
@@ -719,14 +720,16 @@
         })
         const comandos = opcoes.map((_, i) => `!${i + 1}`)
         $("dica").textContent =
-          v.fase === "empate" ? "Empate: o Luan desempata"
+          v.fase === "empate" ? "Empate: sorteio"
             : v.fase === "veredito" ? `${total} ${total === 1 ? "voto" : "votos"}`
               : `Vote no chat: ${comandos.slice(0, -1).join(", ")} ou ${comandos.at(-1)}`
 
         if (v.fase === "veredito" && carimbado !== v.id) {
           carimbado = v.id
           $("vencedora").textContent = opcoes[v.vencedora] ?? ""
-          $("placar").textContent = total ? `${votos[v.vencedora]} de ${total} ${total === 1 ? "voto" : "votos"}` : "Decisão do Luan"
+          $("placar").textContent = v.sorteio
+            ? total ? `Empate: no sorteio` : "Ninguém votou: no sorteio"
+            : total ? `${votos[v.vencedora]} de ${total} ${total === 1 ? "voto" : "votos"}` : "Decisão do Luan"
           const c = $("cartao")
           c.hidden = false
           c.classList.remove("bate")
@@ -827,7 +830,7 @@
           $("segundos").textContent = `${Math.ceil(resta / 1000)}s`
         }
         $("fim-titulo").textContent = v.fase === "empate" ? "Empate!" : "Últimos votos"
-        $("fim-segundos").textContent = votando ? Math.ceil(Math.max(0, v.ate - Date.now()) / 1000) : v.fase === "empate" ? "o Luan decide" : ""
+        $("fim-segundos").textContent = votando ? Math.ceil(Math.max(0, v.ate - Date.now()) / 1000) : v.fase === "empate" ? "sorteando…" : ""
         $("fim-segundos").classList.toggle("texto", v.fase === "empate")
         requestAnimationFrame(relogio)
       }

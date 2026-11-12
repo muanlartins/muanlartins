@@ -47,7 +47,7 @@
         has the stand whistle (tocador.html). The chat votes with !1, !2, !3 (one vote per login, the last counts;
         read here, anonymously) for the time set here per game (60 s Rocket League, 40 s Valorant by default: Luan
         doubled them on 2026-11-12, for the replay's two passes), or
-        "Encerrar" sooner. The chat's verdict is final; a tie waits for Luan's pick here. The verdict holds 7 s and the
+        "Encerrar" sooner. The chat's verdict is final; a tie (nobody voting too) is drawn among the tied 2.5 s later, unless Luan picks here first. The verdict holds 7 s and the
         dock goes back to the scene before; F4 closes the VAR at any moment. A line dragged on the preview crosses the
         clip on stream. "Só guardar" saves without opening, and today's clips can be opened again from the list. Who
         voted for the verdict gets a little Σ (torcida.html asks the Σ API, which only it has the key for). Everything
@@ -800,6 +800,7 @@
       // Each game's capture, whose "Gravar jogo" filter (Source Record) keeps the game alone in a replay buffer.
       const CAPTURAS = { rl: "Rocket League", val: "Captura · Valorant" }
       const SEGURA_MS = 7000 // the verdict on screen before going back
+      const SORTEIO_MS = 2500 // a tie on screen before the draw settles it
       const DERIVA = 0.5 // the preview seeks when it's this far (s) from the clock, like var.html
       // Option presets (from the brainstorm; Luan edits them in the fields before calling).
       const PRESETS = [
@@ -1032,7 +1033,7 @@
         enviarVar()
       }
 
-      /** The vote's end: the most votes wins; a tie waits for Luan. */
+      /** The vote's end: the most votes wins; a tie is drawn. */
       function encerrarVotacao() {
         const v = varAtual
         if (!v || v.fase !== "votacao") return
@@ -1040,13 +1041,19 @@
         const max = Math.max(...v.votos)
         const empatadas = v.votos.map((n, i) => (n === max ? i : -1)).filter((i) => i >= 0)
         if (empatadas.length === 1) return veredito(empatadas[0])
+        // A tie (nobody voting too) is drawn among the tied, a moment after it shows (Luan, 2026-11-12: he doesn't
+        // steer the VAR live); his buttons here still pick one meanwhile.
         Object.assign(v, { fase: "empate", empatadas, ate: null })
         enviarVar()
+        const id = v.id
+        setTimeout(() => {
+          if (varAtual?.id === id && varAtual.fase === "empate") veredito(empatadas[Math.floor(Math.random() * empatadas.length)], true)
+        }, SORTEIO_MS)
       }
-      function veredito(i) {
+      function veredito(i, sorteio = false) {
         const v = varAtual
         if (!v || v.fase === "veredito") return
-        Object.assign(v, { fase: "veredito", vencedora: i, ate: null })
+        Object.assign(v, { fase: "veredito", vencedora: i, ate: null, sorteio })
         enviarVar()
         play("apito")
         clearTimeout(fimVeredito)
@@ -1230,7 +1237,7 @@
         if (!v) return
         const total = v.votos.reduce((a, b) => a + b, 0)
         $("var-estado").textContent =
-          (v.fase === "empate" ? "Empate: escolha o veredito. " : v.fase === "veredito" ? `Veredito: ${v.opcoes[v.vencedora]}. ` : "Votando. ") +
+          (v.fase === "empate" ? "Empate: sorteando (ou escolha). " : v.fase === "veredito" ? `Veredito: ${v.opcoes[v.vencedora]}. ` : "Votando. ") +
           v.opcoes.map((o, i) => `${o} ${v.votos[i]}`).join(" · ") + ` (${total})`
         $("desempate").replaceChildren(
           ...(v.fase === "empate" ? v.empatadas : []).map((i) => {
