@@ -712,12 +712,14 @@
 
       // --- The clip -------------------------------------------------------------------------------------------
       let r = null // the replay as the dock last sent it
+      let acaoVista = null // the dock's last control press (`acao`) this page followed to the frame
       function replay(novo) {
         r = novo ?? null
         if (!r?.url) return
         if (video.dataset.url !== r.url) {
           video.dataset.url = r.url
           video.src = r.url
+          acaoVista = null
         }
         // The sound: the booth's clip has it; over the game (mini) only when the dock says so.
         video.muted = !r.som
@@ -742,7 +744,12 @@
             trilha.append(el)
           }
         }
-        seguir(true)
+        // To the frame only when Luan pressed something in the dock. The dock resends its clock every second and on
+        // every vote; seeking on each of those froze the clip once a second (11-12 live: about 20 new frames a second
+        // in the mini instead of 60, the clip's keyframes are 2 s apart), so those only correct drift past DERIVA.
+        const acao = r.acao ?? 0
+        seguir(acao !== acaoVista)
+        acaoVista = acao
       }
 
       // Follows the dock's clock: play or pause as it does, seek only when off by more than DERIVA.

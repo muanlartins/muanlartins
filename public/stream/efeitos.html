@@ -1171,7 +1171,10 @@
         r.t = Math.round(limite(pos()) * 1000) / 1000
         r.em = Date.now()
       }
-      /** Changes the replay (rebased first, so `r.t` is now), then sends it. */
+      /**
+       * Changes the replay (rebased first, so `r.t` is now), then sends it. `acao` counts these changes: var.html seeks
+       * to the frame only when it moves; the snapshots resent every second leave it, so the booth only corrects drift.
+       */
       function mudar(fn) {
         const r = varAtual?.replay
         if (!r) return
@@ -1179,6 +1182,7 @@
         fn(r)
         r.t = limite(r.t)
         r.em = Date.now()
+        r.acao = (r.acao ?? 0) + 1
         seguirPrevia(true)
         enviarVar()
       }
