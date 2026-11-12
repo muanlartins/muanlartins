@@ -77,6 +77,40 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   `obs.py`. Follows, subs, gifts, bits and raids reach the credits only from the Efeitos dock signed in to Twitch with
   the credits' scopes (its "Créditos de hoje" line says when it needs Conectar again) and open during the live: it
   keeps the day and sends it as `muanlartins-creditos`. Viewers, Pix, the score and the next live come without it.
+- Ad breaks (2026-11-11): the "Anúncios" dock (`public/stream/anuncios.html`, from the site; `obs.py --apply` adds it
+  and takes out the old "Ads" dock, a PowerShell server on localhost:17563 from a Windows session, retired). Twitch's
+  Ads Manager keeps the schedule (Manual, 3 min every 60 min, the least that keeps pre-rolls off for incoming viewers;
+  First Ad Delay 1 min; Auto Snooze off; subs ad-free; chat countdown on). The dock signs in to Twitch itself (device
+  flow, the site's app, scopes `channel:read:ads channel:manage:ads channel:edit:commercial`), runs the hour's break
+  between matches (Conversa, Já volto, Valorant's menus from `valorant.py`) from 5 min before, snoozes it mid-match,
+  beeps in Luan's headset only, and sends `muanlartins-anuncios` to the sources: Começando's clock
+  (`intervalo.html?tela=comecando` without `?minutos`) counts down to the end of the opening break. Its header has the
+  rules. The first break it runs by hand checks whether Twitch restarts its timer; if not, the dock turns the
+  between-matches break off for good (its storage, `reinicia`).
+- When F2/F4/F8 or the sounds do nothing, check the docks first: OBS's log should show 4 websocket clients from
+  127.0.0.1 within seconds of "Startup complete" (Partidas, Efeitos, Filtros, Anúncios). A dock that never connects
+  died loading: open its URL with `#obs=x` in headless Chrome and look for a page error (on 11-10/11 Efeitos' top-level
+  `const history` shadowed window.history, so the `#obs=` handling threw and F2/F4/F8 were dead until fb3ab5f). Then
+  fire the trigger yourself (`TriggerMediaInputAction` RESTART on "Gatilho · …") and watch `CurrentProgramSceneChanged`.
+- obs-browser's `emit_event` goes through OBS's own data format, which keeps **only arrays of objects**: an array of
+  strings or numbers in `event_data` reaches the pages empty (obs-websocket's `obs_data_set_json_array` skips every
+  non-object). On 11-11 the VAR's booth showed the question and the clock but no options, votes or line. Send such
+  state as JSON text (`{ estado: JSON.stringify(...) }`, read with `varDe()` in `stream.js`), and when testing a page,
+  pass the event through that rule rather than dispatching it raw. (BroadcastCustomEvent, dock to dock, stays JSON.)
+- The VAR plays its clip in `var.html`'s own `<video>` since 11-12 (the media source "VAR · replay" is retired:
+  `obs.py --apply` takes it out). The clip is the game alone: Source Record's replay buffer on each capture's
+  "Gravar jogo" (`REPLAY_JOGO` in `obs.py`: 20 s, `Replay <date> <time> jogo.mkv`, the same encoder as the game's
+  file), saved by the dock with `CallVendorRequest` `source-record` / `replay_buffer_save` `{ source: "<capture>" }`.
+  Source Record 0.4.8 sends no "saved" event, so `scripts/replay.py` (127.0.0.1:8794) watches Videos, remuxes the MKV
+  to MP4 (about a second) and serves it with byte ranges to the page and the dock. "Efeito · VAR" is also in "RL +
+  chat" and "Valorant + chat" (the mini player), with "controlar áudio pelo OBS" on. Turning Source Record's replay
+  on or changing its duration is a filter change: only with OBS closed (`obs.py --apply`), never while it records.
+- OBS must always be started from a shortcut (all three carry `--enable-media-stream --use-fake-ui-for-media-stream`),
+  never `obs64.exe` bare: on 2026-11-11 a Windows session restarted it bare and the camera filters lost the camera
+  (`câmera NotAllowedError` every 5 s in the log). From WSL: `cmd.exe /c start "" "C:\Users\Public\Desktop\OBS Studio.lnk"`;
+  check the log's "Command Line Arguments" line. The current transition is the stinger "muanlartins"; it had been
+  left on "Cortar" since 11-08/11-10 (the Efeitos dock before d0aaa3f set OBS's current transition), and was set back
+  on 2026-11-11.
 - Twitch's alerts ("Alertas", the Alerts Box) are on tracks 1 and 5 and on "Monitorar e enviar", like Pix and
   Sons, so Luan hears them too: the installed source had monitoring off until 2026-11-10 (the stream heard the subs,
   he didn't). The page's "AlertsFeatureLaunchFlags: unauthenticated" GraphQL error on load is in every log since

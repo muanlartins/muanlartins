@@ -12,8 +12,10 @@ alerts. Import with Scene Collection → Import. Devices and the canvas below ar
 
 --apply merges instead of replacing: it adds to the collection OBS already has (and its secrets: the alerts URL,
 the overlays' keys) only what's missing here — sources, scenes, items in existing scenes, transitions, hotkeys
-not yet bound — and never changes or removes anything, but for the hotkeys in RETIRED, which it unbinds. It also copies the sound effects (brand/twitch/sons/) next
-to the stinger and adds the "Efeitos" and "Filtros" docks. OBS must be closed: it rewrites these files when it exits.
+not yet bound — and never changes or removes anything, but for the hotkeys in RETIRED, which it unbinds, the items in
+RETIRED_ITEMS, which it takes out, and the settings in FILTER_SETTINGS and SOURCE_SETTINGS, which it makes sure of. It also copies the sound effects (brand/twitch/sons/) next
+to the stinger and adds the "Efeitos", "Filtros" and "Anúncios" docks (and takes out the ones in RETIRED_DOCKS). OBS must
+be closed: it rewrites these files when it exits.
 """
 import json
 import re
@@ -92,6 +94,13 @@ def scene(name, *items):
                                   "items": [item(src, i + 1, **opts) for i, (src, opts) in enumerate(items)]})
 
 
+# The VAR's replay: Source Record also keeps the game alone in a replay buffer (the last 20 s, through the same encoder
+# as the game's file, so no encoder more), which the Efeitos dock saves on F8 as "Replay <date> <time> jogo.mkv" and
+# scripts/replay.py serves to var.html. It runs once the game has been on screen since OBS opened.
+REPLAY_JOGO = {"replay_buffer": True, "replay_duration": 20,
+               "replay_filename_formatting": "Replay %CCYY-%MM-%DD %hh-%mm-%ss jogo"}
+
+
 # The game also goes to a file of its own while recording, without camera or overlays (the Source Record plugin), for
 # vertical shorts and commented videos; with its own sound. CQP 22: it's material for cuts, and space adds up daily.
 def capture(name, window):
@@ -101,7 +110,7 @@ def capture(name, window):
         source("source_record_filter", "Gravar jogo", {
             "record_mode": 3, "path": "C:\\Users\\muanl\\Videos", "filename_formatting": "%CCYY-%MM-%DD %hh-%mm-%ss jogo",
             "rec_format": "mkv", "encoder": "nvenc", "rate_control": "CQP", "cqp": 22, "keyint_sec": 2, "preset2": "p5",
-            "profile": "high", "different_audio": False}),
+            "profile": "high", "different_audio": False, **REPLAY_JOGO}),
     ])
 
 
@@ -186,8 +195,13 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVE
 HOTKEYS = {"Terapia": "OBS_KEY_F3"}
 RETIRED = {("Lance ruim", "OBSBasic.SelectScene", "OBS_KEY_F2"), ("Jogo + chat", "OBSBasic.SelectScene", "OBS_KEY_F4")}
 # Sources taken out of a scene (and out of the collection, once no scene has them): the old end screen gave its place
-# to the credits on 2026-11-10.
-RETIRED_ITEMS = {("Fim", "Tela · Fim")}
+# to the credits on 2026-11-10; the VAR's media source to var.html's own player on 2026-11-12.
+RETIRED_ITEMS = {("Fim", "Tela · Fim"), ("VAR · Rocket League", "VAR · replay"), ("VAR · Valorant", "VAR · replay")}
+# Settings `--apply` makes sure of on filters the collection already has (it only adds otherwise): the game's replay
+# buffer for the VAR, on each capture's "Gravar jogo". Never change them while OBS records (the obs skill).
+FILTER_SETTINGS = {("Rocket League", "Gravar jogo"): REPLAY_JOGO, ("Captura · Valorant", "Gravar jogo"): REPLAY_JOGO}
+# And on sources it already has: the VAR's page plays the clip's sound since 2026-11-12, through OBS, in his headphones.
+SOURCE_SETTINGS = {"Efeito · VAR": ({"reroute_audio": True}, {"monitoring_type": MONITOR_AND_OUTPUT})}
 
 
 def trigger(name, key):
@@ -216,16 +230,13 @@ bad_play = browser("Efeito · Lance ruim", "lance.html", restart=True)
 calm = browser("Tela · Terapia", "terapia.html", restart=True)
 calm["settings"].update(reroute_audio=True, shutdown=True)
 calm.update(monitoring_type=MONITOR_AND_OUTPUT)
-# The VAR: the clip the dock saves from OBS's Replay Buffer (the stream as it went out, with its sound: the game, Luan
-# then, Discord), played in var.html's monitor, looping while the chat votes; the dock points it at each clip and sets
-# its speed. In Luan's headphones too. var.html is the booth around it, the vote and the verdict; the stand in referee
-# kit is the game's own crowd source, so it keeps its people.
-replay = source("ffmpeg_source", "VAR · replay", {"local_file": "", "is_local_file": True, "looping": True,
-                                                   "restart_on_activate": True, "close_when_inactive": True,
-                                                   "clear_on_media_end": False, "hw_decode": True, "speed_percent": 100},
-                monitoring_type=MONITOR_AND_OUTPUT)
+# The VAR: var.html plays the clip the dock had OBS save (the game alone, REPLAY_JOGO above) in its own <video>, in the
+# booth (the game's VAR scene, around the live camera) or as a mini player over the game scene, top right, where the
+# chat is; its sound on the stream and in Luan's headphones (tracks 1 and 5, not the game's own track). The stand in
+# referee kit is the game's own crowd source, so it keeps its people.
 booth = browser("Efeito · VAR", "var.html")
-in_var_monitor = {"pos": (64, 136), "bounds": (1216, 684)}
+booth["settings"]["reroute_audio"] = True
+booth.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
 
 # Hole positions match jogo.html and conversa.html.
@@ -244,18 +255,16 @@ in_valorant = {"pos": (44, 44), "bounds": (480, 270)}
 scenes = [
     scene("Começando", (starting, {})),
     scene("RL + chat", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, {}),
-          (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {})),
+          (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
     scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, {}),
-          (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {})),
+          (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
     scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (filters, {}), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
     scene("Lance ruim", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
           (camera, in_rocket_league), (bad_play, {})),
     scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
           *alerts_in_game, (pix, {}), (camera, in_valorant), (bad_play, {})),
-    scene("VAR · Rocket League", (replay, in_var_monitor), (camera, in_var_camera), (booth, {}), (crowd, {}),
-          *alerts_in_game, (pix, {})),
-    scene("VAR · Valorant", (replay, in_var_monitor), (camera, in_var_camera), (booth, {}), (valorant_crowd, {}),
-          *alerts_in_game, (pix, {})),
+    scene("VAR · Rocket League", (camera, in_var_camera), (booth, {}), (crowd, {}), *alerts_in_game, (pix, {})),
+    scene("VAR · Valorant", (camera, in_var_camera), (booth, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {})),
     scene("Terapia", (camera, {"pos": (64, 64), "bounds": (560, 315)}), (filters, {}), (calm, {}), *alerts_in_talk,
           (pix, {"pos": (154, 760), "crop": PIX_BAND})),
     scene("Já volto", (back, {})),
@@ -301,7 +310,7 @@ collection = {
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
     "sources": scenes + [game, valorant, camera, filters, game_chat_overlay, valorant_chat_overlay,
-                         chat_overlay, crowd, valorant_crowd, pix, starting, back, end, bad_play, calm, replay, booth] + apps + sounds
+                         chat_overlay, crowd, valorant_crowd, pix, starting, back, end, bad_play, calm, booth] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
@@ -320,9 +329,15 @@ collection = {
 OBS = Path("/mnt/c/Users/muanl/AppData/Roaming/obs-studio")
 # The collection OBS has open (Luan renamed it "Live" on 11-07), from its user.ini.
 LIVE = OBS / "basic/scenes" / re.search(r"^SceneCollectionFile=(.+)$", (OBS / "user.ini").read_text(encoding="utf-8-sig"), re.M)[1].strip()
-# The docks this adds: Efeitos, from the site, and Filtros (the camera filters' switches), served from this working
-# copy like filtros.html itself.
-DOCKS = [("Efeitos", f"{SITE}/efeitos.html"), ("Filtros", "http://localhost:8126/stream/filtros-painel.html")]
+# The docks this adds: Efeitos and Anúncios (Twitch's ad breaks), from the site, and Filtros (the camera filters'
+# switches), served from this working copy like filtros.html itself.
+DOCKS = [
+    ("Efeitos", f"{SITE}/efeitos.html"),
+    ("Filtros", "http://localhost:8126/stream/filtros-painel.html"),
+    ("Anúncios", f"{SITE}/anuncios.html"),
+]
+# Docks this takes out: "Ads", a local PowerShell server's page that Anúncios replaced (2026-11-11).
+RETIRED_DOCKS = ["Ads"]
 
 
 # Fields of sources OBS already has that `--apply` brings up to date (the rest stays as Luan left it): the camera
@@ -370,6 +385,26 @@ def merge(live, new):
             live["sources"] = [s for s in live["sources"] if s["name"] != item_name]
             del by_name[item_name]
             added.append(f"fonte {item_name} removida")
+    for (source_name, filter_name), wanted in FILTER_SETTINGS.items():
+        for f in (by_name.get(source_name) or {}).get("filters") or []:
+            if f["name"] != filter_name:
+                continue
+            for key, value in wanted.items():
+                if f["settings"].get(key) != value:
+                    f["settings"][key] = value
+                    added.append(f"{source_name} · {filter_name}: {key} = {value}")
+    for source_name, (settings, fields) in SOURCE_SETTINGS.items():
+        mine = by_name.get(source_name)
+        if not mine:
+            continue
+        for key, value in settings.items():
+            if mine["settings"].get(key) != value:
+                mine["settings"][key] = value
+                added.append(f"{source_name}: {key} = {value}")
+        for key, value in fields.items():
+            if mine.get(key) != value:
+                mine[key] = value
+                added.append(f"{source_name}: {key} = {value}")
     uuids = {name: s["uuid"] for name, s in by_name.items()}
     for s in new["sources"]:
         if s["id"] != "scene":
@@ -404,13 +439,15 @@ def merge(live, new):
 
 def add_docks():
     """Our docks in OBS's custom browser docks, each with the websocket password in its URL (never printed).
-    Returns the titles it added."""
+    Returns what it changed."""
     ini = OBS / "user.ini"
     text = ini.read_text(encoding="utf-8-sig")
     line = re.search(r"^ExtraBrowserDocks=(.*)$", text, re.M)
     docks = json.loads(line.group(1)) if line else []
+    retired = [d for d in docks if d.get("title") in RETIRED_DOCKS]
+    docks = [d for d in docks if d not in retired]
     missing = [d for d in DOCKS if not any(have.get("title") == d[0] for have in docks)]
-    if not missing:
+    if not missing and not retired:
         return []
     password = json.loads((OBS / "plugin_config/obs-websocket/config.json").read_text())["server_password"]
     docks += [{"title": title, "url": f"{url}#obs={password}", "uuid": str(uuid.uuid4())} for title, url in missing]
@@ -418,7 +455,7 @@ def add_docks():
     # A function as the replacement, so re.sub leaves the value's backslashes alone.
     text = re.sub(r"^ExtraBrowserDocks=.*$", lambda _: value, text, count=1, flags=re.M) if line else text.replace("[BasicWindow]\n", f"[BasicWindow]\n{value}\n", 1)
     ini.write_text(text, encoding="utf-8")
-    return [title for title, _ in missing]
+    return [title for title, _ in missing] + [f"{d['title']} (tirado)" for d in retired]
 
 
 def clashes(live):
@@ -470,7 +507,7 @@ def apply(dry=False):
     if var_webm.exists():
         shutil.copy(var_webm, sons.parent / var_webm.name)
         print(f"stinger do VAR copiado para {sons.parent}")
-    print(f"docks adicionados: {', '.join(docks)}" if (docks := add_docks()) else "os docks já estavam lá")
+    print(f"docks: {', '.join(docks)}" if (docks := add_docks()) else "os docks já estavam lá")
     print(f"cópias de antes: {LIVE.name}.antes-{stamp}, user.ini.antes-{stamp}")
 
 

@@ -505,3 +505,63 @@ function demo(show) {
 
 // What the pages call.
 Object.assign(window, { params, frame, plate, recordPlate, valorantPlate, RANKS, DIVISIONS, rankName, hasDivisions, alternate, mark, drawCopy, chat, BOTS, irc, parseIrc })
+
+/**
+ * The VAR's state from a "muanlartins-var" event: the Efeitos dock sends it as JSON text in `estado` (obs-websocket
+ * keeps only arrays of objects, so the options and votes would arrive empty); a page's own ?demo sends it as is.
+ */
+function varDe(detail) {
+  if (typeof detail?.estado !== "string") return detail ?? null
+  try {
+    return JSON.parse(detail.estado)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * The VAR's replay, the same in var.html (the clip on stream) and the Efeitos dock (its preview, the clock both
+ * follow). The slow motion around the play: plays at the replay's speed, eases down to `lenta` from `antes` seconds
+ * before the play, holds until `depois` seconds after, eases back; and zooms by `zoom` meanwhile (Valorant: on the
+ * crosshair, the screen's middle). Like Rocket League's own goal replays.
+ */
+const FOCO = { antes: 1.1, depois: 0.8, rampa: 0.4, lenta: 0.25, zoom: 1.35 }
+
+/** How far into the slow motion the clip is at `t` seconds: 0 outside it, 1 in it, eased between. */
+function focoPeso(t, foco) {
+  if (!foco?.ligado || foco.t == null) return 0
+  const a = foco.t - FOCO.antes
+  const b = foco.t + FOCO.depois
+  const r = FOCO.rampa
+  const suave = (x) => x * x * (3 - 2 * x)
+  if (t <= a - r || t >= b + r) return 0
+  if (t < a) return suave((t - (a - r)) / r)
+  if (t > b) return suave(1 - (t - b) / r)
+  return 1
+}
+
+/** The playback rate at clip time `t`: the replay's speed (`base`, 1 = 100%) slowed by the play's slow motion. */
+function replayTaxa(t, r) {
+  const w = focoPeso(t, r?.foco)
+  return (r?.base ?? 1) * (1 - w * (1 - FOCO.lenta))
+}
+
+/**
+ * Where the replay should be now: the dock's last snapshot ({ t, em, tocando, base, foco, duracao }: clip time `t` at
+ * epoch ms `em`) carried forward at the rates above, looping. Both sides compute it the same way, so a page only seeks
+ * when it drifts.
+ */
+function replayPosicao(r, agora = Date.now()) {
+  if (!r || r.t == null) return 0
+  let t = r.t
+  if (!r.tocando) return t
+  let resta = Math.min(30, Math.max(0, (agora - r.em) / 1000))
+  const passo = 1 / 60
+  while (resta > 0) {
+    const dt = Math.min(passo, resta)
+    t += dt * replayTaxa(t, r)
+    resta -= dt
+    if (r.duracao && t >= r.duracao) t -= r.duracao
+  }
+  return t
+}

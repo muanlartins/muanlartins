@@ -8,7 +8,11 @@
       OBS: Browser source, 1920×1080, on its own. The screen before, during a
       break in and after the stream:
         ?tela=comecando (default) · ?tela=volto · ?tela=fim
-      ?minutos=5 counts down on the "comecando" screen; ?titulo= and ?rotulo=
+      ?minutos=5 counts down on the "comecando" screen; without it, that screen
+      counts down to the end of the live's opening ad break, which Twitch runs
+      a minute in, as the "Anúncios" dock (anuncios.html) sends it through
+      obs-browser's emit_event ("muanlartins-anuncios", its comecaEm), so whoever
+      skips the ad (subs) sees when the live begins. ?titulo= and ?rotulo=
       replace the headline and the label above it; ?chat=0 hides the chat;
       ?canal= and ?demo as in conversa.html.
     -->
@@ -126,16 +130,24 @@
 
       // Countdown: counts to zero and stays there.
       const minutes = Number(params.get("minutos"))
+      const clock = document.getElementById("clock")
+      const show = (end) => {
+        const left = Math.max(0, Math.ceil((end - Date.now()) / 1000))
+        clock.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`
+      }
       if (minutes > 0 && screen === SCREENS.comecando) {
-        const clock = document.getElementById("clock")
         const end = Date.now() + minutes * 60000
-        const tick = () => {
-          const left = Math.max(0, Math.ceil((end - Date.now()) / 1000))
-          clock.textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`
-        }
         clock.hidden = false
-        tick()
-        setInterval(tick, 250)
+        show(end)
+        setInterval(() => show(end), 250)
+      } else if (screen === SCREENS.comecando) {
+        // To the end of the opening ad break, while the Anúncios dock knows it; gone once it's over.
+        let end = 0
+        addEventListener("muanlartins-anuncios", ({ detail }) => (end = Number(detail?.comecaEm) || 0))
+        setInterval(() => {
+          clock.hidden = end <= Date.now()
+          if (!clock.hidden) show(end)
+        }, 250)
       }
 
       // The mark draws itself, the white copy first and the light-blue one

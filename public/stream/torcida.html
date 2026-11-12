@@ -975,7 +975,8 @@
           }
         }
       }
-      addEventListener("muanlartins-var", ({ detail: v }) => {
+      addEventListener("muanlartins-var", ({ detail }) => {
+        const v = varDe(detail)
         if (!v) return
         const aberto = v.fase !== "fechado"
         if (aberto !== varAberto) {

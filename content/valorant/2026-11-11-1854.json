@@ -1,0 +1,141 @@
+{
+  "id": "2026-11-11-1854",
+  "game": "valorant",
+  "start": "2026-11-11T21:54:06.971Z",
+  "end": "2026-11-12T01:50:57Z",
+  "outputs": [
+    {
+      "kind": "record",
+      "start": "2026-11-12T00:04:55.261Z",
+      "end": "2026-11-12T02:02:48.376Z",
+      "file": "2026-11-11 21-04-55.mp4"
+    },
+    {
+      "kind": "stream",
+      "start": "2026-11-12T00:04:56.755Z",
+      "end": "2026-11-12T02:02:48.390Z"
+    }
+  ],
+  "matches": [
+    {
+      "id": "efb04b54-ed81-42ad-b4e4-da8bdc0ac1ef",
+      "start": "2026-11-12T00:14:56Z",
+      "at": "2026-11-12T00:52:59Z",
+      "queue": "competitive",
+      "map": "Abyss",
+      "agent": "Sova",
+      "result": "loss",
+      "score": [
+        8,
+        13
+      ],
+      "rounds": 21,
+      "me": {
+        "kills": 25,
+        "deaths": 18,
+        "assists": 6,
+        "score": 7596,
+        "headshots": 12,
+        "bodyshots": 66,
+        "legshots": 3,
+        "damage": 5137,
+        "firstKills": 3
+      },
+      "mates": [
+        {
+          "agent": "Clove",
+          "kills": 13,
+          "deaths": 17,
+          "assists": 4,
+          "score": 3767
+        },
+        {
+          "agent": "Raze",
+          "kills": 13,
+          "deaths": 18,
+          "assists": 3,
+          "score": 4198
+        },
+        {
+          "agent": "Sage",
+          "kills": 4,
+          "deaths": 17,
+          "assists": 3,
+          "score": 1422
+        },
+        {
+          "agent": "Hush",
+          "kills": 15,
+          "deaths": 16,
+          "assists": 3,
+          "score": 4233
+        }
+      ],
+      "rr": -12,
+      "rank": {
+        "tier": 9,
+        "rr": 79
+      }
+    },
+    {
+      "id": "129cbe9e-1fde-44fd-960b-d95d790f5908",
+      "start": "2026-11-12T01:15:23Z",
+      "at": "2026-11-12T01:50:57Z",
+      "queue": "competitive",
+      "map": "Corrode",
+      "agent": "Sova",
+      "result": "loss",
+      "score": [
+        9,
+        13
+      ],
+      "rounds": 22,
+      "me": {
+        "kills": 17,
+        "deaths": 15,
+        "assists": 6,
+        "score": 4516,
+        "headshots": 10,
+        "bodyshots": 32,
+        "legshots": 2,
+        "damage": 2855,
+        "firstKills": 2
+      },
+      "mates": [
+        {
+          "agent": "Miks",
+          "kills": 16,
+          "deaths": 14,
+          "assists": 2,
+          "score": 4815
+        },
+        {
+          "agent": "Reyna",
+          "kills": 22,
+          "deaths": 18,
+          "assists": 2,
+          "score": 6144
+        },
+        {
+          "agent": "KAY/O",
+          "kills": 15,
+          "deaths": 18,
+          "assists": 13,
+          "score": 5120
+        },
+        {
+          "agent": "Omen",
+          "kills": 10,
+          "deaths": 17,
+          "assists": 4,
+          "score": 2709
+        }
+      ],
+      "rr": -12,
+      "rank": {
+        "tier": 9,
+        "rr": 67
+      }
+    }
+  ]
+}

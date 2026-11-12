@@ -108,6 +108,13 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
+    id: "var-com-replay",
+    status: "agora",
+    tag: "live",
+    title: "VAR com replay de verdade",
+    text: "O replay do jogo limpo, num mini player no canto enquanto a partida segue, com câmera lenta no gol ou na defesa como nos replays do Rocket League. E a votação do chat aparecendo direito.",
+  },
+  {
     id: "analise-de-mira",
     status: "proximo",
     tag: "site",
@@ -137,6 +144,14 @@ export const SHIPPED: Shipped[] = [
       media("filtros-octane", "Luan com a cara de Octane: os olhos dele no para-brisa e a boca no para-choque"),
       media("filtros-fennec", "Luan com a cara de Fennec: os olhos dele no para-brisa e a boca no para-choque"),
     ],
+  },
+  {
+    id: "anuncio-no-intervalo",
+    date: "2026-11-11",
+    tag: "live",
+    title: "Anúncio só no intervalo",
+    text: "Quem chega na live não vê anúncio. Em troca, um intervalo de 3 min por hora, rodado entre uma partida e outra, e o primeiro durante o Começando, que conta até ele acabar.",
+    media: [media("anuncio-no-intervalo", "A tela de Começando contando 3:10 até o fim do anúncio de abertura, quando a live começa")],
   },
   {
     id: "musica-no-pix",
