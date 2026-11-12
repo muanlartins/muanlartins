@@ -32,18 +32,23 @@
         plays: no overlays, the game's sound only) and the stream as it went out (OBS's Replay Buffer, which this dock
         starts with the stream or the recording: the fallback when the game's isn't there). scripts/replay.py (WSL, on
         127.0.0.1:8794, started at Windows login) finds the clip in Videos and serves it; var.html plays it in a
-        <video>, and so does this dock's preview, which is the player: play/pause, ±1 s, ±5 s, frame by frame, the
-        speed (100/50/25/10%), a timeline to scrub, and the play in focus. In Rocket League the Partidas dock tells
-        this one each goal, save and demo as it happens (a BroadcastCustomEvent), so a replay knows where they are in
-        it: they're marked on the timeline and the latest goal (else save) is the focus, where the replay eases into
-        slow motion and back, like the game's own replays (FOCO in stream.js; Valorant also zooms on the crosshair).
-        "Lance aqui" puts the focus where the preview is (Valorant has no events to mark). Two layouts, each game's
+        <video>, muted (the game's sound stays the live game's), and so does this dock's preview. In Rocket League
+        the Partidas dock tells this one each goal, save and demo as it happens (a BroadcastCustomEvent), so a replay
+        knows where they are in it: they're marked on the timeline and the latest goal (else save) is the play in
+        focus (Valorant has no events to mark: its replay is the clip's last seconds). The replay plays on its own
+        (Luan doesn't steer it live, 2026-11-12): the script (`replay.roteiro`, ROTEIRO in stream.js) plays the play's
+        stretch once at full speed and again at 50% (Valorant zooms on the crosshair meanwhile), and for the vote's
+        last 8 s var.html shows the closing screen, frozen on the play, while the last votes come in. The preview is
+        still a player (play/pause, ±1 s, ±5 s, frame by frame, the speed, a timeline to scrub, the play in focus,
+        "Lance aqui"): touching it drops the script and the clip follows the controls, easing into slow motion around
+        the play and back (FOCO in stream.js). Two layouts, each game's
         default kept here: "mini", the clip in the top right corner over the game scene, which stays on (Rocket
         League's: the match goes on; jogo.html fades its chat meanwhile), and "cabine", the game's VAR scene ("VAR ·
         Rocket League" or "VAR · Valorant": var.html's booth, the live camera, the stand in referee kit) on the "VAR"
         stinger (Valorant's: Luan is dead, there's time). Away from a game scene it's always the booth. Opening it
         has the stand whistle (tocador.html). The chat votes with !1, !2, !3 (one vote per login, the last counts;
-        read here, anonymously) for the time set here per game (30 s Rocket League, 20 s Valorant by default), or
+        read here, anonymously) for the time set here per game (60 s Rocket League, 40 s Valorant by default: Luan
+        doubled them on 2026-11-12, for the replay's two passes), or
         "Encerrar" sooner. The chat's verdict is final; a tie waits for Luan's pick here. The verdict holds 7 s and the
         dock goes back to the scene before; F4 closes the VAR at any moment. A line dragged on the preview crosses the
         clip on stream. "Só guardar" saves without opening, and today's clips can be opened again from the list. Who
@@ -449,12 +454,12 @@
     <div class="ajustes">
       <span>Rocket League</span>
       <div class="segmentos" data-jogo="rl" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
-      <div class="segmentos" data-jogo="rl" data-campo="voto"><button data-valor="15">15s</button><button data-valor="20">20s</button><button data-valor="30">30s</button><button data-valor="45">45s</button></div>
+      <div class="segmentos" data-jogo="rl" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
       <span>Valorant</span>
       <div class="segmentos" data-jogo="val" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
-      <div class="segmentos" data-jogo="val" data-campo="voto"><button data-valor="15">15s</button><button data-valor="20">20s</button><button data-valor="30">30s</button><button data-valor="45">45s</button></div>
+      <div class="segmentos" data-jogo="val" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
     </div>
-    <p class="note">Mini: o replay no canto, o jogo segue. Cabine: a cena do VAR. Depois, o tempo da votação.</p>
+    <p class="note">Mini: o replay no canto, o jogo segue. Cabine: a cena do VAR. Depois, o tempo da votação: o replay passa uma vez normal, outra em 50%, e os últimos 8 s são de últimos votos.</p>
     <label class="campo">Pergunta <input id="var-pergunta" maxlength="60" autocomplete="off" /></label>
     <div class="opcoes-var" style="margin-top: 6px">
       <input id="var-op1" maxlength="24" placeholder="!1" autocomplete="off" />
@@ -843,7 +848,7 @@
       // Each game's capture, whose "Gravar jogo" filter (Source Record) keeps the game alone in a replay buffer.
       const CAPTURAS = { rl: "Rocket League", val: "Captura · Valorant" }
       const SEGURA_MS = 7000 // the verdict on screen before going back
-      const DERIVA = 0.25 // the preview seeks when it's this far (s) from the clock, like var.html
+      const DERIVA = 0.5 // the preview seeks when it's this far (s) from the clock, like var.html
       // Option presets (from the brainstorm; Luan edits them in the fields before calling).
       const PRESETS = [
         ["Lance limpo", "Roubado"],
@@ -854,6 +859,13 @@
       // Where the replay plays and how long the chat votes, per game: Rocket League's goes on in a corner while the
       // game goes on (mini), Valorant's in the booth while Luan is dead (cabine).
       state.varJogo ??= { rl: { layout: "mini", voto: 30 }, val: { layout: "cabine", voto: 20 } }
+      // Luan doubled the vote times on 2026-11-12 ("dobrar o tempo do VAR"), so the replay fits its two passes: kept
+      // times (15/20/30/45 s then) double once, and the buttons are 30/40/60/90 s since.
+      if (!state.varTempoDobrado) {
+        for (const j of Object.values(state.varJogo)) j.voto = Math.min(90, j.voto * 2)
+        state.varTempoDobrado = true
+        save()
+      }
 
       let gravando = false
       let bufferAtivo = false
@@ -1048,13 +1060,14 @@
         const marcas = marcasDe(clip.fimSalvo ?? clip.fim, clip.duracao)
         const alvo = focoDe(marcas)
         const foco = { t: alvo?.t ?? null, ligado: !!alvo, zoom: jogo === "val" }
+        const roteiro = roteiroPara(clip.duracao, alvo?.t ?? null, duracao)
         varAtual = {
           id: String(Date.now()), jogo, layout, fase: "votacao", pergunta, opcoes: opcoes.length >= 2 ? opcoes : PRESETS[0],
           votos: [], votantes: {}, ate: Date.now() + duracao, duracao, vencedora: null, empatadas: [], linha: null,
           replay: {
-            url: clip.url, nome: clip.nome, duracao: clip.duracao, fonte: clip.fonte, marcas, foco,
-            // From a little before the play when there is one, so the slow motion comes soon.
-            t: alvo ? Math.max(0, alvo.t - 4) : 0, em: Date.now(), tocando: true, base: 1, som: layout === "cabine",
+            url: clip.url, nome: clip.nome, duracao: clip.duracao, fonte: clip.fonte, marcas, foco, roteiro,
+            // The clock the player takes over from if Luan touches it; muted (Luan, 2026-11-12).
+            t: roteiro.de, em: Date.now(), tocando: true, base: 1, som: false, acao: 0,
           },
         }
         varAtual.votos = varAtual.opcoes.map(() => 0)
@@ -1179,12 +1192,21 @@
         const r = varAtual?.replay
         if (!r) return
         rebase()
+        soltarRoteiro(r)
         fn(r)
         r.t = limite(r.t)
         r.em = Date.now()
         r.acao = (r.acao ?? 0) + 1
         seguirPrevia(true)
         enviarVar()
+      }
+      /** Luan touched the player: the script stops where it is (playing or not, at its speed) and the clock is his. */
+      function soltarRoteiro(r) {
+        const s = roteiroAgora(r)
+        if (!s) return
+        r.tocando = s.tocando
+        r.base = s.fase === "lenta" ? ROTEIRO.lenta : 1
+        r.roteiro = null
       }
       function carregarPrevia() {
         const r = varAtual?.replay
@@ -1197,24 +1219,35 @@
         const r = varAtual?.replay
         if (!r || !previa.readyState) return
         const alvo = pos()
+        const tocando = replayTocando(r)
         const fora = Math.abs(previa.currentTime - alvo)
-        if (fora > (r.tocando && !agora ? DERIVA : 0.004)) previa.currentTime = alvo
-        if (r.tocando && previa.paused) previa.play().catch(() => {})
-        if (!r.tocando && !previa.paused) previa.pause()
+        if (fora > (tocando && !agora ? DERIVA : 0.004)) previa.currentTime = alvo
+        if (tocando && previa.paused) previa.play().catch(() => {})
+        if (!tocando && !previa.paused) previa.pause()
       }
       previa.addEventListener("loadedmetadata", () => seguirPrevia(true))
       setInterval(() => seguirPrevia(), 400)
 
       const segundos = (t) => t.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
       let arrastando = false
+      let faseVista = null
       function quadroPrevia() {
         const r = varAtual?.replay
         if (r && previa.readyState) {
           const t = previa.currentTime
-          const taxa = Math.max(0.0625, replayTaxa(t, r))
+          const s = roteiroAgora(r)
+          // Each pass of the script starts on its frame, like var.html.
+          if ((s?.fase ?? null) !== faseVista) {
+            faseVista = s?.fase ?? null
+            if (s) seguirPrevia(true)
+          }
+          const taxa = s ? s.taxa : Math.max(0.0625, replayTaxa(t, r))
           if (Math.abs(previa.playbackRate - taxa) > 0.005) previa.playbackRate = taxa
-          const w = focoPeso(t, r.foco)
-          $("selo").textContent = !r.tocando ? "PAUSADO" : w > 0.5 ? `CÂMERA LENTA ${Math.round(taxa * 100)}%` : `REPLAY ${Math.round(taxa * 100)}%`
+          const w = s ? s.peso : focoPeso(t, r.foco)
+          const tocando = s ? s.tocando : r.tocando
+          const pct = Math.round(taxa * 100)
+          $("selo").textContent = s?.fase === "fim" ? "FIM · ÚLTIMOS VOTOS" : s?.fase === "espera" ? "CARREGANDO" : !tocando ? "PAUSADO"
+            : (s ? s.fase === "lenta" : w > 0.5) ? `CÂMERA LENTA ${pct}%` : `REPLAY ${pct}%`
           const agora = pos()
           $("tempo").textContent = `${segundos(agora)} / ${segundos(r.duracao)} s`
           $("feito").style.width = `${(agora / (r.duracao || 1)) * 100}%`
@@ -1253,7 +1286,12 @@
       $("foco-ligado").onchange = (e) => mudar((r) => (r.foco = { ...r.foco, ligado: e.target.checked && r.foco?.t != null }))
       $("foco-zoom").onchange = (e) => mudar((r) => (r.foco = { ...r.foco, zoom: e.target.checked }))
       $("foco-aqui").onclick = () => mudar((r) => (r.foco = { ...r.foco, t: Math.round(r.t * 100) / 100, ligado: true }))
-      $("som-replay").onchange = (e) => mudar((r) => (r.som = e.target.checked))
+      // The sound (off since 2026-11-12) isn't the clock: it leaves the script running.
+      $("som-replay").onchange = (e) => {
+        if (!varAtual?.replay) return
+        varAtual.replay.som = e.target.checked
+        enviarVar()
+      }
       for (const b of $("layout-agora").children) b.onclick = () => varAtual && varAtual.layout !== b.dataset.valor && irPara(b.dataset.valor)
 
       // The panel while a VAR is open: the count, the tie's buttons, the player's state.

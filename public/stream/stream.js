@@ -525,7 +525,7 @@ function varDe(detail) {
  * before the play, holds until `depois` seconds after, eases back; and zooms by `zoom` meanwhile (Valorant: on the
  * crosshair, the screen's middle). Like Rocket League's own goal replays.
  */
-const FOCO = { antes: 1.1, depois: 0.8, rampa: 0.4, lenta: 0.25, zoom: 1.35 }
+const FOCO = { antes: 1.1, depois: 0.8, rampa: 0.4, lenta: 0.5, zoom: 1.35 }
 
 /** How far into the slow motion the clip is at `t` seconds: 0 outside it, 1 in it, eased between. */
 function focoPeso(t, foco) {
@@ -552,6 +552,8 @@ function replayTaxa(t, r) {
  * when it drifts.
  */
 function replayPosicao(r, agora = Date.now()) {
+  const s = roteiroAgora(r, agora)
+  if (s) return s.t
   if (!r || r.t == null) return 0
   let t = r.t
   if (!r.tocando) return t
@@ -564,4 +566,51 @@ function replayPosicao(r, agora = Date.now()) {
     if (r.duracao && t >= r.duracao) t -= r.duracao
   }
   return t
+}
+
+/**
+ * The VAR's script, which plays on its own (Luan doesn't steer the replay live, 2026-11-12): after `espera` s for the
+ * clip to load, the play's stretch once at full speed, again at `lenta`, again both if there's time; for the vote's
+ * last `telaFim` s the closing screen, the clip frozen on the play while the last votes come in. The stretch ends
+ * `depois` s after the play (the clip's end without one) and is as long as the two passes that fit in the vote.
+ * r.roteiro = { de, ate, congela } in clip seconds, { inicio, fim } in epoch ms; null once Luan touches the dock's player.
+ */
+const ROTEIRO = { espera: 1, lenta: 0.5, depois: 2.5, telaFim: 8, rampa: 0.4 }
+
+/** The script for a VAR opening `agora` with a vote of `votoMs`, over a clip of `duracao` s with its play at `alvo` s. */
+function roteiroPara(duracao, alvo, votoMs, agora = Date.now()) {
+  const fimClip = Math.max(0.5, duracao - 0.05)
+  const livre = votoMs / 1000 - ROTEIRO.espera - ROTEIRO.telaFim
+  const w = Math.min(fimClip, Math.max(3, livre / (1 + 1 / ROTEIRO.lenta)))
+  const de = Math.max(0, Math.min(fimClip, alvo != null ? alvo + ROTEIRO.depois : fimClip) - w)
+  const ate = Math.min(fimClip, de + w)
+  return {
+    de: Math.round(de * 100) / 100, ate: Math.round(ate * 100) / 100, congela: alvo ?? ate,
+    inicio: agora + ROTEIRO.espera * 1000, fim: agora + votoMs - ROTEIRO.telaFim * 1000,
+  }
+}
+
+/**
+ * Where the script is at `agora`: { fase: "espera" | "normal" | "lenta" | "fim", t (clip s), taxa, tocando, peso (0–1,
+ * how far into the slow pass, eased: the picture's slow-motion look and Valorant's zoom) }, or null without a script.
+ */
+function roteiroAgora(r, agora = Date.now()) {
+  const s = r?.roteiro
+  if (!s) return null
+  if (agora >= s.fim) return { fase: "fim", t: s.congela, taxa: 1, tocando: false, peso: 0 }
+  if (agora < s.inicio) return { fase: "espera", t: s.de, taxa: 1, tocando: false, peso: 0 }
+  const w = Math.max(0.5, s.ate - s.de)
+  const lenta = w / ROTEIRO.lenta
+  const e = ((agora - s.inicio) / 1000) % (w + lenta)
+  if (e < w) return { fase: "normal", t: s.de + e, taxa: 1, tocando: true, peso: 0 }
+  const x = e - w
+  const suave = (v) => (v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v))
+  const peso = suave(x / ROTEIRO.rampa) * suave((lenta - x) / ROTEIRO.rampa)
+  return { fase: "lenta", t: s.de + x * ROTEIRO.lenta, taxa: ROTEIRO.lenta, tocando: true, peso }
+}
+
+/** Whether the replay is playing now: the script's pass, or the dock's play/pause once Luan took over. */
+function replayTocando(r, agora = Date.now()) {
+  const s = roteiroAgora(r, agora)
+  return s ? s.tocando : !!r?.tocando
 }
