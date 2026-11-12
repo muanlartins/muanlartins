@@ -394,8 +394,7 @@
             const recording = await request("GetRecordStatus")
             gravando = !!recording?.outputActive
             await bufferStatus()
-            if (varAtual) enviarVar()
-            else request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-var", event_data: { fase: "fechado" } } })
+            enviarVar()
           } else if (op === 5) {
             if (d.eventType === "CurrentProgramSceneChanged") changed(d.eventData.sceneName)
             if (d.eventType === "SceneTransitionStarted") transitionStarted()
@@ -743,8 +742,12 @@
       }
       $("var").onclick = chamarVar
 
+      // As JSON text: obs-websocket turns event_data into OBS's own data, which keeps only arrays of objects, so the
+      // options, the votes, the tie and the line (arrays of text and numbers) reached the pages empty (11-11: the
+      // booth showed the question and the clock but no options to vote for).
       function enviarVar() {
-        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-var", event_data: varAtual ?? { fase: "fechado" } } })
+        const estado = JSON.stringify(varAtual ?? { fase: "fechado" })
+        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-var", event_data: { estado } } })
         painel()
       }
       // Votes come fast: at most four sends a second.

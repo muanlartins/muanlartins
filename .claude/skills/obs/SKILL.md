@@ -64,6 +64,11 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   died loading: open its URL with `#obs=x` in headless Chrome and look for a page error (on 11-10/11 Efeitos' top-level
   `const history` shadowed window.history, so the `#obs=` handling threw and F2/F4/F8 were dead until fb3ab5f). Then
   fire the trigger yourself (`TriggerMediaInputAction` RESTART on "Gatilho · …") and watch `CurrentProgramSceneChanged`.
+- obs-browser's `emit_event` goes through OBS's own data format, which keeps **only arrays of objects**: an array of
+  strings or numbers in `event_data` reaches the pages empty (obs-websocket's `obs_data_set_json_array` skips every
+  non-object). On 11-11 the VAR's booth showed the question and the clock but no options, votes or line. Send such
+  state as JSON text (`{ estado: JSON.stringify(...) }`, read with `varDe()` in `stream.js`), and when testing a page,
+  pass the event through that rule rather than dispatching it raw.
 - If OBS opens with "Missing Files", look at "VAR · replay": its file is the last VAR clip, which `videos.py`
   files in `Videos\Lives\<date>\VAR` after the live. Since 11-11 the Efeitos dock empties the source when the VAR
   closes; before that, OBS asked about `Replay 2026-11-10 14-21-28.mp4` at every start.

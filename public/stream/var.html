@@ -514,7 +514,7 @@
       }
       requestAnimationFrame(relogio)
 
-      addEventListener("muanlartins-var", ({ detail }) => detail && desenhar(detail))
+      addEventListener("muanlartins-var", ({ detail }) => (detail = varDe(detail)) && desenhar(detail))
 
       if (params.has("demo")) {
         for (const id of ["monitor", "camera"]) {

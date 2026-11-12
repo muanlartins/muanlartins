@@ -505,3 +505,16 @@ function demo(show) {
 
 // What the pages call.
 Object.assign(window, { params, frame, plate, recordPlate, valorantPlate, RANKS, DIVISIONS, rankName, hasDivisions, alternate, mark, drawCopy, chat, BOTS, irc, parseIrc })
+
+/**
+ * The VAR's state from a "muanlartins-var" event: the Efeitos dock sends it as JSON text in `estado` (obs-websocket
+ * keeps only arrays of objects, so the options and votes would arrive empty); a page's own ?demo sends it as is.
+ */
+function varDe(detail) {
+  if (typeof detail?.estado !== "string") return detail ?? null
+  try {
+    return JSON.parse(detail.estado)
+  } catch {
+    return null
+  }
+}
