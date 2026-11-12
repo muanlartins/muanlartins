@@ -93,7 +93,8 @@ Scripted on 11-04; one command per step, from the repo, after Luan uploads the r
    `live.py <date> --video <id>` stores it.
 3. `scripts/.venv/bin/python scripts/youtube.py live <date>` (`--dry-run` first): title "Rocket League ao vivo
    (<rank reached>) - DD/MM/YYYY", description (summary; links to the live's page, ranked, the roadmap, the
-   Fundamentos playlist, Twitch; chapters; `#RocketLeague #RocketLeagueAoVivo`), tags, Gaming, pt-BR, unlisted,
+   Fundamentos playlist, Twitch; chapters; `#RocketLeague #RocketLeagueAoVivo`), tags, Gaming, pt-BR, unlisted (public
+   since 2026-11-12, with a hook title and `scripts/thumb.py`'s thumbnail: the `depois-da-live` skill has today's routine),
    not for kids, no altered content, the thumbnail, the playlist "Rocket League ao vivo" and the transcript as
    captions.
 4. Commit and ask Luan before pushing.

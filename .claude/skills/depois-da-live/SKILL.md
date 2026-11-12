@@ -52,14 +52,62 @@ stay as said: Luan ended the blanking of names on 2026-11-08, "mostrar tudo semp
 the dock, a draft summary **for Luan to rewrite**: the copy is his) and `.transcript.json`, adds the day to
 `brand/build.py` and draws the thumbnail. `--force` redoes existing files.
 
+## 2b. The thumbnail and the title: made to be clicked
+
+Since 2026-11-12 the lives are **public** and dressed like any YouTube video (Luan: "estou tentando captar mais
+pessoas… vamos ter que jogar o jogo"). Until then they were unlisted with a plain plate ("Live" and the date) and
+got 0 to 3 views each, while the public shorts got hundreds: unlisted videos never show in search or
+recommendations, so nothing else mattered.
+
+```sh
+scripts/.venv/bin/python scripts/thumb.py <date>        # the candidates sheet: Videos\Lives\<date>\Thumb\candidatos.jpg
+```
+
+The sheet is his twelve strongest reactions (the microphone track's loudest moments, the transcript's "meu Deus",
+"que isso", "golaço", laughs, his goals from the dock, the VAR's plays), three camera frames each (`7a`, `7b`, `7c`)
+with what he said there. **Picking is Luan's** (judgment only where it beats a rule):
+
+1. Render two or three drafts with `--saida "Videos\Lives\<date>\Thumb\rascunho A.jpg"` and ask him which, with the
+   title, in one question. Favour a big, readable emotion (laughing, hands on the head, pointing up after a goal)
+   over a talking face.
+2. The hook is 2 to 4 words, uppercase, `LINHA 1|LINHA 2` (the second on the Branco plate): the day's story (`SUBI
+   PRO|DIAMANTE 3` with `--emblema` when it climbed) or **his own line from the live** (`VÃO HUMILHAR|A GENTE`, said at
+   15:43 on 11-11). Never a teammate's or opponent's name.
+3. `thumb.py <date> --quadro 3a --texto "VÃO HUMILHAR|A GENTE" [--emblema] [--fundo mm:ss]` writes
+   `brand/youtube/thumbnails/live-<date>.jpg` and keeps the pick in `content/lives/<date>.json` (`youtube.thumb`), so
+   `--refazer` makes it again without the sheet.
+
+What it does on its own, and why: his cutout from the camera recording (its background is already the brand's Klein,
+so the blue is keyed out, no model; the lockup and specks go), a Branco outline and a shadow, on the right half and
+never under the hook; behind him the game at that moment from `Jogo.mp4`, blurred so no player's name can be read
+(the in-game "X MARCOU" banner was legible at a lighter blur), darkened to Klein on the left; "AO VIVO · dd/mm" on a
+Klein plate. Look at the result before uploading.
+
+**The title** (`youtube.title` in `content/lives/<date>.json`, else a template in `youtube.py`): what happened first,
+the game after, under 70 characters, no date (it's in the description and on the thumbnail): `Subi pro Diamante 3! 10
+vitórias em 14 jogos | Rocket League ao vivo`; on a day without a climb, the hook line works better than the score
+(`Esses caras vão humilhar a gente… | Valorant ao vivo`). The template only covers a climb or the record: write one
+for him to approve when the day has a better story.
+
 ## 3. YouTube
 
 1. Luan uploads `Videos\Lives\<date>\<hh-mm-ss> Live.mp4` in YouTube Studio (the API can't: unverified apps'
-   uploads are locked private) and gives the video id.
+   uploads are locked private). He may not give the id: it's the newest upload titled like the file (`14 39 04 Live`),
+   private and processing; the uploads playlist through the API finds it.
 2. `scripts/.venv/bin/python scripts/live.py <date> --video <id>`
-3. `scripts/.venv/bin/python scripts/youtube.py live <date> --dry-run`, show Luan, then without `--dry-run`:
-   title, description with chapters, tags, thumbnail, the game's unlisted playlist ("Rocket League ao vivo",
-   "Valorant ao vivo": made the first time it's missing), captions. Per game in `GAMES` in `youtube.py`.
+3. Wait until YouTube has processed it (a 50 GB upload takes a while after the upload ends), then
+   `scripts/.venv/bin/python scripts/youtube.py live <date> --dry-run`, show Luan, then without `--dry-run`:
+   title, description (his summary, the game's line, Twitch first among the links, chapters, the date, three
+   hashtags), tags (the game's, plus mode, rank, agents and maps played), thumbnail (thumb.py's `.jpg` over
+   build.py's `.png`), **public** (`PRIVACY`), the game's playlist ("Rocket League ao vivo", "Valorant ao vivo":
+   made the first time it's missing, kept as public as the videos), captions. Per game in `GAMES` in `youtube.py`.
+   `--no-captions` when only the metadata changed (captions cost 400+ of the 10,000 daily quota units).
+
+**The public test** (agreed 2026-11-12; Luan feared public VODs would hurt the channel): YouTube judges each video by
+its own audience, so a long VOD few click just gets fewer impressions. Baseline that day: the six lives had 0 to 3
+views each; the shorts 52 to 1,282. Around 2026-11-26, compare in Studio (Analytics → each live's impressions and
+click-through rate, and the shorts' reach against the two weeks before); if the shorts' reach dropped, set `PRIVACY`
+back to `"unlisted"` and run `youtube.py live <date> --no-captions` for each live.
 
 ## 4. Free the disk
 

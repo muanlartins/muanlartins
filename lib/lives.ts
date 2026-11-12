@@ -24,6 +24,12 @@ export interface Live {
   video: string
   summary: L10n
   chapters: Chapter[]
+  /** Only for YouTube (scripts/youtube.py, scripts/thumb.py); the site doesn't show it: the video's title when
+   * Luan wrote one, and the frame and hook picked for its thumbnail. */
+  youtube?: {
+    title?: string
+    thumb?: { quadro: string; segundo: number; texto: string; emblema: boolean; fundo?: string }
+  }
 }
 
 /** A transcript line: seconds into the video, and what was said. */
