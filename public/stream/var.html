@@ -5,19 +5,35 @@
     <title>VAR · muanlartins</title>
     <link rel="stylesheet" href="stream.css" />
     <!--
-      OBS: Browser source, 1920×1080, in the "VAR · Rocket League" and "VAR · Valorant" scenes, over the media
-      source "VAR · replay" (the play, from OBS's Replay Buffer: the stream as it went out) and the camera, and under
-      the crowd. The video referee's booth: the Klein ground everywhere but two holes, the monitor where the replay
-      plays (1216×684 at (64, 136)) and the camera (512×288 at (1344, 136)), each in the frame with a referee-yellow
-      tab; the chat's vote beside them; on the verdict, the winning option on a yellow card slammed over the monitor.
+      OBS: Browser source "Efeito · VAR", 1920×1080, with its sound ("controlar áudio pelo OBS", in Luan's headphones
+      too), in the VAR scenes ("VAR · Rocket League", "VAR · Valorant") over the camera and under the crowd, and in the
+      game scenes ("RL + chat", "Valorant + chat") over the overlays, where it stays clear until a VAR opens there.
 
-      It draws what the "Efeitos" dock (efeitos.html) sends through obs-browser's emit_event, "muanlartins-var":
-      the VAR's whole state on every change, { fase: "votacao" | "empate" | "veredito" | "fechado", id, pergunta,
-      opcoes, votos, ate (when the vote ends, epoch ms), vencedora, empatadas, velocidade, pausado, linha }. The line
-      ([x0, y0, x1, y1] in the replay's 0–1 coordinates, dragged in the dock) crosses the whole monitor, like TV's
-      offside line. The monitor's frame draws itself as each VAR opens: the referee drawing the screen in the air.
+      It plays the clip itself, in a <video>: the replay the Efeitos dock (efeitos.html) had OBS save and
+      scripts/replay.py serves on 127.0.0.1:8794 (the game alone, from the Source Record buffer on "Gravar jogo"; the
+      stream as it went out when that one isn't there). Two layouts, picked in the dock:
+      - "cabine", the video referee's booth (Valorant's default: Luan is dead, there's time): the Klein ground
+        everywhere but the camera's hole (512×288 at (1344, 136)), the clip in the monitor (1216×684 at (64, 136)), each
+        in the frame with a referee-yellow tab, the chat's vote under the camera; the scene is the game's VAR scene.
+      - "mini" (Rocket League's default), like a tournament's: the game goes on full screen and the clip plays in a
+        corner, top right, 640×360 at (1236, 92), with the vote under it, where the chat is (jogo.html fades its chat
+        meanwhile); the scene stays the game's.
+      Under the clip, its progress, with the plays the dock knows (Rocket League's goals, saves and demos, from the
+      Partidas dock) and the one in focus. With the focus on, the replay eases into slow motion around that play and
+      back (FOCO in stream.js, the same curve as the dock's preview; Valorant zooms on the crosshair meanwhile).
 
-      Copy here is a draft for Luan. ?demo plays a VAR on its own every 20 s, over a stand-in replay.
+      The dock sends the VAR's whole state on every change, and every second while it plays, as obs-browser's
+      emit_event "muanlartins-var" with the state as JSON text in `estado` (varDe() in stream.js): { fase: "votacao" |
+      "empate" | "veredito" | "fechado", id, layout, pergunta, opcoes, votos, ate (when the vote ends, epoch ms),
+      duracao (the vote's), vencedora, empatadas, linha, replay: { url, duracao, fonte, marcas: [{ t, rotulo, tipo }],
+      foco: { t, ligado, zoom }, t, em, tocando, base, som } }. `t` at epoch ms `em` is the dock's preview; this page
+      carries it forward (replayPosicao() in stream.js) and only seeks when it drifts more than a quarter second. The
+      line ([x0, y0, x1, y1] in the clip's 0–1 coordinates, dragged in the dock) crosses the whole clip, like TV's
+      offside line. The booth's frame draws itself as each VAR opens: the referee drawing the screen in the air.
+
+      Copy here is a draft for Luan. ?demo plays a VAR on its own every 24 s (?demo=votacao, veredito, empate, mini for
+      one still frame), over a stand-in replay or ?replay=<a clip's URL>; ?fundo=<image> puts a game screenshot behind
+      it, to see the mini over a game.
     -->
     <style>
       :root {
@@ -30,32 +46,103 @@
       .booth.fechado {
         opacity: 0;
       }
-      /* The Klein ground with the lattice, everywhere but the monitor and the camera (clip-path set by the script). */
+      .fundo-demo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      /* The Klein ground with the lattice, everywhere but the camera (clip-path set by the script); the booth only. */
       .ground {
         position: absolute;
         inset: 0;
       }
-      .monitor,
+      .mini .ground,
+      .mini .camera-frame,
+      .mini .tab-camera,
+      .mini .gesto {
+        display: none;
+      }
       .camera {
         position: absolute;
-      }
-      .monitor {
-        left: 64px;
-        top: 136px;
-        width: 1216px;
-        height: 684px;
-      }
-      .camera {
         left: 1344px;
         top: 136px;
         width: 512px;
         height: 288px;
       }
-      .demo-replay {
+      .demo-camera {
         position: absolute;
         background:
           linear-gradient(160deg, rgb(255 255 255 / 0.06), transparent 60%),
           repeating-linear-gradient(90deg, #1d6b3a 0 120px, #217a42 120px 240px);
+      }
+
+      /* The clip: in the monitor, or in the corner. */
+      .tela {
+        position: absolute;
+        left: 64px;
+        top: 136px;
+        width: 1216px;
+        height: 684px;
+        overflow: hidden;
+        background: #000;
+        transition:
+          left 0.5s var(--ease),
+          top 0.5s var(--ease),
+          width 0.5s var(--ease),
+          height 0.5s var(--ease);
+      }
+      .mini .tela {
+        left: 1236px;
+        top: 92px;
+        width: 640px;
+        height: 360px;
+        box-shadow: 0 18px 40px rgb(0 20 71 / 0.55);
+      }
+      .tela video,
+      .tela .demo-replay {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform-origin: 50% 50%;
+      }
+      .tela .demo-replay {
+        background:
+          linear-gradient(160deg, rgb(255 255 255 / 0.06), transparent 60%),
+          repeating-linear-gradient(90deg, #1d6b3a 0 120px, #217a42 120px 240px);
+      }
+      .tela .linha {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+      /* Slow motion: the picture cools a little and a band says so, like the games' own replays. */
+      .tela .lenta {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 30%;
+        background: linear-gradient(to top, rgb(0 20 71 / 0.55), transparent);
+        opacity: 0;
+        transition: opacity 0.3s var(--ease);
+      }
+      .em-lenta .tela .lenta {
+        opacity: 1;
+      }
+      .frame-mini {
+        display: none;
+      }
+      .mini .frame-mini {
+        display: block;
+      }
+      .mini .monitor-frame {
+        display: none;
       }
 
       /* The band across the top: the VAR's name and what it is. */
@@ -92,6 +179,26 @@
         font-size: 28px;
         font-weight: 600;
         letter-spacing: -0.01em;
+      }
+      .mini .band {
+        left: 1226px;
+        top: 36px;
+        height: 40px;
+        gap: 12px;
+        padding-right: 48px;
+        clip-path: polygon(0 0, 100% 0, calc(100% - 40px) 100%, 0 100%);
+      }
+      .mini .band .sigla {
+        gap: 9px;
+        padding: 0 14px;
+        font-size: 24px;
+      }
+      .mini .band .sigla svg {
+        width: 26px;
+        height: 18px;
+      }
+      .mini .band .titulo {
+        font-size: 18px;
       }
       .aberto .band {
         animation: wipe-in 0.7s var(--ease) 0.15s both;
@@ -138,6 +245,14 @@
         left: 1332px;
         top: 106px;
       }
+      .mini .tab-monitor {
+        left: 1650px;
+        top: 40px;
+        height: 32px;
+        font-size: 15px;
+        padding-right: 34px;
+        clip-path: polygon(0 0, 100% 0, calc(100% - 32px) 100%, 0 100%);
+      }
 
       /* The referee drawing the screen: two strokes from the top's middle, round each side, meeting at the bottom. */
       .gesto {
@@ -175,21 +290,51 @@
         }
       }
 
-      /* The line over the replay. */
-      .linha {
+      /* The clip's progress, under it: where it is, the plays, the one in focus. */
+      .trilha {
         position: absolute;
         left: 64px;
-        top: 136px;
+        top: 854px;
         width: 1216px;
-        height: 684px;
-        overflow: hidden;
-        pointer-events: none;
+        height: 8px;
+        background: rgb(133 167 255 / 0.3);
       }
-      .linha line {
-        stroke-linecap: butt;
+      .mini .trilha {
+        left: 1236px;
+        top: 468px;
+        width: 640px;
+        height: 6px;
+      }
+      .trilha .feito {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 0;
+        background: var(--paper);
+      }
+      .trilha .marca {
+        position: absolute;
+        top: -5px;
+        bottom: -5px;
+        width: 4px;
+        margin-left: -2px;
+        background: var(--klein-claro);
+      }
+      .trilha .foco {
+        position: absolute;
+        top: 50%;
+        width: 18px;
+        height: 18px;
+        margin: -9px 0 0 -9px;
+        background: var(--amarelo);
+        transform: rotate(45deg);
+        box-shadow: 0 0 0 3px var(--navy);
+      }
+      .trilha .foco.desligado {
+        background: var(--navy);
+        box-shadow: inset 0 0 0 3px var(--amarelo);
       }
 
-      /* The chat's vote, under the camera. */
+      /* The chat's vote: under the camera, or under the mini player. */
       .votacao {
         position: absolute;
         left: 1332px;
@@ -201,6 +346,14 @@
         padding: 22px 24px 20px;
         background: var(--navy);
         clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+      }
+      .mini .votacao {
+        left: 1226px;
+        top: 488px;
+        width: 660px;
+        height: auto;
+        padding: 16px 20px 16px;
+        background: rgb(0 20 71 / 0.92);
       }
       .aberto .votacao {
         animation: entra 0.6s var(--ease) 0.35s both;
@@ -219,12 +372,19 @@
         letter-spacing: -0.02em;
         overflow-wrap: anywhere;
       }
+      .mini .pergunta {
+        margin-bottom: 12px;
+        font-size: 24px;
+      }
       .opcoes {
         display: grid;
         gap: 10px;
         margin: 0;
         padding: 0;
         list-style: none;
+      }
+      .mini .opcoes {
+        gap: 8px;
       }
       .opcao {
         position: relative;
@@ -238,6 +398,11 @@
         font-size: 22px;
         font-weight: 500;
         transition: opacity 0.4s var(--ease);
+      }
+      .mini .opcao {
+        grid-template-columns: 46px 1fr auto;
+        height: 42px;
+        font-size: 19px;
       }
       .opcao .barra {
         position: absolute;
@@ -290,6 +455,10 @@
         font-size: 18px;
         color: rgb(244 245 247 / 0.75);
       }
+      .mini .rodape {
+        margin-top: 12px;
+        font-size: 16px;
+      }
       .relogio {
         flex: 1;
         height: 6px;
@@ -310,7 +479,7 @@
         font-weight: 600;
       }
 
-      /* The verdict: the winning option on a referee's card, slammed over the monitor. */
+      /* The verdict: the winning option on a referee's card, slammed over the clip. */
       .cartao {
         position: absolute;
         left: 672px;
@@ -327,6 +496,13 @@
         box-shadow: 18px 18px 0 rgb(0 20 71 / 0.55);
         transform: translate(-50%, -50%) rotate(-6deg);
         text-align: center;
+      }
+      .mini .cartao {
+        left: 1556px;
+        top: 272px;
+        max-width: 560px;
+        padding: 18px 36px 22px;
+        box-shadow: 10px 10px 0 rgb(0 20 71 / 0.55);
       }
       .cartao[hidden] {
         display: none;
@@ -355,6 +531,13 @@
         letter-spacing: -0.03em;
         overflow-wrap: anywhere;
       }
+      .mini .cartao strong {
+        font-size: 56px;
+      }
+      .mini .cartao small,
+      .mini .cartao span {
+        font-size: 16px;
+      }
       .cartao span {
         font-size: 22px;
         font-weight: 500;
@@ -374,17 +557,23 @@
   <body>
     <main class="stage booth fechado" id="booth">
       <div class="ground" id="ground"></div>
-      <div class="monitor" id="monitor"></div>
       <div class="camera" id="camera"></div>
+
+      <div class="tela" id="tela">
+        <video id="video" playsinline loop preload="auto"></video>
+        <div class="lenta"></div>
+        <svg class="linha" id="linha" viewBox="0 0 1000 1000" preserveAspectRatio="none"></svg>
+      </div>
 
       <div class="band">
         <span class="sigla"><svg viewBox="0 0 44 30" aria-hidden="true"><rect x="3" y="3" width="38" height="24" fill="none" stroke="currentColor" stroke-width="5" /></svg>VAR</span>
         <span class="titulo">Revisão do lance</span>
       </div>
-      <div class="tab tab-monitor"><span class="gravando"></span>REPLAY <span class="estado" id="velocidade">100%</span></div>
+      <div class="tab tab-monitor"><span class="gravando"></span><span id="rotulo-replay">REPLAY</span> <span class="estado" id="velocidade">100%</span></div>
       <div class="tab tab-camera">AO VIVO</div>
 
-      <svg class="linha" id="linha" viewBox="0 0 1216 684" preserveAspectRatio="none"></svg>
+      <div class="trilha" id="trilha"><span class="feito" id="feito"></span></div>
+
       <svg class="gesto" viewBox="0 0 1264 732" aria-hidden="true">
         <path pathLength="1" d="M632 3H3V729H632" />
         <path pathLength="1" d="M632 3H1261V729H632" />
@@ -406,16 +595,33 @@
     <script>
       const $ = (id) => document.getElementById(id)
       const booth = $("booth")
+      const video = $("video")
+      const tela = $("tela")
       const BAND = 14
+      const DERIVA = 0.25 // seconds of drift from the dock's clock before seeking
 
-      // The ground has two holes, where OBS puts the replay and the camera.
+      // The booth's ground has one hole, where OBS puts the camera; the clip is this page's own.
       const rect = (el) => {
         const [x, y, w, h] = [el.offsetLeft, el.offsetTop, el.offsetWidth, el.offsetHeight]
         return `M${x} ${y}H${x + w}V${y + h}H${x}Z`
       }
-      $("ground").style.clipPath = `path(evenodd, "M0 0H1920V1080H0Z${rect($("monitor"))}${rect($("camera"))}")`
-      const telas = [frame($("monitor"), { band: BAND, fill: "#001447" }), frame($("camera"), { band: BAND, fill: "#001447" })]
-      alternate(6, ...telas.map((t) => t.glint))
+      $("ground").style.clipPath = `path(evenodd, "M0 0H1920V1080H0Z${rect($("camera"))}")`
+      // The frames: the monitor's and the camera's in the booth, a thinner one around the mini player.
+      const molde = (left, top, width, height) => {
+        const el = document.createElement("div")
+        el.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${width}px;height:${height}px`
+        booth.append(el)
+        return el
+      }
+      const monitor = frame(molde(64, 136, 1216, 684), { band: BAND, fill: "#001447" })
+      monitor.classList.add("monitor-frame")
+      const camera = frame($("camera"), { band: BAND, fill: "#001447" })
+      camera.classList.add("camera-frame")
+      const mini = frame(molde(1236, 92, 640, 360), { band: 10, fill: "#001447" })
+      mini.classList.add("frame-mini")
+      // Under the band and the tabs, which sit on the frames' edges.
+      for (const el of [monitor, camera, mini]) booth.insertBefore(el, document.querySelector(".band"))
+      alternate(6, monitor.glint, camera.glint, mini.glint)
 
       let estado = { fase: "fechado" }
       let mostrado = null // the VAR id on screen, so each one's opening plays once
@@ -429,8 +635,10 @@
           booth.classList.remove("aberto")
           mostrado = carimbado = null
           $("cartao").hidden = true
+          video.pause()
           return
         }
+        booth.classList.toggle("mini", v.layout === "mini")
         if (v.id !== mostrado) {
           mostrado = v.id
           carimbado = null
@@ -441,8 +649,6 @@
         }
         booth.classList.toggle("empate", v.fase === "empate")
         booth.classList.toggle("veredito", v.fase === "veredito")
-
-        $("velocidade").textContent = v.pausado ? "pausado" : `${v.velocidade ?? 100}%`
         $("pergunta").textContent = v.pergunta ?? ""
 
         // The options, made again only when they change; the counts and bars update in place.
@@ -469,7 +675,11 @@
           li.classList.toggle("empatada", (v.empatadas ?? []).includes(i))
           li.classList.toggle("vencedora", v.fase === "veredito" && v.vencedora === i)
         })
-        $("dica").textContent = v.fase === "empate" ? "Empate: o Luan desempata" : v.fase === "veredito" ? `${total} ${total === 1 ? "voto" : "votos"}` : "Vote no chat"
+        const comandos = opcoes.map((_, i) => `!${i + 1}`)
+        $("dica").textContent =
+          v.fase === "empate" ? "Empate: o Luan desempata"
+            : v.fase === "veredito" ? `${total} ${total === 1 ? "voto" : "votos"}`
+              : `Vote no chat: ${comandos.slice(0, -1).join(", ")} ou ${comandos.at(-1)}`
 
         if (v.fase === "veredito" && carimbado !== v.id) {
           carimbado = v.id
@@ -482,22 +692,90 @@
           c.classList.add("bate")
         }
 
-        // The line crosses the whole monitor through the two points dragged in the dock.
+        // The line crosses the whole clip through the two points dragged in the dock.
         const svg = $("linha")
         svg.replaceChildren()
         if (v.linha) {
-          let [x0, y0, x1, y1] = v.linha.map((n, i) => n * (i % 2 ? 684 : 1216))
+          let [x0, y0, x1, y1] = v.linha.map((n) => n * 1000)
           const dx = x1 - x0
           const dy = y1 - y0
           if (Math.hypot(dx, dy) > 4) {
             const k = 4000 / Math.hypot(dx, dy)
             const ponta = (s) => [x0 + dx * k * s, y0 + dy * k * s]
             const [a, b] = [ponta(-1), ponta(1)]
-            svg.innerHTML = `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#001447" stroke-opacity="0.6" stroke-width="10"/>
-              <line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#ffd23f" stroke-width="5"/>`
+            svg.innerHTML = `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#001447" stroke-opacity="0.6" stroke-width="10" vector-effect="non-scaling-stroke"/>
+              <line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#ffd23f" stroke-width="5" vector-effect="non-scaling-stroke"/>`
           }
         }
+        replay(v.replay)
       }
+
+      // --- The clip -------------------------------------------------------------------------------------------
+      let r = null // the replay as the dock last sent it
+      function replay(novo) {
+        r = novo ?? null
+        if (!r?.url) return
+        if (video.dataset.url !== r.url) {
+          video.dataset.url = r.url
+          video.src = r.url
+        }
+        // The sound: the booth's clip has it; over the game (mini) only when the dock says so.
+        video.muted = !r.som
+        // Marks on the progress bar: the plays, and the one in focus.
+        const trilha = $("trilha")
+        const marcas = JSON.stringify([r.marcas, r.foco, r.duracao])
+        if (trilha.dataset.de !== marcas) {
+          trilha.dataset.de = marcas
+          trilha.querySelectorAll(".marca, .foco").forEach((el) => el.remove())
+          const em = (t) => `${Math.min(100, Math.max(0, (t / (r.duracao || 1)) * 100))}%`
+          for (const m of r.marcas ?? []) {
+            const el = document.createElement("span")
+            el.className = "marca"
+            el.style.left = em(m.t)
+            trilha.append(el)
+          }
+          if (r.foco?.t != null) {
+            const el = document.createElement("span")
+            el.className = "foco"
+            el.classList.toggle("desligado", !r.foco.ligado)
+            el.style.left = em(r.foco.t)
+            trilha.append(el)
+          }
+        }
+        seguir(true)
+      }
+
+      // Follows the dock's clock: play or pause as it does, seek only when off by more than DERIVA.
+      function seguir(agora = false) {
+        if (!r?.url || !video.readyState) return
+        const alvo = replayPosicao(r)
+        // Playing, only past the drift allowed; paused, to the frame (a step is 1/60 s).
+        const fora = Math.abs(video.currentTime - alvo)
+        if (fora > (r.tocando && !agora ? DERIVA : 0.004)) video.currentTime = alvo
+        if (r.tocando && video.paused) video.play().catch(() => {})
+        if (!r.tocando && !video.paused) video.pause()
+      }
+      video.addEventListener("loadedmetadata", () => seguir(true))
+
+      // Each frame: the rate and zoom of the slow motion at the clip's time, the progress, the tab.
+      function quadro() {
+        if (r?.url && video.readyState) {
+          const t = video.currentTime
+          const w = focoPeso(t, r.foco)
+          const taxa = Math.max(0.0625, replayTaxa(t, r))
+          if (Math.abs(video.playbackRate - taxa) > 0.005) video.playbackRate = taxa
+          const z = r.foco?.zoom ? 1 + w * (FOCO.zoom - 1) : 1
+          video.style.transform = z > 1.001 ? `scale(${z})` : ""
+          booth.classList.toggle("em-lenta", w > 0.5)
+          $("feito").style.width = `${(t / (video.duration || r.duracao || 1)) * 100}%`
+          const pct = Math.round(taxa * 100)
+          $("rotulo-replay").textContent = !r.tocando ? "REPLAY" : w > 0.5 ? "CÂMERA LENTA" : "REPLAY"
+          $("velocidade").textContent = r.tocando ? `${pct}%` : "pausado"
+        }
+        requestAnimationFrame(quadro)
+      }
+      requestAnimationFrame(quadro)
+      setInterval(() => r?.tocando && seguir(), 500)
 
       // The clock: the vote's time left, from `ate`.
       function relogio() {
@@ -517,32 +795,50 @@
       addEventListener("muanlartins-var", ({ detail }) => (detail = varDe(detail)) && desenhar(detail))
 
       if (params.has("demo")) {
-        for (const id of ["monitor", "camera"]) {
-          const el = $(id)
-          const stand = document.createElement("div")
-          stand.className = "demo-replay"
-          stand.style.cssText = `left:${el.offsetLeft}px;top:${el.offsetTop}px;width:${el.offsetWidth}px;height:${el.offsetHeight}px`
-          booth.prepend(stand)
+        if (params.get("fundo")) {
+          const img = document.createElement("img")
+          img.className = "fundo-demo"
+          img.src = params.get("fundo")
+          document.body.prepend(img)
+          document.body.style.background = "#000"
         }
+        const cam = $("camera")
+        const stand = document.createElement("div")
+        stand.className = "demo-camera"
+        stand.style.cssText = `left:${cam.offsetLeft}px;top:${cam.offsetTop}px;width:${cam.offsetWidth}px;height:${cam.offsetHeight}px`
+        booth.prepend(stand)
+        const clip = params.get("replay")
+        if (!clip) {
+          const falso = document.createElement("div")
+          falso.className = "demo-replay"
+          tela.prepend(falso)
+        }
+        const quadroDemo = params.get("demo")
+        const layout = quadroDemo === "mini" || params.get("layout") === "mini" ? "mini" : "cabine"
+        const foco = Number(params.get("foco") ?? 13.2)
+        const rep = (extra = {}) => ({
+          url: clip, duracao: 18.28, fonte: "jogo", base: 1, tocando: true, t: 9, em: Date.now(), som: layout === "cabine",
+          marcas: [{ t: foco, rotulo: "Gol seu", tipo: "gol" }], foco: { t: foco, ligado: true, zoom: false }, ...extra,
+        })
+        const base = { pergunta: "Foi pênalti?", opcoes: ["Lance limpo", "Roubado", "Hack 👀"], layout }
         const passos = (id) => {
-          const base = { id, pergunta: "Foi pênalti?", opcoes: ["Lance limpo", "Roubado", "Hack 👀"], velocidade: 100, duracao: 12000 }
-          const ate = Date.now() + 12000
+          const ate = Date.now() + 14000
           const votos = [0, 0, 0]
+          const replayDemo = rep({ t: 6, em: Date.now() })
           const t = []
-          t.push([0, () => ({ ...base, fase: "votacao", votos: [...votos], ate })])
-          for (let i = 1; i <= 24; i++) t.push([i * 450, () => (votos[Math.random() < 0.6 ? 1 : Math.random() < 0.7 ? 0 : 2]++, { ...base, fase: "votacao", votos: [...votos], ate })])
-          t.push([4000, () => ({ ...base, fase: "votacao", votos: [...votos], ate, velocidade: 50, linha: [0.62, 0.1, 0.48, 0.95] })])
-          t.push([12200, () => ({ ...base, fase: "veredito", votos: [...votos], vencedora: votos.indexOf(Math.max(...votos)), velocidade: 50, linha: [0.62, 0.1, 0.48, 0.95] })])
-          t.push([19000, () => ({ fase: "fechado" })])
+          t.push([0, () => ({ ...base, id, fase: "votacao", votos: [...votos], ate, duracao: 14000, replay: replayDemo })])
+          for (let i = 1; i <= 24; i++) t.push([i * 500, () => (votos[Math.random() < 0.6 ? 1 : Math.random() < 0.7 ? 0 : 2]++, { ...base, id, fase: "votacao", votos: [...votos], ate, duracao: 14000, replay: replayDemo })])
+          t.push([14200, () => ({ ...base, id, fase: "veredito", votos: [...votos], vencedora: votos.indexOf(Math.max(...votos)), replay: replayDemo })])
+          t.push([21000, () => ({ fase: "fechado" })])
           for (const [ms, f] of t) setTimeout(() => desenhar(f()), ms)
         }
-        const quadro = params.get("demo")
-        if (quadro === "veredito") desenhar({ id: "1", fase: "veredito", pergunta: "Foi pênalti?", opcoes: ["Lance limpo", "Roubado", "Hack 👀"], votos: [7, 15, 3], vencedora: 1, velocidade: 50, linha: [0.62, 0.1, 0.48, 0.95] })
-        else if (quadro === "votacao") desenhar({ id: "1", fase: "votacao", pergunta: "Foi pênalti?", opcoes: ["Lance limpo", "Roubado", "Hack 👀"], votos: [7, 11, 3], ate: Date.now() + 14000, duracao: 30000, velocidade: 50, linha: [0.62, 0.1, 0.48, 0.95] })
-        else if (quadro === "empate") desenhar({ id: "1", fase: "empate", pergunta: "Culpa de quem?", opcoes: ["Culpa minha", "Do parceiro", "Indefensável"], votos: [6, 6, 2], empatadas: [0, 1], velocidade: 100 })
+        const estatico = { id: "1", ...base, votos: [7, 11, 3], replay: rep({ tocando: false, t: Number(params.get("t") ?? foco) }) }
+        if (quadroDemo === "veredito") desenhar({ ...estatico, fase: "veredito", votos: [7, 15, 3], vencedora: 1, linha: [0.62, 0.1, 0.48, 0.95] })
+        else if (quadroDemo === "votacao" || quadroDemo === "mini") desenhar({ ...estatico, fase: "votacao", ate: Date.now() + 14000, duracao: 30000, linha: quadroDemo === "mini" ? null : [0.62, 0.1, 0.48, 0.95] })
+        else if (quadroDemo === "empate") desenhar({ ...estatico, fase: "empate", pergunta: "Culpa de quem?", opcoes: ["Culpa minha", "Do parceiro", "Indefensável"], votos: [6, 6, 2], empatadas: [0, 1] })
         else {
           passos("1")
-          setInterval(() => passos(String(Date.now())), 20000)
+          setInterval(() => passos(String(Date.now())), 24000)
         }
       }
     </script>

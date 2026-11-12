@@ -15,9 +15,9 @@ is remuxed to MP4 (no re-encoding, the same pictures) because RLR's studio plays
 stays in the name: live.py reads it when the dock didn't log the recording. When OBS restarted mid-live (a crash,
 a relaunch), the day has several recordings of a kind: they're joined end to end, still without re-encoding, under
 the first one's name, and Lives\\<date>\\partes.json says where each piece starts, in the day's clock and in the
-joined file (live.py places the chapters with it; the minutes OBS was down aren't in the file). The VAR's clips (OBS's Replay Buffer,
-saved by the Efeitos dock: "Replay 2026-11-05 14-32-10.mp4") go to Lives\\<date>\\VAR\\14-32-10 VAR.mp4, material
-for shorts like the Jogo recording. Replays stay in the game's folder (it lists them from there) and are copied to
+joined file (live.py places the chapters with it; the minutes OBS was down aren't in the file). The VAR's clips (saved by the Efeitos dock:
+OBS's Replay Buffer, "Replay 2026-11-05 14-32-10.mp4", and the game alone from Source Record's, "Replay … jogo.mkv")
+go to Lives\\<date>\\VAR\\14-32-10 VAR.mp4 and 14-32-10 VAR jogo.mkv, material for shorts like the Jogo recording. Replays stay in the game's folder (it lists them from there) and are copied to
 Lives\\<date>\\Replays\\, matched to the dock's matches by score and time.
 
 Lives come every day and an hour of them is tens of GB, so the material goes once it has done its job:
@@ -46,7 +46,7 @@ LIVES = VIDEOS / "Lives"
 DEMOS = [home() / "OneDrive" / "Documents" / "My Games" / "Rocket League" / "TAGame" / folder for folder in ("DemosEpic", "Demos")]
 LOOSE = re.compile(r"^(\d{4}-\d{2}-\d{2}) (\d{2}-\d{2}-\d{2})(?: (câmera|jogo))?\.(mp4|mkv|mov)$")
 KINDS = {None: "Live", "câmera": "Câmera", "jogo": "Jogo"}
-VAR_CLIP = re.compile(r"^Replay (\d{4}-\d{2}-\d{2}) (\d{2}-\d{2}-\d{2})\.(mp4|mkv|mov)$")
+VAR_CLIP = re.compile(r"^Replay (\d{4}-\d{2}-\d{2}) (\d{2}-\d{2}-\d{2})( jogo)?\.(mp4|mkv|mov)$")
 # What a live needs free before it starts (about 3 hours of the three recordings at ~50 GB/h, and a margin): the
 # Jogo and Câmera recordings wait for their shorts and commented videos as long as this much stays free.
 FREE_GB = 200
@@ -66,8 +66,8 @@ def recordings():
             yield file, LIVES / day / f"{time} {KINDS[kind]}.{ext}"
         clip = VAR_CLIP.match(file.name)
         if file.is_file() and clip:
-            day, time, ext = clip.groups()
-            yield file, LIVES / day / "VAR" / f"{time} VAR.{ext}"
+            day, time, game, ext = clip.groups()
+            yield file, LIVES / day / "VAR" / f"{time} VAR{' jogo' if game else ''}.{ext}"
 
 
 def header(path):
@@ -142,7 +142,7 @@ def expendable():
         done = (folder / DONE).exists()
         # Before 11-06 there was no Jogo recording: the stream's is then the studio's only copy of the matches.
         alone = not any(folder.glob("??-??-?? Jogo.*"))
-        kept = [*folder.glob("??-??-?? Jogo.*"), *folder.glob("??-??-?? Câmera.*"), *folder.glob("VAR/??-??-?? VAR.*")]
+        kept = [*folder.glob("??-??-?? Jogo.*"), *folder.glob("??-??-?? Câmera.*"), *folder.glob("VAR/??-??-?? VAR*")]
         for file in sorted(folder.glob("??-??-?? Live.*")):
             if not video:
                 continue

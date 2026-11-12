@@ -68,10 +68,15 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   strings or numbers in `event_data` reaches the pages empty (obs-websocket's `obs_data_set_json_array` skips every
   non-object). On 11-11 the VAR's booth showed the question and the clock but no options, votes or line. Send such
   state as JSON text (`{ estado: JSON.stringify(...) }`, read with `varDe()` in `stream.js`), and when testing a page,
-  pass the event through that rule rather than dispatching it raw.
-- If OBS opens with "Missing Files", look at "VAR · replay": its file is the last VAR clip, which `videos.py`
-  files in `Videos\Lives\<date>\VAR` after the live. Since 11-11 the Efeitos dock empties the source when the VAR
-  closes; before that, OBS asked about `Replay 2026-11-10 14-21-28.mp4` at every start.
+  pass the event through that rule rather than dispatching it raw. (BroadcastCustomEvent, dock to dock, stays JSON.)
+- The VAR plays its clip in `var.html`'s own `<video>` since 11-12 (the media source "VAR · replay" is retired:
+  `obs.py --apply` takes it out). The clip is the game alone: Source Record's replay buffer on each capture's
+  "Gravar jogo" (`REPLAY_JOGO` in `obs.py`: 20 s, `Replay <date> <time> jogo.mkv`, the same encoder as the game's
+  file), saved by the dock with `CallVendorRequest` `source-record` / `replay_buffer_save` `{ source: "<capture>" }`.
+  Source Record 0.4.8 sends no "saved" event, so `scripts/replay.py` (127.0.0.1:8794) watches Videos, remuxes the MKV
+  to MP4 (about a second) and serves it with byte ranges to the page and the dock. "Efeito · VAR" is also in "RL +
+  chat" and "Valorant + chat" (the mini player), with "controlar áudio pelo OBS" on. Turning Source Record's replay
+  on or changing its duration is a filter change: only with OBS closed (`obs.py --apply`), never while it records.
 - OBS must always be started from a shortcut (all three carry `--enable-media-stream --use-fake-ui-for-media-stream`),
   never `obs64.exe` bare: on 2026-11-11 a Windows session restarted it bare and the camera filters lost the camera
   (`câmera NotAllowedError` every 5 s in the log). From WSL: `cmd.exe /c start "" "C:\Users\Public\Desktop\OBS Studio.lnk"`;

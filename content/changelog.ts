@@ -108,6 +108,13 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
+    id: "var-com-replay",
+    status: "agora",
+    tag: "live",
+    title: "VAR com replay de verdade",
+    text: "O replay do jogo limpo, num mini player no canto enquanto a partida segue, com câmera lenta no gol ou na defesa como nos replays do Rocket League. E a votação do chat aparecendo direito.",
+  },
+  {
     id: "analise-de-mira",
     status: "proximo",
     tag: "site",

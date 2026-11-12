@@ -53,9 +53,13 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
   `C:\Program Files\Epic Games\rocketleague\TAGame\Config\DefaultStatsAPI.ini`. Game updates reset it to 0
   (11-05), and then the dock sees no match. `node scripts/obs.mjs` warns when it's off; fix it, then restart the
   game (it reads the file at start).
-- The "Efeitos" dock open, for the VAR above all: it starts OBS's Replay Buffer with the stream or the recording
-  and its "Replay Buffer" line says when it's off in Settings (Output → Replay Buffer, ~20 s). Without the dock, F8
-  does nothing.
+- The "Efeitos" dock open, for the VAR above all: its "Replays" line must say the local server is on
+  (`scripts/replay.py` on 127.0.0.1:8794, started at Windows login by "Replay muanlartins.vbs" in Startup; log
+  `~/.cache/muanlartins/replay.log`; restart it with `wscript.exe` on that file): without it the VAR doesn't open.
+  The clip it plays is the game alone, from Source Record's replay buffer on the capture's "Gravar jogo"
+  (`brand/twitch/obs.py` turns it on), which only runs once the game has been on screen since OBS opened; OBS's own
+  Replay Buffer (the dock starts it with the stream or the recording; its line says when it's off in Settings →
+  Output → Replay Buffer, ~20 s) is the fallback, with the overlays. Without the dock, F8 does nothing.
 - **Open in "Começando"** and stay until its clock ends (about 4 min): Twitch runs the live's opening ad break a
   minute in, and the "Anúncios" dock warns (and beeps) if the stream starts in another scene. That dock open and
   connected to Twitch (its first sign-in: Conectar, then the code at twitch.tv/activate) runs the hour's break between

@@ -70,6 +70,14 @@
       .chat-pane.empty {
         opacity: 0;
       }
+      /* While the VAR's mini player is up (var.html, top right), its vote takes the chat's place. */
+      .game-chat {
+        transition: opacity 0.5s var(--ease);
+      }
+      .var-mini .game-chat,
+      .var-mini .chat-pane {
+        opacity: 0;
+      }
       /* Over the game the cards need more ground to read on any arena. */
       .game-chat .message {
         background: rgb(0 20 71 / 0.82);
@@ -127,6 +135,10 @@
         }
         new MutationObserver(() => requestAnimationFrame(fit)).observe(box, { childList: true })
         chat(box, { keep: 45, max: 10 })
+        addEventListener("muanlartins-var", ({ detail }) => {
+          const v = varDe(detail)
+          if (v) document.querySelector(".stage").classList.toggle("var-mini", v.fase !== "fechado" && v.layout === "mini")
+        })
       }
     </script>
   </body>
