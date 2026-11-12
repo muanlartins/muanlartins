@@ -858,6 +858,9 @@ if __name__ == "__main__":
     framed = (c["left"] * k, c["top"] * k, (1920 - c["left"] - c["right"]) * k, (1080 - c["top"] - c["bottom"]) * k)
     write("webcam/webcam-enquadrado.svg", webcam(side="centro", frame=framed))
     png("webcam/webcam-enquadrado.svg", "webcam/webcam-enquadrado-3840x2160.png", 3840)
+    # The camera filters paint it over Luan's hair around an agent's (public/stream/filtros.html): what the camera
+    # shows behind him, at the camera's size.
+    png("webcam/webcam-enquadrado.svg", "../public/stream/camera-fundo.png", 1920)
     png("small/mark-small.svg", "youtube/watermark-150.png", 150)
     for name, (rank, lines) in THUMBNAILS.items():
         write(f"youtube/thumbnails/{name}.svg", thumbnail(lines, rank))

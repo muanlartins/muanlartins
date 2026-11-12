@@ -10,8 +10,9 @@
       (browser sources need OBS started with --enable-media-stream to open a camera).
 
       The dock sends "muanlartins-filtro" through obs-browser's emit_event: { filtro: "<id>" } is the filter that
-      should be on ("nenhum" for none; the dock repeats it every few seconds, so a reloaded page catches up) and
-      { acao: "flash" } fires a one-off. One filter at a time. A new filter: its id in MODES here, what it draws,
+      should be on ("nenhum" for none; the dock repeats it every few seconds, so a reloaded page catches up), with
+      its switches in opcoes ({ patrulha: true }: Sova's drone flying behind him), and { acao: "flash" } fires a
+      one-off. One filter at a time. A new filter: its id in MODES here, what it draws,
       and a line in the dock's FILTROS.
 
       On the dock:
@@ -24,7 +25,42 @@
               starting a clap, hold a fire between them that grows with the gap (key 5 shows it in the middle);
               a snap with a turn of the hand (thumb on the middle finger, then a quick twist) puts his flash's
               orb in the hand; moving the hand left or right throws it that way, curving, while a ring closes on
-              it, and it pops into a warm glare of about 2.5 s (key 4, or the dock's Flash).
+              it, and it pops into a warm glare of about 2.5 s (key 4, or the dock's Bola Curva).
+              With the game's own effects (vfx.js, vfx-phoenix.js, textures in privado/valorant/): the orb is
+              Curveball's (dark core, fire shell, its glow, sparks and ribbon, its pop before the glare), and the
+              dock has his other abilities: Labareda (C, the Blaze: fire in the left hand, then a wall racing
+              across the bottom of the box, 6 s), Mãos Quentes (E, Hot Hands: a fireball from the right hand thrown
+              to the bottom of the box, its blast and 4 s of fire there) and Ultimate (X, Run It Back: his shoulders
+              and elbows on fire with the marker below him and the box's edge glowing, 10 s or ?ult=<s>, then the
+              burst he comes back in). Keys C, Q, E, X in a browser.
+        Sova  (key 7): Valorant's Sova the same way (privado/sova.glb, out of git): his slicked-back hair on the
+              head, the fur collar, the cape and the folded bow on the back on the shoulders. His abilities are the
+              game's own (privado/valorant/sova/, out of git: its bow, arrows and Owl Drone in 3D, its effects
+              through vfx.js and vfx-sova.js). Two by gesture, only while he's on: the bow (both hands closed, one
+              fist against the other, opens it between them; pulling them apart draws it, the hand nearer the face on
+              the string and his bow in the other, opening the further the hands part; opening a hand shoots a Recon
+              Bolt from it towards the other hand, to the edge of the camera, where it sticks, its head spins and
+              two sonar pulses go out; whoever they cross is revealed, in Valorant's red outline with the marker over
+              the head) and the Owl Drone (both palms open to the camera, side by side: the drone opens between them,
+              flies up beside his head, tags him with its dart, which reveals him twice, and flies off). From the
+              dock (or keys E, Q, C, X): Flecha de Reconhecimento (E: the bow drawn and shot by itself), Flecha de
+              Choque (Q: the Shock Bolt drawn and shot up, off the top of the box and bursting by his shoulder, the
+              camera shakes), Drone Coruja (C) and Ultimate (X, Hunter's Fury: his bow turned to energy, three
+              shots charged and fired across the box, the camera darkened a little). The dock's switch "Coruja
+              sobrevoando" (or ?patrulha, key P) keeps the drone flying behind him, side to side above his
+              shoulders (he covers it as it passes behind him); the drone ability is then that drone coming round
+              to his side and going back. ?arco=<scale> (30) and
+              ?coruja=<scale> (30) size the bow and the drone.
+              With either agent, Luan's own hair around theirs is painted over with what the camera sees behind
+              him (NVIDIA Broadcast's virtual background, camera-fundo.png, or ?fundo=<url>, and whatever's been
+              seen there since, his chair too), so theirs is the head's outline; off while the background doesn't
+              match, or with ?apagar=0. Sova's forehead covers Luan's down to just above the brows.
+        Octane (key 8) and Fennec (key 9): his face as Rocket League's car, Pixar-style: the car sits on the head
+              seen a little from above, turning with it, his own eyes on its windshield and his mouth on its
+              bumper (cut from the camera, so it blinks and talks). The dock's Demolição blows it up as in a
+              demo and it respawns 2 s later (key D); Flip front-flips it (key F). Models by Jako (CC BY 4.0),
+              public/models/. ?carro=<cm across> (30), ?inclinacao=<degrees from above> (24),
+              ?comprimento=<length kept, 0..1> (0.8), ?posicao=x,y,z (cm on the face) to tune.
       Kept here but off the dock (Luan, 2026-11-10: only Phoenix and the ball for now):
         Pop   (key 1): the body cut out, in blues, with fire coming off its outline, a pop-art burst behind
               that follows the head, flying shapes the hands push away; it comes in with shards.
@@ -32,11 +68,22 @@
               psychedelic. It used to work at any time; now only as its own filter.
       Key 0 turns the filter off.
 
+      Sounds (sfx.js, 2026-11-12): every ability plays the game's own, each moment its own cue, panned to where it
+      happens in the box: Phoenix's equips, throws, the flash's pop and the flashed ringing as the glare blinds the
+      viewers, Hot Hands' blast and fire, the Blaze running across and burning, the ult's cast, burning shoulders and
+      the rise to the comeback, and the fire between his palms crackling as big as it is; Sova's bow (out, charging
+      with a tick at half and full draw, let go or folded), the Recon Bolt's hit, sonar and pings, the Shock Bolt's
+      bounce and burst, the Owl Drone's propellers (quieter behind him), dart and tag, Hunter's Fury charging and
+      firing; the cars' jump and dodge for the flip and the demolition's blast. The cues are made by
+      scripts/filtros_sons.py from the games' files (privado/sons/, out of git; without them it's silent).
+      OBS hears them only with the source's "Control audio via OBS" on. The dock's "Sons dos filtros" switch
+      (opcoes.mudo), key M, ?mudo and ?som=<volume>.
+
       ?debug shows fps, how long each model takes and the hands seen; ?cpu runs the models on the CPU;
-      ?modo=pop|bola|phoenix|lente starts with a filter on; ?texto=A|B the title's two lines in Pop; it frames the camera as OBS's
+      ?modo=pop|bola|phoenix|sova|octane|fennec|lente starts with a filter on; ?texto=A|B the title's two lines in Pop; it frames the camera as OBS's
       "Enquadramento" crop does (NVIDIA Broadcast's auto frame is off), or ?zoom=1.3 and ?foco=x,y (0..1 of the
-      camera's frame, from its top left) for another framing, ?zoom=1 for none; ?phoenix=<url> another
-      copy of his model.
+      camera's frame, from its top left) for another framing, ?zoom=1 for none; ?phoenix=<url> and ?sova=<url>
+      other copies of their models.
     -->
     <script type="importmap">
       {
@@ -137,6 +184,11 @@
       import * as THREE from "three"
       import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
       import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js"
+      import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js"
+      import { createVfx, TINTS } from "./vfx.js"
+      import * as PHX from "./vfx-phoenix.js"
+      import * as SOVA from "./vfx-sova.js"
+      import { createSfx } from "./sfx.js"
       import { FilesetResolver, GestureRecognizer, ImageSegmenter, FaceLandmarker, PoseLandmarker } from "@mediapipe/tasks-vision"
 
       const q = new URLSearchParams(location.search)
@@ -160,6 +212,7 @@
         "RL + chat": [44, 740, 480, 270],
         "Valorant + chat": [44, 44, 480, 270],
         Conversa: [64, 64, 1280, 720],
+        Fim: [64, 64, 1280, 720],
         Terapia: [64, 64, 560, 315],
       }
       let box = q.get("caixa") ? q.get("caixa").split(",").map(Number) : IN_OBS ? null : [0, 0, 1920, 1080]
@@ -336,12 +389,23 @@
         uEnergy: { value: 0 },
         uLens: { value: [0, 1, 2, 3].map(() => new THREE.Vector2()) },
         uLensAmt: { value: 0 },
-        // Phoenix: the face's oval (centre, half width and height, its up direction), where Luan's own hair
-        // around it is painted over in the background's colour.
+        // The agents: the face's oval (centre, half width and height, its up direction), around which Luan's own
+        // hair is painted over with the camera's background (uPlate, evened out to the frame by uPlateFix).
         uErase: { value: 0 },
         uFace: { value: new THREE.Vector4(0.5, 0.6, 0.1, 0.15) },
         uFaceUp: { value: new THREE.Vector2(0, 1) },
-        uBg: { value: new THREE.Color(0x002fa7) },
+        uPlate: { value: null },
+        uPlateFix: { value: new THREE.Vector3() },
+        uPlateOk: { value: 0 },
+        // Phoenix's ultimate: the warm edge on the box while it lasts.
+        uUltVig: { value: 0 },
+        // Where the erasing stops below the face (fades between these, in the face's half heights from its middle):
+        // agents keep the jaw, the cars take the whole head down to the chin.
+        uEraseLow: { value: new THREE.Vector2(-0.55, -0.3) },
+        // What's been seen behind him (memory below) and his face's mask (drawKeep: r the whole face and ears,
+        // g the face as drawn back over the agent).
+        uMem: { value: null },
+        uKeep: { value: null },
         uFire: { value: new THREE.Vector3(0.5, 0.4, 0.1) },
         uFireAmt: { value: 0 },
         // Phoenix's flash: the orb (x, y, radius) and how much of it shows, the curve it flies along (from,
@@ -355,6 +419,14 @@
         uRing: { value: 0 },
         uFlashAt: { value: new THREE.Vector2(0.5, 0.6) },
         uFlashAmt: { value: 0 },
+        // Sova: the red reveal on Luan (the drone's dart, the Recon Bolt's pulses), the marker over the head
+        // and the ultimate (seconds since it started, −1 when it's not on: the camera darkens a little).
+        uReveal: { value: 0 },
+        uMark: { value: new THREE.Vector3(0.5, 0.9, 0) },
+        uUltT: { value: -1 },
+        // The cars' demolition: where (x, y, radius) and seconds since.
+        uBoom: { value: new THREE.Vector3(0.5, 0.5, 0.2) },
+        uBoomT: { value: -1 },
       }
 
       // Layer 0: the camera, or Pop's burst and fire where its shards have come in.
@@ -371,7 +443,12 @@
           uniform float uErase;
           uniform vec4 uFace;
           uniform vec2 uFaceUp;
-          uniform vec3 uBg;
+          uniform sampler2D uPlate;
+          uniform vec3 uPlateFix;
+          uniform float uPlateOk;
+          uniform vec2 uEraseLow;
+          uniform sampler2D uMem;
+          uniform sampler2D uKeep;
           vec3 burst(vec2 uv, float t) {
             vec2 p = (uv - uCenter) * vec2(uAspect, 1.0);
             float r = length(p);
@@ -415,11 +492,17 @@
             if (uErase > 0.0) {
               vec2 d = (vUv - uFace.xy) * vec2(uAspect, 1.0);
               d = vec2(dot(d, vec2(uFaceUp.y, -uFaceUp.x)), dot(d, uFaceUp));
-              float keep = length(d / (uFace.zw * vec2(1.03, 1.0)));
-              float zone = length(d / (uFace.zw * vec2(2.4, 2.0)));
-              if (keep > 1.0 && zone < 1.0 && d.y > -uFace.w * 0.3) {
-                float m = smoothstep(0.06, 0.3, maskAt(vUv, 1.6));
-                col = mix(col, uBg, m * uErase * smoothstep(1.0, 1.04, keep));
+              // As wide as the head is tall, at least: turned, the face is narrow but the hair behind it isn't.
+              float zone = length(d / (vec2(max(uFace.z, uFace.w * 0.9), uFace.w) * vec2(2.6, 2.8)));
+              if (zone < 1.0 && d.y > uFace.w * uEraseLow.x) {
+                // Up to his face's outline (and ears), wherever the mask, widened a little, says he is; soft at
+                // the zone's edges, so no line shows where the erasing stops.
+                float m = smoothstep(0.03, 0.2, maskAt(vUv, 2.0));
+                float k = (1.0 - smoothstep(0.2, 0.8, texture2D(uKeep, vUv).r)) * smoothstep(1.0, 0.9, zone) * smoothstep(uEraseLow.x, uEraseLow.y, d.y / uFace.w);
+                vec2 v = camUv(vUv);
+                vec4 mem = texture2D(uMem, v);
+                vec3 bg = mix(texture2D(uPlate, v).rgb + uPlateFix, mem.rgb, mem.a);
+                col = mix(col, bg, m * uErase * k * max(mem.a, uPlateOk));
               }
             }
             gl_FragColor = vec4(col, 1.0);
@@ -501,6 +584,40 @@
       const baseScene = quad(baseMat)
       const bodyScene = quad(bodyMat)
       const lensScene = quad(lensMat)
+
+      // What's behind Luan, remembered in the video's own uv: each time the mask is new, the camera's pixels where
+      // he clearly isn't (his chair, the background) are kept, so what's painted over his hair is what was really
+      // there; where he's never moved away from, the plate (when it matches).
+      const memRT = [0, 1].map(() => new THREE.WebGLRenderTarget(1280, 720, { depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter }))
+      let memI = 0
+      let maskFresh = false
+      const memMat = new THREE.ShaderMaterial({
+        uniforms: { uCam: uniforms.uCam, uMask: uniforms.uMask, uPrev: { value: memRT[1].texture } },
+        vertexShader: VERT,
+        depthTest: false,
+        depthWrite: false,
+        fragmentShader: /* glsl */ `
+          uniform sampler2D uCam;
+          uniform sampler2D uMask;
+          uniform sampler2D uPrev;
+          varying vec2 vUv;
+          void main() {
+            // The same widened mask the erasing uses, so what it paints is what was learnt.
+            float m = textureLod(uMask, vec2(vUv.x, 1.0 - vUv.y), 2.0).r;
+            vec4 prev = texture2D(uPrev, vUv);
+            vec3 cam = texture2D(uCam, vUv).rgb;
+            gl_FragColor = m < 0.03 ? vec4(prev.a > 0.0 ? mix(prev.rgb, cam, 0.35) : cam, 1.0) : prev;
+          }`,
+      })
+      const memScene = quad(memMat)
+      function remember() {
+        memMat.uniforms.uPrev.value = memRT[memI].texture
+        memI = 1 - memI
+        renderer.setRenderTarget(memRT[memI])
+        renderer.render(memScene, ortho)
+        renderer.setRenderTarget(null)
+        uniforms.uMem.value = memRT[memI].texture
+      }
 
       // Phoenix's fire between the palms: a flame shaped like a drop pointing up, licking upwards, with
       // embers and a glow, added on top (it lights what's behind it).
@@ -624,6 +741,153 @@
           }`,
       })
       const flashScene = quad(flashMat)
+      // Run It Back's edge: the box's border glowing like embers, flickering, while the ultimate lasts.
+      const vigMat = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: VERT,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.CustomBlending,
+        blendSrc: THREE.OneFactor,
+        blendDst: THREE.OneMinusSrcAlphaFactor,
+        fragmentShader: /* glsl */ `
+          ${GLSL_COMMON}
+          uniform float uUltVig;
+          void main() {
+            vec2 e = min(vUv, 1.0 - vUv) * vec2(uAspect, 1.0);
+            float d = min(e.x, e.y);
+            float n = noise(vec2(vUv.x * 9.0 + vUv.y * 3.0, uTime * 1.3)) * 0.5 + noise(vec2(vUv.y * 11.0, uTime * 0.9 + 4.0)) * 0.5;
+            float g = exp(-d * (14.0 - 6.0 * n)) * (0.55 + 0.45 * n);
+            float a = clamp(g * uUltVig * 0.75, 0.0, 1.0);
+            gl_FragColor = vec4(mix(vec3(0.85, 0.2, 0.03), vec3(1.0, 0.62, 0.2), n) * a, a);
+          }`,
+      })
+      const vigScene = quad(vigMat)
+
+      // What Sova's abilities draw flat over the camera's box (the rest is the game's pieces and effects): Valorant's
+      // red reveal on Luan (the body mask's outline) with the marker over the head, and the camera darkening a little
+      // while Hunter's Fury lasts, so its blasts read. Premultiplied: solid things go over, light adds.
+      const sovaMat = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: VERT,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.CustomBlending,
+        blendSrc: THREE.OneFactor,
+        blendDst: THREE.OneMinusSrcAlphaFactor,
+        blendSrcAlpha: THREE.OneFactor,
+        blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+        fragmentShader: /* glsl */ `
+          ${GLSL_COMMON}
+          uniform float uReveal;
+          uniform vec3 uMark;
+          uniform float uUltT;
+          const vec3 RED = vec3(1.0, 0.27, 0.33);
+          void over(inout vec4 o, vec3 c, float a) { o = vec4(c * a, a) + o * (1.0 - a); }
+          void main() {
+            vec2 A = vec2(uAspect, 1.0);
+            vec2 p = vUv * A;
+            vec4 o = vec4(0.0);
+            vec3 glow = vec3(0.0);
+            // Hunter's Fury: the camera darkens while it lasts.
+            if (uUltT >= 0.0) {
+              float dim = smoothstep(0.0, 0.6, uUltT) * (1.0 - smoothstep(4.1, 4.6, uUltT));
+              float vig = length((vUv - 0.5) * vec2(1.0, 0.8));
+              over(o, vec3(0.01, 0.03, 0.1), dim * (0.18 + 0.4 * vig));
+            }
+            // Revealed: Valorant's red outline round the body and a light red over it.
+            float rv = uReveal;
+            if (rv > 0.003) {
+              float body = maskAt(vUv, 0.0);
+              float halo = (1.0 - smoothstep(0.35, 0.6, body)) * smoothstep(0.06, 0.32, maskAt(vUv, 2.4));
+              float rim = smoothstep(0.45, 0.6, body) * (1.0 - smoothstep(0.75, 0.95, maskAt(vUv, 1.4)));
+              over(o, RED, 0.2 * smoothstep(0.45, 0.6, body) * rv);
+              glow += RED * (halo * 0.9 + rim * 0.8) * rv;
+            }
+            // The marker over a revealed head.
+            if (uMark.z > 0.0) {
+              vec2 m = (p - uMark.xy * A) / 0.021;
+              float dd = abs(m.x) + abs(m.y) * 0.75;
+              over(o, vec3(1.0, 0.93, 0.93), smoothstep(1.32, 1.22, dd) * uMark.z);
+              over(o, RED, smoothstep(1.05, 0.95, dd) * uMark.z);
+              glow += RED * exp(-length(m) / 1.6) * 0.35 * uMark.z;
+            }
+            o.rgb += glow;
+            o.a = max(o.a, clamp(max(glow.r, max(glow.g, glow.b)), 0.0, 1.0));
+            if (o.a <= 0.002) discard;
+            gl_FragColor = o;
+          }`,
+      })
+      const sovaScene = quad(sovaMat)
+
+      // The cars' demolition, after the game's: a white flash and a shock ring, a fireball in flat bands that burns
+      // inwards, sparks thrown out and falling, dark smoke puffing out last.
+      const boomMat = new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: VERT,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+        blending: THREE.CustomBlending,
+        blendSrc: THREE.OneFactor,
+        blendDst: THREE.OneMinusSrcAlphaFactor,
+        blendSrcAlpha: THREE.OneFactor,
+        blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+        fragmentShader: /* glsl */ `
+          ${GLSL_COMMON}
+          uniform vec3 uBoom;
+          uniform float uBoomT;
+          void over(inout vec4 o, vec3 c, float a) { o = vec4(c * a, a) + o * (1.0 - a); }
+          void main() {
+            float t = uBoomT;
+            vec2 d = (vUv - uBoom.xy) * vec2(uAspect, 1.0) / uBoom.z;
+            float r = length(d);
+            float ang = atan(d.y, d.x);
+            vec4 o = vec4(0.0);
+            vec3 glow = vec3(0.0);
+            // Smoke, under the fire: puffs pushed out and up, fading.
+            float smokeA = smoothstep(0.15, 0.5, t) * (1.0 - smoothstep(1.1, 1.9, t));
+            if (smokeA > 0.0) {
+              float s = 0.0;
+              for (int i = 0; i < 9; i++) {
+                float fi = float(i);
+                float th = fi / 9.0 * 6.2831853 + hash(fi) * 0.5;
+                vec2 c = vec2(cos(th), sin(th)) * (0.6 + 0.35 * t) + vec2(0.0, 0.3 * t);
+                s = max(s, smoothstep(0.34 + 0.12 * t, 0.24 + 0.1 * t, length(d - c)));
+              }
+              float shade = 0.12 + 0.1 * step(0.55, fbm(d * 3.0 + vec2(0.0, -t)));
+              over(o, vec3(shade, shade * 0.95, shade * 1.05), s * smokeA * 0.9);
+            }
+            // The fireball.
+            float grow = 1.0 - exp(-t * 8.0);
+            float n = fbm(vec2(ang * 1.6 + 2.0, r * 2.5 - t * 2.5));
+            float edge = 1.15 * grow * (0.8 + 0.4 * n);
+            float burn = smoothstep(1.6, 0.9, t) * step(r, edge);
+            float k = r / max(edge, 1e-3) + t * 0.65 + (n - 0.5) * 0.25;
+            vec3 col = k < 0.35 ? vec3(1.0, 0.98, 0.86) : k < 0.6 ? vec3(1.0, 0.82, 0.25) : k < 0.85 ? vec3(1.0, 0.47, 0.08)
+              : k < 1.1 ? vec3(0.85, 0.15, 0.05) : vec3(0.0);
+            over(o, col, burn * step(k, 1.1));
+            // The flash and the ring.
+            glow += vec3(1.0, 0.95, 0.85) * exp(-r * 1.6) * exp(-t * 9.0) * 2.5;
+            float R = 2.4 * (1.0 - exp(-t * 6.0));
+            glow += vec3(1.0, 0.85, 0.6) * smoothstep(0.06, 0.0, abs(r - R)) * (1.0 - smoothstep(0.15, 0.5, t));
+            // Sparks.
+            for (int i = 0; i < 16; i++) {
+              float fi = float(i);
+              float th = hash(fi + 4.0) * 6.2831853;
+              float sp = 1.4 + hash(fi + 9.0) * 1.6;
+              vec2 c = vec2(cos(th), sin(th) + 0.5) * sp * t - vec2(0.0, 1.6 * t * t);
+              glow += vec3(1.0, 0.75, 0.3) * smoothstep(0.07, 0.0, length(d - c)) * (1.0 - smoothstep(0.6, 1.1, t));
+            }
+            o.rgb += glow;
+            o.a = max(o.a, clamp(max(glow.r, max(glow.g, glow.b)), 0.0, 1.0));
+            if (o.a <= 0.002) discard;
+            gl_FragColor = o;
+          }`,
+      })
+      const boomScene = quad(boomMat)
 
       // ---------- Pop's flying shapes ----------
       const shapeCam = new THREE.PerspectiveCamera(50, W / H, 0.1, 100)
@@ -734,30 +998,38 @@
       const headScale = new THREE.Vector3()
       let headSeen = false
 
-      // ---------- Phoenix ----------
-      // Valorant's Phoenix from his own model (public/stream/privado/phoenix.glb, kept out of git and the site:
-      // it was extracted from the game). Two pieces of it, both made to be seen from the front, each triangle
-      // sorted by the bones that move it: his hair with the faded scalp under it, on Luan's head (eyes on eyes:
-      // MediaPipe's canonical face has them 6.3 cm apart, 2.6 cm up), and his jacket and shirt with the upper
-      // arms, on Luan's shoulders in 3D. Luan's face and hands are drawn back over the jacket.
-      const PHOENIX_URL = q.get("phoenix") || "privado/phoenix.glb"
-      // Painting Luan's hair around Phoenix's over in the background's colour: off unless ?apagar (it showed as
-      // a blue wedge around the head).
-      const ERASE = q.has("apagar")
-      const hair = new THREE.Group()
-      hair.visible = false
-      head.add(hair)
-      // An invisible head inside, so the back of the hair hides behind it when Luan turns.
-      const occluder = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), new THREE.MeshBasicMaterial({ colorWrite: false }))
-      occluder.scale.set(7.4, 9.2, 9.6)
-      occluder.position.set(0, 2.2, -3.4)
-      occluder.renderOrder = -1
-      hair.add(occluder)
-      const torso = new THREE.Group()
-      torso.visible = false
-      torso.matrixAutoUpdate = false
-      ballScene.add(torso)
-      const phoenixModel = { width: 0.415 }
+      // ---------- Valorant's agents: Phoenix, Sova ----------
+      // Each from his own model (public/stream/privado/, kept out of git and the site: they were extracted from the
+      // game; both are ILilMitch's uploads on Sketchfab, made under Riot's "Legal Jibber Jabber"). Two pieces of
+      // each, both made to be seen from the front, each triangle sorted by the bones that move it: his hair with
+      // the scalp under it, on Luan's head (eyes on eyes: MediaPipe's canonical face has them 6.3 cm apart, 2.6 cm
+      // up), and his clothes with the upper arms, on Luan's shoulders in 3D. Luan's face and hands are drawn back
+      // over the clothes. Sova's torso also takes the folded bow on his back (its own materials, `extra`), and his
+      // long locks hang beside the face, so his face and hands are drawn back over his hair too (`behind`).
+      const AGENTS = {
+        phoenix: { url: q.get("phoenix") || "privado/phoenix.glb" },
+        // Sova's forehead comes down to the brows (`forehead`: how far above them his skin starts, in metres) and
+        // Luan's face stops a little above them (`trim`: of the brows-to-chin height), since Luan's curls fall
+        // over his forehead and would show under Sova's hair.
+        sova: { url: q.get("sova") || "privado/sova.glb", extra: /BowProp|Bow_Emissive/, behind: true, forehead: 0.008, trim: 0.13 },
+      }
+      // Luan's own hair around the agent's, painted over with what the camera shows behind him: NVIDIA Broadcast's
+      // virtual background (brand/webcam/webcam-enquadrado, at 1920×1080: camera-fundo.png, from brand/build.py;
+      // ?fundo=<url> another).
+      // Checked against the frame where the mask says he isn't, and evened out to it; it stays off while they
+      // don't match (another background, or none), since a flat colour showed as a blue wedge. ?apagar=0 turns it off.
+      const ERASE = q.get("apagar") !== "0"
+      const plate = { ok: false, img: null, canvas: document.createElement("canvas") }
+      new THREE.TextureLoader().load(q.get("fundo") || "camera-fundo.png", (t) => {
+        t.colorSpace = THREE.NoColorSpace
+        t.minFilter = t.magFilter = THREE.LinearFilter
+        t.generateMipmaps = false
+        uniforms.uPlate.value = t
+        plate.img = t.image
+      })
+      // An invisible head inside each hair piece, so the back of the hair hides behind it when Luan turns.
+      const occluderGeo = new THREE.SphereGeometry(1, 32, 24)
+      const occluderMat = new THREE.MeshBasicMaterial({ colorWrite: false })
       const EYES_CM = 6.33
       const EYES_AT = new THREE.Vector3(0, 2.63, 2.4)
       // Fine-tuning: the head piece's size and how far down it sits (cm); the torso's size and how far down
@@ -770,9 +1042,9 @@
       const groupOf = (name) =>
         /Head|Jaw|Mouth|Brow|Eye|Lid|Neck/.test(name) ? "head"
         : /Hand|Thumb|Index|Middle|Pinky|Ring|WeaponPoint/.test(name) ? "hand"
-        : /Elbow/.test(name) ? "forearm"
+        : /Elbow|Gauntlet/.test(name) ? "forearm"
         : /Shoulder/.test(name) ? "arm"
-        : /Spine|Collar|Clavicle|Jacket/.test(name) ? "torso"
+        : /Spine|Collar|Clavicle|Jacket|Cloak/.test(name) ? "torso"
         : "legs"
       const ARMS = q.get("bracos") === "0" ? [] : q.get("bracos") === "2" ? ["arm", "forearm"] : ["arm"]
       // A static copy of a skinned mesh in its rest pose, in the model's world space (each vertex through its bones,
@@ -830,83 +1102,103 @@
         if (sm.material.map) sm.material.map.colorSpace = THREE.NoColorSpace
         return new THREE.Mesh(g, sm.material)
       }
-      new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(
-        PHOENIX_URL,
-        (gltf) => {
-          const root = gltf.scene
-          root.updateMatrixWorld(true)
-          const bone = {}
-          const meshes = []
-          root.traverse((o) => {
-            if (o.isBone) bone[o.name] = o.getWorldPosition(new THREE.Vector3())
-            if (o.isSkinnedMesh) meshes.push(o)
-          })
-          const body = meshes.find((m) => /Body/.test(m.material.name))
-          const hairMesh = meshes.find((m) => /Hair/.test(m.material.name))
-          const eyes = bone.L_Eyeball.clone().add(bone.R_Eyeball).multiplyScalar(0.5)
-          const browY = (bone.L_Brows.y + bone.R_Brows.y) / 2
-          const front = eyes.z + 0.03
-          // The model faces −z with its left at −x; turned half a turn it faces the camera like Luan.
-          const turn = (v) => new THREE.Vector3(-v.x, v.y, -v.z)
+      for (const [id, a] of Object.entries(AGENTS)) {
+        Object.assign(a, {
+          id,
+          amt: 0,
+          ready: false,
+          width: 0.415,
+          neck: 0.1,
+          squash: null,
+          hair: new THREE.Group(),
+          torso: new THREE.Group(),
+          pos: new THREE.Vector3(),
+          quat: new THREE.Quaternion(),
+          scale: 1,
+          seen: false,
+        })
+        a.hair.visible = false
+        head.add(a.hair)
+        const occluder = new THREE.Mesh(occluderGeo, occluderMat)
+        occluder.scale.set(7.4, 9.2, 9.6)
+        occluder.position.set(0, 2.2, -3.4)
+        occluder.renderOrder = -1
+        a.hair.add(occluder)
+        a.torso.visible = false
+        a.torso.matrixAutoUpdate = false
+        ballScene.add(a.torso)
+        new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(a.url, (gltf) => buildAgent(a, gltf.scene), undefined, (e) => fail(id, e))
+      }
+      const agentList = Object.values(AGENTS)
+      function buildAgent(a, root) {
+        root.updateMatrixWorld(true)
+        const bone = {}
+        const meshes = []
+        root.traverse((o) => {
+          if (o.isBone) bone[o.name] = o.getWorldPosition(new THREE.Vector3())
+          if (o.isSkinnedMesh) meshes.push(o)
+        })
+        const body = meshes.find((m) => /Body/.test(m.material.name))
+        const hairMesh = meshes.find((m) => /Hair/.test(m.material.name))
+        const extras = a.extra ? meshes.filter((m) => a.extra.test(m.material.name)) : []
+        const eyes = bone.L_Eyeball.clone().add(bone.R_Eyeball).multiplyScalar(0.5)
+        const browY = (bone.L_Brows.y + bone.R_Brows.y) / 2
+        const front = eyes.z + 0.03
+        // The model faces −z with its left at −x; turned half a turn it faces the camera like Luan.
+        const turn = (v) => new THREE.Vector3(-v.x, v.y, -v.z)
 
-          // Head piece, in the canonical face's centimetres.
-          const s = EYES_CM / bone.L_Eyeball.distanceTo(bone.R_Eyeball)
-          const headPiece = new THREE.Group()
-          headPiece.rotation.y = Math.PI
-          headPiece.scale.setScalar(s * HEAD_K)
-          headPiece.position.copy(EYES_AT).sub(turn(eyes).multiplyScalar(s * HEAD_K))
-          headPiece.position.y -= HEAD_DOWN
-          headPiece.add(piece(hairMesh, () => true))
-          // The scalp: above the brows at the forehead; on the sides the fade comes down to the top of the ears
-          // (they stick out of the skull only ~1 cm, so they're cut by where they are: 11 cm deep from 2 cm
-          // behind the eyes), down to the brows at the temples before them, lower behind them.
-          const scalp = (p) => {
-            const side = Math.abs(p.x - eyes.x) > 0.068
-            const depth = p.z - eyes.z
-            if (side && depth > 0.021 && depth < 0.131) return p.y > browY + 0.015
-            if (side && depth <= 0.021) return p.y > browY + 0.005
-            return p.y > (p.z < front ? browY + 0.035 : browY - 0.03)
-          }
-          headPiece.add(piece(body, (i, p, g) => g === "head" && scalp(p)))
-          hair.add(headPiece)
+        // Head piece, in the canonical face's centimetres.
+        const s = EYES_CM / bone.L_Eyeball.distanceTo(bone.R_Eyeball)
+        const headPiece = new THREE.Group()
+        headPiece.rotation.y = Math.PI
+        headPiece.scale.setScalar(s * HEAD_K)
+        headPiece.position.copy(EYES_AT).sub(turn(eyes).multiplyScalar(s * HEAD_K))
+        headPiece.position.y -= HEAD_DOWN
+        headPiece.add(piece(hairMesh, () => true))
+        // The scalp: above the brows at the forehead; on the sides the fade comes down to the top of the ears
+        // (they stick out of the skull only ~1 cm, so they're cut by where they are: 11 cm deep from 2 cm
+        // behind the eyes), down to the brows at the temples before them, lower behind them.
+        const scalp = (p) => {
+          const side = Math.abs(p.x - eyes.x) > 0.068
+          const depth = p.z - eyes.z
+          if (side && depth > 0.021 && depth < 0.131) return p.y > browY + 0.015
+          if (side && depth <= 0.021) return p.y > browY + 0.005
+          return p.y > (p.z < front ? browY + (a.forehead ?? 0.035) : browY - 0.03)
+        }
+        headPiece.add(piece(body, (i, p, g) => g === "head" && scalp(p)))
+        a.hair.add(headPiece)
 
-          // Torso piece, in metres with the shoulders' midpoint at the origin; placed each frame.
-          const mid = bone.L_Shoulder.clone().add(bone.R_Shoulder).multiplyScalar(0.5)
-          phoenixModel.width = bone.L_Shoulder.distanceTo(bone.R_Shoulder)
-          phoenixModel.neck = bone.Neck.y - mid.y
-          const torsoPiece = new THREE.Group()
-          torsoPiece.rotation.y = Math.PI
-          torsoPiece.position.copy(turn(mid).multiplyScalar(-1))
-          torsoPiece.position.y -= TORSO_DOWN
-          const squash = new THREE.Group()
-          squash.scale.y = TORSO_Y
-          squash.add(torsoPiece)
-          phoenixModel.squash = squash
-          torsoPiece.add(piece(body, (i, p, g) => g === "torso" || ARMS.includes(g)))
-          torso.add(squash)
-          phoenixModel.ready = true
-        },
-        undefined,
-        (e) => fail("phoenix", e),
-      )
+        // Torso piece, in metres with the shoulders' midpoint at the origin; placed each frame.
+        const mid = bone.L_Shoulder.clone().add(bone.R_Shoulder).multiplyScalar(0.5)
+        a.width = bone.L_Shoulder.distanceTo(bone.R_Shoulder)
+        a.neck = bone.Neck.y - mid.y
+        const torsoPiece = new THREE.Group()
+        torsoPiece.rotation.y = Math.PI
+        torsoPiece.position.copy(turn(mid).multiplyScalar(-1))
+        torsoPiece.position.y -= TORSO_DOWN
+        const squash = new THREE.Group()
+        squash.scale.y = TORSO_Y
+        squash.add(torsoPiece)
+        a.squash = squash
+        torsoPiece.add(piece(body, (i, p, g) => g === "torso" || ARMS.includes(g)))
+        for (const m of extras) torsoPiece.add(piece(m, () => true))
+        a.torso.add(squash)
+        a.ready = true
+      }
 
       // Luan's shoulders in the 3D camera's space (cm): the body tracker gives them on screen and their depth
       // relative to each other; the face's transform gives how far he is.
-      const pose = { seen: false, left: new THREE.Vector2(), right: new THREE.Vector2(), dz: 0 }
-      const torsoPos = new THREE.Vector3()
-      const torsoQuat = new THREE.Quaternion()
-      let torsoScale = 1
-      let torsoSeen = false
+      const pose = { seen: false, left: new THREE.Vector2(), right: new THREE.Vector2(), dz: 0, elbows: [null, null] }
       function onRay(u, v, z) {
         const p = new THREE.Vector3(u * 2 - 1, v * 2 - 1, 0.5).unproject(headCam)
         return p.multiplyScalar(z / p.z)
       }
-      function placeTorso() {
+      function placeTorso(a) {
         const z = headPos.z
         const L = onRay(pose.left.x, pose.left.y, z - pose.dz / 2)
         const R = onRay(pose.right.x, pose.right.y, z + pose.dz / 2)
         const x = L.clone().sub(R)
-        const scale = x.length() / phoenixModel.width
+        const scale = x.length() / a.width
         x.normalize()
         const zAxis = new THREE.Vector3().crossVectors(x, new THREE.Vector3(0, 1, 0)).normalize()
         const y = new THREE.Vector3().crossVectors(zAxis, x)
@@ -914,24 +1206,217 @@
         const at = L.clone().add(R).multiplyScalar(0.5)
         // The neck: how high Luan's chin is over his shoulders sets how tall the torso is, so its collar opens
         // under his chin whether he sits up or looks down at the screen.
-        if (faceLm && phoenixModel.squash) {
+        if (faceLm && a.squash) {
           const [cu, cv] = toScreen(faceLm[152].x, faceLm[152].y)
           const chin = onRay(cu, cv, z)
           const neck = chin.sub(at).dot(y)
-          const want = THREE.MathUtils.clamp((neck * NECK) / (phoenixModel.neck * scale * TORSO_K), 0.3, 1.2)
-          phoenixModel.squash.scale.y += (want - phoenixModel.squash.scale.y) * 0.4
+          const want = THREE.MathUtils.clamp((neck * NECK) / (a.neck * scale * TORSO_K), 0.3, 1.2)
+          a.squash.scale.y += (want - a.squash.scale.y) * 0.4
         }
-        if (torsoSeen) {
-          torsoPos.lerp(at, 0.45)
-          torsoQuat.slerp(qt, 0.45)
-          torsoScale += (scale - torsoScale) * 0.45
+        if (a.seen) {
+          a.pos.lerp(at, 0.45)
+          a.quat.slerp(qt, 0.45)
+          a.scale += (scale - a.scale) * 0.45
         } else {
-          torsoPos.copy(at)
-          torsoQuat.copy(qt)
-          torsoScale = scale
+          a.pos.copy(at)
+          a.quat.copy(qt)
+          a.scale = scale
         }
-        torsoSeen = true
-        torso.matrix.compose(torsoPos, torsoQuat, new THREE.Vector3(torsoScale, torsoScale, torsoScale))
+        a.seen = true
+      }
+
+      // ---------- Phoenix's abilities, with the game's own effects (vfx.js, vfx-phoenix.js) ----------
+      // From the dock (or keys C, Q, E, X): Blaze, a wall of fire racing across the bottom of the box from his left
+      // hand; Curveball, his flash (also by its snap gesture); Hot Hands, a fireball from his right hand that
+      // leaves fire burning at the bottom; Run It Back, his shoulders and elbows on fire for 10 s with the marker
+      // below him, then the burst he comes back in. Without the game's textures (privado/), Curveball keeps its
+      // drawn orb and the rest do nothing.
+      const vfx = createVfx(renderer, headCam)
+      // Their sounds (sfx.js): each moment of an ability plays the game's own (privado/sons/, made by
+      // scripts/filtros_sons.py), panned to where it happens in the box. ?som=<volume> (1), ?mudo to start silent;
+      // the dock's "Sons" switch turns them off.
+      const sfx = createSfx({ volume: Number(q.get("som") ?? 1) })
+      if (q.has("mudo")) sfx.on = false
+      const panAt = (u) => (u - 0.5) * 1.2
+      const pan3 = (p) => panAt(onBox(p).x)
+      const phx = { orb: vfx.orb(), orbAt: new THREE.Vector3(), held: null, trail: null, e: null, c: null, x: null }
+      // A point on the camera box (0..1, y up) at the depth of his face, dz centimetres closer.
+      const at3 = (u, v, dz = 0) => onRay(u, v, (headSeen ? headPos.z : -65) + dz)
+      // The hand to cast from: the one seen furthest to that side of the box (1 right, -1 left), else a spot
+      // low on that side.
+      function handAt(side) {
+        const seen = lastHands.map((h) => toScreen((h[0].x + h[9].x) / 2, (h[0].y + h[9].y) / 2))
+        if (seen.length) return seen.sort((a, b) => side * (b[0] - a[0]))[0]
+        return [0.5 + side * 0.28, 0.3]
+      }
+      function phxReset() {
+        vfx.clear()
+        phx.orb.visible = false
+        Object.assign(phx, { held: null, trail: null, e: null, c: null, x: null })
+        uniforms.uUltVig.value = 0
+      }
+      // Curveball, on the orb the flash's path moves (updateBang): held, it glows and throws sparks; in flight it
+      // leaves its ribbon; where it lands it pops before the glare.
+      function phxCurveball(t) {
+        if (!vfx.ok) return
+        const { HOLD, FLY } = BANG
+        const o = uniforms.uOrb.value
+        const on = uniforms.uOrbAmt.value > 0 && t < HOLD + FLY
+        phx.orb.visible = on
+        if (on) {
+          phx.orbAt.copy(at3(o.x, o.y, 6))
+          phx.orb.position.copy(phx.orbAt)
+          const d = 9 * (o.z / 0.035)
+          phx.orb.scale.set(d, d, 1)
+          if (!phx.held) phx.held = vfx.spawn(PHX.Q.held, (v) => v.copy(phx.orbAt), { scale: 0.8 })
+          if (t >= HOLD && !phx.trail) phx.trail = vfx.spawn(PHX.Q.trail, (v) => v.copy(phx.orbAt), { scale: 0.8 })
+        } else if (phx.held) {
+          phx.held.stop()
+          phx.trail?.stop()
+          phx.held = phx.trail = null
+          if (t >= HOLD + FLY) {
+            const p = phx.orbAt.clone()
+            vfx.spawn(PHX.Q.explode, (v) => v.copy(p), { scale: 0.12, dur: 0.05 })
+          }
+        }
+      }
+      // Hot Hands: in the right hand while it's equipped, thrown up and down to the bottom of the box on that
+      // side, the blast, then about 4 s of fire there.
+      const HH = { EQUIP: 0.7, FLY: 0.55, BURN: 4 }
+      function startHotHands(now) {
+        if (phx.e || !vfx.ok) return
+        const [u, v] = handAt(1)
+        const side = u > 0.5 ? 1 : -1
+        phx.e = { t0: now, from: [u, v], to: [0.5 + side * 0.2, 0.05], pos: new THREE.Vector3(), held: null, trail: null, stage: 0, burn: null }
+        sfx.play("phoenix-molotov-equip", { pan: panAt(u) })
+      }
+      function updateHotHands(now) {
+        const e = phx.e
+        const t = (now - e.t0) / 1000
+        // Its throw's sound by the clock, so a slow frame can't skip it.
+        if (!e.thrown && t >= HH.EQUIP) {
+          e.thrown = true
+          sfx.play("phoenix-molotov-throw", { pan: panAt(e.from[0]) })
+        }
+        if (t < HH.EQUIP) {
+          if (lastHands.length) e.from = handAt(e.to[0] > 0.5 ? 1 : -1)
+          e.pos.copy(at3(e.from[0], e.from[1], 8))
+          e.held ||= vfx.spawn(PHX.E.held, (v) => v.copy(e.pos), { scale: 0.75 })
+        } else if (t < HH.EQUIP + HH.FLY) {
+          const k = (t - HH.EQUIP) / HH.FLY
+          const u = THREE.MathUtils.lerp(e.from[0], e.to[0], k)
+          const v = THREE.MathUtils.lerp(e.from[1], e.to[1], k * k) + Math.sin(Math.PI * k) * 0.18
+          e.pos.copy(at3(u, v, 8 - 2 * k))
+          e.trail ||= vfx.spawn(PHX.E.trail, (v) => v.copy(e.pos), { scale: 0.7 })
+        } else if (e.stage === 0) {
+          e.held?.stop()
+          e.trail?.stop()
+          const p = at3(e.to[0], e.to[1], 6)
+          vfx.spawn(PHX.E.explode, (v) => v.copy(p), { scale: 0.08, dur: 0.1 })
+          const g = at3(e.to[0], 0.0, 10)
+          vfx.spawn(PHX.E.ground, (v) => v.copy(g), { scale: 0.13, dur: HH.BURN })
+          sfx.play("phoenix-molotov-explode", { pan: panAt(e.to[0]) })
+          e.burn = sfx.play("phoenix-molotov-burn", { loop: true, pan: panAt(e.to[0]), gain: 0.9 })
+          e.stage = 1
+        } else if (e.stage === 1 && t > HH.EQUIP + HH.FLY + HH.BURN) {
+          // The fire dies down.
+          e.burn.stop(0.6)
+          sfx.play("phoenix-molotov-end", { pan: panAt(e.to[0]) })
+          e.stage = 2
+        } else if (t > HH.EQUIP + HH.FLY + HH.BURN + 2) phx.e = null
+      }
+      // Blaze: the flame in the left hand while it's equipped, then the wall's head runs across the bottom of the
+      // box from that side, the wall rising behind it, burning 6 s.
+      const BZ = { EQUIP: 0.8, RUN: 0.75, BURN: 6 }
+      function startBlaze(now) {
+        if (phx.c || !vfx.ok) return
+        const [u, v] = handAt(-1)
+        const side = u < 0.5 ? -1 : 1
+        phx.c = { t0: now, hand: [u, v], side, handPos: new THREE.Vector3(), pos: new THREE.Vector3(), held: null, head: null, wall: null, k: 0, run: null, burn: null, ended: false }
+        sfx.play("phoenix-blaze-equip", { pan: panAt(u) })
+      }
+      function updateBlaze(now) {
+        const c = phx.c
+        const t = (now - c.t0) / 1000
+        const from = at3(c.side < 0 ? -0.05 : 1.05, 0.02, 14)
+        const to = at3(c.side < 0 ? 1.05 : -0.05, 0.02, 14)
+        if (t < BZ.EQUIP) {
+          if (lastHands.length) c.hand = handAt(c.side)
+          c.handPos.copy(at3(c.hand[0], c.hand[1], 8))
+          c.held ||= vfx.spawn(PHX.C.held, (v) => v.copy(c.handPos), { scale: 0.8 })
+          return
+        }
+        c.held?.stop()
+        c.k = Math.min(1, (t - BZ.EQUIP) / BZ.RUN)
+        c.pos.lerpVectors(from, to, c.k)
+        if (!c.wall) {
+          c.head = vfx.spawn(PHX.C.head, (v) => v.copy(c.pos), { scale: 0.11, dur: BZ.RUN })
+          // The wall's particles spread over what the head has crossed so far.
+          c.wall = vfx.spawn(PHX.C.wall, (v) => v.copy(from), { scale: 0.11, dur: BZ.RUN + BZ.BURN, segment: (r) => to.clone().sub(from).multiplyScalar(r * c.k) })
+          // The wall's sound runs across with its head, then it burns.
+          c.run = sfx.play("phoenix-blaze-run", { pan: c.side * 0.6 })
+          c.burn = sfx.play("phoenix-blaze-burn", { loop: true, gain: 0 })
+        }
+        c.run?.set({ pan: c.side * 0.6 * (1 - 2 * c.k) })
+        c.burn?.set({ gain: Math.min(1, c.k * 1.5) * 0.9 })
+        if (!c.ended && t > BZ.EQUIP + BZ.RUN + BZ.BURN) {
+          c.ended = true
+          c.burn?.stop(0.6)
+          sfx.play("phoenix-blaze-end")
+        }
+        if (t > BZ.EQUIP + BZ.RUN + BZ.BURN + 2.5) phx.c = null
+      }
+      // Run It Back: a burst in his hands, the marker below him, his shoulders and elbows burning for 10 s
+      // (with a warm edge on the box), then the burst he comes back in.
+      const RB = { CAST: 0.8, LAST: Number(q.get("ult") || 10), RISE: 8.95 }
+      function startRunItBack(now) {
+        if (phx.x || !vfx.ok) return
+        const hands = [handAt(-1), handAt(1)]
+        const mu = pose.seen ? (pose.left.x + pose.right.x) / 2 : 0.5
+        const marker = at3(mu, 0.02, 4)
+        phx.x = { t0: now, limbs: [], back: false, fire: null, rise: null }
+        sfx.play("phoenix-ult-cast", { pan: panAt(mu) * 0.5 })
+        for (const h of hands) {
+          const p = at3(h[0], h[1], 8)
+          vfx.spawn(PHX.X.cast, (v) => v.copy(p), { scale: 0.8, dur: 1.2 })
+        }
+        vfx.spawn(PHX.X.marker, (v) => v.copy(marker), { scale: 0.16, dur: RB.CAST + RB.LAST })
+      }
+      function updateRunItBack(now) {
+        const x = phx.x
+        const t = (now - x.t0) / 1000
+        const k = THREE.MathUtils.clamp(Math.min((t - 0.3) / 0.6, (RB.CAST + RB.LAST - t) / 0.5), 0, 1)
+        uniforms.uUltVig.value = k
+        if (t > 0.4 && !x.limbs.length) {
+          // Shoulders, then elbows (where they're seen), each with its own flames, following him.
+          const spot = (i) => (v) => {
+            const p = i < 2 ? (i ? pose.right : pose.left) : pose.elbows[i - 2]
+            if (!p || !pose.seen) return v.set(0, -1e4, 0)
+            return v.copy(at3(p.x, p.y + (i < 2 ? 0.02 : 0), i < 2 ? (i ? pose.dz / 2 : -pose.dz / 2) : 0))
+          }
+          for (let i = 0; i < 4; i++) x.limbs.push(vfx.spawn(PHX.X.limb, spot(i), { scale: 0.4, dur: RB.LAST + RB.CAST - 0.4 }))
+          x.fire = sfx.play("phoenix-fire", { loop: true, gain: 0.55 })
+        }
+        // The game's rise towards the comeback, started so that it ends as he comes back (partway in, with a short
+        // ?ult=).
+        const riseAt = RB.CAST + RB.LAST - RB.RISE
+        if (!x.rise && t >= Math.max(RB.CAST, riseAt)) x.rise = sfx.play("phoenix-ult-rise", { offset: t - riseAt, gain: 0.85 })
+        if (t > RB.CAST + RB.LAST && !x.back) {
+          x.back = true
+          x.fire?.stop(0.5)
+          x.rise?.stop(0.2)
+          sfx.play("phoenix-ult-return")
+          const c = pose.seen ? new THREE.Vector2().addVectors(pose.left, pose.right).multiplyScalar(0.5) : new THREE.Vector2(0.5, 0.3)
+          const p = at3(c.x, c.y + 0.08, 10)
+          vfx.spawn(PHX.X.back, (v) => v.copy(p), { scale: 0.2, dur: 0.8 })
+        }
+        if (t > RB.CAST + RB.LAST + 3) phx.x = null
+      }
+      function updatePhoenix(now, dt) {
+        if (phx.e) updateHotHands(now)
+        if (phx.c) updateBlaze(now)
+        if (phx.x) updateRunItBack(now)
+        vfx.update(dt)
       }
 
       // Luan's face and hands, drawn back over the jacket: a small mask of the face's outline and each hand's
@@ -942,6 +1427,7 @@
       keepCanvas.height = 540
       const keepCtx = keepCanvas.getContext("2d")
       const keepTex = new THREE.CanvasTexture(keepCanvas)
+      uniforms.uKeep.value = keepTex
       let lastHands = []
       function hull(points) {
         const p = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1])
@@ -957,16 +1443,19 @@
         }
         return lower.slice(0, -1).concat(upper.slice(0, -1))
       }
-      function drawKeep() {
+      // trim: where the face stops above the brows, as a part of the brows-to-chin height (none: the whole oval).
+      // face: false for the cars, which cover it (only the hands are kept).
+      function drawKeep(trim, face = true) {
         const c = keepCtx
         c.clearRect(0, 0, 960, 540)
         c.fillStyle = c.strokeStyle = "#fff"
-        c.filter = "blur(4px)"
         c.lineJoin = "round"
         const px = (lm) => {
           const [u, v] = toScreen(lm.x, lm.y)
           return [u * 960, (1 - v) * 540]
         }
+        // Softer the bigger the face is on screen.
+        c.filter = faceLm ? `blur(${Math.max(4, Math.hypot(...[0, 1].map((k) => px(faceLm[234])[k] - px(faceLm[454])[k])) * 0.025).toFixed(1)}px)` : "blur(4px)"
         const shape = (pts, pad) => {
           c.beginPath()
           pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y)))
@@ -975,8 +1464,35 @@
           c.lineWidth = pad
           c.stroke()
         }
-        if (faceLm) {
-          shape(FACE_OVAL.map((i) => px(faceLm[i])), 6)
+        if (faceLm && face) {
+          let oval = FACE_OVAL.map((i) => px(faceLm[i]))
+          // In red only, under the rest: the whole oval and the ears beside it, which the hair around is erased
+          // up to (the ears stick out from where the oval meets the head, between the brows and the nose's base).
+          c.fillStyle = c.strokeStyle = "#f00"
+          shape(oval, 6)
+          const [l, r] = [234, 454].map((i) => px(faceLm[i]))
+          const fw = Math.hypot(r[0] - l[0], r[1] - l[1])
+          const roll = Math.atan2(r[1] - l[1], r[0] - l[0])
+          for (const [p, side] of [[l, -1], [r, 1]]) {
+            c.beginPath()
+            c.ellipse(p[0] + Math.cos(roll) * side * fw * 0.05, p[1] + Math.sin(roll) * side * fw * 0.05, fw * 0.1, fw * 0.2, roll, 0, Math.PI * 2)
+            c.fill()
+          }
+          // The face in red and green (not blue: blue is the hands alone, drawn back over Sova's bow).
+          c.fillStyle = c.strokeStyle = "#ff0"
+          if (trim) {
+            // Points above the line `trim` over the brows come down onto it, along the face's up.
+            const chinP = px(faceLm[152])
+            const topP = px(faceLm[10])
+            const brow = [105, 334].map((i) => px(faceLm[i]))
+            const len = Math.hypot(topP[0] - chinP[0], topP[1] - chinP[1])
+            const up = [(topP[0] - chinP[0]) / len, (topP[1] - chinP[1]) / len]
+            const h = (p) => (p[0] - chinP[0]) * up[0] + (p[1] - chinP[1]) * up[1]
+            const hb = (h(brow[0]) + h(brow[1])) / 2
+            const limit = hb * (1 + trim)
+            oval = oval.map((p) => (h(p) > limit ? [p[0] - up[0] * (h(p) - limit), p[1] - up[1] * (h(p) - limit)] : p))
+          }
+          shape(oval, 6)
           const [jl, jr, chin, top] = [172, 397, 152, 10].map((i) => px(faceLm[i]))
           // Tapering to a V like a shirt's neckline, so it doesn't end in a straight cut.
           const down = (chin[1] - top[1]) * 0.3
@@ -984,6 +1500,7 @@
           const cx = (jl[0] + jr[0]) / 2
           shape([jl, jr, [jr[0] - inset, chin[1] + down * 0.7], [cx, chin[1] + down * 1.25], [jl[0] + inset, chin[1] + down * 0.7]], 6)
         }
+        c.fillStyle = c.strokeStyle = "#fff"
         for (const h of lastHands) {
           const pts = h.map(px)
           const palm = Math.hypot(pts[0][0] - pts[9][0], pts[0][1] - pts[9][1])
@@ -1001,12 +1518,1070 @@
           ${GLSL_COMMON}
           uniform sampler2D uKeep;
           void main() {
-            float k = smoothstep(0.2, 0.8, texture2D(uKeep, vUv).r);
+            float k = smoothstep(0.2, 0.8, texture2D(uKeep, vUv).g);
             if (k <= 0.0) discard;
             gl_FragColor = vec4(texture2D(uCam, camUv(vUv)).rgb, k);
           }`,
       })
       const keepScene = quad(keepMat)
+      // His hands alone (the keep's blue), over Sova's bow: they hold it and pull its string.
+      const keepHandsMat = keepMat.clone()
+      keepHandsMat.uniforms = keepMat.uniforms
+      keepHandsMat.fragmentShader = keepMat.fragmentShader.replace("texture2D(uKeep, vUv).g", "texture2D(uKeep, vUv).b")
+      const keepHandsScene = quad(keepHandsMat)
+
+      // ---------- Sova's abilities ----------
+      // With the game's own pieces (privado/valorant/sova/files/, extracted read-only from the installed game, never
+      // published): his bow (its string bone pulled back to Luan's hand), the Recon, Shock and Hunter's Fury arrows,
+      // the Recon Bolt's head spinning where it lands and the Owl Drone, lit in the 3D camera's space (centimetres);
+      // their effects through vfx (vfx-sova.js, the game's values). In the box's screen space (0..1, y up) only the
+      // red reveal, the marker over the head and the ultimate's darkening (sovaMat). Times in ms (performance.now()).
+      const sova = {
+        // The bow: by gesture or the dock (auto, with the arrow it'll shoot); its hands on screen (a holds it, b
+        // pulls the string), how much of it shows, how far it's drawn.
+        // By gesture, g follows the two hands (where each was last, a hand opening, a hand lost) and d0 is how far
+        // apart they were as it opened.
+        bow: { state: "idle", since: 0, amt: 0, draw: 0, auto: 0, kind: "recon", a: new THREE.Vector2(0.75, 0.5), b: new THREE.Vector2(0.6, 0.5), g: null, d0: null },
+        fists: 0, // since when both fists are together (the bow's gesture, before it opens)
+        arrow: null, // { kind, pts: [Vector3...], legs: [ms...], t0, leg, sys }: in flight
+        dart: null, // { tip, dir, t0, d, pulses: [...] }: the Recon Bolt stuck where it landed
+        ult: null, // { t0, fired, charging, sys }
+        drone: null, // { t0, from, side, patrol, darted }: the drone ability
+        owl: { since: 0 }, // the drone's gesture, while it's held
+        // The drone flying behind him (the dock's "Coruja sobrevoando", or ?patrulha): wanted, how far in it is,
+        // where it is round its loop, the point it loops round (his head, followed slowly) and the side it came in.
+        patrol: { want: q.has("patrulha"), amt: 0, ph: 0, anchor: null, side: 1 },
+        reveals: [], // when the red reveal flashed (ms), for its fading
+        maskUntil: 0, // the body mask is needed (for the reveal) until then
+        shakeUntil: 0,
+        shakeLen: 1,
+        shakeAmp: 0,
+      }
+      const PULSES = [0.4, 1.9] // the Recon Bolt's two sonar pulses, seconds after it lands
+      const DART_LIFE = 4.2
+      const ULT = { SHOTS: [1.2, 2.5, 3.8], CHARGE: 0.9, END: 4.6 }
+      const DRONE = { OPEN: 0.5, FLY: 1.7, DART: 3.0, LEAVE: 5.6, END: 6.8 }
+      const ASPECT = W / H
+      const clamp01 = (v, lo = 0.05, hi = 0.95) => Math.min(hi, Math.max(lo, v))
+      const ease = (t) => t * t * (3 - 2 * t)
+      // The face on screen: its centre (the nose), width, the top of the forehead and its height.
+      function faceBox() {
+        if (!faceLm) return { c: new THREE.Vector2(0.5, 0.55), w: 0.15, top: new THREE.Vector2(0.5, 0.75), h: 0.3 }
+        const S = (i) => new THREE.Vector2(...toScreen(faceLm[i].x, faceLm[i].y))
+        const c = S(1), top = S(10), chin = S(152)
+        return { c, w: Math.abs(S(454).x - S(234).x), top, h: top.y - chin.y }
+      }
+      // Where a ray from p along dir leaves the box, a little inside it.
+      function toEdge(p, dir, inset = 0.03) {
+        let s = Infinity
+        if (dir.x > 1e-6) s = Math.min(s, (1 - inset - p.x) / dir.x)
+        if (dir.x < -1e-6) s = Math.min(s, (inset - p.x) / dir.x)
+        if (dir.y > 1e-6) s = Math.min(s, (1 - inset - p.y) / dir.y)
+        if (dir.y < -1e-6) s = Math.min(s, (inset - p.y) / dir.y)
+        return p.clone().addScaledVector(dir, Math.max(0, s))
+      }
+      // A camera-space point on the box (0..1, y up), and back.
+      const onBox = (p) => {
+        const s = p.clone().project(headCam)
+        return new THREE.Vector2(s.x * 0.5 + 0.5, s.y * 0.5 + 0.5)
+      }
+      const headAt = () => (headSeen ? headPos.clone() : at3(0.5, 0.55))
+      function shake(ms, px, now) {
+        if (now + ms > sova.shakeUntil) Object.assign(sova, { shakeUntil: now + ms, shakeLen: ms, shakeAmp: px })
+      }
+      function reveal(now) {
+        sova.reveals.push(now)
+        sova.maskUntil = Math.max(sova.maskUntil, now + 1500)
+      }
+
+      // The pieces, each lit by the cars' room (their reflections) and two lights.
+      const HUNTER = "privado/valorant/sova/files/ShooterGame/Content/Characters/Hunter/S0/"
+      const sv3 = { held: new THREE.Scene(), free: new THREE.Scene() }
+      for (const sc of [sv3.held, sv3.free]) {
+        sc.add(new THREE.HemisphereLight(0xe4ecff, 0x2a3042, 1.7))
+        const sun = new THREE.DirectionalLight(0xffffff, 2.2)
+        sun.position.set(0.4, 1, 1)
+        sc.add(sun)
+      }
+      function loadPiece(path, done) {
+        new GLTFLoader().load(
+          HUNTER + path,
+          (g) => {
+            const env = roomEnv()
+            g.scene.traverse((o) => {
+              if (!o.isMesh) return
+              o.frustumCulled = false
+              // The energy inlays glow (the game draws them emissive).
+              if (/Emissive/.test(o.material.name)) {
+                o.material = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.35, 0.85, 1), name: o.material.name })
+                return
+              }
+              if (o.material.map) o.material.map.colorSpace = THREE.NoColorSpace
+              o.material.envMap = env
+              o.material.envMapIntensity = 0.8
+            })
+            done(g.scene)
+          },
+          undefined,
+          (e) => fail("sova", e),
+        )
+      }
+      const glowMat = (color) => new THREE.MeshBasicMaterial({ color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+
+      // His bow (the ultimate's model, the one all his abilities draw): in its own metres the arrow points +x, the
+      // limbs run along y and the string rests 0.408 behind the grip, 0.129 above it, where the arrow lies.
+      // Its size: drawn fully, its string reaches the pulling hand (so it's as big as his reach), within a range
+      // round ?arco= (centimetres per game metre, 30).
+      const BOW_K = Number(q.get("arco") || 30)
+      const BOW = { REST: -0.408, PULL: 0.42, LINE: 0.129 }
+      // By gesture it opens from 0.7 of that size, fists together, to this much at a full draw (the box is only
+      // about 35 cm tall at his face, and the bow 46 at 30).
+      const BOW_FIT = 1.1
+      const bow3 = { root: new THREE.Group(), model: null, string: null, glow: null, arrows: {}, arrow: null, k: BOW_K }
+      bow3.root.matrixAutoUpdate = false
+      bow3.root.visible = false
+      sv3.held.add(bow3.root)
+      loadPiece("Ability_X/1P/Models/AB_Hunter_S0_X_Bow_Skelmesh.glb", (m) => {
+        m.scale.setScalar(BOW_K)
+        bow3.root.add(m)
+        bow3.model = m
+        bow3.string = m.getObjectByName("String")
+        m.traverse((o) => {
+          if (!o.isMesh) return
+          // The string: a line of light. The energy inlays: lit up for the ultimate.
+          if (/String/.test(o.material.name)) o.material = glowMat(new THREE.Color(0.55, 0.9, 1))
+          else if (/Emissive/.test(o.material.name)) bow3.glow = o.material
+        })
+      })
+      // The arrows, nocked on the string (children of the bow's model, in its metres: tail at 0, head at +0.8).
+      const ARROWS = { recon: "Ability_Q/1P/Models/AB_Hunter_S0_Q_Arrow_Staticmesh.glb", choque: "Ability_4/1P/Models/AB_Hunter_S0_4_Arrow_Staticmesh.glb", ult: "Ability_X/1P/Models/AB_Hunter_S0_X_Arrow_Staticmesh.glb" }
+      const ARROW_LEN = 0.8
+      // One in flight, one stuck in a wall: copies scaled like the bow, outside it.
+      const flying = new THREE.Group(), stuck = new THREE.Group()
+      let stuckArrow = null
+      flying.visible = stuck.visible = false
+      sv3.free.add(flying, stuck)
+      for (const [kind, path] of Object.entries(ARROWS))
+        loadPiece(path, (m) => {
+          m.visible = false
+          bow3.arrows[kind] = m
+          const tryAdd = () => (bow3.model ? bow3.model.add(m) : setTimeout(tryAdd, 200))
+          tryAdd()
+          if (kind === "ult") {
+            m.traverse((o) => o.isMesh && (o.material = glowMat(new THREE.Color(0.3, 0.75, 1))))
+            return
+          }
+          const c = m.clone()
+          c.scale.setScalar(BOW_K)
+          c.name = kind
+          c.visible = false
+          flying.add(c)
+          if (kind === "recon") {
+            stuckArrow = m.clone()
+            stuckArrow.scale.setScalar(BOW_K)
+            stuckArrow.visible = true
+            stuck.add(stuckArrow)
+          }
+        })
+      // The Recon Bolt's head, opened where it lands: it spins on the bolt.
+      const reconHead = new THREE.Group()
+      stuck.add(reconHead)
+      loadPiece("VFX/Models/Hunter_Q_FX_Rotate_S0_Staticmesh_v2.glb", (m) => {
+        m.scale.setScalar(1.75)
+        // Its material's diffuse is the bow's (the export took the white one).
+        const df = new THREE.TextureLoader().load(HUNTER + "3P/Models/Materials/HunterBow_S0_DF.png")
+        df.flipY = false
+        df.colorSpace = THREE.NoColorSpace
+        m.traverse((o) => o.isMesh && o.material.isMeshStandardMaterial && ((o.material.map = df), (o.material.needsUpdate = true)))
+        reconHead.add(m)
+      })
+
+      // Points on the bow, for the effects: the arrow's head, the nock and the string's ends.
+      const bowPt = (x, y, z = 0) => (bow3.model ? bow3.model.localToWorld(new THREE.Vector3(x, y, z)) : new THREE.Vector3())
+      function arrowTip() {
+        const a = bow3.arrow
+        return a ? a.localToWorld(new THREE.Vector3(ARROW_LEN - 0.03, 0, 0)) : bowPt(0.39, BOW.LINE)
+      }
+      // Places the bow: its grip at G, the string pulled towards N (both in camera space), `draw` (0..1) of the way
+      // from rest to a full draw, scaled by `amt` as it shows. Its size: with `fit` (by gesture), so the string is
+      // at N however far it's drawn (it opens as the hands part); otherwise so a full draw reaches N.
+      const bowAxis = new THREE.Vector3(1, 0, 0)
+      function placeBow(G, N, draw, amt, kind, fit) {
+        const u = G.clone().sub(N)
+        if (u.lengthSq() < 1e-6) u.set(1, 0, 0)
+        u.normalize()
+        bowAxis.copy(u)
+        // Upright in the picture whichever way it aims, its face to the camera.
+        const v = new THREE.Vector3(0, 1, 0).addScaledVector(u, -u.y)
+        if (v.lengthSq() < 1e-4) v.set(-u.y, u.x, 0)
+        v.normalize()
+        const w = u.clone().cross(v)
+        const k = Math.max(1e-3, easeOutBack(amt))
+        bow3.root.matrix.makeBasis(u, v, w).scale(new THREE.Vector3(k, k, k)).setPosition(G)
+        bow3.root.matrixWorldNeedsUpdate = true
+        bow3.root.visible = amt > 0
+        if (!bow3.model) return
+        const reach = THREE.MathUtils.clamp(G.distanceTo(N) / (-BOW.REST + BOW.PULL * (fit ? draw : 1)), BOW_K * 0.7, BOW_K * (fit ? BOW_FIT : 1.5))
+        bow3.k += (reach - bow3.k) * (amt < 1 ? 1 : fit ? 0.6 : 0.3)
+        bow3.model.scale.setScalar(bow3.k)
+        bow3.root.updateMatrixWorld(true)
+        const sx = BOW.REST - BOW.PULL * draw
+        if (bow3.string) {
+          const t = bow3.model.localToWorld(new THREE.Vector3(sx, BOW.LINE, 0))
+          bow3.string.parent.updateMatrixWorld(true)
+          bow3.string.position.copy(bow3.string.parent.worldToLocal(t))
+        }
+        for (const [k2, a] of Object.entries(bow3.arrows)) a.visible = k2 === kind
+        bow3.arrow = bow3.arrows[kind] || null
+        if (bow3.arrow) bow3.arrow.position.set(sx, BOW.LINE, 0)
+      }
+      // The bow where the hands are now: the grip and the pulling hand at the depth of his face, a little nearer
+      // the camera.
+      function placeBowNow(kind) {
+        const bow = sova.bow
+        const fit = bow.state === "draw" && !bow.auto && !sova.ult
+        placeBow(at3(bow.a.x, bow.a.y, 10), at3(bow.b.x, bow.b.y, 10), bow.draw, bow.amt, kind, fit)
+      }
+
+      // A hand's shape, for the gestures: its size (the palm's length or its knuckles' width, whichever shows
+      // more), the middle of its knuckles, and whether it's a fist or open (the recognizer's own call, or the
+      // fingertips' distances from the wrist). Distances in the video's height, so they're round on screen.
+      function handShape(h, cat, va) {
+        const d = (p, o) => Math.hypot((p.x - o.x) * va, p.y - o.y)
+        const s = Math.max(d(h[0], h[9]), d(h[5], h[17]) * 1.25)
+        const r = [8, 12, 16, 20].map((t) => d(h[t], h[0]) / s)
+        const k = [5, 9, 13, 17].reduce((a, i) => ({ x: a.x + h[i].x / 4, y: a.y + h[i].y / 4 }), { x: 0, y: 0 })
+        const fist = (cat === "Closed_Fist" || r.filter((v) => v < 1.3).length >= 3) && cat !== "Open_Palm"
+        const open = (cat === "Open_Palm" || r.filter((v) => v > 1.6).length >= 3) && cat !== "Closed_Fist"
+        return { h, s, k, d, fist, open }
+      }
+      // Where each hand holds the bow on screen: the bow hand by its knuckles, the string hand between its thumb
+      // and index fingertips.
+      function bowHands(B, S, k) {
+        const sb = sova.bow
+        sb.a.lerp(new THREE.Vector2(...toScreen(B.k.x, B.k.y)), k)
+        sb.b.lerp(new THREE.Vector2(...toScreen((S.h[4].x + S.h[8].x) / 2, (S.h[4].y + S.h[8].y) / 2)), k)
+      }
+      // The bow by gesture: both hands closed, one fist against the other, for 0.2 s opens it between them; pulling
+      // them apart draws it (the hand nearer the face pulls the string, the other holds the bow), and opening a hand
+      // lets the Recon Bolt go, from that hand towards the other. Losing a hand once it's a third drawn lets it go
+      // too (a quick release blurs); opening or losing one before that folds it.
+      function sovaHands(r, now) {
+        const va = video.videoWidth / video.videoHeight || 16 / 9
+        const hs = (r.landmarks || []).slice(0, 2).map((h, i) => handShape(h, r.gestures?.[i]?.[0]?.categoryName, va))
+        owlHands(hs, now)
+        const bow = sova.bow
+        if (bow.auto || sova.ult) return
+        const nose = faceLm ? faceLm[1] : { x: 0.5, y: 0.4 }
+        const fw = faceLm ? Math.abs(faceLm[454].x - faceLm[234].x) * va : 0.2
+        const toNose = (p) => Math.hypot((p.x - nose.x) * va, p.y - nose.y)
+        const [A, B] = hs
+        if (bow.state === "idle") {
+          const together = hs.length === 2 && A.fist && B.fist && A.d(A.k, B.k) < 0.95 * (A.s + B.s)
+          if (!together) {
+            sova.fists = 0
+            return
+          }
+          sova.fists ||= now
+          handInfo += " · punhos"
+          if (now - sova.fists < 200) return
+          sova.fists = 0
+          const [S, G] = toNose(A.k) <= toNose(B.k) ? [A, B] : [B, A]
+          bow.g = { pa: G.k, pb: S.k, opened: 0, lost: 0 }
+          Object.assign(bow, { state: "draw", since: now, kind: "recon", d0: null, draw: 0 })
+          bowHands(G, S, 1)
+          bowSound("recon")
+          return
+        }
+        const g = bow.g
+        if (bow.state !== "draw" || !g) return
+        if (hs.length < 2) {
+          g.lost ||= now
+          if (now - g.lost > 150) bow.draw >= 0.35 ? shoot("recon", now) : foldBow()
+          return
+        }
+        g.lost = 0
+        // The same hands as before (the tracker's order can swap), then which pulls the string: the one nearer the
+        // face, by a margin (he can change sides while drawing).
+        const sq = (p, o) => (p.x - o.x) ** 2 + (p.y - o.y) ** 2
+        let [G, S] = sq(A.k, g.pa) + sq(B.k, g.pb) <= sq(B.k, g.pa) + sq(A.k, g.pb) ? [A, B] : [B, A]
+        if (toNose(G.k) < toNose(S.k) - 0.35 * fw) [G, S] = [S, G]
+        g.pa = G.k
+        g.pb = S.k
+        bowHands(G, S, 0.6)
+        handInfo += ` · arco ${Math.round(bow.draw * 100)}%`
+        // A hand open for two frames lets go: the one that opened was pulling the string.
+        if (!G.open && !S.open) {
+          g.opened = 0
+          return
+        }
+        if (++g.opened < 2) return
+        if (bow.draw < 0.25) return foldBow()
+        if (G.open && !S.open) {
+          bowHands(S, G, 1)
+          placeBowNow(bow.kind)
+        }
+        shoot("recon", now)
+      }
+      const foldBow = () => {
+        bowQuiet("sova-bow-fold")
+        Object.assign(sova.bow, { state: "idle", g: null })
+      }
+      // The bow's sounds: out, with its charge and a hum while it's drawn and a tick at half and at full draw
+      // (updateSova), then let go (shoot) or folded unshot.
+      let bowSnd = null
+      function bowSound(kind) {
+        bowSnd?.hum.stop(0.1)
+        const shock = kind === "choque"
+        const pan = panAt(sova.bow.a.x)
+        sfx.play(shock ? "sova-shock-equip" : "sova-recon-equip", { pan })
+        sfx.play(shock ? "sova-shock-charge" : "sova-recon-charge", { pan, gain: 0.8, delay: 0.12 })
+        bowSnd = { lvl: 0, hum: sfx.play(shock ? "sova-shock-hum" : "sova-charge-hum", { loop: true, pan, gain: 0.7 }) }
+      }
+      function bowQuiet(cue) {
+        if (!bowSnd) return
+        bowSnd.hum.stop(0.1)
+        bowSnd = null
+        if (cue) sfx.play(cue, { pan: panAt(sova.bow.a.x) })
+      }
+      // The Owl Drone's gesture: both palms open to the camera, fingers up, side by side (thumbs towards each
+      // other, so not the backs of the hands, and apart, so not a clap). Held 0.3 s, the drone opens between them
+      // (or, flying behind him, comes).
+      function isOwl(hs) {
+        if (hs.length < 2) return false
+        const [A, B] = hs
+        const up = (x) => x.h[0].y - x.h[12].y > 1.1 * x.s
+        const flat = (x) => x.d(x.h[5], x.h[17]) > 0.45 * x.d(x.h[0], x.h[9])
+        const inward = (x, o) => x.d(x.h[4], o.h[0]) < x.d(x.h[20], o.h[0])
+        const s = (A.s + B.s) / 2
+        return A.open && B.open && up(A) && up(B) && flat(A) && flat(B) && inward(A, B) && inward(B, A) && A.d(A.k, B.k) > 1.0 * s && Math.abs(A.k.y - B.k.y) < 1.5 * s
+      }
+      function owlHands(hs, now) {
+        const o = sova.owl
+        if (!isOwl(hs)) {
+          o.since = 0
+          return
+        }
+        o.since ||= now
+        handInfo += " · coruja"
+        if (now - o.since > 300 && !sova.drone) {
+          const [A, B] = hs
+          const m = toScreen((A.k.x + B.k.x) / 2, (A.k.y + B.k.y) / 2)
+          startDrone(now, at3(m[0], m[1], 12))
+          o.since = Infinity
+        }
+      }
+
+      // The dock's Flecha de Reconhecimento and Flecha de Choque: the bow drawn beside the face, toward the side with
+      // more room, shot by itself.
+      function autoBow(kind, now) {
+        if (sova.bow.state !== "idle" || sova.ult) return
+        const f = faceBox()
+        const side = f.c.x < 0.5 ? 1 : -1
+        sova.bow.a.set(clamp01(f.c.x + side * f.w * 2.3, 0.08, 0.92), f.c.y - f.w * 0.5)
+        sova.bow.b.set(f.c.x + side * f.w * 0.5, f.c.y - f.w * 0.45)
+        Object.assign(sova.bow, { state: "draw", since: now, auto: now, kind })
+        bowSound(kind)
+      }
+      // The arrow leaves the bow: the Recon Bolt flies to the edge of the box where it points and sticks there; the
+      // Shock Bolt flies up, bounces off the top of the box and bursts by his shoulder on that side.
+      function shoot(kind, now) {
+        // One arrow in the air at a time: the one before gets where it was going now.
+        if (sova.arrow) finishArrow(sova.arrow, now)
+        const tip = arrowTip()
+        const from = onBox(tip)
+        const dir2 = onBox(tip.clone().add(bowAxis)).sub(from).normalize()
+        const depth = (p) => at3(p.x, p.y, tip.z - (headSeen ? headPos.z : -65))
+        let pts
+        if (kind === "recon") pts = [tip, depth(toEdge(from, dir2, 0.02))]
+        else {
+          const f = faceBox()
+          const side = Math.sign(sova.bow.a.x - f.c.x) || 1
+          const up = toEdge(from, new THREE.Vector2(dir2.x * 0.5, 1).normalize(), 0.03)
+          const land = new THREE.Vector2(clamp01(f.c.x + side * f.w * 1.5), clamp01(f.c.y - f.w * 1.5))
+          pts = [tip, depth(up), depth(land)]
+        }
+        const legs = pts.slice(1).map((p, i) => Math.max(110, (onBox(p).distanceTo(onBox(pts[i])) / 2.6) * 1000))
+        const a = { kind, pts, legs, t0: now, leg: 0, at: tip.clone(), dir: pts[1].clone().sub(tip).normalize(), k: bow3.k }
+        a.sys = vfx.spawn(kind === "recon" ? SOVA.E.trail : SOVA.Q.trail, (v) => v.copy(a.at), { scale: 0.3, dir: () => a.dir })
+        sova.arrow = a
+        sova.maskUntil = now + 6500
+        bowQuiet("sova-bow-release")
+        Object.assign(sova.bow, { state: "idle", auto: 0, g: null })
+      }
+      // An arrow at the end of its flight: the Recon Bolt sticks, the Shock Bolt bursts.
+      function finishArrow(a, now) {
+        a.sys.stop()
+        const end = a.pts[a.pts.length - 1]
+        if (a.kind === "recon") land(end, a.dir.clone(), a.k, now)
+        else {
+          // The game's blast is 4 m across; here about two faces.
+          vfx.spawn(SOVA.Q.boom, (v) => v.copy(end), { scale: 0.07, dur: 0.05 })
+          sfx.play("sova-shock-explode", { pan: pan3(end) })
+          shake(380, 10, now)
+        }
+        sova.arrow = null
+      }
+      function startUlt(now) {
+        if (sova.ult) return
+        sova.arrow?.sys.stop()
+        sova.arrow = null
+        const f = faceBox()
+        const side = f.c.x < 0.5 ? 1 : -1
+        sova.bow.a.set(clamp01(f.c.x + side * f.w * 2.4, 0.08, 0.92), f.c.y - f.w * 0.35)
+        sova.bow.b.set(f.c.x + side * f.w * 0.5, f.c.y - f.w * 0.35)
+        Object.assign(sova.bow, { state: "idle", auto: 0 })
+        bowQuiet()
+        const pan = panAt(sova.bow.a.x)
+        sfx.play("sova-ult-equip", { pan })
+        sova.ult = { t0: now, fired: 0, charging: -1, pan, hum: sfx.play("sova-ult-hum", { loop: true, pan, gain: 0.8 }), sys: vfx.spawn(SOVA.X.bow, (v) => v.copy(limbPoint()), { scale: bow3.k / 100 }) }
+      }
+      // A point along the bow's limbs, at random (where Amb_EnergyBow1P_VFX's loops crawl: 17 to 53 cm from the grip).
+      const LIMB = [0.17, 0.28, 0.36, -0.34, -0.45, -0.53]
+      const limbPoint = () => bowPt(-0.06, LIMB[Math.floor(Math.random() * LIMB.length)] * (0.9 + Math.random() * 0.25), 0.01)
+
+      // The Owl Drone: in its metres it faces +x, up +y, its two eyes 2.5 cm either side of the middle, its ducted
+      // turbines at ±0.18 on z (their rings face forward). The ability: it opens where it's thrown (between the
+      // palms, by the gesture), flies up beside his head, looks at him, tags him with its dart (which reveals him
+      // twice) and flies off. With the dock's "Coruja sobrevoando" it flies behind him all the while (below), and
+      // the ability is that drone coming round to beside his head and going back.
+      // In its own scene: behind him it's drawn first, under him (his body's mask in front of it), else on top.
+      const DRONE_K = Number(q.get("coruja") || 30)
+      const drone3 = { root: new THREE.Group(), model: null, discs: [], behind: false, eyes: null }
+      drone3.root.visible = false
+      sv3.drone = new THREE.Scene()
+      sv3.drone.add(new THREE.HemisphereLight(0xe4ecff, 0x2a3042, 1.7))
+      const droneSun = new THREE.DirectionalLight(0xffffff, 2.2)
+      droneSun.position.set(0.4, 1, 1)
+      sv3.drone.add(droneSun, drone3.root)
+      // His body as the nearest depth, where the mask has him: what's drawn behind it after is hidden.
+      const occludeScene = quad(
+        new THREE.ShaderMaterial({
+          uniforms,
+          vertexShader: /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, -1.0, 1.0); }`,
+          fragmentShader: /* glsl */ `
+            ${GLSL_COMMON}
+            void main() {
+              if (maskAt(vUv, 0.0) < 0.5) discard;
+              gl_FragColor = vec4(0.0);
+            }`,
+          colorWrite: false,
+          depthWrite: true,
+          depthTest: true,
+          depthFunc: THREE.AlwaysDepth,
+        }),
+      )
+      const DRONE_EYE = new THREE.Vector3(0.085, 0.04, 0)
+      loadPiece("Ability_E/1P/Models/AB_Hunter_S0_E_Skelmesh.glb", (m) => {
+        m.scale.setScalar(DRONE_K)
+        // Its +x to the group's +z, so the group's lookAt points it.
+        m.rotation.y = -Math.PI / 2
+        drone3.root.add(m)
+        drone3.model = m
+        // The turbines' blades, blurred spinning (Hunter_C_Propellers: the blur in (0, 3, 10)).
+        const blur = new THREE.TextureLoader().load(HUNTER + "VFX/Textures/Hunter_C_Propellers_Blur.png")
+        blur.colorSpace = THREE.NoColorSpace
+        for (const z of [-0.18, 0.18]) {
+          const disc = new THREE.Mesh(new THREE.CircleGeometry(0.085, 40), new THREE.MeshBasicMaterial({ map: blur, color: new THREE.Color(0.35, 0.75, 1), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }))
+          disc.position.set(0.072, -0.018, z)
+          disc.rotation.y = Math.PI / 2
+          m.add(disc)
+          drone3.discs.push(disc)
+        }
+      })
+      // Flying behind him: round an ellipse behind his head (centimetres from it: 38 to either side, 26 to 46
+      // behind), a little above his shoulders, bobbing; a loop takes about 8 s, a little faster and slower in turn.
+      const PATROL = { A: 38, Y: 4, Z: -36, B: 10, SPEED: 0.75 }
+      const patrolPoint = (ph) => sova.patrol.anchor.clone().add(new THREE.Vector3(Math.sin(ph) * PATROL.A, PATROL.Y + Math.sin(ph * 2 + 0.7) * 4, PATROL.Z - Math.cos(ph) * PATROL.B))
+      // Where it comes in from and leaves to: up and out of the box on a side.
+      const patrolOff = (side) => headAt().add(new THREE.Vector3(side * 110, 55, -40))
+      // A quadratic curve's point and direction.
+      const bez = (a, c, b, k) => a.clone().multiplyScalar((1 - k) ** 2).addScaledVector(c, 2 * k * (1 - k)).addScaledVector(b, k * k)
+      const bezDir = (a, c, b, k) => c.clone().sub(a).multiplyScalar(1 - k).addScaledVector(b.clone().sub(c), k)
+      // A curve's middle point round his side, from a point behind him to one beside his head (either way): wide
+      // enough that it never crosses him.
+      const roundSide = (a, b, side, head) => new THREE.Vector3(head.x + side * Math.max(Math.abs(a.x - head.x), Math.abs(b.x - head.x), 42), Math.max(a.y, b.y) + 12, (a.z + b.z) / 2)
+
+      function startDrone(now, from) {
+        if (sova.drone) return
+        const f = faceBox()
+        // Flying behind him: that drone comes, round the side it's on.
+        if (sova.patrol.amt >= 1 && drone3.root.visible) {
+          const at = drone3.root.position.clone()
+          sova.drone = { t0: now - DRONE.OPEN * 1000, from: at, side: Math.sign(at.x - headAt().x) || 1, patrol: true, darted: false }
+        } else {
+          const side = f.c.x > 0.5 ? -1 : 1
+          const start = from || at3(clamp01(f.c.x + side * f.w * 1.6), clamp01(f.c.y - f.w * 2.2), 12)
+          sova.drone = { t0: now, from: start, side, patrol: false, darted: false }
+          vfx.spawn(SOVA.C.equip, (v) => v.copy(start), { scale: DRONE_K / 100, dur: 0.05 })
+          sfx.play("sova-drone-open", { pan: pan3(start) })
+        }
+        sova.maskUntil = now + (DRONE.END + 0.5) * 1000
+      }
+      const droneEye = () => (drone3.model ? drone3.model.localToWorld(DRONE_EYE.clone()) : new THREE.Vector3())
+      function updateDrone(now, dt) {
+        const P = sova.patrol
+        const head = headAt()
+        const T = now / 1000
+        P.amt = THREE.MathUtils.clamp(P.amt + (P.want && mode === "sova" ? dt / 1.6 : -dt / 1.2), 0, 1)
+        if (P.amt > 0) {
+          // His head, followed slowly, so it doesn't jerk along with every nod.
+          if (!P.anchor) {
+            P.anchor = head.clone()
+            P.side = Math.sign(Math.sin(P.ph)) || 1
+          }
+          P.anchor.lerp(head, 1 - Math.exp(-dt * 2))
+          if (!sova.drone) P.ph += dt * PATROL.SPEED * (0.75 + 0.25 * Math.sin(T * 0.43))
+        } else P.anchor = null
+        const d = sova.drone
+        let p, ahead, s = 1
+        if (d) {
+          const t = (now - d.t0) / 1000
+          if (t > DRONE.END) {
+            sova.drone = null
+            return updateDrone(now, 0)
+          }
+          const hover = head.clone().add(new THREE.Vector3(d.side * 23, 9, 8))
+          // Back to its loop behind him, or off and away.
+          const back = P.amt > 0
+          const away = back ? patrolPoint(P.ph) : head.clone().add(new THREE.Vector3(d.side * 95, 50, -25))
+          // Up from the hands in an arc (from behind him, round his side), then hovering (bobbing), then off;
+          // facing the camera as it opens, then where it flies, him while it hovers, and where it goes.
+          if (t < DRONE.OPEN) {
+            p = d.from.clone()
+            ahead = new THREE.Vector3(0, 0, 1)
+            s = easeOutBack(t / DRONE.OPEN)
+          } else if (t < DRONE.FLY) {
+            const k = ease((t - DRONE.OPEN) / (DRONE.FLY - DRONE.OPEN))
+            const ctl = d.patrol ? roundSide(d.from, hover, d.side, head) : d.from.clone().lerp(hover, 0.5).add(new THREE.Vector3(-d.side * 6, 22, 6))
+            p = bez(d.from, ctl, hover, k)
+            // The curve's direction, turning towards him as it arrives.
+            ahead = bezDir(d.from, ctl, hover, k).setY(0).normalize().lerp(head.clone().sub(p).setY(0).normalize(), k * k)
+          } else if (t < DRONE.LEAVE) {
+            p = hover.clone()
+            ahead = head.clone().sub(p)
+          } else {
+            const k = ease((t - DRONE.LEAVE) / (DRONE.END - DRONE.LEAVE))
+            const ctl = back ? roundSide(away, hover, d.side, head) : hover.clone().lerp(away, 0.5)
+            p = bez(hover, ctl, away, k)
+            ahead = bezDir(hover, ctl, away, k).setY(0)
+          }
+        } else if (P.amt > 0) {
+          const k = ease(P.amt)
+          const on = patrolPoint(P.ph)
+          const off = patrolOff(P.side)
+          p = off.clone().lerp(on, k)
+          // Along its loop, turned a little towards the camera (its eyes show more), or where it's going as it
+          // comes in or leaves.
+          const along = new THREE.Vector3(Math.cos(P.ph) * PATROL.A, 0, Math.sin(P.ph) * PATROL.B).normalize().add(new THREE.Vector3(0, 0, 0.5))
+          const going = (P.want ? on.clone().sub(off) : off.clone().sub(on)).setY(0).normalize()
+          ahead = along.normalize().multiplyScalar(k).addScaledVector(going, 1 - k)
+        } else {
+          drone3.root.visible = false
+          drone3.eyes?.stop()
+          drone3.eyes = null
+          drone3.hum?.stop(0.3)
+          drone3.hum = null
+          return
+        }
+        if (!drone3.model) return
+        p.y += Math.sin(T * 3.1) * 0.8
+        drone3.root.position.copy(p)
+        drone3.root.scale.setScalar(Math.max(1e-3, s))
+        if (ahead.lengthSq() < 1e-6) ahead.set(0, 0, 1)
+        drone3.root.lookAt(p.clone().add(ahead.normalize()))
+        drone3.root.rotateZ(Math.sin(T * 2.3) * 0.08)
+        drone3.root.visible = true
+        for (const c of drone3.discs) c.rotateZ(dt * 38)
+        drone3.root.updateMatrixWorld(true)
+        // Behind him once it's a hand's breadth behind his face: he covers it, and its eyes' glow (drawn over
+        // everything) waits until it comes out.
+        drone3.behind = p.z < head.z - 10
+        // Its propellers, quieter behind him and while it flies round on its own.
+        drone3.hum ||= sfx.play("sova-drone-idle", { loop: true, gain: 0 })
+        drone3.hum.set({ gain: (drone3.behind ? 0.45 : 1) * Math.min(1, s) * (d ? 1 : 0.6 * ease(P.amt)), pan: pan3(p) })
+        if (!drone3.behind && !drone3.eyes) {
+          const sys = [0.025, -0.025].map((z) => vfx.spawn(SOVA.C.eye, (v) => v.copy(drone3.model.localToWorld(new THREE.Vector3(DRONE_EYE.x, DRONE_EYE.y, z))), { scale: DRONE_K / 100 }))
+          drone3.eyes = { stop: () => sys.forEach((x) => x.stop()) }
+        } else if (drone3.behind && drone3.eyes) {
+          drone3.eyes.stop()
+          drone3.eyes = null
+        }
+        if (!d) return
+        const t = (now - d.t0) / 1000
+        // The dart: from the eye to his face; it reveals him as it hits, and again a second later.
+        if (t >= DRONE.DART && !d.darted) {
+          d.darted = true
+          const at = droneEye(), to = head.clone().add(new THREE.Vector3(0, 0, 6))
+          const dart = { p: at.clone(), t0: now }
+          const dir = to.clone().sub(at).normalize()
+          const sys = vfx.spawn(SOVA.C.dart, (v) => v.copy(dart.p), { scale: 1, dir: () => dir })
+          d.dartFly = { dart, at, to, sys }
+          sfx.play("sova-drone-dart", { pan: pan3(at) })
+        }
+        if (d.dartFly) {
+          const f = d.dartFly
+          const k = Math.min(1, (now - f.dart.t0) / 150)
+          f.dart.p.copy(f.at).lerp(f.to, k)
+          if (k >= 1) {
+            f.sys.stop()
+            vfx.spawn(SOVA.C.hit, (v) => v.copy(f.to), { scale: 0.3, dur: 0.05 })
+            sfx.play("sova-drone-tag", { pan: pan3(f.to) })
+            shake(160, 4, now)
+            reveal(now)
+            d.revealAgain = now + 1100
+            d.dartFly = null
+          }
+        }
+        if (d.revealAgain && now >= d.revealAgain) {
+          reveal(now)
+          sfx.play("sova-drone-pulse", { pan: pan3(head), gain: 0.8 })
+          d.revealAgain = 0
+        }
+      }
+
+      function sovaReset() {
+        vfx.clear()
+        sova.bow.fx = drone3.eyes = drone3.hum = bowSnd = null
+        Object.assign(sova, { arrow: null, dart: null, ult: null, drone: null, reveals: [], shakeUntil: 0, fists: 0 })
+        Object.assign(sova.bow, { state: "idle", auto: 0, amt: 0, draw: 0, g: null })
+        Object.assign(sova.patrol, { amt: 0, anchor: null })
+        bow3.root.visible = drone3.root.visible = flying.visible = stuck.visible = false
+        uniforms.uReveal.value = uniforms.uMark.value.z = 0
+        uniforms.uUltT.value = -1
+      }
+
+      function updateSova(now, dt) {
+        const u = uniforms
+        const bow = sova.bow
+        const f = faceBox()
+        // The dock's bow: drawn over 0.6 s, then shot.
+        if (bow.auto && now - bow.auto > 750) shoot(bow.kind, now)
+        // The ultimate: the bow out for its three shots, each charged 0.9 s.
+        const ult = sova.ult
+        let ultDraw = 0
+        if (ult) {
+          const t = (now - ult.t0) / 1000
+          if (t > ULT.END) {
+            ult.sys.stop()
+            vfx.spawn(SOVA.X.outro, (v) => v.copy(bowPt(-0.05, 0)), { scale: bow3.k / 100, dur: 0.05 })
+            ult.hum.stop(0.3)
+            sfx.play("sova-ult-end", { pan: ult.pan })
+            sova.ult = null
+          } else {
+            const next = ULT.SHOTS[ult.fired]
+            if (next !== undefined) {
+              const c = (t - (next - ULT.CHARGE)) / ULT.CHARGE
+              if (c >= 0 && ult.charging !== ult.fired) {
+                ult.charging = ult.fired
+                // Its third-person effect, made to read from across a map: smaller here.
+                ult.charge = vfx.spawn(SOVA.X.charge, (v) => v.copy(arrowTip()), { scale: 0.12 })
+                ult.aim = vfx.spawn(SOVA.X.aim, (v) => v.copy(arrowTip()), { scale: 1, beam: () => [arrowTip(), ultEnd()] })
+                sfx.play("sova-ult-charge", { pan: ult.pan })
+              }
+              ultDraw = THREE.MathUtils.clamp(c, 0, 1)
+              if (t >= next) {
+                ult.charge?.stop()
+                ult.aim?.stop()
+                const a = arrowTip(), b = ultEnd()
+                vfx.spawn(SOVA.X.blast, (v) => v.copy(a), { scale: 0.32, dur: 0.05, beam: () => [a, b] })
+                sfx.play("sova-ult-fire", { pan: ult.pan })
+                shake(320, 13, now)
+                ult.fired++
+              }
+            }
+          }
+        }
+        // How much of the bow shows and how far it's drawn.
+        const held = bow.state === "draw" || !!sova.ult
+        bow.amt = THREE.MathUtils.clamp(bow.amt + (held ? dt / 0.18 : -dt / 0.25), 0, 1)
+        if (sova.ult) bow.draw = ultDraw
+        else if (bow.state === "draw" && bow.auto) bow.draw = Math.min(1, bow.draw + dt / 0.5)
+        else if (bow.state === "draw") {
+          // By gesture: as far as the hands have parted, from where the fists met to a full draw at the bow's
+          // biggest.
+          const d = at3(bow.a.x, bow.a.y, 10).distanceTo(at3(bow.b.x, bow.b.y, 10))
+          bow.d0 ??= Math.max(d, -BOW.REST * BOW_K * 0.7)
+          const full = (-BOW.REST + BOW.PULL) * BOW_K * BOW_FIT
+          bow.draw = THREE.MathUtils.clamp((d - bow.d0) / Math.max(5, full - bow.d0), 0, 1)
+        } else bow.draw = Math.max(0, bow.draw - dt / 0.06)
+        // The charge's tick at half and at full draw, the hum following the bow.
+        if (bowSnd && !sova.ult) {
+          const lvl = bow.draw >= 0.98 ? 2 : bow.draw >= 0.5 ? 1 : 0
+          const pan = panAt(bow.a.x)
+          if (lvl > bowSnd.lvl) sfx.play("sova-charge-level", { pan, gain: 0.8 })
+          bowSnd.lvl = Math.max(bowSnd.lvl, lvl)
+          bowSnd.hum.set({ pan })
+        }
+        const kind = sova.ult ? (ultDraw > 0 ? "ult" : null) : bow.state === "idle" ? null : bow.kind
+        placeBowNow(kind)
+        if (bow3.glow) bow3.glow.color.setRGB(0.35, 0.85, 1).multiplyScalar(sova.ult ? 1.6 : 1)
+        // While it's drawn: zaps on the string, the glow on the head (the shock's lightning instead).
+        const showFx = bow.amt > 0.5 && kind && kind !== "ult"
+        if (showFx && !bow.fx) {
+          const k = bow3.k / 100
+          bow.fx = [
+            vfx.spawn(SOVA.E.string, (v) => v.copy(bowPt(BOW.REST - BOW.PULL * bow.draw, BOW.LINE)), { scale: k, beam: () => [bowPt(BOW.REST - BOW.PULL * bow.draw, BOW.LINE), bowPt(-0.375, 0.816)] }),
+            vfx.spawn(SOVA.E.string, (v) => v.copy(bowPt(BOW.REST - BOW.PULL * bow.draw, BOW.LINE)), { scale: k, beam: () => [bowPt(BOW.REST - BOW.PULL * bow.draw, BOW.LINE), bowPt(-0.375, -0.706)] }),
+            vfx.spawn(kind === "choque" ? SOVA.Q.held : SOVA.E.tip, (v) => v.copy(arrowTip()), { scale: k }),
+          ]
+        } else if (!showFx && bow.fx) {
+          bow.fx.forEach((s) => s.stop())
+          bow.fx = null
+        }
+
+        // The arrow in flight, leg by leg.
+        flying.visible = false
+        const a = sova.arrow
+        if (a) {
+          let t = now - a.t0
+          let leg = 0
+          while (leg < a.legs.length && t > a.legs[leg]) t -= a.legs[leg++]
+          if (leg > a.leg) {
+            // A bounce (the shock's ricochet off the top of the box).
+            if (leg < a.legs.length) {
+              vfx.spawn(SOVA.Q.ricochet, ((p) => (v) => v.copy(p))(a.pts[leg].clone()), { scale: 0.12, dur: 0.05 })
+              sfx.play("sova-shock-ricochet", { pan: pan3(a.pts[leg]) })
+            }
+            a.leg = leg
+          }
+          if (leg >= a.legs.length) finishArrow(a, now)
+          else {
+            const p0 = a.pts[leg], p1 = a.pts[leg + 1]
+            a.dir.copy(p1).sub(p0).normalize()
+            a.at.copy(p0).lerp(p1, t / a.legs[leg])
+            const m = flying.getObjectByName(a.kind)
+            if (m) {
+              flying.children.forEach((c) => (c.visible = c === m))
+              // The arrow's head at `at`, pointing along the leg.
+              m.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), a.dir)
+              m.scale.setScalar(a.k)
+              m.position.copy(a.at).addScaledVector(a.dir, -ARROW_LEN * a.k)
+              flying.visible = true
+            }
+          }
+        }
+
+        // The Recon Bolt where it landed: its head spinning, two sonar pulses that reveal him as they pass.
+        stuck.visible = false
+        const dt0 = sova.dart
+        if (dt0) {
+          const t = (now - dt0.t0) / 1000
+          if (t > DART_LIFE) endDart(dt0)
+          else {
+            stuck.visible = true
+            if (stuckArrow) {
+              stuckArrow.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), dt0.dir)
+              stuckArrow.scale.setScalar(dt0.k)
+              stuckArrow.position.copy(dt0.tip).addScaledVector(dt0.dir, -ARROW_LEN * dt0.k * 0.85)
+            }
+            reconHead.scale.setScalar(dt0.k)
+            reconHead.position.copy(dt0.tip).addScaledVector(dt0.dir, -2)
+            reconHead.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), dt0.dir)
+            reconHead.rotateX(t * 6.3)
+            const d = headAt().distanceTo(dt0.tip)
+            PULSES.forEach((p, i) => {
+              if (t >= p && !dt0.pulsed[i]) {
+                dt0.pulsed[i] = true
+                // Its ring grows to 30 × 8 game centimetres across in a second: scaled to reach 1.3 times as far as
+                // his head, which it crosses 0.63 s in (where its size curve passes 6.15).
+                vfx.spawn(SOVA.E.pulse, (v) => v.copy(dt0.tip), { scale: (2.6 * d) / 240, dur: 0.05 })
+                sfx.play("sova-recon-ping", { pan: pan3(dt0.tip) })
+                dt0.ringAt[i] = now + 634
+              }
+              if (dt0.ringAt[i] && now >= dt0.ringAt[i]) {
+                reveal(now)
+                dt0.ringAt[i] = 0
+              }
+            })
+          }
+        }
+        updateDrone(now, dt)
+
+        // The red reveal: each flash fades over 0.9 s; the marker over the head while it shows.
+        sova.reveals = sova.reveals.filter((r) => now - r < 1600)
+        let rv = 0
+        for (const r of sova.reveals) rv = Math.max(rv, Math.exp(-(now - r) / 600))
+        u.uReveal.value = rv
+        const markAt = new THREE.Vector2(f.top.x, Math.min(0.94, f.top.y + f.h * 0.7))
+        u.uMark.value.set(markAt.x, markAt.y, rv > 0.15 ? Math.min(1, rv * 1.5) : 0)
+        u.uUltT.value = sova.ult ? (now - sova.ult.t0) / 1000 : -1
+      }
+      // Where the ultimate's shot goes: out of the box along the bow, a little past the edge.
+      function ultEnd() {
+        const tip = arrowTip()
+        const from = onBox(tip)
+        const dir2 = onBox(tip.clone().add(bowAxis)).sub(from).normalize()
+        const e = toEdge(from, dir2, -0.1)
+        return at3(e.x, e.y, tip.z - (headSeen ? headPos.z : -65))
+      }
+      // The Recon Bolt lands: the flash, its glows and arcs while it sits there.
+      function land(tip, dir, k, now) {
+        // One stuck at a time: a new one breaks the one before (its glow and arcs would stay on forever).
+        if (sova.dart) endDart(sova.dart)
+        vfx.spawn(SOVA.E.impact, (v) => v.copy(tip), { scale: 0.3, dur: 0.05 })
+        const dart = { tip: tip.clone(), dir, k, t0: now, pulsed: [], ringAt: [] }
+        dart.sys = vfx.spawn(SOVA.E.stuck, (v) => v.copy(dart.tip), { scale: 0.3 })
+        sfx.play("sova-recon-hit", { pan: pan3(tip) })
+        dart.snd = sfx.play("sova-recon-deployed", { pan: pan3(tip), gain: 0.8 })
+        sova.dart = dart
+      }
+      function endDart(dart) {
+        dart.sys.stop()
+        vfx.spawn(SOVA.E.destroyed, (v) => v.copy(dart.tip), { scale: 0.3, dur: 0.05 })
+        dart.snd.stop(0.2)
+        sfx.play("sova-recon-end", { pan: pan3(dart.tip) })
+        sova.dart = null
+      }
+
+      // ---------- the cars on the face: Octane, Fennec ----------
+      // Rocket League's cars by Jako (CC BY 4.0, public/models/) as Luan's head, Pixar-style: seen a little from
+      // above, turning with the head, his own eyes on the windshield and his mouth on the bumper, cut from the
+      // camera every frame (so it blinks and talks). The models face +x with +y up.
+      const CARS = { octane: { url: "../models/octane.glb" }, fennec: { url: "../models/fennec.glb" } }
+      const CAR_W = Number(q.get("carro") || 26)
+      const CAR_PITCH = THREE.MathUtils.degToRad(Number(q.get("inclinacao") ?? 10))
+      const CAR_LEN = Number(q.get("comprimento") || 0.6)
+      // ?perfil=: its length seen from the side (the head is deeper than it's wide).
+      const CAR_LEN_SIDE = Number(q.get("perfil") || 0.85)
+      const CAR_AT = (q.get("posicao") || "0,0.5,-8").split(",").map(Number)
+      // An eye's height for its width (the camera's cut has the same shape).
+      const EYE_H = 0.75
+      // Reflections for the paint, from a neutral room.
+      let carEnv = null
+      // A neutral room's reflections (the cars' paint, Sova's bow and drone), made once.
+      function roomEnv() {
+        if (!carEnv) {
+          const pm = new THREE.PMREMGenerator(renderer)
+          carEnv = pm.fromScene(new RoomEnvironment(), 0.04).texture
+          pm.dispose()
+        }
+        return carEnv
+      }
+      // The eyes and the mouth, cut from the camera into one small canvas: the eyes side by side over the mouth.
+      const partsCanvas = document.createElement("canvas")
+      partsCanvas.width = 512
+      partsCanvas.height = 256
+      const partsCtx = partsCanvas.getContext("2d")
+      const partsTex = new THREE.CanvasTexture(partsCanvas)
+      partsTex.colorSpace = THREE.NoColorSpace
+      partsTex.minFilter = THREE.LinearFilter
+      partsTex.generateMipmaps = false
+      // A part: an ellipse of the canvas, with a dark rim like a cartoon's line.
+      function partMat(rect) {
+        return new THREE.ShaderMaterial({
+          uniforms: { uTex: { value: partsTex }, uRect: { value: new THREE.Vector4(...rect) } },
+          vertexShader: /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+          fragmentShader: /* glsl */ `
+            uniform sampler2D uTex;
+            uniform vec4 uRect;
+            varying vec2 vUv;
+            void main() {
+              float e = length((vUv - 0.5) * 2.0);
+              if (e > 1.0) discard;
+              vec3 c = texture2D(uTex, uRect.xy + vUv * uRect.zw).rgb;
+              c = mix(c, vec3(0.03, 0.03, 0.08), smoothstep(0.85, 0.89, e));
+              gl_FragColor = vec4(c, smoothstep(1.0, 0.96, e));
+            }`,
+          transparent: true,
+          depthWrite: false,
+          polygonOffset: true,
+          polygonOffsetFactor: -4,
+          polygonOffsetUnits: -4,
+        })
+      }
+      for (const [id, c] of Object.entries(CARS)) {
+        Object.assign(c, { id, amt: 0, ready: false, group: new THREE.Group(), body: new THREE.Group(), boom: -1, flip: -1, shown: 0, s: 1, len: CAR_LEN })
+        c.group.visible = false
+        c.group.add(c.body)
+        head.add(c.group)
+        new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(c.url, (gltf) => buildCar(c, gltf.scene), undefined, (e) => fail(id, e))
+      }
+      const carList = Object.values(CARS)
+      function buildCar(c, m) {
+        roomEnv()
+        m.updateMatrixWorld(true)
+        const meshes = []
+        m.traverse((o) => {
+          if (!o.isMesh) return
+          meshes.push(o)
+          if (o.material.map) o.material.map.colorSpace = THREE.NoColorSpace
+          o.material.envMap = carEnv
+          // A dark, quiet windshield, so the eyes on it read.
+          if (/Window/.test(o.material.name)) Object.assign(o.material, { envMapIntensity: 0.25, roughness: 0.6, color: new THREE.Color(0x0b1020) })
+        })
+        const box = new THREE.Box3().setFromObject(m)
+        const size = box.getSize(new THREE.Vector3())
+        const center = box.getCenter(new THREE.Vector3())
+        const inner = new THREE.Group()
+        inner.position.copy(center).multiplyScalar(-1)
+        inner.add(m)
+        // The windshield: the glass facing forward and up (its centre, its normal, how wide it is).
+        const ws = { at: new THREE.Vector3(), n: new THREE.Vector3(), area: 0, zMin: Infinity, zMax: -Infinity }
+        const A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), N = new THREE.Vector3(), E = new THREE.Vector3()
+        for (const o of meshes.filter((o) => /Window/.test(o.material.name))) {
+          const pos = o.geometry.getAttribute("position")
+          const idx = o.geometry.index
+          const count = idx ? idx.count : pos.count
+          for (let t = 0; t < count; t += 3) {
+            const [i, j, k] = idx ? [idx.getX(t), idx.getX(t + 1), idx.getX(t + 2)] : [t, t + 1, t + 2]
+            A.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld)
+            B.fromBufferAttribute(pos, j).applyMatrix4(o.matrixWorld)
+            C.fromBufferAttribute(pos, k).applyMatrix4(o.matrixWorld)
+            N.subVectors(B, A).cross(E.subVectors(C, A))
+            const area = N.length() / 2
+            if (!area) continue
+            N.normalize()
+            if (N.y < 0) N.negate()
+            if (N.x < 0.3 || N.y < 0.25) continue
+            ws.zMin = Math.min(ws.zMin, A.z, B.z, C.z)
+            ws.zMax = Math.max(ws.zMax, A.z, B.z, C.z)
+            ws.at.addScaledVector(A.add(B).add(C), area / 3)
+            ws.n.addScaledVector(N, area)
+            ws.area += area
+          }
+        }
+        const eyeAt = ws.area ? ws.at.divideScalar(ws.area) : new THREE.Vector3(center.x + size.x * 0.1, box.max.y - size.y * 0.2, center.z)
+        const eyeN = ws.area ? ws.n.normalize() : new THREE.Vector3(0.6, 0.8, 0).normalize()
+        const eyeW = ws.area ? ws.zMax - ws.zMin : size.z * 0.6
+        // The mouth: on the front, a little above the bottom, where a ray from ahead meets it.
+        const mouthY = box.min.y + size.y * 0.27
+        const hit = new THREE.Raycaster(new THREE.Vector3(box.max.x + 100, mouthY, center.z), new THREE.Vector3(-1, 0, 0)).intersectObjects(meshes, false)[0]
+        const mouthAt = hit ? hit.point.clone() : new THREE.Vector3(box.max.x, mouthY, center.z)
+        // Screen right once the car faces the camera is the model's −z.
+        const right = new THREE.Vector3(0, 0, -1)
+        const along = (n) => right.clone().addScaledVector(n, -right.dot(n)).normalize()
+        const patch = (at, n, w, h, rect, out = 0.6) => {
+          const r = along(n)
+          const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), partMat(rect))
+          p.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(r, new THREE.Vector3().crossVectors(n, r), n))
+          p.position.copy(at).addScaledVector(n, out)
+          p.renderOrder = 2
+          inner.add(p)
+        }
+        // The eyes face halfway between the glass and straight ahead, so they stay round seen from the front, a
+        // little up the glass and out of it so the hood doesn't cut them; at least big enough to read on a small
+        // windshield like the Octane's.
+        const span = Math.max(eyeW, size.z * 0.62)
+        const ew = span * 0.44
+        const en = eyeN.clone().add(new THREE.Vector3(1, 0, 0)).normalize()
+        const r = along(en)
+        const at = eyeAt.clone().addScaledVector(new THREE.Vector3().crossVectors(en, r), ew * EYE_H * 0.22)
+        patch(at.clone().addScaledVector(r, -span * 0.245), en, ew, ew * EYE_H, [0, 0.5, 0.5, 0.5], 3)
+        patch(at.clone().addScaledVector(r, span * 0.245), en, ew, ew * EYE_H, [0.5, 0.5, 0.5, 0.5], 3)
+        const mw = size.z * 0.36
+        patch(mouthAt, new THREE.Vector3(1, 0, 0), mw, mw * 0.46, [0, 0, 1, 0.5])
+        // CAR_W cm across, facing the camera, its length shortened a little (less perspective, more cartoon).
+        const s = CAR_W / size.z
+        c.body.rotation.y = -Math.PI / 2
+        c.s = s
+        c.body.scale.set(s * CAR_LEN, s, s)
+        c.body.add(inner)
+        c.group.position.set(...CAR_AT)
+        c.ready = true
+      }
+      // His eyes (with the brows) and mouth from the camera, levelled (the car leans with the head by itself).
+      function drawParts() {
+        const vw = video.videoWidth
+        const vh = video.videoHeight
+        const P = (i) => [faceLm[i].x * vw, faceLm[i].y * vh]
+        const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+        const len = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1])
+        const eyes = [
+          [33, 133],
+          [362, 263],
+        ]
+          .map(([i, j]) => ({ c: mid(P(i), P(j)), w: len(P(i), P(j)) }))
+          .sort((a, b) => a.c[0] - b.c[0])
+        const ang = Math.atan2(eyes[1].c[1] - eyes[0].c[1], eyes[1].c[0] - eyes[0].c[0])
+        const up = [Math.sin(ang), -Math.cos(ang)]
+        const ctx = partsCtx
+        const cut = (cx, cy, w, h, dx, dy, dw, dh) => {
+          ctx.save()
+          ctx.filter = "brightness(1.15) contrast(1.12) saturate(1.1)"
+          ctx.beginPath()
+          ctx.rect(dx, dy, dw, dh)
+          ctx.clip()
+          ctx.translate(dx + dw / 2, dy + dh / 2)
+          ctx.scale(dw / w, dh / h)
+          ctx.rotate(-ang)
+          ctx.translate(-cx, -cy)
+          ctx.drawImage(video, 0, 0, vw, vh)
+          ctx.restore()
+        }
+        eyes.forEach((e, i) => {
+          const w = e.w * 2.2
+          cut(e.c[0] + up[0] * e.w * 0.15, e.c[1] + up[1] * e.w * 0.15, w, w * EYE_H, i * 256, 0, 256, 128)
+        })
+        const mc = mid(mid(P(61), P(291)), mid(P(0), P(17)))
+        const mw = len(P(61), P(291)) * 1.7
+        cut(mc[0], mc[1], mw, mw * 0.46, 0, 128, 512, 128)
+        partsTex.needsUpdate = true
+      }
+      function updateCars(now) {
+        for (const c of carList) {
+          c.group.visible = c.amt > 0 && c.ready
+          if (!c.group.visible) continue
+          let k = easeOutBack(c.amt)
+          // Demolished: gone for 2.2 s, then back with a pop.
+          if (c.boom >= 0) {
+            const t = (now - c.boom) / 1000
+            k *= t < 0.06 ? 1 - t / 0.06 : t < 2.2 ? 0 : easeOutBack(Math.min(1, (t - 2.2) / 0.35))
+            if (t > 2.6) c.boom = -1
+          }
+          // Flip: like a dodge in the game, a hop up, a front flip at the top and a little squash landing.
+          let flip = 0, hop = 0, squash = 1
+          if (c.flip >= 0) {
+            const t = (now - c.flip) / 700
+            if (t < 1) {
+              hop = Math.sin(Math.min(1, t / 0.85) * Math.PI) * CAR_W * 0.35
+              const f = THREE.MathUtils.clamp((t - 0.12) / 0.6, 0, 1)
+              flip = (f < 0.5 ? 4 * f ** 3 : 1 - (-2 * f + 2) ** 3 / 2) * Math.PI * 2
+              squash = t > 0.85 ? 1 - Math.sin(((t - 0.85) / 0.15) * Math.PI) * 0.12 : 1
+            } else c.flip = -1
+          }
+          c.group.scale.set(Math.max(k, 1e-4), Math.max(k * squash, 1e-4), Math.max(k, 1e-4))
+          c.group.position.set(CAR_AT[0], CAR_AT[1] + hop, CAR_AT[2])
+          // It flips about the car's own crosswise axis (screen x once it faces the camera).
+          c.group.rotation.x = CAR_PITCH + flip
+          c.shown = Math.min(1, k)
+          // Longer as he turns: short from the front (more cartoon), but from the side long enough to cover his
+          // head from the nose to the back of his hair.
+          const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(headQuat)
+          const side = Math.min(1, Math.abs(fwd.x))
+          c.len += ((CAR_LEN + (CAR_LEN_SIDE - CAR_LEN) * side) - c.len) * 0.3
+          c.body.scale.x = c.s * c.len
+        }
+        // The explosion follows where the car was.
+        const c = carList.find((c) => c.boom >= 0)
+        uniforms.uBoomT.value = -1
+        if (c && headSeen) {
+          const t = (now - c.boom) / 1000
+          if (t < 2.4) {
+            c.group.updateWorldMatrix(true, false)
+            const at = c.group.getWorldPosition(new THREE.Vector3())
+            const p = at.clone().project(headCam)
+            const q2 = at.clone().add(new THREE.Vector3(CAR_W / 2, 0, 0)).project(headCam)
+            uniforms.uBoom.value.set(p.x * 0.5 + 0.5, p.y * 0.5 + 0.5, Math.max(0.05, (Math.abs(q2.x - p.x) / 2) * ASPECT))
+            uniforms.uBoomT.value = t
+          }
+        }
+      }
+      // With the game's sounds: the demolition's blast; the flip's jump, then its dodge.
+      function demo(now) {
+        const c = CARS[mode]
+        if (!c || c.boom >= 0) return
+        c.boom = now
+        sfx.play("carro-demo", { pan: panAt(faceBox().c.x) })
+      }
+      function flipCar(now) {
+        const c = CARS[mode]
+        if (!c || c.flip >= 0 || c.boom >= 0) return
+        c.flip = now
+        const pan = panAt(faceBox().c.x)
+        sfx.play("carro-pulo", { pan, gain: 0.7 })
+        sfx.play("carro-flip", { pan, delay: 0.08 })
+      }
 
       // ---------- models ----------
       let gestures, segmenter, faces, poses, delegate
@@ -1037,12 +2612,11 @@
       }
 
       // ---------- state ----------
-      const MODES = ["bola", "phoenix", "pop", "lente"]
+      const MODES = ["bola", "phoenix", "sova", "octane", "fennec", "pop", "lente"]
       let mode = MODES.includes(q.get("modo")) ? q.get("modo") : "nenhum"
       let pop = 0
       let ballIn = 0
       const ms = { gesto: 0, corpo: 0, rosto: 0, ombros: 0 }
-      let phoenix = 0
       const fire = { on: false, demo: false, amt: 0, at: new THREE.Vector3(0.5, 0.35, 0.1), lastOn: -1e9 }
       const bang = { t0: -1, key: null, startX: 0, hand: new THREE.Vector2(0.75, 0.45), thrown: false }
       const snaps = new Map()
@@ -1055,19 +2629,49 @@
       let pushes = []
       let handInfo = ""
 
+      // Each filter's sounds, by their cues' prefix.
+      const SONS = { phoenix: "phoenix-", sova: "sova-", octane: "carro-", fennec: "carro-" }
       function setMode(m) {
+        const before = mode
         mode = MODES.includes(m) ? m : "nenhum"
         titulo.classList.toggle("on", mode === "pop")
-        // Phoenix's flash goes with him.
+        // A new filter silences the last one's and decodes its own.
+        if (mode !== before) sfx.stopAll(0.25)
+        if (SONS[mode]) {
+          sfx.preload(SONS[mode])
+          sfx.keep(SONS[mode])
+        }
+        // Each agent's abilities go with him.
         if (mode !== "phoenix") {
           bang.t0 = -1
           uniforms.uOrbAmt.value = uniforms.uFlashAmt.value = 0
+          phxReset()
         }
+        if (mode !== "sova") sovaReset()
+        // Each agent's effects' textures, loaded as he comes on.
+        if (mode === "phoenix") vfx.preload(PHX)
+        if (mode === "sova") vfx.preload(SOVA)
       }
-      // The dock's word (obs-browser's emit_event): the filter that should be on, or a one-off.
+      // A one-off, from the dock or a key: only for the filter that has it.
+      function acao(a) {
+        const now = performance.now()
+        if (mode === "phoenix") {
+          if (a === "flash") startBang(...handAt(1), null)
+          else ({ molotov: startHotHands, blaze: startBlaze, ult: startRunItBack })[a]?.(now)
+        }
+        if (mode === "sova") ({ recon: () => autoBow("recon", now), choque: () => autoBow("choque", now), drone: () => startDrone(now), ult: () => startUlt(now) })[a]?.()
+        if (CARS[mode]) ({ demo, flip: flipCar })[a]?.(now)
+      }
+      // The dock's word (obs-browser's emit_event): the filter that should be on with its options (Sova's drone
+      // flying behind him), or a one-off.
       addEventListener("muanlartins-filtro", ({ detail }) => {
         if (detail?.filtro && detail.filtro !== mode) setMode(detail.filtro)
-        if (detail?.acao === "flash" && mode === "phoenix") startBang(0.75, 0.45, null)
+        if (detail?.opcoes) {
+          sova.patrol.want = !!detail.opcoes.patrulha
+          // The dock's "Sons" switch (on unless it says mudo).
+          sfx.on = !detail.opcoes.mudo
+        }
+        if (detail?.acao) acao(detail.acao)
       })
       addEventListener("keydown", (e) => {
         if (e.key === "1") setMode(mode === "pop" ? "nenhum" : "pop")
@@ -1076,9 +2680,19 @@
         if (e.key === "4") startBang(0.75, 0.45, null)
         if (e.key === "5") fire.demo = !fire.demo
         if (e.key === "6") setMode(mode === "lente" ? "nenhum" : "lente")
+        if (e.key === "7") setMode(mode === "sova" ? "nenhum" : "sova")
+        if (e.key === "8") setMode(mode === "octane" ? "nenhum" : "octane")
+        if (e.key === "9") setMode(mode === "fennec" ? "nenhum" : "fennec")
+        const k = e.key.toLowerCase()
+        const keys = mode === "phoenix" ? { c: "blaze", q: "flash", e: "molotov", x: "ult" } : { e: "recon", q: "choque", c: "drone", x: "ult", d: "demo", f: "flip" }
+        if (keys[k]) acao(keys[k])
+        if (k === "p") sova.patrol.want = !sova.patrol.want
+        if (k === "m") sfx.on = !sfx.on
         if (e.key === "0") setMode("nenhum")
       })
       setMode(mode)
+      const DEBUG = q.has("debug")
+      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, isOwl, handShape, bow3, drone3, SOVA, at3, get mode() { return mode } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -1089,7 +2703,8 @@
 
       function runGestures(now) {
         const t0 = performance.now()
-        const r = gestures.recognizeForVideo(video, now)
+        // ?debug: window.__hands(now) can stand in for the tracker (made-up hands, for checking the gestures).
+        const r = (DEBUG && window.__hands?.(now)) || gestures.recognizeForVideo(video, now)
         ms.gesto = performance.now() - t0
         const hands = r.landmarks || []
         lastHands = hands
@@ -1097,6 +2712,7 @@
         const ls = mode === "lente" ? hands.filter(isL) : []
         handInfo = `${hands.length} mão(s), ${ls.length} em L`
         if (mode === "phoenix") phoenixHands(r, now)
+        if (mode === "sova") sovaHands(r, now)
         if (ls.length === 2) {
           ls.sort((a, b) => a[0].x - b[0].x)
           const [L, R] = ls
@@ -1146,6 +2762,7 @@
           prevMask = prevMask || new Uint8Array(MW * MH)
           prevMask.set(maskData)
           maskTex.needsUpdate = true
+          maskFresh = true
           energy = Math.max(energy, Math.min(1, diff / (MW * MH * 255) / 0.02))
           if (sum > 50 && top >= 0) {
             const [cx, cy] = toScreen(sx / sum / MW, Math.min(1, top / MH + 0.14))
@@ -1218,29 +2835,47 @@
             pose.dz = dz
           }
           pose.seen = true
+          // The elbows, when they're in the picture (Phoenix's ultimate burns on them too).
+          pose.elbows = [13, 14].map((i) => (lm[i].visibility > 0.5 ? new THREE.Vector2(...toScreen(lm[i].x, lm[i].y)) : null))
         } else pose.seen = false
         ms.ombros = performance.now() - t0
       }
 
-      // The background's colour, from what the mask says isn't Luan in the frame's top half, for painting
-      // over his hair (NVIDIA Broadcast's virtual background is plain blue behind him).
+      // Does the background plate match the frame? Compared where the mask says Luan isn't, in the frame's top
+      // half: the mean difference evens out the camera's colours (uPlateFix), and what's left after it must be
+      // small (the lattice's lines are a few levels off the blue; another picture is tens).
       function sampleBackground() {
+        if (!plate.img) return
+        const c = plate.canvas
+        if (c.width !== MW || c.height !== MH) Object.assign(c, { width: MW, height: MH })
+        const pctx = c.getContext("2d", { willReadFrequently: true })
+        pctx.drawImage(plate.img, 0, 0, MW, MH)
         const px = smallCtx.getImageData(0, 0, MW, MH >> 1).data
-        let r = 0, g = 0, b = 0, n = 0
-        for (let i = 0; i < px.length / 4; i += 3) {
+        const pl = pctx.getImageData(0, 0, MW, MH >> 1).data
+        const sum = [0, 0, 0]
+        let n = 0
+        for (let i = 0; i < px.length / 4; i += 2) {
           if (maskData[i] > 40) continue
-          r += px[i * 4]
-          g += px[i * 4 + 1]
-          b += px[i * 4 + 2]
+          for (let k = 0; k < 3; k++) sum[k] += px[i * 4 + k] - pl[i * 4 + k]
           n++
         }
-        if (n > 50) uniforms.uBg.value.lerp(new THREE.Color(r / n / 255, g / n / 255, b / n / 255), 0.2)
+        if (n < 200) return
+        const fix = sum.map((v) => v / n)
+        let off = 0
+        for (let i = 0; i < px.length / 4; i += 2) {
+          if (maskData[i] > 40) continue
+          for (let k = 0; k < 3; k++) off += Math.abs(px[i * 4 + k] - pl[i * 4 + k] - fix[k])
+        }
+        plate.off = off / n / 3
+        plate.ok = plate.off < 12
+        uniforms.uPlateFix.value.lerp(new THREE.Vector3(fix[0] / 255, fix[1] / 255, fix[2] / 255), 0.3)
       }
 
       function startBang(x, y, key) {
         if (bang.t0 >= 0) return
-        Object.assign(bang, { t0: performance.now(), key, startX: x, thrown: false })
+        Object.assign(bang, { t0: performance.now(), key, startX: x, thrown: false, heard: 0 })
         bang.hand.set(x, y)
+        sfx.play("phoenix-flash-equip", { pan: panAt(x) })
       }
       // The orb's path: held in the hand, then thrown to the side the hand moved to (or to the middle).
       function updateBang(now) {
@@ -1276,11 +2911,25 @@
           const g = t - HOLD - FLY
           u.uOrbAmt.value = Math.max(0, 1 - g / 0.12)
           u.uFlashAt.value.copy(u.uTo.value)
-          u.uFlashAmt.value = Math.min(1, g / 0.06) * (g < GLARE ? 1 : (1 - (g - GLARE) / FADE) ** 1.6)
+          // With the game's pop (vfx), the glare comes a moment after it, as the game's flash whites out.
+          const pop = vfx.ok ? 0.15 : 0
+          u.uFlashAmt.value = THREE.MathUtils.clamp((g - pop) / 0.06, 0, 1) * (g < GLARE ? 1 : (1 - (g - GLARE) / FADE) ** 1.6)
         } else {
           bang.t0 = -1
           u.uOrbAmt.value = 0
         }
+        // Thrown, then its pop, and what a flashed player hears as the glare blinds whoever's watching.
+        if (bang.heard < 1 && t >= HOLD) {
+          bang.heard = 1
+          sfx.play("phoenix-flash-throw", { pan: panAt(bang.hand.x) })
+        }
+        if (bang.heard < 2 && t >= HOLD + FLY) {
+          bang.heard = 2
+          const pan = panAt(u.uTo.value.x)
+          sfx.play("phoenix-flash-pop", { pan })
+          sfx.play("phoenix-flash-blind", { pan: pan * 0.5, gain: 0.55, delay: 0.15 })
+        }
+        phxCurveball(t)
       }
 
       // Both palms open, fingers up, seen edge on (facing each other), side by side: a fire between them.
@@ -1367,12 +3016,16 @@
           hud.textContent = `parado: ${!showing ? "fonte fora da tela" : !box ? `sem caixa de câmera na cena "${sceneName}"` : "sem câmera"}` + (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
           return
         }
+        const phoenix = AGENTS.phoenix.amt
+        const agentOn = agentList.some((a) => a.amt > 0) || !!AGENTS[mode]
+        const carOn = carList.some((c) => c.amt > 0) || !!CARS[mode]
+        const sovaOn = mode === "sova" || AGENTS.sova.amt > 0
         if (gestures && video.readyState >= 2 && video.currentTime !== lastFrame) {
           lastFrame = video.currentTime
           try {
             videoFrames++
             // The hands are tracked only for the filters that use them (no gesture switches a filter).
-            if (mode === "phoenix" || phoenix > 0 || mode === "pop" || pop > 0 || mode === "lente") runGestures(now)
+            if (mode === "phoenix" || phoenix > 0 || sovaOn || mode === "pop" || pop > 0 || mode === "lente") runGestures(now)
             else {
               lastHands = []
               pushes = []
@@ -1380,28 +3033,54 @@
               fire.on = false
               handInfo = "mãos sem uso"
             }
-            if (mode === "pop" || pop > 0) runBody(now)
-            const ph = mode === "phoenix" || phoenix > 0
-            if (mode === "bola" || ballIn > 0 || ph) runFace(now)
-            if (ph) {
-              if (ERASE && mode !== "pop" && pop <= 0) runBody(now)
-              if (videoFrames % 2 === 0) runPose(now)
-              if (ERASE && videoFrames % 15 === 0) sampleBackground()
+            // The body mask: Pop, and Sova's reveals while one may be on screen.
+            const sovaMask = sovaOn && (now < sova.maskUntil || sova.patrol.amt > 0)
+            if (mode === "pop" || pop > 0 || sovaMask) runBody(now)
+            if (mode === "bola" || ballIn > 0 || agentOn || carOn) runFace(now)
+            if (agentOn && videoFrames % 2 === 0) runPose(now)
+            // The body mask and the background's check, for erasing his hair (agents) or his head (cars).
+            if ((agentOn || carOn) && ERASE) {
+              if (mode !== "pop" && pop <= 0 && !sovaMask) runBody(now)
+              if (plate.off === undefined || videoFrames % 15 === 0) sampleBackground()
             }
+            if (carOn && faceLm) drawParts()
           } catch (e) {
             fail("modelos", e)
           }
         }
         pop = THREE.MathUtils.clamp(pop + (mode === "pop" ? dt / 0.55 : -dt / 0.4), 0, 1)
         ballIn = THREE.MathUtils.clamp(ballIn + (mode === "bola" ? dt / 0.35 : -dt / 0.25), 0, 1)
-        phoenix = THREE.MathUtils.clamp(phoenix + (mode === "phoenix" ? dt / 0.4 : -dt / 0.3), 0, 1)
+        for (const a of agentList) a.amt = THREE.MathUtils.clamp(a.amt + (mode === a.id ? dt / 0.4 : -dt / 0.3), 0, 1)
+        for (const c of carList) c.amt = THREE.MathUtils.clamp(c.amt + (mode === c.id ? dt / 0.35 : -dt / 0.25), 0, 1)
+        const agentAmt = Math.max(...agentList.map((a) => a.amt))
+        const carAmt = Math.max(...carList.map((c) => c.amt))
         const fireWanted = phoenix > 0 && (fire.on || fire.demo)
         if (fire.demo && !fire.on) fire.at.set(0.5, 0.3, 0.11)
         fire.amt = THREE.MathUtils.clamp(fire.amt + (fireWanted ? dt / 0.25 : -dt / 0.35), 0, 1)
-        uniforms.uErase.value = headSeen && ERASE ? phoenix : 0
+        // The fire between his palms crackles as loud as it's big.
+        if (fire.amt > 0.01) {
+          fire.snd ||= sfx.play("phoenix-fire", { loop: true, gain: 0 })
+          fire.snd.set({ gain: fire.amt * 0.9, pan: panAt(fire.at.x) })
+        } else if (fire.snd) {
+          fire.snd.stop(0.2)
+          fire.snd = null
+        }
+        uniforms.uPlateOk.value = plate.ok ? 1 : 0
         uniforms.uFire.value.copy(fire.at)
         uniforms.uFireAmt.value = fire.amt
         if (bang.t0 >= 0) updateBang(now)
+        if (mode === "phoenix" || vfx.active()) updatePhoenix(now, dt)
+        if (sovaOn) updateSova(now, dt)
+        updateCars(now)
+        // Erasing his hair: around an agent's, or his whole head under a car (back while it's demolished).
+        const carShown = Math.max(0, ...carList.map((c) => (c.group.visible ? c.shown : 0)))
+        uniforms.uErase.value = headSeen && ERASE ? Math.max(agentAmt, carShown) : 0
+        uniforms.uEraseLow.value.set(...(carShown > agentAmt ? [-1.05, -0.85] : [-0.55, -0.3]))
+        // Under a car, centred on the middle of his head rather than his face, which turns off to a side.
+        if (carShown > agentAmt && headSeen) {
+          const mid = new THREE.Vector3(...CAR_AT).applyMatrix4(head.matrix).project(headCam)
+          uniforms.uFace.value.x += (mid.x * 0.5 + 0.5 - uniforms.uFace.value.x) * 0.7
+        }
         lens.amt = THREE.MathUtils.clamp(lens.amt + (lens.on ? dt / 0.15 : -dt / 0.2), 0, 1)
         energy *= Math.pow(0.25, dt)
 
@@ -1412,14 +3091,34 @@
         lens.pts.forEach((v, i) => uniforms.uLens.value[i].copy(v))
         uniforms.uCover.value.set(cover.sx, cover.sy, cover.ox, cover.oy)
 
+        // Phoenix's effects into their own target first (that switches render targets).
+        const vfxOn = vfx.active()
+        vfx.tint.set(...(sovaOn ? TINTS.sova : TINTS.phoenix))
+        if (vfxOn) vfx.render(box[2], box[3])
+        // The face's mask and what's behind Luan, before the camera's layer, which erases his hair with them.
+        const ready = agentList.filter((a) => a.amt > 0 && a.ready)
+        if (ready.length) drawKeep(ready.find((a) => a.trim)?.trim)
+        else if (carAmt > 0) drawKeep(undefined, false)
+        if ((agentAmt > 0 || carAmt > 0) && ERASE && maskFresh) {
+          remember()
+          maskFresh = false
+        }
+
         renderer.setScissorTest(false)
         renderer.setViewport(0, 0, W, H)
         renderer.clear()
         const [bx, by, bw, bh] = box
-        renderer.setViewport(bx, H - by - bh, bw, bh)
+        // Sova's shocks shake the camera: the whole box's picture moves a few pixels, inside the box.
+        let sx = 0, sy = 0
+        if (now < sova.shakeUntil) {
+          const k = ((sova.shakeUntil - now) / sova.shakeLen) * sova.shakeAmp * (bw / 480) ** 0.5
+          sx = Math.round((Math.random() * 2 - 1) * k)
+          sy = Math.round((Math.random() * 2 - 1) * k)
+        }
+        renderer.setViewport(bx + sx, H - by - bh + sy, bw, bh)
         renderer.setScissor(bx, H - by - bh, bw, bh)
         renderer.setScissorTest(true)
-        if (!IN_OBS || mode !== "nenhum" || pop > 0 || ballIn > 0 || phoenix > 0) renderer.render(baseScene, ortho)
+        if (!IN_OBS || mode !== "nenhum" || pop > 0 || ballIn > 0 || agentAmt > 0 || carAmt > 0) renderer.render(baseScene, ortho)
         if (pop > 0) {
           updateShapes(dt, pop, pushes)
           renderer.clearDepth()
@@ -1428,37 +3127,67 @@
           renderer.clearDepth()
           renderer.render(front, shapeCam)
         }
-        if (phoenix > 0 && phoenixModel.ready) {
+        // Sova's drone behind him: under everything else, his body in front of it.
+        if (sovaOn && drone3.root.visible && drone3.behind) {
+          renderer.clearDepth()
+          renderer.render(occludeScene, ortho)
+          renderer.render(sv3.drone, headCam)
+        }
+        // The agents' clothes on the shoulders, then Luan's face and hands back over them.
+        for (const a of ready) {
           if (pose.seen && headSeen) {
-            placeTorso()
-            const k = torsoScale * TORSO_K * easeOutBack(phoenix)
-            torso.matrix.compose(torsoPos, torsoQuat, new THREE.Vector3(k, k, k))
-            torso.visible = true
+            placeTorso(a)
+            const k = a.scale * TORSO_K * easeOutBack(a.amt)
+            a.torso.matrix.compose(a.pos, a.quat, new THREE.Vector3(k, k, k))
+            a.torso.visible = true
             head.visible = false
             renderer.clearDepth()
             renderer.render(ballScene, headCam)
-            torso.visible = false
-          } else torsoSeen = false
-          drawKeep()
-          renderer.render(keepScene, ortho)
+            a.torso.visible = false
+          } else a.seen = false
         }
-        hair.visible = phoenix > 0
-        hair.scale.set(1, easeOutBack(phoenix), 1)
+        if (ready.length) renderer.render(keepScene, ortho)
+        for (const a of agentList) {
+          a.hair.visible = a.amt > 0
+          a.hair.scale.set(1, easeOutBack(a.amt), 1)
+        }
         ball.visible = ballIn > 0
-        // The ball's metal wants strong light; Phoenix's painted textures wash out under it.
-        sky.intensity = phoenix > 0 ? 1.7 : 3.2
-        key.intensity = phoenix > 0 ? 1.5 : 3
-        if ((ballIn > 0 || phoenix > 0) && headSeen) {
+        // The ball's metal wants strong light; the agents' painted textures wash out under it; the cars have
+        // their reflections.
+        sky.intensity = agentAmt > 0 ? 1.7 : carAmt > 0 ? 1.4 : 3.2
+        key.intensity = agentAmt > 0 ? 1.5 : carAmt > 0 ? 1.8 : 3
+        if ((ballIn > 0 || agentAmt > 0 || carAmt > 0) && headSeen) {
           head.visible = true
           ball.scale.setScalar(easeOutBack(ballIn))
           // It turns slowly on the head, on top of the head's own turning (?giro= turns a second, 0 for still).
           ball.rotation.y += dt * BALL_SPIN
           renderer.clearDepth()
           renderer.render(ballScene, headCam)
+          if (ready.some((a) => a.behind)) renderer.render(keepScene, ortho)
         }
+        // Sova's bow in his hand, over his clothes and hair, under his hands (drawn back over it, they hold it and
+        // pull the string).
+        if (sovaOn && bow3.root.visible) {
+          renderer.clearDepth()
+          renderer.render(sv3.held, headCam)
+          renderer.render(keepHandsScene, ortho)
+        }
+        if (sovaOn) {
+          renderer.render(sovaScene, ortho)
+          const droneFront = drone3.root.visible && !drone3.behind
+          if (droneFront || flying.visible || stuck.visible) {
+            renderer.clearDepth()
+            if (flying.visible || stuck.visible) renderer.render(sv3.free, headCam)
+            if (droneFront) renderer.render(sv3.drone, headCam)
+          }
+        }
+        if (uniforms.uBoomT.value >= 0) renderer.render(boomScene, ortho)
         if (fire.amt > 0) renderer.render(fireScene, ortho)
         if (lens.amt > 0) renderer.render(lensScene, ortho)
-        if (uniforms.uOrbAmt.value > 0) renderer.render(bangScene, ortho)
+        if (uniforms.uOrbAmt.value > 0 && !vfx.ok) renderer.render(bangScene, ortho)
+        // Phoenix's abilities, drawn by vfx into its own target, tone mapped over the box.
+        if (vfxOn) renderer.render(vfx.compositeScene, ortho)
+        if (uniforms.uUltVig.value > 0) renderer.render(vigScene, ortho)
         // The glare stays in the camera's box (Luan's call), from where the orb popped.
         if (uniforms.uFlashAmt.value > 0) renderer.render(flashScene, ortho)
 
@@ -1467,11 +3196,13 @@
           fps = (frames * 1000) / (now - fpsAt)
           frames = 0
           fpsAt = now
+          const ag = AGENTS[mode] || CARS[mode]
           hud.textContent =
             `${fps.toFixed(0)} fps · ${delegate || "…"} · ${camLabel}\n` +
             `gesto ${ms.gesto.toFixed(1)} ms · corpo ${ms.corpo.toFixed(1)} ms · rosto ${ms.rosto.toFixed(1)} ms · ombros ${ms.ombros.toFixed(1)} ms\n` +
             `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}` +
-            (mode === "phoenix" ? `\nphoenix: modelo ${phoenixModel.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"} · ombros ${pose.seen ? "sim" : "não"}` : "") +
+            (ag ? `\n${mode}: modelo ${ag.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"}${AGENTS[mode] ? ` · ombros ${pose.seen ? "sim" : "não"} · fundo ${!ERASE ? "desligado" : plate.off === undefined ? "…" : `${plate.ok ? "ok" : "não bate"} (${plate.off.toFixed(1)})`}` : ""}` : "") +
+            (mode === "sova" ? `\nsova: peças ${bow3.model ? "ok" : "…"} · arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? ` · flecha (${sova.arrow.kind})` : ""}${sova.dart ? " · reconhecimento" : ""}${sova.drone ? " · coruja" : ""}${sova.patrol.amt > 0 ? " · coruja sobrevoando" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
             (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
         }
       }

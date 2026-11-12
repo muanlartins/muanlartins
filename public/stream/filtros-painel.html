@@ -6,16 +6,21 @@
     <link rel="stylesheet" href="stream.css" />
     <!--
       OBS: Custom browser dock "Filtros" (brand/twitch/obs.py --apply adds it), off stream. It switches the camera
-      filters of filtros.html, the "Filtros" browser source: one button per filter, one on at a time (the lit one;
-      clicking it again, or Desligar, turns it off), and under them the one-offs of the filter that's on.
+      filters of filtros.html, the "Filtros" browser source: one button per filter (Phoenix, Sova, Rocket League), one
+      on at a time (the lit one; clicking it again, or Desligar, turns it off), and under them, for the one that's on,
+      its looks (Rocket League: Octane, Fennec, the ball; its button turns on the last one picked), the look's
+      one-offs (each agent's abilities with their keys, the cars' Demolição and Flip) and its switches (Sova's
+      "Coruja sobrevoando": his drone flying behind Luan all the while).
 
       It's served like filtros.html, from this working copy on localhost:8126 ("Filtros muanlartins.vbs" in Startup),
       so a new filter needs no release: a line in FILTROS here and its drawing there.
 
       It tells the page through obs-websocket, like the Efeitos dock: obs-browser's emit_event "muanlartins-filtro"
-      with { filtro: "<id>" } ("nenhum" for none), sent on each click and again every 4 s, so the page catches up
-      after a reload; { acao: "<id>" } is a one-off. The dock is where the choice lives and it isn't kept: opening
-      OBS always starts with no filter. The OBS websocket password is kept in the dock's storage;
+      with { filtro: "<id>", opcoes: { <switch>: true|false } } ("nenhum" for none), sent on each click and again
+      every 4 s, so the page catches up after a reload; { acao: "<id>" } is a one-off. "Sons dos filtros" turns the
+      abilities' sounds on and off for every filter (opcoes.mudo, on by default). The dock is where the choice
+      lives and the filter isn't kept: opening OBS always starts with no filter (the switches are kept, and only
+      show with their filter on). The OBS websocket password is kept in the dock's storage;
       #obs=<password> in the URL fills it.
     -->
     <style>
@@ -54,11 +59,6 @@
       .status.on::before {
         background: var(--klein-claro);
       }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-        gap: 6px;
-      }
       button {
         font: inherit;
         font-size: 14px;
@@ -76,6 +76,103 @@
         background: var(--klein);
         border-color: var(--paper);
         box-shadow: 0 0 0 2px rgb(244 245 247 / 0.35);
+      }
+      /* The three filters: big, with the look that's on under the name. */
+      .grupos {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 6px;
+      }
+      .grupos button {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 12px 10px;
+        font-size: 16px;
+        font-weight: 500;
+      }
+      .grupos small {
+        display: block;
+        margin-top: 2px;
+        min-height: 1.3em;
+        color: rgb(244 245 247 / 0.6);
+        font-size: 12px;
+        font-weight: 400;
+      }
+      .grupos button.active small {
+        color: rgb(244 245 247 / 0.85);
+      }
+      #desligar {
+        margin-top: 6px;
+        width: 100%;
+        padding: 7px 10px;
+        font-size: 13px;
+        text-align: center;
+        background: none;
+      }
+      /* Inside a filter: its looks as one segmented row, then its abilities. */
+      .visuais {
+        display: flex;
+        margin-bottom: 8px;
+      }
+      .visuais button {
+        flex: 1;
+        text-align: center;
+        padding: 8px 6px;
+      }
+      .visuais button + button {
+        margin-left: -1px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 6px;
+      }
+      .grid button {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      kbd {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--navy);
+        background: var(--klein-claro);
+      }
+      /* A look's switches: on while lit. */
+      .opcoes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .opcoes button {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+      .opcoes button::before {
+        content: "";
+        flex: none;
+        width: 26px;
+        height: 14px;
+        border-radius: 7px;
+        background: rgb(244 245 247 / 0.25) radial-gradient(circle at 7px 50%, var(--paper) 5px, transparent 5.5px);
+      }
+      .opcoes button.active::before {
+        background: var(--klein-claro) radial-gradient(circle at 19px 50%, var(--paper) 5px, transparent 5.5px);
+      }
+      button.disparou {
+        border-color: var(--paper);
+        background: rgb(133 167 255 / 0.35);
       }
       .note {
         margin: 8px 0 0;
@@ -101,14 +198,17 @@
     <p class="status" id="obs">OBS desconectado</p>
 
     <h2>Filtro da câmera</h2>
-    <div class="grid" id="filtros"></div>
-    <div class="grid" style="margin-top: 6px"><button id="desligar">Desligar</button></div>
+    <div class="grupos" id="grupos"></div>
+    <button id="desligar">Desligar</button>
+    <div class="opcoes"><button id="sons">Sons dos filtros</button></div>
 
-    <div id="acoes-bloco" hidden>
-      <h2 id="acoes-titulo"></h2>
+    <section id="painel" hidden>
+      <h2 id="titulo"></h2>
+      <div class="visuais" id="visuais"></div>
       <div class="grid" id="acoes"></div>
+      <div class="opcoes" id="opcoes"></div>
       <p class="note" id="dica"></p>
-    </div>
+    </section>
 
     <details>
       <summary>Conexão com o OBS</summary>
@@ -116,15 +216,63 @@
     </details>
 
     <script>
-      // The filters on the dock: filtros.html's id, the button's name, its one-offs ([id, name]) and a hint.
-      const FILTROS = [
-        { id: "phoenix", nome: "Phoenix", acoes: [["flash", "Flash"]], dica: "Fogo: as duas palmas abertas, de frente uma para a outra. O flash também sai com um estalo girando a mão." },
-        { id: "bola", nome: "Bola" },
+      // The dock's filters: one button each; inside, its looks (filtros.html's ids: one for an agent, several for
+      // Rocket League), each look's one-offs ([id, key, name]: the key is the ability's in Valorant, or none) and
+      // its switches ([id, name]).
+      const GRUPOS = [
+        {
+          id: "phoenix",
+          nome: "Phoenix",
+          jogo: "Valorant",
+          visuais: [
+            {
+              id: "phoenix",
+              nome: "Phoenix",
+              acoes: [
+                ["blaze", "C", "Labareda"],
+                ["flash", "Q", "Bola Curva"],
+                ["molotov", "E", "Mãos Quentes"],
+                ["ult", "X", "Ultimate"],
+              ],
+            },
+          ],
+          dica: "Fogo: as duas palmas abertas, de frente uma para a outra. O flash também sai com um estalo girando a mão.",
+        },
+        {
+          id: "sova",
+          nome: "Sova",
+          jogo: "Valorant",
+          visuais: [
+            {
+              id: "sova",
+              nome: "Sova",
+              acoes: [
+                ["drone", "C", "Drone Coruja"],
+                ["choque", "Q", "Flecha de Choque"],
+                ["recon", "E", "Flecha de Reconhecimento"],
+                ["ult", "X", "Ultimate"],
+              ],
+              opcoes: [["patrulha", "Coruja sobrevoando"]],
+            },
+          ],
+          dica: "Arco: feche as duas mãos e encoste um punho no outro; afaste as mãos para puxar a corda e abra a mão da corda para atirar a Flecha de Reconhecimento. Drone: mostre as duas palmas abertas para a câmera, lado a lado.",
+        },
+        {
+          id: "rl",
+          nome: "Rocket League",
+          visuais: [
+            { id: "octane", nome: "Octane", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]] },
+            { id: "fennec", nome: "Fennec", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]] },
+            { id: "bola", nome: "Bola" },
+          ],
+        },
       ]
 
       const $ = (id) => document.getElementById(id)
       const KEY = "filtros"
-      const state = { obsPassword: "", ...JSON.parse(localStorage.getItem(KEY) || "{}") }
+      // Kept: the password, per filter the last look picked inside it (what its button turns on next time), and
+      // the switches.
+      const state = { obsPassword: "", visual: {}, opcoes: {}, ...JSON.parse(localStorage.getItem(KEY) || "{}") }
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
       const fromHash = new URLSearchParams(location.hash.slice(1)).get("obs")
       if (fromHash) {
@@ -159,7 +307,7 @@
           } else if (op === 2) {
             ready = true
             status()
-            send({ filtro: atual })
+            send({ filtro: atual, opcoes: state.opcoes })
           }
         }
         ws.onerror = () => ws.close()
@@ -181,35 +329,86 @@
 
       // --- the filters ----------------------------------------------------------------------------------------
       let atual = "nenhum"
+      const grupoDe = (id) => GRUPOS.find((g) => g.visuais.some((v) => v.id === id))
+      const visualDe = (g) => g.visuais.find((v) => v.id === state.visual[g.id]) || g.visuais[0]
       function escolher(id) {
         atual = id
-        send({ filtro: atual })
+        const g = grupoDe(id)
+        if (g) {
+          state.visual[g.id] = id
+          save()
+        }
+        send({ filtro: atual, opcoes: state.opcoes })
         desenhar()
       }
+      const botao = (html, onclick) => {
+        const b = document.createElement("button")
+        b.innerHTML = html
+        b.onclick = onclick
+        return b
+      }
+      const texto = (t) => t.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
       function desenhar() {
-        for (const b of $("filtros").children) b.classList.toggle("active", b.dataset.id === atual)
-        const filtro = FILTROS.find((f) => f.id === atual)
-        $("acoes-bloco").hidden = !(filtro?.acoes || filtro?.dica)
-        $("acoes-titulo").textContent = filtro?.nome || ""
-        $("dica").textContent = filtro?.dica || ""
-        $("acoes").replaceChildren(
-          ...(filtro?.acoes || []).map(([acao, nome]) => {
-            const b = document.createElement("button")
-            b.textContent = nome
-            b.onclick = () => send({ acao })
+        const ativo = grupoDe(atual)
+        $("grupos").replaceChildren(
+          ...GRUPOS.map((g) => {
+            const on = g === ativo
+            // Clicking the filter that's on turns it off; another one turns on its last look.
+            const b = botao(`${texto(g.nome)}<small>${texto(g.visuais.length > 1 ? visualDe(g).nome : g.jogo || "")}</small>`, () =>
+              escolher(on ? "nenhum" : visualDe(g).id),
+            )
+            b.classList.toggle("active", on)
             return b
           }),
         )
-      }
-      for (const f of FILTROS) {
-        const b = document.createElement("button")
-        b.textContent = f.nome
-        b.dataset.id = f.id
-        b.onclick = () => escolher(atual === f.id ? "nenhum" : f.id)
-        $("filtros").append(b)
+        $("painel").hidden = !ativo
+        if (!ativo) return
+        const visual = ativo.visuais.find((v) => v.id === atual)
+        $("titulo").textContent = ativo.nome
+        $("visuais").hidden = ativo.visuais.length < 2
+        $("visuais").replaceChildren(
+          ...ativo.visuais.map((v) => {
+            const b = botao(texto(v.nome), () => escolher(v.id))
+            b.classList.toggle("active", v.id === atual)
+            return b
+          }),
+        )
+        $("acoes").replaceChildren(
+          ...(visual.acoes || []).map(([acao, tecla, nome]) => {
+            const b = botao(`${tecla ? `<kbd>${texto(tecla)}</kbd>` : ""}<span>${texto(nome)}</span>`, () => {
+              send({ acao })
+              // A short flash on the button: the click went out.
+              b.classList.add("disparou")
+              setTimeout(() => b.classList.remove("disparou"), 250)
+            })
+            return b
+          }),
+        )
+        $("opcoes").replaceChildren(
+          ...(visual.opcoes || []).map(([id, nome]) => {
+            const b = botao(texto(nome), () => {
+              state.opcoes[id] = !state.opcoes[id]
+              save()
+              send({ filtro: atual, opcoes: state.opcoes })
+              b.classList.toggle("active", !!state.opcoes[id])
+            })
+            b.classList.toggle("active", !!state.opcoes[id])
+            return b
+          }),
+        )
+        $("dica").textContent = ativo.dica || ""
       }
       $("desligar").onclick = () => escolher("nenhum")
-      setInterval(() => send({ filtro: atual }), 4000)
+      // The filters' sounds, for all of them: on unless muted.
+      const sons = () => $("sons").classList.toggle("active", !state.opcoes.mudo)
+      $("sons").onclick = () => {
+        state.opcoes.mudo = !state.opcoes.mudo
+        save()
+        send({ filtro: atual, opcoes: state.opcoes })
+        sons()
+      }
+      sons()
+      setInterval(() => send({ filtro: atual, opcoes: state.opcoes }), 4000)
       desenhar()
       status()
       connect()

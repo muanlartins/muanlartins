@@ -126,6 +126,26 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "sons-dos-filtros",
+    date: "2026-11-12",
+    tag: "live",
+    title: "Os filtros da câmera com os sons do jogo",
+    text: "As habilidades do Phoenix e do Sova agora soam como no Valorant, com os sons tirados do próprio jogo: a Bola Curva estoura e quem está assistindo ouve o zumbido de quem foi cegado, a flecha do Sova crava e faz o sonar, o drone zune voando atrás de mim. E o Octane e o Fennec com o pulo e o dodge do flip e a explosão da demolição do Rocket League.",
+  },
+  {
+    id: "filtros-sova-e-carros",
+    date: "2026-11-11",
+    tag: "live",
+    title: "Filtros na câmera: Phoenix e Sova com as habilidades do jogo, Octane e Fennec",
+    text: "O Phoenix e o Sova com as habilidades feitas com os efeitos e os modelos do próprio jogo. O Phoenix com Labareda, Bola Curva, Mãos Quentes e a ultimate. O Sova com o arco dele, que abre quando eu junto os punhos e atira quando eu solto a corda, a flecha de reconhecimento que crava na borda e me revela em vermelho, a flecha de choque que quica e explode, o drone coruja que aparece quando eu mostro as palmas e pode ficar voando atrás de mim, e a Fúria do Caçador. E a minha cabeça virando um Octane ou um Fennec, com os meus olhos no para-brisa e a boca no para-choque, que dá flip e explode numa demolição. Tudo escolhido num painel novo no OBS.",
+    media: [
+      media("filtros-phoenix-habilidades", "Luan de Phoenix com as quatro habilidades: a Labareda, a Bola Curva na mão, o fogo das Mãos Quentes e a ultimate"),
+      media("filtros-sova-habilidades", "Luan de Sova com as habilidades do jogo: o arco puxado com a flecha de reconhecimento, a flecha de choque explodindo no ombro, o drone coruja acertando o dardo e a Fúria do Caçador disparando"),
+      media("filtros-octane", "Luan com a cara de Octane: os olhos dele no para-brisa e a boca no para-choque"),
+      media("filtros-fennec", "Luan com a cara de Fennec: os olhos dele no para-brisa e a boca no para-choque"),
+    ],
+  },
+  {
     id: "anuncio-no-intervalo",
     date: "2026-11-11",
     tag: "live",
