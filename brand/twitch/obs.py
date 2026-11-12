@@ -236,6 +236,9 @@ in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
 filters = browser("Filtros", "filtros.html")
 # Page permission 2 (read user information) lets it ask for the current scene when it loads, not only hear changes.
 filters["settings"].update(url="http://localhost:8126/stream/filtros.html", fps=30, webpage_control_level=2)
+# The abilities' sounds (sfx.js) go through OBS, to the stream and Luan's headphones like the Sons source's.
+filters["settings"]["reroute_audio"] = True
+filters.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_rocket_league = {"pos": (44, 740), "bounds": (480, 270)}
 in_valorant = {"pos": (44, 44), "bounds": (480, 270)}
 scenes = [
@@ -322,10 +325,28 @@ LIVE = OBS / "basic/scenes" / re.search(r"^SceneCollectionFile=(.+)$", (OBS / "u
 DOCKS = [("Efeitos", f"{SITE}/efeitos.html"), ("Filtros", "http://localhost:8126/stream/filtros-painel.html")]
 
 
+# Fields of sources OBS already has that `--apply` brings up to date (the rest stays as Luan left it): the camera
+# filters' sound through OBS (2026-11-12).
+SYNC = {"Filtros": {"settings": ["reroute_audio"], "fields": ["monitoring_type"]}}
+
+
 def merge(live, new):
     """Adds to `live` what `new` has and it lacks; returns what was added, to print."""
     added = []
     by_name = {s["name"]: s for s in live["sources"]}
+    ours = {s["name"]: s for s in new["sources"]}
+    for name, what in SYNC.items():
+        mine, want = by_name.get(name), ours.get(name)
+        if not mine or not want:
+            continue
+        for key in what.get("settings", []):
+            if mine["settings"].get(key) != want["settings"].get(key):
+                mine["settings"][key] = want["settings"][key]
+                added.append(f"{name}: {key}")
+        for key in what.get("fields", []):
+            if mine.get(key) != want.get(key):
+                mine[key] = want[key]
+                added.append(f"{name}: {key}")
     for name, action, key in RETIRED:
         hotkeys = (by_name.get(name) or {}).get("hotkeys") or {}
         if any(b.get("key") == key for b in hotkeys.get(action) or []):

@@ -8,16 +8,19 @@
       OBS: Custom browser dock "Filtros" (brand/twitch/obs.py --apply adds it), off stream. It switches the camera
       filters of filtros.html, the "Filtros" browser source: one button per filter (Phoenix, Sova, Rocket League), one
       on at a time (the lit one; clicking it again, or Desligar, turns it off), and under them, for the one that's on,
-      its looks (Rocket League: Octane, Fennec, the ball; its button turns on the last one picked) and the look's
-      one-offs (each agent's abilities with their keys, the cars' Demolição and Flip).
+      its looks (Rocket League: Octane, Fennec, the ball; its button turns on the last one picked), the look's
+      one-offs (each agent's abilities with their keys, the cars' Demolição and Flip) and its switches (Sova's
+      "Coruja sobrevoando": his drone flying behind Luan all the while).
 
       It's served like filtros.html, from this working copy on localhost:8126 ("Filtros muanlartins.vbs" in Startup),
       so a new filter needs no release: a line in FILTROS here and its drawing there.
 
       It tells the page through obs-websocket, like the Efeitos dock: obs-browser's emit_event "muanlartins-filtro"
-      with { filtro: "<id>" } ("nenhum" for none), sent on each click and again every 4 s, so the page catches up
-      after a reload; { acao: "<id>" } is a one-off. The dock is where the choice lives and it isn't kept: opening
-      OBS always starts with no filter. The OBS websocket password is kept in the dock's storage;
+      with { filtro: "<id>", opcoes: { <switch>: true|false } } ("nenhum" for none), sent on each click and again
+      every 4 s, so the page catches up after a reload; { acao: "<id>" } is a one-off. "Sons dos filtros" turns the
+      abilities' sounds on and off for every filter (opcoes.mudo, on by default). The dock is where the choice
+      lives and the filter isn't kept: opening OBS always starts with no filter (the switches are kept, and only
+      show with their filter on). The OBS websocket password is kept in the dock's storage;
       #obs=<password> in the URL fills it.
     -->
     <style>
@@ -142,6 +145,31 @@
         color: var(--navy);
         background: var(--klein-claro);
       }
+      /* A look's switches: on while lit. */
+      .opcoes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .opcoes button {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+      .opcoes button::before {
+        content: "";
+        flex: none;
+        width: 26px;
+        height: 14px;
+        border-radius: 7px;
+        background: rgb(244 245 247 / 0.25) radial-gradient(circle at 7px 50%, var(--paper) 5px, transparent 5.5px);
+      }
+      .opcoes button.active::before {
+        background: var(--klein-claro) radial-gradient(circle at 19px 50%, var(--paper) 5px, transparent 5.5px);
+      }
       button.disparou {
         border-color: var(--paper);
         background: rgb(133 167 255 / 0.35);
@@ -172,11 +200,13 @@
     <h2>Filtro da câmera</h2>
     <div class="grupos" id="grupos"></div>
     <button id="desligar">Desligar</button>
+    <div class="opcoes"><button id="sons">Sons dos filtros</button></div>
 
     <section id="painel" hidden>
       <h2 id="titulo"></h2>
       <div class="visuais" id="visuais"></div>
       <div class="grid" id="acoes"></div>
+      <div class="opcoes" id="opcoes"></div>
       <p class="note" id="dica"></p>
     </section>
 
@@ -187,7 +217,8 @@
 
     <script>
       // The dock's filters: one button each; inside, its looks (filtros.html's ids: one for an agent, several for
-      // Rocket League) and each look's one-offs ([id, key, name]: the key is the ability's in Valorant, or none).
+      // Rocket League), each look's one-offs ([id, key, name]: the key is the ability's in Valorant, or none) and
+      // its switches ([id, name]).
       const GRUPOS = [
         {
           id: "phoenix",
@@ -221,9 +252,10 @@
                 ["recon", "E", "Flecha de Reconhecimento"],
                 ["ult", "X", "Ultimate"],
               ],
+              opcoes: [["patrulha", "Coruja sobrevoando"]],
             },
           ],
-          dica: "Arco: estique um braço para o lado e feche a outra mão perto do rosto, como quem puxa a corda; abra a mão para atirar a flecha de reconhecimento. Drone: a sombra de um passarinho, as mãos abertas com os polegares enganchados e os dedos abertos como asas.",
+          dica: "Arco: feche as duas mãos e encoste um punho no outro; afaste as mãos para puxar a corda e abra a mão da corda para atirar a Flecha de Reconhecimento. Drone: mostre as duas palmas abertas para a câmera, lado a lado.",
         },
         {
           id: "rl",
@@ -238,8 +270,9 @@
 
       const $ = (id) => document.getElementById(id)
       const KEY = "filtros"
-      // Kept: the password and, per filter, the last look picked inside it (what its button turns on next time).
-      const state = { obsPassword: "", visual: {}, ...JSON.parse(localStorage.getItem(KEY) || "{}") }
+      // Kept: the password, per filter the last look picked inside it (what its button turns on next time), and
+      // the switches.
+      const state = { obsPassword: "", visual: {}, opcoes: {}, ...JSON.parse(localStorage.getItem(KEY) || "{}") }
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
       const fromHash = new URLSearchParams(location.hash.slice(1)).get("obs")
       if (fromHash) {
@@ -274,7 +307,7 @@
           } else if (op === 2) {
             ready = true
             status()
-            send({ filtro: atual })
+            send({ filtro: atual, opcoes: state.opcoes })
           }
         }
         ws.onerror = () => ws.close()
@@ -305,7 +338,7 @@
           state.visual[g.id] = id
           save()
         }
-        send({ filtro: atual })
+        send({ filtro: atual, opcoes: state.opcoes })
         desenhar()
       }
       const botao = (html, onclick) => {
@@ -351,10 +384,31 @@
             return b
           }),
         )
+        $("opcoes").replaceChildren(
+          ...(visual.opcoes || []).map(([id, nome]) => {
+            const b = botao(texto(nome), () => {
+              state.opcoes[id] = !state.opcoes[id]
+              save()
+              send({ filtro: atual, opcoes: state.opcoes })
+              b.classList.toggle("active", !!state.opcoes[id])
+            })
+            b.classList.toggle("active", !!state.opcoes[id])
+            return b
+          }),
+        )
         $("dica").textContent = ativo.dica || ""
       }
       $("desligar").onclick = () => escolher("nenhum")
-      setInterval(() => send({ filtro: atual }), 4000)
+      // The filters' sounds, for all of them: on unless muted.
+      const sons = () => $("sons").classList.toggle("active", !state.opcoes.mudo)
+      $("sons").onclick = () => {
+        state.opcoes.mudo = !state.opcoes.mudo
+        save()
+        send({ filtro: atual, opcoes: state.opcoes })
+        sons()
+      }
+      sons()
+      setInterval(() => send({ filtro: atual, opcoes: state.opcoes }), 4000)
       desenhar()
       status()
       connect()

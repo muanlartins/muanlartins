@@ -10,8 +10,9 @@
       (browser sources need OBS started with --enable-media-stream to open a camera).
 
       The dock sends "muanlartins-filtro" through obs-browser's emit_event: { filtro: "<id>" } is the filter that
-      should be on ("nenhum" for none; the dock repeats it every few seconds, so a reloaded page catches up) and
-      { acao: "flash" } fires a one-off. One filter at a time. A new filter: its id in MODES here, what it draws,
+      should be on ("nenhum" for none; the dock repeats it every few seconds, so a reloaded page catches up), with
+      its switches in opcoes ({ patrulha: true }: Sova's drone flying behind him), and { acao: "flash" } fires a
+      one-off. One filter at a time. A new filter: its id in MODES here, what it draws,
       and a line in the dock's FILTROS.
 
       On the dock:
@@ -35,17 +36,20 @@
         Sova  (key 7): Valorant's Sova the same way (privado/sova.glb, out of git): his slicked-back hair on the
               head, the fur collar, the cape and the folded bow on the back on the shoulders. His abilities are the
               game's own (privado/valorant/sova/, out of git: its bow, arrows and Owl Drone in 3D, its effects
-              through vfx.js and vfx-sova.js). Two by gesture, only while he's on: the bow (one arm stretched out to
-              the side and the other hand closed by the face, as if pulling the string: his bow shows in the far
-              hand with its string pulled to the near one; opening that hand shoots a Recon Bolt to the edge of the
-              camera, where it sticks, its head spins and two sonar pulses go out; whoever they cross is revealed,
-              in Valorant's red outline with the marker over the head) and the Owl Drone (a bird's shadow: both
-              hands open, thumbs hooked together, fingers spread like wings: the drone opens between the hands,
+              through vfx.js and vfx-sova.js). Two by gesture, only while he's on: the bow (both hands closed, one
+              fist against the other, opens it between them; pulling them apart draws it, the hand nearer the face on
+              the string and his bow in the other, opening the further the hands part; opening a hand shoots a Recon
+              Bolt from it towards the other hand, to the edge of the camera, where it sticks, its head spins and
+              two sonar pulses go out; whoever they cross is revealed, in Valorant's red outline with the marker over
+              the head) and the Owl Drone (both palms open to the camera, side by side: the drone opens between them,
               flies up beside his head, tags him with its dart, which reveals him twice, and flies off). From the
               dock (or keys E, Q, C, X): Flecha de Reconhecimento (E: the bow drawn and shot by itself), Flecha de
               Choque (Q: the Shock Bolt drawn and shot up, off the top of the box and bursting by his shoulder, the
               camera shakes), Drone Coruja (C) and Ultimate (X, Hunter's Fury: his bow turned to energy, three
-              shots charged and fired across the box, the camera darkened a little). ?arco=<scale> (30) and
+              shots charged and fired across the box, the camera darkened a little). The dock's switch "Coruja
+              sobrevoando" (or ?patrulha, key P) keeps the drone flying behind him, side to side above his
+              shoulders (he covers it as it passes behind him); the drone ability is then that drone coming round
+              to his side and going back. ?arco=<scale> (30) and
               ?coruja=<scale> (30) size the bow and the drone.
               With either agent, Luan's own hair around theirs is painted over with what the camera sees behind
               him (NVIDIA Broadcast's virtual background, camera-fundo.png, or ?fundo=<url>, and whatever's been
@@ -63,6 +67,17 @@
         Lente (key 6): two hands in an "L" (thumb and index out): the space between the fingers turns
               psychedelic. It used to work at any time; now only as its own filter.
       Key 0 turns the filter off.
+
+      Sounds (sfx.js, 2026-11-12): every ability plays the game's own, each moment its own cue, panned to where it
+      happens in the box: Phoenix's equips, throws, the flash's pop and the flashed ringing as the glare blinds the
+      viewers, Hot Hands' blast and fire, the Blaze running across and burning, the ult's cast, burning shoulders and
+      the rise to the comeback, and the fire between his palms crackling as big as it is; Sova's bow (out, charging
+      with a tick at half and full draw, let go or folded), the Recon Bolt's hit, sonar and pings, the Shock Bolt's
+      bounce and burst, the Owl Drone's propellers (quieter behind him), dart and tag, Hunter's Fury charging and
+      firing; the cars' jump and dodge for the flip and the demolition's blast. The cues are made by
+      scripts/filtros_sons.py from the games' files (privado/sons/, out of git; without them it's silent).
+      OBS hears them only with the source's "Control audio via OBS" on. The dock's "Sons dos filtros" switch
+      (opcoes.mudo), key M, ?mudo and ?som=<volume>.
 
       ?debug shows fps, how long each model takes and the hands seen; ?cpu runs the models on the CPU;
       ?modo=pop|bola|phoenix|sova|octane|fennec|lente starts with a filter on; ?texto=A|B the title's two lines in Pop; it frames the camera as OBS's
@@ -173,6 +188,7 @@
       import { createVfx, TINTS } from "./vfx.js"
       import * as PHX from "./vfx-phoenix.js"
       import * as SOVA from "./vfx-sova.js"
+      import { createSfx } from "./sfx.js"
       import { FilesetResolver, GestureRecognizer, ImageSegmenter, FaceLandmarker, PoseLandmarker } from "@mediapipe/tasks-vision"
 
       const q = new URLSearchParams(location.search)
@@ -1216,6 +1232,13 @@
       // below him, then the burst he comes back in. Without the game's textures (privado/), Curveball keeps its
       // drawn orb and the rest do nothing.
       const vfx = createVfx(renderer, headCam)
+      // Their sounds (sfx.js): each moment of an ability plays the game's own (privado/sons/, made by
+      // scripts/filtros_sons.py), panned to where it happens in the box. ?som=<volume> (1), ?mudo to start silent;
+      // the dock's "Sons" switch turns them off.
+      const sfx = createSfx({ volume: Number(q.get("som") ?? 1) })
+      if (q.has("mudo")) sfx.on = false
+      const panAt = (u) => (u - 0.5) * 1.2
+      const pan3 = (p) => panAt(onBox(p).x)
       const phx = { orb: vfx.orb(), orbAt: new THREE.Vector3(), held: null, trail: null, e: null, c: null, x: null }
       // A point on the camera box (0..1, y up) at the depth of his face, dz centimetres closer.
       const at3 = (u, v, dz = 0) => onRay(u, v, (headSeen ? headPos.z : -65) + dz)
@@ -1264,11 +1287,17 @@
         if (phx.e || !vfx.ok) return
         const [u, v] = handAt(1)
         const side = u > 0.5 ? 1 : -1
-        phx.e = { t0: now, from: [u, v], to: [0.5 + side * 0.2, 0.05], pos: new THREE.Vector3(), held: null, trail: null, stage: 0 }
+        phx.e = { t0: now, from: [u, v], to: [0.5 + side * 0.2, 0.05], pos: new THREE.Vector3(), held: null, trail: null, stage: 0, burn: null }
+        sfx.play("phoenix-molotov-equip", { pan: panAt(u) })
       }
       function updateHotHands(now) {
         const e = phx.e
         const t = (now - e.t0) / 1000
+        // Its throw's sound by the clock, so a slow frame can't skip it.
+        if (!e.thrown && t >= HH.EQUIP) {
+          e.thrown = true
+          sfx.play("phoenix-molotov-throw", { pan: panAt(e.from[0]) })
+        }
         if (t < HH.EQUIP) {
           if (lastHands.length) e.from = handAt(e.to[0] > 0.5 ? 1 : -1)
           e.pos.copy(at3(e.from[0], e.from[1], 8))
@@ -1286,7 +1315,14 @@
           vfx.spawn(PHX.E.explode, (v) => v.copy(p), { scale: 0.08, dur: 0.1 })
           const g = at3(e.to[0], 0.0, 10)
           vfx.spawn(PHX.E.ground, (v) => v.copy(g), { scale: 0.13, dur: HH.BURN })
+          sfx.play("phoenix-molotov-explode", { pan: panAt(e.to[0]) })
+          e.burn = sfx.play("phoenix-molotov-burn", { loop: true, pan: panAt(e.to[0]), gain: 0.9 })
           e.stage = 1
+        } else if (e.stage === 1 && t > HH.EQUIP + HH.FLY + HH.BURN) {
+          // The fire dies down.
+          e.burn.stop(0.6)
+          sfx.play("phoenix-molotov-end", { pan: panAt(e.to[0]) })
+          e.stage = 2
         } else if (t > HH.EQUIP + HH.FLY + HH.BURN + 2) phx.e = null
       }
       // Blaze: the flame in the left hand while it's equipped, then the wall's head runs across the bottom of the
@@ -1296,7 +1332,8 @@
         if (phx.c || !vfx.ok) return
         const [u, v] = handAt(-1)
         const side = u < 0.5 ? -1 : 1
-        phx.c = { t0: now, hand: [u, v], side, handPos: new THREE.Vector3(), pos: new THREE.Vector3(), held: null, head: null, wall: null, k: 0 }
+        phx.c = { t0: now, hand: [u, v], side, handPos: new THREE.Vector3(), pos: new THREE.Vector3(), held: null, head: null, wall: null, k: 0, run: null, burn: null, ended: false }
+        sfx.play("phoenix-blaze-equip", { pan: panAt(u) })
       }
       function updateBlaze(now) {
         const c = phx.c
@@ -1316,18 +1353,29 @@
           c.head = vfx.spawn(PHX.C.head, (v) => v.copy(c.pos), { scale: 0.11, dur: BZ.RUN })
           // The wall's particles spread over what the head has crossed so far.
           c.wall = vfx.spawn(PHX.C.wall, (v) => v.copy(from), { scale: 0.11, dur: BZ.RUN + BZ.BURN, segment: (r) => to.clone().sub(from).multiplyScalar(r * c.k) })
+          // The wall's sound runs across with its head, then it burns.
+          c.run = sfx.play("phoenix-blaze-run", { pan: c.side * 0.6 })
+          c.burn = sfx.play("phoenix-blaze-burn", { loop: true, gain: 0 })
+        }
+        c.run?.set({ pan: c.side * 0.6 * (1 - 2 * c.k) })
+        c.burn?.set({ gain: Math.min(1, c.k * 1.5) * 0.9 })
+        if (!c.ended && t > BZ.EQUIP + BZ.RUN + BZ.BURN) {
+          c.ended = true
+          c.burn?.stop(0.6)
+          sfx.play("phoenix-blaze-end")
         }
         if (t > BZ.EQUIP + BZ.RUN + BZ.BURN + 2.5) phx.c = null
       }
       // Run It Back: a burst in his hands, the marker below him, his shoulders and elbows burning for 10 s
       // (with a warm edge on the box), then the burst he comes back in.
-      const RB = { CAST: 0.8, LAST: Number(q.get("ult") || 10) }
+      const RB = { CAST: 0.8, LAST: Number(q.get("ult") || 10), RISE: 8.95 }
       function startRunItBack(now) {
         if (phx.x || !vfx.ok) return
         const hands = [handAt(-1), handAt(1)]
         const mu = pose.seen ? (pose.left.x + pose.right.x) / 2 : 0.5
         const marker = at3(mu, 0.02, 4)
-        phx.x = { t0: now, limbs: [], back: false }
+        phx.x = { t0: now, limbs: [], back: false, fire: null, rise: null }
+        sfx.play("phoenix-ult-cast", { pan: panAt(mu) * 0.5 })
         for (const h of hands) {
           const p = at3(h[0], h[1], 8)
           vfx.spawn(PHX.X.cast, (v) => v.copy(p), { scale: 0.8, dur: 1.2 })
@@ -1347,9 +1395,17 @@
             return v.copy(at3(p.x, p.y + (i < 2 ? 0.02 : 0), i < 2 ? (i ? pose.dz / 2 : -pose.dz / 2) : 0))
           }
           for (let i = 0; i < 4; i++) x.limbs.push(vfx.spawn(PHX.X.limb, spot(i), { scale: 0.4, dur: RB.LAST + RB.CAST - 0.4 }))
+          x.fire = sfx.play("phoenix-fire", { loop: true, gain: 0.55 })
         }
+        // The game's rise towards the comeback, started so that it ends as he comes back (partway in, with a short
+        // ?ult=).
+        const riseAt = RB.CAST + RB.LAST - RB.RISE
+        if (!x.rise && t >= Math.max(RB.CAST, riseAt)) x.rise = sfx.play("phoenix-ult-rise", { offset: t - riseAt, gain: 0.85 })
         if (t > RB.CAST + RB.LAST && !x.back) {
           x.back = true
+          x.fire?.stop(0.5)
+          x.rise?.stop(0.2)
+          sfx.play("phoenix-ult-return")
           const c = pose.seen ? new THREE.Vector2().addVectors(pose.left, pose.right).multiplyScalar(0.5) : new THREE.Vector2(0.5, 0.3)
           const p = at3(c.x, c.y + 0.08, 10)
           vfx.spawn(PHX.X.back, (v) => v.copy(p), { scale: 0.2, dur: 0.8 })
@@ -1483,12 +1539,18 @@
       const sova = {
         // The bow: by gesture or the dock (auto, with the arrow it'll shoot); its hands on screen (a holds it, b
         // pulls the string), how much of it shows, how far it's drawn.
-        bow: { state: "idle", since: 0, lost: 0, amt: 0, draw: 0, auto: 0, kind: "recon", a: new THREE.Vector2(0.75, 0.5), b: new THREE.Vector2(0.6, 0.5) },
+        // By gesture, g follows the two hands (where each was last, a hand opening, a hand lost) and d0 is how far
+        // apart they were as it opened.
+        bow: { state: "idle", since: 0, amt: 0, draw: 0, auto: 0, kind: "recon", a: new THREE.Vector2(0.75, 0.5), b: new THREE.Vector2(0.6, 0.5), g: null, d0: null },
+        fists: 0, // since when both fists are together (the bow's gesture, before it opens)
         arrow: null, // { kind, pts: [Vector3...], legs: [ms...], t0, leg, sys }: in flight
         dart: null, // { tip, dir, t0, d, pulses: [...] }: the Recon Bolt stuck where it landed
         ult: null, // { t0, fired, charging, sys }
-        drone: null, // { t0, from, side, darted, reveals: [ms...] }
-        bird: { since: 0 }, // the drone's gesture, while it's held
+        drone: null, // { t0, from, side, patrol, darted }: the drone ability
+        owl: { since: 0 }, // the drone's gesture, while it's held
+        // The drone flying behind him (the dock's "Coruja sobrevoando", or ?patrulha): wanted, how far in it is,
+        // where it is round its loop, the point it loops round (his head, followed slowly) and the side it came in.
+        patrol: { want: q.has("patrulha"), amt: 0, ph: 0, anchor: null, side: 1 },
         reveals: [], // when the red reveal flashed (ms), for its fading
         maskUntil: 0, // the body mask is needed (for the reveal) until then
         shakeUntil: 0,
@@ -1572,6 +1634,9 @@
       // round ?arco= (centimetres per game metre, 30).
       const BOW_K = Number(q.get("arco") || 30)
       const BOW = { REST: -0.408, PULL: 0.42, LINE: 0.129 }
+      // By gesture it opens from 0.7 of that size, fists together, to this much at a full draw (the box is only
+      // about 35 cm tall at his face, and the bow 46 at 30).
+      const BOW_FIT = 1.1
       const bow3 = { root: new THREE.Group(), model: null, string: null, glow: null, arrows: {}, arrow: null, k: BOW_K }
       bow3.root.matrixAutoUpdate = false
       bow3.root.visible = false
@@ -1638,9 +1703,10 @@
         return a ? a.localToWorld(new THREE.Vector3(ARROW_LEN - 0.03, 0, 0)) : bowPt(0.39, BOW.LINE)
       }
       // Places the bow: its grip at G, the string pulled towards N (both in camera space), `draw` (0..1) of the way
-      // from rest to a full draw, scaled by `amt` as it shows.
+      // from rest to a full draw, scaled by `amt` as it shows. Its size: with `fit` (by gesture), so the string is
+      // at N however far it's drawn (it opens as the hands part); otherwise so a full draw reaches N.
       const bowAxis = new THREE.Vector3(1, 0, 0)
-      function placeBow(G, N, draw, amt, kind) {
+      function placeBow(G, N, draw, amt, kind, fit) {
         const u = G.clone().sub(N)
         if (u.lengthSq() < 1e-6) u.set(1, 0, 0)
         u.normalize()
@@ -1655,8 +1721,8 @@
         bow3.root.matrixWorldNeedsUpdate = true
         bow3.root.visible = amt > 0
         if (!bow3.model) return
-        const reach = THREE.MathUtils.clamp(G.distanceTo(N) / (-BOW.REST + BOW.PULL), BOW_K * 0.7, BOW_K * 1.5)
-        bow3.k += (reach - bow3.k) * (amt < 1 ? 1 : 0.3)
+        const reach = THREE.MathUtils.clamp(G.distanceTo(N) / (-BOW.REST + BOW.PULL * (fit ? draw : 1)), BOW_K * 0.7, BOW_K * (fit ? BOW_FIT : 1.5))
+        bow3.k += (reach - bow3.k) * (amt < 1 ? 1 : fit ? 0.6 : 0.3)
         bow3.model.scale.setScalar(bow3.k)
         bow3.root.updateMatrixWorld(true)
         const sx = BOW.REST - BOW.PULL * draw
@@ -1669,91 +1735,159 @@
         bow3.arrow = bow3.arrows[kind] || null
         if (bow3.arrow) bow3.arrow.position.set(sx, BOW.LINE, 0)
       }
+      // The bow where the hands are now: the grip and the pulling hand at the depth of his face, a little nearer
+      // the camera.
+      function placeBowNow(kind) {
+        const bow = sova.bow
+        const fit = bow.state === "draw" && !bow.auto && !sova.ult
+        placeBow(at3(bow.a.x, bow.a.y, 10), at3(bow.b.x, bow.b.y, 10), bow.draw, bow.amt, kind, fit)
+      }
 
-      // The bow by gesture: one hand far out to the side (holding it) and the other closed by the face (pulling
-      // the string), about level. Held 0.3 s, the bow shows and he draws; after at least 0.45 s of pulling, opening
-      // that hand or moving it away lets a Recon Bolt go, the way it points.
-      function sovaHands(hands, now) {
-        birdHands(hands, now)
+      // A hand's shape, for the gestures: its size (the palm's length or its knuckles' width, whichever shows
+      // more), the middle of its knuckles, and whether it's a fist or open (the recognizer's own call, or the
+      // fingertips' distances from the wrist). Distances in the video's height, so they're round on screen.
+      function handShape(h, cat, va) {
+        const d = (p, o) => Math.hypot((p.x - o.x) * va, p.y - o.y)
+        const s = Math.max(d(h[0], h[9]), d(h[5], h[17]) * 1.25)
+        const r = [8, 12, 16, 20].map((t) => d(h[t], h[0]) / s)
+        const k = [5, 9, 13, 17].reduce((a, i) => ({ x: a.x + h[i].x / 4, y: a.y + h[i].y / 4 }), { x: 0, y: 0 })
+        const fist = (cat === "Closed_Fist" || r.filter((v) => v < 1.3).length >= 3) && cat !== "Open_Palm"
+        const open = (cat === "Open_Palm" || r.filter((v) => v > 1.6).length >= 3) && cat !== "Closed_Fist"
+        return { h, s, k, d, fist, open }
+      }
+      // Where each hand holds the bow on screen: the bow hand by its knuckles, the string hand between its thumb
+      // and index fingertips.
+      function bowHands(B, S, k) {
+        const sb = sova.bow
+        sb.a.lerp(new THREE.Vector2(...toScreen(B.k.x, B.k.y)), k)
+        sb.b.lerp(new THREE.Vector2(...toScreen((S.h[4].x + S.h[8].x) / 2, (S.h[4].y + S.h[8].y) / 2)), k)
+      }
+      // The bow by gesture: both hands closed, one fist against the other, for 0.2 s opens it between them; pulling
+      // them apart draws it (the hand nearer the face pulls the string, the other holds the bow), and opening a hand
+      // lets the Recon Bolt go, from that hand towards the other. Losing a hand once it's a third drawn lets it go
+      // too (a quick release blurs); opening or losing one before that folds it.
+      function sovaHands(r, now) {
+        const va = video.videoWidth / video.videoHeight || 16 / 9
+        const hs = (r.landmarks || []).slice(0, 2).map((h, i) => handShape(h, r.gestures?.[i]?.[0]?.categoryName, va))
+        owlHands(hs, now)
         const bow = sova.bow
         if (bow.auto || sova.ult) return
-        let p = null
-        if (faceLm && hands.length >= 2 && !sova.arrow) {
-          const va = video.videoWidth / video.videoHeight || 16 / 9
-          const fw = Math.abs(faceLm[454].x - faceLm[234].x) * va
-          const nose = faceLm[1]
-          const d = (x) => Math.hypot((x.x - nose.x) * va, x.y - nose.y)
-          const [near, far] = hands
-            .slice(0, 2)
-            .map((h) => ({ h, d: d(h[9]) }))
-            .sort((x, y) => x.d - y.d)
-          const h = near.h
-          const palm = dist(h[0], h[9])
-          const open = [8, 12, 16].filter((t) => dist(h[t], h[0]) > 1.45 * palm).length >= 2
-          const dx = Math.abs(far.h[9].x - h[9].x) * va
-          const dy = Math.abs(far.h[9].y - h[9].y)
-          if (!open && near.d < 1.3 * fw && far.d > 1.9 * fw && dy < 0.7 * dx) {
-            const g = far.h
-            const grip = [5, 9, 13, 17].reduce((s, k) => ({ x: s.x + g[k].x / 4, y: s.y + g[k].y / 4 }), { x: 0, y: 0 })
-            p = { a: toScreen(grip.x, grip.y), b: toScreen((h[4].x + h[8].x) / 2, (h[4].y + h[8].y) / 2) }
+        const nose = faceLm ? faceLm[1] : { x: 0.5, y: 0.4 }
+        const fw = faceLm ? Math.abs(faceLm[454].x - faceLm[234].x) * va : 0.2
+        const toNose = (p) => Math.hypot((p.x - nose.x) * va, p.y - nose.y)
+        const [A, B] = hs
+        if (bow.state === "idle") {
+          const together = hs.length === 2 && A.fist && B.fist && A.d(A.k, B.k) < 0.95 * (A.s + B.s)
+          if (!together) {
+            sova.fists = 0
+            return
           }
-        }
-        if (p) {
-          const k = bow.state === "idle" ? 1 : 0.5
-          bow.a.lerp(new THREE.Vector2(...p.a), k)
-          bow.b.lerp(new THREE.Vector2(...p.b), k)
-          bow.lost = 0
-          if (bow.state === "idle") Object.assign(bow, { state: "aim", since: now, kind: "recon" })
-          else if (bow.state === "aim" && now - bow.since > 300) Object.assign(bow, { state: "draw", since: now })
-        } else if (bow.state !== "idle") {
-          bow.lost ||= now
-          // A short loss is the tracker blinking; a longer one is the release.
-          if (now - bow.lost > 120) {
-            if (bow.state === "draw" && now - bow.since > 450) shoot("recon", now)
-            bow.state = "idle"
-          }
-        }
-        if (bow.state !== "idle") handInfo += ` · arco (${bow.state === "aim" ? "mirando" : "puxando"})`
-      }
-      // The Owl Drone's gesture, a bird's shadow: both hands open, palms out, thumbs hooked together and the
-      // fingers spread out to the sides like wings. Held 0.35 s, the drone opens between the hands.
-      function isBird(hands) {
-        if (hands.length < 2) return false
-        const [A, B] = hands
-        const pa = dist(A[0], A[9]), pb = dist(B[0], B[9])
-        const p = (pa + pb) / 2
-        const open = (h, palm) => [8, 12, 16, 20].filter((t) => dist(h[t], h[0]) > 1.5 * palm).length >= 3
-        return dist(A[4], B[4]) < 1.1 * p && dist(A[0], B[0]) < 2 * p && dist(A[8], B[8]) > 2.4 * p && dist(A[20], B[20]) > 2.2 * p && open(A, pa) && open(B, pb)
-      }
-      function birdHands(hands, now) {
-        const b = sova.bird
-        if (!isBird(hands)) {
-          b.since = 0
+          sova.fists ||= now
+          handInfo += " · punhos"
+          if (now - sova.fists < 200) return
+          sova.fists = 0
+          const [S, G] = toNose(A.k) <= toNose(B.k) ? [A, B] : [B, A]
+          bow.g = { pa: G.k, pb: S.k, opened: 0, lost: 0 }
+          Object.assign(bow, { state: "draw", since: now, kind: "recon", d0: null, draw: 0 })
+          bowHands(G, S, 1)
+          bowSound("recon")
           return
         }
-        b.since ||= now
+        const g = bow.g
+        if (bow.state !== "draw" || !g) return
+        if (hs.length < 2) {
+          g.lost ||= now
+          if (now - g.lost > 150) bow.draw >= 0.35 ? shoot("recon", now) : foldBow()
+          return
+        }
+        g.lost = 0
+        // The same hands as before (the tracker's order can swap), then which pulls the string: the one nearer the
+        // face, by a margin (he can change sides while drawing).
+        const sq = (p, o) => (p.x - o.x) ** 2 + (p.y - o.y) ** 2
+        let [G, S] = sq(A.k, g.pa) + sq(B.k, g.pb) <= sq(B.k, g.pa) + sq(A.k, g.pb) ? [A, B] : [B, A]
+        if (toNose(G.k) < toNose(S.k) - 0.35 * fw) [G, S] = [S, G]
+        g.pa = G.k
+        g.pb = S.k
+        bowHands(G, S, 0.6)
+        handInfo += ` · arco ${Math.round(bow.draw * 100)}%`
+        // A hand open for two frames lets go: the one that opened was pulling the string.
+        if (!G.open && !S.open) {
+          g.opened = 0
+          return
+        }
+        if (++g.opened < 2) return
+        if (bow.draw < 0.25) return foldBow()
+        if (G.open && !S.open) {
+          bowHands(S, G, 1)
+          placeBowNow(bow.kind)
+        }
+        shoot("recon", now)
+      }
+      const foldBow = () => {
+        bowQuiet("sova-bow-fold")
+        Object.assign(sova.bow, { state: "idle", g: null })
+      }
+      // The bow's sounds: out, with its charge and a hum while it's drawn and a tick at half and at full draw
+      // (updateSova), then let go (shoot) or folded unshot.
+      let bowSnd = null
+      function bowSound(kind) {
+        bowSnd?.hum.stop(0.1)
+        const shock = kind === "choque"
+        const pan = panAt(sova.bow.a.x)
+        sfx.play(shock ? "sova-shock-equip" : "sova-recon-equip", { pan })
+        sfx.play(shock ? "sova-shock-charge" : "sova-recon-charge", { pan, gain: 0.8, delay: 0.12 })
+        bowSnd = { lvl: 0, hum: sfx.play(shock ? "sova-shock-hum" : "sova-charge-hum", { loop: true, pan, gain: 0.7 }) }
+      }
+      function bowQuiet(cue) {
+        if (!bowSnd) return
+        bowSnd.hum.stop(0.1)
+        bowSnd = null
+        if (cue) sfx.play(cue, { pan: panAt(sova.bow.a.x) })
+      }
+      // The Owl Drone's gesture: both palms open to the camera, fingers up, side by side (thumbs towards each
+      // other, so not the backs of the hands, and apart, so not a clap). Held 0.3 s, the drone opens between them
+      // (or, flying behind him, comes).
+      function isOwl(hs) {
+        if (hs.length < 2) return false
+        const [A, B] = hs
+        const up = (x) => x.h[0].y - x.h[12].y > 1.1 * x.s
+        const flat = (x) => x.d(x.h[5], x.h[17]) > 0.45 * x.d(x.h[0], x.h[9])
+        const inward = (x, o) => x.d(x.h[4], o.h[0]) < x.d(x.h[20], o.h[0])
+        const s = (A.s + B.s) / 2
+        return A.open && B.open && up(A) && up(B) && flat(A) && flat(B) && inward(A, B) && inward(B, A) && A.d(A.k, B.k) > 1.0 * s && Math.abs(A.k.y - B.k.y) < 1.5 * s
+      }
+      function owlHands(hs, now) {
+        const o = sova.owl
+        if (!isOwl(hs)) {
+          o.since = 0
+          return
+        }
+        o.since ||= now
         handInfo += " · coruja"
-        if (now - b.since > 350 && !sova.drone) {
-          const [A, B] = hands
-          const m = toScreen((A[4].x + B[4].x) / 2, (A[4].y + B[4].y) / 2)
+        if (now - o.since > 300 && !sova.drone) {
+          const [A, B] = hs
+          const m = toScreen((A.k.x + B.k.x) / 2, (A.k.y + B.k.y) / 2)
           startDrone(now, at3(m[0], m[1], 12))
-          b.since = Infinity
+          o.since = Infinity
         }
       }
 
       // The dock's Flecha de Reconhecimento and Flecha de Choque: the bow drawn beside the face, toward the side with
       // more room, shot by itself.
       function autoBow(kind, now) {
-        if (sova.arrow || sova.bow.auto || sova.ult) return
+        if (sova.bow.state !== "idle" || sova.ult) return
         const f = faceBox()
         const side = f.c.x < 0.5 ? 1 : -1
         sova.bow.a.set(clamp01(f.c.x + side * f.w * 2.3, 0.08, 0.92), f.c.y - f.w * 0.5)
         sova.bow.b.set(f.c.x + side * f.w * 0.5, f.c.y - f.w * 0.45)
         Object.assign(sova.bow, { state: "draw", since: now, auto: now, kind })
+        bowSound(kind)
       }
       // The arrow leaves the bow: the Recon Bolt flies to the edge of the box where it points and sticks there; the
       // Shock Bolt flies up, bounces off the top of the box and bursts by his shoulder on that side.
       function shoot(kind, now) {
+        // One arrow in the air at a time: the one before gets where it was going now.
+        if (sova.arrow) finishArrow(sova.arrow, now)
         const tip = arrowTip()
         const from = onBox(tip)
         const dir2 = onBox(tip.clone().add(bowAxis)).sub(from).normalize()
@@ -1772,7 +1906,21 @@
         a.sys = vfx.spawn(kind === "recon" ? SOVA.E.trail : SOVA.Q.trail, (v) => v.copy(a.at), { scale: 0.3, dir: () => a.dir })
         sova.arrow = a
         sova.maskUntil = now + 6500
-        Object.assign(sova.bow, { state: "idle", auto: 0 })
+        bowQuiet("sova-bow-release")
+        Object.assign(sova.bow, { state: "idle", auto: 0, g: null })
+      }
+      // An arrow at the end of its flight: the Recon Bolt sticks, the Shock Bolt bursts.
+      function finishArrow(a, now) {
+        a.sys.stop()
+        const end = a.pts[a.pts.length - 1]
+        if (a.kind === "recon") land(end, a.dir.clone(), a.k, now)
+        else {
+          // The game's blast is 4 m across; here about two faces.
+          vfx.spawn(SOVA.Q.boom, (v) => v.copy(end), { scale: 0.07, dur: 0.05 })
+          sfx.play("sova-shock-explode", { pan: pan3(end) })
+          shake(380, 10, now)
+        }
+        sova.arrow = null
       }
       function startUlt(now) {
         if (sova.ult) return
@@ -1783,20 +1931,46 @@
         sova.bow.a.set(clamp01(f.c.x + side * f.w * 2.4, 0.08, 0.92), f.c.y - f.w * 0.35)
         sova.bow.b.set(f.c.x + side * f.w * 0.5, f.c.y - f.w * 0.35)
         Object.assign(sova.bow, { state: "idle", auto: 0 })
-        sova.ult = { t0: now, fired: 0, charging: -1, sys: vfx.spawn(SOVA.X.bow, (v) => v.copy(limbPoint()), { scale: bow3.k / 100 }) }
+        bowQuiet()
+        const pan = panAt(sova.bow.a.x)
+        sfx.play("sova-ult-equip", { pan })
+        sova.ult = { t0: now, fired: 0, charging: -1, pan, hum: sfx.play("sova-ult-hum", { loop: true, pan, gain: 0.8 }), sys: vfx.spawn(SOVA.X.bow, (v) => v.copy(limbPoint()), { scale: bow3.k / 100 }) }
       }
       // A point along the bow's limbs, at random (where Amb_EnergyBow1P_VFX's loops crawl: 17 to 53 cm from the grip).
       const LIMB = [0.17, 0.28, 0.36, -0.34, -0.45, -0.53]
       const limbPoint = () => bowPt(-0.06, LIMB[Math.floor(Math.random() * LIMB.length)] * (0.9 + Math.random() * 0.25), 0.01)
 
       // The Owl Drone: in its metres it faces +x, up +y, its two eyes 2.5 cm either side of the middle, its ducted
-      // turbines at ±0.18 on z (their rings face forward). It opens where it's thrown
-      // (between the hands, by the gesture), flies up beside his head, looks at him, tags him with its dart (which
-      // reveals him twice) and flies off.
+      // turbines at ±0.18 on z (their rings face forward). The ability: it opens where it's thrown (between the
+      // palms, by the gesture), flies up beside his head, looks at him, tags him with its dart (which reveals him
+      // twice) and flies off. With the dock's "Coruja sobrevoando" it flies behind him all the while (below), and
+      // the ability is that drone coming round to beside his head and going back.
+      // In its own scene: behind him it's drawn first, under him (his body's mask in front of it), else on top.
       const DRONE_K = Number(q.get("coruja") || 30)
-      const drone3 = { root: new THREE.Group(), model: null, discs: [] }
+      const drone3 = { root: new THREE.Group(), model: null, discs: [], behind: false, eyes: null }
       drone3.root.visible = false
-      sv3.free.add(drone3.root)
+      sv3.drone = new THREE.Scene()
+      sv3.drone.add(new THREE.HemisphereLight(0xe4ecff, 0x2a3042, 1.7))
+      const droneSun = new THREE.DirectionalLight(0xffffff, 2.2)
+      droneSun.position.set(0.4, 1, 1)
+      sv3.drone.add(droneSun, drone3.root)
+      // His body as the nearest depth, where the mask has him: what's drawn behind it after is hidden.
+      const occludeScene = quad(
+        new THREE.ShaderMaterial({
+          uniforms,
+          vertexShader: /* glsl */ `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, -1.0, 1.0); }`,
+          fragmentShader: /* glsl */ `
+            ${GLSL_COMMON}
+            void main() {
+              if (maskAt(vUv, 0.0) < 0.5) discard;
+              gl_FragColor = vec4(0.0);
+            }`,
+          colorWrite: false,
+          depthWrite: true,
+          depthTest: true,
+          depthFunc: THREE.AlwaysDepth,
+        }),
+      )
       const DRONE_EYE = new THREE.Vector3(0.085, 0.04, 0)
       loadPiece("Ability_E/1P/Models/AB_Hunter_S0_E_Skelmesh.glb", (m) => {
         m.scale.setScalar(DRONE_K)
@@ -1815,76 +1989,135 @@
           drone3.discs.push(disc)
         }
       })
+      // Flying behind him: round an ellipse behind his head (centimetres from it: 38 to either side, 26 to 46
+      // behind), a little above his shoulders, bobbing; a loop takes about 8 s, a little faster and slower in turn.
+      const PATROL = { A: 38, Y: 4, Z: -36, B: 10, SPEED: 0.75 }
+      const patrolPoint = (ph) => sova.patrol.anchor.clone().add(new THREE.Vector3(Math.sin(ph) * PATROL.A, PATROL.Y + Math.sin(ph * 2 + 0.7) * 4, PATROL.Z - Math.cos(ph) * PATROL.B))
+      // Where it comes in from and leaves to: up and out of the box on a side.
+      const patrolOff = (side) => headAt().add(new THREE.Vector3(side * 110, 55, -40))
+      // A quadratic curve's point and direction.
+      const bez = (a, c, b, k) => a.clone().multiplyScalar((1 - k) ** 2).addScaledVector(c, 2 * k * (1 - k)).addScaledVector(b, k * k)
+      const bezDir = (a, c, b, k) => c.clone().sub(a).multiplyScalar(1 - k).addScaledVector(b.clone().sub(c), k)
+      // A curve's middle point round his side, from a point behind him to one beside his head (either way): wide
+      // enough that it never crosses him.
+      const roundSide = (a, b, side, head) => new THREE.Vector3(head.x + side * Math.max(Math.abs(a.x - head.x), Math.abs(b.x - head.x), 42), Math.max(a.y, b.y) + 12, (a.z + b.z) / 2)
+
       function startDrone(now, from) {
         if (sova.drone) return
         const f = faceBox()
-        const side = f.c.x > 0.5 ? -1 : 1
-        const start = from || at3(clamp01(f.c.x + side * f.w * 1.6), clamp01(f.c.y - f.w * 2.2), 12)
-        sova.drone = { t0: now, from: start, side, darted: false, sys: null, eye: new THREE.Vector3() }
+        // Flying behind him: that drone comes, round the side it's on.
+        if (sova.patrol.amt >= 1 && drone3.root.visible) {
+          const at = drone3.root.position.clone()
+          sova.drone = { t0: now - DRONE.OPEN * 1000, from: at, side: Math.sign(at.x - headAt().x) || 1, patrol: true, darted: false }
+        } else {
+          const side = f.c.x > 0.5 ? -1 : 1
+          const start = from || at3(clamp01(f.c.x + side * f.w * 1.6), clamp01(f.c.y - f.w * 2.2), 12)
+          sova.drone = { t0: now, from: start, side, patrol: false, darted: false }
+          vfx.spawn(SOVA.C.equip, (v) => v.copy(start), { scale: DRONE_K / 100, dur: 0.05 })
+          sfx.play("sova-drone-open", { pan: pan3(start) })
+        }
         sova.maskUntil = now + (DRONE.END + 0.5) * 1000
       }
       const droneEye = () => (drone3.model ? drone3.model.localToWorld(DRONE_EYE.clone()) : new THREE.Vector3())
       function updateDrone(now, dt) {
-        const d = sova.drone
-        if (!d) return
-        const t = (now - d.t0) / 1000
-        if (t > DRONE.END || !drone3.model) {
-          if (t > DRONE.END) {
-            d.sys?.stop()
-            sova.drone = null
+        const P = sova.patrol
+        const head = headAt()
+        const T = now / 1000
+        P.amt = THREE.MathUtils.clamp(P.amt + (P.want && mode === "sova" ? dt / 1.6 : -dt / 1.2), 0, 1)
+        if (P.amt > 0) {
+          // His head, followed slowly, so it doesn't jerk along with every nod.
+          if (!P.anchor) {
+            P.anchor = head.clone()
+            P.side = Math.sign(Math.sin(P.ph)) || 1
           }
+          P.anchor.lerp(head, 1 - Math.exp(-dt * 2))
+          if (!sova.drone) P.ph += dt * PATROL.SPEED * (0.75 + 0.25 * Math.sin(T * 0.43))
+        } else P.anchor = null
+        const d = sova.drone
+        let p, ahead, s = 1
+        if (d) {
+          const t = (now - d.t0) / 1000
+          if (t > DRONE.END) {
+            sova.drone = null
+            return updateDrone(now, 0)
+          }
+          const hover = head.clone().add(new THREE.Vector3(d.side * 23, 9, 8))
+          // Back to its loop behind him, or off and away.
+          const back = P.amt > 0
+          const away = back ? patrolPoint(P.ph) : head.clone().add(new THREE.Vector3(d.side * 95, 50, -25))
+          // Up from the hands in an arc (from behind him, round his side), then hovering (bobbing), then off;
+          // facing the camera as it opens, then where it flies, him while it hovers, and where it goes.
+          if (t < DRONE.OPEN) {
+            p = d.from.clone()
+            ahead = new THREE.Vector3(0, 0, 1)
+            s = easeOutBack(t / DRONE.OPEN)
+          } else if (t < DRONE.FLY) {
+            const k = ease((t - DRONE.OPEN) / (DRONE.FLY - DRONE.OPEN))
+            const ctl = d.patrol ? roundSide(d.from, hover, d.side, head) : d.from.clone().lerp(hover, 0.5).add(new THREE.Vector3(-d.side * 6, 22, 6))
+            p = bez(d.from, ctl, hover, k)
+            // The curve's direction, turning towards him as it arrives.
+            ahead = bezDir(d.from, ctl, hover, k).setY(0).normalize().lerp(head.clone().sub(p).setY(0).normalize(), k * k)
+          } else if (t < DRONE.LEAVE) {
+            p = hover.clone()
+            ahead = head.clone().sub(p)
+          } else {
+            const k = ease((t - DRONE.LEAVE) / (DRONE.END - DRONE.LEAVE))
+            const ctl = back ? roundSide(away, hover, d.side, head) : hover.clone().lerp(away, 0.5)
+            p = bez(hover, ctl, away, k)
+            ahead = bezDir(hover, ctl, away, k).setY(0)
+          }
+        } else if (P.amt > 0) {
+          const k = ease(P.amt)
+          const on = patrolPoint(P.ph)
+          const off = patrolOff(P.side)
+          p = off.clone().lerp(on, k)
+          // Along its loop, turned a little towards the camera (its eyes show more), or where it's going as it
+          // comes in or leaves.
+          const along = new THREE.Vector3(Math.cos(P.ph) * PATROL.A, 0, Math.sin(P.ph) * PATROL.B).normalize().add(new THREE.Vector3(0, 0, 0.5))
+          const going = (P.want ? on.clone().sub(off) : off.clone().sub(on)).setY(0).normalize()
+          ahead = along.normalize().multiplyScalar(k).addScaledVector(going, 1 - k)
+        } else {
           drone3.root.visible = false
+          drone3.eyes?.stop()
+          drone3.eyes = null
+          drone3.hum?.stop(0.3)
+          drone3.hum = null
           return
         }
-        const head = headAt()
-        const hover = head.clone().add(new THREE.Vector3(d.side * 23, 9, 8))
-        const away = head.clone().add(new THREE.Vector3(d.side * 95, 50, -25))
-        // Up from the hands in an arc, then hovering (bobbing), then off; facing the camera as it opens, then where
-        // it flies, him while it hovers, and where it goes as it leaves, banked a little.
-        let p
-        let ahead
-        if (t < DRONE.OPEN) {
-          p = d.from.clone()
-          ahead = new THREE.Vector3(0, 0, 1)
-        } else if (t < DRONE.FLY) {
-          const k = ease((t - DRONE.OPEN) / (DRONE.FLY - DRONE.OPEN))
-          const ctl = d.from.clone().lerp(hover, 0.5).add(new THREE.Vector3(-d.side * 6, 22, 6))
-          p = d.from.clone().multiplyScalar((1 - k) ** 2).addScaledVector(ctl, 2 * k * (1 - k)).addScaledVector(hover, k * k)
-          // The curve's direction, turning towards him as it arrives.
-          const vel = ctl.clone().sub(d.from).multiplyScalar(1 - k).addScaledVector(hover.clone().sub(ctl), k).setY(0)
-          ahead = vel.normalize().lerp(head.clone().sub(p).setY(0).normalize(), k * k)
-        } else if (t < DRONE.LEAVE) {
-          p = hover.clone()
-          ahead = head.clone().sub(p)
-        } else {
-          p = hover.clone().lerp(away, ease((t - DRONE.LEAVE) / (DRONE.END - DRONE.LEAVE)))
-          ahead = away.clone().sub(hover).setY(0)
-        }
-        p.y += Math.sin(t * 3.1) * 0.8
+        if (!drone3.model) return
+        p.y += Math.sin(T * 3.1) * 0.8
         drone3.root.position.copy(p)
-        const s = t < DRONE.OPEN ? easeOutBack(t / DRONE.OPEN) : 1
         drone3.root.scale.setScalar(Math.max(1e-3, s))
         if (ahead.lengthSq() < 1e-6) ahead.set(0, 0, 1)
         drone3.root.lookAt(p.clone().add(ahead.normalize()))
-        drone3.root.rotateZ(Math.sin(t * 2.3) * 0.08)
+        drone3.root.rotateZ(Math.sin(T * 2.3) * 0.08)
         drone3.root.visible = true
         for (const c of drone3.discs) c.rotateZ(dt * 38)
         drone3.root.updateMatrixWorld(true)
-        d.eye.copy(droneEye())
-        if (!d.sys) {
-          const eyes = [0.025, -0.025].map((z) => () => drone3.model.localToWorld(new THREE.Vector3(DRONE_EYE.x, DRONE_EYE.y, z)))
-          const sys = eyes.map((e) => vfx.spawn(SOVA.C.eye, (v) => v.copy(e()), { scale: DRONE_K / 100 }))
-          d.sys = { stop: () => sys.forEach((x) => x.stop()) }
-          vfx.spawn(SOVA.C.equip, (v) => v.copy(d.eye), { scale: DRONE_K / 100, dur: 0.05 })
+        // Behind him once it's a hand's breadth behind his face: he covers it, and its eyes' glow (drawn over
+        // everything) waits until it comes out.
+        drone3.behind = p.z < head.z - 10
+        // Its propellers, quieter behind him and while it flies round on its own.
+        drone3.hum ||= sfx.play("sova-drone-idle", { loop: true, gain: 0 })
+        drone3.hum.set({ gain: (drone3.behind ? 0.45 : 1) * Math.min(1, s) * (d ? 1 : 0.6 * ease(P.amt)), pan: pan3(p) })
+        if (!drone3.behind && !drone3.eyes) {
+          const sys = [0.025, -0.025].map((z) => vfx.spawn(SOVA.C.eye, (v) => v.copy(drone3.model.localToWorld(new THREE.Vector3(DRONE_EYE.x, DRONE_EYE.y, z))), { scale: DRONE_K / 100 }))
+          drone3.eyes = { stop: () => sys.forEach((x) => x.stop()) }
+        } else if (drone3.behind && drone3.eyes) {
+          drone3.eyes.stop()
+          drone3.eyes = null
         }
+        if (!d) return
+        const t = (now - d.t0) / 1000
         // The dart: from the eye to his face; it reveals him as it hits, and again a second later.
         if (t >= DRONE.DART && !d.darted) {
           d.darted = true
-          const at = d.eye.clone(), to = head.clone().add(new THREE.Vector3(0, 0, 6))
+          const at = droneEye(), to = head.clone().add(new THREE.Vector3(0, 0, 6))
           const dart = { p: at.clone(), t0: now }
           const dir = to.clone().sub(at).normalize()
           const sys = vfx.spawn(SOVA.C.dart, (v) => v.copy(dart.p), { scale: 1, dir: () => dir })
           d.dartFly = { dart, at, to, sys }
+          sfx.play("sova-drone-dart", { pan: pan3(at) })
         }
         if (d.dartFly) {
           const f = d.dartFly
@@ -1893,6 +2126,7 @@
           if (k >= 1) {
             f.sys.stop()
             vfx.spawn(SOVA.C.hit, (v) => v.copy(f.to), { scale: 0.3, dur: 0.05 })
+            sfx.play("sova-drone-tag", { pan: pan3(f.to) })
             shake(160, 4, now)
             reveal(now)
             d.revealAgain = now + 1100
@@ -1901,15 +2135,17 @@
         }
         if (d.revealAgain && now >= d.revealAgain) {
           reveal(now)
+          sfx.play("sova-drone-pulse", { pan: pan3(head), gain: 0.8 })
           d.revealAgain = 0
         }
       }
 
       function sovaReset() {
         vfx.clear()
-        sova.bow.fx = null
-        Object.assign(sova, { arrow: null, dart: null, ult: null, drone: null, reveals: [], shakeUntil: 0 })
-        Object.assign(sova.bow, { state: "idle", auto: 0, amt: 0, draw: 0 })
+        sova.bow.fx = drone3.eyes = drone3.hum = bowSnd = null
+        Object.assign(sova, { arrow: null, dart: null, ult: null, drone: null, reveals: [], shakeUntil: 0, fists: 0 })
+        Object.assign(sova.bow, { state: "idle", auto: 0, amt: 0, draw: 0, g: null })
+        Object.assign(sova.patrol, { amt: 0, anchor: null })
         bow3.root.visible = drone3.root.visible = flying.visible = stuck.visible = false
         uniforms.uReveal.value = uniforms.uMark.value.z = 0
         uniforms.uUltT.value = -1
@@ -1929,6 +2165,8 @@
           if (t > ULT.END) {
             ult.sys.stop()
             vfx.spawn(SOVA.X.outro, (v) => v.copy(bowPt(-0.05, 0)), { scale: bow3.k / 100, dur: 0.05 })
+            ult.hum.stop(0.3)
+            sfx.play("sova-ult-end", { pan: ult.pan })
             sova.ult = null
           } else {
             const next = ULT.SHOTS[ult.fired]
@@ -1939,6 +2177,7 @@
                 // Its third-person effect, made to read from across a map: smaller here.
                 ult.charge = vfx.spawn(SOVA.X.charge, (v) => v.copy(arrowTip()), { scale: 0.12 })
                 ult.aim = vfx.spawn(SOVA.X.aim, (v) => v.copy(arrowTip()), { scale: 1, beam: () => [arrowTip(), ultEnd()] })
+                sfx.play("sova-ult-charge", { pan: ult.pan })
               }
               ultDraw = THREE.MathUtils.clamp(c, 0, 1)
               if (t >= next) {
@@ -1946,6 +2185,7 @@
                 ult.aim?.stop()
                 const a = arrowTip(), b = ultEnd()
                 vfx.spawn(SOVA.X.blast, (v) => v.copy(a), { scale: 0.32, dur: 0.05, beam: () => [a, b] })
+                sfx.play("sova-ult-fire", { pan: ult.pan })
                 shake(320, 13, now)
                 ult.fired++
               }
@@ -1953,17 +2193,28 @@
           }
         }
         // How much of the bow shows and how far it's drawn.
-        const drawing = bow.state === "draw" || bow.state === "aim"
-        const held = drawing || !!sova.ult
+        const held = bow.state === "draw" || !!sova.ult
         bow.amt = THREE.MathUtils.clamp(bow.amt + (held ? dt / 0.18 : -dt / 0.25), 0, 1)
         if (sova.ult) bow.draw = ultDraw
-        else if (bow.state === "draw") bow.draw = Math.min(1, bow.draw + dt / (bow.auto ? 0.5 : 0.35))
-        else if (bow.state === "aim") bow.draw = Math.max(0, bow.draw - dt / 0.2)
-        else bow.draw = Math.max(0, bow.draw - dt / 0.06)
+        else if (bow.state === "draw" && bow.auto) bow.draw = Math.min(1, bow.draw + dt / 0.5)
+        else if (bow.state === "draw") {
+          // By gesture: as far as the hands have parted, from where the fists met to a full draw at the bow's
+          // biggest.
+          const d = at3(bow.a.x, bow.a.y, 10).distanceTo(at3(bow.b.x, bow.b.y, 10))
+          bow.d0 ??= Math.max(d, -BOW.REST * BOW_K * 0.7)
+          const full = (-BOW.REST + BOW.PULL) * BOW_K * BOW_FIT
+          bow.draw = THREE.MathUtils.clamp((d - bow.d0) / Math.max(5, full - bow.d0), 0, 1)
+        } else bow.draw = Math.max(0, bow.draw - dt / 0.06)
+        // The charge's tick at half and at full draw, the hum following the bow.
+        if (bowSnd && !sova.ult) {
+          const lvl = bow.draw >= 0.98 ? 2 : bow.draw >= 0.5 ? 1 : 0
+          const pan = panAt(bow.a.x)
+          if (lvl > bowSnd.lvl) sfx.play("sova-charge-level", { pan, gain: 0.8 })
+          bowSnd.lvl = Math.max(bowSnd.lvl, lvl)
+          bowSnd.hum.set({ pan })
+        }
         const kind = sova.ult ? (ultDraw > 0 ? "ult" : null) : bow.state === "idle" ? null : bow.kind
-        // The grip and the pulling hand at the depth of his face, a little nearer the camera.
-        const G = at3(bow.a.x, bow.a.y, 10), N = at3(bow.b.x, bow.b.y, 10)
-        placeBow(G, N, bow.draw, bow.amt, kind)
+        placeBowNow(kind)
         if (bow3.glow) bow3.glow.color.setRGB(0.35, 0.85, 1).multiplyScalar(sova.ult ? 1.6 : 1)
         // While it's drawn: zaps on the string, the glow on the head (the shock's lightning instead).
         const showFx = bow.amt > 0.5 && kind && kind !== "ult"
@@ -1988,20 +2239,14 @@
           while (leg < a.legs.length && t > a.legs[leg]) t -= a.legs[leg++]
           if (leg > a.leg) {
             // A bounce (the shock's ricochet off the top of the box).
-            if (leg < a.legs.length) vfx.spawn(SOVA.Q.ricochet, ((p) => (v) => v.copy(p))(a.pts[leg].clone()), { scale: 0.12, dur: 0.05 })
+            if (leg < a.legs.length) {
+              vfx.spawn(SOVA.Q.ricochet, ((p) => (v) => v.copy(p))(a.pts[leg].clone()), { scale: 0.12, dur: 0.05 })
+              sfx.play("sova-shock-ricochet", { pan: pan3(a.pts[leg]) })
+            }
             a.leg = leg
           }
-          if (leg >= a.legs.length) {
-            a.sys.stop()
-            const end = a.pts[a.pts.length - 1]
-            if (a.kind === "recon") land(end, a.dir.clone(), a.k, now)
-            else {
-              // The game's blast is 4 m across; here about two faces.
-              vfx.spawn(SOVA.Q.boom, (v) => v.copy(end), { scale: 0.07, dur: 0.05 })
-              shake(380, 10, now)
-            }
-            sova.arrow = null
-          } else {
+          if (leg >= a.legs.length) finishArrow(a, now)
+          else {
             const p0 = a.pts[leg], p1 = a.pts[leg + 1]
             a.dir.copy(p1).sub(p0).normalize()
             a.at.copy(p0).lerp(p1, t / a.legs[leg])
@@ -2022,11 +2267,8 @@
         const dt0 = sova.dart
         if (dt0) {
           const t = (now - dt0.t0) / 1000
-          if (t > DART_LIFE) {
-            dt0.sys.stop()
-            vfx.spawn(SOVA.E.destroyed, (v) => v.copy(dt0.tip), { scale: 0.3, dur: 0.05 })
-            sova.dart = null
-          } else {
+          if (t > DART_LIFE) endDart(dt0)
+          else {
             stuck.visible = true
             if (stuckArrow) {
               stuckArrow.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), dt0.dir)
@@ -2044,6 +2286,7 @@
                 // Its ring grows to 30 × 8 game centimetres across in a second: scaled to reach 1.3 times as far as
                 // his head, which it crosses 0.63 s in (where its size curve passes 6.15).
                 vfx.spawn(SOVA.E.pulse, (v) => v.copy(dt0.tip), { scale: (2.6 * d) / 240, dur: 0.05 })
+                sfx.play("sova-recon-ping", { pan: pan3(dt0.tip) })
                 dt0.ringAt[i] = now + 634
               }
               if (dt0.ringAt[i] && now >= dt0.ringAt[i]) {
@@ -2074,10 +2317,21 @@
       }
       // The Recon Bolt lands: the flash, its glows and arcs while it sits there.
       function land(tip, dir, k, now) {
+        // One stuck at a time: a new one breaks the one before (its glow and arcs would stay on forever).
+        if (sova.dart) endDart(sova.dart)
         vfx.spawn(SOVA.E.impact, (v) => v.copy(tip), { scale: 0.3, dur: 0.05 })
         const dart = { tip: tip.clone(), dir, k, t0: now, pulsed: [], ringAt: [] }
         dart.sys = vfx.spawn(SOVA.E.stuck, (v) => v.copy(dart.tip), { scale: 0.3 })
+        sfx.play("sova-recon-hit", { pan: pan3(tip) })
+        dart.snd = sfx.play("sova-recon-deployed", { pan: pan3(tip), gain: 0.8 })
         sova.dart = dart
+      }
+      function endDart(dart) {
+        dart.sys.stop()
+        vfx.spawn(SOVA.E.destroyed, (v) => v.copy(dart.tip), { scale: 0.3, dur: 0.05 })
+        dart.snd.stop(0.2)
+        sfx.play("sova-recon-end", { pan: pan3(dart.tip) })
+        sova.dart = null
       }
 
       // ---------- the cars on the face: Octane, Fennec ----------
@@ -2313,13 +2567,20 @@
           }
         }
       }
+      // With the game's sounds: the demolition's blast; the flip's jump, then its dodge.
       function demo(now) {
         const c = CARS[mode]
-        if (c && c.boom < 0) c.boom = now
+        if (!c || c.boom >= 0) return
+        c.boom = now
+        sfx.play("carro-demo", { pan: panAt(faceBox().c.x) })
       }
       function flipCar(now) {
         const c = CARS[mode]
-        if (c && c.flip < 0 && c.boom < 0) c.flip = now
+        if (!c || c.flip >= 0 || c.boom >= 0) return
+        c.flip = now
+        const pan = panAt(faceBox().c.x)
+        sfx.play("carro-pulo", { pan, gain: 0.7 })
+        sfx.play("carro-flip", { pan, delay: 0.08 })
       }
 
       // ---------- models ----------
@@ -2368,9 +2629,18 @@
       let pushes = []
       let handInfo = ""
 
+      // Each filter's sounds, by their cues' prefix.
+      const SONS = { phoenix: "phoenix-", sova: "sova-", octane: "carro-", fennec: "carro-" }
       function setMode(m) {
+        const before = mode
         mode = MODES.includes(m) ? m : "nenhum"
         titulo.classList.toggle("on", mode === "pop")
+        // A new filter silences the last one's and decodes its own.
+        if (mode !== before) sfx.stopAll(0.25)
+        if (SONS[mode]) {
+          sfx.preload(SONS[mode])
+          sfx.keep(SONS[mode])
+        }
         // Each agent's abilities go with him.
         if (mode !== "phoenix") {
           bang.t0 = -1
@@ -2392,9 +2662,15 @@
         if (mode === "sova") ({ recon: () => autoBow("recon", now), choque: () => autoBow("choque", now), drone: () => startDrone(now), ult: () => startUlt(now) })[a]?.()
         if (CARS[mode]) ({ demo, flip: flipCar })[a]?.(now)
       }
-      // The dock's word (obs-browser's emit_event): the filter that should be on, or a one-off.
+      // The dock's word (obs-browser's emit_event): the filter that should be on with its options (Sova's drone
+      // flying behind him), or a one-off.
       addEventListener("muanlartins-filtro", ({ detail }) => {
         if (detail?.filtro && detail.filtro !== mode) setMode(detail.filtro)
+        if (detail?.opcoes) {
+          sova.patrol.want = !!detail.opcoes.patrulha
+          // The dock's "Sons" switch (on unless it says mudo).
+          sfx.on = !detail.opcoes.mudo
+        }
         if (detail?.acao) acao(detail.acao)
       })
       addEventListener("keydown", (e) => {
@@ -2410,10 +2686,13 @@
         const k = e.key.toLowerCase()
         const keys = mode === "phoenix" ? { c: "blaze", q: "flash", e: "molotov", x: "ult" } : { e: "recon", q: "choque", c: "drone", x: "ult", d: "demo", f: "flip" }
         if (keys[k]) acao(keys[k])
+        if (k === "p") sova.patrol.want = !sova.patrol.want
+        if (k === "m") sfx.on = !sfx.on
         if (e.key === "0") setMode("nenhum")
       })
       setMode(mode)
-      if (q.has("debug")) window.filtros = { sova, AGENTS, CARS, uniforms, acao, vfx, phx, isBird, bow3, drone3, SOVA, at3, get mode() { return mode } }
+      const DEBUG = q.has("debug")
+      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, isOwl, handShape, bow3, drone3, SOVA, at3, get mode() { return mode } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -2424,7 +2703,8 @@
 
       function runGestures(now) {
         const t0 = performance.now()
-        const r = gestures.recognizeForVideo(video, now)
+        // ?debug: window.__hands(now) can stand in for the tracker (made-up hands, for checking the gestures).
+        const r = (DEBUG && window.__hands?.(now)) || gestures.recognizeForVideo(video, now)
         ms.gesto = performance.now() - t0
         const hands = r.landmarks || []
         lastHands = hands
@@ -2432,7 +2712,7 @@
         const ls = mode === "lente" ? hands.filter(isL) : []
         handInfo = `${hands.length} mão(s), ${ls.length} em L`
         if (mode === "phoenix") phoenixHands(r, now)
-        if (mode === "sova") sovaHands(hands, now)
+        if (mode === "sova") sovaHands(r, now)
         if (ls.length === 2) {
           ls.sort((a, b) => a[0].x - b[0].x)
           const [L, R] = ls
@@ -2593,8 +2873,9 @@
 
       function startBang(x, y, key) {
         if (bang.t0 >= 0) return
-        Object.assign(bang, { t0: performance.now(), key, startX: x, thrown: false })
+        Object.assign(bang, { t0: performance.now(), key, startX: x, thrown: false, heard: 0 })
         bang.hand.set(x, y)
+        sfx.play("phoenix-flash-equip", { pan: panAt(x) })
       }
       // The orb's path: held in the hand, then thrown to the side the hand moved to (or to the middle).
       function updateBang(now) {
@@ -2636,6 +2917,17 @@
         } else {
           bang.t0 = -1
           u.uOrbAmt.value = 0
+        }
+        // Thrown, then its pop, and what a flashed player hears as the glare blinds whoever's watching.
+        if (bang.heard < 1 && t >= HOLD) {
+          bang.heard = 1
+          sfx.play("phoenix-flash-throw", { pan: panAt(bang.hand.x) })
+        }
+        if (bang.heard < 2 && t >= HOLD + FLY) {
+          bang.heard = 2
+          const pan = panAt(u.uTo.value.x)
+          sfx.play("phoenix-flash-pop", { pan })
+          sfx.play("phoenix-flash-blind", { pan: pan * 0.5, gain: 0.55, delay: 0.15 })
         }
         phxCurveball(t)
       }
@@ -2742,7 +3034,7 @@
               handInfo = "mãos sem uso"
             }
             // The body mask: Pop, and Sova's reveals while one may be on screen.
-            const sovaMask = sovaOn && now < sova.maskUntil
+            const sovaMask = sovaOn && (now < sova.maskUntil || sova.patrol.amt > 0)
             if (mode === "pop" || pop > 0 || sovaMask) runBody(now)
             if (mode === "bola" || ballIn > 0 || agentOn || carOn) runFace(now)
             if (agentOn && videoFrames % 2 === 0) runPose(now)
@@ -2765,6 +3057,14 @@
         const fireWanted = phoenix > 0 && (fire.on || fire.demo)
         if (fire.demo && !fire.on) fire.at.set(0.5, 0.3, 0.11)
         fire.amt = THREE.MathUtils.clamp(fire.amt + (fireWanted ? dt / 0.25 : -dt / 0.35), 0, 1)
+        // The fire between his palms crackles as loud as it's big.
+        if (fire.amt > 0.01) {
+          fire.snd ||= sfx.play("phoenix-fire", { loop: true, gain: 0 })
+          fire.snd.set({ gain: fire.amt * 0.9, pan: panAt(fire.at.x) })
+        } else if (fire.snd) {
+          fire.snd.stop(0.2)
+          fire.snd = null
+        }
         uniforms.uPlateOk.value = plate.ok ? 1 : 0
         uniforms.uFire.value.copy(fire.at)
         uniforms.uFireAmt.value = fire.amt
@@ -2827,6 +3127,12 @@
           renderer.clearDepth()
           renderer.render(front, shapeCam)
         }
+        // Sova's drone behind him: under everything else, his body in front of it.
+        if (sovaOn && drone3.root.visible && drone3.behind) {
+          renderer.clearDepth()
+          renderer.render(occludeScene, ortho)
+          renderer.render(sv3.drone, headCam)
+        }
         // The agents' clothes on the shoulders, then Luan's face and hands back over them.
         for (const a of ready) {
           if (pose.seen && headSeen) {
@@ -2868,9 +3174,11 @@
         }
         if (sovaOn) {
           renderer.render(sovaScene, ortho)
-          if (drone3.root.visible || flying.visible || stuck.visible) {
+          const droneFront = drone3.root.visible && !drone3.behind
+          if (droneFront || flying.visible || stuck.visible) {
             renderer.clearDepth()
-            renderer.render(sv3.free, headCam)
+            if (flying.visible || stuck.visible) renderer.render(sv3.free, headCam)
+            if (droneFront) renderer.render(sv3.drone, headCam)
           }
         }
         if (uniforms.uBoomT.value >= 0) renderer.render(boomScene, ortho)
@@ -2894,7 +3202,7 @@
             `gesto ${ms.gesto.toFixed(1)} ms · corpo ${ms.corpo.toFixed(1)} ms · rosto ${ms.rosto.toFixed(1)} ms · ombros ${ms.ombros.toFixed(1)} ms\n` +
             `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}` +
             (ag ? `\n${mode}: modelo ${ag.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"}${AGENTS[mode] ? ` · ombros ${pose.seen ? "sim" : "não"} · fundo ${!ERASE ? "desligado" : plate.off === undefined ? "…" : `${plate.ok ? "ok" : "não bate"} (${plate.off.toFixed(1)})`}` : ""}` : "") +
-            (mode === "sova" ? `\nsova: peças ${bow3.model ? "ok" : "…"} · arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? ` · flecha (${sova.arrow.kind})` : ""}${sova.dart ? " · reconhecimento" : ""}${sova.drone ? " · coruja" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
+            (mode === "sova" ? `\nsova: peças ${bow3.model ? "ok" : "…"} · arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? ` · flecha (${sova.arrow.kind})` : ""}${sova.dart ? " · reconhecimento" : ""}${sova.drone ? " · coruja" : ""}${sova.patrol.amt > 0 ? " · coruja sobrevoando" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
             (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
         }
       }
