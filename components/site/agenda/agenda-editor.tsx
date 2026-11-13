@@ -21,6 +21,7 @@ const T = localize({
   },
   notChannel: { pt: "Só a conta do canal edita a agenda.", en: "Only the channel's account edits the schedule." },
   connect: { pt: "Conectar o calendário da Twitch", en: "Connect Twitch's calendar" },
+  localApi: { pt: "API local: salvar não mexe no calendário da Twitch.", en: "Local API: saving leaves Twitch's calendar alone." },
   connectNote: {
     pt: "Sem isso, salvar muda só o site.",
     en: "Without it, saving changes only the site.",
@@ -59,6 +60,9 @@ const T = localize({
   signInAgain: { pt: "A Twitch pediu para entrar de novo.", en: "Twitch asked to sign in again." },
   pastMidnight: { pt: "termina no dia seguinte", en: "ends the next day" },
 })
+
+// A local stand-in of the API (NEXT_PUBLIC_PROFILE_API on localhost) never touches the real Twitch calendar.
+const LOCAL_API = /^http:\/\/(localhost|127\.)/.test(AGENDA_URL)
 
 const field = "rounded-sm border border-line bg-paper px-2.5 py-1.5 text-[15px] text-ink"
 const EMPTY: Agenda = { timeZone: "America/Sao_Paulo", slots: [], extras: [], off: [], games: {} }
@@ -134,7 +138,7 @@ export function AgendaEditor() {
     )
   }
 
-  const canSync = me!.scopes.includes(SCHEDULE_SCOPE)
+  const canSync = me!.scopes.includes(SCHEDULE_SCOPE) && !LOCAL_API
   const set = (patch: Partial<Agenda>) => draft && setEdited({ ...draft, ...patch })
   const gameIds = draft ? Object.keys(draft.games) : []
 
@@ -172,7 +176,8 @@ export function AgendaEditor() {
     <section className="mt-16 border-t border-line pt-10">
       <h2 className="text-2xl font-medium tracking-[-0.02em] text-klein">{T.title}</h2>
       <p className="mt-2 max-w-[38rem] text-[15px] leading-[1.6] text-muted">{T.intro}</p>
-      {!canSync && (
+      {LOCAL_API && <p className="mt-4 text-[14px] font-medium text-klein">{T.localApi}</p>}
+      {!canSync && !LOCAL_API && (
         <p className="mt-4 flex flex-wrap items-center gap-3 text-[14px]">
           <button onClick={() => signIn(null, channelPath("agenda"), SCHEDULE_SCOPE)} className="rounded-sm bg-[#9146ff] px-3 py-1.5 font-medium text-white hover:opacity-90">
             {T.connect}
