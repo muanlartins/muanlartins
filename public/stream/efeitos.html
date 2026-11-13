@@ -32,19 +32,22 @@
         plays: no overlays, the game's sound only) and the stream as it went out (OBS's Replay Buffer, which this dock
         starts with the stream or the recording: the fallback when the game's isn't there). scripts/replay.py (WSL, on
         127.0.0.1:8794, started at Windows login) finds the clip in Videos and serves it; var.html plays it in a
-        <video>, and so does this dock's preview, which is the player: play/pause, ±1 s, ±5 s, frame by frame, the
-        speed (100/50/25/10%), a timeline to scrub, and the play in focus. In Rocket League the Partidas dock tells
-        this one each goal, save and demo as it happens (a BroadcastCustomEvent), so a replay knows where they are in
-        it: they're marked on the timeline and the latest goal (else save) is the focus, where the replay eases into
-        slow motion and back, like the game's own replays (FOCO in stream.js; Valorant also zooms on the crosshair).
-        "Lance aqui" puts the focus where the preview is (Valorant has no events to mark). Two layouts, each game's
+        <video>, muted (the game's sound stays the live game's), and so does this dock's preview. It's an instant
+        replay: the clip's last seconds, as long as the vote fits twice, with no looking for the play (Luan,
+        2026-11-12: "simplesmente como um Replay Instantâneo é bom o suficiente"; the goals and saves the Partidas dock
+        used to send for it are gone). It plays on its own (he doesn't steer it live): the script (`replay.roteiro`,
+        ROTEIRO in stream.js) plays the stretch once at full speed and again at 50% (Valorant zooms on the crosshair
+        meanwhile), and for the vote's last 8 s var.html shows the closing screen, frozen on the stretch's last frame,
+        while the last votes come in. The preview is still a player (play/pause, ±1 s, ±5 s, frame by frame, the
+        speed, a timeline to scrub): touching it drops the script and the clip follows the controls. Two layouts, each game's
         default kept here: "mini", the clip in the top right corner over the game scene, which stays on (Rocket
         League's: the match goes on; jogo.html fades its chat meanwhile), and "cabine", the game's VAR scene ("VAR ·
         Rocket League" or "VAR · Valorant": var.html's booth, the live camera, the stand in referee kit) on the "VAR"
         stinger (Valorant's: Luan is dead, there's time). Away from a game scene it's always the booth. Opening it
         has the stand whistle (tocador.html). The chat votes with !1, !2, !3 (one vote per login, the last counts;
-        read here, anonymously) for the time set here per game (30 s Rocket League, 20 s Valorant by default), or
-        "Encerrar" sooner. The chat's verdict is final; a tie waits for Luan's pick here. The verdict holds 7 s and the
+        read here, anonymously) for the time set here per game (60 s Rocket League, 40 s Valorant by default: Luan
+        doubled them on 2026-11-12, for the replay's two passes), or
+        "Encerrar" sooner. The chat's verdict is final; a tie (nobody voting too) is drawn among the tied 2.5 s later, unless Luan picks here first. The verdict holds 7 s and the
         dock goes back to the scene before; F4 closes the VAR at any moment. A line dragged on the preview crosses the
         clip on stream. "Só guardar" saves without opening, and today's clips can be opened again from the list. Who
         voted for the verdict gets a little Σ (torcida.html asks the Σ API, which only it has the key for). Everything
@@ -317,27 +320,6 @@
         width: 0;
         background: var(--paper);
       }
-      .linha-tempo .marcas span {
-        position: absolute;
-        top: 6px;
-        width: 3px;
-        height: 14px;
-        margin-left: -1px;
-        background: var(--klein-claro);
-        pointer-events: none;
-      }
-      .linha-tempo .marcas span.foco {
-        top: 7px;
-        width: 12px;
-        height: 12px;
-        margin-left: -6px;
-        background: #ffd23f;
-        transform: rotate(45deg);
-      }
-      .linha-tempo .marcas span.foco.desligado {
-        background: var(--navy);
-        box-shadow: inset 0 0 0 2px #ffd23f;
-      }
       .linha-tempo input {
         position: absolute;
         inset: 0;
@@ -386,23 +368,6 @@
       .velocidades {
         margin-top: 6px;
       }
-      .lance {
-        margin-top: 4px;
-      }
-      .lance .check {
-        margin-top: 6px;
-        font-size: 13px;
-      }
-      .marcas-lance {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-        margin-top: 6px;
-      }
-      .marcas-lance button {
-        font-size: 12px;
-        padding: 4px 8px;
-      }
       .replays {
         display: grid;
         gap: 4px;
@@ -449,12 +414,12 @@
     <div class="ajustes">
       <span>Rocket League</span>
       <div class="segmentos" data-jogo="rl" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
-      <div class="segmentos" data-jogo="rl" data-campo="voto"><button data-valor="15">15s</button><button data-valor="20">20s</button><button data-valor="30">30s</button><button data-valor="45">45s</button></div>
+      <div class="segmentos" data-jogo="rl" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
       <span>Valorant</span>
       <div class="segmentos" data-jogo="val" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
-      <div class="segmentos" data-jogo="val" data-campo="voto"><button data-valor="15">15s</button><button data-valor="20">20s</button><button data-valor="30">30s</button><button data-valor="45">45s</button></div>
+      <div class="segmentos" data-jogo="val" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
     </div>
-    <p class="note">Mini: o replay no canto, o jogo segue. Cabine: a cena do VAR. Depois, o tempo da votação.</p>
+    <p class="note">Mini: o replay no canto, o jogo segue. Cabine: a cena do VAR. Depois, o tempo da votação: o replay passa uma vez normal, outra em 50%, e os últimos 8 s são de últimos votos.</p>
     <label class="campo">Pergunta <input id="var-pergunta" maxlength="60" autocomplete="off" /></label>
     <div class="opcoes-var" style="margin-top: 6px">
       <input id="var-op1" maxlength="24" placeholder="!1" autocomplete="off" />
@@ -479,7 +444,6 @@
         </div>
         <div class="linha-tempo" id="linha-tempo">
           <div class="trilho"><span class="feito" id="feito"></span></div>
-          <div class="marcas" id="marcas-trilho"></div>
           <input type="range" id="busca" min="0" max="1" step="0.001" value="0" aria-label="Posição no replay" />
         </div>
         <div class="transporte">
@@ -489,19 +453,13 @@
           <button class="tocar" id="tocar" title="Tocar ou pausar"><svg viewBox="0 0 20 20" class="icone-play"><path d="M5 3l12 7-12 7z" /></svg><svg viewBox="0 0 20 20" class="icone-pausa"><path d="M5 3h4v14H5zM11 3h4v14h-4z" /></svg></button>
           <button data-pulo="1" title="Avançar 1 s">+1</button>
           <button data-pulo="5" title="Avançar 5 s">+5</button>
-          <button data-pulo="lance" title="Ir ao lance (2 s antes)"><svg viewBox="0 0 20 20"><path d="M10 2l8 8-8 8-8-8z" /></svg></button>
         </div>
         <div class="transporte quadros">
           <button data-quadro="-1">‹ quadro</button>
           <button data-quadro="1">quadro ›</button>
         </div>
         <div class="segmentos velocidades" id="velocidades"><button data-base="1">100%</button><button data-base="0.5">50%</button><button data-base="0.25">25%</button><button data-base="0.1">10%</button></div>
-        <div class="lance">
-          <label class="check"><input type="checkbox" id="foco-ligado" /> Câmera lenta no lance</label>
-          <label class="check"><input type="checkbox" id="foco-zoom" /> Zoom no meio</label>
-          <div class="grid" style="margin-top: 6px"><button id="foco-aqui">Lance aqui</button><button id="linha-apagar">Apagar linha</button></div>
-          <div class="marcas-lance" id="marcas-lance"></div>
-        </div>
+        <div class="grid" style="margin-top: 6px"><button id="linha-apagar">Apagar linha</button></div>
         <div class="segmentos" id="layout-agora" style="margin-top: 8px"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
         <label class="check"><input type="checkbox" id="som-replay" /> Som do replay</label>
       </div>
@@ -626,7 +584,6 @@
               bufferPreciso()
             }
             if (d.eventType === "ReplayBufferStateChanged" && !d.eventData.outputState.endsWith("ING")) bufferStatus()
-            if (d.eventType === "CustomEvent" && d.eventData?.lance) lanceOuvido(d.eventData.lance)
           } else if (op === 7) {
             pending.get(d.requestId)?.(d.requestStatus.result ? (d.responseData ?? {}) : null)
             pending.delete(d.requestId)
@@ -843,7 +800,8 @@
       // Each game's capture, whose "Gravar jogo" filter (Source Record) keeps the game alone in a replay buffer.
       const CAPTURAS = { rl: "Rocket League", val: "Captura · Valorant" }
       const SEGURA_MS = 7000 // the verdict on screen before going back
-      const DERIVA = 0.25 // the preview seeks when it's this far (s) from the clock, like var.html
+      const SORTEIO_MS = 2500 // a tie on screen before the draw settles it
+      const DERIVA = 0.5 // the preview seeks when it's this far (s) from the clock, like var.html
       // Option presets (from the brainstorm; Luan edits them in the fields before calling).
       const PRESETS = [
         ["Lance limpo", "Roubado"],
@@ -854,6 +812,13 @@
       // Where the replay plays and how long the chat votes, per game: Rocket League's goes on in a corner while the
       // game goes on (mini), Valorant's in the booth while Luan is dead (cabine).
       state.varJogo ??= { rl: { layout: "mini", voto: 30 }, val: { layout: "cabine", voto: 20 } }
+      // Luan doubled the vote times on 2026-11-12 ("dobrar o tempo do VAR"), so the replay fits its two passes: kept
+      // times (15/20/30/45 s then) double once, and the buttons are 30/40/60/90 s since.
+      if (!state.varTempoDobrado) {
+        for (const j of Object.values(state.varJogo)) j.voto = Math.min(90, j.voto * 2)
+        state.varTempoDobrado = true
+        save()
+      }
 
       let gravando = false
       let bufferAtivo = false
@@ -864,9 +829,6 @@
       let fimVotacao = null
       let fimVeredito = null
       let reenvio = null
-      // Rocket League's plays as the Partidas dock heard them ({ tipo, rotulo, em }, its BroadcastCustomEvent), so a
-      // replay knows where its goal or save is. The last three hours.
-      const lances = []
       const hoje = [] // today's clips, from replay.py, newest first
 
       // The fields keep the last question and options used.
@@ -962,9 +924,8 @@
           ...hoje.map((c) => {
             const b = document.createElement("button")
             const hora = new Date(c.fim).toLocaleTimeString("pt-BR")
-            const lance = focoDe(marcasDe(c.fim, 20))?.rotulo
             b.innerHTML = `<span></span><small></small>`
-            b.firstChild.textContent = `${hora} · ${c.fonte === "jogo" ? "jogo" : "live"}${lance ? ` · ${lance}` : ""}`
+            b.firstChild.textContent = `${hora} · ${c.fonte === "jogo" ? "jogo" : "live"}`
             b.lastChild.textContent = "abrir"
             b.onclick = async () => {
               if (varAtual) return
@@ -976,15 +937,6 @@
         )
       }
 
-      /** The plays inside a clip that ended at `fim` (epoch ms) and lasts `duracao` s, at their times in it. */
-      function marcasDe(fim, duracao) {
-        return lances
-          .filter((l) => l.em <= fim + 500 && l.em >= fim - duracao * 1000)
-          .map((l) => ({ t: Math.max(0, Math.round((duracao - (fim - l.em) / 1000) * 100) / 100), rotulo: l.rotulo, tipo: l.tipo }))
-      }
-      // Which play the replay focuses on: the latest goal, else save, else whatever came last.
-      const PESO = { gol: 3, defesa: 2, demolicao: 1 }
-      const focoDe = (marcas) => [...marcas].sort((a, b) => (PESO[b.tipo] ?? 0) - (PESO[a.tipo] ?? 0) || b.t - a.t)[0] ?? null
 
       /**
        * F8 (and "Só guardar"): has OBS save the last seconds, the game alone (Source Record's buffer on the game's
@@ -1045,16 +997,15 @@
         const { pergunta, opcoes } = lerCampos()
         const duracao = state.varJogo[jogo].voto * 1000
         const layout = layoutPara(jogo)
-        const marcas = marcasDe(clip.fimSalvo ?? clip.fim, clip.duracao)
-        const alvo = focoDe(marcas)
-        const foco = { t: alvo?.t ?? null, ligado: !!alvo, zoom: jogo === "val" }
+        const roteiro = roteiroPara(clip.duracao, duracao)
         varAtual = {
           id: String(Date.now()), jogo, layout, fase: "votacao", pergunta, opcoes: opcoes.length >= 2 ? opcoes : PRESETS[0],
           votos: [], votantes: {}, ate: Date.now() + duracao, duracao, vencedora: null, empatadas: [], linha: null,
           replay: {
-            url: clip.url, nome: clip.nome, duracao: clip.duracao, fonte: clip.fonte, marcas, foco,
-            // From a little before the play when there is one, so the slow motion comes soon.
-            t: alvo ? Math.max(0, alvo.t - 4) : 0, em: Date.now(), tocando: true, base: 1, som: layout === "cabine",
+            // Valorant's slow pass zooms on the crosshair, the screen's middle.
+            url: clip.url, nome: clip.nome, duracao: clip.duracao, fonte: clip.fonte, zoom: jogo === "val", roteiro,
+            // The clock the player takes over from if Luan touches it; muted (Luan, 2026-11-12).
+            t: roteiro.de, em: Date.now(), tocando: true, base: 1, som: false, acao: 0,
           },
         }
         varAtual.votos = varAtual.opcoes.map(() => 0)
@@ -1082,7 +1033,7 @@
         enviarVar()
       }
 
-      /** The vote's end: the most votes wins; a tie waits for Luan. */
+      /** The vote's end: the most votes wins; a tie is drawn. */
       function encerrarVotacao() {
         const v = varAtual
         if (!v || v.fase !== "votacao") return
@@ -1090,13 +1041,19 @@
         const max = Math.max(...v.votos)
         const empatadas = v.votos.map((n, i) => (n === max ? i : -1)).filter((i) => i >= 0)
         if (empatadas.length === 1) return veredito(empatadas[0])
+        // A tie (nobody voting too) is drawn among the tied, a moment after it shows (Luan, 2026-11-12: he doesn't
+        // steer the VAR live); his buttons here still pick one meanwhile.
         Object.assign(v, { fase: "empate", empatadas, ate: null })
         enviarVar()
+        const id = v.id
+        setTimeout(() => {
+          if (varAtual?.id === id && varAtual.fase === "empate") veredito(empatadas[Math.floor(Math.random() * empatadas.length)], true)
+        }, SORTEIO_MS)
       }
-      function veredito(i) {
+      function veredito(i, sorteio = false) {
         const v = varAtual
         if (!v || v.fase === "veredito") return
-        Object.assign(v, { fase: "veredito", vencedora: i, ate: null })
+        Object.assign(v, { fase: "veredito", vencedora: i, ate: null, sorteio })
         enviarVar()
         play("apito")
         clearTimeout(fimVeredito)
@@ -1171,16 +1128,29 @@
         r.t = Math.round(limite(pos()) * 1000) / 1000
         r.em = Date.now()
       }
-      /** Changes the replay (rebased first, so `r.t` is now), then sends it. */
+      /**
+       * Changes the replay (rebased first, so `r.t` is now), then sends it. `acao` counts these changes: var.html seeks
+       * to the frame only when it moves; the snapshots resent every second leave it, so the booth only corrects drift.
+       */
       function mudar(fn) {
         const r = varAtual?.replay
         if (!r) return
         rebase()
+        soltarRoteiro(r)
         fn(r)
         r.t = limite(r.t)
         r.em = Date.now()
+        r.acao = (r.acao ?? 0) + 1
         seguirPrevia(true)
         enviarVar()
+      }
+      /** Luan touched the player: the script stops where it is (playing or not, at its speed) and the clock is his. */
+      function soltarRoteiro(r) {
+        const s = roteiroAgora(r)
+        if (!s) return
+        r.tocando = s.tocando
+        r.base = s.fase === "lenta" ? ROTEIRO.lenta : 1
+        r.roteiro = null
       }
       function carregarPrevia() {
         const r = varAtual?.replay
@@ -1193,24 +1163,34 @@
         const r = varAtual?.replay
         if (!r || !previa.readyState) return
         const alvo = pos()
+        const tocando = replayTocando(r)
         const fora = Math.abs(previa.currentTime - alvo)
-        if (fora > (r.tocando && !agora ? DERIVA : 0.004)) previa.currentTime = alvo
-        if (r.tocando && previa.paused) previa.play().catch(() => {})
-        if (!r.tocando && !previa.paused) previa.pause()
+        if (fora > (tocando && !agora ? DERIVA : 0.004)) previa.currentTime = alvo
+        if (tocando && previa.paused) previa.play().catch(() => {})
+        if (!tocando && !previa.paused) previa.pause()
       }
       previa.addEventListener("loadedmetadata", () => seguirPrevia(true))
       setInterval(() => seguirPrevia(), 400)
 
       const segundos = (t) => t.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
       let arrastando = false
+      let faseVista = null
       function quadroPrevia() {
         const r = varAtual?.replay
         if (r && previa.readyState) {
           const t = previa.currentTime
-          const taxa = Math.max(0.0625, replayTaxa(t, r))
+          const s = roteiroAgora(r)
+          // Each pass of the script starts on its frame, like var.html.
+          if ((s?.fase ?? null) !== faseVista) {
+            faseVista = s?.fase ?? null
+            if (s) seguirPrevia(true)
+          }
+          const taxa = s ? s.taxa : (r.base ?? 1)
           if (Math.abs(previa.playbackRate - taxa) > 0.005) previa.playbackRate = taxa
-          const w = focoPeso(t, r.foco)
-          $("selo").textContent = !r.tocando ? "PAUSADO" : w > 0.5 ? `CÂMERA LENTA ${Math.round(taxa * 100)}%` : `REPLAY ${Math.round(taxa * 100)}%`
+          const tocando = s ? s.tocando : r.tocando
+          const pct = Math.round(taxa * 100)
+          $("selo").textContent = s?.fase === "fim" ? "FIM · ÚLTIMOS VOTOS" : s?.fase === "espera" ? "CARREGANDO" : !tocando ? "PAUSADO"
+            : s?.fase === "lenta" ? `CÂMERA LENTA ${pct}%` : `REPLAY ${pct}%`
           const agora = pos()
           $("tempo").textContent = `${segundos(agora)} / ${segundos(r.duracao)} s`
           $("feito").style.width = `${(agora / (r.duracao || 1)) * 100}%`
@@ -1226,11 +1206,7 @@
           mudar((r) => {
             const p = b.dataset.pulo
             if (p === "inicio") r.t = 0
-            else if (p === "lance") {
-              if (r.foco?.t == null) return
-              r.t = r.foco.t - 2
-              r.tocando = true
-            } else r.t += Number(p)
+            else r.t += Number(p)
           })
       for (const b of document.querySelectorAll("[data-quadro]"))
         b.onclick = () =>
@@ -1246,10 +1222,12 @@
         mudar((r) => (r.t = Number(busca.value) * r.duracao))
       }
       busca.onchange = () => (arrastando = false)
-      $("foco-ligado").onchange = (e) => mudar((r) => (r.foco = { ...r.foco, ligado: e.target.checked && r.foco?.t != null }))
-      $("foco-zoom").onchange = (e) => mudar((r) => (r.foco = { ...r.foco, zoom: e.target.checked }))
-      $("foco-aqui").onclick = () => mudar((r) => (r.foco = { ...r.foco, t: Math.round(r.t * 100) / 100, ligado: true }))
-      $("som-replay").onchange = (e) => mudar((r) => (r.som = e.target.checked))
+      // The sound (off since 2026-11-12) isn't the clock: it leaves the script running.
+      $("som-replay").onchange = (e) => {
+        if (!varAtual?.replay) return
+        varAtual.replay.som = e.target.checked
+        enviarVar()
+      }
       for (const b of $("layout-agora").children) b.onclick = () => varAtual && varAtual.layout !== b.dataset.valor && irPara(b.dataset.valor)
 
       // The panel while a VAR is open: the count, the tie's buttons, the player's state.
@@ -1259,7 +1237,7 @@
         if (!v) return
         const total = v.votos.reduce((a, b) => a + b, 0)
         $("var-estado").textContent =
-          (v.fase === "empate" ? "Empate: escolha o veredito. " : v.fase === "veredito" ? `Veredito: ${v.opcoes[v.vencedora]}. ` : "Votando. ") +
+          (v.fase === "empate" ? "Empate: sorteando (ou escolha). " : v.fase === "veredito" ? `Veredito: ${v.opcoes[v.vencedora]}. ` : "Votando. ") +
           v.opcoes.map((o, i) => `${o} ${v.votos[i]}`).join(" · ") + ` (${total})`
         $("desempate").replaceChildren(
           ...(v.fase === "empate" ? v.empatadas : []).map((i) => {
@@ -1275,30 +1253,7 @@
         document.querySelector(".player").classList.toggle("tocando", r.tocando)
         for (const b of $("velocidades").children) b.classList.toggle("active", Number(b.dataset.base) === r.base)
         for (const b of $("layout-agora").children) b.classList.toggle("active", b.dataset.valor === v.layout)
-        $("foco-ligado").checked = !!r.foco?.ligado
-        $("foco-ligado").disabled = r.foco?.t == null
-        $("foco-zoom").checked = !!r.foco?.zoom
         $("som-replay").checked = !!r.som
-        document.querySelector('[data-pulo="lance"]').disabled = r.foco?.t == null
-        // The plays on the timeline (and as buttons that put the focus on them), and the focus.
-        const em = (t) => `${Math.min(100, Math.max(0, (t / (r.duracao || 1)) * 100))}%`
-        const chave = JSON.stringify([r.marcas, r.foco, r.duracao])
-        if ($("marcas-trilho").dataset.de !== chave) {
-          $("marcas-trilho").dataset.de = chave
-          $("marcas-trilho").replaceChildren(
-            ...r.marcas.map((m) => Object.assign(document.createElement("span"), { title: m.rotulo, style: `left:${em(m.t)}` })),
-            ...(r.foco?.t != null ? [Object.assign(document.createElement("span"), { className: `foco${r.foco.ligado ? "" : " desligado"}`, style: `left:${em(r.foco.t)}` })] : []),
-          )
-          $("marcas-lance").replaceChildren(
-            ...r.marcas.map((m) => {
-              const b = document.createElement("button")
-              b.textContent = `${m.rotulo} · ${segundos(m.t)} s`
-              b.classList.toggle("active", r.foco?.t === m.t)
-              b.onclick = () => mudar((x) => (x.foco = { ...x.foco, t: m.t, ligado: true }))
-              return b
-            }),
-          )
-        }
         desenharTela()
       }
       $("var-encerrar").onclick = encerrarVotacao
@@ -1348,14 +1303,6 @@
         varAtual.linha = null
         desenharTela()
         enviarVar()
-      }
-
-      // The plays from the Partidas dock (BroadcastCustomEvent { lance: { tipo, rotulo, em } }).
-      function lanceOuvido(l) {
-        if (!l?.em) return
-        lances.push(l)
-        while (lances.length && lances[0].em < Date.now() - 3 * 3600 * 1000) lances.shift()
-        if (lances.length > 500) lances.shift()
       }
 
       // --- Sounds ---------------------------------------------------------------------------------------------

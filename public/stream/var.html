@@ -18,21 +18,28 @@
       - "mini" (Rocket League's default), like a tournament's: the game goes on full screen and the clip plays in a
         corner, top right, 640×360 at (1236, 92), with the vote under it, where the chat is (jogo.html fades its chat
         meanwhile); the scene stays the game's.
-      Under the clip, its progress, with the plays the dock knows (Rocket League's goals, saves and demos, from the
-      Partidas dock) and the one in focus. With the focus on, the replay eases into slow motion around that play and
-      back (FOCO in stream.js, the same curve as the dock's preview; Valorant zooms on the crosshair meanwhile).
+      Under the clip, its progress.
+
+      An instant replay (the clip's last seconds, no looking for the play: Luan, 2026-11-12), playing on its own by the
+      script the dock sends (`replay.roteiro`, ROTEIRO in stream.js; he doesn't steer it live): the stretch once at full
+      speed, again at 50% (Valorant zooms on the crosshair meanwhile), and for the vote's last 8 s the closing screen,
+      the clip frozen on the stretch's last frame with the seconds left, while the last votes come in; the verdict lands
+      on it. Muted: the game's sound stays the live game's. If Luan touches the dock's player, the script drops and
+      the clip follows his controls.
 
       The dock sends the VAR's whole state on every change, and every second while it plays, as obs-browser's
       emit_event "muanlartins-var" with the state as JSON text in `estado` (varDe() in stream.js): { fase: "votacao" |
-      "empate" | "veredito" | "fechado", id, layout, pergunta, opcoes, votos, ate (when the vote ends, epoch ms),
-      duracao (the vote's), vencedora, empatadas, linha, replay: { url, duracao, fonte, marcas: [{ t, rotulo, tipo }],
-      foco: { t, ligado, zoom }, t, em, tocando, base, som } }. `t` at epoch ms `em` is the dock's preview; this page
-      carries it forward (replayPosicao() in stream.js) and only seeks when it drifts more than a quarter second. The
+      "empate" | "veredito" | "fechado", id, layout, pergunta, opcoes, votos, ate (when the vote ends, epoch ms), sorteio
+      (the verdict was a tie's draw),
+      duracao (the vote's), vencedora, empatadas, linha, replay: { url, duracao, fonte, zoom, roteiro, t, em, tocando,
+      base, som, acao } }. `t` at epoch ms `em` is the dock's preview
+      (or the script's, while there is one); this page carries it forward (replayPosicao() in stream.js) and only seeks
+      when it drifts more than half a second, or to the frame when a pass starts or Luan presses a control. The
       line ([x0, y0, x1, y1] in the clip's 0–1 coordinates, dragged in the dock) crosses the whole clip, like TV's
       offside line. The booth's frame draws itself as each VAR opens: the referee drawing the screen in the air.
 
-      Copy here is a draft for Luan. ?demo plays a VAR on its own every 24 s (?demo=votacao, veredito, empate, mini for
-      one still frame), over a stand-in replay or ?replay=<a clip's URL>; ?fundo=<image> puts a game screenshot behind
+      Copy here is a draft for Luan. ?demo plays a whole VAR on its own, again and again (?voto= its seconds, 30 by default;
+      ?demo=votacao, veredito, empate, mini, fim for one still frame), over a stand-in replay or ?replay=<a clip's URL>; ?fundo=<image> puts a game screenshot behind
       it, to see the mini over a game.
     -->
     <style>
@@ -134,6 +141,63 @@
       }
       .em-lenta .tela .lenta {
         opacity: 1;
+      }
+      /* The closing screen: the clip frozen on the play, darkened, the seconds left while the last votes come in. */
+      .tela .fim {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: rgb(0 20 71 / 0.74);
+        color: #fff;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.4s var(--ease);
+      }
+      .no-fim .tela .fim {
+        opacity: 1;
+      }
+      .tela .fim small {
+        font-size: 24px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        color: var(--amarelo);
+      }
+      .tela .fim strong {
+        font-size: 88px;
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+      }
+      .tela .fim span {
+        font-size: 120px;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        color: var(--amarelo);
+      }
+      .tela .fim span.texto {
+        font-size: 40px;
+        color: #fff;
+      }
+      .mini .tela .fim span.texto {
+        font-size: 22px;
+      }
+      .mini .tela .fim small {
+        font-size: 15px;
+      }
+      .mini .tela .fim strong {
+        font-size: 46px;
+      }
+      .mini .tela .fim span {
+        font-size: 64px;
+      }
+      /* Under the verdict's card, only the dark frozen frame. */
+      .veredito .tela .fim > * {
+        opacity: 0;
       }
       .frame-mini {
         display: none;
@@ -310,28 +374,6 @@
         inset: 0 auto 0 0;
         width: 0;
         background: var(--paper);
-      }
-      .trilha .marca {
-        position: absolute;
-        top: -5px;
-        bottom: -5px;
-        width: 4px;
-        margin-left: -2px;
-        background: var(--klein-claro);
-      }
-      .trilha .foco {
-        position: absolute;
-        top: 50%;
-        width: 18px;
-        height: 18px;
-        margin: -9px 0 0 -9px;
-        background: var(--amarelo);
-        transform: rotate(45deg);
-        box-shadow: 0 0 0 3px var(--navy);
-      }
-      .trilha .foco.desligado {
-        background: var(--navy);
-        box-shadow: inset 0 0 0 3px var(--amarelo);
       }
 
       /* The chat's vote: under the camera, or under the mini player. */
@@ -563,6 +605,7 @@
         <video id="video" playsinline loop preload="auto"></video>
         <div class="lenta"></div>
         <svg class="linha" id="linha" viewBox="0 0 1000 1000" preserveAspectRatio="none"></svg>
+        <div class="fim" aria-hidden="true"><small>FIM DO REPLAY</small><strong id="fim-titulo">Últimos votos</strong><span id="fim-segundos"></span></div>
       </div>
 
       <div class="band">
@@ -598,7 +641,7 @@
       const video = $("video")
       const tela = $("tela")
       const BAND = 14
-      const DERIVA = 0.25 // seconds of drift from the dock's clock before seeking
+      const DERIVA = 0.5 // seconds of drift from the dock's clock before seeking (a play starts ~0.2 s late: below that it would seek again and again)
 
       // The booth's ground has one hole, where OBS puts the camera; the clip is this page's own.
       const rect = (el) => {
@@ -677,14 +720,16 @@
         })
         const comandos = opcoes.map((_, i) => `!${i + 1}`)
         $("dica").textContent =
-          v.fase === "empate" ? "Empate: o Luan desempata"
+          v.fase === "empate" ? "Empate: sorteio"
             : v.fase === "veredito" ? `${total} ${total === 1 ? "voto" : "votos"}`
               : `Vote no chat: ${comandos.slice(0, -1).join(", ")} ou ${comandos.at(-1)}`
 
         if (v.fase === "veredito" && carimbado !== v.id) {
           carimbado = v.id
           $("vencedora").textContent = opcoes[v.vencedora] ?? ""
-          $("placar").textContent = total ? `${votos[v.vencedora]} de ${total} ${total === 1 ? "voto" : "votos"}` : "Decisão do Luan"
+          $("placar").textContent = v.sorteio
+            ? total ? `Empate: no sorteio` : "Ninguém votou: no sorteio"
+            : total ? `${votos[v.vencedora]} de ${total} ${total === 1 ? "voto" : "votos"}` : "Decisão do Luan"
           const c = $("cartao")
           c.hidden = false
           c.classList.remove("bate")
@@ -712,70 +757,66 @@
 
       // --- The clip -------------------------------------------------------------------------------------------
       let r = null // the replay as the dock last sent it
+      let acaoVista = null // the dock's last control press (`acao`) this page followed to the frame
       function replay(novo) {
         r = novo ?? null
         if (!r?.url) return
         if (video.dataset.url !== r.url) {
           video.dataset.url = r.url
           video.src = r.url
+          acaoVista = null
         }
-        // The sound: the booth's clip has it; over the game (mini) only when the dock says so.
+        // Muted unless the dock says so (off since 2026-11-12).
         video.muted = !r.som
-        // Marks on the progress bar: the plays, and the one in focus.
-        const trilha = $("trilha")
-        const marcas = JSON.stringify([r.marcas, r.foco, r.duracao])
-        if (trilha.dataset.de !== marcas) {
-          trilha.dataset.de = marcas
-          trilha.querySelectorAll(".marca, .foco").forEach((el) => el.remove())
-          const em = (t) => `${Math.min(100, Math.max(0, (t / (r.duracao || 1)) * 100))}%`
-          for (const m of r.marcas ?? []) {
-            const el = document.createElement("span")
-            el.className = "marca"
-            el.style.left = em(m.t)
-            trilha.append(el)
-          }
-          if (r.foco?.t != null) {
-            const el = document.createElement("span")
-            el.className = "foco"
-            el.classList.toggle("desligado", !r.foco.ligado)
-            el.style.left = em(r.foco.t)
-            trilha.append(el)
-          }
-        }
-        seguir(true)
+        // To the frame only when Luan pressed something in the dock. The dock resends its clock every second and on
+        // every vote; seeking on each of those froze the clip once a second (11-12 live: about 20 new frames a second
+        // in the mini instead of 60, the clip's keyframes are 2 s apart), so those only correct drift past DERIVA.
+        const acao = r.acao ?? 0
+        seguir(acao !== acaoVista)
+        acaoVista = acao
       }
 
-      // Follows the dock's clock: play or pause as it does, seek only when off by more than DERIVA.
+      // Follows the dock's clock (or its script): play or pause as it does, seek only when off by more than DERIVA.
       function seguir(agora = false) {
         if (!r?.url || !video.readyState) return
         const alvo = replayPosicao(r)
+        const tocando = replayTocando(r)
         // Playing, only past the drift allowed; paused, to the frame (a step is 1/60 s).
         const fora = Math.abs(video.currentTime - alvo)
-        if (fora > (r.tocando && !agora ? DERIVA : 0.004)) video.currentTime = alvo
-        if (r.tocando && video.paused) video.play().catch(() => {})
-        if (!r.tocando && !video.paused) video.pause()
+        if (fora > (tocando && !agora ? DERIVA : 0.004)) video.currentTime = alvo
+        if (tocando && video.paused) video.play().catch(() => {})
+        if (!tocando && !video.paused) video.pause()
       }
       video.addEventListener("loadedmetadata", () => seguir(true))
 
-      // Each frame: the rate and zoom of the slow motion at the clip's time, the progress, the tab.
+      // Each frame: the script's pass (or, once Luan took over, the slow motion at the clip's time), its rate and zoom,
+      // the progress, the tab. A new pass starts on its frame: the slow one goes back to the stretch's start.
+      let faseVista = null
       function quadro() {
+        const s = r?.url ? roteiroAgora(r) : null
+        booth.classList.toggle("no-fim", s?.fase === "fim")
         if (r?.url && video.readyState) {
+          if ((s?.fase ?? null) !== faseVista) {
+            faseVista = s?.fase ?? null
+            if (s) seguir(true)
+          }
           const t = video.currentTime
-          const w = focoPeso(t, r.foco)
-          const taxa = Math.max(0.0625, replayTaxa(t, r))
+          const w = s ? s.peso : 0
+          const taxa = s ? s.taxa : (r.base ?? 1)
           if (Math.abs(video.playbackRate - taxa) > 0.005) video.playbackRate = taxa
-          const z = r.foco?.zoom ? 1 + w * (FOCO.zoom - 1) : 1
+          const z = r.zoom ? 1 + w * (ROTEIRO.zoom - 1) : 1
           video.style.transform = z > 1.001 ? `scale(${z})` : ""
           booth.classList.toggle("em-lenta", w > 0.5)
           $("feito").style.width = `${(t / (video.duration || r.duracao || 1)) * 100}%`
-          const pct = Math.round(taxa * 100)
-          $("rotulo-replay").textContent = !r.tocando ? "REPLAY" : w > 0.5 ? "CÂMERA LENTA" : "REPLAY"
-          $("velocidade").textContent = r.tocando ? `${pct}%` : "pausado"
+          const tocando = s ? s.tocando : r.tocando
+          const lenta = s ? s.fase === "lenta" : w > 0.5
+          $("rotulo-replay").textContent = s?.fase === "fim" ? "FIM DO REPLAY" : lenta && tocando ? "CÂMERA LENTA" : "REPLAY"
+          $("velocidade").textContent = s?.fase === "fim" || s?.fase === "espera" ? "" : tocando ? `${Math.round(taxa * 100)}%` : "pausado"
         }
         requestAnimationFrame(quadro)
       }
       requestAnimationFrame(quadro)
-      setInterval(() => r?.tocando && seguir(), 500)
+      setInterval(() => replayTocando(r) && seguir(), 500)
 
       // The clock: the vote's time left, from `ate`.
       function relogio() {
@@ -788,6 +829,9 @@
           $("relogio").style.transform = `scaleX(${Math.min(1, resta / (v.duracao || 30000))})`
           $("segundos").textContent = `${Math.ceil(resta / 1000)}s`
         }
+        $("fim-titulo").textContent = v.fase === "empate" ? "Empate!" : "Últimos votos"
+        $("fim-segundos").textContent = votando ? Math.ceil(Math.max(0, v.ate - Date.now()) / 1000) : v.fase === "empate" ? "sorteando…" : ""
+        $("fim-segundos").classList.toggle("texto", v.fase === "empate")
         requestAnimationFrame(relogio)
       }
       requestAnimationFrame(relogio)
@@ -815,30 +859,31 @@
         }
         const quadroDemo = params.get("demo")
         const layout = quadroDemo === "mini" || params.get("layout") === "mini" ? "mini" : "cabine"
-        const foco = Number(params.get("foco") ?? 13.2)
         const rep = (extra = {}) => ({
-          url: clip, duracao: 18.28, fonte: "jogo", base: 1, tocando: true, t: 9, em: Date.now(), som: layout === "cabine",
-          marcas: [{ t: foco, rotulo: "Gol seu", tipo: "gol" }], foco: { t: foco, ligado: true, zoom: false }, ...extra,
+          url: clip, duracao: 18.28, fonte: "jogo", base: 1, tocando: true, t: 9, em: Date.now(), som: false, zoom: false, ...extra,
         })
         const base = { pergunta: "Foi pênalti?", opcoes: ["Lance limpo", "Roubado", "Hack 👀"], layout }
+        // The whole VAR as the dock runs it: the script's two passes, the closing screen, the verdict (?voto= seconds).
+        const VOTO = Number(params.get("voto") ?? 30) * 1000
         const passos = (id) => {
-          const ate = Date.now() + 14000
+          const ate = Date.now() + VOTO
           const votos = [0, 0, 0]
-          const replayDemo = rep({ t: 6, em: Date.now() })
+          const replayDemo = rep({ roteiro: roteiroPara(18.28, VOTO) })
           const t = []
-          t.push([0, () => ({ ...base, id, fase: "votacao", votos: [...votos], ate, duracao: 14000, replay: replayDemo })])
-          for (let i = 1; i <= 24; i++) t.push([i * 500, () => (votos[Math.random() < 0.6 ? 1 : Math.random() < 0.7 ? 0 : 2]++, { ...base, id, fase: "votacao", votos: [...votos], ate, duracao: 14000, replay: replayDemo })])
-          t.push([14200, () => ({ ...base, id, fase: "veredito", votos: [...votos], vencedora: votos.indexOf(Math.max(...votos)), replay: replayDemo })])
-          t.push([21000, () => ({ fase: "fechado" })])
+          t.push([0, () => ({ ...base, id, fase: "votacao", votos: [...votos], ate, duracao: VOTO, replay: replayDemo })])
+          for (let i = 1; i < VOTO / 1000; i++) t.push([i * 1000, () => (votos[Math.random() < 0.6 ? 1 : Math.random() < 0.7 ? 0 : 2]++, { ...base, id, fase: "votacao", votos: [...votos], ate, duracao: VOTO, replay: replayDemo })])
+          t.push([VOTO + 200, () => ({ ...base, id, fase: "veredito", votos: [...votos], vencedora: votos.indexOf(Math.max(...votos)), replay: replayDemo })])
+          t.push([VOTO + 7000, () => ({ fase: "fechado" })])
           for (const [ms, f] of t) setTimeout(() => desenhar(f()), ms)
         }
-        const estatico = { id: "1", ...base, votos: [7, 11, 3], replay: rep({ tocando: false, t: Number(params.get("t") ?? foco) }) }
+        const estatico = { id: "1", ...base, votos: [7, 11, 3], replay: rep({ tocando: false, t: Number(params.get("t") ?? 13.2) }) }
         if (quadroDemo === "veredito") desenhar({ ...estatico, fase: "veredito", votos: [7, 15, 3], vencedora: 1, linha: [0.62, 0.1, 0.48, 0.95] })
         else if (quadroDemo === "votacao" || quadroDemo === "mini") desenhar({ ...estatico, fase: "votacao", ate: Date.now() + 14000, duracao: 30000, linha: quadroDemo === "mini" ? null : [0.62, 0.1, 0.48, 0.95] })
+        else if (quadroDemo === "fim") desenhar({ ...estatico, fase: "votacao", ate: Date.now() + 5400, duracao: 30000, replay: rep({ roteiro: { de: 9, ate: 18.23, inicio: 0, fim: 0 } }) })
         else if (quadroDemo === "empate") desenhar({ ...estatico, fase: "empate", pergunta: "Culpa de quem?", opcoes: ["Culpa minha", "Do parceiro", "Indefensável"], votos: [6, 6, 2], empatadas: [0, 1] })
         else {
           passos("1")
-          setInterval(() => passos(String(Date.now())), 24000)
+          setInterval(() => passos(String(Date.now())), VOTO + 10000)
         }
       }
     </script>

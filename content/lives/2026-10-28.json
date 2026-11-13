@@ -6,6 +6,9 @@
     "pt": "Começo no 3v3 ranqueado e passo para o 2v2 com um parceiro que apareceu no chat: uma derrota, sete vitórias seguidas e a subida de Diamante 2 para Diamante 3, fechando com uma derrota.",
     "en": "I start in ranked 3v3 and move to 2v2 with a partner who showed up in chat: a loss, seven wins in a row and the climb from Diamond 2 to Diamond 3, closing with a loss."
   },
+  "youtube": {
+    "title": "Subi pro Diamante 3 no 2v2! 7 vitórias seguidas | Rocket League ao vivo"
+  },
   "chapters": [
     { "at": "0:00", "title": { "pt": "3v3 ranqueado", "en": "Ranked 3v3" } },
     { "at": "17:00", "title": { "pt": "Formando a dupla do 2v2", "en": "Finding a 2v2 partner" } },

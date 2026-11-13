@@ -39,6 +39,35 @@ game alone from Source Record's, since 11-12) go to `Videos\Lives\<date>\VAR\14-
 in `~/.cache/muanlartins/replays` for two days on its own. If Luan has a recording open in a browser (RLR's
 studio), moving it breaks that page's copy: tell him to add it again from the new place.
 
+## 1b. Who played with him (Rocket League days)
+
+The site names the viewers who played with him (the ranked page's "Eu e os viewers que jogaram comigo" and each
+match), but the dock only tags those already in `public/stream/aliados.json` while the match is played. A friend who
+shows up mid-live goes untagged: on 11-12 Exponja and Edu played 10 and 12 of the 14 matches and the site didn't say
+so (Luan: "essa identificação tinha que fazer parte"). So, once the replays are filed:
+
+```sh
+scripts/.venv/bin/python scripts/aliados.py <date>      # his teammates in each match, from the replays
+```
+
+It lists each match's teammates by in-game name (with their Twitch login when they're in the list), then who played
+two matches or more with him, then the day's watchers by minutes from the Σ API (while it's still the latest live).
+
+1. Anyone who played two matches or more and isn't in the list: ask Luan who they are, their Twitch login (the
+   watchers list usually gives it away: on 11-12 Exponja was `exp0nja` and Edu `eduzeras07`, the two who watched
+   longest, both for the first time), and
+   whether they agreed to be named. Never add anyone he hasn't confirmed.
+2. `aliados.py <date> --aliado "<in-game name>=<twitch login>" --apply` adds them to `aliados.json` (from then on the dock tags
+   them live) and writes each named teammate's `login` into the session's matches (`content/matches/<id>.json`),
+   found by the numbers both keep. Without new names, `--apply` alone tags the known ones a match missed.
+3. Name the friends who played most of the day in the live's summary too, by what Luan calls them (11-12: "3v3
+   ranqueado com o Exponja e o Edu: …"); it's also the YouTube description's first line.
+4. It goes out with the release (step 5). The dock republishes a session only when it changes; if it ever does
+   after this, run it again.
+
+The in-game names stay out of everything but `aliados.json` (the repo is public). Valorant has no replays: there the
+dock tags only viewers with a `riot` Riot ID in `aliados.json`.
+
 ## 2. The live's page, transcript and thumbnail
 
 ```sh
@@ -52,14 +81,82 @@ stay as said: Luan ended the blanking of names on 2026-11-08, "mostrar tudo semp
 the dock, a draft summary **for Luan to rewrite**: the copy is his) and `.transcript.json`, adds the day to
 `brand/build.py` and draws the thumbnail. `--force` redoes existing files.
 
+## 2b. The thumbnail and the title: made to be clicked
+
+Since 2026-11-12 the lives are **public** and dressed like any YouTube video (Luan: "estou tentando captar mais
+pessoas… vamos ter que jogar o jogo"). Until then they were unlisted with a plain plate ("Live" and the date) and
+got 0 to 3 views each, while the public shorts got hundreds: unlisted videos never show in search or
+recommendations, so nothing else mattered.
+
+```sh
+scripts/.venv/bin/python scripts/thumb.py <date>        # the candidates sheet: Videos\Lives\<date>\Thumb\candidatos.jpg
+```
+
+Make the sheet **before freeing the disk** (step 4): it reads his microphone off `Live.mp4`, and a day without
+`partes.json` also needs the file to place the camera's frames. `videos.py --clean` keeps a `Live.mp4` until the
+day is marked `--done`, which comes after the thumbnail and the shorts.
+
+The sheet is his twelve strongest reactions (the microphone track's loudest moments, the transcript's "meu Deus",
+"que isso", "golaço", laughs, his goals from the dock, the VAR's plays), three camera frames each (`7a`, `7b`, `7c`)
+with what he said there. **Picking is Luan's** (judgment only where it beats a rule):
+
+1. Render two or three drafts with `--saida "Videos\Lives\<date>\Thumb\rascunho A.jpg"`, look at each, and ask him
+   which, with the title, in one question (the drafts' paths in the question: the dialog hides the rest). Favour a
+   big, readable emotion (laughing, an arm up after a goal, hands on the head, a hand over the mouth) over a
+   talking face or one looking down.
+2. The hook is 2 to 4 words, uppercase, `LINHA 1|LINHA 2` (the second on the Branco plate): the day's story (`SUBI
+   PRO|DIAMANTE 3` with `--emblema` when it climbed) or **his own line from the live** (`VÃO HUMILHAR|A GENTE`, said at
+   15:43 on 11-11). Never a teammate's or opponent's name.
+3. `thumb.py <date> --quadro 3a --texto "VÃO HUMILHAR|A GENTE" [--emblema] [--fundo mm:ss]` writes
+   `brand/youtube/thumbnails/live-<date>.jpg` and keeps the pick in `content/lives/<date>.json` (`youtube.thumb`), so
+   `--refazer` makes it again without the sheet.
+
+What it does on its own, and why: his cutout from the camera recording (its background is already the brand's Klein,
+so the blue is keyed out, no model; the lockup and specks go), a Branco outline and a shadow, on the right half and
+never under the hook; behind him the game at that moment from `Jogo.mp4`, blurred so no player's name can be read
+(the in-game "X MARCOU" banner was legible at a lighter blur), darkened to Klein on the left; "AO VIVO · dd/mm" on a
+Klein plate. A fist raised past the camera's top edge goes out through the thumbnail's top too (it used to end in a
+straight cut outlined in Branco); then his arm may pass under the hook, which is fine while his face stays clear.
+Look at the result before uploading. `--refazer` needs the day's recordings (Câmera, Jogo, and `Live.mp4` when
+there's no `partes.json`).
+
+**What worked so far** (Luan on the first two, 2026-11-12: "ficaram excelentes"): keep the style, vary the moment.
+
+| Live | Frame | Hook | Title |
+| --- | --- | --- | --- |
+| 11-12 RL | laughing (11a) | `SUBI PRO\|DIAMANTE 3` + emblem | Subi pro Diamante 3! 10 vitórias em 14 jogos |
+| 11-11 Valorant | laughing (3a) | his line `VÃO HUMILHAR\|A GENTE` | Esses caras vão humilhar a gente… |
+| 11-10 RL | arm up after his goal (3a) | `SUBI PRO\|DIAMANTE 2` + emblem | Subi pro Diamante 2! 7 vitórias em 10 jogos |
+| 11-09 Valorant | laughing after a play (1b) | his line `DEU CERTO,\|DEU CERTO` | Deu certo, deu certo! 2 vitórias em 2 jogos |
+
+The pattern: a laugh or a celebration; the climb when the day had one, otherwise his own line from that moment. The
+lives before 11-09 (10-28, 11-05, 11-06) keep the plain plate: their camera recordings are gone.
+
+**The title** (`youtube.title` in `content/lives/<date>.json`, else a template in `youtube.py`): what happened first,
+the game after, under 70 characters, no date (it's in the description and on the thumbnail): `Subi pro Diamante 3! 10
+vitórias em 14 jogos | Rocket League ao vivo`; on a day without a climb, the hook line works better than the score
+(`Esses caras vão humilhar a gente… | Valorant ao vivo`). The template only covers a climb or the record: write one
+for him to approve when the day has a better story.
+
 ## 3. YouTube
 
 1. Luan uploads `Videos\Lives\<date>\<hh-mm-ss> Live.mp4` in YouTube Studio (the API can't: unverified apps'
-   uploads are locked private) and gives the video id.
+   uploads are locked private). He may not give the id: it's the newest upload titled like the file (`14 39 04 Live`),
+   private and processing; the uploads playlist through the API finds it.
 2. `scripts/.venv/bin/python scripts/live.py <date> --video <id>`
-3. `scripts/.venv/bin/python scripts/youtube.py live <date> --dry-run`, show Luan, then without `--dry-run`:
-   title, description with chapters, tags, thumbnail, the game's unlisted playlist ("Rocket League ao vivo",
-   "Valorant ao vivo": made the first time it's missing), captions. Per game in `GAMES` in `youtube.py`.
+3. Wait until YouTube has processed it (a 50 GB upload takes a while after the upload ends), then
+   `scripts/.venv/bin/python scripts/youtube.py live <date> --dry-run`, show Luan, then without `--dry-run`:
+   title, description (his summary, the game's line, Twitch first among the links, chapters, the date, three
+   hashtags), tags (the game's, plus mode, rank, agents and maps played), thumbnail (thumb.py's `.jpg` over
+   build.py's `.png`), **public** (`PRIVACY`), the game's playlist ("Rocket League ao vivo", "Valorant ao vivo":
+   made the first time it's missing, kept as public as the videos), captions. Per game in `GAMES` in `youtube.py`.
+   `--no-captions` when only the metadata changed (captions cost 400+ of the 10,000 daily quota units).
+
+**The public test** (agreed 2026-11-12; Luan feared public VODs would hurt the channel): YouTube judges each video by
+its own audience, so a long VOD few click just gets fewer impressions. Baseline that day: the six lives had 0 to 3
+views each; the shorts 52 to 1,282. Around 2026-11-26, compare in Studio (Analytics → each live's impressions and
+click-through rate, and the shorts' reach against the two weeks before); if the shorts' reach dropped, set `PRIVACY`
+back to `"unlisted"` and run `youtube.py live <date> --no-captions` for each live.
 
 ## 4. Free the disk
 
@@ -70,13 +167,16 @@ utilizarmos".
 ```sh
 scripts/.venv/bin/python scripts/videos.py --clean            # lists what goes, and why
 scripts/.venv/bin/python scripts/videos.py --clean --apply    # deletes it, for good
-python3 scripts/videos.py --done <date>                        # after that day's shorts and commented videos
+python3 scripts/videos.py --done <date>                        # after that day's thumbnail, shorts and commented videos
 ```
 
-- `Live.mp4` goes once its YouTube video is processed and as long as the file (checked through the API).
-  A day without a Jogo recording (11-05 and before) keeps it like a Jogo: it's the studio's only copy of the matches.
-- `Jogo`, `Câmera` and the `VAR` clips go when the day is marked `--done`; otherwise they stay as long as there's room, and only
-  when the disk would have less than 200 GB free (`FREE_GB`, what a live needs) the oldest days go first.
+- A day's `Live.mp4`, `Jogo`, `Câmera` and `VAR` clips go together when the day is marked `--done`; otherwise they
+  stay as long as there's room, and only when the disk would have less than 200 GB free (`FREE_GB`, what a live
+  needs) the oldest days go first.
+- `Live.mp4` waits for the day too (Luan, 2026-11-12: "vamos esperar os shorts"): thumb.py reads his microphone off
+  it (step 2b), the shorts' tools take it as their clock (`clipe.py`, `cortes.py`, `destaque.py`: the `estudio`
+  skill), and before 11-06 it's the studio's only copy of the matches. It never goes before its YouTube video is
+  processed and as long as the file (checked through the API), not even for space.
 - Replays stay (a few MB). Show Luan the list before `--apply`: nothing comes back.
 - Free space under ~150 GB before a live: tell him.
 

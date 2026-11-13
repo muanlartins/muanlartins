@@ -13,7 +13,8 @@ See "After each live" in handoff/README.md.
   repeats. Names stay as said: nothing is blanked (Luan's call, 2026-11-08).
 - Chapters: each ranked match from its start, a "Começo" before the first and a "Fim" after the last.
 - The summary is a draft from the numbers, for Luan to rewrite.
-- The thumbnail: the rank reached, if the day climbed, goes into LIVES in brand/build.py, and the PNG is drawn.
+- The thumbnail: the rank reached, if the day climbed, goes into LIVES in brand/build.py, and the plain PNG is drawn
+  (the fallback: the one YouTube gets is thumb.py's, from a frame Luan picks).
 
 Files already there are kept; --force writes them again.
 """
@@ -342,6 +343,7 @@ def main():
     rank, tier = reached(day) if game == "rocket-league" else (None, None)
     thumbnail(args.date, rank, tier, game)
     print(f"Thumbnail: brand/youtube/thumbnails/live-{args.date}.png" + (f" ({rank} {tier})" if rank else ""))
+    print(f"A thumb de clicar: scripts/thumb.py {args.date} (folha de reações para o Luan escolher)")
     if not args.video:
         print(f"Depois de subir no Studio: scripts/live.py {args.date} --video <id>")
 

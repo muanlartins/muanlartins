@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-12",
+  "game": "rocket-league",
+  "video": "JS67o2JYAwE",
+  "summary": {
+    "pt": "3v3 ranqueado com o Exponja e o Edu: 10 vitórias e 4 derrotas, de Diamante 2 II (945) a Diamante 3 I (1001).",
+    "en": "Ranked 3v3 with Exponja and Edu: 10 wins and 4 losses, from Diamond 2 II (945) to Diamond 3 I (1001)."
+  },
+  "youtube": {
+    "title": "Subi pro Diamante 3! 10 vitórias em 14 jogos | Rocket League ao vivo",
+    "thumb": {
+      "quadro": "11a",
+      "segundo": 7334.15,
+      "texto": "SUBI PRO|DIAMANTE 3",
+      "emblema": true
+    }
+  },
+  "chapters": [
+    { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
+    { "at": "7:44", "match": "FEFD8C9811F1DEC03FBD00973AC558AA" },
+    { "at": "15:37", "match": "167B6A8811F1DEC26F9294BF15A8A97B" },
+    { "at": "24:17", "match": "4F76CB9C11F1DEC34EA463A295DACF62" },
+    { "at": "32:17", "match": "6F4AE7B811F1DEC4445AC4A76F5EF3F1" },
+    { "at": "43:01", "match": "E7CDF93611F1DEC507E50D98EC8E432E" },
+    { "at": "48:34", "match": "B32AFE2611F1DEC6D8231E961C972E74" },
+    { "at": "56:10", "match": "C396C8E811F1DEC70B3C288A06FF7F13" },
+    { "at": "1:06:20", "match": "310041EC11F1DEC9D95177AABDA20AF6" },
+    { "at": "1:14:29", "match": "523663EA11F1DECA2B000FBBC160D466" },
+    { "at": "1:27:06", "match": "168DDE6611F1DECCE06E7E8ADF9F6172" },
+    { "at": "1:34:33", "match": "1EEC642811F1DECDA4D50DBD381B22F2" },
+    { "at": "1:40:49", "match": "00ED500811F1DECE445A6F8B6F5EF3F1" },
+    { "at": "1:48:13", "match": "08A50BC811F1DECF1AC61BBA6E42E181" },
+    { "at": "1:56:14", "match": "27B35C3011F1DED0A64B0BB9D39CEC1D" },
+    { "at": "2:02:54", "title": { "pt": "Fim", "en": "The end" } }
+  ]
+}

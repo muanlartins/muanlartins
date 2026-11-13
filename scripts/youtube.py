@@ -28,6 +28,9 @@ from googleapiclient.http import MediaFileUpload, MediaIoBaseUpload
 from content import LIVES, ROOT, brand_tables, clock, matches_by_id, seconds
 from windows import CONFIG, VIDEOS
 
+# Valorant's rank names by tier (3 is Iron 1), as live.py writes them.
+VALORANT_TIERS = ["Ferro", "Bronze", "Prata", "Ouro", "Platina", "Diamante", "Ascendente", "Imortal"]
+
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 
 
@@ -88,31 +91,44 @@ def playlists(_):
 SITE = "https://muanlartins.com.br"
 THIS_LIVE = ("Esta live no site, com cada partida e a transcrição", f"{SITE}/canal/lives/{{date}}")
 TWITCH = ("Ao vivo na Twitch", "https://www.twitch.tv/muanlartins")
-# Each game's lives (content/lives/<date>.json's "game"): the name in the title, the links, the unlisted playlist
-# (made when it's missing), the tags and the hashtags.
+# Each game's lives (content/lives/<date>.json's "game"): the name in the title, the line that says what the channel
+# is, the links (Twitch first: the VOD is there to bring people to the next live), the playlist (made when it's
+# missing), its privacy, the tags (YouTube weighs them little; they catch spellings and searches like "rocket league
+# ao vivo") and three hashtags (YouTube shows the first three over the title).
 GAMES = {
     "rocket-league": {
         "name": "Rocket League",
-        "links": [THIS_LIVE,
+        "pitch": "Rocket League ranqueado ao vivo, em português, subindo de rank com método: cada partida medida e "
+                 "explicada no site.",
+        "links": [TWITCH,
+                  THIS_LIVE,
                   ("Minhas ranqueadas", f"{SITE}/conteudo/rocket-league/ranked"),
                   ("Os fundamentos, organizados por rank", f"{SITE}/conteudo/rocket-league/fundamentals"),
-                  ("Os fundamentos em vídeo", "https://www.youtube.com/playlist?list=PLPogzmM3roPc"),
-                  TWITCH],
+                  ("Os fundamentos em vídeo", "https://www.youtube.com/playlist?list=PLPogzmM3roPc")],
         "playlist": "Rocket League ao vivo",
-        "tags": ["rocket league", "ao vivo", "ranqueada", "pt-br", "brasil", "muanlartins"],
-        "hashtags": "#RocketLeague #RocketLeagueAoVivo",
+        "tags": ["rocket league", "rocket league ao vivo", "live de rocket league", "rocket league ranqueada",
+                 "rocket league brasil", "rocket league pt-br", "rl ao vivo", "subindo de rank", "muanlartins"],
+        "hashtags": "#RocketLeague #RocketLeagueBrasil #AoVivo",
     },
     "valorant": {
         "name": "Valorant",
-        "links": [THIS_LIVE,
+        "pitch": "Valorant ao vivo, em português, aprendendo do Prata com método: cada partida medida no site, mira "
+                 "treinada todo dia.",
+        "links": [TWITCH,
+                  THIS_LIVE,
                   ("Minhas competitivas", f"{SITE}/conteudo/valorant/ranked"),
-                  ("Meu treino de mira", f"{SITE}/conteudo/valorant/aim"),
-                  TWITCH],
+                  ("Meu treino de mira", f"{SITE}/conteudo/valorant/aim")],
         "playlist": "Valorant ao vivo",
-        "tags": ["valorant", "ao vivo", "competitivo", "pt-br", "brasil", "muanlartins"],
-        "hashtags": "#Valorant #ValorantAoVivo",
+        "tags": ["valorant", "valorant ao vivo", "live de valorant", "valorant competitivo", "valorant brasil",
+                 "valorant pt-br", "subindo de elo", "muanlartins"],
+        "hashtags": "#Valorant #ValorantBrasil #AoVivo",
     },
 }
+# The lives' privacy on YouTube, and their playlists'. Unlisted until 2026-11-12 (0 to 3 views each: unlisted videos
+# never show up in search or recommendations); public since, as a test Luan agreed to. YouTube judges each video by
+# its own audience, so a long VOD few click gets fewer impressions without holding the shorts back; if the shorts'
+# reach drops anyway, "unlisted" here and `youtube.py live <date>` for each live undoes it.
+PRIVACY = "public"
 GAMING = "20"
 CAPTION_NAME = "Português (transcrição)"
 
@@ -147,6 +163,24 @@ def chapters(live, matches):
     return [f"{clock(at)} {title}" for at, title in kept]
 
 
+def record(live, matches):
+    """The day's ranked or competitive matches, as (wins, losses)."""
+    played = [matches[c["match"]] for c in live["chapters"] if "match" in c and c["match"] in matches]
+    return sum(m["result"] == "win" for m in played), sum(m["result"] == "loss" for m in played), played
+
+
+def default_title(live, game, rank_name, wins, losses):
+    """A title that says what happened, when Luan hasn't written one (content/lives/<date>.json, youtube.title):
+    the climb or the record first, the game after (front-loaded, under 70 characters)."""
+    total = wins + losses
+    if rank_name:
+        return f"Subi pro {rank_name}! {wins} vitórias em {total} jogos | {game['name']} ao vivo"
+    if total:
+        queue = "competitivo" if game["name"] == "Valorant" else "ranqueado"
+        return f"{wins} vitórias e {losses} derrotas no {queue} | {game['name']} ao vivo"
+    return f"{game['name']} ao vivo"
+
+
 def describe(date):
     """Title, description and tags of a live's video, from content/lives/<date>.json and brand/build.py."""
     live = json.loads((LIVES / f"{date}.json").read_text())
@@ -154,21 +188,35 @@ def describe(date):
     rank, tier = lives.get(date, (None, None))
     year, month, day = date.split("-")
     game = GAMES[live.get("game", "rocket-league")]
-    reached = f" ({ranks[rank][0]} {tier})" if rank else ""
-    title = f"{game['name']} ao vivo{reached} - {day}/{month}/{year}"
-
     matches = matches_by_id()
+    wins, losses, played = record(live, matches)
+    rank_name = f"{ranks[rank][0]} {tier}" if rank else None
+    title = live.get("youtube", {}).get("title") or default_title(live, game, rank_name, wins, losses)
+
     marks = chapters(live, matches)
-    lines = [live["summary"]["pt"], ""]
-    lines += [f"{label}: {url.format(date=date)}" for label, url in game["links"]]
+    lines = [live["summary"]["pt"], game["pitch"], ""]
+    lines += [f"▶ {label}: {url.format(date=date)}" for label, url in game["links"]]
     if marks:
         lines += ["", "Capítulos", *marks]
-    lines += ["", game["hashtags"]]
+    lines += ["", f"Live de {day}/{month}/{year}.", game["hashtags"]]
 
     # Rocket League's modes played: the matches', and any the summary names (a live without match chapters).
-    modes = {matches[c["match"]].get("mode") for c in live["chapters"] if "match" in c} - {None}
+    modes = {m.get("mode") for m in played} - {None}
     modes = sorted(modes | set(re.findall(r"\b[1-4]v[1-4]\b", live["summary"]["pt"])))
-    return live, title, "\n".join(lines), game["tags"][:3] + modes + game["tags"][3:]
+    name = game["name"].lower()
+    extra = [f"{name} {mode}" for mode in modes]
+    if rank:
+        extra += [f"{name} {ranks[rank][0].lower()}", f"{name} {ranks[rank][0].lower()} {tier}"]
+    # Valorant's: the rank it ended at, and the agents and maps played, as people search them.
+    last = next((m["rank"]["tier"] for m in reversed(played) if "queue" in m and isinstance(m.get("rank"), dict)), None)
+    if last and last >= 3:
+        extra.append(f"{name} {VALORANT_TIERS[min((last - 3) // 3, 7)].lower()}")
+    extra += sorted({f"{name} {m[k].lower()}" for m in played for k in ("agent", "map") if m.get(k)})
+    tags = game["tags"][:4] + extra + game["tags"][4:]
+    # YouTube takes 500 characters of tags at most.
+    while len(",".join(tags)) > 480:
+        tags.pop(-2)
+    return live, title, "\n".join(lines), tags
 
 
 def srt(lines):
@@ -188,14 +236,18 @@ def srt(lines):
 
 def live(args):
     """Sets a live's video as the routine says: title, description with links and chapters, tags, Gaming,
-    pt-BR, unlisted, not for kids, no altered content; the thumbnail from brand/; the playlist; and the
+    pt-BR, PRIVACY, not for kids, no altered content; the thumbnail from brand/; the playlist; and the
     whisper transcript as pt-BR captions."""
     record, title, description, tags = describe(args.date)
     video_id = record["video"]
-    thumbnail = ROOT / "brand" / "youtube" / "thumbnails" / f"live-{args.date}.png"
+    # thumb.py's (a frame of Luan and the hook) over build.py's plain plate.
+    folder = ROOT / "brand" / "youtube" / "thumbnails"
+    thumbnail = next((f for f in (folder / f"live-{args.date}.jpg", folder / f"live-{args.date}.png") if f.exists()),
+                     folder / f"live-{args.date}.png")
     transcript = LIVES / f"{args.date}.transcript.json"
-    print(f"Vídeo {video_id}\n\n{title}\n\n{description}\n\nTags: {', '.join(tags)}\n"
-          f"Playlist: {GAMES[record.get('game', 'rocket-league')]['playlist']} (criada não listada se faltar)\n")
+    print(f"Vídeo {video_id}  ({PRIVACY})\n\n{title}  ({len(title)} caracteres)\n\n{description}\n\n"
+          f"Tags: {', '.join(tags)}\nThumbnail: {thumbnail.relative_to(ROOT)}\n"
+          f"Playlist: {GAMES[record.get('game', 'rocket-league')]['playlist']} ({PRIVACY}, criada se faltar)\n")
     if args.dry_run:
         return
 
@@ -211,12 +263,13 @@ def live(args):
     # An update replaces the whole part, so the status keeps what's there and changes only these.
     status = {key: value for key, value in video["status"].items()
               if key in ("embeddable", "license", "publicStatsViewable", "publishAt")}
-    status.update(privacyStatus="unlisted", selfDeclaredMadeForKids=False, containsSyntheticMedia=False)
+    status.update(privacyStatus=PRIVACY, selfDeclaredMadeForKids=False, containsSyntheticMedia=False)
     api.videos().update(part="snippet,status", body={"id": video_id, "snippet": snippet, "status": status}).execute()
     print("Título, descrição, tags e status: ok")
 
     if thumbnail.exists():
-        api.thumbnails().set(videoId=video_id, media_body=MediaFileUpload(str(thumbnail), mimetype="image/png")).execute()
+        kind = "image/jpeg" if thumbnail.suffix == ".jpg" else "image/png"
+        api.thumbnails().set(videoId=video_id, media_body=MediaFileUpload(str(thumbnail), mimetype=kind)).execute()
         print(f"Thumbnail: ok ({thumbnail.name})")
     else:
         print(f"Thumbnail: falta {thumbnail.relative_to(ROOT)} (rode brand/build.py)")
@@ -224,13 +277,19 @@ def live(args):
     name = GAMES[record.get("game", "rocket-league")]["playlist"]
     playlist = next((p for p in all_playlists(api) if p["snippet"]["title"] == name), None)
     if not playlist:
-        # Like Rocket League's: unlisted, the lives kept whole, in pt-BR.
+        # The lives kept whole, in pt-BR, as visible as the videos.
         playlist = api.playlists().insert(part="snippet,status", body={
-            "snippet": {"title": name, "defaultLanguage": "pt-BR"}, "status": {"privacyStatus": "unlisted"}}).execute()
-        print(f"Playlist “{name}”: criada, não listada")
+            "snippet": {"title": name, "defaultLanguage": "pt-BR"}, "status": {"privacyStatus": PRIVACY}}).execute()
+        print(f"Playlist “{name}”: criada ({PRIVACY})")
         # Just made, it's empty, and listing it right away answers 404 (YouTube takes a moment to find it).
         inside = []
     else:
+        if playlist["status"]["privacyStatus"] != PRIVACY:
+            api.playlists().update(part="snippet,status", body={
+                "id": playlist["id"], "snippet": {k: v for k, v in playlist["snippet"].items()
+                                                  if k in ("title", "description", "defaultLanguage")},
+                "status": {"privacyStatus": PRIVACY}}).execute()
+            print(f"Playlist “{name}”: agora {PRIVACY}")
         inside = api.playlistItems().list(part="id", playlistId=playlist["id"], videoId=video_id).execute()["items"]
     if not inside:
         api.playlistItems().insert(part="snippet", body={"snippet": {
@@ -288,7 +347,8 @@ def video(args):
     api.videos().update(part="snippet,status", body={"id": video_id, "snippet": snippet, "status": status}).execute()
     print("Título, descrição, tags e status: ok")
     if thumbnail:
-        api.thumbnails().set(videoId=video_id, media_body=MediaFileUpload(str(thumbnail), mimetype="image/png")).execute()
+        kind = "image/jpeg" if thumbnail.suffix == ".jpg" else "image/png"
+        api.thumbnails().set(videoId=video_id, media_body=MediaFileUpload(str(thumbnail), mimetype=kind)).execute()
         print(f"Thumbnail: ok ({thumbnail.name})")
     if record.get("playlist"):
         playlist = next((p for p in all_playlists(api) if p["snippet"]["title"] == record["playlist"]), None)

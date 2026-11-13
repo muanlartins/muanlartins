@@ -21,10 +21,10 @@ go to Lives\\<date>\\VAR\\14-32-10 VAR.mp4 and 14-32-10 VAR jogo.mkv, material f
 Lives\\<date>\\Replays\\, matched to the dock's matches by score and time.
 
 Lives come every day and an hour of them is tens of GB, so the material goes once it has done its job:
-- the stream's recording (Live) once its YouTube video (content/lives/<date>.json) is processed and as long as
-  the file (YouTube keeps it); a day without a Jogo recording keeps it as the studio's copy, like a Jogo;
-- the Jogo and Câmera recordings and the VAR's clips once the day is marked done (--done, after its shorts and commented videos),
-  or, oldest day first, when the disk would otherwise have less than FREE_GB free: kept as long as there's room.
+- the stream's (Live), Jogo and Câmera recordings and the VAR's clips once the day is marked done (--done, after its
+  thumbnail, shorts and commented videos), or, oldest day first, when the disk would otherwise have less than FREE_GB
+  free: kept as long as there's room. The Live recording only once its YouTube video (content/lives/<date>.json) is
+  processed and as long as the file, never before.
 Replays are small and stay. Deleting is for good (no Recycle Bin): --clean alone only lists.
 """
 
@@ -140,8 +140,6 @@ def expendable():
         page = PAGES / f"{folder.name}.json"
         video = json.loads(page.read_text()).get("video") if page.exists() else None
         done = (folder / DONE).exists()
-        # Before 11-06 there was no Jogo recording: the stream's is then the studio's only copy of the matches.
-        alone = not any(folder.glob("??-??-?? Jogo.*"))
         kept = [*folder.glob("??-??-?? Jogo.*"), *folder.glob("??-??-?? Câmera.*"), *folder.glob("VAR/??-??-?? VAR*")]
         for file in sorted(folder.glob("??-??-?? Live.*")):
             if not video:
@@ -153,10 +151,11 @@ def expendable():
                 print(f"keep  {file.relative_to(VIDEOS)}: o vídeo {video} ainda não terminou de processar no YouTube")
             elif abs(online - length(file)) > 5:
                 print(f"keep  {file.relative_to(VIDEOS)}: o vídeo {video} tem {online} s e o arquivo {length(file):.0f} s")
-            elif alone and not done:
-                kept.append(file)
             else:
-                gone.append((file, f"no YouTube ({video})"))
+                # Safe on YouTube, but still the day's material: thumb.py reads his microphone off it, the shorts'
+                # tools take it as their clock (Luan, 2026-11-12: "vamos esperar os shorts"), and before 11-06 it's
+                # the studio's only copy of the matches. It goes with the Jogo and Câmera recordings.
+                kept.append(file)
         if done:
             gone += [(file, "dia marcado como feito") for file in sorted(kept)]
         elif kept:

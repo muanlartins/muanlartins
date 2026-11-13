@@ -21,7 +21,7 @@ The repo's `AGENTS.md` still rules (copy is Luan's, `brand/` keeps everything, s
 | Piece | State |
 |---|---|
 | Site | Lives in PR #4 (branch `lives`): `/conteudo/rocket-league/lives` and a page per live (video, chapters with the day's matches, searchable transcript), "na live" links on the ranked page, an "Ao vivo" badge in the header and the Twitch player on the lives page while on air. Luan finishes the copy on the branch. |
-| YouTube | Full lives go to the main channel **unlisted**, in the unlisted playlist "Rocket League ao vivo". 28/10 = `7vcv2ZNd-Z4`. The 27/10 live was deleted on 11-06 (Luan's call), with its page. |
+| YouTube | Full lives go to the main channel **public** (unlisted until 2026-11-12), in the playlist "Rocket League ao vivo" or "Valorant ao vivo". 28/10 = `7vcv2ZNd-Z4`. The 27/10 live was deleted on 11-06 (Luan's call), with its page. |
 | Twitch | Not Affiliate (no channel points, subs, bits, native polls). Alerts, panels, chat rules and StreamElements commands are set up. |
 | Pix alerts | Two prototypes: the `pix-live` branch (`live/`, 10-20: TypeScript server, donation page, studio with an unmatched-Pix queue) and the 10-30 Mac pilot in `piloto/` (newer decisions, voices, crowd, narration, captions). Build the real one from both (see "Live Pix"). |
 | RLR | `~/repos/rlr`, Luan's own 3D replay player, deployed at `/rlr/`. |
@@ -93,7 +93,8 @@ Scripted on 11-04; one command per step, from the repo, after Luan uploads the r
    `live.py <date> --video <id>` stores it.
 3. `scripts/.venv/bin/python scripts/youtube.py live <date>` (`--dry-run` first): title "Rocket League ao vivo
    (<rank reached>) - DD/MM/YYYY", description (summary; links to the live's page, ranked, the roadmap, the
-   Fundamentos playlist, Twitch; chapters; `#RocketLeague #RocketLeagueAoVivo`), tags, Gaming, pt-BR, unlisted,
+   Fundamentos playlist, Twitch; chapters; `#RocketLeague #RocketLeagueAoVivo`), tags, Gaming, pt-BR, unlisted (public
+   since 2026-11-12, with a hook title and `scripts/thumb.py`'s thumbnail: the `depois-da-live` skill has today's routine),
    not for kids, no altered content, the thumbnail, the playlist "Rocket League ao vivo" and the transcript as
    captions.
 4. Commit and ask Luan before pushing.

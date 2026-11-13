@@ -520,48 +520,61 @@ function varDe(detail) {
 }
 
 /**
- * The VAR's replay, the same in var.html (the clip on stream) and the Efeitos dock (its preview, the clock both
- * follow). The slow motion around the play: plays at the replay's speed, eases down to `lenta` from `antes` seconds
- * before the play, holds until `depois` seconds after, eases back; and zooms by `zoom` meanwhile (Valorant: on the
- * crosshair, the screen's middle). Like Rocket League's own goal replays.
+ * The VAR's replay, the same in var.html (the clip on stream) and the Efeitos dock (its preview). An instant replay:
+ * the clip's last seconds, with no looking for the play (Luan, 2026-11-12). It plays on its own, by the script the dock
+ * sends (Luan doesn't steer it live): after `espera` s for the clip to load, the stretch once at full speed, again at
+ * `lenta` (Valorant zooms by `zoom` on the crosshair, the screen's middle, meanwhile), again both if there's time; for
+ * the vote's last `telaFim` s the closing screen, the clip frozen on the stretch's last frame while the last votes come
+ * in. The stretch is as long as the two passes that fit in the vote. r.roteiro = { de, ate } in clip seconds, { inicio,
+ * fim } in epoch ms; null once Luan touches the dock's player, which then keeps the clock as { t, em, tocando, base }.
  */
-const FOCO = { antes: 1.1, depois: 0.8, rampa: 0.4, lenta: 0.25, zoom: 1.35 }
+const ROTEIRO = { espera: 1, lenta: 0.5, telaFim: 8, rampa: 0.4, zoom: 1.35 }
 
-/** How far into the slow motion the clip is at `t` seconds: 0 outside it, 1 in it, eased between. */
-function focoPeso(t, foco) {
-  if (!foco?.ligado || foco.t == null) return 0
-  const a = foco.t - FOCO.antes
-  const b = foco.t + FOCO.depois
-  const r = FOCO.rampa
-  const suave = (x) => x * x * (3 - 2 * x)
-  if (t <= a - r || t >= b + r) return 0
-  if (t < a) return suave((t - (a - r)) / r)
-  if (t > b) return suave(1 - (t - b) / r)
-  return 1
-}
-
-/** The playback rate at clip time `t`: the replay's speed (`base`, 1 = 100%) slowed by the play's slow motion. */
-function replayTaxa(t, r) {
-  const w = focoPeso(t, r?.foco)
-  return (r?.base ?? 1) * (1 - w * (1 - FOCO.lenta))
+/** The script for a VAR opening `agora` with a vote of `votoMs`, over a clip of `duracao` s. */
+function roteiroPara(duracao, votoMs, agora = Date.now()) {
+  const ate = Math.max(0.5, duracao - 0.05)
+  const livre = votoMs / 1000 - ROTEIRO.espera - ROTEIRO.telaFim
+  const w = Math.min(ate, Math.max(3, livre / (1 + 1 / ROTEIRO.lenta)))
+  return {
+    de: Math.round((ate - w) * 100) / 100, ate: Math.round(ate * 100) / 100,
+    inicio: agora + ROTEIRO.espera * 1000, fim: agora + votoMs - ROTEIRO.telaFim * 1000,
+  }
 }
 
 /**
- * Where the replay should be now: the dock's last snapshot ({ t, em, tocando, base, foco, duracao }: clip time `t` at
- * epoch ms `em`) carried forward at the rates above, looping. Both sides compute it the same way, so a page only seeks
- * when it drifts.
+ * Where the script is at `agora`: { fase: "espera" | "normal" | "lenta" | "fim", t (clip s), taxa, tocando, peso (0–1,
+ * how far into the slow pass, eased: the picture's slow-motion look and Valorant's zoom) }, or null without a script.
+ */
+function roteiroAgora(r, agora = Date.now()) {
+  const s = r?.roteiro
+  if (!s) return null
+  if (agora >= s.fim) return { fase: "fim", t: s.ate, taxa: 1, tocando: false, peso: 0 }
+  if (agora < s.inicio) return { fase: "espera", t: s.de, taxa: 1, tocando: false, peso: 0 }
+  const w = Math.max(0.5, s.ate - s.de)
+  const lenta = w / ROTEIRO.lenta
+  const e = ((agora - s.inicio) / 1000) % (w + lenta)
+  if (e < w) return { fase: "normal", t: s.de + e, taxa: 1, tocando: true, peso: 0 }
+  const x = e - w
+  const suave = (v) => (v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v))
+  const peso = suave(x / ROTEIRO.rampa) * suave((lenta - x) / ROTEIRO.rampa)
+  return { fase: "lenta", t: s.de + x * ROTEIRO.lenta, taxa: ROTEIRO.lenta, tocando: true, peso }
+}
+
+/** Whether the replay is playing now: the script's pass, or the dock's play/pause once Luan took over. */
+function replayTocando(r, agora = Date.now()) {
+  const s = roteiroAgora(r, agora)
+  return s ? s.tocando : !!r?.tocando
+}
+
+/**
+ * Where the replay should be now: the script's place, or the dock's last snapshot (clip time `t` at epoch ms `em`)
+ * carried forward at its speed `base`, looping. Both sides compute it the same way, so a page only seeks when it drifts.
  */
 function replayPosicao(r, agora = Date.now()) {
+  const s = roteiroAgora(r, agora)
+  if (s) return s.t
   if (!r || r.t == null) return 0
-  let t = r.t
-  if (!r.tocando) return t
-  let resta = Math.min(30, Math.max(0, (agora - r.em) / 1000))
-  const passo = 1 / 60
-  while (resta > 0) {
-    const dt = Math.min(passo, resta)
-    t += dt * replayTaxa(t, r)
-    resta -= dt
-    if (r.duracao && t >= r.duracao) t -= r.duracao
-  }
-  return t
+  if (!r.tocando) return r.t
+  const t = r.t + (Math.max(0, agora - r.em) / 1000) * (r.base ?? 1)
+  return r.duracao ? t % r.duracao : t
 }

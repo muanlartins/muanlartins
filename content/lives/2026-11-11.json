@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-11",
+  "game": "valorant",
+  "video": "58pmCmwmL94",
+  "summary": {
+    "pt": "Competitivo: 0 vitórias e 2 derrotas (−24 RR), terminando em Prata 1 (67 RR).",
+    "en": "Competitive: 0 wins and 2 losses (−24 RR), ending at Silver 1 (67 RR)."
+  },
+  "youtube": {
+    "title": "Esses caras vão humilhar a gente… | Valorant ao vivo",
+    "thumb": {
+      "quadro": "3a",
+      "segundo": 1759.15,
+      "texto": "VÃO HUMILHAR|A GENTE",
+      "emblema": false
+    }
+  },
+  "chapters": [
+    { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
+    { "at": "10:00", "match": "efb04b54-ed81-42ad-b4e4-da8bdc0ac1ef" },
+    { "at": "1:10:27", "match": "129cbe9e-1fde-44fd-960b-d95d790f5908" },
+    { "at": "1:46:06", "title": { "pt": "Fim", "en": "The end" } }
+  ]
+}
