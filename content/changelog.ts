@@ -115,6 +115,13 @@ export const UPCOMING: Upcoming[] = [
     text: "Quando a live começa, sai sozinho um story com a minha câmera, o jogo, o título da live e o link da Twitch.",
   },
   {
+    id: "video-de-boas-vindas",
+    status: "proximo",
+    tag: "live",
+    title: "Vídeo de boas-vindas na Twitch",
+    text: "Um vídeo curto que toca pra quem chega no canal quando não estou ao vivo: quem eu sou, o que rola nas lives e quando elas são.",
+  },
+  {
     id: "var-com-replay",
     status: "agora",
     tag: "live",
