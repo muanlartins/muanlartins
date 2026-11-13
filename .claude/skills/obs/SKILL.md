@@ -49,7 +49,9 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   plays them straight to Windows' speakers. One browser
   source "Filtros", full screen and just above Câmera in RL + chat, Valorant + chat, Conversa and
   Terapia (page permission 2, so it can ask for the scene; the page draws in that scene's camera box and stays clear
-  with no filter). It loads `http://localhost:8126/stream/filtros.html`, served from this working copy by
+  with no filter). In the Shorts collection (since 2026-11-11) it's in Short and Navegador with `?caixa=0,0,1920,1080`
+  (the camera the whole page), its item scaled and cropped over Câmera like Câmera's own (`obs_shorts.py`); the same
+  dock switches it. It loads `http://localhost:8126/stream/filtros.html`, served from this working copy by
   "Filtros muanlartins.vbs" in Startup (log `~/.cache/muanlartins/filtros.log`), because Phoenix's and Sova's models
   and the game's extracted effects (`public/stream/privado/`, gitignored) must never reach the site. OBS has to start with
   `--enable-media-stream --use-fake-ui-for-media-stream` (set on the Public Desktop shortcut and a user Start Menu
@@ -131,7 +133,7 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   "Jogo" and "Valorant", and "Jogo + chat" became "RL + chat"; the docks and pages go by these names).
 - Effects (2026-11-07): scenes "Lance ruim" (cut in; the Efeitos dock zooms the camera and returns) and "Terapia"
   (fade in), and the sounds: the browser source "Sons" (`public/stream/tocador.html`) plays them when the dock hears a
-  hotkey restart its trigger, a media source "Som · …" with a silent file (media sources play once when OBS loads, so
+  hotkey restart its trigger, a media source "Som · …" with `gatilho.webm`, no sound at all (media sources play once when OBS loads, so
   real sounds there went off all at once). Hotkeys are on the F-row (Rocket League binds F1 and F10): F2 Lance ruim,
   F3 Terapia, F4 back to the scene before (from an effect, the scene it came from; from Conversa or Já volto, the
   last scene before it; nothing in a game scene; never a fixed scene, Luan 2026-11-10), F5 palmas, F6 uuuh, F7 tambor.

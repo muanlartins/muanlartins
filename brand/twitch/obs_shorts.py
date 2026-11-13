@@ -7,7 +7,8 @@ The studio (RLR, full screen in the browser) puts the play in the screen's top l
 own pixels; OBS captures the screen as it is, so that corner is the short's top, and Luan's camera covers the rest,
 1080×864 under it, with a Klein line between them. Sound: the microphone (with the live's compressor and limiter) and
 the browser's (the game, low); tracks 1 Tudo and 2 Microfone (the browser's sound mixed into Tudo), so the edit can caption from the microphone
-alone. The studio's "Record a short" switches OBS to this profile and back (never while live); see the `estudio`
+alone. The camera filters (public/stream/filtros.html, switched from the Filtros dock as on the lives) sit on his
+camera in "Short" and "Navegador". The studio's "Record a short" switches OBS to this profile and back (never while live); see the `estudio`
 skill. Files go to Videos\\Shorts, named "<date> <time> short.mp4", one chapter per play.
 
 The live's own profile and collection (obs.py) are left alone. Nothing secret is written: the profile has no stream
@@ -70,6 +71,13 @@ def item(src, i, pos=(0, 0), bounds=None, canvas=(W, H)):
 screen = source("monitor_capture", "Tela", {"capture_cursor": False, "method": 0, "monitor_id": MONITOR})
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,
                                          "deactivate_when_not_showing": False}, filters=[camera_framing(source)])
+# The camera filters, as on the lives (obs.py): the page at the live's 1920×1080 with its camera box the whole page
+# (?caixa=), so it draws the same framed camera as Câmera, and the item over Câmera scales and crops it the same way.
+# Clear while no filter is on; the Filtros dock switches it (its events reach every browser source).
+filters = source("browser_source", "Filtros", {"url": "http://localhost:8126/stream/filtros.html?caixa=0,0,1920,1080",
+                                              "width": 1920, "height": 1080, "fps_custom": True, "fps": 60,
+                                              "webpage_control_level": 2, "restart_when_active": False,
+                                              "shutdown": False, "css": ""})
 # Klein (#002FA7) as OBS writes colours: 0xAABBGGRR.
 line = source("color_source_v3", "Linha", {"color": 0xFFA72F00, "width": W, "height": LINE})
 browser = source("wasapi_process_output_capture", "Estúdio", {"window": "RLR - Brave:Chrome_WidgetWin_1:brave.exe", "priority": 2},
@@ -79,9 +87,9 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=TRA
                                                "output_gain": 0.0}),
     source("limiter_filter", "Limitador", {"threshold": -1.0, "release_time": 60}),
 ])
-items = [item(screen, 1), item(camera, 2, (0, STAGE), (W, H - STAGE)), item(line, 3, (0, STAGE - LINE // 2)),
-         item(browser, 4)]
-short = source("scene", "Short", {"id_counter": len(items), "custom_size": False, "items": items})
+items = [item(screen, 1), item(camera, 2, (0, STAGE), (W, H - STAGE)), item(filters, 5, (0, STAGE), (W, H - STAGE)),
+         item(line, 3, (0, STAGE - LINE // 2)), item(browser, 4)]
+short = source("scene", "Short", {"id_counter": max(i["id"] for i in items), "custom_size": False, "items": items})
 # The shorts' outro, recorded once: Luan where the play leaves him, the top left plain Klein for the edit to fill
 # (what the channel's lives have, in motion).
 background = source("color_source_v3", "Fundo", {"color": 0xFFA72F00, "width": W, "height": STAGE})
@@ -96,13 +104,14 @@ shown = round(PORTRAIT_SIZE[0] * STAGE / W)
 page = item(portrait, 1, (0, 0), (W, STAGE))
 # The monitor's middle band: where the browser puts anything in full screen (a video), and the middle of a page.
 page["crop_top"] = page["crop_bottom"] = (PORTRAIT_SIZE[1] - shown) // 2
-browser_items = [page, item(camera, 2, (0, STAGE), (W, H - STAGE)), item(line, 3, (0, STAGE - LINE // 2)),
-                 item(browser, 4)]
-navegador = source("scene", "Navegador", {"id_counter": len(browser_items), "custom_size": False, "items": browser_items})
+browser_items = [page, item(camera, 2, (0, STAGE), (W, H - STAGE)), item(filters, 5, (0, STAGE), (W, H - STAGE)),
+                 item(line, 3, (0, STAGE - LINE // 2)), item(browser, 4)]
+navegador = source("scene", "Navegador", {"id_counter": max(i["id"] for i in browser_items), "custom_size": False,
+                                          "items": browser_items})
 
 collection = {
     "name": "Shorts", "current_scene": "Short", "current_program_scene": "Short", "scene_order": [{"name": "Short"}, {"name": "Navegador"}, {"name": "Final"}],
-    "sources": [short, navegador, final, screen, portrait, background, camera, line, browser], "groups": [], "AuxAudioDevice1": mic, "transitions": [],
+    "sources": [short, navegador, final, screen, portrait, background, camera, filters, line, browser], "groups": [], "AuxAudioDevice1": mic, "transitions": [],
     "current_transition": "Fade", "transition_duration": 300, "quick_transitions": [], "saved_projectors": [],
     "preview_locked": False, "scaling_enabled": False, "modules": {}, "resolution": {"x": W, "y": H}, "version": 2,
 }

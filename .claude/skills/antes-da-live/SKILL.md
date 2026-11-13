@@ -42,6 +42,15 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
    "stream skipped"/congestion = the network.
 2. Stop Claude's heavy jobs (not the narrator), check again, and tell Luan what it was with the numbers.
 
+## Before he goes live: OBS's audio buffering
+
+Look at OBS's current log (the newest in `%APPDATA%\obs-studio\logs`) for `Max audio buffering reached!`. If it's
+there, the Source Record files (`Câmera.mkv`, `Jogo.mp4`) will get their sound ~0.93 s late behind their picture
+until OBS is closed (the stream and Live.mp4 stay in step: measured 2026-11-11 by his lips, and the VOD), which costs
+the shorts their sync: ask Luan to restart OBS before going live. A source whose audio comes back with stale
+timestamps does it (the log names it); the effects' triggers did it until 2026-11-11, when they got a file with no
+sound (`gatilho.webm`, see the `obs` skill). It only ever goes up within a session.
+
 ## Luan's side (remind him when useful)
 
 - Rocket League's streamer-safe music on (or the game's music at 0): Content ID claimed the licensed soundtrack

@@ -24,7 +24,6 @@ import subprocess
 import sys
 import time
 import uuid
-import wave
 from pathlib import Path
 
 from obs_shorts import camera_framing
@@ -36,7 +35,7 @@ STINGER = ARGS[0] if ARGS else f"{FOLDER}/transicao.webm"
 # With --apply, the alerts are the source OBS already has (its URL stays there): the new scenes just place it.
 FROM_OBS = "(o do OBS)"
 ALERTS = ARGS[1] if len(ARGS) > 1 else FROM_OBS if "--apply" in sys.argv else None
-# The sounds' triggers play a silent file from here, next to the stinger (`--apply` writes it).
+# The sounds' triggers play a file with no sound from here, next to the stinger (`--apply` copies it).
 SOUNDS = f"{FOLDER}/sons"
 # Rocket League's window, matched by executable (priority 2) so a title change doesn't lose it.
 ROCKET_LEAGUE = "Rocket League (64-bit, DX11, Cooked):LaunchUnrealUWindowsClient:RocketLeague.exe"
@@ -205,10 +204,14 @@ SOURCE_SETTINGS = {"Efeito · VAR": ({"reroute_audio": True}, {"monitoring_type"
 
 
 def trigger(name, key):
-    """A hotkey the Efeitos dock answers: a media source playing a silent file, which `key` restarts. The dock hears the
+    """A hotkey the Efeitos dock answers: a media source playing gatilho.webm, which `key` restarts. The dock hears the
     restart and plays the sound (the "Sons" browser source) or picks the scene. OBS plays every media source once when it
-    loads it, so sounds kept in media sources all went off at once; this way that's silence."""
-    return source("ffmpeg_source", name, {"local_file": f"{SOUNDS}/silencio.wav", "is_local_file": True, "looping": False,
+    loads it, so sounds kept in media sources all went off at once; this way that's nothing. The file has no sound at
+    all, only a tenth of a second of a transparent 16×16 picture: the silent WAV the triggers had until 2026-11-11
+    came back with stale timestamps after minutes unplayed, and OBS raised its audio buffering to the maximum
+    ("Max audio buffering reached!" in its log), which left the Source Record files' sound (Câmera.mkv, Jogo.mp4)
+    ~0.93 s late behind their picture until OBS was closed; the stream and the recording stayed in step."""
+    return source("ffmpeg_source", name, {"local_file": f"{SOUNDS}/gatilho.webm", "is_local_file": True, "looping": False,
                                           "restart_on_activate": False, "close_when_inactive": False,
                                           "clear_on_media_end": True, "hw_decode": False},
                   muted=True, hotkeys={"MediaSource.Restart": [{"key": key}]})
@@ -499,11 +502,9 @@ def apply(dry=False):
     LIVE.write_text(json.dumps(live, ensure_ascii=False, indent=4), encoding="utf-8")
     sons = Path("/mnt/c/Users/muanl/Documents/muanlartins-obs/sons")
     sons.mkdir(parents=True, exist_ok=True)
-    with wave.open(str(sons / "silencio.wav"), "wb") as silence:  # the triggers' file: a tenth of a second
-        silence.setnchannels(1), silence.setsampwidth(2), silence.setframerate(48000)
-        silence.writeframes(bytes(2 * 4800))
+    shutil.copy(Path(__file__).resolve().parent / "gatilho.webm", sons / "gatilho.webm")  # the triggers' file
     print("\n".join(added) or "nada novo na coleção")
-    print(f"silêncio dos gatilhos em {sons}")
+    print(f"arquivo dos gatilhos em {sons}")
     var_webm = Path(__file__).resolve().parents[2] / "public/stream/transicao-var.webm"
     if var_webm.exists():
         shutil.copy(var_webm, sons.parent / var_webm.name)
