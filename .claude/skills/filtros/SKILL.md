@@ -56,10 +56,13 @@ All in one block after the other agents' (search "Sage's abilities"), with these
 - Its id in `MODES`, its cue prefix in `SONS`, its reset in `setMode` (when another filter comes on), its one-offs
   in `acao`, its keys (C, Q, E, X) in the keydown handler, its update in the main loop, its tint where
   `vfx.tint` is set, a line in the `?debug` HUD and its state in `window.filtros`.
-- Trackers: hands (`runGestures`, for its gesture and for casting from a hand: `handAt(side)`), face (`runFace`:
-  `at3(u, v, dz)` puts things at his face's depth), shoulders (`runPose`: `pose.left`, `pose.right`), body mask
-  (`runBody`, only while an effect on his body needs it: `sage.maskUntil`). Each runs only for the filters that use
-  it: add the mode to their conditions in the main loop.
+- Trackers (MediaPipe in workers, `rastreio.js`; the page never waits on them, `follow` carries their last answers
+  along his motion each frame): hands (`applyHands`, for its gesture and for casting from a hand: `handAt(side)`,
+  `lastHands`), face (`applyFace`: `at3(u, v, dz)` puts things at his face's depth), shoulders and arms
+  (`applyPose`: `pose.left`, `pose.right`, carried with the head between answers), body mask (`applyBody`, only
+  while an effect on his body needs it: `sage.maskUntil`). Each runs only for the filters that use it: add the mode
+  to the `want` conditions in the main loop. `?medir` posts each tracker's answers/s and delay to the server's
+  `/bench` every second (for tuning inside OBS).
 - Each ability: a `start…(now)` that refuses while it's already on, and an `update…(now)` driven by the clock
   (stages by elapsed seconds, so a slow frame can't skip a sound), spawning systems with
   `vfx.spawn(defs, anchor, { scale, dur, segment })` (`segment` spreads it along a line: a wall, a patch) and sounds
@@ -67,9 +70,10 @@ All in one block after the other agents' (search "Sage's abilities"), with these
 - The game's meshes: loaded with GLTFLoader from `privado/valorant/<agent>/files/…`, lit in a scene of their own,
   drawn with `headCam` (centimetres) after `renderer.clearDepth()`; things on his body (a tint, a glow, frost) go in
   the overlay shader `sovaMat` with uniforms of their own and the body mask (`maskAt`).
-- One gesture at most, for its signature ability (Luan, 2026-11-11: Phoenix's flash, Sova's drone, Sage's heal),
-  and easy to do rather than like the ability: a test on `handShape(...)` of both hands, held a moment, locked
-  until the hands part. Everything else is from the dock.
+- One gesture at most, for its signature ability (Luan, 2026-11-11: Phoenix's flash, Sova's drone; Sage's barrier
+  since 11-12, it was the heal), and easy to do rather than like the ability: a test on `handShape(...)` of both
+  hands (or the body tracker's arms, `sageArms`), held a moment, locked until the hands part. Everything else is
+  from the dock.
 - The look: an entry in `AGENTS` with the agent's model in `privado/<agent>.glb` (compressed with
   `npx -y @gltf-transform/cli optimize in.glb out.glb --compress meshopt --texture-compress webp --palette false`):
   its hair on his head, its clothes on his shoulders, his face and hands drawn back over them. Options there: `body`

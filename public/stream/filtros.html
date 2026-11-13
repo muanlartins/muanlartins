@@ -64,8 +64,8 @@
               burst, then the slow field there 5.5 s, with frost creeping up him while it lasts), Orbe Curativo (E:
               the orb, then her heal on him, 5 s of jade light, petals and wisps rising off him) and Ressurreição
               (X: both hands glowing, then a column of light down on him, the bloom and the crystals, and he glows a
-              while). The heal also by gesture: palms pressed together in front of the chest, fingers up, held a
-              moment (the hands part before it can go again).
+              while). The barrier also by gesture: forearms crossed in an X in front of the chest brings the orb
+              to his right hand, opening the arms casts the wall (the body tracker's wrists, not the hands).
         Octane (key 8) and Fennec (key 9): his face as Rocket League's car, Pixar-style: the car sits on the head
               seen a little from above, turning with it, his own eyes on its windshield and his mouth on its
               bumper (cut from the camera, so it blinks and talks). The dock's Demolição blows it up as in a
@@ -1242,7 +1242,7 @@
 
       // Luan's shoulders in the 3D camera's space (cm): the body tracker gives them on screen and their depth
       // relative to each other; the face's transform gives how far he is.
-      const pose = { seen: false, left: new THREE.Vector2(), right: new THREE.Vector2(), dz: 0, elbows: [null, null], target: null, sentAt: -1e9 }
+      const pose = { seen: false, left: new THREE.Vector2(), right: new THREE.Vector2(), dz: 0, elbows: [null, null], target: null, sentAt: -1e9, sentHead: null, offL: new THREE.Vector2(), offR: new THREE.Vector2(), rel: undefined }
       function onRay(u, v, z) {
         const p = new THREE.Vector3(u * 2 - 1, v * 2 - 1, 0.5).unproject(headCam)
         return p.multiplyScalar(z / p.z)
@@ -1268,9 +1268,9 @@
           a.squash.scale.y += (want - a.squash.scale.y) * 0.4
         }
         if (a.seen) {
-          a.pos.lerp(at, 0.45)
-          a.quat.slerp(qt, 0.45)
-          a.scale += (scale - a.scale) * 0.45
+          a.pos.lerp(at, 0.8)
+          a.quat.slerp(qt, 0.5)
+          a.scale += (scale - a.scale) * 0.5
         } else {
           a.pos.copy(at)
           a.quat.copy(qt)
@@ -1474,15 +1474,16 @@
       }
 
       // ---------- Sage's abilities, with the game's own effects (vfx.js, vfx-sage.js) ----------
-      // Her look is in AGENTS; here, her abilities. From the dock (or keys C, Q, E, X): Barrier Orb, the orb in his hand, then her wall of jade crystal rising across the bottom of
-      // the box in front of him, standing a few seconds and crumbling; Slow Orb, thrown down to the bottom of the box,
-      // where the slow field spreads and frost creeps up him while it lasts; Healing Orb, the orb in his hand, then
-      // her heal on him (also by its gesture: palms pressed together in front of the chest); Resurrection, both
-      // hands glowing, then the column of light he's raised in. The orbs and the wall are the game's own meshes
-      // (privado/valorant/sage/files/, extracted read-only from the installed game, never published), lit in the 3D
-      // camera's space (centimetres). Without them it does nothing.
+      // Her look is in AGENTS; here, her abilities. From the dock (or keys C, Q, E, X): Barrier Orb, the orb in his
+      // hand, then her wall of jade crystal rising across the bottom of the box in front of him, standing a few
+      // seconds and crumbling (also by gesture: arms crossed in an X, then opened, `sageArms`); Slow Orb, thrown down
+      // to the bottom of the box, where the slow field spreads and frost creeps up him while it lasts; Healing Orb,
+      // the orb in his hand, then her heal on him; Resurrection, both hands glowing, then the column of light he's
+      // raised in. The orbs and the wall are the game's own meshes (privado/valorant/sage/files/, extracted read-only
+      // from the installed game, never published), lit in the 3D camera's space (centimetres). Without them it does
+      // nothing.
       const THORNE = "privado/valorant/sage/files/ShooterGame/Content/Characters/Thorne/S0/"
-      const sage = { c: null, q: null, e: null, x: null, pray: 0, prayLock: false, maskUntil: 0, heal: 0, frost: 0 }
+      const sage = { c: null, q: null, e: null, x: null, cross: { since: 0, last: 0, armed: false }, maskUntil: 0, heal: 0, frost: 0 }
       const sg3 = { scene: new THREE.Scene(), orb: null, wall: null, ok: 0 }
       sg3.scene.add(new THREE.HemisphereLight(0xe4fff6, 0x203a36, 1.6))
       {
@@ -1600,15 +1601,29 @@
 
       // Barrier Orb: the orb in his right hand, its flash as it's placed, then the wall erupts across the bottom of
       // the box, segment after segment from the middle, stands, and crumbles.
-      function startBarrier(now) {
+      // `hold` (by gesture): the orb stays in his hand until castBarrier.
+      function startBarrier(now, hold = false) {
         if (sage.c || !vfx.ok || !sg3.wall) return
         sage.c = newOrb(now, 1)
+        sage.c.hold = hold
         sfx.play("sage-barreira-equip", { pan: panAt(sage.c.hand[0]) })
+      }
+      function castBarrier(now) {
+        const c = sage.c
+        if (!c?.hold) return
+        c.hold = false
+        c.t0 = Math.min(c.t0, now - SG.EQUIP * 1000)
       }
       function updateBarrier(now) {
         const c = sage.c
         const t = (now - c.t0) / 1000
         const wall = sg3.wall
+        if (c.hold) {
+          if (now - sage.cross.last < 3000) return holdOrb(c, SAGE.C.held, now, 1)
+          dropOrb(c)
+          sage.c = null
+          return
+        }
         if (t < SG.EQUIP) return holdOrb(c, SAGE.C.held, now, 1)
         if (c.stage === 0) {
           dropOrb(c)
@@ -1809,29 +1824,43 @@
         }
         if (t > SG.X_EQUIP + SG.X_RES + 3) sage.x = null
       }
-      // Palms pressed together in front of the chest, fingers up, held a moment: her heal. Once it's gone off, the
-      // hands have to part before it can again.
-      function isPray(hs) {
-        if (hs.length < 2) return false
-        const [A, B] = hs
-        const s = (A.s + B.s) / 2
-        const up = (x) => x.h[0].y - x.h[12].y > 0.9 * x.s
-        const long = (x) => [8, 12, 16].filter((i) => x.d(x.h[i], x.h[0]) > 1.4 * x.s).length >= 2
-        return up(A) && up(B) && long(A) && long(B) && A.d(A.h[0], B.h[0]) < 1.1 * s && A.d(A.h[12], B.h[12]) < 0.9 * s
+      // The barrier by gesture, from the body tracker's arms: forearms crossed in an X in front of the chest (each
+      // wrist past the middle, on the other shoulder's side, above the belly) for a moment brings the orb to his
+      // right hand; opening them (the wrists back on their own sides, wider than the shoulders, or out of the
+      // picture) casts the wall. Held crossed over 3 s without opening, the orb goes away.
+      function armsSide(lm) {
+        const ok = (i) => lm[i].visibility > 0.3
+        if (!ok(11) || !ok(12)) return null
+        const s = Math.sign(lm[11].x - lm[12].x)
+        const sw = Math.abs(lm[11].x - lm[12].x)
+        return { s, sw, mid: (lm[11].x + lm[12].x) / 2, low: Math.max(lm[11].y, lm[12].y) + 1.4 * sw * (video.videoWidth / video.videoHeight || 16 / 9), wrists: ok(15) && ok(16) }
       }
-      function sageHands(r, now) {
-        const va = video.videoWidth / video.videoHeight || 16 / 9
-        const hs = (r.landmarks || []).map((h, i) => handShape(h, r.gestures?.[i]?.[0]?.categoryName, va))
-        if (!isPray(hs)) {
-          sage.pray = 0
-          if (hs.length < 2 || hs[0].d(hs[0].h[0], hs[1].h[0]) > 2 * hs[0].s) sage.prayLock = false
+      function armsCrossed(lm) {
+        const a = armsSide(lm)
+        if (!a || !a.wrists) return false
+        return (lm[15].x - a.mid) * a.s < -0.08 * a.sw && (lm[16].x - a.mid) * a.s > 0.08 * a.sw && lm[15].y < a.low && lm[16].y < a.low
+      }
+      function armsOpen(lm) {
+        const a = armsSide(lm)
+        if (!a) return false
+        return !a.wrists ? lm[15].visibility < 0.3 && lm[16].visibility < 0.3 : (lm[15].x - lm[16].x) * a.s > 1.1 * a.sw
+      }
+      function sageArms(lm, now) {
+        const x = sage.cross
+        if (!sage.c) x.armed = false
+        if (lm && armsCrossed(lm)) {
+          x.since ||= now
+          x.last = now
+          if (!x.armed && !sage.c && now - x.since > 120) {
+            x.armed = true
+            startBarrier(now, true)
+          }
           return
         }
-        if (sage.prayLock) return
-        sage.pray ||= now
-        if (now - sage.pray > 350) {
-          sage.prayLock = true
-          startHeal(now)
+        x.since = 0
+        if (x.armed && lm && armsOpen(lm)) {
+          x.armed = false
+          castBarrier(now)
         }
       }
       function updateSage(now, dt) {
@@ -3033,6 +3062,7 @@
             else if (data.type === "resultado") {
               tr.busy = false
               tr.n++
+              if (MEDIR) medir(tr, data)
               try {
                 received(data)
               } catch (e) {
@@ -3041,10 +3071,45 @@
             }
           }
           tr.w.onerror = (e) => fail("modelos", e.message || e)
-          tr.w.postMessage({ type: "carregar", cpu: q.has("cpu"), which, gestos: q.get("gestos") !== "0" })
+          // The hands without MediaPipe's gesture classifier (?gestos=1 brings it back): its two extra models cost the
+          // hand tracker about half its answers in OBS, and the gestures read the hand's shape anyway (handShape).
+          tr.w.postMessage({ type: "carregar", cpu: q.has("cpu"), which, gestos: q.get("gestos") === "1" })
         }
       }
       const trackersReady = () => Object.values(trackers).some((t) => t.ok)
+      // ?medir: each second, to the server's /bench, how often and how late each tracker answers (for tuning in OBS).
+      const MEDIR = q.has("medir")
+      function medir(tr, d) {
+        const m = (tr.m ||= { n: 0, lat: 0, ida: 0, calc: 0, volta: 0 })
+        const agora = performance.timeOrigin + performance.now()
+        const t = performance.timeOrigin + d.t
+        m.n++
+        m.lat += agora - t
+        if (d.t0) {
+          m.ida += d.t0 - t
+          m.calc += d.t1 - d.t0
+          m.volta += agora - d.t1
+        }
+      }
+      if (MEDIR) {
+        let at = performance.now(), f0 = 0, v0 = 0
+        setInterval(() => {
+          const now = performance.now(), s = (now - at) / 1000
+          const out = { fps: +((frames - f0) / s).toFixed(1), camera: +((videoFrames - v0) / s).toFixed(1), modo: mode, rastreio: {} }
+          for (const [k, tr] of Object.entries(trackers)) {
+            const m = tr.m
+            if (!m?.n) continue
+            const r = (x) => +(x / m.n).toFixed(1)
+            out.rastreio[k] = { porSeg: +(m.n / s).toFixed(1), atraso: r(m.lat), ida: r(m.ida), calculo: r(m.calc), volta: r(m.volta) }
+            tr.m = null
+          }
+          out.ms = Object.fromEntries(Object.entries(ms).map(([k, x]) => [k, +x.toFixed(1)]))
+          at = now
+          f0 = frames
+          v0 = videoFrames
+          fetch("/bench", { method: "POST", body: JSON.stringify(out) }).catch(() => {})
+        }, 1000)
+      }
       // The newest frame, to each free tracker that has something wanted of it.
       function sendFrame(want, now) {
         for (const tr of Object.values(trackers)) {
@@ -3054,7 +3119,10 @@
           if (quer.corpo && want.fundo) quer.fundo = true
           if (!Object.keys(quer).length) continue
           tr.busy = true
-          if (quer.ombros) pose.sentAt = now
+          if (quer.ombros) {
+            pose.sentAt = now
+            pose.sentHead = headOnScreen()
+          }
           if (quer.corpo) bodySentAt = now
           if (quer.fundo) plate.at = now
           createImageBitmap(video).then(
@@ -3170,7 +3238,7 @@
       })
       setMode(mode)
       const DEBUG = q.has("debug")
-      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, isPray, get mode() { return mode }, get trackers() { return trackersReady() } }
+      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, armsCrossed, armsOpen, get mode() { return mode }, get trackers() { return trackersReady() } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -3194,7 +3262,6 @@
         handInfo = `${hands.length} mão(s), ${ls.length} em L`
         if (mode === "phoenix") phoenixHands(r, now)
         if (mode === "sova") sovaHands(r, now)
-        if (mode === "sage") sageHands(r, now)
         if (ls.length === 2) {
           ls.sort((a, b) => a[0].x - b[0].x)
           const [L, R] = ls
@@ -3359,13 +3426,34 @@
           lastHands = cur.map((h, i) => carry(h, handsTrack.prev?.[i] || null, a, lastHands[i], k))
         }
         followBow()
-        // The shoulders change slowly: eased, not carried.
+        // The shoulders: where they are against the head (eased, the body tracker answers least often and jitters),
+        // carried with the head as it moves on this frame, so the clothes keep to him at the face's pace.
         if (pose.seen && pose.target) {
+          const T = pose.target
+          const h = headOnScreen()
+          const rel = !!(T.head && h)
+          if (rel !== pose.rel) {
+            pose.offL.copy(pose.left)
+            pose.offR.copy(pose.right)
+            if (rel) pose.offL.sub(h), pose.offR.sub(h)
+            pose.rel = rel
+          }
           const ks = 1 - Math.exp(-dt / 0.05)
-          pose.left.lerp(pose.target.left, ks)
-          pose.right.lerp(pose.target.right, ks)
-          pose.dz += (pose.target.dz - pose.dz) * ks
+          pose.offL.lerp(rel ? T.left.clone().sub(T.head) : T.left, ks)
+          pose.offR.lerp(rel ? T.right.clone().sub(T.head) : T.right, ks)
+          pose.left.copy(pose.offL)
+          pose.right.copy(pose.offR)
+          if (rel) pose.left.add(h), pose.right.add(h)
+          pose.dz += (T.dz - pose.dz) * ks
         }
+      }
+      // The head on screen, for carrying the shoulders: its centre (the face's transform), across fully and up and down
+      // a little less (nodding moves the head more than the shoulders).
+      const GLUE = new THREE.Vector2(1, 0.8)
+      function headOnScreen() {
+        if (!headSeen) return null
+        const v = headPos.clone().project(headCam)
+        return new THREE.Vector2((v.x + 1) / 2, (v.y + 1) / 2).multiply(GLUE)
       }
 
       // The face's oval on screen (forehead top, chin, cheeks), for painting over the hair around it.
@@ -3395,12 +3483,15 @@
             pose.left.copy(l)
             pose.right.copy(rr)
             pose.dz = dz
+            pose.rel = undefined
           }
-          pose.target = { left: l, right: rr, dz }
+          // With where the head was on the frame it's about, for carrying them with the head (`follow`).
+          pose.target = { left: l, right: rr, dz, head: pose.sentHead }
           pose.seen = true
           // The elbows, when they're in the picture (Phoenix's ultimate burns on them too).
           pose.elbows = [13, 14].map((i) => (lm[i].visibility > 0.5 ? new THREE.Vector2(...toScreen(lm[i].x, lm[i].y)) : null))
         } else pose.seen = false
+        if (mode === "sage" && !(DEBUG && window.__bracos)) sageArms(lm, performance.now())
       }
 
       // Does the background plate match the frame? Compared where the mask says Luan isn't, in the frame's top
@@ -3627,9 +3718,12 @@
             if ((mode === "pop" || pop > 0 || sovaMask || ((agentOn || carOn) && ERASE)) && now - bodySentAt >= bodyEvery) want.corpo = true
             if ((agentOn || carOn) && ERASE && (plate.off === undefined || now - plate.at > 250)) want.fundo = true
             if (mode === "bola" || ballIn > 0 || agentOn || carOn || mode === "sage") want.rosto = true
-            // The shoulders change slowly: ~15 a second is plenty.
-            if ((agentOn || mode === "sage") && now - pose.sentAt > 60) want.ombros = true
+            // The shoulders ride the head between answers, so ~15 a second is plenty; Sage's barrier gesture reads the
+            // arms, so as often as it can there.
+            if ((agentOn || mode === "sage") && now - pose.sentAt > (mode === "sage" ? 0 : 60)) want.ombros = true
             sendFrame(want, now)
+            // ?debug's window.__bracos(now) can stand in for the arms (body tracker landmarks), for Sage's gesture.
+            if (DEBUG && mode === "sage" && window.__bracos) sageArms(window.__bracos(now), now)
           } catch (e) {
             fail("modelos", e)
           }

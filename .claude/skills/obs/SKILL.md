@@ -37,7 +37,7 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   and Owl Drone and Sage's orb and wall are the game's models from there too; without them their abilities do nothing
   but Phoenix's flash. Sage's look is her character-select model (Luan's download, `privado/sage.glb`).
   One gesture per agent stays on purpose (Luan, 2026-11-11: one signature ability each): Phoenix's flash (a snap),
-  Sova's drone (both palms open to the camera) and Sage's heal (palms pressed together in front of the chest), besides Sova's bow (one fist against the other opens it, pulling the hands
+  Sova's drone (both palms open to the camera) and Sage's barrier (forearms crossed in an X in front of the chest, then opened), besides Sova's bow (one fist against the other opens it, pulling the hands
   apart draws it, opening a hand shoots the Recon Bolt). Luan's call: a gesture needn't mimic its ability, it should
   be easy to do. Sova's look has a switch in the dock, "Coruja sobrevoando" (`opcoes.patrulha`, kept in the dock):
   the drone flies behind him all the while, and the drone ability is then that drone. The abilities have the

@@ -56,7 +56,7 @@ async function load({ cpu, which, gestos }) {
 
 function track({ bitmap, t, quer }) {
   const ms = {}
-  const out = { type: "resultado", t, ms }
+  const out = { type: "resultado", t, ms, t0: performance.timeOrigin + performance.now() }
   const time = (k, fn) => {
     const t0 = performance.now()
     out[k] = fn()
@@ -109,6 +109,7 @@ function track({ bitmap, t, quer }) {
     out.erro = `${e?.name || ""} ${e?.message || e}`
   }
   bitmap.close()
+  out.t1 = performance.timeOrigin + performance.now()
   const transfer = []
   if (out.corpo?.mask) transfer.push(out.corpo.mask.buffer)
   if (out.corpo?.topo) transfer.push(out.corpo.topo.buffer)
