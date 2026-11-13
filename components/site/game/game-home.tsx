@@ -8,7 +8,9 @@ import { CollectionGlimpse } from "@/components/site/inventory/collection-glimps
 import { divisionOf, longDate, tierOf, type RankInfo } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { channelPath } from "@/lib/channel"
-import { slotsOf, slotText } from "@/lib/agenda"
+import { GameSlots } from "@/components/site/agenda/game-slots"
+import { slotsOf } from "@/lib/agenda"
+import { buildAgenda } from "@/lib/agenda-build"
 import { fundamentals, gamePath, type Game } from "@/lib/game"
 import type { Live } from "@/lib/lives"
 import { MODES, summarize, type Mode, type Session } from "@/lib/ranked"
@@ -43,7 +45,7 @@ const T = localize({
  * has no ranked record, and a card for each of its pages with a glimpse of
  * what's in it, and for its lives on the channel with when they are.
  */
-export function GameHome({
+export async function GameHome({
   game,
   sessions,
   lives,
@@ -64,7 +66,8 @@ export function GameHome({
   const paragraphs = localize(game.intro).split(/\n\s*\n/)
   const roadmap = fundamentals(game)
   const topics = entries(roadmap)
-  const slots = slotsOf(game.id)
+  const agenda = await buildAgenda()
+  const weekly = agenda ? slotsOf(agenda, game.id).length > 0 : false
   const videos = topics.filter(({ topic }) => topic.video).length
 
   // The rank in the mode played last.
@@ -188,7 +191,7 @@ export function GameHome({
                     },
                   ]
                 : []),
-              ...(lives[0] || slots.length > 0
+              ...(lives[0] || weekly
                 ? [
                     {
                       href: channelPath("lives"),
@@ -198,11 +201,7 @@ export function GameHome({
                       badge: <LanguageBadge language="pt" />,
                       glimpse: (
                         <span className="space-y-0.5">
-                          {slots.map((slot) => (
-                            <span key={slot.start} className="block text-[14px] font-medium text-ink">
-                              {slotText(slot)}
-                            </span>
-                          ))}
+                          <GameSlots game={game.id} className="block text-[14px] font-medium text-ink" />
                           {lives[0] && (
                             <span className="block text-[12px] text-muted">
                               {T.latestLive}: {longDate(lives[0].date)}

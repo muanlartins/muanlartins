@@ -1,21 +1,15 @@
 import { channel } from "@/content/channel"
-import { games } from "@/content/projects"
-import { ics } from "@/lib/agenda"
+import { ics } from "@/infra/comum/agenda.mjs"
+import { buildAgenda } from "@/lib/agenda-build"
 import { channelPath } from "@/lib/channel"
 import { localize, ORIGIN } from "@/lib/site"
 
-// A static file in the export: the lives' schedule for calendar apps.
+// A static file in the export: the agenda as it was at the last release, for calendars subscribed here before the
+// profile API served it live (GET /agenda.ics, the one the site links now).
 export const dynamic = "force-static"
 
-export function GET() {
-  const body = ics({
-    summary: localize(channel.lives.agenda.calendar),
-    title: (id) => {
-      const game = games.find((game) => game.id === id)
-      return game ? `${localize(channel.lives.agenda.calendar)}: ${localize(game.title)}` : localize(channel.lives.agenda.calendar)
-    },
-    description: localize(channel.lives.description),
-    url: `${ORIGIN}${channelPath("lives")}`,
-  })
+export async function GET() {
+  const agenda = (await buildAgenda()) ?? { slots: [], extras: [], off: [], games: {} }
+  const body = ics(agenda, { nome: localize(channel.lives.agenda.calendar), url: `${ORIGIN}${channelPath("agenda")}` })
   return new Response(body, { headers: { "content-type": "text/calendar; charset=utf-8" } })
 }

@@ -2,7 +2,7 @@ import { ArrowUpRight } from "lucide-react"
 import { LanguageBadge } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
 import { channel } from "@/content/channel"
-import { slotsOf, slotText } from "@/lib/agenda"
+import { GameSlots } from "@/components/site/agenda/game-slots"
 import { fundamentals, gamePath, type Game } from "@/lib/game"
 import { localize, type L10n } from "@/lib/site"
 
@@ -48,11 +48,7 @@ export function GameList({ page, games }: { page: { title: L10n; description: L1
                 </span>
                 <ArrowUpRight className="mt-1.5 h-5 w-5 shrink-0 text-muted transition-colors group-hover:text-klein" />
               </a>
-              {slotsOf(game.id).map((slot) => (
-                <p key={slot.start} className="text-[13px] text-muted">
-                  {T.live}: {slotText(slot)} ({localize(channel.lives.agenda.zone)})
-                </p>
-              ))}
+              <GameSlots game={game.id} as="p" className="text-[13px] text-muted" prefix={`${T.live}: `} suffix={` (${localize(channel.lives.agenda.zone)})`} />
               <nav className="flex flex-wrap gap-2 pt-1">
                 {pages.map((page) => (
                   <a
