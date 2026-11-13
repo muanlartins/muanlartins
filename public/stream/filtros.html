@@ -55,6 +55,17 @@
               him (NVIDIA Broadcast's virtual background, camera-fundo.png, or ?fundo=<url>, and whatever's been
               seen there since, his chair too), so theirs is the head's outline; off while the background doesn't
               match, or with ?apagar=0. Sova's forehead covers Luan's down to just above the brows.
+        Sage (dock only, 2026-11-12): Valorant's Sage the same way (privado/sage.glb, out of git: her
+              character-select model): her hair on the head, her collar and coat on the shoulders. Her abilities
+              are the game's own (privado/valorant/sage/, out of git: her orb and wall in 3D, the effects through
+              vfx.js and vfx-sage.js). From the dock (or keys C, Q, E, X): Orbe de Barreira (C: the orb in his right hand,
+              then her wall of jade crystal erupting across the bottom of the box in front of him, its top at his
+              chest, standing 6 s and crumbling), Orbe de Lentidão (Q: the orb thrown to the bottom of the box, the
+              burst, then the slow field there 5.5 s, with frost creeping up him while it lasts), Orbe Curativo (E:
+              the orb, then her heal on him, 5 s of jade light, petals and wisps rising off him) and Ressurreição
+              (X: both hands glowing, then a column of light down on him, the bloom and the crystals, and he glows a
+              while). The heal also by gesture: palms pressed together in front of the chest, fingers up, held a
+              moment (the hands part before it can go again).
         Octane (key 8) and Fennec (key 9): his face as Rocket League's car, Pixar-style: the car sits on the head
               seen a little from above, turning with it, his own eyes on its windshield and his mouth on its
               bumper (cut from the camera, so it blinks and talks). The dock's Demolição blows it up as in a
@@ -74,7 +85,8 @@
       the rise to the comeback, and the fire between his palms crackling as big as it is; Sova's bow (out, charging
       with a tick at half and full draw, let go or folded), the Recon Bolt's hit, sonar and pings, the Shock Bolt's
       bounce and burst, the Owl Drone's propellers (quieter behind him), dart and tag, Hunter's Fury charging and
-      firing; the cars' jump and dodge for the flip and the demolition's blast. The cues are made by
+      firing; Sage's orbs coming out, the wall erupting and crumbling, the slow orb's throw, burst and field, her heal
+      and its hum, the resurrection's equip and light; the cars' jump and dodge for the flip and the demolition's blast. The cues are made by
       scripts/filtros_sons.py from the games' files (privado/sons/, out of git; without them it's silent).
       OBS hears them only with the source's "Control audio via OBS" on. The dock's "Sons dos filtros" switch
       (opcoes.mudo), key M, ?mudo and ?som=<volume>.
@@ -188,6 +200,7 @@
       import { createVfx, TINTS } from "./vfx.js"
       import * as PHX from "./vfx-phoenix.js"
       import * as SOVA from "./vfx-sova.js"
+      import * as SAGE from "./vfx-sage.js"
       import { createSfx } from "./sfx.js"
       import { FilesetResolver, GestureRecognizer, ImageSegmenter, FaceLandmarker, PoseLandmarker } from "@mediapipe/tasks-vision"
 
@@ -424,6 +437,10 @@
         uReveal: { value: 0 },
         uMark: { value: new THREE.Vector3(0.5, 0.9, 0) },
         uUltT: { value: -1 },
+        // Sage's abilities on Luan: the jade glow of her heal and her
+        // resurrection, and the frost of her slow field.
+        uHeal: { value: 0 },
+        uFrost: { value: 0 },
         // The cars' demolition: where (x, y, radius) and seconds since.
         uBoom: { value: new THREE.Vector3(0.5, 0.5, 0.2) },
         uBoomT: { value: -1 },
@@ -784,7 +801,11 @@
           uniform float uReveal;
           uniform vec3 uMark;
           uniform float uUltT;
+          uniform float uHeal;
+          uniform float uFrost;
           const vec3 RED = vec3(1.0, 0.27, 0.33);
+          const vec3 JADE = vec3(0.25, 1.0, 0.72);
+          const vec3 FROST = vec3(0.62, 0.95, 1.0);
           void over(inout vec4 o, vec3 c, float a) { o = vec4(c * a, a) + o * (1.0 - a); }
           void main() {
             vec2 A = vec2(uAspect, 1.0);
@@ -805,6 +826,19 @@
               float rim = smoothstep(0.45, 0.6, body) * (1.0 - smoothstep(0.75, 0.95, maskAt(vUv, 1.4)));
               over(o, RED, 0.2 * smoothstep(0.45, 0.6, body) * rv);
               glow += RED * (halo * 0.9 + rim * 0.8) * rv;
+            }
+            // Sage's heal and resurrection: a jade light over him and a glow round his outline. Her slow field: frost
+            // creeping up him from below, in flecks.
+            if (uHeal > 0.003 || uFrost > 0.003) {
+              float body = smoothstep(0.45, 0.6, maskAt(vUv, 0.0));
+              float halo = (1.0 - smoothstep(0.35, 0.6, maskAt(vUv, 0.0))) * smoothstep(0.06, 0.32, maskAt(vUv, 2.4));
+              float rim = body * (1.0 - smoothstep(0.75, 0.95, maskAt(vUv, 1.4)));
+              over(o, JADE, 0.16 * body * uHeal);
+              glow += JADE * (halo * 0.7 + rim * 0.6) * uHeal;
+              float fleck = fract(sin(dot(floor(vUv * vec2(uAspect, 1.0) * 140.0), vec2(12.9898, 78.233))) * 43758.5453);
+              float up = smoothstep(uFrost * 1.1, uFrost * 1.1 - 0.35, vUv.y);
+              over(o, FROST, body * up * uFrost * (0.18 + 0.3 * step(0.82, fleck)));
+              glow += FROST * rim * up * uFrost * 0.5;
             }
             // The marker over a revealed head.
             if (uMark.z > 0.0) {
@@ -1012,6 +1046,11 @@
         // Luan's face stops a little above them (`trim`: of the brows-to-chin height), since Luan's curls fall
         // over his forehead and would show under Sova's hair.
         sova: { url: q.get("sova") || "privado/sova.glb", extra: /BowProp|Bow_Emissive/, behind: true, forehead: 0.008, trim: 0.13 },
+        // Sage: the character select's model (Luan's download, 2026-11-12: finer than the in-game one, its bones
+        // numbered by the export, Neck_12, and its body's material without "Body" in the name; her orb left out).
+        // Her locks fall beside the face, like Sova's; her braid, down to her waist, is cut at the chin (`hairDown`:
+        // how far below the eyes her hair is kept, in metres), or it hangs over his whole body.
+        sage: { url: q.get("sage") || "privado/sage.glb", body: /CS_Thorne_S0_MI/, behind: true, hairDown: 0.12 },
       }
       // Luan's own hair around the agent's, painted over with what the camera shows behind him: NVIDIA Broadcast's
       // virtual background (brand/webcam/webcam-enquadrado, at 1920×1080: camera-fundo.png, from brand/build.py;
@@ -1132,17 +1171,33 @@
       const agentList = Object.values(AGENTS)
       function buildAgent(a, root) {
         root.updateMatrixWorld(true)
+        // Every model is taken as facing −z. One exported turned half round (Sage's: her eyes in front of her head
+        // towards +z) is turned back first, before anything is read from it.
+        const probe = {}
+        root.traverse((o) => {
+          if (o.isBone) probe[o.name.replace(/_\d+$/, "")] ??= o.getWorldPosition(new THREE.Vector3())
+        })
+        if (probe.L_Eyeball && probe.Head && probe.L_Eyeball.z > probe.Head.z) {
+          root.rotation.y += Math.PI
+          root.updateMatrixWorld(true)
+        }
         const bone = {}
         const meshes = []
         root.traverse((o) => {
-          if (o.isBone) bone[o.name] = o.getWorldPosition(new THREE.Vector3())
+          // (By its name, and without the number some exports add to it: Neck_12.)
+          if (o.isBone) {
+            const p = o.getWorldPosition(new THREE.Vector3())
+            bone[o.name] = p
+            bone[o.name.replace(/_\d+$/, "")] ??= p
+          }
           if (o.isSkinnedMesh) meshes.push(o)
         })
-        const body = meshes.find((m) => /Body/.test(m.material.name))
+        const body = meshes.find((m) => (a.body || /Body/).test(m.material.name))
         const hairMesh = meshes.find((m) => /Hair/.test(m.material.name))
         const extras = a.extra ? meshes.filter((m) => a.extra.test(m.material.name)) : []
         const eyes = bone.L_Eyeball.clone().add(bone.R_Eyeball).multiplyScalar(0.5)
-        const browY = (bone.L_Brows.y + bone.R_Brows.y) / 2
+        // The brows: one bone each, or (a finer face rig) the middle of each brow.
+        const browY = ((bone.L_Brows || bone.L_Brow_Mid_01).y + (bone.R_Brows || bone.R_Brow_Mid_01).y) / 2
         const front = eyes.z + 0.03
         // The model faces −z with its left at −x; turned half a turn it faces the camera like Luan.
         const turn = (v) => new THREE.Vector3(-v.x, v.y, -v.z)
@@ -1154,7 +1209,7 @@
         headPiece.scale.setScalar(s * HEAD_K)
         headPiece.position.copy(EYES_AT).sub(turn(eyes).multiplyScalar(s * HEAD_K))
         headPiece.position.y -= HEAD_DOWN
-        headPiece.add(piece(hairMesh, () => true))
+        headPiece.add(piece(hairMesh, (i, p) => a.hairDown === undefined || p.y > eyes.y - a.hairDown))
         // The scalp: above the brows at the forehead; on the sides the fade comes down to the top of the ears
         // (they stick out of the skull only ~1 cm, so they're cut by where they are: 11 cm deep from 2 cm
         // behind the eyes), down to the brows at the temples before them, lower behind them.
@@ -1417,6 +1472,379 @@
         if (phx.c) updateBlaze(now)
         if (phx.x) updateRunItBack(now)
         vfx.update(dt)
+      }
+
+      // ---------- Sage's abilities, with the game's own effects (vfx.js, vfx-sage.js) ----------
+      // Her look is in AGENTS; here, her abilities. From the dock (or keys C, Q, E, X): Barrier Orb, the orb in his hand, then her wall of jade crystal rising across the bottom of
+      // the box in front of him, standing a few seconds and crumbling; Slow Orb, thrown down to the bottom of the box,
+      // where the slow field spreads and frost creeps up him while it lasts; Healing Orb, the orb in his hand, then
+      // her heal on him (also by its gesture: palms pressed together in front of the chest); Resurrection, both
+      // hands glowing, then the column of light he's raised in. The orbs and the wall are the game's own meshes
+      // (privado/valorant/sage/files/, extracted read-only from the installed game, never published), lit in the 3D
+      // camera's space (centimetres). Without them it does nothing.
+      const THORNE = "privado/valorant/sage/files/ShooterGame/Content/Characters/Thorne/S0/"
+      const sage = { c: null, q: null, e: null, x: null, pray: 0, prayLock: false, maskUntil: 0, heal: 0, frost: 0 }
+      const sg3 = { scene: new THREE.Scene(), orb: null, wall: null, ok: 0 }
+      sg3.scene.add(new THREE.HemisphereLight(0xe4fff6, 0x203a36, 1.6))
+      {
+        const sun = new THREE.DirectionalLight(0xffffff, 2)
+        sun.position.set(0.3, 1, 1)
+        sg3.scene.add(sun)
+      }
+      const sageTex = (path, color) => {
+        const t = new THREE.TextureLoader().load(THORNE + path)
+        t.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace
+        t.flipY = false
+        return t
+      }
+      function loadSage(path, done) {
+        new GLTFLoader().load(THORNE + path, (g) => {
+          g.scene.traverse((o) => {
+            if (o.isMesh) o.frustumCulled = false
+          })
+          done(g.scene)
+          sg3.ok++
+        }, undefined, (e) => fail("sage", e))
+      }
+      // The orb (ThorneOrb, 13 cm across in the game): its own texture, lit, with the jade light inside it.
+      loadSage("VFX/Meshes/ThorneOrb.glb", (m) => {
+        m.traverse((o) => {
+          if (!o.isMesh) return
+          const map = o.material.map
+          if (map) map.colorSpace = THREE.SRGBColorSpace
+          o.material = new THREE.MeshStandardMaterial({ map, color: 0xbfffee, emissive: new THREE.Color(0.05, 0.9, 0.6), emissiveIntensity: 0.9, roughness: 0.25, metalness: 0.1, envMap: roomEnv(), envMapIntensity: 0.9 })
+        })
+        const root = new THREE.Group()
+        root.add(m)
+        root.visible = false
+        sg3.orb = root
+        sg3.scene.add(root)
+      })
+      // The wall: one segment of AB_Thorne_S0_E (2 m by 2.8 m tall, its crystals along its z), repeated across. Its
+      // material's textures come with it in the export but not inside the mesh: the colour, the smooth normals, and
+      // the cracks for when it's about to break.
+      const WALL_N = 4
+      const wallMat = new THREE.MeshStandardMaterial({
+        map: sageTex("Ability_E/3P/Models/AB_Thorne_S0_E_DF.png", true),
+        normalMap: sageTex("Ability_E/3P/Models/AB_Thorne_S0_E_Smoother_NM.png"),
+        color: 0xd9fff2,
+        emissive: new THREE.Color(0.02, 0.3, 0.2),
+        roughness: 0.2,
+        metalness: 0.05,
+        transparent: true,
+        opacity: 1,
+      })
+      loadSage("Ability_E/3P/Models/AB_Thorne_S0_E.glb", (m) => {
+        wallMat.envMap = roomEnv()
+        wallMat.envMapIntensity = 1.1
+        const wall = new THREE.Group()
+        wall.visible = false
+        const geo = m.getObjectByProperty("isMesh", true).geometry
+        wall.userData.segs = []
+        for (let i = 0; i < WALL_N; i++) {
+          // Each segment turned so its length runs across the box, a little askew like the game's.
+          const seg = new THREE.Mesh(geo, wallMat)
+          seg.rotation.y = Math.PI / 2 + (i % 2 ? 0.12 : -0.08)
+          seg.position.x = (i - (WALL_N - 1) / 2) * 2.6
+          seg.frustumCulled = false
+          const pivot = new THREE.Group()
+          pivot.add(seg)
+          pivot.position.x = seg.position.x
+          seg.position.x = 0
+          wall.add(pivot)
+          wall.userData.segs.push(pivot)
+        }
+        sg3.wall = wall
+        sg3.scene.add(wall)
+      })
+      // Where an orb sits in a hand: the hand's middle on screen, a little before it.
+      const sageHand = (side) => handAt(side)
+      function placeOrb(p, k) {
+        const o = sg3.orb
+        if (!o) return
+        o.visible = k > 0
+        o.position.copy(p)
+        o.scale.setScalar(Math.max(0.001, k) * 60)
+        o.rotation.y += 0.03
+        o.rotation.x += 0.011
+      }
+      const SG = { EQUIP: 0.8, THROW: 0.45, WALL_RISE: 0.55, WALL_STAND: 6, SLOW_LAST: 5.5, HEAL_LAST: 5, X_EQUIP: 1.3, X_RES: 1.8 }
+      function sageReset() {
+        if (sage.c || sage.q || sage.e || sage.x) vfx.clear()
+        for (const k of ["c", "q", "e", "x"]) {
+          const a = sage[k]
+          if (a) for (const snd of [a.loop, a.loop2]) snd?.stop(0.2)
+          sage[k] = null
+        }
+        if (sg3.orb) sg3.orb.visible = false
+        if (sg3.wall) sg3.wall.visible = false
+        sage.heal = sage.frost = 0
+        uniforms.uHeal.value = uniforms.uFrost.value = 0
+      }
+      // An orb held for a moment in that hand (1 right, -1 left), following it: its mesh and the game's glow.
+      function holdOrb(a, defs, now, side) {
+        const t = (now - a.t0) / 1000
+        if (lastHands.length) a.hand = sageHand(side)
+        a.handPos.copy(at3(a.hand[0], a.hand[1], 8))
+        a.held ||= vfx.spawn(defs, (v) => v.copy(a.handPos), { scale: 0.45 })
+        placeOrb(a.handPos, Math.min(1, t / 0.2))
+      }
+      function dropOrb(a) {
+        a.held?.stop()
+        a.held = null
+        if (sg3.orb) sg3.orb.visible = false
+      }
+      const newOrb = (now, side) => {
+        const hand = sageHand(side)
+        return { t0: now, hand, handPos: at3(hand[0], hand[1], 8), held: null, stage: 0 }
+      }
+
+      // Barrier Orb: the orb in his right hand, its flash as it's placed, then the wall erupts across the bottom of
+      // the box, segment after segment from the middle, stands, and crumbles.
+      function startBarrier(now) {
+        if (sage.c || !vfx.ok || !sg3.wall) return
+        sage.c = newOrb(now, 1)
+        sfx.play("sage-barreira-equip", { pan: panAt(sage.c.hand[0]) })
+      }
+      function updateBarrier(now) {
+        const c = sage.c
+        const t = (now - c.t0) / 1000
+        const wall = sg3.wall
+        if (t < SG.EQUIP) return holdOrb(c, SAGE.C.held, now, 1)
+        if (c.stage === 0) {
+          dropOrb(c)
+          const p = c.handPos.clone()
+          vfx.spawn(SAGE.C.cast, (v) => v.copy(p), { scale: 0.35 })
+          sfx.play("sage-barreira-cast", { pan: panAt(c.hand[0]) })
+          // Its size: the four segments across a little more than the box, at their depth, in front of him. Its top
+          // just under his chin (a third of the way up without a face), its foot wherever that puts it, below the box.
+          const a = at3(-0.04, 0, 22), b = at3(1.04, 0, 22)
+          c.k = a.distanceTo(b) / (WALL_N * 2.6) / 100
+          const fb = faceBox()
+          const topV = faceLm ? THREE.MathUtils.clamp(fb.top.y - fb.h - 0.04, 0.12, 0.45) : 0.3
+          c.base = a.clone().lerp(b, 0.5)
+          c.base.y = at3(0.5, topV, 22).y - 2.78 * c.k * 100
+          wall.position.copy(c.base)
+          wall.scale.setScalar(c.k * 100)
+          wall.visible = true
+          wall.userData.segs.forEach((s) => s.scale.set(1, 0.001, 1))
+          wallMat.opacity = 1
+          c.stage = 1
+          c.formed = []
+        }
+        const segs = wall.userData.segs
+        // Each segment: its delay from the middle out, then it shoots up (overshooting a little) with its burst.
+        const order = segs.map((s, i) => Math.abs(i - (WALL_N - 1) / 2))
+        const t1 = t - SG.EQUIP
+        segs.forEach((s, i) => {
+          const r = THREE.MathUtils.clamp((t1 - order[i] * 0.12) / SG.WALL_RISE, 0, 1)
+          s.scale.y = Math.max(0.001, easeOutBack(r))
+          if (r > 0 && !c.formed[i]) {
+            c.formed[i] = true
+            const p = new THREE.Vector3(s.position.x, 0, 0).multiplyScalar(c.k * 100).add(c.base)
+            const top = p.clone().add(new THREE.Vector3(0, 2.4 * c.k * 100, 0))
+            vfx.spawn(SAGE.C.form, (v) => v.copy(p), { scale: c.k * 0.6, segment: (u) => new THREE.Vector3(0, u * (top.y - p.y), 0) })
+            if (i === Math.floor(WALL_N / 2)) sfx.play("sage-barreira-erupt")
+          }
+        })
+        if (c.stage === 1 && t1 > SG.WALL_RISE + 0.3) {
+          c.stage = 2
+          const mid = c.base.clone()
+          const half = WALL_N * 1.3 * c.k * 100
+          c.stand = vfx.spawn(SAGE.C.stand, (v) => v.copy(mid).add(new THREE.Vector3(0, 2.2 * c.k * 100, 0)), { scale: c.k * 0.8, dur: SG.WALL_STAND, segment: (u) => new THREE.Vector3((u * 2 - 1) * half, 0, 0) })
+        }
+        // It crumbles: segment by segment, each with its smoke and chunks, sinking and fading.
+        const tEnd = SG.WALL_RISE + SG.WALL_STAND
+        if (t1 > tEnd) {
+          if (c.stage === 2) {
+            c.stage = 3
+            sfx.play("sage-barreira-crumble")
+            segs.forEach((s, i) => {
+              const p = new THREE.Vector3(s.position.x, 1.2, 0).multiplyScalar(c.k * 100).add(c.base)
+              setTimeout(() => sage.c === c && vfx.spawn(SAGE.C.crumble, (v) => v.copy(p), { scale: c.k * 0.55 }), i * 70)
+            })
+          }
+          const k = THREE.MathUtils.clamp((t1 - tEnd) / 0.45, 0, 1)
+          segs.forEach((s) => (s.scale.y = Math.max(0.001, 1 - k * 0.6)))
+          wallMat.opacity = 1 - k
+        }
+        if (t1 > tEnd + 0.5) wall.visible = false
+        if (t1 > tEnd + 2.2) sage.c = null
+      }
+
+      // Slow Orb: the orb in his right hand, thrown in an arc to the bottom of the box on the other side, the burst,
+      // then the field: ether rising off a patch across the bottom, and frost creeping up him while it lasts.
+      function startSlow(now) {
+        if (sage.q || !vfx.ok || !sg3.orb) return
+        sage.q = newOrb(now, 1)
+        sfx.play("sage-lentidao-equip", { pan: panAt(sage.q.hand[0]) })
+      }
+      function updateSlow(now) {
+        const q = sage.q
+        const t = (now - q.t0) / 1000
+        if (t < SG.EQUIP) return holdOrb(q, SAGE.Q.held, now, 1)
+        if (q.stage === 0) {
+          dropOrb(q)
+          q.from = q.hand.slice()
+          q.to = [THREE.MathUtils.clamp(1 - q.from[0], 0.3, 0.7), 0.04]
+          q.pos = new THREE.Vector3()
+          q.trail = vfx.spawn(SAGE.Q.trail, (v) => v.copy(q.pos), { scale: 0.35 })
+          sfx.play("sage-lentidao-throw", { pan: panAt(q.from[0]) })
+          q.stage = 1
+        }
+        const t1 = t - SG.EQUIP
+        if (q.stage === 1) {
+          const k = Math.min(1, t1 / SG.THROW)
+          const u = THREE.MathUtils.lerp(q.from[0], q.to[0], k)
+          const v = THREE.MathUtils.lerp(q.from[1], q.to[1], k * k) + Math.sin(Math.PI * k) * 0.15
+          q.pos.copy(at3(u, v, 10 - 4 * k))
+          placeOrb(q.pos, 0.8)
+          if (k >= 1) {
+            q.trail.stop()
+            if (sg3.orb) sg3.orb.visible = false
+            const p = at3(q.to[0], q.to[1], 8)
+            vfx.spawn(SAGE.Q.impact, (v) => v.copy(p), { scale: 0.16 })
+            vfx.spawn(SAGE.Q.poof, (v) => v.copy(p), { scale: 0.13 })
+            // The patch: across the bottom of the box round where it landed.
+            const a = at3(q.to[0] - 0.32, 0.0, 14), b = at3(q.to[0] + 0.32, 0.0, 14)
+            q.zone = vfx.spawn(SAGE.Q.zone, (v) => v.copy(a), { scale: 0.09, dur: SG.SLOW_LAST, segment: (r) => b.clone().sub(a).multiplyScalar(r) })
+            q.slowed = vfx.spawn(SAGE.Q.slowed, (v) => {
+              if (!pose.seen) return v.set(0, -1e4, 0)
+              const c = new THREE.Vector2().addVectors(pose.left, pose.right).multiplyScalar(0.5)
+              return v.copy(at3(c.x + (Math.random() - 0.5) * 0.3, c.y - 0.12 - Math.random() * 0.2, 2))
+            }, { scale: 0.3, dur: SG.SLOW_LAST })
+            sfx.play("sage-lentidao-explode", { pan: panAt(q.to[0]) })
+            q.loop = sfx.play("sage-lentidao-loop", { loop: true, pan: panAt(q.to[0]) * 0.5, gain: 0.8 })
+            sage.maskUntil = now + (SG.SLOW_LAST + 1.5) * 1000
+            q.stage = 2
+          }
+          return
+        }
+        const t2 = t1 - SG.THROW
+        // The frost: up him over a second and a half, holding, gone over the last half second.
+        sage.frost = Math.min(Math.min(1, t2 / 1.5), Math.max(0, (SG.SLOW_LAST - t2) / 0.6))
+        if (q.stage === 2 && t2 > SG.SLOW_LAST) {
+          q.stage = 3
+          const p = at3(q.to[0], 0.04, 8)
+          vfx.spawn(SAGE.Q.exit, (v) => v.copy(p), { scale: 0.13 })
+          q.loop?.stop(0.5)
+          sfx.play("sage-lentidao-end", { pan: panAt(q.to[0]) })
+        }
+        if (t2 > SG.SLOW_LAST + 2) sage.q = null
+      }
+
+      // Healing Orb: the orb in his right hand, then it's spent on him: the burst on his chest, five seconds of jade
+      // light over him with petals and wisps rising off his shoulders and arms.
+      function startHeal(now) {
+        if (sage.e || !vfx.ok) return
+        sage.e = newOrb(now, 1)
+        sfx.play("sage-cura-equip", { pan: panAt(sage.e.hand[0]) })
+      }
+      const chest = () => {
+        const c = pose.seen ? new THREE.Vector2().addVectors(pose.left, pose.right).multiplyScalar(0.5) : new THREE.Vector2(0.5, 0.3)
+        return c
+      }
+      function updateHeal(now) {
+        const e = sage.e
+        const t = (now - e.t0) / 1000
+        if (t < SG.EQUIP * 0.75) return holdOrb(e, SAGE.E.held, now, 1)
+        if (e.stage === 0) {
+          dropOrb(e)
+          const c = chest()
+          const p = at3(c.x, c.y + 0.05, 6)
+          vfx.spawn(SAGE.E.start, (v) => v.copy(p), { scale: 0.12 })
+          // Over him: from shoulder to shoulder, and a little above them.
+          e.loopFx = vfx.spawn(SAGE.E.loop, (v) => {
+            const c = chest()
+            const w = pose.seen ? Math.abs(pose.left.x - pose.right.x) : 0.3
+            return v.copy(at3(c.x + (Math.random() - 0.5) * w * 1.1, c.y - 0.1 + Math.random() * 0.25, 4))
+          }, { scale: 0.35, dur: SG.HEAL_LAST })
+          sfx.play("sage-cura-cast")
+          e.loop = sfx.play("sage-cura-loop", { loop: true, gain: 0.8 })
+          sage.maskUntil = now + (SG.HEAL_LAST + 1.5) * 1000
+          e.stage = 1
+        }
+        const t1 = t - SG.EQUIP * 0.75
+        sage.heal = Math.max(sage.heal, Math.min(Math.min(1, t1 / 0.4), Math.max(0, (SG.HEAL_LAST - t1) / 0.8)) * (0.75 + 0.25 * Math.sin(t1 * 5)))
+        if (e.stage === 1 && t1 > SG.HEAL_LAST) {
+          e.stage = 2
+          e.loop?.stop(0.6)
+        }
+        if (t1 > SG.HEAL_LAST + 1.5) sage.e = null
+      }
+
+      // Resurrection: both hands glowing a second, then a column of light comes down on him, the bloom and the
+      // crystals burst out, and he glows jade a while after.
+      function startRes(now) {
+        if (sage.x || !vfx.ok) return
+        const x = { t0: now, stage: 0, hands: [new THREE.Vector3(), new THREE.Vector3()], equip: [] }
+        sage.x = x
+        sfx.play("sage-ult-equip")
+        sage.maskUntil = now + (SG.X_EQUIP + SG.X_RES + 3) * 1000
+      }
+      function updateRes(now) {
+        const x = sage.x
+        const t = (now - x.t0) / 1000
+        if (x.stage === 0) {
+          ;[-1, 1].forEach((side, i) => {
+            const spot = (v) => {
+              const h = handAt(side)
+              return v.copy(at3(h[0], h[1], 8))
+            }
+            x.equip.push(vfx.spawn(SAGE.X.equip, spot, { scale: 0.45, dur: SG.X_EQUIP }))
+          })
+          x.stage = 1
+        }
+        if (x.stage === 1 && t > SG.X_EQUIP) {
+          x.stage = 2
+          const c = chest()
+          const top = at3(c.x, 1.05, 2), mid = at3(c.x, c.y + 0.12, 4)
+          // The light comes down his length: shafts and wisps along a line from above the box to his chest.
+          vfx.spawn(SAGE.X.column, (v) => v.copy(mid), { scale: 0.09, dur: SG.X_RES, segment: (r) => top.clone().sub(mid).multiplyScalar(r) })
+          vfx.spawn(SAGE.X.res, (v) => v.copy(mid), { scale: 0.12 })
+          sfx.play("sage-ult-res")
+        }
+        if (x.stage >= 2) {
+          const t1 = t - SG.X_EQUIP
+          sage.heal = Math.max(sage.heal, Math.min(Math.min(1, t1 / 0.5) * 1.4, Math.max(0, (SG.X_RES + 1.6 - t1) / 1.6)))
+        }
+        if (t > SG.X_EQUIP + SG.X_RES + 3) sage.x = null
+      }
+      // Palms pressed together in front of the chest, fingers up, held a moment: her heal. Once it's gone off, the
+      // hands have to part before it can again.
+      function isPray(hs) {
+        if (hs.length < 2) return false
+        const [A, B] = hs
+        const s = (A.s + B.s) / 2
+        const up = (x) => x.h[0].y - x.h[12].y > 0.9 * x.s
+        const long = (x) => [8, 12, 16].filter((i) => x.d(x.h[i], x.h[0]) > 1.4 * x.s).length >= 2
+        return up(A) && up(B) && long(A) && long(B) && A.d(A.h[0], B.h[0]) < 1.1 * s && A.d(A.h[12], B.h[12]) < 0.9 * s
+      }
+      function sageHands(r, now) {
+        const va = video.videoWidth / video.videoHeight || 16 / 9
+        const hs = (r.landmarks || []).map((h, i) => handShape(h, r.gestures?.[i]?.[0]?.categoryName, va))
+        if (!isPray(hs)) {
+          sage.pray = 0
+          if (hs.length < 2 || hs[0].d(hs[0].h[0], hs[1].h[0]) > 2 * hs[0].s) sage.prayLock = false
+          return
+        }
+        if (sage.prayLock) return
+        sage.pray ||= now
+        if (now - sage.pray > 350) {
+          sage.prayLock = true
+          startHeal(now)
+        }
+      }
+      function updateSage(now, dt) {
+        sage.heal = 0
+        sage.frost = 0
+        if (sage.c) updateBarrier(now)
+        if (sage.q) updateSlow(now)
+        if (sage.e) updateHeal(now)
+        if (sage.x) updateRes(now)
+        uniforms.uHeal.value += (sage.heal - uniforms.uHeal.value) * Math.min(1, dt * 10)
+        uniforms.uFrost.value += (sage.frost - uniforms.uFrost.value) * Math.min(1, dt * 8)
+        // (Its particles move with everyone's, in updatePhoenix, which runs while any are on.)
       }
 
       // Luan's face and hands, drawn back over the jacket: a small mask of the face's outline and each hand's
@@ -2612,7 +3040,7 @@
       }
 
       // ---------- state ----------
-      const MODES = ["bola", "phoenix", "sova", "octane", "fennec", "pop", "lente"]
+      const MODES = ["bola", "phoenix", "sova", "sage", "octane", "fennec", "pop", "lente"]
       let mode = MODES.includes(q.get("modo")) ? q.get("modo") : "nenhum"
       let pop = 0
       let ballIn = 0
@@ -2630,7 +3058,7 @@
       let handInfo = ""
 
       // Each filter's sounds, by their cues' prefix.
-      const SONS = { phoenix: "phoenix-", sova: "sova-", octane: "carro-", fennec: "carro-" }
+      const SONS = { phoenix: "phoenix-", sova: "sova-", sage: "sage-", octane: "carro-", fennec: "carro-" }
       function setMode(m) {
         const before = mode
         mode = MODES.includes(m) ? m : "nenhum"
@@ -2648,9 +3076,11 @@
           phxReset()
         }
         if (mode !== "sova") sovaReset()
-        // Each agent's effects' textures, loaded as he comes on.
+        if (mode !== "sage") sageReset()
+        // Each agent's effects' textures, loaded as they come on.
         if (mode === "phoenix") vfx.preload(PHX)
         if (mode === "sova") vfx.preload(SOVA)
+        if (mode === "sage") vfx.preload(SAGE)
       }
       // A one-off, from the dock or a key: only for the filter that has it.
       function acao(a) {
@@ -2660,6 +3090,7 @@
           else ({ molotov: startHotHands, blaze: startBlaze, ult: startRunItBack })[a]?.(now)
         }
         if (mode === "sova") ({ recon: () => autoBow("recon", now), choque: () => autoBow("choque", now), drone: () => startDrone(now), ult: () => startUlt(now) })[a]?.()
+        if (mode === "sage") ({ barreira: startBarrier, lentidao: startSlow, cura: startHeal, ult: startRes })[a]?.(now)
         if (CARS[mode]) ({ demo, flip: flipCar })[a]?.(now)
       }
       // The dock's word (obs-browser's emit_event): the filter that should be on with its options (Sova's drone
@@ -2684,7 +3115,10 @@
         if (e.key === "8") setMode(mode === "octane" ? "nenhum" : "octane")
         if (e.key === "9") setMode(mode === "fennec" ? "nenhum" : "fennec")
         const k = e.key.toLowerCase()
-        const keys = mode === "phoenix" ? { c: "blaze", q: "flash", e: "molotov", x: "ult" } : { e: "recon", q: "choque", c: "drone", x: "ult", d: "demo", f: "flip" }
+        const keys =
+          mode === "phoenix" ? { c: "blaze", q: "flash", e: "molotov", x: "ult" }
+          : mode === "sage" ? { c: "barreira", q: "lentidao", e: "cura", x: "ult" }
+          : { e: "recon", q: "choque", c: "drone", x: "ult", d: "demo", f: "flip" }
         if (keys[k]) acao(keys[k])
         if (k === "p") sova.patrol.want = !sova.patrol.want
         if (k === "m") sfx.on = !sfx.on
@@ -2692,7 +3126,7 @@
       })
       setMode(mode)
       const DEBUG = q.has("debug")
-      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, isOwl, handShape, bow3, drone3, SOVA, at3, get mode() { return mode } }
+      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, isPray, get mode() { return mode }, get trackers() { return !!(gestures && segmenter && faces && poses) } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -2713,6 +3147,7 @@
         handInfo = `${hands.length} mão(s), ${ls.length} em L`
         if (mode === "phoenix") phoenixHands(r, now)
         if (mode === "sova") sovaHands(r, now)
+        if (mode === "sage") sageHands(r, now)
         if (ls.length === 2) {
           ls.sort((a, b) => a[0].x - b[0].x)
           const [L, R] = ls
@@ -3025,7 +3460,7 @@
           try {
             videoFrames++
             // The hands are tracked only for the filters that use them (no gesture switches a filter).
-            if (mode === "phoenix" || phoenix > 0 || sovaOn || mode === "pop" || pop > 0 || mode === "lente") runGestures(now)
+            if (mode === "phoenix" || phoenix > 0 || sovaOn || mode === "sage" || mode === "pop" || pop > 0 || mode === "lente") runGestures(now)
             else {
               lastHands = []
               pushes = []
@@ -3034,10 +3469,11 @@
               handInfo = "mãos sem uso"
             }
             // The body mask: Pop, and Sova's reveals while one may be on screen.
-            const sovaMask = sovaOn && (now < sova.maskUntil || sova.patrol.amt > 0)
+            // (And Sage's heal and frost on him.)
+            const sovaMask = (sovaOn && (now < sova.maskUntil || sova.patrol.amt > 0)) || (mode === "sage" && now < sage.maskUntil)
             if (mode === "pop" || pop > 0 || sovaMask) runBody(now)
-            if (mode === "bola" || ballIn > 0 || agentOn || carOn) runFace(now)
-            if (agentOn && videoFrames % 2 === 0) runPose(now)
+            if (mode === "bola" || ballIn > 0 || agentOn || carOn || mode === "sage") runFace(now)
+            if ((agentOn || mode === "sage") && videoFrames % 2 === 0) runPose(now)
             // The body mask and the background's check, for erasing his hair (agents) or his head (cars).
             if ((agentOn || carOn) && ERASE) {
               if (mode !== "pop" && pop <= 0 && !sovaMask) runBody(now)
@@ -3071,6 +3507,7 @@
         if (bang.t0 >= 0) updateBang(now)
         if (mode === "phoenix" || vfx.active()) updatePhoenix(now, dt)
         if (sovaOn) updateSova(now, dt)
+        if (mode === "sage") updateSage(now, dt)
         updateCars(now)
         // Erasing his hair: around an agent's, or his whole head under a car (back while it's demolished).
         const carShown = Math.max(0, ...carList.map((c) => (c.group.visible ? c.shown : 0)))
@@ -3093,7 +3530,7 @@
 
         // Phoenix's effects into their own target first (that switches render targets).
         const vfxOn = vfx.active()
-        vfx.tint.set(...(sovaOn ? TINTS.sova : TINTS.phoenix))
+        vfx.tint.set(...(sovaOn ? TINTS.sova : mode === "sage" ? TINTS.sage : TINTS.phoenix))
         if (vfxOn) vfx.render(box[2], box[3])
         // The face's mask and what's behind Luan, before the camera's layer, which erases his hair with them.
         const ready = agentList.filter((a) => a.amt > 0 && a.ready)
@@ -3181,6 +3618,14 @@
             if (droneFront) renderer.render(sv3.drone, headCam)
           }
         }
+        // Sage's heal and frost on him, then her orb and wall in front.
+        if (mode === "sage") {
+          if (uniforms.uHeal.value > 0.003 || uniforms.uFrost.value > 0.003) renderer.render(sovaScene, ortho)
+          if ((sg3.orb && sg3.orb.visible) || (sg3.wall && sg3.wall.visible)) {
+            renderer.clearDepth()
+            renderer.render(sg3.scene, headCam)
+          }
+        }
         if (uniforms.uBoomT.value >= 0) renderer.render(boomScene, ortho)
         if (fire.amt > 0) renderer.render(fireScene, ortho)
         if (lens.amt > 0) renderer.render(lensScene, ortho)
@@ -3203,6 +3648,7 @@
             `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}` +
             (ag ? `\n${mode}: modelo ${ag.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"}${AGENTS[mode] ? ` · ombros ${pose.seen ? "sim" : "não"} · fundo ${!ERASE ? "desligado" : plate.off === undefined ? "…" : `${plate.ok ? "ok" : "não bate"} (${plate.off.toFixed(1)})`}` : ""}` : "") +
             (mode === "sova" ? `\nsova: peças ${bow3.model ? "ok" : "…"} · arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? ` · flecha (${sova.arrow.kind})` : ""}${sova.dart ? " · reconhecimento" : ""}${sova.drone ? " · coruja" : ""}${sova.patrol.amt > 0 ? " · coruja sobrevoando" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
+            (mode === "sage" ? `\nsage: peças ${sg3.ok}/2${sage.c ? " · barreira" : ""}${sage.q ? " · lentidão" : ""}${sage.e ? " · cura" : ""}${sage.x ? " · ressurreição" : ""}${sage.pray ? " · prece" : ""}` : "") +
             (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
         }
       }

@@ -5,8 +5,8 @@ file, made from the games' own sounds, which never leave public/stream/privado/ 
   python3 scripts/filtros_sons.py phoenix-   # the cues starting with that
 
 Its inputs are the extractions, re-run after a patch (Valorant closed, Luan not live):
-  ~/.local/share/valorant-extract/run.sh phoenix|sova   the agents' models and effects
-  ~/.local/share/valorant-extract/sons.sh phoenix|sova  their Wwise events: privado/valorant/<agent>/sons/wwiser/txtp/
+  ~/.local/share/valorant-extract/run.sh phoenix|sova|sage   the agents' models and effects
+  ~/.local/share/valorant-extract/sons.sh phoenix|sova|sage  their Wwise events: privado/valorant/<agent>/sons/wwiser/txtp/
   ~/.local/share/rl-extract/run.sh                      Rocket League's: privado/rocket-league/sons/<event>/NN.wav
 
 A Valorant cue renders the game's own event (its .txtp, written by wwiser from the event's bank) with vgmstream, so
@@ -108,6 +108,24 @@ CUES = {
     "sova-ult-charge": {"parts": [V("sova", f"Play_Hunter_AbilX_Channel {FP}")]},
     "sova-ult-fire": {"parts": [V("sova", f"Play_Hunter_AbilX_Fire {FP} {{s}}=(1296359092=2967106803)")]},
     "sova-ult-end": {"parts": [V("sova", "Play_Hunter_S0_AB_X_SuperBolt_Cancel_Bow_Mvt_D")]},
+    # Sage's Barrier Orb (SG in filtros.html: 0.8 s in the hand, then the wall erupts, stands 6 s and crumbles).
+    "sage-barreira-equip": {"parts": [V("sage", f"Play_Thorne_AbilE_Equip {FP}")], "cut": 1.0},
+    "sage-barreira-cast": {"parts": [V("sage", f"Play_Thorne_AbilE_Cast {FP}")]},
+    "sage-barreira-erupt": {"parts": [V("sage", "Play_Thorne_AbilE_Erupt"), V("sage", "Play_Thorne_AbilE_Harden_Oneshot", -3, 0.6)]},
+    "sage-barreira-crumble": {"parts": [V("sage", "Play_Thorne_AbilE_WallCrumble")]},
+    # Slow Orb (0.8 s in the hand, 0.45 s flying, the field 5.5 s).
+    "sage-lentidao-equip": {"parts": [V("sage", f"Play_Thorne_Abil4_Equip {FP}")], "cut": 1.0},
+    "sage-lentidao-throw": {"parts": [V("sage", f"Play_Thorne_Abil4_Cast {FP}"), V("sage", "Play_Thorne_Abil4_Projectile", -3)], "cut": 1.2},
+    "sage-lentidao-explode": {"parts": [V("sage", "Play_Thorne_Abil4_Explode"), V("sage", "Play_Thorne_Abil4_SlowFieldForm", 0, 0.05)]},
+    "sage-lentidao-loop": {"parts": [W("sage", "Play_Thorne_Abil4_GroundLoop/00_thorne_abil4_slowfield_loop_01 (SFX).wav")], "loop": True},
+    "sage-lentidao-end": {"parts": [V("sage", "Play_Thorne_Abil4_SlowFieldDecay")]},
+    # Healing Orb on herself (0.6 s in the hand, then 5 s healing).
+    "sage-cura-equip": {"parts": [V("sage", f"Play_Thorne_AbilQ_Equip {FP}")], "cut": 0.8},
+    "sage-cura-cast": {"parts": [V("sage", f"Play_Thorne_AbilQ_Cast_Self {FP}")]},
+    "sage-cura-loop": {"parts": [W("sage", "Play_Thorne_AbilQ_Heal_Loop/01_Thorne_AbilQ_Heal_Loop_1P_01 (SFX).wav")], "loop": True},
+    # Resurrection (1.3 s of glowing hands, then the light).
+    "sage-ult-equip": {"parts": [V("sage", f"Play_Thorne_AbilX_Equip {FP}")], "cut": 1.5},
+    "sage-ult-res": {"parts": [V("sage", f"Play_Thorne_AbilX_Rez {FP}")], "cut": 4.6, "fade": 0.8},
     # Rocket League's cars: the flip (a jump, then the dodge) and the demolition.
     "carro-pulo": {"parts": [RL("Play_Car_Movement_Jump")], "cut": 0.9},
     "carro-flip": {"parts": [RL("Play_Car_Movement_Dodge")], "cut": 1.2},

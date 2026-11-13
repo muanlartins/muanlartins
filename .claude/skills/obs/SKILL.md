@@ -24,23 +24,25 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   under 1 VMAF point apart and ~40% smaller). Change it only with OBS closed.
 - Camera filters (`public/stream/filtros.html`): switched from the "Filtros" dock
   (`filtros-painel.html`, served from localhost:8126 too; `obs.py --apply` adds it with OBS closed), never by
-  gestures (Luan, 2026-11-10). The dock has a button per filter, Phoenix, Sova and Rocket League (`GRUPOS`
-  there), and inside the one that's on its looks (Rocket League: Octane, Fennec, the ball; its button turns on the
-  last one picked) and the look's one-offs: each agent's abilities with their keys, the cars' Demolição and Flip (Pop
-  and the lens stay in the page, off the dock). It tells the page with obs-browser's emit_event `muanlartins-filtro`
-  (`{"filtro": "phoenix" | "sova" | "bola" | "octane" | "fennec" | "nenhum", "opcoes": {"patrulha": true}}`, and the one-offs `{"acao": ...}`:
-  Phoenix's `blaze`, `flash`, `molotov`, `ult`; Sova's `recon`, `choque`, `drone`, `ult`; the cars' `demo`, `flip`),
-  which `scripts/obs.mjs` can send as well (`CallVendorRequest`). A new filter is a look in the dock's `GRUPOS` and
-  its id in the page's `MODES`. Phoenix's and Sova's effects are drawn by `vfx.js` from the game's textures and values
-  (`vfx-phoenix.js`, `vfx-sova.js`, textures in `privado/valorant/`), and Sova's bow, arrows and Owl Drone are the
-  game's models from there too; without them his abilities do nothing and Phoenix's other than the flash neither.
-  Two gestures stay on purpose (Luan, 2026-11-11: one signature ability each): Phoenix's flash (a snap) and Sova's
-  drone (both palms open to the camera), besides Sova's bow (one fist against the other opens it, pulling the hands
+  gestures (Luan, 2026-11-10). The dock (2026-11-12) has a dropdown with every filter by game (`FILTROS` there:
+  Valorant's Phoenix, Sage and Sova with their faces from `public/valorant/agentes/`, then Rocket League's Octane,
+  Fennec and the ball) and a power button beside it; picking one turns it on, the button turns the picked one off
+  and on; under them, the one that's on's one-offs (each agent's abilities with their keys, the cars' Demolição and
+  Flip), its switches and its gestures (Pop and the lens stay in the page, off the dock). Making a new one: the
+  filtros skill. It tells the page with obs-browser's emit_event `muanlartins-filtro`
+  (`{"filtro": "phoenix" | "sage" | "sova" | "bola" | "octane" | "fennec" | "nenhum", "opcoes": {"patrulha": true}}`, and the one-offs `{"acao": ...}`:
+  Phoenix's `blaze`, `flash`, `molotov`, `ult`; Sage's `barreira`, `lentidao`, `cura`, `ult`; Sova's `recon`, `choque`, `drone`, `ult`; the cars' `demo`, `flip`),
+  which `scripts/obs.mjs` can send as well (`CallVendorRequest`). Phoenix's, Sova's and Sage's effects are drawn by `vfx.js` from the game's textures
+  and values (`vfx-phoenix.js`, `vfx-sova.js`, `vfx-sage.js`, textures in `privado/valorant/`), and Sova's bow, arrows
+  and Owl Drone and Sage's orb and wall are the game's models from there too; without them their abilities do nothing
+  but Phoenix's flash. Sage's look is her character-select model (Luan's download, `privado/sage.glb`).
+  One gesture per agent stays on purpose (Luan, 2026-11-11: one signature ability each): Phoenix's flash (a snap),
+  Sova's drone (both palms open to the camera) and Sage's heal (palms pressed together in front of the chest), besides Sova's bow (one fist against the other opens it, pulling the hands
   apart draws it, opening a hand shoots the Recon Bolt). Luan's call: a gesture needn't mimic its ability, it should
   be easy to do. Sova's look has a switch in the dock, "Coruja sobrevoando" (`opcoes.patrulha`, kept in the dock):
   the drone flies behind him all the while, and the drone ability is then that drone. The abilities have the
   games' own sounds (2026-11-12, `sfx.js`): cues made by `scripts/filtros_sons.py` into `privado/sons/` from
-  `~/.local/share/valorant-extract/sons.sh phoenix|sova` and `~/.local/share/rl-extract/run.sh` (re-run all three
+  `~/.local/share/valorant-extract/sons.sh phoenix|sova|sage` and `~/.local/share/rl-extract/run.sh` (re-run all three
   after a patch); the dock's "Sons dos filtros" (`opcoes.mudo`) turns them off for every filter. They reach the
   stream only because "Filtros" has "Control audio via OBS" on (`reroute_audio`, monitored like Sons, so Luan hears
   them; set by hand in Live.json and Shorts.json on 2026-11-12 and kept by `obs.py`'s `SYNC`); without it the page
@@ -59,9 +61,8 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   To see a filter without OBS (not while he's live): headless Chrome with `--use-fake-device-for-media-stream
   --use-fake-ui-for-media-stream --use-file-for-fake-video-capture=<clip>.y4m` (a few seconds of a live's
   `Câmera.mkv` through ffmpeg, already framed, so add `?zoom=1`); `?debug` also exposes `window.filtros` (state,
-  uniforms, `acao`). Swiftshader runs it at about 1 fps: to catch an effect at a given moment, replace
-  `requestAnimationFrame` and `performance.now` with a clock that moves 50 ms per frame, and screenshot when it
-  reaches the time wanted.
+  uniforms, `acao`). Swiftshader runs it at well under 1 fps: `scripts/filtros_teste.py` (the filtros skill) runs a
+  filter's one-offs on a clock that moves 1/30 s per frame and screenshots them at the seconds wanted.
   With an agent on, Luan's hair around the agent's is painted over with the camera's background:
   `public/stream/camera-fundo.png` (NVIDIA Broadcast's virtual background, from `brand/build.py`) plus what the
   page has seen behind him since it loaded; if he changes the virtual background, rebuild it (the page checks it

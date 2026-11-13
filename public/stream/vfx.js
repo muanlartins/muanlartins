@@ -38,7 +38,7 @@ const TEX = {
 }
 export const addTextures = (t) => Object.assign(TEX, t)
 // How the composite grades each agent's colours before its tone mapper (see uTint below).
-export const TINTS = { phoenix: [1, 0.85, 0.38], sova: [1, 1, 1] }
+export const TINTS = { phoenix: [1, 0.85, 0.38], sova: [1, 1, 1], sage: [1, 1, 1] }
 
 const rand = (a, b) => a + Math.random() * (b - a)
 const pick = (v) => (Array.isArray(v) ? rand(v[0], v[1]) : v)

@@ -126,6 +126,13 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "filtro-sage",
+    date: "2026-11-12",
+    tag: "live",
+    title: "A Sage nos filtros da câmera",
+    text: "A Sage no meu rosto, com o cabelo e o casaco dela tirados do jogo, e as habilidades dela: a parede de cristal subindo na minha frente e quebrando, o orbe de lentidão que estoura embaixo e deixa gelo subindo em mim, a cura quando eu junto as palmas e a ressurreição, com os efeitos, a parede e os sons do próprio Valorant. E o painel dos filtros no OBS virou uma lista com o rosto de cada agente, pra caber os próximos.",
+  },
+  {
     id: "sons-dos-filtros",
     date: "2026-11-12",
     tag: "live",
