@@ -330,7 +330,8 @@
         if (va > ca) Object.assign(cover, { sx: ca / va, sy: 1, ox: (1 - ca / va) / 2, oy: 0 })
         else Object.assign(cover, { sx: 1, sy: va / ca, ox: 0, oy: (1 - va / ca) / 2 })
         // By default the same framing as OBS's "Enquadramento" crop (CAMERA_CROP in brand/twitch/obs_shorts.py:
-        // 310, 360, 330, 0 of 1920×1080, 1280×720 kept), since the page opens the camera itself, without OBS's filters.
+        // 207, 240, 220, 0 of 1280×720, as 310, 360, 330, 0 was of 1920×1080), since the page opens the camera itself,
+        // without OBS's filters.
         const zoom = Math.max(1, Number(q.get("zoom") || 1920 / 1280))
         if (zoom > 1) {
           const [fx, fy] = (q.get("foco") || `${(310 + 640) / 1920},${(360 + 360) / 1080}`).split(",").map(Number)
