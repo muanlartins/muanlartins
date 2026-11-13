@@ -60,7 +60,9 @@ two matches or more with him, then the day's watchers by minutes from the Σ API
 2. `aliados.py <date> --aliado "<in-game name>=<twitch login>" --apply` adds them to `aliados.json` (from then on the dock tags
    them live) and writes each named teammate's `login` into the session's matches (`content/matches/<id>.json`),
    found by the numbers both keep. Without new names, `--apply` alone tags the known ones a match missed.
-3. It goes out with the release (step 5). The dock republishes a session only when it changes; if it ever does
+3. Name the friends who played most of the day in the live's summary too, by what Luan calls them (11-12: "3v3
+   ranqueado com o Exponja e o Edu: …"); it's also the YouTube description's first line.
+4. It goes out with the release (step 5). The dock republishes a session only when it changes; if it ever does
    after this, run it again.
 
 The in-game names stay out of everything but `aliados.json` (the repo is public). Valorant has no replays: there the
