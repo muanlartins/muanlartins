@@ -31,7 +31,7 @@ jobs:
       - run: pnpm lint
       # The profile API's routes against a table in memory; the Pix API (songs above all) against DynamoDB, S3 and
       # Lambda in memory (infra/pix/local) and a fake Google.
-      - run: node --test infra/perfil/index.test.mjs
+      - run: node --test infra/perfil/index.test.mjs infra/comum/agenda.test.mjs
       - run: node --import ./infra/pix/local/registrar.mjs --test infra/pix/index.test.mjs
 
       - name: Build

@@ -18,7 +18,8 @@
         dedications in the same storage) · Raid · Seguiram hoje · Inscritos · Presentearam subs · Bits (the Efeitos
         dock signed in to Twitch, "muanlartins-creditos") · Pix (the mural's, only who chose to be on it) · Primeira
         vez aqui · Na arquibancada (the Σ API's GET /live: who was in today's live, most minutes first) · Próxima live
-        (/agenda.json) · and the closing card, which stays.
+        (the agenda, the profile API's GET /agenda: the next live after today's, days off skipped) · and the closing
+        card, which stays.
       OBS's browser sources share this site's storage, so the stand's dedications and Valorant's day reach this page;
       the docks' storage is their own, so the Efeitos dock sends its part as an event (every 5 s, and right as Fim
       goes on air). The page waits ?espera= seconds (default 4) on its title for all of it, then rolls at
@@ -425,6 +426,7 @@
       const API = params.get("api") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
       const SIGMA_API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
       const PIX_API = params.get("pix") ?? "https://g2x6kdnhr0.execute-api.us-east-1.amazonaws.com"
+      const PERFIL_API = params.get("perfil") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
       const VELOCIDADE = Number(params.get("velocidade")) || 55
       const ESPERA_MS = (Number(params.get("espera")) || 4) * 1000
       // The name the channel goes by in the credits (copy: Luan's to change).
@@ -673,7 +675,7 @@
         const [live, mural, agenda] = await Promise.all([
           SIGMA_API ? json(`${SIGMA_API}/live`) : null,
           PIX_API ? json(`${PIX_API}/mural`) : null,
-          json("/agenda.json"),
+          PERFIL_API ? json(`${PERFIL_API}/agenda`) : null,
         ])
         dia.agenda = agenda
         if (live?.pessoas) {
@@ -686,34 +688,26 @@
         }
       }
 
-      // --- The next live, from the agenda (weekly slots in Brasília time) --------------------------------
+      // --- The next live, from the agenda (its lives of the next two weeks, with dates) -------------------------
       const DIAS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
+      const dataEm = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d)
+      /** The first live starting after now (today's, on air, is behind it), days off skipped. */
       function proximaLive(agenda) {
-        if (!agenda?.slots?.length) return null
-        const parts = Object.fromEntries(
-          new Intl.DateTimeFormat("en-US", { timeZone: agenda.timeZone || TZ, hourCycle: "h23", weekday: "short", hour: "numeric", minute: "numeric" })
-            .formatToParts(new Date())
-            .map((x) => [x.type, x.value]),
-        )
-        const hoje = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(parts.weekday) + 1
-        const agora = +parts.hour * 60 + +parts.minute
-        const min = (hhmm) => hhmm.split(":").reduce((h, m) => +h * 60 + +m)
-        for (let mais = 0; mais < 8; mais++) {
-          const wd = ((hoje - 1 + mais) % 7) + 1
-          const slot = agenda.slots
-            .filter((s) => s.days.includes(wd) && (mais > 0 || min(s.start) > agora))
-            .sort((a, b) => min(a.start) - min(b.start))[0]
-          if (slot) {
-            const quando = mais === 0 ? "hoje" : mais === 1 ? "amanhã" : DIAS[wd - 1]
-            return { quando, hora: slot.start.replace(":", "h").replace(/h00$/, "h"), jogo: slot.name ?? slot.game }
-          }
-        }
-        return null
+        const agora = Date.now()
+        const p = agenda?.proximas?.find((o) => !o.folga && Date.parse(o.inicio) > agora)
+        if (!p) return null
+        const hoje = dataEm(new Date())
+        const dias = Math.round((Date.parse(`${p.data}T12:00:00Z`) - Date.parse(`${hoje}T12:00:00Z`)) / 86_400_000)
+        const wd = ((new Date(`${p.data}T12:00:00Z`).getUTCDay() + 6) % 7) + 1
+        const quando = dias === 0 ? "hoje" : dias === 1 ? "amanhã" : dias < 7 ? DIAS[wd - 1] : `${p.data.slice(8)}/${p.data.slice(5, 7)}`
+        return { quando, hora: p.start.replace(":", "h").replace(/h00$/, "h"), jogo: p.nome, titulo: p.titulo }
       }
-      /** Today's game by the agenda (the slot today), for the title and the ranks' emblems. */
+      /** Today's live by the agenda (on air, or the day's latest that started), for the title and the ranks' emblems. */
       function jogoDeHoje(agenda) {
-        const wd = ((new Date(new Date().toLocaleString("en-US", { timeZone: TZ })).getDay() + 6) % 7) + 1
-        return agenda?.slots?.find((s) => s.days.includes(wd)) ?? null
+        const hoje = dataEm(new Date())
+        const doDia = (agenda?.proximas ?? []).filter((o) => o.data === hoje && !o.folga && Date.parse(o.inicio) - 3600e3 <= Date.now())
+        const o = doDia.at(-1)
+        return o ? { game: o.jogo, name: o.nome } : null
       }
 
       // --- The credits -------------------------------------------------------------------------------------
@@ -852,7 +846,7 @@
         const g = el("p", "grande")
         g.innerHTML = `${n.quando}, <span class="accent">${n.hora}</span>`
         b.append(g)
-        b.append(el("p", "linha", n.jogo))
+        b.append(el("p", "linha", n.titulo && n.titulo !== n.jogo ? `${n.jogo} · ${n.titulo}` : n.jogo))
         return b
       }
 
@@ -1014,7 +1008,13 @@
           raids: [{ login: "manomenezes", nome: "manomenezes", viewers: 12 }],
         }
         dia.pix = [{ login: "bia.lima", nome: "Bia", centavos: 1000 }, { nome: "Anônimo de Floripa", centavos: 500 }]
-        dia.agenda = { timeZone: TZ, slots: [{ days: [2, 4, 5], start: "14:30", end: "16:30", game: "rocket-league", name: "Rocket League" }, { days: [1, 3], start: "21:00", end: "23:00", game: "valorant", name: "Valorant" }] }
+        const amanha = new Date(Date.now() + 86_400e3)
+        dia.agenda = {
+          proximas: [
+            { data: dataEm(new Date()), inicio: new Date(Date.now() - 2 * 3600e3).toISOString(), start: "14:30", jogo: "rocket-league", nome: "Rocket League", titulo: "Ranqueadas de Rocket League", folga: false },
+            { data: dataEm(amanha), inicio: amanha.toISOString(), start: "21:00", jogo: "valorant", nome: "Valorant", titulo: "Aprendendo Valorant", folga: false },
+          ],
+        }
         setTimeout(montar, ESPERA_MS)
         const FRASES = ["gg!!", "valeu pela live", "tchau Luan", "até quinta!", "que live", "boa noite pessoal", "ganhamos hoje 🔥"]
         setInterval(() => {

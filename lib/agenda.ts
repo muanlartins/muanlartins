@@ -1,28 +1,85 @@
-import agenda from "@/content/agenda.json"
 import { channel } from "@/content/channel"
+import { duracao, ocorrencias, proxima } from "@/infra/comum/agenda.mjs"
+import { PROFILE_API } from "@/lib/profile"
 import { HTML_LANG, LOCALE, localize } from "@/lib/site"
 
 /**
- * When the lives are (`content/agenda.json`): weekly slots in the channel's
- * time zone. The Lives page shows them, `/agenda.ics` lets a viewer
- * subscribe, and `scripts/twitch_agenda.py` puts them on Twitch.
+ * When the lives are: the calendar Luan edits at /canal/agenda, kept by the profile API (`GET /agenda`), the one
+ * source of truth (`infra/comum/agenda.mjs` has the format and the rules, shared with the API). The site is built
+ * with what the API had then (`lib/agenda-build.ts`) and each page that shows it asks the API again in the browser
+ * (`components/site/agenda/agenda-context.tsx`), so a change shows without a release.
  */
 
+/** Every week: ISO weekdays (1 Monday … 7 Sunday), "HH:MM" in the agenda's zone, a game's id in `games`. */
 export interface Slot {
-  /** ISO weekdays: 1 Monday … 7 Sunday. */
   days: number[]
-  /** "HH:MM", in the agenda's time zone. */
   start: string
   end: string
-  /** Whose live it is: a game's id (content/projects.ts). */
   game: string
+  title?: string
 }
 
-export const AGENDA: { timeZone: string; since: string; slots: Slot[] } = agenda
+/** One day only. */
+export interface Extra {
+  date: string
+  start: string
+  end: string
+  game: string
+  title?: string
+}
+
+/** A weekly live that won't happen that day (the slot's start). */
+export interface Off {
+  date: string
+  start: string
+}
+
+/** A game: its Twitch category's name and id, and the live's default title. */
+export interface AgendaGame {
+  name: string
+  category: string
+  title: string
+}
+
+export interface Agenda {
+  timeZone: string
+  slots: Slot[]
+  extras: Extra[]
+  off: Off[]
+  games: Record<string, AgendaGame>
+}
+
+/** A live on a given day, as `ocorrencias` lists them (instants as ISO strings). */
+export interface Occurrence {
+  data: string
+  inicio: string
+  fim: string
+  start: string
+  end: string
+  jogo: string
+  nome: string
+  categoria: string | null
+  titulo: string
+  avulsa: boolean
+  folga: boolean
+}
+
+export const AGENDA_URL = `${PROFILE_API}/agenda`
+/** The calendar apps' subscription: always the agenda as it is now. */
+export const AGENDA_ICS = `${PROFILE_API}/agenda.ics`
+
+/** The lives from `from`'s day through `days` days, days off included (marked `folga`). */
+export const occurrences = (agenda: Agenda, from: Date, days = 7) => ocorrencias(agenda, from, days) as Occurrence[]
+
+/** The live on air or the next one, days off skipped. */
+export const nextOccurrence = (agenda: Agenda, now: Date) => proxima(agenda, now) as Occurrence | null
+
+/** A slot's length in minutes (an end at or before the start is the next day's). */
+export const lengthOf = (start: string, end: string) => duracao(start, end) as number
 
 /** A game's slots, earliest in the week first. */
-export const slotsOf = (game: string) =>
-  AGENDA.slots.filter((slot) => slot.game === game).sort((a, b) => Math.min(...a.days) - Math.min(...b.days))
+export const slotsOf = (agenda: Agenda, game: string) =>
+  agenda.slots.filter((slot) => slot.game === game).sort((a, b) => Math.min(...a.days) - Math.min(...b.days))
 
 const LANG = HTML_LANG[LOCALE]
 
@@ -40,60 +97,20 @@ export function slotText(slot: Slot) {
   return `${days}, ${clock(slot.start)}–${clock(slot.end)}`
 }
 
-const minutes = (time: string) => {
-  const [hours, mins] = time.split(":").map(Number)
-  return hours * 60 + mins
-}
+/** "15/11" or "11/15": a date's day and month. */
+export const dayMonth = (date: string) =>
+  new Intl.DateTimeFormat(LANG, { day: "numeric", month: "numeric", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`))
 
-/** The wall-clock parts of an instant in a time zone, with its ISO weekday. */
-function partsIn(date: Date, timeZone: string) {
-  const parts = Object.fromEntries(
-    new Intl.DateTimeFormat("en-US", { timeZone, hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", weekday: "short" })
-      .formatToParts(date)
-      .map((part) => [part.type, part.value]),
-  )
-  const weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(parts.weekday) + 1
-  return { year: +parts.year, month: +parts.month, day: +parts.day, minute: +parts.hour * 60 + +parts.minute, weekday }
-}
-
-/** The instant a wall-clock time in a time zone falls on (time zones without a change that day). */
-function instant(year: number, month: number, day: number, minute: number, timeZone: string) {
-  const guess = Date.UTC(year, month - 1, day, 0, minute)
-  const seen = partsIn(new Date(guess), timeZone)
-  const offset = Date.UTC(seen.year, seen.month - 1, seen.day, 0, seen.minute) - guess
-  return new Date(guess - offset)
-}
-
-/** The next live, or the one on air now: its start, end and game, from `now`. */
-export function nextLive(now = new Date()): { start: Date; end: Date; game: string } | undefined {
-  const { timeZone, since, slots } = AGENDA
-  const today = partsIn(now, timeZone)
-  for (let ahead = 0; ahead < 8; ahead++) {
-    const date = new Date(Date.UTC(today.year, today.month - 1, today.day + ahead))
-    const weekday = ((today.weekday - 1 + ahead) % 7) + 1
-    const iso = date.toISOString().slice(0, 10)
-    if (iso < since) continue
-    const found = slots
-      .filter((slot) => slot.days.includes(weekday))
-      .map((slot) => ({
-        start: instant(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), minutes(slot.start), timeZone),
-        end: instant(date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), minutes(slot.end), timeZone),
-        game: slot.game,
-      }))
-      .filter((live) => live.end > now)
-      .sort((a, b) => +a.start - +b.start)[0]
-    if (found) return found
-  }
-}
+/** "sáb": a date's short weekday. */
+export const weekdayOf = (date: string) => WEEKDAYS[(new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7]
 
 const W = localize(channel.lives.agenda)
 
 /**
- * When a live from `nextLive` is, from the viewer's clock: "agora", "hoje, 21h", "amanhã, 14h30" or the weekday,
- * in Brasília time; and, when the viewer's clock differs, its start and end in their zone with the zone's city.
+ * When a live is, from the viewer's clock: "agora", "hoje, 21h", "amanhã, 14h30" or the weekday, in Brasília time;
+ * and, when the viewer's clock differs, its start and end in their zone with the zone's city.
  */
-export function whenOf(live: { start: Date; end: Date }, now: Date) {
-  const zone = AGENDA.timeZone
+export function whenOf(live: { start: Date; end: Date }, now: Date, zone: string) {
   const day = (date: Date, timeZone?: string) => new Intl.DateTimeFormat("en-CA", { timeZone }).format(date)
   const time = (date: Date, timeZone?: string) =>
     clock(new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit" }).format(date))
@@ -108,54 +125,4 @@ export function whenOf(live: { start: Date; end: Date }, now: Date) {
   const differs = time(live.start) !== time(live.start, zone)
   const city = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/").pop()?.replaceAll("_", " ")
   return { when, local: differs ? `${city}: ${time(live.start)}–${time(live.end)}` : undefined }
-}
-
-const ICS_DAYS = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"]
-
-/** The agenda as an iCalendar file a calendar app can subscribe to: one weekly event per slot, named by `title(game)`. */
-export function ics({ summary, title, description, url }: { summary: string; title: (game: string) => string; description: string; url: string }) {
-  const { timeZone, since, slots } = AGENDA
-  const stamp = `${since.replaceAll("-", "")}T000000Z`
-  const escape = (text: string) => text.replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\n/g, "\\n")
-  const events = slots.flatMap((slot, index) => {
-    // The first day on or after `since` that the slot happens on.
-    const first = new Date(`${since}T00:00:00Z`)
-    while (!slot.days.includes(((first.getUTCDay() + 6) % 7) + 1)) first.setUTCDate(first.getUTCDate() + 1)
-    const day = first.toISOString().slice(0, 10).replaceAll("-", "")
-    const time = (hhmm: string) => `${hhmm.replace(":", "")}00`
-    return [
-      "BEGIN:VEVENT",
-      `UID:live-${index}@muanlartins.com.br`,
-      `DTSTAMP:${stamp}`,
-      `DTSTART;TZID=${timeZone}:${day}T${time(slot.start)}`,
-      `DTEND;TZID=${timeZone}:${day}T${time(slot.end)}`,
-      `RRULE:FREQ=WEEKLY;BYDAY=${slot.days.map((d) => ICS_DAYS[d - 1]).join(",")}`,
-      `SUMMARY:${escape(title(slot.game))}`,
-      `DESCRIPTION:${escape(description)}`,
-      `URL:${url}`,
-      `LOCATION:${url}`,
-      "END:VEVENT",
-    ]
-  })
-  return [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//muanlartins//agenda//PT",
-    "CALSCALE:GREGORIAN",
-    `X-WR-CALNAME:${escape(summary)}`,
-    `X-WR-TIMEZONE:${timeZone}`,
-    // Brasília has kept UTC−3 all year since 2019.
-    "BEGIN:VTIMEZONE",
-    `TZID:${timeZone}`,
-    "BEGIN:STANDARD",
-    "DTSTART:19700101T000000",
-    "TZOFFSETFROM:-0300",
-    "TZOFFSETTO:-0300",
-    "TZNAME:-03",
-    "END:STANDARD",
-    "END:VTIMEZONE",
-    ...events,
-    "END:VCALENDAR",
-    "",
-  ].join("\r\n")
 }

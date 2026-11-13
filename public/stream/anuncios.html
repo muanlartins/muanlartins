@@ -30,8 +30,12 @@
         starts outside Começando and pre-rolls turning back on.
       - The breaks of the live, how each came (opening, between matches, by hand, on schedule) and how long.
 
+      The live's opening (abertura.js, its header has the rules): the channel's Twitch title and category from the
+      agenda (/canal/agenda) before a scheduled live, and the Instagram story when the stream opens (story.js draws it).
+
       Twitch: device flow with the site's Twitch app, like the Efeitos dock; scopes channel:read:ads (the schedule),
-      channel:manage:ads (snooze) and channel:edit:commercial (run). The tokens stay in this dock's storage. It reads
+      channel:manage:ads (snooze) and channel:edit:commercial (run), and channel:manage:broadcast (the opening's title
+      and category; a sign-in from before it keeps the breaks working and the opening asks to connect again). The tokens stay in this dock's storage. It reads
       GET /channels/ads every 15 s live (5 s close to a break), Unix seconds, 0 meaning none. OBS (obs-websocket, the
       password in the dock's storage, #obs=<password> fills it): the scene on air, whether it's streaming and since
       when, and every 5 s the event "muanlartins-anuncios" through obs-browser's emit_event, to the browser sources:
@@ -357,6 +361,12 @@
         background: none;
         font-size: 13px;
       }
+      .story-previa {
+        display: block;
+        width: 50%;
+        margin: 8px 0 0;
+        border-radius: 8px;
+      }
     </style>
   </head>
   <body>
@@ -381,6 +391,17 @@
     </div>
     <p class="note" id="msg"></p>
 
+    <h2>Abertura <small id="ab-live">—</small></h2>
+    <div class="dado"><span>Título e categoria</span><b id="ab-titulo">—</b></div>
+    <label class="check"><input type="checkbox" id="ab-story" /> <span>Story no Instagram ao abrir a live</span></label>
+    <p class="note" id="ab-msg"></p>
+    <div class="acoes">
+      <button id="ab-postar" hidden>Postar story</button>
+      <button id="ab-pular" hidden>Não postar</button>
+      <button id="ab-previa">Prévia do story</button>
+    </div>
+    <img id="ab-img" class="story-previa" alt="O story" hidden />
+
     <h2>Pre-roll</h2>
     <div class="dado"><span id="preroll-rotulo">Quem chega</span><b id="preroll">—</b></div>
     <div class="barra fina"><i id="preroll-barra"></i></div>
@@ -402,6 +423,16 @@
       </div>
     </details>
     <details>
+      <summary>Conexão com o Instagram</summary>
+      <p class="status" id="ig-status">Instagram desconectado</p>
+      <p class="note">Cole o token de acesso do Instagram (o app da Meta, "Instagram API with Instagram login"). Ele dura 60 dias e o painel renova sozinho todo dia.</p>
+      <input id="ig-token" type="password" placeholder="Token do Instagram" autocomplete="off" />
+      <div class="acoes">
+        <button id="ig-salvar">Salvar</button>
+        <button id="ig-sair">Desconectar</button>
+      </div>
+    </details>
+    <details>
       <summary>Conexão com o OBS</summary>
       <input id="password" type="password" placeholder="Senha do obs-websocket" autocomplete="off" />
     </details>
@@ -411,12 +442,16 @@
       <button class="testar" id="testar">Testar os sons</button>
     </details>
 
+    <script src="story.js"></script>
+    <script src="abertura.js"></script>
     <script>
       const $ = (id) => document.getElementById(id)
       const params = new URLSearchParams(location.search)
       const DEMO = params.get("demo")
       const CLIENT_ID = "dploislenvijye1obbcm5dqxcxu5y1" // the site's Twitch app (lib/profile.ts), as in the Efeitos dock
-      const SCOPES = "channel:read:ads channel:manage:ads channel:edit:commercial"
+      // The breaks need the first three; the opening's title also channel:manage:broadcast (abertura.js checks it).
+      const ESCOPOS_ANUNCIOS = "channel:read:ads channel:manage:ads channel:edit:commercial"
+      const SCOPES = `${ESCOPOS_ANUNCIOS} channel:manage:broadcast`
       const HELIX = "https://api.twitch.tv/helix"
       const VALORANT = params.get("valorant") ?? "http://127.0.0.1:8792"
       const COMECANDO = "Começando"
@@ -675,7 +710,8 @@
           const v = await fetch("https://id.twitch.tv/oauth2/validate", { headers: { Authorization: `OAuth ${tw.token}` } })
             .then((r) => r.json())
             .catch(() => null)
-          if (v?.scopes && !SCOPES.split(" ").every((s) => v.scopes.includes(s))) {
+          tw.escopos = v?.scopes ?? []
+          if (v?.scopes && !ESCOPOS_ANUNCIOS.split(" ").every((s) => v.scopes.includes(s))) {
             erroTwitch = "conecte de novo (faltam permissões)"
             tw.user = null
           }
@@ -1189,6 +1225,7 @@
       conectar()
       ouvirValorant()
       if (!DEMO) iniciarTwitch()
+      Abertura.iniciar({ helix, pedir, estado: () => ({ aoVivo, inicio, cena, tw }), demo: Boolean(DEMO) })
     </script>
   </body>
 </html>

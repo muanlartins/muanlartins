@@ -108,6 +108,13 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
+    id: "story-ao-abrir-a-live",
+    status: "agora",
+    tag: "live",
+    title: "Story no Instagram quando a live abre",
+    text: "Quando a live começa, sai sozinho um story com a minha câmera, o jogo, o título da live e o link da Twitch.",
+  },
+  {
     id: "var-com-replay",
     status: "agora",
     tag: "live",
@@ -125,6 +132,18 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "agenda-editavel",
+    date: "2026-11-13",
+    tag: "site",
+    title: "A agenda que eu mesmo edito",
+    text: "Agora eu mudo a agenda das lives direto no site: o horário e o título de cada jogo, fins de semana, lives avulsas e folgas. O site mostra os próximos 7 dias com data, o calendário da Twitch muda junto e a live já abre com o título e a categoria certos.",
+    href: "/canal/agenda",
+    media: [
+      media("agenda-editavel", "A agenda no site: os próximos 7 dias com data, a próxima live e o que tem toda semana"),
+      media("agenda-editavel-editor", "O editor da agenda: os horários de cada jogo, lives avulsas, folgas e os jogos"),
+    ],
+  },
   {
     id: "filtros-60fps",
     date: "2026-11-13",

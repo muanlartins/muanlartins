@@ -31,7 +31,7 @@ function montar() {
     })
     return { status: r.statusCode, body: r.body ? JSON.parse(r.body) : undefined }
   }
-  return { itens, chamar }
+  return { itens, chamar, handler }
 }
 
 test("saving the fan keeps the loadout, and the other way round", async () => {
@@ -92,4 +92,60 @@ test("without a valid token, nothing personal", async () => {
   assert.equal((await chamar("PUT", "/eu/loadout", { token: "ruim", corpo: { armas: {} } })).status, 401)
   assert.equal((await chamar("GET", "/outra")).status, 404)
   assert.equal((await chamar("OPTIONS", "/eu")).status, 204)
+})
+
+const AGENDA = {
+  slots: [{ days: [1, 3], start: "21:00", end: "23:00", game: "valorant", title: "Aprendendo Valorant" }],
+  extras: [{ date: "2099-01-03", start: "15:00", end: "17:00", game: "valorant" }],
+  off: [{ date: "2000-01-03", start: "21:00" }],
+  games: { valorant: { name: "VALORANT", category: "516575", title: "Aprendendo Valorant" } },
+}
+
+test("the agenda: only the channel saves it, everyone reads it, with the next lives and as a calendar", async () => {
+  const { chamar, handler } = montar()
+  assert.deepEqual((await chamar("GET", "/agenda")).body, { agenda: null, em: null, proximas: [] })
+  assert.equal((await chamar("PUT", "/agenda", { token: "bom", corpo: AGENDA })).status, 403)
+  assert.equal((await chamar("PUT", "/agenda", { corpo: AGENDA })).status, 403)
+  assert.equal((await chamar("PUT", "/agenda", { token: "canal", corpo: [] })).status, 400)
+  const salvo = await chamar("PUT", "/agenda", { token: "canal", corpo: AGENDA })
+  assert.equal(salvo.status, 200)
+  // A day off in the past goes.
+  assert.deepEqual(salvo.body.agenda.off, [])
+  const lido = await chamar("GET", "/agenda")
+  assert.deepEqual(lido.body.agenda, salvo.body.agenda)
+  assert.ok(lido.body.em)
+  // Two weeks hold at least four Monday and Wednesday lives.
+  assert.ok(lido.body.proximas.filter((o) => o.jogo === "valorant" && !o.avulsa).length >= 4)
+  const cal = await handler({ requestContext: { http: { method: "GET" } }, rawPath: "/agenda.ics", headers: {} })
+  assert.match(cal.headers["content-type"], /^text\/calendar/)
+  assert.match(cal.body, /RRULE:FREQ=WEEKLY;BYDAY=MO,WE/)
+  assert.match(cal.body, /DTSTART;TZID=America\/Sao_Paulo:20990103T150000/)
+})
+
+test("the story: the channel sends a JPEG, Instagram fetches it by its URL", async () => {
+  const { handler } = montar()
+  const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(5000, 7)])
+  const enviar = (token, body, tipo = "image/jpeg") =>
+    handler({
+      requestContext: { http: { method: "PUT" }, domainName: "api.exemplo" },
+      rawPath: "/canal/story",
+      headers: { authorization: `Bearer ${token}`, "content-type": tipo },
+      body: body.toString("base64"),
+      isBase64Encoded: true,
+    })
+  assert.equal((await enviar("bom", jpeg)).statusCode, 403)
+  assert.equal((await enviar("canal", Buffer.alloc(5000, 7))).statusCode, 400)
+  assert.equal((await enviar("canal", jpeg, "image/png")).statusCode, 400)
+  assert.equal((await enviar("canal", Buffer.concat([jpeg, Buffer.alloc(400_000)]))).statusCode, 400)
+  const r = await enviar("canal", jpeg)
+  assert.equal(r.statusCode, 200)
+  const { url } = JSON.parse(r.body)
+  assert.match(url, /^https:\/\/api\.exemplo\/canal\/story\/[a-z0-9]+\.jpg$/)
+  const caminho = new URL(url).pathname
+  const img = await handler({ requestContext: { http: { method: "GET" } }, rawPath: caminho, headers: {} })
+  assert.equal(img.statusCode, 200)
+  assert.equal(img.isBase64Encoded, true)
+  assert.deepEqual(Buffer.from(img.body, "base64"), jpeg)
+  const velho = await handler({ requestContext: { http: { method: "GET" } }, rawPath: "/canal/story/outro123.jpg", headers: {} })
+  assert.equal(velho.statusCode, 404)
 })

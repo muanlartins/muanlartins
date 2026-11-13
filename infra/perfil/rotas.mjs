@@ -10,10 +10,30 @@
 //           PUT /eu, DELETE /eu          their fan (deleting it keeps the loadout)
 //           PUT /eu/loadout, DELETE /eu/loadout
 // The live: POST /canal/jogo with x-chave, from the stream PC: the channel's inventory read from the game
+//
+// The lives' calendar (comum/agenda.mjs), the one source of truth for when the lives are, kept in the item "#agenda"
+// (not a login, so no viewer's):
+// Public:   GET /agenda                  the agenda, when it was saved and the lives of the next two weeks (proximas)
+//           GET /agenda.ics              it for calendar apps (the site's "Adicionar à sua agenda")
+// Channel:  PUT /agenda                  the channel's Twitch only: the editor on /canal/agenda
+//
+// The live's Instagram story (the Anúncios dock draws it when the live opens; Instagram fetches it by URL, so it must
+// be public for a moment), the latest one only, in the item "#story":
+// Channel:  PUT /canal/story             the JPEG (image/jpeg, ≤ 350 KB) → { url } (PUT: the API's CORS allows no POST)
+// Public:   GET /canal/story/<id>.jpg    it, for Instagram
 
+import { FUSO, dataEm, ics, limpar, ocorrencias } from "./comum/agenda.mjs"
 import { daLive, json, LOGIN, out } from "./comum/http.mjs"
 
 export const CANAL = "muanlartins"
+
+// Items that aren't viewers: "#" is never in a login.
+const AGENDA = "#agenda"
+const STORY = "#story"
+const CALENDARIO = "Live do muanlartins"
+const PAGINA_AGENDA = "https://muanlartins.com.br/canal/agenda"
+// An item holds 400 KB: the story's JPEG stays under it with room for its fields.
+export const STORY_MAX = 350_000
 
 const ID = /^[a-z0-9-]{1,16}$/
 const COR = /^#[0-9a-f]{6}$/
@@ -73,6 +93,52 @@ export function jogo(j) {
  *   banco.remover(login, nomes) removes fields; usuario(headers) → { login, id } or null; chave is the stream's key.
  */
 export function rotas({ banco, usuario, chave }) {
+  const doCanal = async (event) => (await usuario(event.headers || {}))?.login === CANAL
+
+  async function agenda(event, metodo, caminho) {
+    if (metodo === "GET") {
+      const i = await banco.ler(AGENDA)
+      if (caminho === "/agenda.ics") {
+        return {
+          statusCode: 200,
+          headers: { "content-type": "text/calendar; charset=utf-8", "cache-control": "public, max-age=300" },
+          body: ics(i?.agenda ?? { slots: [], extras: [], off: [], games: {} }, { nome: CALENDARIO, url: PAGINA_AGENDA }),
+        }
+      }
+      const r = out(200, { agenda: i?.agenda ?? null, em: i?.em ?? null, proximas: i?.agenda ? ocorrencias(i.agenda, new Date(), 14) : [] })
+      return { ...r, headers: { ...r.headers, "cache-control": "public, max-age=30" } }
+    }
+    if (metodo !== "PUT" || caminho !== "/agenda") return out(405, {})
+    if (!(await doCanal(event))) return out(403, { erro: "Só a conta do canal muda a agenda." })
+    const a = limpar(json(event), dataEm(new Date(), FUSO))
+    if (!a) return out(400, {})
+    const em = new Date().toISOString()
+    await banco.definir(AGENDA, { agenda: a, em })
+    return out(200, { agenda: a, em, proximas: ocorrencias(a, new Date(), 14) })
+  }
+
+  async function story(event, metodo, caminho) {
+    if (metodo === "PUT" && caminho === "/canal/story") {
+      if (!(await doCanal(event))) return out(403, {})
+      const tipo = event.headers?.["content-type"] || ""
+      const imagem = Buffer.from(event.body || "", event.isBase64Encoded ? "base64" : "binary")
+      if (!tipo.startsWith("image/jpeg") || imagem.length < 1000 || imagem.length > STORY_MAX || imagem[0] !== 0xff || imagem[1] !== 0xd8) return out(400, {})
+      const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
+      await banco.definir(STORY, { imagem, id, em: new Date().toISOString() })
+      return out(200, { url: `https://${event.requestContext.domainName}/canal/story/${id}.jpg` })
+    }
+    const pedido = /^\/canal\/story\/([a-z0-9]{6,20})\.jpg$/.exec(caminho)
+    if (metodo !== "GET" || !pedido) return out(404, {})
+    const i = await banco.ler(STORY)
+    if (!i || i.id !== pedido[1]) return out(404, {})
+    return {
+      statusCode: 200,
+      headers: { "content-type": "image/jpeg", "cache-control": "public, max-age=86400, immutable" },
+      body: Buffer.from(i.imagem).toString("base64"),
+      isBase64Encoded: true,
+    }
+  }
+
   return async function handler(event) {
     const metodo = event.requestContext.http.method
     const caminho = event.rawPath
@@ -101,6 +167,9 @@ export function rotas({ banco, usuario, chave }) {
       await banco.definir(CANAL, { jogo: lido })
       return out(200, { armas: Object.keys(lido.equipado).length, skins: lido.skins.length, chromas: lido.chromas.length })
     }
+
+    if (caminho === "/agenda" || caminho === "/agenda.ics") return agenda(event, metodo, caminho)
+    if (caminho === "/canal/story" || caminho.startsWith("/canal/story/")) return story(event, metodo, caminho)
 
     if (caminho !== "/eu" && caminho !== "/eu/loadout") return out(404, {})
     const v = await usuario(event.headers || {})

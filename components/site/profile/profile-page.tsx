@@ -25,6 +25,7 @@ import {
   type SigmaStats,
   type Torcedor,
 } from "@/lib/profile"
+import { channelPath } from "@/lib/channel"
 import { LOCALE, localize, sectionPath } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
@@ -305,6 +306,13 @@ export function ProfilePage() {
           <p className="max-w-[34rem] text-[14px] text-muted">{text.soon}</p>
         )}
       </div>
+
+      {token && login === CHANNEL && (
+        <Link href={channelPath("agenda")} className="mt-6 inline-flex items-center gap-1.5 text-[15px] font-medium text-klein hover:underline">
+          {text.agenda}
+          <ArrowRight aria-hidden className="h-4 w-4" />
+        </Link>
+      )}
 
       {/* The channel earns no Σ of its own. */}
       {S && canSave && !(token && login === CHANNEL) && <SigmaPanel S={S} login={token ? login : ""} stats={stats} />}
