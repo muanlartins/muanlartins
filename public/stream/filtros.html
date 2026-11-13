@@ -2214,7 +2214,7 @@
           if (now - sova.fists < 200) return
           sova.fists = 0
           const [S, G] = toNose(A.k) <= toNose(B.k) ? [A, B] : [B, A]
-          bow.g = { pa: G.k, pb: S.k, opened: 0, lost: 0 }
+          bow.g = { pa: G.k, pb: S.k, opened: 0, lost: 0, gi: hs.indexOf(G), si: hs.indexOf(S) }
           Object.assign(bow, { state: "draw", since: now, kind: "recon", d0: null, draw: 0 })
           bowHands(G, S, 1)
           bowSound("recon")
@@ -2235,7 +2235,9 @@
         if (toNose(G.k) < toNose(S.k) - 0.35 * fw) [G, S] = [S, G]
         g.pa = G.k
         g.pb = S.k
-        bowHands(G, S, 0.6)
+        // Where the hands hold it is set on every frame (followBow), from the hands as carried between answers.
+        g.gi = hs.indexOf(G)
+        g.si = hs.indexOf(S)
         handInfo += ` · arco ${Math.round(bow.draw * 100)}%`
         // A hand open for two frames lets go: the one that opened was pulling the string.
         if (!G.open && !S.open) {
@@ -3053,6 +3055,7 @@
           if (!Object.keys(quer).length) continue
           tr.busy = true
           if (quer.ombros) pose.sentAt = now
+          if (quer.corpo) bodySentAt = now
           if (quer.fundo) plate.at = now
           createImageBitmap(video).then(
             (bitmap) => tr.w.postMessage({ type: "quadro", bitmap, t: now, quer }, [bitmap]),
@@ -3088,6 +3091,7 @@
       let faceLm = null
       let videoFrames = 0
       let handsOn = false
+      let bodySentAt = -1e9
       // When the newest camera frame came in: what's on screen, which the trackers' answers are carried up to.
       let shownAt = 0
       const lens = { amt: 0, pts: [0, 1, 2, 3].map(() => new THREE.Vector2(0.5, 0.5)), on: false }
@@ -3179,6 +3183,9 @@
       function applyHands(r, now) {
         const hands = r.landmarks || []
         handsTrack.prev = alignHands(handsTrack.cur, hands)
+        // The hands on screen in the answer's order too, each easing on from where it was.
+        const shown = alignHands(lastHands, hands)
+        lastHands = hands.map((h, i) => shown[i] || h.map((p) => ({ ...p })))
         handsTrack.prevT = handsTrack.t
         handsTrack.cur = hands
         handsTrack.t = now
@@ -3302,16 +3309,29 @@
         }
         return out
       }
-      // Each hand's previous answer, by the nearest wrist (the tracker's order can change).
+      // Each hand's previous self (the tracker's order can change): with two and two, the pairing that moves them
+      // least, so fists side by side don't swap; otherwise the nearest, if near.
       function alignHands(prev, cur) {
+        prev = prev || []
+        const d = (a, b) => dist(a[0], b[0]) + dist(a[9], b[9])
+        if (prev.length === 2 && cur.length === 2)
+          return d(cur[0], prev[0]) + d(cur[1], prev[1]) <= d(cur[0], prev[1]) + d(cur[1], prev[0]) ? [prev[0], prev[1]] : [prev[1], prev[0]]
         return cur.map((h) => {
-          let best = null, bd = 0.08
-          for (const p of prev || []) {
-            const d = dist(p[0], h[0])
-            if (d < bd) (bd = d), (best = p)
+          let best = null, bd = 0.16
+          for (const p of prev) {
+            const e = d(p, h)
+            if (e < bd) (bd = e), (best = p)
           }
           return best
         })
+      }
+      // Sova's bow, while drawn by hand, held where the hands are on this frame.
+      function followBow() {
+        const b = sova.bow
+        const g = b.g
+        if (b.state !== "draw" || !g || b.auto || sova.ult || g.gi === g.si || !lastHands[g.gi] || !lastHands[g.si]) return
+        const va = video.videoWidth / video.videoHeight || 16 / 9
+        bowHands(handShape(lastHands[g.gi], undefined, va), handShape(lastHands[g.si], undefined, va), 0.8)
       }
       function follow(dt) {
         const k = 1 - Math.exp(-dt / Math.max(0.001, EASE))
@@ -3336,9 +3356,9 @@
         if (handsOn && handsTrack.cur) {
           const a = aheadOf(handsTrack)
           const cur = handsTrack.cur
-          if (lastHands.length !== cur.length) lastHands = cur.map((h) => h.map((p) => ({ ...p })))
-          else lastHands = cur.map((h, i) => carry(h, handsTrack.prev?.[i] || null, a, lastHands[i], k))
+          lastHands = cur.map((h, i) => carry(h, handsTrack.prev?.[i] || null, a, lastHands[i], k))
         }
+        followBow()
         // The shoulders change slowly: eased, not carried.
         if (pose.seen && pose.target) {
           const ks = 1 - Math.exp(-dt / 0.05)
@@ -3419,7 +3439,7 @@
 
       function startBang(x, y, key) {
         if (bang.t0 >= 0) return
-        Object.assign(bang, { t0: performance.now(), key, startX: x, thrown: false, heard: 0 })
+        Object.assign(bang, { t0: performance.now(), key, startX: x, thrown: false, heard: 0, idx: null })
         bang.hand.set(x, y)
         sfx.play("phoenix-flash-equip", { pan: panAt(x) })
       }
@@ -3432,6 +3452,10 @@
         u.uK.value = 0
         u.uRing.value = 0
         u.uFlashAmt.value = 0
+        // Held, it rides the hand on every frame (the hand as carried between the tracker's answers), not only
+        // when the tracker answers.
+        const held = !bang.thrown && bang.idx != null && lastHands[bang.idx]
+        if (held) bang.hand.set(...toScreen((held[4].x + held[12].x) / 2, (held[4].y + held[12].y) / 2))
         if (t < HOLD) {
           u.uOrb.value.set(bang.hand.x, bang.hand.y, R * easeOutBack(Math.min(1, t / 0.35)))
           u.uOrbAmt.value = 1
@@ -3524,7 +3548,10 @@
             st.armed = 0
             st.hist = []
           }
-          if (bang.t0 >= 0 && bang.key === key) bang.hand.set(ox, oy)
+          if (bang.t0 >= 0 && bang.key === key) {
+            bang.hand.set(ox, oy)
+            bang.idx = i
+          }
           if (allowed && st.armed && now - st.armed < 600) handInfo += ` · estalo armado (giro ${Math.round((turn * 180) / Math.PI)}°)`
           snaps.set(key, st)
         })
@@ -3595,7 +3622,9 @@
             // The body mask: Pop, Sova's reveals while one may be on screen, Sage's heal and frost on him, and erasing
             // his hair (agents) or his head (cars), with the background's check now and then.
             const sovaMask = (sovaOn && (now < sova.maskUntil || sova.patrol.amt > 0)) || (mode === "sage" && now < sage.maskUntil)
-            if (mode === "pop" || pop > 0 || sovaMask || ((agentOn || carOn) && ERASE)) want.corpo = true
+            // While the hands are tracked, the mask asks at most ~12 times a second, leaving the GPU to the hands.
+            const bodyEvery = handsOn && mode !== "pop" ? 80 : 0
+            if ((mode === "pop" || pop > 0 || sovaMask || ((agentOn || carOn) && ERASE)) && now - bodySentAt >= bodyEvery) want.corpo = true
             if ((agentOn || carOn) && ERASE && (plate.off === undefined || now - plate.at > 250)) want.fundo = true
             if (mode === "bola" || ballIn > 0 || agentOn || carOn || mode === "sage") want.rosto = true
             // The shoulders change slowly: ~15 a second is plenty.
