@@ -1,0 +1,2 @@
+Melvynx/video-agent-skills (MIT, LICENSE here: it covers all five folders), commit f454292, copied 2026-11-11: editing, studio-setup, steal, short-editing, clips.
+Update: clone the repo again and copy these folders over.

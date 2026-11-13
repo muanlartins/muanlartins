@@ -50,3 +50,13 @@ brand/twitch/paineis/pix.*
 
 # Models for the camera filters that must not be published (a game character extracted from the game).
 public/stream/privado/
+
+# video-agent-skills (Melvynx): the engine's packages and the working files; styles/ stays in git, but not
+# the reference reels' frames (other creators' work)
+.claude/skills/short-editing/engine/node_modules/
+video-agent/.tmp/
+video-agent/takes/
+video-agent/edits/
+video-agent/.env
+
+video-agent/styles/*/stills/

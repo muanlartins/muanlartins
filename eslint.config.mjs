@@ -18,6 +18,9 @@ const eslintConfig = defineConfig([
     "components/lifeline/**",
     // The Mac pilot handed to the Windows session: reference, not site code.
     "handoff/**",
+    // Vendored from Melvynx/video-agent-skills (the shorts' editing skills and engine); linted upstream.
+    ".claude/skills/**",
+    "video-agent/**",
   ]),
 ]);
 
