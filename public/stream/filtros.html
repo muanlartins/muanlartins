@@ -3783,7 +3783,7 @@
         if (vfxOn) vfx.render(box[2], box[3])
         // The face's mask and what's behind Luan, before the camera's layer, which erases his hair with them.
         const ready = agentList.filter((a) => a.amt > 0 && a.ready)
-        if (ready.length && q.get("keep") !== "0") drawKeep(ready.find((a) => a.trim)?.trim)
+        if (ready.length) drawKeep(ready.find((a) => a.trim)?.trim)
         else if (carAmt > 0) drawKeep(undefined, false)
         if ((agentAmt > 0 || carAmt > 0) && ERASE && maskFresh) {
           remember()
