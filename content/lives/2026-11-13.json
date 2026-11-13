@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-13",
+  "game": "rocket-league",
+  "video": "swcsQPn1rrc",
+  "summary": {
+    "pt": "3v3 ranqueado com o Exponja, o Edu e o JK: 7 vitórias e 8 derrotas. Cheguei no Diamante 3 II (1021) e voltei pro Diamante 3 I (995).",
+    "en": "Ranked 3v3 with Exponja, Edu and JK: 7 wins and 8 losses. Reached Diamond 3 II (1021) and dropped back to Diamond 3 I (995)."
+  },
+  "youtube": {
+    "thumb": {
+      "quadro": "10b",
+      "segundo": 6699.25,
+      "texto": "VOLTAMOS À|ESTACA ZERO",
+      "emblema": false
+    },
+    "title": "Voltamos à estaca zero… | Rocket League ao vivo"
+  },
+  "chapters": [
+    { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
+    { "at": "6:03", "match": "497B2AB011F1DF889E0D31858BF616A9" },
+    { "at": "15:38", "match": "975F129A11F1DF89F36DE79795A970F4" },
+    { "at": "24:57", "match": "EEEB78D611F1DF8AE09E08BDA4E06F15" },
+    { "at": "31:03", "match": "C5F78EDC11F1DF8BEB4502B917A47F2F" },
+    { "at": "38:28", "match": "D20C79D411F1DF8CD67A359B78296A08" },
+    { "at": "45:44", "match": "D5482EE411F1DF8D06B0C0A4CFA29187" },
+    { "at": "54:15", "match": "053B04E011F1DF8F87EF3886777CAF14" },
+    { "at": "1:01:01", "match": "F6C529A811F1DF8F7C9475B63B5C4973" },
+    { "at": "1:08:14", "match": "FA2E006411F1DF901FABD3AF18155A90" },
+    { "at": "1:14:54", "match": "E8F0077411F1DF91077401A4DB1F9E4B" },
+    { "at": "1:22:33", "match": "F81DFA5211F1DF92DDD3BBA56FA86103" },
+    { "at": "1:28:53", "match": "DAEE00C011F1DF93608D24BD657C6A1A" },
+    { "at": "1:37:51", "match": "1AF84D0A11F1DF950C9CAA9293EEA1E6" },
+    { "at": "1:45:32", "match": "3040895611F1DF9684BBB29A1A6F09FC" },
+    { "at": "1:52:59", "match": "3B372D7811F1DF9799EF67A9A9D8C6B3" },
+    { "at": "2:00:10", "title": { "pt": "Fim", "en": "The end" } }
+  ]
+}
