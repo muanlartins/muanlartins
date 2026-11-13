@@ -39,6 +39,33 @@ game alone from Source Record's, since 11-12) go to `Videos\Lives\<date>\VAR\14-
 in `~/.cache/muanlartins/replays` for two days on its own. If Luan has a recording open in a browser (RLR's
 studio), moving it breaks that page's copy: tell him to add it again from the new place.
 
+## 1b. Who played with him (Rocket League days)
+
+The site names the viewers who played with him (the ranked page's "Eu e os viewers que jogaram comigo" and each
+match), but the dock only tags those already in `public/stream/aliados.json` while the match is played. A friend who
+shows up mid-live goes untagged: on 11-12 Exponja and Edu played 10 and 12 of the 14 matches and the site didn't say
+so (Luan: "essa identificação tinha que fazer parte"). So, once the replays are filed:
+
+```sh
+scripts/.venv/bin/python scripts/aliados.py <date>      # his teammates in each match, from the replays
+```
+
+It lists each match's teammates by in-game name (with their Twitch login when they're in the list), then who played
+two matches or more with him, then the day's watchers by minutes from the Σ API (while it's still the latest live).
+
+1. Anyone who played two matches or more and isn't in the list: ask Luan who they are, their Twitch login (the
+   watchers list usually gives it away: on 11-12 Exponja was `exp0nja` and Edu `eduzeras07`, the two who watched
+   longest, both for the first time), and
+   whether they agreed to be named. Never add anyone he hasn't confirmed.
+2. `aliados.py <date> --aliado "<in-game name>=<twitch login>" --apply` adds them to `aliados.json` (from then on the dock tags
+   them live) and writes each named teammate's `login` into the session's matches (`content/matches/<id>.json`),
+   found by the numbers both keep. Without new names, `--apply` alone tags the known ones a match missed.
+3. It goes out with the release (step 5). The dock republishes a session only when it changes; if it ever does
+   after this, run it again.
+
+The in-game names stay out of everything but `aliados.json` (the repo is public). Valorant has no replays: there the
+dock tags only viewers with a `riot` Riot ID in `aliados.json`.
+
 ## 2. The live's page, transcript and thumbnail
 
 ```sh
