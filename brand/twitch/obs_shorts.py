@@ -23,8 +23,9 @@ CAMERA = "Camera (NVIDIA Broadcast):"
 # on 2026-11-08), so the camera is cropped to him here, the same in every collection: 1.5×, down to the
 # frame's bottom edge (he sits low in it). A filter on the source, first, so the scenes, the effects' zoom and the
 # camera's own recording all get the framed picture. public/stream/filtros.html takes the same as ?zoom/?foco.
-# 1.5× (from 1.75×, 2026-11-08) leaves room for the background's lockup over his head.
-CAMERA_CROP = {"relative": True, "left": 310, "top": 360, "right": 330, "bottom": 0}
+# 1.5× (from 1.75×, 2026-11-08) leaves room for the background's lockup over his head. In pixels of the camera's
+# 1280×720 at 60 fps (since 2026-11-12; 310, 360, 330, 0 of 1920×1080 before), so the same framing as before.
+CAMERA_CROP = {"relative": True, "left": 207, "top": 240, "right": 220, "bottom": 0}
 
 
 def camera_framing(source):

@@ -246,7 +246,8 @@ in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
 # Phoenix's model stays off the site. OBS must start with --enable-media-stream for a page to open the camera.
 filters = browser("Filtros", "filtros.html")
 # Page permission 2 (read user information) lets it ask for the current scene when it loads, not only hear changes.
-filters["settings"].update(url="http://localhost:8126/stream/filtros.html", fps=30, webpage_control_level=2)
+# At 60 fps like the camera (at 30 until 2026-11-12, the filtered camera stepped beside OBS's own).
+filters["settings"].update(url="http://localhost:8126/stream/filtros.html", fps=60, webpage_control_level=2)
 # The abilities' sounds (sfx.js) go through OBS, to the stream and Luan's headphones like the Sons source's.
 filters["settings"]["reroute_audio"] = True
 filters.update(monitoring_type=MONITOR_AND_OUTPUT)

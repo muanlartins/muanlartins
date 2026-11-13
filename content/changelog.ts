@@ -126,6 +126,14 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "filtros-60fps",
+    date: "2026-11-13",
+    tag: "live",
+    title: "Os filtros da câmera a 60 fps",
+    text: "A câmera foi pra 60 fps e os filtros agora acompanham sem travar: antes, ligar um filtro derrubava a câmera pra uns 15 quadros por segundo. O arco do Sova e a bola do Phoenix seguem as minhas mãos quadro a quadro, as roupas dos agentes grudam nos ombros, e a parede da Sage agora sai quando eu cruzo os braços em X e abro.",
+    media: [media("filtros-60fps", "Luan acenando com a cara de Octane na câmera a 60 fps", { video: true })],
+  },
+  {
     id: "filtro-sage",
     date: "2026-11-12",
     tag: "live",
