@@ -1,0 +1,204 @@
+{
+  "live": "2026-11-11",
+  "nome": "ace de Sheriff",
+  "jogo": "valorant",
+  "post": "Ace de Sheriff no pistol 🏹 #valorant #sova",
+  "trocas": {
+    "Fenech": "Fennec",
+    "Fenec": "Fennec",
+    "recocheteia": "ricocheteia"
+  },
+  "destaques": [
+    "reconhecimento",
+    "mão",
+    "ultimate",
+    "hunter"
+  ],
+  "trechos": [
+    {
+      "de": 840.0,
+      "ate": 844.2,
+      "camera": "jogo"
+    },
+    {
+      "de": 861.6,
+      "ate": 866.6,
+      "camera": "jogo"
+    },
+    {
+      "de": 868.8,
+      "ate": 875.9,
+      "camera": "jogo"
+    },
+    {
+      "de": 6635.7,
+      "ate": 6647.0,
+      "camera": "conversa",
+      "baixo": "palco",
+      "entrada": "zoom"
+    }
+  ],
+  "titulo": {
+    "linhas": [
+      "ACE DE SHERIFF",
+      "NO PISTOL"
+    ],
+    "de": 840.0,
+    "ate": 844.2
+  },
+  "rotulos": [
+    {
+      "linhas": [
+        "FLECHA DE",
+        "RECONHECIMENTO"
+      ],
+      "de": 6638.5,
+      "ate": 6642.3
+    },
+    {
+      "linhas": [
+        "ULT DO SOVA"
+      ],
+      "de": 6642.8,
+      "ate": 6647.0
+    }
+  ],
+  "impactos": [
+    {
+      "em": 840.0,
+      "flash": "branco",
+      "forca": 0.6,
+      "tremor": 16,
+      "chute": 0.12
+    },
+    {
+      "em": 842.0,
+      "flash": "branco",
+      "forca": 0.3,
+      "tremor": 8,
+      "chute": 0.08,
+      "onde": "jogo"
+    },
+    {
+      "em": 863.5,
+      "flash": "branco",
+      "forca": 0.3,
+      "tremor": 8,
+      "chute": 0.08,
+      "onde": "jogo"
+    },
+    {
+      "em": 865.4,
+      "flash": "branco",
+      "forca": 0.3,
+      "tremor": 8,
+      "chute": 0.08,
+      "onde": "jogo"
+    },
+    {
+      "em": 870.1,
+      "flash": "branco",
+      "forca": 0.3,
+      "tremor": 8,
+      "chute": 0.08,
+      "onde": "jogo"
+    },
+    {
+      "em": 874.4,
+      "flash": "quente",
+      "forca": 0.55,
+      "tremor": 14,
+      "chute": 0.1
+    },
+    {
+      "em": 6640.0,
+      "flash": "branco",
+      "forca": 0.25,
+      "tremor": 6,
+      "chute": 0.05,
+      "onde": "camera"
+    },
+    {
+      "em": 6645.2,
+      "flash": "branco",
+      "forca": 0.35,
+      "tremor": 10,
+      "chute": 0.07,
+      "onde": "camera"
+    }
+  ],
+  "zoom": [
+    {
+      "de": 869.0,
+      "ate": 874.4,
+      "onde": "jogo",
+      "z": 1.2
+    }
+  ],
+  "sons": [
+    [
+      840.0,
+      "impact-boom",
+      -9
+    ],
+    [
+      842.0,
+      "riser",
+      -20,
+      "fim"
+    ],
+    [
+      842.0,
+      "hit",
+      -8
+    ],
+    [
+      863.5,
+      "hit",
+      -8
+    ],
+    [
+      865.4,
+      "hit",
+      -8
+    ],
+    [
+      870.1,
+      "hit",
+      -8
+    ],
+    [
+      874.4,
+      "impact-boom",
+      -8
+    ],
+    [
+      874.6,
+      "palmas",
+      -16
+    ],
+    [
+      6640.0,
+      "whoosh",
+      -12
+    ],
+    [
+      6645.2,
+      "impact-boom",
+      -10
+    ]
+  ],
+  "capa": {
+    "quadro": 6637.0,
+    "origem": "conversa",
+    "fundo": 874.4,
+    "texto": "ACE DE SHERIFF|NO PISTOL"
+  },
+  "palavras": [
+    [
+      6636.05,
+      6636.24,
+      "Tem"
+    ]
+  ]
+}

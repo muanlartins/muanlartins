@@ -1,0 +1,144 @@
+{
+  "live": "2026-11-12",
+  "nome": "o jogo do Diamante 3",
+  "jogo": "rocket-league",
+  "post": "Se não tem defensor, não tem defesa 🚗💥 #rocketleague",
+  "trocas": {
+    "Hugo": "Edu",
+    "Lomartinho": "Luan Martins",
+    "Fenec": "Fennec",
+    "Timmy": "time",
+    "Tini": "time",
+    "Lomartim": "Luan Martins"
+  },
+  "destaques": [
+    "defensor",
+    "defesa",
+    "genial",
+    "diamante",
+    "conseguimos",
+    "timão"
+  ],
+  "sem_legenda": [
+    [
+      7328.2,
+      7331.0
+    ],
+    [
+      7335.5,
+      7338.15
+    ]
+  ],
+  "trechos": [
+    {
+      "de": 7384.04,
+      "ate": 7385.3,
+      "camera": "jogo",
+      "seco": "de"
+    },
+    {
+      "de": 7323.5,
+      "ate": 7339.5,
+      "camera": "jogo"
+    },
+    {
+      "de": 7365.0,
+      "ate": 7375.23,
+      "camera": "jogo",
+      "seco": "ate"
+    },
+    {
+      "de": 7375.23,
+      "ate": 7378.5,
+      "camera": "lance",
+      "seco": "de",
+      "entrada": "seco"
+    },
+    {
+      "de": 7383.0,
+      "ate": 7388.0,
+      "camera": "jogo",
+      "entrada": "zoom"
+    }
+  ],
+  "titulo": {
+    "linhas": [
+      "O JOGO DO",
+      "DIAMANTE 3"
+    ],
+    "de": 7384.04,
+    "ate": 7385.3
+  },
+  "rotulos": [
+    {
+      "linhas": [
+        "SE NÃO TEM DEFENSOR,",
+        "NÃO TEM DEFESA"
+      ],
+      "de": 7335.5,
+      "ate": 7339.5
+    }
+  ],
+  "impactos": [
+    {
+      "em": 7384.04,
+      "flash": "branco",
+      "forca": 0.6,
+      "tremor": 16,
+      "chute": 0.12
+    },
+    {
+      "em": 7332.0,
+      "flash": "branco",
+      "forca": 0.35,
+      "tremor": 10,
+      "chute": 0.08,
+      "onde": "jogo"
+    }
+  ],
+  "zoom": [
+    {
+      "de": 7376.0,
+      "ate": 7378.5,
+      "onde": "camera",
+      "z": 1.1
+    }
+  ],
+  "sons": [
+    [
+      7384.04,
+      "impact-boom",
+      -9
+    ],
+    [
+      7332.0,
+      "hit",
+      -8
+    ]
+  ],
+  "capa": {
+    "quadro": 7385.0,
+    "origem": "camera",
+    "fundo": 7331.7,
+    "texto": "DIAMANTE 3|COM OS VIEWERS",
+    "emblema": "diamond-3"
+  },
+  "corrigir": [
+    [
+      7364.7,
+      "Yes!"
+    ],
+    [
+      7367.16,
+      ""
+    ],
+    [
+      7368.77,
+      "Timão!"
+    ],
+    [
+      7384.44,
+      "Diamante 3!"
+    ]
+  ]
+}

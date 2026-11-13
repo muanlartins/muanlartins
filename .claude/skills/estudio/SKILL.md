@@ -17,6 +17,30 @@ description: Making Luan's shorts and commented-match videos from a live's mater
   replays. Old VODs without replays (before 11-05) are out: Luan wants the crowd and the 3D, so use lives from
   2026-11-05 on.
 
+## Two kinds of short (Luan, 2026-11-11)
+
+Keep them apart: they're found, chosen and edited differently.
+
+| | **Highlights da live** | **Intencionais (de conteúdo)** |
+|---|---|---|
+| What | The live's best moments as they happened: his clowning first (the camera filters' bang, lines in character, the rage and the Terapia), the good plays second | Something Luan sets out to show: a play's reading in the studio, a feature of the channel or the site ("Jogar o replay", the Live Pix), his aim training |
+| Who chooses | Claude finds candidates (transcript, kills, the camera box scan), sends a numbered candidates reel, **Luan picks by number**, before any edit | Luan: he decides the subject and records the take; his line is the hook |
+| Shape | **One situation per short**, played almost whole (40-57 s), camera on top and game below, hard cuts only, the live's own sound: the stream-clip style of fcyacr's reels, Luan's model (11-11) | One take, one short |
+| Tool | `scripts/destaque.py` (the edit turned up, Luan's ask of 11-12) or `scripts/clipe.py` (the plain stream clip), each with a JSON roteiro (the sections below) | `edicao.py` from a roteiro over his take ("Edição caprichada"), or the `short-editing` skill (Melvynx's engine, made for talking heads); `shorts.py`'s straight cut only for a first look or when he asks |
+| Material | Live.mp4 (the clock, his camera with the filters), Jogo.mp4, Câmera.mkv (sharp camera) | The take in `Videos\Shorts` (studio's Shorts profile or the Navegador scene) |
+
+Luan (11-11) wants the editing, visuals and sound raised across the board. For the highlights that first meant
+less: the effects-heavy reel (`cortes.py`, below) was "horrível... edição caótica, efeitos visuais cafonas", and his
+model became fcyacr's reels, nearly raw stream clips ("O foco são as palhaçadas mesmo"). Then (11-12), on the plain
+clip: "ficou bem melhor, áudio não tá desencontrado", but no hook, not grabbing; he asked for "alta dopamina, bem
+viciante, legendas brilhantes e animadas e efeitos sonoros e visuais que chamam a atenção". So the effects came back
+on top of what worked: the moments whole and in sync, one stable layout, few cuts ("Destaque da live" below).
+
+**Style from a reference, measured** (the `steal` skill, from Melvynx/video-agent-skills, installed 11-11 with
+`short-editing`, `clips`, `editing` and `studio-setup`; origin in `.claude/skills/short-editing/ORIGEM.txt`): when
+Luan points at reels he likes, measure them (cuts per second, layout, captions, sound, zooms, loudness) into
+`video-agent/styles/<name>/STYLE.md` before editing, and compare the copy against them. Never invent a style.
+
 ## Where things are
 
 - The live's folder (after `depois-da-live`): `C:\Users\muanl\Videos\Lives\<date>\` with
@@ -187,6 +211,191 @@ Shorts (threadreaderapp.com/thread/1646898356419981315.html), YouTube's −14 LU
 (productionadvice.co.uk/stats-for-nerds). Most editing advice (cut rate, SFX, caption style) is practitioners'
 folklore with no data behind it: treat it as defaults to test, not facts.
 
+## Highlights da live: `scripts/clipe.py` (since 2026-11-11)
+
+The style is fcyacr's (`video-agent/styles/fcyacr/STYLE.md`, measured from the three reels Luan sent): one situation
+per short, played almost whole, his camera on top (1080×840) and the game's middle square below (1080×1080), hard
+cuts only to drop dead time, no captions on the plays, no effects, no sound effects, no music, the live's own sound
+at -15 LUFS. `scripts/roteiros/2026-11-09-bang-clipe.json` is the template ("quer que faça a bang? Puf!" on the big
+camera under the hook line, then Lotus' last round with the bang on the camera and in the game, VICTORY: two
+stretches, 42.7 s).
+
+- **The hook (Luan, 11-11, on the first test in this style):** "ficou bem melhor, áudio não tá desencontrado, ainda
+  não tá com o fator hook e não está exatamente chamando a atenção". What he asked: open on the gag itself with a
+  hook line over it ("Bangando de Phoenix IRL") while it plays, then cut to the play. So the stretches play in the
+  roteiro's order, not the live's (the payoff first, the play after it), and a stretch can carry `"texto"`: the line
+  in white Space Grotesk Bold 112 px with a dark outline, two balanced lines centred on the seam, from the first
+  frame (until `"texto_ate"` or the stretch's end). That is the one thing on screen that isn't the live's; the rest
+  of the style holds. The camera stays split, never whole-screen: his 720p camera cut to 9:16 is a soft face blown
+  up 2.7×.
+
+- **Sync: Live.mp4 is the clock.** Its picture and sound are in step (Luan checked the VOD; his lips against his
+  voice put it at -60 ms, the natural lead of the mouth over the sound, 2026-11-11). The Source Record files are
+  not: when OBS's audio buffering jumped ("Max audio buffering reached!", set off by the effects' trigger sources
+  playing a silent WAV; 11-09 and 11-10; fixed 11-11, see the `obs` skill and `antes-da-live`), their sound came
+  ~0.93 s late behind their own picture. So Jogo.mp4 is placed by the game's sound (`cortes.offset`) and then moved
+  by the game's picture (`cortes.picture_lag`), and Câmera.mkv likewise by the mic (`camera_sound`) and his head
+  (`camera_lag`). Never shift Live.mp4's picture. From 11-12 on the Source Record files should stay in step; the
+  picture match still runs and would show ~0.
+- **The mistake to not repeat (11-09 cuts):** I took Jogo.mp4 and Câmera.mkv as in step and Live.mp4 as late, and
+  shifted Live.mp4's picture by ~0.97 s, which put his face and the game ~1 s ahead of his voice in every cut. Luan
+  saw it three times. Check sync against a reference he can confirm (Live.mp4, the VOD, a clap), never against a
+  Source Record file, and verify the output: `clipe.py`'s output was checked frame by frame against Live.mp4 (camera,
+  game and sound at 0 ms).
+- **Camera:** in the game scenes the live's box is only 480×270, so the camera comes from Câmera.mkv (1280×720),
+  with the filter's costume, flash and fire laid over it from the box wherever the two differ (a difference mask);
+  his face stays sharp. The box's rank plate is kept out of the mask (`PLATE`). In the camera scenes (Conversa) the
+  live already has 1280×720 with the filter. A roteiro stretch says which (`"camera": "jogo" | "conversa"`); a camera
+  scene takes its part's game sync (the live shows neither the game's picture nor its sound there).
+- **Material to improve:** the filter only exists in the live's small box during games. Recording the Filtros
+  browser source at 1280×720 (Source Record on it, or a scene with camera + Filtros) would give the costume sharp
+  too. Luan's call.
+- **The markers first** (since 11-12): `scripts/momentos.py <date>` prints in Live.mp4's seconds what a live marks by
+  itself: OBS's log (Terapia, Lance ruim, Conversa, Fim, and each VAR save: Luan's own "chama o VAR", the clip also
+  in `Lives\<date>\VAR`), Rocket League's goals (his, the team's, theirs; overtime, aerial, long), his demolitions and
+  epic saves and each match's end from the dock's events, and the transcript's lines with a reaction or a filter's
+  word. The transcript and the events can be on the post-live branch only (`../muanlartins-live`): pass `--falas`
+  and `--eventos`. Then a sheet of single frames at the seconds you're weighing (what the camera shows: Conversa's
+  big camera with the filter, a cat, the Terapia) before the list. On 11-12 the Lance ruim scene was a celebration
+  (his winner, the promotion to Diamond 3, "shhh"), not a bad play.
+- **Lives in one piece** have no `partes.json` (videos.py writes it only when it joins pieces): `cortes.parts`
+  then takes each file's start from its name and its length from ffprobe, so the scripts work on them too.
+- **Finding the moments:** the transcript (`content/lives/<date>.transcript.json`) for his reactions ("meu Deus",
+  "que isso", lines in character); `scripts/valorant_kills.py <date>` for his kills in live time, from his entries
+  in the killfeed (his name on the killer's side; 18/18 and 19/19 on 11-09 after it stopped counting his deaths;
+  Valorant's kill banner varies by kill, so it doesn't work); `scripts/candidatos.py <date> --camera`, a scan of
+  Live.mp4's camera box at 10 fps for the filter's flash (warm glare over half the box for ~1.5 s), its fire (flat
+  orange) and the "Lance ruim"/Terapia scenes (the Pix QR gone): 92 flashes, 21 fires, 20 scenes on 11-09. The
+  glare and fire tests are Phoenix's: Sova (bow, Recon Bolt, owl) and the cars (Octane, Fennec, the ball, flips,
+  "explode a cabeça") don't show in them, so for those lives the transcript and `momentos.py` lead.
+- **Luan picks the moments before any edit** (11-11): a candidates reel cut raw from Live.mp4, numbered with a
+  one-line label each (`scripts/candidatos.py <date> lista.json` → `Videos\Shorts\candidatos\<date> live -
+  candidatos.mp4`), and the list in the message; he answers with numbers. Keep the list in
+  `~/.cache/muanlartins/edicao/candidatos-<date>.json` (the scratchpad dies with WSL) and each window a few seconds
+  before the play, so he sees what the reaction is about. His picks from 21 on 11-09: the bang in the
+  game and on the camera at once followed by a kill (40:03), the bang on the camera + in the game at Lotus' last
+  round (58:31), "quer que faça a bang?" on the big camera (59:17), the rage into the Terapia (73:04), and two kills in
+  a row into the zoomed camera (90:10). Shots alone and lines without a picture didn't make it: the highlight is a gag
+  he can see. In this style each pick that holds a whole situation is its own short (58:31 and 59:17 are one).
+- **Run:** write the roteiro (stretches in Live.mp4 seconds, from the transcript and the sheets), `clipe.py`, then
+  sheets of the output and the sync check against Live.mp4 before showing it.
+
+## Destaque da live: `scripts/destaque.py` (since 2026-11-12)
+
+The high-dopamine highlight: clipe.py's picture (his sharp camera with the filter's costume on top, the game's
+square below, Live.mp4 the clock) with the edit turned up. First one: "a bang do Phoenix",
+`scripts/roteiros/2026-11-09-phoenix.json` (the template; its docstring-like keys are in `destaque.py`'s header):
+Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 destaque - a bang do Phoenix.mp4`.
+
+- **Shape:** the hook first (the IRL bang, "Quer que faça a bang? Puf!", under the title "BANGANDO DE PHOENIX IRL"
+  slammed in on the game's half), then the moments in the live's order, each whole enough to read (2-5 s, a
+  stretch never chopped into beats): the bang in the game and on the camera at once and the kill, "olha o bang" and
+  the flash, VICTORY, the rage ("Ai, sai, sai, filha da… Perdão, perdão"), the Terapia, two kills, "shhh" in Lance
+  ruim, and "Watch your eyes" with the flash going white, which loops into the hook.
+- **Captions:** word by word on the seam (y 840), three words / 13 characters at most, never across a cut; Archivo
+  Black capitals 92 px (short-editing's fonts), black edge 9, soft shadow; the word being said pops in (132% → 100%
+  in 110 ms) gold with a fire glow, then stays white; `destaques` stay fire and 12% bigger. ASS, burnt by libass.
+  Whisper's words are pulled out of the mic's pauses (`edicao.snap`), words it put on one instant are spread over
+  the time they took, and `corrigir` / `palavras` fix what it heard wrong ("alabangip" was "olha o bang", the
+  "shhh" came out "A cidade no Brasil").
+- **Effects** (in short-editing's restraint, one emphasis per beat): a full-frame warm flash with a shake and a
+  zoom kick on each of the filter's flashes (it extends the camera's flash over the game); a white flash and a kick
+  on the game's half on each kill; slow pushes (1.1-1.3) into a reaction or a kill; a kick on "Perdão".
+- **Sound:** the live's mix at -20 dBFS with short-editing's `impact-boom` on the flashes, `riser` into the first
+  and the last, `zhhh` at the moment changes, edicao's `hit` on kills, `pop` on "Perdão", `ding` into the Terapia,
+  the stream's `uuuh` on "filha da…" and `palmas` on VICTORY, 7-18 dB under the voice. -15.2 LUFS, peak -2.6 dBFS.
+- **Sync, checked on the output** (camera, game and sound against Live.mp4 per stretch, 0 ms everywhere): a game
+  stretch's sync is measured over 24 s around it, never over itself (a 2 s stretch on VICTORY measured the game
+  83 ms off, 3 s of kills put the camera 67 ms off); the part's median sound offset and picture lag for every
+  stretch; the camera's lag per stretch. Every stretch is a whole number of frames (`-frames:v`): pieces cut by
+  seconds lost a frame here and there and the picture ended 0.13 s ahead of the sound.
+- **Camera composite** (clipe.py's `hd_camera`, shared): difference threshold 22 and a 12 px blur keep the
+  costume's dark hair whole over his own (38 and 5 left holes); the box's rank plate is zeroed after the blur
+  (`geq`) or it ghosts in at the top. The Terapia scene's box (64, 64, 560, 315) slides in for ~0.5 s: the
+  stretch takes only Câmera.mkv until it settles (`filtro_de`), under a white flash. Its page below is cropped
+  around "Respira." and the breathing circle, with the box covered by the page's own background from the right.
+- **Caches** are named by their recipe (a changed stretch or filter is a new file): never delete to redo; the
+  folder goes with the live's material once Luan approves the short.
+- **Any scene, any game (11-12, for the Sova and Diamante destaques):** the roteiro's `"jogo"` picks the game
+  scenes' camera box (Valorant's at (44, 44), Rocket League's at (44, 740)); a stretch's `"camera"` is the scene the
+  live showed (`jogo`, `conversa` for Conversa and Fim, `terapia`, `var`, `lance`) and its `"baixo"` the lower half:
+  `jogo` (Jogo.mp4's square), `palco` (the live's Klein with its lattice, for moments with no game: the
+  filters' showcase, a bit in Conversa, with `"rotulos"` naming what happens: "FLECHA DE CHOQUE", "BANG") or a part of
+  the live's screen `[x, y, w, h]` fitted in (the VAR's monitor `[64, 136, 1216, 684]` in Valorant's VAR scene, the VAR
+  panel `[1220, 28, 676, 668]` over Rocket League's game, the credits column `[1370, 60, 520, 1020]` in Fim). Every
+  camera but `lance` is now Câmera.mkv with the filter's costume over it, Conversa too (the live's own camera there is
+  the filter page's copy at ~22 new frames a second, Câmera.mkv ~27). Where a car or a costume hides his face the
+  camera's picture can't be matched (`camera_lag` quality ~0.01 all through 11-12's cars): the roteiro's best match
+  or `camera_lag` (0.017 s, measured clean in 11-11's VAR scene) stands in; Source Record is in step since OBS's fix.
+- **The cover** (11-12, Luan on the lives' new thumbnails: "ficaram excelentes... dá pra gente se inspirar pra thumb
+  do shorts também, no mesmo estilo"): `scripts/capa.py` draws it standing up, 1080×1920, with thumb.py's own pieces
+  (his cutout keyed off the camera's Klein, Branco outline, the blurred game, the hook's two lines with the second on
+  the plate, a Klein tag "DA LIVE · dd/mm", a rank's emblem glowing). The roteiro's `"capa"` object says the face's
+  second and source (`camera` = Câmera.mkv; `conversa` = the live's big camera, with the filter's costume), the
+  background's second and the hook; destaque.py calls it at the end (a plain number is still a frame of the short). A
+  blue car's face is keyed out with the background: no Octane covers. Same hooks rule as the thumbnails: two to four
+  words that say what happened.
+- **Whisper on short windows:** each stretch is heard alone, so words at its edges get lost or misheard; widen the
+  stretch by a few tenths, check `--palavras`, and fix with `trocas`/`corrigir`/`palavras` (corrigir keys are the
+  snapped starts, before words on one instant are spread). It also completes clichés the mic never had: 11-12's
+  "caramba, eu tenho um amigo [silence]" came out "…amigo no trânsito". Check the mic track (`0:a:1`) when a line
+  ends a bit.
+- **Verdict and what's next (11-12):** "ficou legal"; published as "Bangando de Phoenix IRL 💥 #Valorant"
+  (sL8qIIJ5tX8, Fri 11-13 12:00). He found the start "um pouco travado, mas isso é natural". Measured: not the light
+  (NVIDIA Broadcast's log has the C922 in and its output at a steady 30.0 fps through the live); Câmera.mkv has ~25-27
+  new frames a second, unevenly paced (OBS's capture drops a few), and with Phoenix on, the live's face is drawn by
+  the filter page, which ran ~17-18 fps during Valorant. The hook's `conversa` stretches crop Live.mp4, so they are the
+  choppiest part. Next time build `conversa` stretches with `hd_camera` too (Câmera.mkv under the filter's mask), as
+  the `jogo` stretches already are.
+- **One moment per short, ~40 s (Luan, 11-12, after the Sova and Diamante reels, 70 and 78 s with 8 moments
+  each):** "a gente tenta tenta e não fica muito bom... precisamos de algo menor". The ace's cut was "decente"; the
+  Rocket League ones were funny only because "o fim da frase sempre cortava", which made them confusing. Measured
+  after: 17 of the Diamante's 20 edges (11 of the Sova's) fell while his mic was at speech level; the ace held because
+  he was silent through it. His rules since: under a minute, about 40 s; sound and visual effects to grab attention
+  at the start (he wants them: "DEVE!"), then the stretches play whole; the transitions between stretches animated,
+  with sound; the shorts' outro ("acessa meu site") back at the end. The picks of that round became two shorts:
+  the ace (`2026-11-11-ace.json`: the five kills in three stretches, then, zoomed in, the Sova filter's showcase in
+  Conversa: the recon arrow drawn with his hands and "I am the hunter"; 11-13, Luan: the "mira mal afiada… vai ser
+  feio" joke after the ace "não fez muito sentido", and "o ace de sheriff é feio mas é um ace de sheriff"; then discarded: "o conteúdo não foi bom". Editing doesn't save a
+  weak moment: a play has to be good to watch on its own before it's worth a short) and the Diamante 3 game
+  (`2026-11-12-diamante-3.json`: "isso é o que um covarde faria, mas Luan Martins… tirei o cara do gol… se não tem
+  defensor, não tem defesa", the forfeit win, the "shhh" in Lance ruim, the promotion screen).
+- **Edges on the mic's pauses (`bordas`, since 11-12):** before anything else, every stretch's start moves back to
+  where his speech began and its end forward to where it stops (a pause is 0.25 s under edicao's -52 dBFS on the
+  mic track `0:a:1`; 0.2 s of quiet kept before, 0.3 s after, never within 0.1 s of the speech on the other side; up to 2.5 s). No pause near enough stops the run
+  ("cortes no meio da fala"): change the stretch, end it at an earlier pause, or join it to the next. `"seco": "de" |
+  "ate" | true` keeps an edge as written, for two stretches that follow each other in the live (a scene switch:
+  the forfeit win and Lance ruim) or a cut on the game alone. Put such a seam on the frame where Live.mp4 switches,
+  from a sheet of frames 0.05 s apart: OBS's log said 7375.6 for that Lance ruim, the picture switched at 7375.23
+  (a stretch past it showed the next scene's blue in the camera's box for a moment). It prints every edge it moved; `--palavras`
+  shows the words that came in with it.
+- **Transitions (since 11-12):** each stretch after the first comes in with its `"entrada"`: `whip` (default: the
+  frame swept left with motion blur, 0.12 s out and 0.2 s in, and a whoosh peaking on the cut), `zoom` (punched in
+  and out with a white flash, a short whoosh and a hit: into the punchline), `flash` (with a pop) or `seco`. They
+  sit on the whole frame, under the captions.
+- **The outro:** `Videos\Shorts\Partes\outro-editado.mp4` (montagem.py, 4.3 s) is joined after the short unless the
+  roteiro says `"outro": false`. The levelled sound is written whole (`som.wav`) before the join: muxed with the video
+  under `-shortest`, loudnorm's ~3 s lookahead was dropped and the last 3 s before the outro came out silent (11-12).
+  Check the end's level on every render with an outro.
+- **How editors cut (`pesquisa-cortes.md`, beside this file, researched 11-12 when Luan asked for "algo que te
+  ensine a fazer esses cortes"):** sourced rules with how strong each source is (little real data: Galloway's 5,400
+  Shorts, Hoyos's and Colin & Samir's analytics), a YAML block of defaults and the hard gates before showing anything.
+  Taken so far: edges on the mic (0.2 s before his speech, 0.3 s after, never within 0.1 s of the next), the
+  transition zoom at 1.2, frame 0 on the payoff (the Diamante short opens on "Diamante 3!" from the promotion
+  screen, 1.3 s, then the play from its start). Where it disagrees with Luan, Luan wins: it says no outro (Hoyos
+  cut one second off an ending and retention went 83% → 88%) and at most 3 designed transitions; he asked for the
+  outro back and for animated transitions. Its references (Tixinha, Cortes do Gaules, tarik, Lethamyr, ckeyz…)
+  were read from titles, never watched: measure one with the `steal` skill before copying it.
+- **Still open:** music (none yet); the outro's effect on retention once a few shorts have their numbers.
+
+**The effects-heavy edit (`scripts/cortes.py`, rejected 11-11):** five picks chopped into 14 stretches in 34 s,
+freezes, stamps, title cards, a sound effect on most beats, all ~1 s out of sync from the mistake above (its sync
+is fixed now: `camera` 0, `jogo` by picture). Luan: "cortes desconexos, sem noção, edição caótica, efeitos visuais
+cafonas, efeitos sonoros mais ou menos". It stays for a short that really calls for keyed zooms and effects, and
+only when he asks. Still true from that round: whisper gets names and slang wrong (TROCAS: loucão→Lucão,
+Palma→fama, InLabs→Aimlabs) and invents "Transcrição e Legendas por…" in silences; Windows ffmpeg's GPU decode
+shears frames when the crop width is odd.
+
 ## Publishing shorts (YouTube and Instagram)
 
 - **Schedule:** at most one or two a day, spread out; Luan approves the table first. No audience data behind it yet:
@@ -198,10 +407,15 @@ folklore with no data behind it: treat it as defaults to test, not facts.
   description with the site page of the subject, Twitch and the site, tags, `publish_at` ISO with -03:00), then
   `scripts/.venv/bin/python scripts/youtube.py video content/videos/<file>.json --dry-run`, then without
   `--dry-run`: it sets the metadata and schedules; YouTube publishes by itself.
-- **Instagram:** the Windows session with a browser schedules them in Meta Business Suite, Luan logged in. The
-  handoff is a file in `C:\Users\muanl\Downloads\handoff-instagram-<…>.md` (file, caption with "link na bio"
-  instead of URLs, date and time, "show Luan before confirming each one"), plus a one-line message Luan pastes in
-  that session. Same times as YouTube.
+- **Instagram:** scheduled in Meta Business Suite in Luan's own browser (Brave, signed in). Since 11-12 that needs
+  no handoff: from WSL, run the Windows Claude Code headless with only the Claude in Chrome tools,
+  `cd /mnt/c/Users/muanl && ./.local/bin/claude.exe -p --chrome --permission-mode bypassPermissions --tools ""
+  --output-format text "<task>"` (from a Windows folder; the permission mode lets it answer the extension's site
+  prompts as his interactive sessions do, and `--tools ""` leaves it nothing but the browser). Tell it to close the
+  tabs it opens and to **stop before the final button** (Agendar, Compartilhar, Publicar) and report; the click is
+  Luan's OK. Caption with "link na bio" instead of URLs, same times as YouTube. The same route reads YouTube Studio
+  (checked 11-12: the scheduled short, signed in). The old handoff files (`Downloads\handoff-instagram-<…>.md`,
+  `Videos\Shorts\prontos\para-postar.md`) hold the steps if a session in Windows does it instead.
 - If something here is missing, the long-running Claude session named `muanlartins` (see `ListAgents`) has the
   history of these routines: ask it with `SendMessage`, then write the answer here.
 

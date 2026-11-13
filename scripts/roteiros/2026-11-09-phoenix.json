@@ -1,0 +1,70 @@
+{
+  "live": "2026-11-09",
+  "nome": "a bang do Phoenix",
+  "post": "Bangando de Phoenix IRL 💥 #valorant #phoenix",
+  "trocas": {"bangue": "bang", "banque": "bang", "Dainer": "Dani", "Dainia": "Dani", "Dânia": "Dani"},
+  "destaques": ["bang", "puf", "vitória", "terapia", "respira", "perdão", "shhh", "eyes"],
+  "corrigir": [
+    [3561.41, "bang?"], [3561.86, ""],
+    [2408.30, "Uff,"], [2410.27, "BANG!"],
+    [3523.22, ""], [3523.89, ""],
+    [4403.55, "Respira."],
+    [5419.36, ""], [5419.39, ""], [5420.30, ""], [5420.79, ""]
+  ],
+  "palavras": [
+    [3523.85, 3523.98, "Olha"], [3523.98, 3524.05, "o"], [3524.05, 3524.26, "bang!"],
+    [4394.0, 4394.3, "Ai,"],
+    [5420.0, 5421.5, "Shhh…"]
+  ],
+  "trechos": [
+    {"de": 3561.0, "ate": 3565.0, "camera": "conversa"},
+    {"de": 2408.3, "ate": 2413.6, "camera": "jogo"},
+    {"de": 3522.7, "ate": 3527.2, "camera": "jogo"},
+    {"de": 3531.5, "ate": 3533.6, "camera": "jogo"},
+    {"de": 4393.7, "ate": 4398.9, "camera": "jogo"},
+    {"de": 4399.85, "ate": 4401.3, "camera": "terapia", "filtro_de": 0.5},
+    {"de": 4403.4, "ate": 4405.8, "camera": "terapia"},
+    {"de": 5413.6, "ate": 5416.6, "camera": "jogo"},
+    {"de": 5419.2, "ate": 5421.7, "camera": "lance"},
+    {"de": 3567.6, "ate": 3570.6, "camera": "conversa"}
+  ],
+  "capa": 3561.6,
+  "titulo": {"linhas": ["BANGANDO DE", "PHOENIX IRL"], "de": 3561.0, "ate": 3564.27},
+  "zoom": [
+    {"de": 3561.0, "ate": 3564.27, "onde": "camera", "z": 1.1},
+    {"de": 2410.9, "ate": 2412.93, "onde": "jogo", "z": 1.25},
+    {"de": 3523.0, "ate": 3525.97, "onde": "camera", "z": 1.12},
+    {"de": 3531.5, "ate": 3533.6, "onde": "jogo", "z": 1.15},
+    {"de": 4394.0, "ate": 4396.35, "onde": "camera", "z": 1.22},
+    {"de": 4403.4, "ate": 4405.8, "onde": "camera", "z": 1.1},
+    {"de": 5413.6, "ate": 5415.44, "onde": "jogo", "z": 1.3},
+    {"de": 3567.6, "ate": 3569.73, "onde": "camera", "z": 1.12}
+  ],
+  "impactos": [
+    {"em": 3564.27, "flash": "quente", "forca": 0.75, "tremor": 16, "chute": 0.07},
+    {"em": 2410.58, "flash": "quente", "forca": 0.5, "tremor": 12, "chute": 0.06},
+    {"em": 2412.93, "flash": "branco", "forca": 0.3, "tremor": 8, "chute": 0.09, "onde": "jogo"},
+    {"em": 3525.97, "flash": "quente", "forca": 0.5, "tremor": 12, "chute": 0.06},
+    {"em": 3531.7, "flash": "branco", "forca": 0.2, "chute": 0.07, "onde": "jogo"},
+    {"em": 4397.72, "tremor": 6, "chute": 0.08, "onde": "camera"},
+    {"em": 4399.85, "flash": "branco", "forca": 0.5},
+    {"em": 4400.35, "flash": "branco", "forca": 0.3, "chute": 0.04, "onde": "camera"},
+    {"em": 5415.44, "flash": "branco", "forca": 0.3, "tremor": 9, "chute": 0.09, "onde": "jogo"},
+    {"em": 5416.04, "flash": "branco", "forca": 0.3, "tremor": 9, "chute": 0.09, "onde": "jogo"},
+    {"em": 5419.2, "chute": 0.07, "onde": "camera"},
+    {"em": 5420.24, "chute": 0.07, "onde": "jogo"},
+    {"em": 3569.73, "flash": "quente", "forca": 0.85, "tremor": 16, "chute": 0.07}
+  ],
+  "sons": [
+    [3562.52, "zhhh", -16],
+    [3564.27, "riser", -18, "fim"], [3564.27, "impact-boom", -7],
+    [2410.58, "impact-boom", -9], [2412.93, "hit", -7],
+    [3522.7, "zhhh", -15], [3525.97, "impact-boom", -9],
+    [3532.0, "palmas", -16],
+    [4393.7, "zhhh", -15], [4396.3, "uuuh", -14], [4397.72, "pop", -12],
+    [4399.85, "ding", -14],
+    [5413.6, "zhhh", -15], [5415.44, "hit", -7], [5416.04, "hit", -7],
+    [5420.24, "hit", -10],
+    [3567.6, "zhhh", -15], [3569.73, "riser", -18, "fim"], [3569.73, "impact-boom", -6]
+  ]
+}
