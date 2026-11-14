@@ -127,6 +127,14 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "terapia-repaginada",
+    date: "2026-11-14",
+    tag: "live",
+    title: "A Terapia repaginada",
+    text: "A cena da Terapia ganhou cara nova: eu no meio de um círculo que respira junto com o guia (abre no inspira, fecha no solta), os passos da respiração de um lado e o chat do outro, e ela agora entra e sai numa onda de água no lugar daquele fade lento. Centralizada, cabe inteira num short vertical.",
+    media: [media("terapia-repaginada", "A nova cena da Terapia: Luan no meio do círculo de respiração, com os passos de um lado e o chat do outro", { video: true })],
+  },
+  {
     id: "carros-pintura",
     date: "2026-11-14",
     tag: "live",
