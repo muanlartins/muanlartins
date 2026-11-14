@@ -35,6 +35,7 @@ export const PEOPLE = {
   lucca_3098: { name: "lucca_3098", where: "twitch", login: "lucca_3098", url: "https://www.twitch.tv/lucca_3098" },
   jpmartins_1: { name: "jpmartins_1", where: "twitch", login: "jpmartins_1", url: "https://www.twitch.tv/jpmartins_1" },
   maxchadoz: { name: "maxchadoz", where: "twitch", login: "maxchadoz", url: "https://www.twitch.tv/maxchadoz" },
+  ccamara: { name: "ccamara", where: "twitch", login: "ccamara", url: "https://www.twitch.tv/ccamara" },
 } satisfies Record<string, Person>
 
 export type PersonId = keyof typeof PEOPLE
@@ -125,6 +126,25 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "carros-pintura",
+    date: "2026-11-14",
+    tag: "live",
+    title: "Pintura e decalque animado nos carros da câmera",
+    text: "O Octane e o Fennec na minha cabeça agora vêm laranja, pra não sumir no meu fundo azul, e dá pra trocar a cor e botar um decalque animado como os do jogo: chamas, neon, arco-íris ou listras.",
+    credit: { by: "ccamara" },
+    media: [
+      media("carros-pintura", "Luan com a cara de Octane: o azul de antes sumindo no fundo azul, e o laranja de agora"),
+      media("carros-decalques", "O Octane na cabeça do Luan com decalques animados: chamas, neon, arco-íris e listras"),
+    ],
+  },
+  {
+    id: "filtro-na-troca-de-cena",
+    date: "2026-11-14",
+    tag: "live",
+    title: "O filtro da câmera no lugar certo na troca de cena",
+    text: "Voltando da conversa pro jogo, o filtro aparecia por um instante grande no canto de cima antes de ir pra câmera. Agora cada cena já mostra ele no lugar dela durante a transição.",
+  },
   {
     id: "filtros-60fps",
     date: "2026-11-13",

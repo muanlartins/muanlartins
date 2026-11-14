@@ -6,8 +6,9 @@
     <!--
       The stream's camera filters, switched from the "Filtros" dock in OBS (filtros-painel.html), not by gestures.
       It opens the camera itself (NVIDIA Broadcast by default, ?cam=<part of the name> for another), tracks hands,
-      body and face with MediaPipe in the browser and draws the camera with the filter on top at 1920×1080
-      (browser sources need OBS started with --enable-media-stream to open a camera).
+      body and face with MediaPipe in the browser and draws the camera with the filter on top at 1280×720, the
+      camera's own size; in OBS each scene scales the source into its camera box (browser sources need OBS started
+      with --enable-media-stream to open a camera).
 
       The dock sends "muanlartins-filtro" through obs-browser's emit_event: { filtro: "<id>" } is the filter that
       should be on ("nenhum" for none; the dock repeats it every few seconds, so a reloaded page catches up), with
@@ -69,7 +70,10 @@
         Octane (key 8) and Fennec (key 9): his face as Rocket League's car, Pixar-style: the car sits on the head
               seen a little from above, turning with it, his own eyes on its windshield and his mouth on its
               bumper (cut from the camera, so it blinks and talks). The dock's Demolição blows it up as in a
-              demo and it respawns 2 s later (key D); Flip front-flips it (key F). Models by Jako (CC BY 4.0),
+              demo and it respawns 2 s later (key D); Flip front-flips it (key F). The dock paints both
+              (opcoes.cor: laranja by default, rosa, verde, branco, preto, dourado, roxo, azul) and puts an
+              animated decal on them (opcoes.decalque: chamas, neon, arcoiris, listras, nenhum); ?cor= and
+              ?decalque= in a browser. Models by Jako (CC BY 4.0),
               public/models/. ?carro=<cm across> (30), ?inclinacao=<degrees from above> (24),
               ?comprimento=<length kept, 0..1> (0.8), ?posicao=x,y,z (cm on the face) to tune.
       Kept here but off the dock (Luan, 2026-11-10: only Phoenix and the ball for now):
@@ -204,8 +208,9 @@
       import { createSfx } from "./sfx.js"
 
       const q = new URLSearchParams(location.search)
-      const W = 1920
-      const H = 1080
+      // The page's size: the camera's own (1280×720 at 60). In OBS each scene scales it into its camera box.
+      const W = 1280
+      const H = 720
       const MODELS = "https://storage.googleapis.com/mediapipe-models/"
       const hud = document.getElementById("hud")
       const titulo = document.getElementById("titulo")
@@ -215,38 +220,21 @@
         titulo.querySelectorAll("b")[0].textContent = a || ""
         titulo.querySelectorAll("b")[1].textContent = b || ""
       }
-      // In OBS the page is one full-screen source in every scene with the camera, just above it: it draws the camera
-      // with the filter exactly in that scene's camera box (positions from brand/twitch/obs.py) and stays clear
-      // while no filter is on; everything, the flash's glare too, stays in that box. Opened in a browser it fills the window
-      // with the camera. ?caixa=x,y,w,h forces a box (1920×1080 pixels).
+      // The page is the camera's box: the camera with the filter fills it, clear while no filter is on, and everything,
+      // the flash's glare too, stays in it. In OBS one source sits just above the camera in every scene that has it,
+      // placed and scaled over that scene's camera by the scene itself (brand/twitch/obs.py), so during a transition
+      // each scene shows it in its own place. (Until 2026-11-13 the page was full screen and moved its box when OBS
+      // said the scene changed, which OBS says only once the transition has ended: for a moment after the stinger the
+      // game scene showed the filter where the talk scene's camera is.) ?caixa=x,y,w,h draws it in a part of the page,
+      // in a 1920×1080 page's pixels (the Shorts collection's source has ?caixa=0,0,1920,1080: the whole page).
       const IN_OBS = !!window.obsstudio
-      const BOXES = {
-        "RL + chat": [44, 740, 480, 270],
-        "Valorant + chat": [44, 44, 480, 270],
-        Conversa: [64, 64, 1280, 720],
-        Fim: [64, 64, 1280, 720],
-        Terapia: [64, 64, 560, 315],
-      }
-      let box = q.get("caixa") ? q.get("caixa").split(",").map(Number) : IN_OBS ? null : [0, 0, 1920, 1080]
+      let box = q.get("caixa") ? q.get("caixa").split(",").map((v) => (Number(v) * W) / 1920) : [0, 0, W, H]
       let showing = true
-      let sceneName = ""
       if (!IN_OBS) document.body.classList.add("solo")
-      function setBox(b) {
-        box = b
+      {
         const c = document.getElementById("caixa")
-        c.style.display = b ? "block" : "none"
-        if (b) Object.assign(c.style, { left: `${(b[0] / 1920) * 100}%`, top: `${(b[1] / 1080) * 100}%`, width: `${(b[2] / 1920) * 100}%`, height: `${(b[3] / 1080) * 100}%` })
-      }
-      setBox(box)
-      if (IN_OBS && !q.get("caixa")) {
-        window.obsstudio.getCurrentScene?.((scene) => {
-          sceneName = scene?.name
-          setBox(BOXES[scene?.name] || null)
-        })
-        addEventListener("obsSceneChanged", (e) => {
-          sceneName = e.detail?.name
-          setBox(BOXES[e.detail?.name] || null)
-        })
+        const [bx, by, bw, bh] = box
+        Object.assign(c.style, { display: "block", left: `${(bx / W) * 100}%`, top: `${(by / H) * 100}%`, width: `${(bw / W) * 100}%`, height: `${(bh / H) * 100}%` })
       }
       // Off screen (a scene without it), it stops tracking and drawing.
       addEventListener("obsSourceActiveChanged", (e) => (showing = !!e.detail?.active))
@@ -2856,6 +2844,129 @@
         new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(c.url, (gltf) => buildCar(c, gltf.scene), undefined, (e) => fail(id, e))
       }
       const carList = Object.values(CARS)
+      // The paint (2026-11-13, ccamara's idea in the chat): the models come in the blue team's blue, which melts into
+      // the blue behind Luan, so they're painted orange by default, the other team's colour. The dock picks another
+      // (opcoes.cor, both cars) and an animated decal over it (opcoes.decalque), like the game's: ?cor= and
+      // ?decalque= in a browser. Colours are as the page draws them (no colour management here).
+      const CAR_PAINTS = {
+        laranja: [1, 0.26, 0.02, 0.35, 0.3],
+        rosa: [1, 0.2, 0.62, 0.3, 0.32],
+        verde: [0.42, 1, 0.12, 0.3, 0.32],
+        branco: [0.92, 0.94, 0.97, 0.2, 0.25],
+        preto: [0.035, 0.035, 0.045, 0.6, 0.22],
+        dourado: [1, 0.72, 0.18, 0.95, 0.22],
+        roxo: [0.5, 0.12, 1, 0.35, 0.3],
+        azul: [0.048, 0.131, 1, 0.3, 0.29],
+      }
+      // The decals, drawn by the paint's shader over the car's length (no UVs on the body to put a picture on).
+      const CAR_DECALS = { nenhum: 0, chamas: 1, neon: 2, arcoiris: 3, listras: 4 }
+      const carLook = { cor: CAR_PAINTS[q.get("cor")] ? q.get("cor") : "laranja", decalque: CAR_DECALS[q.get("decalque")] !== undefined ? q.get("decalque") : "nenhum" }
+      // The body's material with the decal in it: positions in the model's own space (x its length, nose at +x; y up),
+      // as 0..1 of its box, and the clock.
+      function paintable(c, o, box) {
+        const mat = o.material
+        const size = box.getSize(new THREE.Vector3())
+        const u = (c.paint = {
+          mat,
+          uDecal: { value: 0 },
+          uDecalT: { value: 0 },
+          uToModel: { value: o.matrixWorld.clone() },
+          uBoxMin: { value: box.min.clone() },
+          uBoxSize: { value: size },
+          // Fades a decal in and out when it changes.
+          uDecalAmt: { value: 0 },
+          want: 0,
+        })
+        mat.onBeforeCompile = (sh) => {
+          for (const k of ["uDecal", "uDecalT", "uToModel", "uBoxMin", "uBoxSize", "uDecalAmt"]) sh.uniforms[k] = u[k]
+          sh.vertexShader = sh.vertexShader
+            .replace("#include <common>", "#include <common>\nuniform mat4 uToModel;\nvarying vec3 vCar;")
+            .replace("#include <begin_vertex>", "#include <begin_vertex>\nvCar = (uToModel * vec4(position, 1.0)).xyz;")
+          sh.fragmentShader = sh.fragmentShader
+            .replace("#include <common>", "#include <common>\n" + DECAL_GLSL)
+            .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\ndecal(diffuseColor.rgb, totalEmissiveRadiance);")
+        }
+        mat.customProgramCacheKey = () => "carro-decalque"
+        mat.needsUpdate = true
+      }
+      const DECAL_GLSL = /* glsl */ `
+        uniform int uDecal;
+        uniform float uDecalT;
+        uniform float uDecalAmt;
+        uniform vec3 uBoxMin;
+        uniform vec3 uBoxSize;
+        varying vec3 vCar;
+        float dHash(float n) { return fract(sin(n) * 43758.5453); }
+        float dNoise(vec2 p) {
+          vec2 i = floor(p), f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          float n = i.x + i.y * 57.0;
+          return mix(mix(dHash(n), dHash(n + 1.0), f.x), mix(dHash(n + 57.0), dHash(n + 58.0), f.x), f.y);
+        }
+        vec3 dHue(float h) { return clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0); }
+        void decal(inout vec3 col, inout vec3 glow) {
+          if (uDecal == 0 || uDecalAmt <= 0.0) return;
+          vec3 p = (vCar - uBoxMin) / uBoxSize;
+          // From the nose back (0 at the nose), height, and across from the middle.
+          float back = 1.0 - p.x, up = p.y, side = abs(p.z - 0.5) * 2.0;
+          float t = uDecalT;
+          vec3 c = col, g = vec3(0.0);
+          if (uDecal == 1) {
+            // Hot rod flames from the nose, their tongues licking back and flickering, gold to red with a dark rim.
+            float y = up * 7.0 + side * 1.5;
+            float tongue = pow(abs(sin(y + dNoise(vec2(y * 0.7, t * 2.2)) * 2.0)), 2.5);
+            float len = 0.22 + 0.45 * tongue + 0.08 * sin(t * 9.0 + y * 3.0);
+            float k = back / len;
+            float fill = 1.0 - smoothstep(0.96, 1.0, k);
+            float rim = smoothstep(0.86, 0.92, k) * fill;
+            vec3 fire = mix(vec3(1.0, 0.78, 0.12), vec3(0.85, 0.08, 0.01), smoothstep(0.1, 0.8, k));
+            c = mix(c, mix(fire, vec3(0.06, 0.02, 0.02), rim), fill);
+            g = fire * fill * (1.0 - rim) * 0.1;
+          } else if (uDecal == 2) {
+            // Neon: two racing stripes over the top and a line along the sides, a pulse running nose to tail.
+            float stripes = smoothstep(0.075, 0.055, abs(side - 0.24)) * step(0.45, up);
+            float line = smoothstep(0.045, 0.025, abs(up - 0.38)) * step(0.7, side);
+            float lit = max(stripes, line);
+            float pulse = 0.55 + 0.45 * sin((back * 6.0 - t * 3.0) * 3.14159);
+            vec3 neon = vec3(0.2, 0.95, 1.0);
+            c = mix(c, neon, lit);
+            g = neon * lit * (0.6 + 1.6 * pulse * pulse);
+          } else if (uDecal == 3) {
+            // Rainbow: the colours flowing from the nose to the tail.
+            vec3 rb = dHue(fract(back * 1.1 + up * 0.35 - t * 0.35));
+            c = mix(c, rb, 0.85);
+            g = rb * 0.18;
+          } else if (uDecal == 4) {
+            // Diagonal stripes sliding back, the paint's own colour against white.
+            float s = fract((back * 9.0 + up * 4.0) - t * 1.2);
+            float band = smoothstep(0.45, 0.5, s) - smoothstep(0.95, 1.0, s);
+            c = mix(c, vec3(0.95), band * 0.9);
+          }
+          col = mix(col, c, uDecalAmt);
+          glow += g * uDecalAmt;
+        }
+      `
+      // The paint and decal now: eased towards what the dock wants.
+      function paintCars(dt) {
+        const [r, g, b, metal, rough] = CAR_PAINTS[carLook.cor]
+        const want = CAR_DECALS[carLook.decalque]
+        const k = 1 - Math.exp(-dt * 8)
+        for (const c of carList) {
+          const u = c.paint
+          if (!u) continue
+          u.mat.color.r += (r - u.mat.color.r) * k
+          u.mat.color.g += (g - u.mat.color.g) * k
+          u.mat.color.b += (b - u.mat.color.b) * k
+          u.mat.metalness += (metal - u.mat.metalness) * k
+          u.mat.roughness += (rough - u.mat.roughness) * k
+          // A new decal: the old one fades out, then the new one in.
+          if (u.uDecal.value !== want) {
+            u.uDecalAmt.value = Math.max(0, u.uDecalAmt.value - dt / 0.2)
+            if (u.uDecalAmt.value === 0) u.uDecal.value = want
+          } else u.uDecalAmt.value = Math.min(1, u.uDecalAmt.value + dt / 0.3)
+          u.uDecalT.value = performance.now() / 1000
+        }
+      }
       function buildCar(c, m) {
         roomEnv()
         m.updateMatrixWorld(true)
@@ -2869,6 +2980,9 @@
           if (/Window/.test(o.material.name)) Object.assign(o.material, { envMapIntensity: 0.25, roughness: 0.6, color: new THREE.Color(0x0b1020) })
         })
         const box = new THREE.Box3().setFromObject(m)
+        // The paint: the body's material (Octane_Body, Fennec_-_Body), its decal across the whole car's box.
+        const body = meshes.find((o) => /Body/.test(o.material.name))
+        if (body) paintable(c, body, box)
         const size = box.getSize(new THREE.Vector3())
         const center = box.getCenter(new THREE.Vector3())
         const inner = new THREE.Group()
@@ -2976,7 +3090,8 @@
         cut(mc[0], mc[1], mw, mw * 0.46, 0, 128, 512, 128)
         partsTex.needsUpdate = true
       }
-      function updateCars(now) {
+      function updateCars(now, dt) {
+        paintCars(dt)
         for (const c of carList) {
           c.group.visible = c.amt > 0 && c.ready
           if (!c.group.visible) continue
@@ -3213,6 +3328,9 @@
           sova.patrol.want = !!detail.opcoes.patrulha
           // The dock's "Sons" switch (on unless it says mudo).
           sfx.on = !detail.opcoes.mudo
+          // The cars' paint and decal.
+          if (CAR_PAINTS[detail.opcoes.cor]) carLook.cor = detail.opcoes.cor
+          if (CAR_DECALS[detail.opcoes.decalque] !== undefined) carLook.decalque = detail.opcoes.decalque
         }
         if (detail?.acao) acao(detail.acao)
       })
@@ -3679,11 +3797,11 @@
         const dt = Math.min(0.05, (now - last) / 1000)
         last = now
         const camReady = video.readyState >= 2 && video.videoWidth > 0
-        if (!showing || !box || !camReady) {
+        if (!showing || !camReady) {
           renderer.setScissorTest(false)
           renderer.setViewport(0, 0, W, H)
           renderer.clear()
-          hud.textContent = `parado: ${!showing ? "fonte fora da tela" : !box ? `sem caixa de câmera na cena "${sceneName}"` : "sem câmera"}` + (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
+          hud.textContent = `parado: ${!showing ? "fonte fora da tela" : "sem câmera"}` + (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
           return
         }
         const phoenix = AGENTS.phoenix.amt
@@ -3757,7 +3875,7 @@
         if (mode === "phoenix" || vfx.active()) updatePhoenix(now, dt)
         if (sovaOn) updateSova(now, dt)
         if (mode === "sage") updateSage(now, dt)
-        updateCars(now)
+        updateCars(now, dt)
         // Erasing his hair: around an agent's, or his whole head under a car (back while it's demolished).
         const carShown = Math.max(0, ...carList.map((c) => (c.group.visible ? c.shown : 0)))
         uniforms.uErase.value = headSeen && ERASE ? Math.max(agentAmt, carShown) : 0
