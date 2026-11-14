@@ -23,7 +23,11 @@
       party with the win dedicated. The dedication is drawn by Σ, flattened.
       ?jogo=valorant (the Valorant scene's source) tucks the stand away while a
       match is being played, where it would cover the HUD's abilities, and
-      brings it up for each round's end and between matches. What
+      brings it up for each round's end and between matches. ?jogo=diversos
+      (the scene for any other game, Diversos + chat) reacts to no game at all:
+      no goals, saves, rounds or matches, the Σ in the channel's own ranks
+      (Rocket League's, as the site shows them); the chat, the arrivals, the
+      captions and the VAR stay. What
       a viewer says in the chat shows in a balloon over their fan for a few
       seconds (three at most at once); they move their own fan with !pula,
       !danca, !ola. Each fan's look is their profile on the site (/perfil), or
@@ -531,8 +535,9 @@
       // OBS's source URL holds (#chave=…). The channel earns none and always stands in front.
       const SIGMA_API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
       const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
-      // The game on screen: Valorant's scene says so (?jogo=valorant); otherwise Rocket League.
-      const JOGO = params.get("jogo") === "valorant" ? "valorant" : "rocket-league"
+      // The game on screen: Valorant's scene says so (?jogo=valorant), and the one for any other game (?jogo=diversos);
+      // otherwise Rocket League.
+      const JOGO = ["valorant", "diversos"].includes(params.get("jogo")) ? params.get("jogo") : "rocket-league"
       const sigmas = new Map() // login → { sigma, minutos, lives, sequencia }
       const sigma = (login) => sigmas.get(login)?.sigma ?? 0
       let noArAte = 0
@@ -938,6 +943,9 @@
           recolher()
         },
       }
+      // Any other game (?jogo=diversos) has none of these moments: the docks still send Rocket League's and Valorant's
+      // to every stand, so this one lets them pass.
+      if (JOGO === "diversos") for (const tipo of ["gol", "defesa", "rodada", "partida", "fase"]) jogo[tipo] = () => {}
       addEventListener("muanlartins-torcida", ({ detail }) => jogo[detail?.tipo]?.(detail))
 
       // --- The VAR (efeitos.html sends its whole state with every change; var.html draws the booth) ----------
