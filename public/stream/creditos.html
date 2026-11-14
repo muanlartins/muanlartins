@@ -18,7 +18,7 @@
         dedications in the same storage) · Raid · Seguiram hoje · Inscritos · Presentearam subs · Bits (the Efeitos
         dock signed in to Twitch, "muanlartins-creditos") · Pix (the mural's, only who chose to be on it) · Primeira
         vez aqui · Na arquibancada (the Σ API's GET /live: who was in today's live, most minutes first) · Próxima live
-        (the agenda, the profile API's GET /agenda: the next live after today's, days off skipped) · and the closing
+        (the agenda, the profile API's GET /agenda: the next live after today's) · and the closing
         card, which stays.
       OBS's browser sources share this site's storage, so the stand's dedications and Valorant's day reach this page;
       the docks' storage is their own, so the Efeitos dock sends its part as an event (every 5 s, and right as Fim
@@ -691,10 +691,10 @@
       // --- The next live, from the agenda (its lives of the next two weeks, with dates) -------------------------
       const DIAS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
       const dataEm = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d)
-      /** The first live starting after now (today's, on air, is behind it), days off skipped. */
+      /** The first live starting after now (today's, on air, is behind it). */
       function proximaLive(agenda) {
         const agora = Date.now()
-        const p = agenda?.proximas?.find((o) => !o.folga && Date.parse(o.inicio) > agora)
+        const p = agenda?.proximas?.find((o) => Date.parse(o.inicio) > agora)
         if (!p) return null
         const hoje = dataEm(new Date())
         const dias = Math.round((Date.parse(`${p.data}T12:00:00Z`) - Date.parse(`${hoje}T12:00:00Z`)) / 86_400_000)
@@ -705,7 +705,7 @@
       /** Today's live by the agenda (on air, or the day's latest that started), for the title and the ranks' emblems. */
       function jogoDeHoje(agenda) {
         const hoje = dataEm(new Date())
-        const doDia = (agenda?.proximas ?? []).filter((o) => o.data === hoje && !o.folga && Date.parse(o.inicio) - 3600e3 <= Date.now())
+        const doDia = (agenda?.proximas ?? []).filter((o) => o.data === hoje && Date.parse(o.inicio) - 3600e3 <= Date.now())
         const o = doDia.at(-1)
         return o ? { game: o.jogo, name: o.nome } : null
       }
@@ -1011,8 +1011,8 @@
         const amanha = new Date(Date.now() + 86_400e3)
         dia.agenda = {
           proximas: [
-            { data: dataEm(new Date()), inicio: new Date(Date.now() - 2 * 3600e3).toISOString(), start: "14:30", jogo: "rocket-league", nome: "Rocket League", titulo: "Ranqueadas de Rocket League", folga: false },
-            { data: dataEm(amanha), inicio: amanha.toISOString(), start: "21:00", jogo: "valorant", nome: "Valorant", titulo: "Aprendendo Valorant", folga: false },
+            { data: dataEm(new Date()), inicio: new Date(Date.now() - 2 * 3600e3).toISOString(), start: "14:30", jogo: "rocket-league", nome: "Rocket League", titulo: "Ranqueadas de Rocket League" },
+            { data: dataEm(amanha), inicio: amanha.toISOString(), start: "21:00", jogo: "valorant", nome: "Valorant", titulo: "Aprendendo Valorant" },
           ],
         }
         setTimeout(montar, ESPERA_MS)

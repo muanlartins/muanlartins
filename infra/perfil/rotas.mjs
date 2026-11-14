@@ -102,7 +102,7 @@ export function rotas({ banco, usuario, chave }) {
         return {
           statusCode: 200,
           headers: { "content-type": "text/calendar; charset=utf-8", "cache-control": "public, max-age=300" },
-          body: ics(i?.agenda ?? { slots: [], extras: [], off: [], games: {} }, { nome: CALENDARIO, url: PAGINA_AGENDA }),
+          body: ics(i?.agenda ?? { slots: [], dates: {}, games: {} }, { nome: CALENDARIO, url: PAGINA_AGENDA }),
         }
       }
       const r = out(200, { agenda: i?.agenda ?? null, em: i?.em ?? null, proximas: i?.agenda ? ocorrencias(i.agenda, new Date(), 14) : [] })

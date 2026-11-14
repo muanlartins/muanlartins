@@ -64,9 +64,8 @@ export const channel = {
       now: { pt: "Agora, no horário da live", en: "Now, in stream hours" },
       today: { pt: "hoje", en: "today" },
       tomorrow: { pt: "amanhã", en: "tomorrow" },
-      /** A day with no live, and a weekly live that won't happen that day. */
+      /** A day with no live. */
       none: { pt: "sem live", en: "no stream" },
-      off: { pt: "folga", en: "day off" },
       empty: { pt: "Nenhuma live marcada nos próximos dias.", en: "No stream scheduled in the coming days." },
       unavailable: { pt: "Não deu para carregar a agenda agora.", en: "The schedule couldn't be loaded right now." },
       full: { pt: "Agenda completa", en: "Full schedule" },
@@ -107,14 +106,22 @@ export const channel = {
   },
 
   /** /canal/roadmap: what comes next and everything released, with credits. Its entries are in content/changelog.ts. */
-  /** /canal/agenda: the lives' calendar, which the channel's account edits right there. */
+  /** /canal/agenda: the lives' calendar, which the channel's account plans right there. */
   agenda: {
     title: { pt: "Agenda", en: "Schedule" },
     description: {
-      pt: "Quando são as lives e de qual jogo, nos próximos dias e toda semana.",
-      en: "When the streams are and of which game, in the coming days and every week.",
+      pt: "Quando é cada live, de qual jogo e o que vai rolar, dia a dia.",
+      en: "When each stream is, of which game and what's on, day by day.",
     },
-    weekly: { pt: "Toda semana", en: "Every week" },
+    weekly: { pt: "Normalmente", en: "Usually" },
+    weeklyHint: { pt: "Os dias ainda sem roteiro seguem esta semana.", en: "Days not planned yet follow this week." },
+    previous: { pt: "Mês anterior", en: "Previous month" },
+    next: { pt: "Próximo mês", en: "Next month" },
+    noLive: { pt: "Sem live neste dia.", en: "No stream this day." },
+    noLiveShort: { pt: "sem live", en: "no stream" },
+    planned: { pt: "Planejado", en: "Planned" },
+    upNext: { pt: "Próxima live", en: "Next stream" },
+    seeDay: { pt: "Ver o dia no calendário", en: "See the day on the calendar" },
   },
 
   roadmap: {

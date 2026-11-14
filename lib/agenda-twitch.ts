@@ -1,11 +1,12 @@
-import { planoTwitch } from "@/infra/comum/agenda.mjs"
+import { planoTwitch, SEMANAS_TWITCH } from "@/infra/comum/agenda.mjs"
 import type { Agenda } from "@/lib/agenda"
 import { TWITCH_CLIENT_ID } from "@/lib/profile"
 
 /**
  * The agenda on Twitch's own calendar, from the editor in Luan's browser with the channel's token (scope
  * `channel:manage:schedule`, the site's Twitch app): `planoTwitch` (infra/comum/agenda.mjs) says what to change and
- * this does it. Twitch's calendar only mirrors the agenda: a change made there is undone by the next save here.
+ * this does it, each live of the next eight weeks as a single segment. Twitch's calendar only mirrors the agenda: a
+ * change made there is undone by the next save here, and each save or visit to the editor moves the eight weeks on.
  */
 
 export const SCHEDULE_SCOPE = "channel:manage:schedule"
@@ -48,12 +49,12 @@ interface Segment {
   is_recurring: boolean
 }
 
-/** Three weeks of the calendar (a page holds 25 segments), enough to see each series' next occurrences. */
+/** The calendar as far as the agenda goes on it (a page holds 25 segments). */
 async function segments(token: string, broadcaster: string): Promise<Segment[]> {
   const all: Segment[] = []
-  const until = Date.now() + 22 * 86_400_000
+  const until = Date.now() + (SEMANAS_TWITCH + 1) * 7 * 86_400_000
   let cursor = ""
-  for (let page = 0; page < 8; page++) {
+  for (let page = 0; page < 20; page++) {
     const body = await helix(token, "GET", `schedule?broadcaster_id=${broadcaster}&first=25${cursor ? `&after=${cursor}` : ""}`)
     const found: Segment[] = body?.data?.segments ?? []
     all.push(...found)
@@ -65,10 +66,9 @@ async function segments(token: string, broadcaster: string): Promise<Segment[]> 
 
 export interface SyncReport {
   done: string[]
-  waiting: string[]
 }
 
-/** Puts the agenda on Twitch's calendar; `step` hears each change as it's made. */
+/** Puts the agenda's next eight weeks on Twitch's calendar; `step` hears each change as it's made. */
 export async function syncTwitch(agenda: Agenda, token: string, step: (line: string) => void = () => {}): Promise<SyncReport> {
   const me = await whoIs(token)
   if (!me || !me.scopes.includes(SCHEDULE_SCOPE)) throw new MissingScope()
@@ -78,16 +78,10 @@ export async function syncTwitch(agenda: Agenda, token: string, step: (line: str
     await call()
     done.push(line)
   }
-  let plan = planoTwitch(agenda, await segments(token, me.id), new Date())
+  const plan = planoTwitch(agenda, await segments(token, me.id), new Date())
   for (const { id, rotulo } of plan.remove) await run(`removeu ${rotulo}`, () => helix(token, "DELETE", `schedule/segment?broadcaster_id=${me.id}&id=${encodeURIComponent(id)}`))
   for (const { corpo, rotulo } of plan.cria) await run(`criou ${rotulo}`, () => helix(token, "POST", `schedule/segment?broadcaster_id=${me.id}`, corpo))
-  // What was just created can have a day off on its first week.
-  if (plan.cria.length) plan = planoTwitch(agenda, await segments(token, me.id), new Date())
-  for (const { id, rotulo } of plan.cancela)
-    await run(`cancelou ${rotulo}`, () => helix(token, "PATCH", `schedule/segment?broadcaster_id=${me.id}&id=${encodeURIComponent(id)}`, { is_canceled: true }))
-  for (const { id, rotulo } of plan.retoma)
-    await run(`retomou ${rotulo}`, () => helix(token, "PATCH", `schedule/segment?broadcaster_id=${me.id}&id=${encodeURIComponent(id)}`, { is_canceled: false }))
-  return { done, waiting: plan.pendentes }
+  return { done }
 }
 
 export interface Category {

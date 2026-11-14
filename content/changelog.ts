@@ -143,12 +143,12 @@ export const SHIPPED: Shipped[] = [
     id: "agenda-editavel",
     date: "2026-11-13",
     tag: "site",
-    title: "A agenda que eu mesmo edito",
-    text: "Agora eu mudo a agenda das lives direto no site: o horário e o título de cada jogo, fins de semana, lives avulsas e folgas. O site mostra os próximos 7 dias com data, o calendário da Twitch muda junto e a live já abre com o título e a categoria certos.",
+    title: "A agenda das lives, dia a dia",
+    text: "A agenda virou um calendário que eu planejo dia a dia no site: cada live com horário, jogo, título e o roteiro do que vai rolar, e o fim de semana detalhado. O calendário da Twitch muda junto e a live já abre com o título e a categoria certos.",
     href: "/canal/agenda",
     media: [
-      media("agenda-editavel", "A agenda no site: os próximos 7 dias com data, a próxima live e o que tem toda semana"),
-      media("agenda-editavel-editor", "O editor da agenda: os horários de cada jogo, lives avulsas, folgas e os jogos"),
+      media("agenda-editavel", "A agenda no site: o calendário do mês e o dia escolhido com o roteiro de cada live"),
+      media("agenda-editavel-editor", "Planejando um dia na agenda: as lives, o título e o roteiro de cada uma"),
     ],
   },
   {

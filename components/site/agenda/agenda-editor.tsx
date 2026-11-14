@@ -1,78 +1,77 @@
 "use client"
 
-import { CalendarOff, Check, LoaderCircle, Plus, RefreshCw, Search, Trash2, TriangleAlert } from "lucide-react"
-import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { CalendarOff, Check, Copy, Eye, LoaderCircle, Plus, RefreshCw, RotateCcw, Search, Trash2, TriangleAlert, X } from "lucide-react"
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useAgenda } from "@/components/site/agenda/agenda-context"
+import { Calendar, showDay } from "@/components/site/agenda/calendar"
 import { gameName, useNow } from "@/components/site/lives/agenda"
-import { dataEm, diaDaSemana, limpar } from "@/infra/comum/agenda.mjs"
-import { AGENDA_URL, clock, dayMonth, occurrences, weekdayOf, WEEKDAYS, type Agenda, type Extra, type Slot } from "@/lib/agenda"
-import { MissingScope, SCHEDULE_SCOPE, searchCategories, syncTwitch, whoIs, type Category, type TwitchUser } from "@/lib/agenda-twitch"
+import { dataEm, dia, limpar, somaDias } from "@/infra/comum/agenda.mjs"
+import { AGENDA_URL, dayMonth, longDay, weekdayOf, WEEKDAYS, type Agenda, type PlannedDay, type PlannedLive, type Slot } from "@/lib/agenda"
+import { MissingScope, SCHEDULE_SCOPE, searchCategories, syncTwitch, type Category, type SyncReport, type TwitchUser } from "@/lib/agenda-twitch"
 import { channelPath } from "@/lib/channel"
-import { keptToken, signIn } from "@/lib/profile"
+import { signIn } from "@/lib/profile"
 import { localize } from "@/lib/site"
-import { CHANNEL } from "@/lib/twitch"
 
 const T = localize({
-  edit: { pt: "Editar a agenda (conta do canal)", en: "Edit the schedule (the channel's account)" },
-  title: { pt: "Editar a agenda", en: "Edit the schedule" },
   intro: {
-    pt: "O que você salvar aqui aparece no site na hora e vai para o calendário da Twitch junto. O título e a categoria de cada live também abrem a live na Twitch.",
-    en: "What you save here shows on the site at once and goes to Twitch's calendar too. Each stream's title and category also open it on Twitch.",
+    pt: "Clique num dia para planejar: as lives, o roteiro de cada uma e uma nota. Os dias que você não planejar seguem a semana padrão. Salvar muda o site na hora e o calendário da Twitch junto, e o título e a categoria de cada live também abrem a live na Twitch.",
+    en: "Click a day to plan it: its streams, each one's run of the show and a note. Days you don't plan follow the usual week. Saving changes the site at once and Twitch's calendar too, and each stream's title and category also open it on Twitch.",
   },
-  notChannel: { pt: "Só a conta do canal edita a agenda.", en: "Only the channel's account edits the schedule." },
   connect: { pt: "Conectar o calendário da Twitch", en: "Connect Twitch's calendar" },
+  connectNote: { pt: "Sem isso, salvar muda só o site.", en: "Without it, saving changes only the site." },
   localApi: { pt: "API local: salvar não mexe no calendário da Twitch.", en: "Local API: saving leaves Twitch's calendar alone." },
-  connectNote: {
-    pt: "Sem isso, salvar muda só o site.",
-    en: "Without it, saving changes only the site.",
+  planned: { pt: "Planejado", en: "Planned" },
+  fromWeek: { pt: "Segue a semana padrão", en: "Follows the usual week" },
+  fromWeekHint: { pt: "Qualquer mudança aqui planeja este dia.", en: "Any change here plans this day." },
+  note: { pt: "Nota do dia (opcional): folga, viagem, fim de semana de torneio…", en: "The day's note (optional)" },
+  addLive: { pt: "Adicionar live", en: "Add a stream" },
+  dayOff: { pt: "Sem live neste dia", en: "No stream this day" },
+  reset: { pt: "Voltar à semana padrão", en: "Back to the usual week" },
+  repeat: { pt: "Repetir em", en: "Repeat on" },
+  repeated: { pt: "Copiado para", en: "Copied to" },
+  noLives: { pt: "Sem live neste dia.", en: "No stream this day." },
+  title: { pt: "Título (padrão do jogo)", en: "Title (the game's default)" },
+  plan: { pt: "Roteiro", en: "Run of the show" },
+  planText: { pt: "O que vai rolar", en: "What's on" },
+  planTime: { pt: "Horário (opcional)", en: "Time (optional)" },
+  addItem: { pt: "Adicionar tópico", en: "Add a step" },
+  week: { pt: "Semana padrão", en: "The usual week" },
+  weekHint: {
+    pt: "Preenche os dias que você ainda não planejou. Um horário por jogo; fim de semana também.",
+    en: "Fills the days you haven't planned yet. A slot per game; weekends too.",
   },
-  weekly: { pt: "Toda semana", en: "Every week" },
-  weeklyHint: { pt: "Um horário para cada jogo; fim de semana também.", en: "A slot per game; weekends too." },
   addSlot: { pt: "Adicionar horário", en: "Add a slot" },
-  extras: { pt: "Lives avulsas", en: "One-off streams" },
-  extrasHint: { pt: "Uma live num dia só, fora da semana (um sábado, um especial).", en: "A stream on one day only, outside the week." },
-  addExtra: { pt: "Adicionar live avulsa", en: "Add a one-off stream" },
-  off: { pt: "Folgas", en: "Days off" },
-  offHint: { pt: "Marque a live que não vai ter. Próximas três semanas.", en: "Mark a stream that won't happen. Next three weeks." },
-  noWeekly: { pt: "Nenhuma live semanal nessas semanas.", en: "No weekly stream in these weeks." },
   games: { pt: "Jogos", en: "Games" },
-  gamesHint: {
-    pt: "A categoria da Twitch de cada jogo e o título padrão das lives dele.",
-    en: "Each game's Twitch category and its streams' default title.",
-  },
+  gamesHint: { pt: "A categoria da Twitch de cada jogo e o título padrão das lives dele.", en: "Each game's Twitch category and its streams' default title." },
   searchGame: { pt: "Buscar categoria na Twitch", en: "Search a Twitch category" },
-  titlePlaceholder: { pt: "Título (padrão do jogo)", en: "Title (the game's default)" },
   defaultTitle: { pt: "Título padrão", en: "Default title" },
+  inUse: { pt: "em uso", en: "in use" },
   noDays: { pt: "Escolha pelo menos um dia.", en: "Pick at least one day." },
   sameTimes: { pt: "Início e fim iguais.", en: "Same start and end." },
-  inUse: { pt: "em uso", en: "in use" },
+  pastMidnight: { pt: "termina no dia seguinte", en: "ends the next day" },
   remove: { pt: "Remover", en: "Remove" },
   save: { pt: "Salvar", en: "Save" },
   discard: { pt: "Desfazer", en: "Discard" },
+  preview: { pt: "Ver como visitante", en: "See it as a visitor" },
   saved: { pt: "Salvo no site.", en: "Saved on the site." },
-  resync: { pt: "Sincronizar a Twitch de novo", en: "Sync Twitch again" },
+  resync: { pt: "Sincronizar a Twitch", en: "Sync Twitch" },
+  syncing: { pt: "Atualizando a Twitch…", en: "Updating Twitch…" },
   twitchDone: { pt: "Twitch atualizada", en: "Twitch updated" },
   twitchSame: { pt: "A Twitch já estava igual.", en: "Twitch already matched." },
-  waiting: {
-    pt: "A Twitch só cancela a próxima live de cada horário. Estas folgas entram lá quando chegar a vez (é só sincronizar de novo naquela semana):",
-    en: "Twitch cancels only each slot's next stream. These days off go there when their turn comes (sync again that week):",
-  },
+  created: { pt: "criadas", en: "created" },
+  removed: { pt: "removidas", en: "removed" },
+  details: { pt: "detalhes", en: "details" },
   signInAgain: { pt: "A Twitch pediu para entrar de novo.", en: "Twitch asked to sign in again." },
-  pastMidnight: { pt: "termina no dia seguinte", en: "ends the next day" },
 })
 
 // A local stand-in of the API (NEXT_PUBLIC_PROFILE_API on localhost) never touches the real Twitch calendar.
 const LOCAL_API = /^http:\/\/(localhost|127\.)/.test(AGENDA_URL)
 
 const field = "rounded-sm border border-line bg-paper px-2.5 py-1.5 text-[15px] text-ink"
-const EMPTY: Agenda = { timeZone: "America/Sao_Paulo", slots: [], extras: [], off: [], games: {} }
+const EMPTY: Agenda = { timeZone: "America/Sao_Paulo", slots: [], dates: {}, games: {} }
 
-/** What saving would send: the shape the API keeps, without days off that no slot has anymore. */
-function cleaned(agenda: Agenda, today: string): Agenda {
-  const clean = limpar(agenda, today) as Agenda
-  clean.off = clean.off.filter((o) => clean.slots.some((s) => s.start === o.start && s.days.includes(diaDaSemana(o.date))))
-  return clean
-}
+/** What saving would send: the shape the API keeps. */
+const cleaned = (agenda: Agenda, today: string) => limpar(agenda, today) as Agenda
 
 const slug = (name: string) =>
   name
@@ -86,76 +85,74 @@ const slug = (name: string) =>
 type Status =
   | { kind: "idle" }
   | { kind: "saving" }
-  | { kind: "syncing"; lines: string[] }
-  | { kind: "done"; lines: string[]; waiting: string[]; twitch: boolean }
+  | { kind: "syncing"; line: string }
+  | { kind: "done"; saved: boolean; report: SyncReport | null }
   | { kind: "error"; message: string }
 
 /**
- * The agenda's editor, for the channel's account only (signed in with Twitch, which the profile API checks): weekly
- * slots (days, times, game, title), one-off streams, days off and the games. Saving puts it in the API, then on
- * Twitch's calendar (`lib/agenda-twitch.ts`) when the sign-in carries `channel:manage:schedule`.
+ * The agenda's editor, for the channel's account (signed in with Twitch, which the profile API checks): the month as a
+ * calendar, a day picked to plan (its lives with time, game, title and run of the show, and a note), the usual week
+ * that fills the days not planned, and the games. Saving puts it in the API, then on Twitch's calendar
+ * (`lib/agenda-twitch.ts`) when the sign-in carries `channel:manage:schedule`; opening it brings Twitch up to date too.
  */
-export function AgendaEditor() {
+export function AgendaEditor({ token, me, onPreview }: { token: string; me: TwitchUser; onPreview: () => void }) {
   const { agenda, fresh, replace } = useAgenda()
   const now = useNow()
-  // Null while prerendering; nothing is drawn until Twitch says who it is anyway.
-  const [token] = useState(keptToken)
-  const [me, setMe] = useState<TwitchUser | null | undefined>(undefined)
   // What's being edited, over the API's agenda; null when nothing changed.
   const [edited, setEdited] = useState<Agenda | null>(null)
+  const [month, setMonth] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string | null>(null)
+  const [copied, setCopied] = useState("")
   const [status, setStatus] = useState<Status>({ kind: "idle" })
+  const synced = useRef(false)
 
-  useEffect(() => {
-    let live = true
-    ;(token ? whoIs(token) : Promise.resolve(null)).then((found) => live && setMe(found))
-    return () => {
-      live = false
-    }
-  }, [token])
-
-  const channel = me?.login === CHANNEL
+  const canSync = me.scopes.includes(SCHEDULE_SCOPE) && !LOCAL_API
   const draft = edited ?? (fresh ? (agenda ?? EMPTY) : null)
-
   const today = now ? dataEm(now) : ""
   const base = useMemo(() => (agenda && today ? JSON.stringify(cleaned(agenda, today)) : ""), [agenda, today])
   const next = useMemo(() => (draft && today ? cleaned(draft, today) : null), [draft, today])
   const dirty = Boolean(next && JSON.stringify(next) !== base)
-  const problems = draft ? [...draft.slots, ...draft.extras].some((s) => s.start === s.end || ("days" in s && !s.days.length)) : false
+  const problems = draft
+    ? draft.slots.some((s) => s.start === s.end || !s.days.length) || Object.values(draft.dates).some((d) => d.lives.some((l) => l.start === l.end))
+    : false
   const busy = status.kind === "saving" || status.kind === "syncing"
 
-  if (me === undefined) return null
-  if (!channel) {
-    return (
-      <div className="mt-16 border-t border-line pt-4 text-[13px] text-muted">
-        {me ? (
-          T.notChannel
-        ) : (
-          <button onClick={() => signIn(null, channelPath("agenda"), SCHEDULE_SCOPE)} className="underline underline-offset-2 hover:text-klein">
-            {T.edit}
-          </button>
-        )}
-      </div>
-    )
-  }
-
-  const canSync = me!.scopes.includes(SCHEDULE_SCOPE) && !LOCAL_API
-  const set = (patch: Partial<Agenda>) => draft && setEdited({ ...draft, ...patch })
-  const gameIds = draft ? Object.keys(draft.games) : []
-
-  async function sync(saved: Agenda) {
-    if (!canSync || !token) return setStatus({ kind: "done", lines: [], waiting: [], twitch: false })
-    const lines: string[] = []
-    setStatus({ kind: "syncing", lines })
+  async function sync(saved: Agenda, after: boolean) {
+    if (!canSync) return setStatus({ kind: "done", saved: after, report: null })
+    setStatus({ kind: "syncing", line: T.syncing })
     try {
-      const report = await syncTwitch(saved, token, (line) => setStatus({ kind: "syncing", lines: [...lines, line] }))
-      setStatus({ kind: "done", lines: report.done, waiting: report.waiting, twitch: true })
+      const report = await syncTwitch(saved, token, (line) => setStatus({ kind: "syncing", line }))
+      setStatus(after || report.done.length ? { kind: "done", saved: after, report } : { kind: "idle" })
     } catch (error) {
       setStatus({ kind: "error", message: error instanceof MissingScope ? T.signInAgain : String(error) })
     }
   }
 
+  // Opening the editor moves Twitch's eight weeks on, quietly when nothing changes.
+  useEffect(() => {
+    if (synced.current || !canSync || !fresh || !agenda) return
+    synced.current = true
+    sync(agenda, false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canSync, fresh, agenda])
+
+  if (!draft || !now) return <LoaderCircle className="h-5 w-5 animate-spin text-muted" />
+
+  const picked = selected ?? today
+  const set = (patch: Partial<Agenda>) => setEdited({ ...draft, ...patch })
+  const gameIds = Object.keys(draft.games)
+  /** A day's plan as it stands, planned or from the usual week. */
+  const planOf = (date: string): PlannedDay => draft.dates[date] ?? { lives: (dia(draft, date).lives as PlannedLive[]).map((l) => ({ ...l })) }
+  const setDay = (date: string, day: PlannedDay | null) => {
+    const dates = { ...draft.dates }
+    if (day) dates[date] = day
+    else delete dates[date]
+    set({ dates })
+    setCopied("")
+  }
+
   async function save() {
-    if (!next || !token) return
+    if (!next) return
     setStatus({ kind: "saving" })
     const response = await fetch(AGENDA_URL, {
       method: "PUT",
@@ -169,16 +166,15 @@ export function AgendaEditor() {
     const { agenda: saved } = await response.json()
     replace(saved)
     setEdited(null)
-    await sync(saved)
+    await sync(saved, true)
   }
 
   return (
-    <section className="mt-16 border-t border-line pt-10">
-      <h2 className="text-2xl font-medium tracking-[-0.02em] text-klein">{T.title}</h2>
-      <p className="mt-2 max-w-[38rem] text-[15px] leading-[1.6] text-muted">{T.intro}</p>
-      {LOCAL_API && <p className="mt-4 text-[14px] font-medium text-klein">{T.localApi}</p>}
+    <section>
+      <p className="max-w-[40rem] text-[15px] leading-[1.6] text-muted">{T.intro}</p>
+      {LOCAL_API && <p className="mt-3 text-[14px] font-medium text-klein">{T.localApi}</p>}
       {!canSync && !LOCAL_API && (
-        <p className="mt-4 flex flex-wrap items-center gap-3 text-[14px]">
+        <p className="mt-3 flex flex-wrap items-center gap-3 text-[14px]">
           <button onClick={() => signIn(null, channelPath("agenda"), SCHEDULE_SCOPE)} className="rounded-sm bg-[#9146ff] px-3 py-1.5 font-medium text-white hover:opacity-90">
             {T.connect}
           </button>
@@ -186,94 +182,259 @@ export function AgendaEditor() {
         </p>
       )}
 
-      {!draft || !now ? (
-        <LoaderCircle className="mt-8 h-5 w-5 animate-spin text-muted" />
-      ) : (
-        <>
-          <Group title={T.weekly} hint={T.weeklyHint}>
-            {draft.slots.map((slot, index) => (
-              <SlotRow
-                key={index}
-                slot={slot}
-                agenda={draft}
-                onChange={(patch) => set({ slots: draft.slots.map((s, i) => (i === index ? { ...s, ...patch } : s)) })}
-                onRemove={() => set({ slots: draft.slots.filter((_, i) => i !== index) })}
-              />
-            ))}
-            <AddButton disabled={!gameIds.length} onClick={() => set({ slots: [...draft.slots, { days: [6], start: "15:00", end: "17:00", game: gameIds[0] }] })}>
-              {T.addSlot}
-            </AddButton>
-          </Group>
+      <div className="mt-8">
+        <Calendar
+          agenda={draft}
+          today={today}
+          month={month ?? today.slice(0, 7)}
+          onMonth={setMonth}
+          selected={picked}
+          onSelect={(date) => (setSelected(date), setCopied(""), showDay())}
+          editing
+        />
+      </div>
 
-          <Group title={T.extras} hint={T.extrasHint}>
-            {draft.extras.map((extra, index) => (
-              <SlotRow
-                key={index}
-                slot={extra}
-                agenda={draft}
-                today={today}
-                onChange={(patch) => set({ extras: draft.extras.map((e, i) => (i === index ? { ...e, ...patch } : e)) })}
-                onRemove={() => set({ extras: draft.extras.filter((_, i) => i !== index) })}
-              />
-            ))}
-            <AddButton
-              disabled={!gameIds.length}
-              onClick={() => set({ extras: [...draft.extras, { date: nextSaturday(today), start: "15:00", end: "17:00", game: gameIds[0] }] })}
-            >
-              {T.addExtra}
-            </AddButton>
-          </Group>
+      <DayEditor
+        agenda={draft}
+        date={picked}
+        planned={Boolean(draft.dates[picked])}
+        day={planOf(picked)}
+        copied={copied}
+        onChange={(day) => setDay(picked, day)}
+        onReset={() => setDay(picked, null)}
+        onRepeat={() => {
+          const target = somaDias(picked, 7)
+          setDay(target, structuredClone(planOf(picked)))
+          setCopied(target)
+        }}
+      />
 
-          <Group title={T.off} hint={T.offHint}>
-            <DaysOff agenda={draft} now={now} onChange={(off) => set({ off })} />
-          </Group>
+      <Fold title={T.week} hint={T.weekHint}>
+        {draft.slots.map((slot, index) => (
+          <SlotRow
+            key={index}
+            slot={slot}
+            agenda={draft}
+            onChange={(patch) => set({ slots: draft.slots.map((s, i) => (i === index ? { ...s, ...patch } : s)) })}
+            onRemove={() => set({ slots: draft.slots.filter((_, i) => i !== index) })}
+          />
+        ))}
+        <AddButton disabled={!gameIds.length} onClick={() => set({ slots: [...draft.slots, { days: [6], start: "15:00", end: "17:00", game: gameIds[0] }] })}>
+          {T.addSlot}
+        </AddButton>
+      </Fold>
 
-          <Group title={T.games} hint={T.gamesHint}>
-            <Games agenda={draft} token={token!} onChange={(games) => set({ games })} />
-          </Group>
+      <Fold title={T.games} hint={T.gamesHint}>
+        <Games agenda={draft} token={token} onChange={(games) => set({ games })} />
+      </Fold>
 
-          <div className="sticky bottom-4 mt-10 flex flex-wrap items-center gap-3 rounded-md border border-line bg-paper/95 p-3 backdrop-blur-sm">
-            <button
-              onClick={save}
-              disabled={!dirty || problems || busy}
-              className="inline-flex items-center gap-2 rounded-md bg-klein px-4 py-2 text-[15px] font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-40"
-            >
-              {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-              {T.save}
-            </button>
-            {dirty && !busy && (
-              <button onClick={() => setEdited(null)} className="text-[14px] text-muted underline underline-offset-2 hover:text-klein">
-                {T.discard}
-              </button>
-            )}
-            {!dirty && !busy && canSync && agenda && (
-              <button onClick={() => sync(agenda)} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
-                <RefreshCw className="h-3.5 w-3.5" />
-                {T.resync}
-              </button>
-            )}
-            <Report status={status} />
-          </div>
-        </>
-      )}
+      <div className="sticky bottom-4 z-10 mt-10 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border border-line bg-paper/95 p-3 backdrop-blur-sm">
+        <button
+          onClick={save}
+          disabled={!dirty || problems || busy}
+          className="inline-flex items-center gap-2 rounded-md bg-klein px-4 py-2 text-[15px] font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-40"
+        >
+          {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          {T.save}
+        </button>
+        {dirty && !busy && (
+          <button onClick={() => (setEdited(null), setCopied(""))} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
+            <RotateCcw className="h-3.5 w-3.5" />
+            {T.discard}
+          </button>
+        )}
+        {!dirty && !busy && canSync && agenda && (
+          <button onClick={() => sync(agenda, false)} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
+            <RefreshCw className="h-3.5 w-3.5" />
+            {T.resync}
+          </button>
+        )}
+        <button onClick={onPreview} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
+          <Eye className="h-3.5 w-3.5" />
+          {T.preview}
+        </button>
+        <Report status={status} />
+      </div>
     </section>
   )
 }
 
-function nextSaturday(today: string) {
-  const day = new Date(`${today}T12:00:00Z`)
-  do day.setUTCDate(day.getUTCDate() + 1)
-  while (day.getUTCDay() !== 6)
-  return day.toISOString().slice(0, 10)
+/** The day picked: its note, its lives, and what can be done with it. */
+function DayEditor({
+  agenda,
+  date,
+  planned,
+  day,
+  copied,
+  onChange,
+  onReset,
+  onRepeat,
+}: {
+  agenda: Agenda
+  date: string
+  planned: boolean
+  day: PlannedDay
+  copied: string
+  onChange: (day: PlannedDay) => void
+  onReset: () => void
+  onRepeat: () => void
+}) {
+  const gameIds = Object.keys(agenda.games)
+  const nextWeek = somaDias(date, 7)
+  const setLive = (index: number, live: PlannedLive | null) =>
+    onChange({ ...day, lives: live ? day.lives.map((l, i) => (i === index ? live : l)) : day.lives.filter((_, i) => i !== index) })
+  const lastEnd = day.lives.at(-1)?.end
+
+  return (
+    <section id="dia" className="mt-8 scroll-mt-20 rounded-md border border-klein/40 bg-paper/80 p-4 sm:p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h3 className="text-[19px] font-medium text-ink first-letter:uppercase">{longDay(date)}</h3>
+        {planned ? (
+          <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-klein">
+            <span className="h-1.5 w-1.5 rounded-full bg-klein" />
+            {T.planned}
+          </span>
+        ) : (
+          <span className="text-[13px] text-muted" title={T.fromWeekHint}>
+            {T.fromWeek}
+          </span>
+        )}
+      </div>
+
+      <input
+        value={day.note ?? ""}
+        maxLength={100}
+        placeholder={T.note}
+        aria-label={T.note}
+        onChange={(e) => onChange({ ...day, note: e.target.value || undefined })}
+        className={`${field} mt-3 w-full`}
+      />
+
+      <div className="mt-4 space-y-3">
+        {day.lives.map((live, index) => (
+          <LiveCard key={index} live={live} agenda={agenda} onChange={(l) => setLive(index, l)} onRemove={() => setLive(index, null)} />
+        ))}
+        {!day.lives.length && <p className="text-[14px] text-muted">{T.noLives}</p>}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+        <AddButton
+          disabled={!gameIds.length}
+          onClick={() => {
+            const start = lastEnd && lastEnd < "22:00" ? lastEnd : "15:00"
+            const end = `${String((Number(start.slice(0, 2)) + 2) % 24).padStart(2, "0")}${start.slice(2)}`
+            onChange({ ...day, lives: [...day.lives, { start, end, game: gameIds[0] }] })
+          }}
+        >
+          {T.addLive}
+        </AddButton>
+        {day.lives.length > 0 && (
+          <button onClick={() => onChange({ ...day, lives: [] })} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
+            <CalendarOff className="h-4 w-4" />
+            {T.dayOff}
+          </button>
+        )}
+        <button onClick={onRepeat} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
+          <Copy className="h-4 w-4" />
+          {T.repeat} <span className="capitalize">{weekdayOf(nextWeek)}</span> {dayMonth(nextWeek)}
+        </button>
+        {planned && (
+          <button onClick={onReset} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
+            <RotateCcw className="h-4 w-4" />
+            {T.reset}
+          </button>
+        )}
+        {copied && (
+          <span className="text-[13px] text-klein">
+            {T.repeated} {dayMonth(copied)} ✓
+          </span>
+        )}
+      </div>
+    </section>
+  )
 }
 
-function Group({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
+/** A live on the day: times, game, title and its run of the show. */
+function LiveCard({ live, agenda, onChange, onRemove }: { live: PlannedLive; agenda: Agenda; onChange: (live: PlannedLive) => void; onRemove: () => void }) {
+  const game = agenda.games[live.game]
+  const plan = live.plan ?? []
+  const setPlan = (items: NonNullable<PlannedLive["plan"]>) => onChange({ ...live, plan: items.length ? items : undefined })
+  const overnight = live.end < live.start
   return (
-    <div className="mt-10">
-      <h3 className="text-[17px] font-medium text-ink">{title}</h3>
-      <p className="mt-0.5 text-[13px] text-muted">{hint}</p>
-      <div className="mt-4 space-y-3">{children}</div>
+    <div className="space-y-3 rounded-md border border-line bg-paper p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="flex items-center gap-1.5">
+          <input type="time" step={300} value={live.start} onChange={(e) => e.target.value && onChange({ ...live, start: e.target.value })} className={field} />
+          –
+          <input type="time" step={300} value={live.end} onChange={(e) => e.target.value && onChange({ ...live, end: e.target.value })} className={field} />
+        </span>
+        <select value={live.game} onChange={(e) => onChange({ ...live, game: e.target.value })} className={field}>
+          {Object.keys(agenda.games).map((id) => (
+            <option key={id} value={id}>
+              {gameName(agenda, id)}
+            </option>
+          ))}
+        </select>
+        <button onClick={onRemove} aria-label={T.remove} title={T.remove} className="ml-auto rounded-sm p-2 text-muted hover:text-klein">
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+      {live.start === live.end && <p className="text-[13px] text-red-600">{T.sameTimes}</p>}
+      {overnight && <p className="text-[13px] text-muted">{T.pastMidnight}</p>}
+      <input
+        value={live.title ?? ""}
+        maxLength={140}
+        placeholder={game?.title ?? T.title}
+        aria-label={T.title}
+        onChange={(e) => onChange({ ...live, title: e.target.value || undefined })}
+        className={`${field} w-full text-[16px] font-medium`}
+      />
+      <div>
+        <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-muted">{T.plan}</p>
+        <ol className="mt-2 space-y-1.5">
+          {plan.map((item, index) => (
+            <li key={index} className="flex items-center gap-2">
+              <input
+                type="time"
+                step={300}
+                value={item.at ?? ""}
+                aria-label={T.planTime}
+                title={T.planTime}
+                onChange={(e) => setPlan(plan.map((p, i) => (i === index ? { ...p, at: e.target.value || undefined } : p)))}
+                className={`${field} w-[5.75rem] shrink-0 px-1.5 text-[14px] sm:w-[7.25rem]`}
+              />
+              <input
+                value={item.text}
+                maxLength={120}
+                placeholder={T.planText}
+                aria-label={T.planText}
+                onChange={(e) => setPlan(plan.map((p, i) => (i === index ? { ...p, text: e.target.value } : p)))}
+                className={`${field} min-w-0 flex-1 text-[14px]`}
+              />
+              <button onClick={() => setPlan(plan.filter((_, i) => i !== index))} aria-label={T.remove} className="rounded-sm p-1.5 text-muted hover:text-klein">
+                <X className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+        </ol>
+        <button onClick={() => setPlan([...plan, { text: "" }])} className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-medium text-klein hover:underline">
+          <Plus className="h-3.5 w-3.5" />
+          {T.addItem}
+        </button>
+      </div>
     </div>
+  )
+}
+
+function Fold({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
+  return (
+    <details className="mt-6 rounded-md border border-line bg-paper/60 p-4 open:bg-paper/80">
+      <summary className="cursor-pointer">
+        <span className="text-[17px] font-medium text-ink">{title}</span>
+        <span className="ml-2 text-[13px] text-muted">{hint}</span>
+      </summary>
+      <div className="mt-4 space-y-3">{children}</div>
+    </details>
   )
 }
 
@@ -286,46 +447,28 @@ function AddButton({ onClick, disabled, children }: { onClick: () => void; disab
   )
 }
 
-/** A weekly slot (with its days) or a one-off stream (with its date): times, game and title. */
-function SlotRow({
-  slot,
-  agenda,
-  today,
-  onChange,
-  onRemove,
-}: {
-  slot: Slot | Extra
-  agenda: Agenda
-  today?: string
-  onChange: (patch: Partial<Slot> & Partial<Extra>) => void
-  onRemove: () => void
-}) {
-  const weekly = "days" in slot
+/** A slot of the usual week: its days, times, game and title. */
+function SlotRow({ slot, agenda, onChange, onRemove }: { slot: Slot; agenda: Agenda; onChange: (patch: Partial<Slot>) => void; onRemove: () => void }) {
   const game = agenda.games[slot.game]
-  const overnight = slot.end <= slot.start && slot.end !== slot.start
   return (
-    <div className="space-y-2 rounded-md border border-line p-3">
+    <div className="space-y-2 rounded-md border border-line bg-paper p-3">
       <div className="flex flex-wrap items-center gap-2">
-        {weekly ? (
-          <div className="flex gap-1">
-            {WEEKDAYS.map((name, index) => {
-              const day = index + 1
-              const on = slot.days.includes(day)
-              return (
-                <button
-                  key={name}
-                  onClick={() => onChange({ days: on ? slot.days.filter((d) => d !== day) : [...slot.days, day].sort() })}
-                  aria-pressed={on}
-                  className={`w-10 rounded-sm py-1 text-[13px] font-medium capitalize ${on ? "bg-klein text-paper" : "border border-line text-muted hover:border-klein"}`}
-                >
-                  {name}
-                </button>
-              )
-            })}
-          </div>
-        ) : (
-          <input type="date" value={slot.date} min={today} onChange={(e) => e.target.value && onChange({ date: e.target.value })} className={field} />
-        )}
+        <div className="flex gap-1">
+          {WEEKDAYS.map((name, index) => {
+            const day = index + 1
+            const on = slot.days.includes(day)
+            return (
+              <button
+                key={name}
+                onClick={() => onChange({ days: on ? slot.days.filter((d) => d !== day) : [...slot.days, day].sort() })}
+                aria-pressed={on}
+                className={`w-10 rounded-sm py-1 text-[13px] font-medium capitalize ${on ? "bg-klein text-paper" : "border border-line text-muted hover:border-klein"}`}
+              >
+                {name}
+              </button>
+            )
+          })}
+        </div>
         <span className="flex items-center gap-1.5">
           <input type="time" step={300} value={slot.start} onChange={(e) => e.target.value && onChange({ start: e.target.value })} className={field} />
           –
@@ -343,8 +486,8 @@ function SlotRow({
         <input
           value={slot.title ?? ""}
           maxLength={140}
-          placeholder={game?.title ?? T.titlePlaceholder}
-          aria-label={T.titlePlaceholder}
+          placeholder={game?.title ?? T.title}
+          aria-label={T.title}
           onChange={(e) => onChange({ title: e.target.value || undefined })}
           className={`${field} min-w-0 flex-1`}
         />
@@ -352,44 +495,19 @@ function SlotRow({
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
-      {weekly && !slot.days.length && <p className="text-[13px] text-red-600">{T.noDays}</p>}
+      {!slot.days.length && <p className="text-[13px] text-red-600">{T.noDays}</p>}
       {slot.start === slot.end && <p className="text-[13px] text-red-600">{T.sameTimes}</p>}
-      {overnight && <p className="text-[13px] text-muted">{T.pastMidnight}</p>}
+      {slot.end < slot.start && <p className="text-[13px] text-muted">{T.pastMidnight}</p>}
     </div>
   )
 }
 
-/** The next three weeks' weekly streams, each one a switch for a day off. */
-function DaysOff({ agenda, now, onChange }: { agenda: Agenda; now: Date; onChange: (off: Agenda["off"]) => void }) {
-  const lives = occurrences(agenda, now, 21).filter((live) => !live.avulsa && Date.parse(live.fim) > +now)
-  if (!lives.length) return <p className="text-[14px] text-muted">{T.noWeekly}</p>
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {lives.map((live) => (
-        <button
-          key={live.inicio}
-          aria-pressed={live.folga}
-          onClick={() =>
-            onChange(live.folga ? agenda.off.filter((o) => !(o.date === live.data && o.start === live.start)) : [...agenda.off, { date: live.data, start: live.start }])
-          }
-          className={`inline-flex items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-[13px] tabular-nums ${
-            live.folga ? "border border-dashed border-zinc-400 text-muted line-through" : "border border-line text-ink hover:border-klein"
-          }`}
-        >
-          {live.folga && <CalendarOff className="h-3.5 w-3.5 no-underline" />}
-          <span className="capitalize">{weekdayOf(live.data)}</span> {dayMonth(live.data)}, {clock(live.start)} · {gameName(agenda, live.jogo)}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-/** The games: each one's default title; add one from Twitch's categories, remove one no stream uses. */
+/** The games: each one's default title; add one from Twitch's categories, remove one nothing uses. */
 function Games({ agenda, token, onChange }: { agenda: Agenda; token: string; onChange: (games: Agenda["games"]) => void }) {
   const [query, setQuery] = useState("")
   const [found, setFound] = useState<Category[] | null>(null)
   const [searching, setSearching] = useState(false)
-  const used = new Set([...agenda.slots, ...agenda.extras].map((s) => s.game))
+  const used = new Set([...agenda.slots.map((s) => s.game), ...Object.values(agenda.dates).flatMap((d) => d.lives.map((l) => l.game))])
 
   async function search() {
     if (!query.trim()) return
@@ -472,28 +590,25 @@ function Report({ status }: { status: Status }) {
       </p>
     )
   }
-  if (status.kind === "syncing") return <p className="w-full text-[13px] text-muted">{status.lines.at(-1)}</p>
+  if (status.kind === "syncing") return <p className="w-full truncate text-[13px] text-muted">{status.line}</p>
+  const { report, saved } = status
+  const created = report?.done.filter((line) => line.startsWith("criou")) ?? []
+  const removed = report?.done.filter((line) => line.startsWith("removeu")) ?? []
   return (
-    <div className="w-full space-y-1 text-[13px]">
+    <div className="w-full text-[13px]">
       <p className="text-ink">
-        {T.saved} {status.twitch && (status.lines.length ? `${T.twitchDone}:` : T.twitchSame)}
+        {saved && `${T.saved} `}
+        {report && (report.done.length ? `${T.twitchDone}: ${created.length} ${T.created}, ${removed.length} ${T.removed}.` : T.twitchSame)}
       </p>
-      {status.lines.length > 0 && (
-        <ul className="list-inside list-disc text-muted">
-          {status.lines.map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
-      )}
-      {status.waiting.length > 0 && (
-        <>
-          <p className="text-muted">{T.waiting}</p>
-          <ul className="list-inside list-disc text-muted">
-            {status.waiting.map((line) => (
+      {report && report.done.length > 0 && (
+        <details className="mt-1 text-muted">
+          <summary className="cursor-pointer">{T.details}</summary>
+          <ul className="mt-1 max-h-40 list-inside list-disc overflow-auto">
+            {report.done.map((line) => (
               <li key={line}>{line}</li>
             ))}
           </ul>
-        </>
+        </details>
       )}
     </div>
   )

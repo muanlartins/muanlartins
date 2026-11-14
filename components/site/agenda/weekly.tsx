@@ -8,7 +8,7 @@ import { localize } from "@/lib/site"
 
 const T = localize(channel.agenda)
 
-/** The lives that repeat every week, each with its game and title. */
+/** The usual week, which fills the days not planned yet: each slot with its game and title. */
 export function Weekly() {
   const { agenda } = useAgenda()
   if (!agenda?.slots.length) return null
@@ -16,6 +16,7 @@ export function Weekly() {
   return (
     <section className="mt-14">
       <h2 className="text-2xl font-medium tracking-[-0.02em] text-klein">{T.weekly}</h2>
+      <p className="mt-1 text-[14px] text-muted">{T.weeklyHint}</p>
       <ul className="mt-4 divide-y divide-line border-y border-line">
         {slots.map((slot) => (
           <li key={`${slot.days.join("")}-${slot.start}`} className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-3">

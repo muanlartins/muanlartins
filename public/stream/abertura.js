@@ -70,9 +70,9 @@
       agendaErro = "agenda fora do ar"
     }
   }
-  /** The live on air or within 90 minutes, days off skipped. */
+  /** The live on air or within 90 minutes. */
   function daVez(agora = Date.now()) {
-    const o = agenda.find((o) => !o.folga && Date.parse(o.fim) > agora)
+    const o = agenda.find((o) => Date.parse(o.fim) > agora)
     return o && Date.parse(o.inicio) - ANTES <= agora ? o : null
   }
   const chaveDe = (o) => `${o.inicio}|${o.categoria}|${o.titulo}`
@@ -231,7 +231,7 @@
   function desenhar() {
     if (!host) return
     const o = daVez()
-    const prox = agenda.find((x) => !x.folga && Date.parse(x.fim) > Date.now())
+    const prox = agenda.find((x) => Date.parse(x.fim) > Date.now())
     $("ab-live").textContent = o
       ? `${o.nome} · ${o.titulo}`
       : prox
@@ -278,7 +278,7 @@
       desenhar()
     }
     if (h.demo) {
-      agenda = [{ inicio: new Date(Date.now() - 6e5).toISOString(), fim: new Date(Date.now() + 6e6).toISOString(), nome: "Rocket League", titulo: "Ranqueadas de Rocket League", folga: false }]
+      agenda = [{ inicio: new Date(Date.now() - 6e5).toISOString(), fim: new Date(Date.now() + 6e6).toISOString(), nome: "Rocket League", titulo: "Ranqueadas de Rocket League" }]
       tituloEstado = "Definido às 14:02"
       story = { fase: "contando", ate: Date.now() + 21e3, msg: "", previa: "" }
       setInterval(desenhar, 500)

@@ -1,5 +1,5 @@
 import { channel } from "@/content/channel"
-import { duracao, ocorrencias, proxima } from "@/infra/comum/agenda.mjs"
+import { dias, duracao, ocorrencias, proxima } from "@/infra/comum/agenda.mjs"
 import { PROFILE_API } from "@/lib/profile"
 import { HTML_LANG, LOCALE, localize } from "@/lib/site"
 
@@ -10,7 +10,7 @@ import { HTML_LANG, LOCALE, localize } from "@/lib/site"
  * (`components/site/agenda/agenda-context.tsx`), so a change shows without a release.
  */
 
-/** Every week: ISO weekdays (1 Monday … 7 Sunday), "HH:MM" in the agenda's zone, a game's id in `games`. */
+/** The usual week: ISO weekdays (1 Monday … 7 Sunday), "HH:MM" in the agenda's zone, a game's id in `games`. */
 export interface Slot {
   days: number[]
   start: string
@@ -19,19 +19,25 @@ export interface Slot {
   title?: string
 }
 
-/** One day only. */
-export interface Extra {
-  date: string
+/** One step of a live's run of the show, at a time or not. */
+export interface PlanItem {
+  at?: string
+  text: string
+}
+
+/** A live on a planned day. */
+export interface PlannedLive {
   start: string
   end: string
   game: string
   title?: string
+  plan?: PlanItem[]
 }
 
-/** A weekly live that won't happen that day (the slot's start). */
-export interface Off {
-  date: string
-  start: string
+/** A planned day: its own lives (none is a day off) and a note for the whole day. */
+export interface PlannedDay {
+  note?: string
+  lives: PlannedLive[]
 }
 
 /** A game: its Twitch category's name and id, and the live's default title. */
@@ -44,8 +50,7 @@ export interface AgendaGame {
 export interface Agenda {
   timeZone: string
   slots: Slot[]
-  extras: Extra[]
-  off: Off[]
+  dates: Record<string, PlannedDay>
   games: Record<string, AgendaGame>
 }
 
@@ -60,18 +65,30 @@ export interface Occurrence {
   nome: string
   categoria: string | null
   titulo: string
-  avulsa: boolean
-  folga: boolean
+  roteiro: PlanItem[]
+  /** Planned by hand, not from the usual week. */
+  planejada: boolean
+}
+
+/** A day as it stands: planned or following the usual week, with its lives. */
+export interface Day {
+  data: string
+  planejado: boolean
+  nota: string
+  lives: Occurrence[]
 }
 
 export const AGENDA_URL = `${PROFILE_API}/agenda`
 /** The calendar apps' subscription: always the agenda as it is now. */
 export const AGENDA_ICS = `${PROFILE_API}/agenda.ics`
 
-/** The lives from `from`'s day through `days` days, days off included (marked `folga`). */
-export const occurrences = (agenda: Agenda, from: Date, days = 7) => ocorrencias(agenda, from, days) as Occurrence[]
+/** The days from `from`'s day through `count` days. */
+export const daysFrom = (agenda: Agenda, from: Date, count = 7) => dias(agenda, from, count) as Day[]
 
-/** The live on air or the next one, days off skipped. */
+/** Every live of those days, earliest first. */
+export const occurrences = (agenda: Agenda, from: Date, count = 7) => ocorrencias(agenda, from, count) as Occurrence[]
+
+/** The live on air or the next one. */
 export const nextOccurrence = (agenda: Agenda, now: Date) => proxima(agenda, now) as Occurrence | null
 
 /** A slot's length in minutes (an end at or before the start is the next day's). */
@@ -96,6 +113,14 @@ export function slotText(slot: Slot) {
   const days = new Intl.ListFormat(LANG, { type: "conjunction" }).format(slot.days.map((day) => WEEKDAYS[day - 1]))
   return `${days}, ${clock(slot.start)}–${clock(slot.end)}`
 }
+
+/** "sábado, 21 de novembro": a date in full. */
+export const longDay = (date: string) =>
+  new Intl.DateTimeFormat(LANG, { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`))
+
+/** "novembro de 2026": a month ("YYYY-MM"). */
+export const monthName = (month: string) =>
+  new Intl.DateTimeFormat(LANG, { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}-15T12:00:00Z`))
 
 /** "15/11" or "11/15": a date's day and month. */
 export const dayMonth = (date: string) =>

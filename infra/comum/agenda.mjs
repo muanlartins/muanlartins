@@ -1,30 +1,31 @@
-// The lives' calendar, the one source of truth for when the lives are (since 2026-11-13). Luan edits it on the site
-// (/canal/agenda, signed in with the channel's Twitch), the profile API keeps it (GET and PUT /agenda) and everything
-// else reads it from there: the site's agenda, the subscribable calendar (GET /agenda.ics), the stream's credits and
-// the Anúncios dock (the live's Twitch title and game, the Instagram story). The editor mirrors it on Twitch's own
-// calendar with planoTwitch. Pure functions, shared by the API (Node) and the site (the browser).
+// The lives' calendar, the one source of truth for when the lives are (since 2026-11-13). Luan plans it day by day on
+// the site (/canal/agenda, signed in with the channel's Twitch), the profile API keeps it (GET and PUT /agenda) and
+// everything else reads it from there: the site's calendar, the subscribable calendar (GET /agenda.ics), the stream's
+// credits and the Anúncios dock (the live's Twitch title and game, the Instagram story). The editor mirrors it on
+// Twitch's own calendar with planoTwitch. Pure functions, shared by the API (Node) and the site (the browser).
 //
 // The agenda, in the channel's time zone (FUSO):
-//   slots   every week: { days: [1…7] (ISO, 1 = Monday), start: "HH:MM", end: "HH:MM", game, title? }
-//   extras  one day only: { date: "YYYY-MM-DD", start, end, game, title? }
-//   off     a weekly live that won't happen that day: { date, start } (the slot's start)
-//   games   each game: { name (its Twitch category's name), category (Twitch's id), title (the live's default title) }
+//   slots   the usual week, which fills every day not planned yet:
+//           { days: [1…7] (ISO, 1 = Monday), start: "HH:MM", end: "HH:MM", game, title? }
+//   dates   the days planned, each on its own (the usual week no longer applies to them):
+//           { "YYYY-MM-DD": { note?, lives: [{ start, end, game, title?, plan?: [{ at?: "HH:MM", text }] }] } }
+//           A planned day with no lives is a day off; its note says why, if Luan wants.
+//   games   each game: { name, category (Twitch's id), title (a live's default title) }
 // An end at or before the start runs past midnight. A live's title is its own, else its game's.
 
 export const FUSO = "America/Sao_Paulo"
 
-export const LIMITES = { jogos: 20, slots: 21, extras: 60, off: 200, titulo: 140, nome: 60 }
+export const LIMITES = { jogos: 20, slots: 21, datas: 120, lives: 6, roteiro: 12, titulo: 140, nome: 60, nota: 100, item: 120 }
 
 const HORA = /^([01]\d|2[0-3]):[0-5]\d$/
 const DATA = /^\d{4}-\d{2}-\d{2}$/
 const JOGO = /^[a-z0-9-]{1,32}$/
 const CATEGORIA = /^\d{1,12}$/
 
-const DIAS = ["", "seg", "ter", "qua", "qui", "sex", "sáb", "dom"]
-
 const linha = (s, max) => [...String(s ?? "").replace(/\s+/g, " ").trim()].slice(0, max).join("").trim()
 const dataValida = (d) => typeof d === "string" && DATA.test(d) && new Date(`${d}T12:00:00Z`).toISOString().slice(0, 10) === d
 const minutos = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3))
+const lista = (l) => (Array.isArray(l) ? l : [])
 
 /** How long a live lasts, in minutes; an end at or before the start is the next day's. */
 export const duracao = (start, end) => ((minutos(end) - minutos(start) + 1439) % 1440) + 1
@@ -55,7 +56,7 @@ export function instante(data, hhmm, fuso = FUSO) {
 
 /**
  * The agenda as the API keeps it: only known fields of the right shape, within limits; a live whose game isn't in
- * games is dropped. With `hoje` ("YYYY-MM-DD"), extras and days off before it go too. Null when it isn't an object.
+ * games is dropped. With `hoje` ("YYYY-MM-DD"), days planned before it go. Null when it isn't an object.
  */
 export function limpar(a, hoje) {
   if (!a || typeof a !== "object" || Array.isArray(a)) return null
@@ -71,11 +72,10 @@ export function limpar(a, hoje) {
     const s = linha(t, LIMITES.titulo)
     return s ? { title: s } : {}
   }
-  const live = (s) => s && typeof s === "object" && HORA.test(s.start) && HORA.test(s.end) && s.start !== s.end && games[s.game]
-  const lista = (l) => (Array.isArray(l) ? l : [])
+  const horario = (s) => s && typeof s === "object" && HORA.test(s.start) && HORA.test(s.end) && s.start !== s.end && games[s.game]
 
   const slots = lista(a.slots)
-    .filter(live)
+    .filter(horario)
     .map((s) => ({
       days: [...new Set(lista(s.days).filter((d) => Number.isInteger(d) && d >= 1 && d <= 7))].sort(),
       start: s.start,
@@ -85,62 +85,81 @@ export function limpar(a, hoje) {
     }))
     .filter((s) => s.days.length)
     .slice(0, LIMITES.slots)
-  const extras = lista(a.extras)
-    .filter((e) => live(e) && dataValida(e.date) && (!hoje || e.date >= hoje))
-    .map((e) => ({ date: e.date, start: e.start, end: e.end, game: e.game, ...titulo(e.title) }))
-    .sort((x, y) => (x.date + x.start).localeCompare(y.date + y.start))
-    .slice(0, LIMITES.extras)
-  const vistos = new Set()
-  const off = lista(a.off)
-    .filter((o) => o && dataValida(o.date) && HORA.test(o.start) && (!hoje || o.date >= hoje))
-    .map((o) => ({ date: o.date, start: o.start }))
-    .filter((o) => !vistos.has(o.date + o.start) && vistos.add(o.date + o.start))
-    .sort((x, y) => (x.date + x.start).localeCompare(y.date + y.start))
-    .slice(0, LIMITES.off)
-  return { timeZone: FUSO, slots, extras, off, games }
+
+  const dates = {}
+  const datas = a.dates && typeof a.dates === "object" && !Array.isArray(a.dates) ? Object.keys(a.dates).sort() : []
+  for (const data of datas.filter((d) => dataValida(d) && (!hoje || d >= hoje)).slice(0, LIMITES.datas)) {
+    const d = a.dates[data]
+    if (!d || typeof d !== "object") continue
+    const lives = lista(d.lives)
+      .filter(horario)
+      .map((l) => {
+        const plan = lista(l.plan)
+          .filter((p) => p && typeof p === "object")
+          .map((p) => ({ ...(HORA.test(p.at) ? { at: p.at } : {}), text: linha(p.text, LIMITES.item) }))
+          .filter((p) => p.text)
+          .slice(0, LIMITES.roteiro)
+        return { start: l.start, end: l.end, game: l.game, ...titulo(l.title), ...(plan.length ? { plan } : {}) }
+      })
+      .sort((x, y) => x.start.localeCompare(y.start))
+      .slice(0, LIMITES.lives)
+    const note = linha(d.note, LIMITES.nota)
+    dates[data] = { ...(note ? { note } : {}), lives }
+  }
+  return { timeZone: FUSO, slots, dates, games }
 }
 
-/**
- * Each live from the date `de` falls on (in the agenda's zone) through `dias` days: weekly ones, days off marked
- * `folga` (still listed, so a day can say there's no live), and extras marked `avulsa`, earliest first. Instants are
- * ISO strings, so this goes out of the API as it is.
- */
-export function ocorrencias(agenda, de = new Date(), dias = 7) {
+/** A day as it stands: planned (its own lives and note) or following the usual week. Lives as the agenda has them. */
+export function dia(agenda, data) {
+  const planejado = agenda?.dates?.[data]
+  if (planejado) return { data, planejado: true, nota: planejado.note || "", lives: planejado.lives || [] }
+  const semana = diaDaSemana(data)
+  const lives = (agenda?.slots || [])
+    .filter((s) => s.days.includes(semana))
+    .map(({ start, end, game, title }) => ({ start, end, game, ...(title ? { title } : {}) }))
+    .sort((x, y) => x.start.localeCompare(y.start))
+  return { data, planejado: false, nota: "", lives }
+}
+
+/** One live of a day with its instants (ISO strings), its game's name and category, and its title. */
+function ocorrencia(agenda, d, l) {
   const fuso = agenda?.timeZone || FUSO
-  const games = agenda?.games || {}
-  const primeiro = dataEm(de, fuso)
-  const folga = new Set((agenda?.off || []).map((o) => o.date + o.start))
-  const todas = []
-  const montar = (data, s, extra) => {
-    const inicio = instante(data, s.start, fuso)
-    const fim = new Date(+inicio + duracao(s.start, s.end) * 60_000)
-    const g = games[s.game] || {}
-    todas.push({
-      data,
-      inicio: inicio.toISOString(),
-      fim: fim.toISOString(),
-      start: s.start,
-      end: s.end,
-      jogo: s.game,
-      nome: g.name || s.game,
-      categoria: g.category || null,
-      titulo: s.title || g.title || g.name || s.game,
-      avulsa: extra,
-      folga: !extra && folga.has(data + s.start),
-    })
+  const g = agenda?.games?.[l.game] || {}
+  const inicio = instante(d.data, l.start, fuso)
+  return {
+    data: d.data,
+    inicio: inicio.toISOString(),
+    fim: new Date(+inicio + duracao(l.start, l.end) * 60_000).toISOString(),
+    start: l.start,
+    end: l.end,
+    jogo: l.game,
+    nome: g.name || l.game,
+    categoria: g.category || null,
+    titulo: l.title || g.title || g.name || l.game,
+    roteiro: l.plan || [],
+    planejada: d.planejado,
   }
-  for (let n = 0; n < dias; n++) {
-    const data = somaDias(primeiro, n)
-    const dia = diaDaSemana(data)
-    for (const s of agenda?.slots || []) if (s.days.includes(dia)) montar(data, s, false)
-    for (const e of agenda?.extras || []) if (e.date === data) montar(data, e, true)
-  }
-  return todas.sort((a, b) => a.inicio.localeCompare(b.inicio))
 }
 
-/** The live on air at `agora` or the next one (days off skipped), within two weeks; null without one. */
+/** The days from the date `de` falls on (in the agenda's zone) through `n` days: { data, planejado, nota, lives }. */
+export function dias(agenda, de = new Date(), n = 7) {
+  const primeiro = dataEm(de, agenda?.timeZone || FUSO)
+  return Array.from({ length: n }, (_, i) => {
+    const d = dia(agenda, somaDias(primeiro, i))
+    return { ...d, lives: d.lives.map((l) => ocorrencia(agenda, d, l)) }
+  })
+}
+
+/** Every live of those days, earliest first. Instants are ISO strings, so this goes out of the API as it is. */
+export function ocorrencias(agenda, de = new Date(), n = 7) {
+  return dias(agenda, de, n)
+    .flatMap((d) => d.lives)
+    .sort((a, b) => a.inicio.localeCompare(b.inicio))
+}
+
+/** The live on air at `agora` or the next one, within two weeks; null without one. */
 export function proxima(agenda, agora = new Date()) {
-  return ocorrencias(agenda, agora, 15).find((o) => !o.folga && Date.parse(o.fim) > +agora) ?? null
+  return ocorrencias(agenda, new Date(+agora - 86_400_000), 16).find((o) => Date.parse(o.fim) > +agora) ?? null
 }
 
 /** The live a moment belongs to: on air, or starting within `antes` minutes. For the stream's title, game and story. */
@@ -149,48 +168,37 @@ export function daVez(agenda, agora = new Date(), antes = 90) {
   return o && Date.parse(o.inicio) - antes * 60_000 <= +agora ? o : null
 }
 
-const ICS_DIAS = ["", "MO", "TU", "WE", "TH", "FR", "SA", "SU"]
+/** A live's run of the show as lines: "15h · inhouse com os viewers". */
+export const roteiroEmLinhas = (roteiro) => roteiro.map((p) => (p.at ? `${p.at.replace(":", "h").replace(/h00$/, "h")} · ${p.text}` : p.text))
 
 /**
- * The agenda as an iCalendar a calendar app subscribes to: each weekly live from this week on, its days off as
- * exceptions, and each extra. `nome` names the calendar and goes before each event's game: "Live do muanlartins:
- * Valorant"; the description is the live's title and `url`.
+ * The agenda as an iCalendar a calendar app subscribes to: each live from a week ago to eight weeks ahead, one event
+ * each (apps fetch the file again every few hours). `nome` names the calendar and goes before each event's game:
+ * "Live do muanlartins: Valorant"; the description is the live's title, its run of the show, the day's note and `url`.
  */
 export function ics(agenda, { nome, url, agora = new Date() }) {
   const fuso = agenda?.timeZone || FUSO
-  const games = agenda?.games || {}
-  const hoje = dataEm(agora, fuso)
   const escape = (t) => String(t).replace(/[\\;,]/g, (c) => `\\${c}`).replace(/\n/g, "\\n")
   const quando = (data, hhmm) => `${data.replaceAll("-", "")}T${hhmm.replace(":", "")}00`
   const stamp = agora.toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "")
-  const evento = (uid, data, s, extra) => {
-    const g = games[s.game] || {}
-    const fimData = minutos(s.end) <= minutos(s.start) ? somaDias(data, 1) : data
-    return [
-      "BEGIN:VEVENT",
-      `UID:${uid}@muanlartins.com.br`,
-      `DTSTAMP:${stamp}`,
-      `DTSTART;TZID=${fuso}:${quando(data, s.start)}`,
-      `DTEND;TZID=${fuso}:${quando(fimData, s.end)}`,
-      ...extra,
-      `SUMMARY:${escape(`${nome}: ${g.name || s.game}`)}`,
-      `DESCRIPTION:${escape(`${s.title || g.title || g.name || s.game}\n${url}`)}`,
-      `URL:${url}`,
-      `LOCATION:${url}`,
-      "END:VEVENT",
-    ]
-  }
-  const semanais = (agenda?.slots || []).flatMap((s) => {
-    // This week's first day of the slot, so a subscriber sees nothing before the agenda was this.
-    let data = somaDias(hoje, -6)
-    while (!s.days.includes(diaDaSemana(data))) data = somaDias(data, 1)
-    const folgas = (agenda?.off || []).filter((o) => o.start === s.start && s.days.includes(diaDaSemana(o.date)) && o.date >= data)
-    return evento(`semana-${s.days.join("")}-${s.start.replace(":", "")}-${s.game}`, data, s, [
-      `RRULE:FREQ=WEEKLY;BYDAY=${s.days.map((d) => ICS_DIAS[d]).join(",")}`,
-      ...(folgas.length ? [`EXDATE;TZID=${fuso}:${folgas.map((o) => quando(o.date, o.start)).join(",")}`] : []),
-    ])
-  })
-  const avulsas = (agenda?.extras || []).flatMap((e) => evento(`avulsa-${e.date}-${e.start.replace(":", "")}`, e.date, e, []))
+  const eventos = dias(agenda, new Date(+agora - 7 * 86_400_000), 63).flatMap((d) =>
+    d.lives.flatMap((o) => {
+      const fimData = minutos(o.end) <= minutos(o.start) ? somaDias(o.data, 1) : o.data
+      const descricao = [o.titulo, ...roteiroEmLinhas(o.roteiro).map((l) => `· ${l}`), d.nota, url].filter(Boolean).join("\n")
+      return [
+        "BEGIN:VEVENT",
+        `UID:live-${o.data}-${o.start.replace(":", "")}-${o.jogo}@muanlartins.com.br`,
+        `DTSTAMP:${stamp}`,
+        `DTSTART;TZID=${fuso}:${quando(o.data, o.start)}`,
+        `DTEND;TZID=${fuso}:${quando(fimData, o.end)}`,
+        `SUMMARY:${escape(`${nome}: ${o.nome}`)}`,
+        `DESCRIPTION:${escape(descricao)}`,
+        `URL:${url}`,
+        `LOCATION:${url}`,
+        "END:VEVENT",
+      ]
+    }),
+  )
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -211,8 +219,7 @@ export function ics(agenda, { nome, url, agora = new Date() }) {
     "TZNAME:-03",
     "END:STANDARD",
     "END:VTIMEZONE",
-    ...semanais,
-    ...avulsas,
+    ...eventos,
     "END:VCALENDAR",
     "",
   ].join("\r\n")
@@ -229,115 +236,63 @@ function serie(id) {
   }
 }
 
+/** How many weeks ahead Twitch's calendar shows: every save (and opening the editor) moves the window on. */
+export const SEMANAS_TWITCH = 8
+
 /**
- * What to change on Twitch's calendar (GET /helix/schedule's segments, a few weeks of them) so it shows the agenda:
- *   cria     bodies for POST /schedule/segment (each weekly live's weekday as its own recurring segment, each extra
- *            as a single one), with a label
- *   remove   recurring series and single segments the agenda doesn't have: { id, rotulo } for DELETE
- *   cancela, retoma   { id, rotulo } for PATCH is_canceled: a day off, or one taken back
- *   pendentes  days off Twitch can't take yet: it cancels only a series' next occurrence
- *   mantem   labels of what's already right
- * A segment is its weekday (or date), start, length, category and title; a change to any is a remove and a create.
- * Run it again after creating, for the days off of what was just created.
+ * What to change on Twitch's calendar (GET /helix/schedule's segments) so it shows the agenda's lives of the next
+ * eight weeks, each as a single segment (a day can differ from the usual week however Luan likes; Twitch would only
+ * cancel a recurring series' next occurrence):
+ *   cria    bodies for POST /schedule/segment, with a label
+ *   remove  { id, rotulo } for DELETE: recurring series (all of them) and future segments the agenda doesn't have
+ *   mantem  labels of what's already right
+ * A segment is its start, length, category and title; a change to any is a remove and a create. A segment on air is
+ * left alone.
  */
-export function planoTwitch(agenda, segmentos, agora = new Date()) {
+export function planoTwitch(agenda, segmentos, agora = new Date(), semanas = SEMANAS_TWITCH) {
   const fuso = agenda.timeZone || FUSO
-  const games = agenda.games || {}
-  const tituloDe = (s) => linha(s.title || games[s.game]?.title || games[s.game]?.name || s.game, LIMITES.titulo)
-  const plano = { cria: [], remove: [], cancela: [], retoma: [], pendentes: [], mantem: [] }
+  const plano = { cria: [], remove: [], mantem: [] }
+  const rotulo = (o) => `${o.data} ${o.start}–${o.end} ${o.nome}`
+  const chave = (inicio, minutosSeg, categoria, titulo) => [new Date(inicio).toISOString(), minutosSeg, categoria, linha(titulo, LIMITES.titulo)].join("|")
 
-  // Weekly: one recurring segment per weekday of each slot.
-  const querSemana = new Map()
-  for (const s of agenda.slots || []) {
-    for (const dia of s.days) {
-      const chave = [dia, s.start, duracao(s.start, s.end), games[s.game]?.category, tituloDe(s)].join("|")
-      querSemana.set(chave, { dia, s, rotulo: `${DIAS[dia]} ${s.start}–${s.end} ${games[s.game]?.name ?? s.game}` })
-    }
+  const quer = new Map()
+  for (const o of ocorrencias(agenda, agora, semanas * 7)) {
+    // Twitch refuses a start in the past.
+    if (Date.parse(o.inicio) <= +agora) continue
+    quer.set(chave(o.inicio, duracao(o.start, o.end), o.categoria, o.titulo), o)
   }
-  const series = new Map()
-  for (const seg of segmentos.filter((x) => x.is_recurring)) {
-    const id = serie(seg.id)
-    if (!series.has(id)) series.set(id, [])
-    series.get(id).push(seg)
-  }
-  const chaveDe = (seg) => {
+
+  const series = new Set()
+  const tem = new Set()
+  for (const seg of segmentos) {
     const inicio = new Date(seg.start_time)
+    const quando = `${dataEm(inicio, fuso)} ${horaEm(inicio, fuso)} ${seg.title}`
+    if (seg.is_recurring) {
+      const id = serie(seg.id)
+      if (!series.has(id)) plano.remove.push({ id: seg.id, rotulo: `toda semana: ${quando}` })
+      series.add(id)
+      continue
+    }
+    if (+inicio <= +agora) continue
     const minutosSeg = Math.round((Date.parse(seg.end_time) - +inicio) / 60_000)
-    return [diaDaSemana(dataEm(inicio, fuso)), horaEm(inicio, fuso), minutosSeg, seg.category?.id, linha(seg.title, LIMITES.titulo)].join("|")
+    const k = chave(seg.start_time, minutosSeg, seg.category?.id ?? null, seg.title)
+    if (quer.has(k) && !tem.has(k) && !seg.canceled_until) tem.add(k)
+    else plano.remove.push({ id: seg.id, rotulo: quando })
   }
-  const temSemana = new Map()
-  for (const segs of series.values()) {
-    segs.sort((a, b) => a.start_time.localeCompare(b.start_time))
-    const chave = chaveDe(segs[0])
-    if (querSemana.has(chave) && !temSemana.has(chave)) temSemana.set(chave, segs)
-    else plano.remove.push({ id: segs[0].id, rotulo: `toda ${DIAS[Number(chave.split("|")[0])]} ${horaEm(new Date(segs[0].start_time), fuso)} ${segs[0].title}` })
-  }
-  for (const [chave, quer] of querSemana) {
-    const segs = temSemana.get(chave)
-    if (!segs) {
-      // The first time it happens from tomorrow on: Twitch refuses a start in the past.
-      let data = somaDias(dataEm(agora, fuso), 1)
-      while (diaDaSemana(data) !== quer.dia) data = somaDias(data, 1)
-      plano.cria.push({
-        rotulo: `toda ${quer.rotulo}`,
-        corpo: {
-          start_time: instante(data, quer.s.start, fuso).toISOString(),
-          timezone: fuso,
-          duration: String(duracao(quer.s.start, quer.s.end)),
-          is_recurring: true,
-          category_id: games[quer.s.game]?.category,
-          title: tituloDe(quer.s),
-        },
-      })
+  for (const [k, o] of quer) {
+    if (tem.has(k)) {
+      plano.mantem.push(rotulo(o))
       continue
     }
-    plano.mantem.push(`toda ${quer.rotulo}`)
-    // Days off: Twitch cancels (or takes back) only the series' next occurrence.
-    const folga = new Set((agenda.off || []).map((o) => o.date + o.start))
-    const futuras = segs.filter((seg) => Date.parse(seg.start_time) > +agora)
-    futuras.forEach((seg, n) => {
-      const inicio = new Date(seg.start_time)
-      const data = dataEm(inicio, fuso)
-      const quero = folga.has(data + horaEm(inicio, fuso))
-      if (quero === Boolean(seg.canceled_until)) return
-      const rotulo = `${data} ${quer.rotulo}`
-      if (n > 0) plano.pendentes.push(rotulo)
-      else plano[quero ? "cancela" : "retoma"].push({ id: seg.id, rotulo })
-    })
-  }
-
-  // Extras: single segments, from now on.
-  const querAvulsa = new Map()
-  for (const e of agenda.extras || []) {
-    const inicio = instante(e.date, e.start, fuso)
-    const minutosE = duracao(e.start, e.end)
-    if (+inicio + minutosE * 60_000 <= +agora) continue
-    const chave = [inicio.toISOString(), minutosE, games[e.game]?.category, tituloDe(e)].join("|")
-    querAvulsa.set(chave, { e, inicio, minutosE, rotulo: `${e.date} ${e.start}–${e.end} ${games[e.game]?.name ?? e.game}` })
-  }
-  const temAvulsa = new Set()
-  for (const seg of segmentos.filter((x) => !x.is_recurring && Date.parse(x.end_time) > +agora)) {
-    const minutosSeg = Math.round((Date.parse(seg.end_time) - Date.parse(seg.start_time)) / 60_000)
-    const chave = [new Date(seg.start_time).toISOString(), minutosSeg, seg.category?.id, linha(seg.title, LIMITES.titulo)].join("|")
-    if (querAvulsa.has(chave) && !temAvulsa.has(chave)) temAvulsa.add(chave)
-    else plano.remove.push({ id: seg.id, rotulo: `${dataEm(new Date(seg.start_time), fuso)} ${horaEm(new Date(seg.start_time), fuso)} ${seg.title}` })
-  }
-  for (const [chave, quer] of querAvulsa) {
-    if (temAvulsa.has(chave)) {
-      plano.mantem.push(quer.rotulo)
-      continue
-    }
-    // Twitch refuses a start in the past: an extra already under way is left off.
-    if (+quer.inicio <= +agora) continue
     plano.cria.push({
-      rotulo: quer.rotulo,
+      rotulo: rotulo(o),
       corpo: {
-        start_time: quer.inicio.toISOString(),
+        start_time: o.inicio,
         timezone: fuso,
-        duration: String(quer.minutosE),
+        duration: String(duracao(o.start, o.end)),
         is_recurring: false,
-        category_id: games[quer.e.game]?.category,
-        title: tituloDe(quer.e),
+        ...(o.categoria ? { category_id: o.categoria } : {}),
+        title: linha(o.titulo, LIMITES.titulo),
       },
     })
   }
