@@ -148,8 +148,8 @@ export const SHIPPED: Shipped[] = [
     text: "A agenda virou um calendário que eu planejo dia a dia no site: cada live com horário, jogo, título e o roteiro do que vai rolar, e o fim de semana detalhado. O calendário da Twitch muda junto e a live já abre com o título e a categoria certos.",
     href: "/canal/agenda",
     media: [
-      media("agenda-editavel", "A agenda no site: o calendário do mês e o dia escolhido com o roteiro de cada live"),
-      media("agenda-editavel-editor", "Planejando um dia na agenda: as lives, o título e o roteiro de cada uma"),
+      media("agenda-editavel", "A agenda no site: o calendário com as lives de cada dia e o dia escolhido com a live dele"),
+      media("agenda-editavel-editor", "Planejando um dia na agenda: o horário, o jogo, o título e o roteiro de cada live"),
     ],
   },
   {
