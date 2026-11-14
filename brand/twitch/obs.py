@@ -104,9 +104,10 @@ REPLAY_JOGO = {"replay_buffer": True, "replay_duration": 20,
 
 # The game also goes to a file of its own while recording, without camera or overlays (the Source Record plugin), for
 # vertical shorts and commented videos; with its own sound. CQP 22: it's material for cuts, and space adds up daily.
-def capture(name, window):
-    return source("game_capture", name, {"capture_mode": "window", "window": window, "priority": 2, "capture_cursor": False,
-                                         "allow_transparency": False, "capture_audio": True},
+def capture(name, window=None):
+    """A game's window, or (no `window`) whatever game is fullscreen in front: OBS's "any fullscreen application"."""
+    what = {"capture_mode": "window", "window": window, "priority": 2} if window else {"capture_mode": "any_fullscreen"}
+    return source("game_capture", name, {**what, "capture_cursor": False, "allow_transparency": False, "capture_audio": True},
                   mixers=EVERYWHERE | TRACK_GAME, filters=[
         source("source_record_filter", "Gravar jogo", {
             "record_mode": 3, "path": "C:\\Users\\muanl\\Videos", "filename_formatting": "%CCYY-%MM-%DD %hh-%mm-%ss jogo",
@@ -120,6 +121,11 @@ game = capture("Rocket League", ROCKET_LEAGUE)
 # and crowd, with ?jogo=valorant (the record from scripts/valorant.py, the chat under the killfeed); the camera goes
 # on top, over the minimap (Luan's choice), so its frame is ?altura=cima. Made by hand on 2026-11-08, as here.
 valorant = capture("Captura · Valorant", VALORANT)
+# Any other game (Luan, 2026-11-14): one scene for them all, "Diversos + chat", with nothing of a game's own: no rank
+# or record on the camera's frame (jogo.html?placar=0) and a stand that cheers no goals or rounds (?jogo=diversos).
+# Its capture takes whatever game is fullscreen or borderless in front, so a new game needs no setup (a windowed one
+# is picked in the capture's properties). The camera and the chat sit where Rocket League has them.
+various = capture("Captura · Diversos")
 # Stays on between scenes, so switching to one with the camera doesn't wait for it to start.
 # It also goes to a file of its own at native resolution while recording (the Source Record plugin), with the
 # microphone for syncing it to the main recording.
@@ -136,14 +142,21 @@ camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_vide
 game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1")
 chat_overlay = browser("Overlay · Conversa", "conversa.html")
 valorant_chat_overlay = browser("Overlay · Valorant + chat", "jogo.html?chat=1&jogo=valorant&altura=cima")
-# The crowd, over the game overlay; the dock sends it the goals and saves. Its sound is the goal narrator: on the
-# stream only, and in Luan's headphones.
-crowd = browser("Torcida", "torcida.html")
-crowd["settings"]["reroute_audio"] = True
-crowd.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
-valorant_crowd = browser("Torcida · Valorant", "torcida.html?jogo=valorant")
-valorant_crowd["settings"]["reroute_audio"] = True
-valorant_crowd.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
+various_chat_overlay = browser("Overlay · Diversos + chat", "jogo.html?chat=1&placar=0")
+
+
+def stand(name, page):
+    """The crowd, over the game overlay; the dock sends it the goals and saves. Its sound is the goal narrator: on the
+    stream only, and in Luan's headphones."""
+    crowd = browser(name, page)
+    crowd["settings"]["reroute_audio"] = True
+    crowd.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
+    return crowd
+
+
+crowd = stand("Torcida", "torcida.html")
+valorant_crowd = stand("Torcida · Valorant", "torcida.html?jogo=valorant")
+various_crowd = stand("Torcida · Diversos", "torcida.html?jogo=diversos")
 # Live Pix: the band and the goal, over everything; its sound is the Pix voices, like the crowd's. One source in
 # every scene that has the game or the talk, so an alert never plays twice: in Conversa (where a Pix "entre partidas"
 # usually plays) it's cropped to the band and set on the camera's lower third. In Valorant's scenes the page moves its
@@ -203,7 +216,7 @@ RETIRED = {("Lance ruim", "OBSBasic.SelectScene", "OBS_KEY_F2"), ("Jogo + chat",
 RETIRED_ITEMS = {("Fim", "Tela · Fim"), ("VAR · Rocket League", "VAR · replay"), ("VAR · Valorant", "VAR · replay")}
 # Settings `--apply` makes sure of on filters the collection already has (it only adds otherwise): the game's replay
 # buffer for the VAR, on each capture's "Gravar jogo". Never change them while OBS records (the obs skill).
-FILTER_SETTINGS = {("Rocket League", "Gravar jogo"): REPLAY_JOGO, ("Captura · Valorant", "Gravar jogo"): REPLAY_JOGO}
+FILTER_SETTINGS = {(name, "Gravar jogo"): REPLAY_JOGO for name in ("Rocket League", "Captura · Valorant", "Captura · Diversos")}
 # And on sources it already has: the VAR's page plays the clip's sound since 2026-11-12, through OBS, in his headphones.
 SOURCE_SETTINGS = {"Efeito · VAR": ({"reroute_audio": True}, {"monitoring_type": MONITOR_AND_OUTPUT})}
 
@@ -273,13 +286,18 @@ scenes = [
           (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
     scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, filters_at["valorant"]),
           (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
+    scene("Diversos + chat", (various, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
+          (various_chat_overlay, {}), (various_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
     scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
     scene("Lance ruim", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
           (camera, in_rocket_league), (bad_play, {})),
     scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
           *alerts_in_game, (pix, {}), (camera, in_valorant), (bad_play, {})),
+    scene("Lance ruim · Diversos", (various, {"bounds": (1920, 1080)}), (various_chat_overlay, {}), (various_crowd, {}),
+          *alerts_in_game, (pix, {}), (camera, in_rocket_league), (bad_play, {})),
     scene("VAR · Rocket League", (camera, in_var_camera), (booth, {}), (crowd, {}), *alerts_in_game, (pix, {})),
     scene("VAR · Valorant", (camera, in_var_camera), (booth, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {})),
+    scene("VAR · Diversos", (camera, in_var_camera), (booth, {}), (various_crowd, {}), *alerts_in_game, (pix, {})),
     scene("Terapia", (camera, in_calm), (filters, filters_at["calm"]), (calm, {}), *alerts_in_calm,
           (pix, PIX_IN_CALM)),
     scene("Já volto", (back, {})),
@@ -290,7 +308,9 @@ scenes = [
 HIDDEN = {"RL + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"},
           "Lance ruim": {"Discord", "Navegador"}, "Terapia": {"Discord"},
           "Valorant + chat": {"Discord", "Navegador"}, "Lance ruim · Valorant": {"Discord", "Navegador"},
-          "VAR · Rocket League": {"Discord", "Navegador"}, "VAR · Valorant": {"Discord", "Navegador"}}
+          "VAR · Rocket League": {"Discord", "Navegador"}, "VAR · Valorant": {"Discord", "Navegador"},
+          "Diversos + chat": {"Discord", "Navegador"}, "Lance ruim · Diversos": {"Discord", "Navegador"},
+          "VAR · Diversos": {"Discord", "Navegador"}}
 BREAKS = {"Começando", "Já volto", "Fim"}
 for each in scenes:
     extra = apps + ([] if each["name"] in BREAKS else sounds)
@@ -303,7 +323,7 @@ for each in scenes:
         each["hotkeys"] = {"OBSBasic.SelectScene": [{"key": HOTKEYS[each["name"]]}]}
 # The game fills the screen keeping its aspect ratio rather than cropping.
 for captured in scenes:
-    if captured["settings"]["items"][0]["name"] not in (game["name"], valorant["name"]):
+    if captured["settings"]["items"][0]["name"] not in (game["name"], valorant["name"], various["name"]):
         continue
     captured["settings"]["items"][0]["bounds_type"] = BOUNDS_SCALE_INNER
     captured["settings"]["items"][0]["bounds_crop"] = False
@@ -328,8 +348,8 @@ collection = {
     "current_scene": "Começando",
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
-    "sources": scenes + [game, valorant, camera, filters, game_chat_overlay, valorant_chat_overlay,
-                         chat_overlay, crowd, valorant_crowd, pix, starting, back, end, bad_play, calm, booth] + apps + sounds
+    "sources": scenes + [game, valorant, various, camera, filters, game_chat_overlay, valorant_chat_overlay,
+                         various_chat_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm, booth] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
@@ -406,9 +426,13 @@ def merge(live, new):
         if s["name"] not in by_name:
             if s["settings"].get("url") == FROM_OBS:
                 raise SystemExit("O OBS não tem a fonte Alertas: rode obs.py com a URL dos alertas para gerar a coleção inteira.")
+            # A new copy of a page OBS already has with a key (the stand's Σ key, #chave=) takes that key along.
+            twin = keyed(live, s)
+            if twin:
+                s = {**s, "settings": {**s["settings"], "url": f"{s['settings']['url']}#{twin[1]}"}}
             live["sources"].append(s)
             by_name[s["name"]] = s
-            added.append(f"fonte {s['name']}")
+            added.append(f"fonte {s['name']}" + (f" (com a chave de {twin[0]})" if twin else ""))
     for scene_name, item_name in RETIRED_ITEMS:
         mine = by_name.get(scene_name)
         items = (mine or {}).get("settings", {}).get("items", [])
@@ -472,9 +496,26 @@ def merge(live, new):
         if t["name"] not in names:
             live.setdefault("transitions", []).append(t)
             added.append(f"transição {t['name']}")
-    order = {o["name"] for o in live.get("scene_order", [])}
-    live["scene_order"] += [o for o in new["scene_order"] if o["name"] not in order]
+    # A new scene goes after the one before it here (Diversos + chat after Valorant + chat), else last.
+    order = live.setdefault("scene_order", [])
+    for i, o in enumerate(new["scene_order"]):
+        names = [have["name"] for have in order]
+        if o["name"] in names:
+            continue
+        before = next((n["name"] for n in reversed(new["scene_order"][:i]) if n["name"] in names), None)
+        order.insert(names.index(before) + 1 if before else len(order), {"name": o["name"]})
     return added
+
+
+def keyed(live, new):
+    """The (name, fragment) of a browser source in `live` showing `new`'s page with a #fragment (a key), if any."""
+    url = new["settings"].get("url", "")
+    if new["id"] != "browser_source" or "#" in url:
+        return None
+    page = url.split("?")[0]
+    return next(((s["name"], s["settings"]["url"].split("#", 1)[1]) for s in live["sources"]
+                 if s.get("id") == "browser_source" and "#" in s["settings"].get("url", "")
+                 and s["settings"]["url"].split("#")[0].split("?")[0] == page), None)
 
 
 def add_docks():

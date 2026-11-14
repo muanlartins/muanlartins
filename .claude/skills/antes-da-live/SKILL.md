@@ -82,6 +82,7 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 - OBS 33, profile "Live" ("Untitled" until 11-06), Advanced output. Recording: Hybrid MP4 (survives a crash, takes chapter marks),
   NVENC, tracks 1–4 (1 Tudo, 2 Microfone, 3 Jogo, 4 Discord); track 5 "Live" is the stream's. The camera also
   records to its own `… câmera.mkv` (Source Record filter "Gravar câmera").
-- Scenes: Começando, RL + chat, Valorant + chat, Conversa, Já volto, Fim (and the effects' own). `brand/twitch/obs.py` generates the scene
+- Scenes: Começando, RL + chat, Valorant + chat, Diversos + chat (any other game: its capture takes whatever game is
+  fullscreen or borderless in front), Conversa, Já volto, Fim (and the effects' own). `brand/twitch/obs.py` generates the scene
   collection; anything added by hand in OBS (like the Spotify source) should also go there.
 - See the `obs` skill for talking to OBS from WSL.

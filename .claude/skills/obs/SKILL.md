@@ -13,7 +13,9 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
 - It reaches Windows at WSL's default route (`OBS_HOST` overrides) on port 4455, and reads the password
   from OBS's own config (`…\obs-studio\plugin_config\obs-websocket\config.json`). **Never print the password**
   or put it in a file, command line or the repo; the script masks the overlay keys (`#chave=`, `#obs=`) in what
-  it prints. The Σ key and the Twitch Alerts Box URL are secrets too.
+  it prints. The Σ key and the Twitch Alerts Box URL are secrets too. Reading the collection's JSON yourself, print
+  browser sources' URLs cut at `#`, never anything after it, not even "key names": the Alerts Box's fragment is the
+  bare token, with no `key=` (on 2026-11-14 a listing that printed fragments' names printed it whole).
 - Reading is always fine. **Changing** OBS (scenes, inputs, filters, audio tracks, output settings,
   starting/stopping the recording or stream) is Luan's call: ask first, and while he's live only make the change
   he asked for. Never restart or close OBS while he's live.
@@ -133,6 +135,16 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
 - Luan's choice: Discord is hidden in the game scenes and Conversa, and the browser in the game scenes. One scene
   per game, always with the chat: "RL + chat" and "Valorant + chat" (2026-11-10: he dropped the ones without it,
   "Jogo" and "Valorant", and "Jogo + chat" became "RL + chat"; the docks and pages go by these names).
+- Any other game (Luan, 2026-11-14: "uma cena para jogos diversos, onde customizações específicas de jogo não se
+  apliquem"): "Diversos + chat", with "Lance ruim · Diversos" and "VAR · Diversos" for F2 and F8 (the Efeitos dock's
+  `div`). Its capture, "Captura · Diversos", is OBS's "any fullscreen application", so a new game needs no setup as
+  long as it runs fullscreen or borderless (a windowed one: pick its window in the capture's properties); it has
+  "Gravar jogo" with the VAR's replay buffer like the others. The camera, the filters and the chat sit where Rocket
+  League has them; `jogo.html?chat=1&placar=0` (the frame without rank or record) and `torcida.html?jogo=diversos`
+  (the stand cheers no goals, saves, rounds or matches; Σ in Rocket League's ranks, as the site shows them; the chat,
+  arrivals, captions and the VAR as ever). The Partidas dock never cuts away from it (no matches to follow) and the
+  Anúncios dock treats it as play. `obs.py --apply` copies the stand's `#chave=` from "Torcida" into the new
+  source, never printing it.
 - Effects (2026-11-07): scenes "Lance ruim" (cut in; the Efeitos dock zooms the camera and returns) and "Terapia"
   (fade in), and the sounds: the browser source "Sons" (`public/stream/tocador.html`) plays them when the dock hears a
   hotkey restart its trigger, a media source "Som · …" with a silent file (media sources play once when OBS loads, so
