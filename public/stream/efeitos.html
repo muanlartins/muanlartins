@@ -9,8 +9,8 @@
       since a hidden dock's timers slow down. It drives the stream's effects through obs-websocket, like Partidas:
 
       - Lance ruim (F2): this dock cuts to the game's "Lance ruim" scene ("Lance ruim · Valorant" from a Valorant
-        scene: the game's, with the camera on top, its sting and lance.html's speed lines), zooms the camera from its frame
-        to the whole screen, shakes it a little, holds 4 s, shrinks it back and cuts to the scene it came from.
+        scene, "Lance ruim · Diversos" from Diversos + chat, the scene for any other game: the game's, with the camera
+        on top, its sting and lance.html's speed lines), zooms the camera from its frame to the whole screen, shakes it a little, holds 4 s, shrinks it back and cuts to the scene it came from.
         Only by hand (Luan's choice, 2026-11-08): nothing fires it on its own.
       - Terapia (F3): the calm scene (terapia.html), on its own stinger, "Água" (transicao-terapia.webm; a fade until
         2026-11-14, and still if OBS lacks it).
@@ -43,10 +43,11 @@
         speed, a timeline to scrub): touching it drops the script and the clip follows the controls. Two layouts, each game's
         default kept here: "mini", the clip in the top right corner over the game scene, which stays on (Rocket
         League's: the match goes on; jogo.html fades its chat meanwhile), and "cabine", the game's VAR scene ("VAR ·
-        Rocket League" or "VAR · Valorant": var.html's booth, the live camera, the stand in referee kit) on the "VAR"
+        Rocket League", "VAR · Valorant" or "VAR · Diversos": var.html's booth, the live camera, the stand in referee kit) on the "VAR"
         stinger (Valorant's: Luan is dead, there's time). Away from a game scene it's always the booth. Opening it
         has the stand whistle (tocador.html). The chat votes with !1, !2, !3 (one vote per login, the last counts;
-        read here, anonymously) for the time set here per game (60 s Rocket League, 40 s Valorant by default: Luan
+        read here, anonymously) for the time set here per game (60 s Rocket League, 40 s Valorant, Diversos starting as
+        Rocket League's, by default: Luan
         doubled them on 2026-11-12, for the replay's two passes), or
         "Encerrar" sooner. The chat's verdict is final; a tie (nobody voting too) is drawn among the tied 2.5 s later, unless Luan picks here first. The verdict holds 7 s and the
         dock goes back to the scene before; F4 closes the VAR at any moment. A line dragged on the preview crosses the
@@ -419,6 +420,9 @@
       <span>Valorant</span>
       <div class="segmentos" data-jogo="val" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
       <div class="segmentos" data-jogo="val" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
+      <span>Diversos</span>
+      <div class="segmentos" data-jogo="div" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
+      <div class="segmentos" data-jogo="div" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
     </div>
     <p class="note">Mini: o replay no canto, o jogo segue. Cabine: a cena do VAR. Depois, o tempo da votação: o replay passa uma vez normal, outra em 50%, e os últimos 8 s são de últimos votos.</p>
     <label class="campo">Pergunta <input id="var-pergunta" maxlength="60" autocomplete="off" /></label>
@@ -498,9 +502,11 @@
       const $ = (id) => document.getElementById(id)
       const TERAPIA = "Terapia"
       // Each game's scenes (brand/twitch/obs.py): its main one (the only one since 2026-11-10: the chat is always on), and its Lance ruim.
+      // "div" is any other game (2026-11-14): one scene for them all, with nothing of a game's own.
       const GAMES = {
         rl: { main: "RL + chat", scenes: ["RL + chat"], lance: "Lance ruim", var: "VAR · Rocket League" },
         val: { main: "Valorant + chat", scenes: ["Valorant + chat"], lance: "Lance ruim · Valorant", var: "VAR · Valorant" },
+        div: { main: "Diversos + chat", scenes: ["Diversos + chat"], lance: "Lance ruim · Diversos", var: "VAR · Diversos" },
       }
       const LANCES = Object.values(GAMES).map((g) => g.lance)
       const VARS = Object.values(GAMES).map((g) => g.var)
@@ -509,7 +515,7 @@
       // A scene's game, by the tables above, else by its name (a scene renamed in OBS still finds its game).
       const gameOf = (scene) =>
         Object.keys(GAMES).find((g) => GAMES[g].scenes.includes(scene) || GAMES[g].lance === scene || GAMES[g].var === scene) ??
-        (/valorant/i.test(scene ?? "") ? "val" : /^RL\b|rocket league/i.test(scene ?? "") ? "rl" : undefined)
+        (/valorant/i.test(scene ?? "") ? "val" : /^RL\b|rocket league/i.test(scene ?? "") ? "rl" : /diversos/i.test(scene ?? "") ? "div" : undefined)
       const isGameScene = (scene) => !!gameOf(scene) && !EFFECTS.includes(scene)
       // F2, F4 and F8: silent media sources, like the sounds', so the dock picks the game's scene.
       const GATILHOS = { "Gatilho · Lance ruim": () => lance(), "Gatilho · Voltar ao jogo": () => voltar(), "Gatilho · VAR": () => chamarVar() }
@@ -804,7 +810,7 @@
       // and serves it to this dock's preview and to var.html. ?replays= points at another copy (a test).
       const REPLAYS = params.get("replays") ?? "http://127.0.0.1:8794"
       // Each game's capture, whose "Gravar jogo" filter (Source Record) keeps the game alone in a replay buffer.
-      const CAPTURAS = { rl: "Rocket League", val: "Captura · Valorant" }
+      const CAPTURAS = { rl: "Rocket League", val: "Captura · Valorant", div: "Captura · Diversos" }
       const SEGURA_MS = 7000 // the verdict on screen before going back
       const SORTEIO_MS = 2500 // a tie on screen before the draw settles it
       const DERIVA = 0.5 // the preview seeks when it's this far (s) from the clock, like var.html
@@ -825,6 +831,8 @@
         state.varTempoDobrado = true
         save()
       }
+      // Diversos (2026-11-14) starts as Rocket League's: the game goes on, the replay in the corner.
+      state.varJogo.div ??= { ...state.varJogo.rl }
 
       let gravando = false
       let bufferAtivo = false

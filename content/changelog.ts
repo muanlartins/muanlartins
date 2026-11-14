@@ -141,6 +141,13 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "cena-diversos",
+    date: "2026-11-14",
+    tag: "live",
+    title: "Uma cena pros outros jogos",
+    text: "Jogo que não é Rocket League nem Valorant agora tem cena própria: a câmera, o chat, a arquibancada, o Pix, o VAR e o Lance ruim de sempre, sem ranque na câmera e sem a torcida comemorando gol ou round que não existe. É só abrir o jogo em tela cheia.",
+  },
+  {
     id: "agenda-editavel",
     date: "2026-11-14",
     tag: "site",

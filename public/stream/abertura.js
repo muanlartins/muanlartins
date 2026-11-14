@@ -18,8 +18,10 @@
   const CONTAGEM = 30e3
   const CENA_FIRME = 8e3
   const SEM_CENA = 10 * 60e3
-  // Each game's capture in OBS (brand/twitch/obs.py), for the story's background; any other game uses the scene.
+  // Each game's capture in OBS (brand/twitch/obs.py), for the story's background; any other game is in Diversos + chat's,
+  // and without that capture the scene on air.
   const CAPTURAS = { "rocket-league": "Rocket League", valorant: "Captura · Valorant" }
+  const DIVERSOS = "Captura · Diversos"
   const CAMERA = "Câmera"
   const jogoNaCena = (cena) => / \+ chat$/.test(cena) || cena.startsWith("Lance ruim")
 
@@ -146,7 +148,9 @@
     const { cena } = host.estado()
     const o = daVez()
     const camera = await screenshot(CAMERA, 1280)
-    const jogo = (o && CAPTURAS[o.jogo] && (await screenshot(CAPTURAS[o.jogo], 960))) || (cena && (await screenshot(cena, 960)))
+    // Diversos + chat on air is that capture whatever the agenda says (a capture off air gives a blank frame).
+    const captura = /diversos/i.test(cena ?? "") ? DIVERSOS : o && (CAPTURAS[o.jogo] ?? DIVERSOS)
+    const jogo = (captura && (await screenshot(captura, 960))) || (cena && (await screenshot(cena, 960)))
     if (!camera && !jogo) throw new Error("o OBS não deu as imagens")
     return Story.desenhar({ camera, jogo, titulo: o?.titulo, nomeJogo: o?.nome, base: location.href })
   }
