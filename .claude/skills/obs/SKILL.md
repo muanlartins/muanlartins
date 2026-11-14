@@ -13,7 +13,9 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
 - It reaches Windows at WSL's default route (`OBS_HOST` overrides) on port 4455, and reads the password
   from OBS's own config (`…\obs-studio\plugin_config\obs-websocket\config.json`). **Never print the password**
   or put it in a file, command line or the repo; the script masks the overlay keys (`#chave=`, `#obs=`) in what
-  it prints. The Σ key and the Twitch Alerts Box URL are secrets too.
+  it prints. The Σ key and the Twitch Alerts Box URL are secrets too. Reading the collection's JSON yourself, print
+  browser sources' URLs cut at `#`, never anything after it, not even "key names": the Alerts Box's fragment is the
+  bare token, with no `key=` (on 2026-11-14 a listing that printed fragments' names printed it whole).
 - Reading is always fine. **Changing** OBS (scenes, inputs, filters, audio tracks, output settings,
   starting/stopping the recording or stream) is Luan's call: ask first, and while he's live only make the change
   he asked for. Never restart or close OBS while he's live.
