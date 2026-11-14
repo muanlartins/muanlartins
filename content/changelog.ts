@@ -110,13 +110,6 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
-    id: "metas-com-prazo",
-    status: "agora",
-    tag: "site",
-    title: "Metas com data pra acabar",
-    text: "Cada meta do Pix mostra até quando vai, fecha sozinha no último dia e fica no mural como cumprida ou não. As metas aparecem na agenda. A dos três dígitos vai até 30/11.",
-  },
-  {
     id: "natal-na-live",
     status: "proximo",
     tag: "live",
@@ -156,6 +149,15 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "metas-com-prazo",
+    date: "2026-11-14",
+    tag: "site",
+    title: "Metas com data pra acabar",
+    text: "Cada meta do Pix mostra até quando vai, na live e no site, e fecha sozinha à meia-noite do último dia: no mural ela fica como batida ou não, e o que passar do alvo antes disso conta como extra. A agenda mostra a meta de agora, a próxima e o dia em que cada uma começa e acaba.",
+    href: "/canal/agenda",
+    media: [media("metas-com-prazo", "A agenda com a meta dos três dígitos (R$ 67,67 de R$ 100, até 30/11) e a de Natal depois; no calendário de dezembro, o fim de uma meta no dia 30 e o começo da outra no dia 1º")],
+  },
   {
     id: "letra-da-musica",
     date: "2026-11-14",

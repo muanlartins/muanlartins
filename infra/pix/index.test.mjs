@@ -305,3 +305,81 @@ test("a plain Pix is as it was: no song, no Google", async () => {
   assert.equal((await chamar("GET", "/mural")).body.pix[0].mensagem, "Que gol!")
   assert.equal(google.chamadasLyria, 0)
 })
+
+// --- Goals: an end date, one set ahead of time, the calendar moving on by itself ---------------------------
+
+const relogio = Date.now
+const em = (instante) => (Date.now = () => Date.parse(instante))
+const pixDe = (centavos, nome) => canal({ acao: "registrar", centavos, nome })
+
+test("a goal with a last day ends at that day's Brasília midnight by itself, into the history, reached or not", async (t) => {
+  t.after(() => (Date.now = relogio))
+  em("2026-11-20T12:00:00Z")
+  assert.equal((await canal({ acao: "meta", titulo: "Os três primeiros dígitos", alvo: 10000, ate: "2026-11-30" })).status, 200)
+  await pixDe(6000, "Ana")
+  em("2026-11-30T23:59:00-03:00")
+  await pixDe(5000, "Bia")
+  let { body: c } = await canal()
+  assert.deepEqual(c.meta, { titulo: "Os três primeiros dígitos", alvo: 10000, arrecadado: 11000, desde: "2026-11-20T12:00:00.000Z", prazo: "2026-12-01T03:00:00.000Z" })
+
+  // Past the goal, it keeps counting as extra; at midnight it's over, and a Pix after it counts for no goal.
+  em("2026-12-01T00:00:01-03:00")
+  await pixDe(700, "Caio")
+  ;({ body: c } = await canal())
+  assert.equal(c.meta, null)
+  const { body: m } = await chamar("GET", "/metas")
+  assert.equal(m.meta, null)
+  assert.deepEqual(m.metas, [{ titulo: "Os três primeiros dígitos", alvo: 10000, desde: "2026-11-20T12:00:00.000Z", prazo: "2026-12-01T03:00:00.000Z", ate: "2026-12-01T03:00:00.000Z", arrecadado: 11000 }])
+  const { body: mural } = await chamar("GET", "/mural")
+  assert.deepEqual(mural.metas[0].apoiadores.map((p) => p.nome), ["Bia", "Ana"])
+})
+
+test("a goal set ahead takes the screen on its first day, ending the one before right then", async (t) => {
+  t.after(() => (Date.now = relogio))
+  em("2026-11-14T20:00:00Z")
+  await canal({ acao: "meta", titulo: "Os três primeiros dígitos", alvo: 10000 })
+  await pixDe(1000, "Ana")
+  // Its day has to be ahead, and its end after its start.
+  assert.equal((await canal({ acao: "meta", proxima: true, titulo: "Natal", alvo: 10000, de: "2026-11-14", ate: "2026-12-31" })).status, 400)
+  assert.equal((await canal({ acao: "meta", proxima: true, titulo: "Natal", alvo: 10000, de: "2026-12-01", ate: "2026-11-30" })).status, 400)
+  const r = await canal({ acao: "meta", proxima: true, titulo: "Natal", alvo: 10000, de: "2026-12-01", ate: "2026-12-31" })
+  assert.deepEqual(r.body.proxima, { titulo: "Natal", alvo: 10000, desde: "2026-12-01T03:00:00.000Z", prazo: "2027-01-01T03:00:00.000Z" })
+  assert.deepEqual((await canal()).body.proxima, r.body.proxima)
+  assert.equal((await chamar("GET", "/mural")).body.proxima.titulo, "Natal")
+
+  em("2026-12-01T03:00:00Z")
+  await pixDe(500, "Bia")
+  const { body: c } = await canal()
+  assert.deepEqual([c.meta.titulo, c.meta.arrecadado, c.proxima], ["Natal", 500, null])
+  const { body: m } = await chamar("GET", "/metas")
+  assert.deepEqual(
+    m.metas.map((g) => [g.titulo, g.ate, g.prazo, g.arrecadado]),
+    [["Os três primeiros dígitos", "2026-12-01T03:00:00.000Z", null, 1000]],
+  )
+
+  // And it ends on its own day too.
+  em("2027-01-01T03:00:00Z")
+  assert.equal((await canal()).body.meta, null)
+  assert.deepEqual((await chamar("GET", "/metas")).body.metas.map((g) => g.titulo), ["Natal", "Os três primeiros dígitos"])
+})
+
+test("Ajustar keeps the count and sets or clears the last day; the dock can take a scheduled goal off", async (t) => {
+  t.after(() => (Date.now = relogio))
+  em("2026-11-14T20:00:00Z")
+  await canal({ acao: "meta", titulo: "Os três primeiros dígitos", alvo: 10000 })
+  await pixDe(6767, "Ana")
+  assert.equal((await canal({ acao: "meta", ajustar: true, titulo: "Os três primeiros dígitos", alvo: 10000, ate: "2026-11-13" })).status, 400, "a day gone")
+  assert.equal((await canal({ acao: "meta", ajustar: true, titulo: "Os três primeiros dígitos", alvo: 10000, ate: "2026-02-30" })).status, 400, "no such day")
+  let { body } = await canal({ acao: "meta", ajustar: true, titulo: "Os três primeiros dígitos", alvo: 10000, ate: "2026-11-30" })
+  assert.deepEqual([body.meta.arrecadado, body.meta.prazo], [6767, "2026-12-01T03:00:00.000Z"])
+  ;({ body } = await canal({ acao: "meta", ajustar: true, titulo: "Três dígitos", alvo: 10000 }))
+  assert.deepEqual([body.meta.titulo, body.meta.prazo], ["Três dígitos", "2026-12-01T03:00:00.000Z"], "no date sent keeps it")
+  ;({ body } = await canal({ acao: "meta", ajustar: true, titulo: "Três dígitos", alvo: 10000, ate: "" }))
+  assert.equal(body.meta.prazo, null, "an empty date clears it")
+
+  await canal({ acao: "meta", proxima: true, titulo: "Natal", alvo: 10000, de: "2026-12-01" })
+  await canal({ acao: "meta", proxima: true, alvo: 0 })
+  assert.equal((await canal()).body.proxima, null)
+  em("2026-12-02T12:00:00Z")
+  assert.equal((await canal()).body.meta.titulo, "Três dígitos", "nothing took its place")
+})

@@ -257,6 +257,13 @@
         font-weight: 500;
         font-variant-numeric: tabular-nums;
       }
+      /* Until when, under the amount: the goal's last day and the days left (Brasília's). */
+      .meta .prazo {
+        margin-top: 4px;
+        color: rgb(244 245 247 / 0.7);
+        font-size: 15px;
+        font-variant-numeric: tabular-nums;
+      }
       .barra {
         height: 10px;
         margin-top: 10px;
@@ -289,6 +296,7 @@
           <p class="titulo"></p>
           <div class="barra"><div></div></div>
           <p class="quanto"><span class="valor"></span><span class="pct"></span></p>
+          <p class="prazo" hidden></p>
         </div>
       </div>
       <div class="alerta">
@@ -598,6 +606,19 @@
         $(".meta .valor").textContent = `R$ ${reais(m.arrecadado)} de R$ ${reais(m.alvo)}`
         $(".meta .pct").textContent = `${Math.floor((m.arrecadado / m.alvo) * 100)}%`
         $(".barra div").style.width = `${Math.min(100, (m.arrecadado / m.alvo) * 100)}%`
+        $(".meta .prazo").hidden = !m.prazo
+        if (m.prazo) $(".meta .prazo").textContent = prazo(m)
+      }
+
+      // "até 30/11 · faltam 16 dias": the goal's last day is the day before its `prazo` (a Brasília midnight). Past the
+      // target, what still comes in is extra.
+      const diaBR = (t) => new Date(t).toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" })
+      function prazo(m) {
+        const ultimo = diaBR(Date.parse(m.prazo) - 1)
+        const faltam = Math.round((Date.parse(ultimo) - Date.parse(diaBR(Date.now()))) / 86_400_000)
+        const ate = `até ${ultimo.slice(8)}/${ultimo.slice(5, 7)}`
+        if (m.arrecadado >= m.alvo) return `Batida! O que vier ${ate} é extra`
+        return `${ate} · ${faltam <= 0 ? "último dia" : faltam === 1 ? "falta 1 dia" : `faltam ${faltam} dias`}`
       }
 
       async function ler() {
@@ -635,7 +656,7 @@
         const nomes = ["Ana", "pedrinho_rl", "", "Duda"]
         const msgs = ["Que gol, Luan!", "Bora subir pra Campeão", "", "Manda um abraço pra galera do Discord!"]
         let n = 0
-        meta({ titulo: "Microfone novo", alvo: 50000, arrecadado: 12345 })
+        meta({ titulo: "Microfone novo", alvo: 50000, arrecadado: 12345, prazo: new Date(Date.now() + 9 * 86_400_000).toISOString() })
         const um = () => {
           const i = n++ % nomes.length
           fila.push({ sk: `demo${n}`, nome: nomes[i], mensagem: msgs[i], centavos: [500, 1000, 201, 2000][i], voz: "antonio", quando: "agora" })

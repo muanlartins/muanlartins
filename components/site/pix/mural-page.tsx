@@ -5,10 +5,10 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { PageIntro } from "@/components/site/page-intro"
 import { Audience } from "@/components/site/pix/audience"
 import { FanSpot } from "@/components/site/pix/fan-spot"
-import { GoalBar } from "@/components/site/pix/goal-bar"
+import { GoalBar, timeLeft } from "@/components/site/pix/goal-bar"
 import { BadgeChips } from "@/components/site/profile/badges"
 import { mural as muralCopy, STYLES } from "@/content/pix"
-import { loadMural, PIX_API, reais, type Goal, type Mural, type MuralPix, type SongTimes } from "@/lib/pix"
+import { firstDayOf, lastDayOf, loadMural, PIX_API, reais, type Goal, type Mural, type MuralPix, type PlannedGoal, type SongTimes } from "@/lib/pix"
 import { loadFans, loadSigmas, type Choice, type Sigma, type SigmaStats, type Torcedor } from "@/lib/profile"
 import { LOCALE, localize, PIX_SLUG } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -169,8 +169,13 @@ function Song({ song, name }: { song: NonNullable<MuralPix["musica"]>; name: str
   )
 }
 
+/** "14/11/2026" from a Brasília day ("YYYY-MM-DD"). */
+const dayOf = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString(LANG, { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" })
+
 function GoalCard({ goal, current, look }: { goal: Goal; current?: boolean; look: Look }) {
   const reached = goal.arrecadado >= goal.alvo
+  const last = lastDayOf(goal)
+  const left = current ? timeLeft(goal, !reached) : null
   return (
     <section className={cn("rounded-md border", current ? "border-klein/50 bg-paper/80" : "border-line bg-paper/60")}>
       <div className="space-y-4 px-4 pt-5 pb-5 sm:px-6 sm:pt-6">
@@ -178,16 +183,24 @@ function GoalCard({ goal, current, look }: { goal: Goal; current?: boolean; look
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h3 className={cn("font-medium tracking-[-0.02em] text-ink", current ? "text-3xl" : "text-xl")}>{goal.titulo || text.goalNow}</h3>
             {reached && <span className="rounded-full bg-klein px-2.5 py-0.5 text-[12px] font-medium text-paper">✓ {text.reached}</span>}
+            {!reached && !current && <span className="rounded-full border border-line px-2.5 py-0.5 text-[12px] font-medium text-muted">{text.missed}</span>}
           </div>
           <p className="text-[13px] text-muted tabular-nums">
-            {day(goal.desde)}
-            {goal.ate && ` – ${day(goal.ate)}`}
+            {dayOf(firstDayOf(goal))}
+            {last ? ` – ${dayOf(last)}` : ` · ${text.noEnd}`}
           </p>
         </div>
         <GoalBar goal={goal} of={text.of} large={current} />
-        {current && !reached && (
+        {current && (!reached || left) && (
           <p className="text-[14px] text-muted tabular-nums">
-            {text.toGo} R$ {reais(goal.alvo - goal.arrecadado)}
+            {!reached && `${text.toGo} R$ ${reais(goal.alvo - goal.arrecadado)}`}
+            {!reached && left && " · "}
+            {left}
+          </p>
+        )}
+        {goal.arrecadado > goal.alvo && (
+          <p className="text-[14px] font-medium text-klein tabular-nums">
+            + R$ {reais(goal.arrecadado - goal.alvo)} {text.extra}
           </p>
         )}
       </div>
@@ -199,13 +212,29 @@ function GoalCard({ goal, current, look }: { goal: Goal; current?: boolean; look
   )
 }
 
-/** The Pix tab: the goal on screen, the ones before, and the named Pix of no goal. */
+/** A goal set ahead of time: its name, target and days. */
+function NextGoal({ goal }: { goal: PlannedGoal }) {
+  const last = lastDayOf(goal)
+  return (
+    <section className="rounded-md border border-dashed border-klein/40 px-4 py-4 sm:px-6">
+      <p className={heading}>{text.next}</p>
+      <p className="mt-1 text-xl font-medium tracking-[-0.02em] text-ink">{goal.titulo}</p>
+      <p className="mt-1 text-[14px] text-muted tabular-nums">
+        R$ {reais(goal.alvo)} · {dayOf(firstDayOf(goal))}
+        {last && ` – ${dayOf(last)}`}
+      </p>
+    </section>
+  )
+}
+
+/** The Pix tab: the goal on screen, the one scheduled, the ones before, and the named Pix of no goal. */
 function PixTab({ mural, look }: { mural: Mural; look: Look }) {
   return (
     <div className="space-y-10">
       <div className="space-y-4">
         <h2 className={heading}>{text.goalNow}</h2>
         {mural.meta ? <GoalCard goal={mural.meta} current look={look} /> : <p className="text-[15px] text-muted">{text.noGoal}</p>}
+        {mural.proxima && <NextGoal goal={mural.proxima} />}
       </div>
 
       {mural.metas.length > 0 && (

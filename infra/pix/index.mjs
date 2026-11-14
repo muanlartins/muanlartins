@@ -14,12 +14,18 @@
 //   pendente/<iso>#<id> a Pix nobody reserved, for the dock to place (with only the payer's first name)
 //   visto/<hash>        a notification already seen, since the phone may send one twice
 //   limite/<ip>#<n>     reservations from one IP in the n-th 15-minute window, so a script can't hold every value
-//   meta/atual          the goal on screen, counting every Pix since it was set
+//   meta/atual          the goal on screen, counting every Pix since it was set (`desde`), until its `prazo` if it has one
+//   meta/proxima        a goal set ahead of time: on its `desde` it takes the screen, ending the one before
 //   meta/<iso>          a goal that ended (sk: when it started), for the mural's history
 //
 // Public: POST /reservar, GET /reserva?id=, POST /musica (a refused song's new text), GET /mural (the site's /mural:
-// the goals and their Pix). The phone: POST /notificacao with x-token. The stream: GET /canal, GET /audio?id= and
+// the goals and their Pix), GET /metas (the goals alone, with their dates, for the agenda). The phone: POST /notificacao with x-token. The stream: GET /canal, GET /audio?id= and
 // POST /canal with x-chave (the Σ key, already in OBS).
+//
+// A goal's dates are Brasília's days (no daylight saving since 2019, so midnight is 03:00 UTC): it runs until the
+// midnight that ends its last day, and one set ahead starts at the midnight that begins its first. Nothing runs at
+// midnight: every read goes through `vigente`, which moves the calendar on first (a goal past its end goes to the
+// history, a scheduled one whose day came takes the screen), so whoever looks first after midnight does it.
 //
 // A song (musica.mjs), from R$ 5: the form sends a style and a theme or lyrics, checked by the word filter and by
 // Gemini before the QR. Once paid, the Pix's `musica` is "gerando" and this function invokes itself with
@@ -266,23 +272,69 @@ async function editarMusica(event) {
   return out(200, { musica: paraQuemPediu({ ...m, ...novo, estado: "gerando" }) })
 }
 
-async function meta() {
-  const m = await ler("meta", "atual")
-  if (!m) return null
-  const arrecadado = (await todos("pix", { desde: m.desde })).reduce((t, p) => t + p.centavos, 0)
-  return { titulo: m.titulo, alvo: m.alvo, arrecadado }
+// Brasília's days as instants: "2026-11-30" begins at 03:00 UTC that day; its end is the next day's beginning.
+const DIA_BR = /^\d{4}-\d{2}-\d{2}$/
+function inicioDoDia(dia) {
+  if (typeof dia !== "string" || !DIA_BR.test(dia)) return null
+  const t = Date.parse(`${dia}T03:00:00.000Z`)
+  return Number.isNaN(t) || iso(t).slice(0, 10) !== dia ? null : iso(t)
+}
+const fimDoDia = (dia) => {
+  const inicio = inicioDoDia(dia)
+  return inicio && iso(Date.parse(inicio) + DIA)
+}
+const historico = (metas) => metas.filter((m) => m.sk !== "atual" && m.sk !== "proxima")
+const somar = (pix) => pix.reduce((t, p) => t + p.centavos, 0)
+
+/**
+ * Ends a goal at `ate`: into the history with what came in until then (unless nothing did: a typo, say), then off the
+ * screen, if it's still that one there.
+ */
+async function arquivar(m, ate) {
+  const pix = (await todos("pix", { desde: m.desde })).filter((p) => p.sk < ate)
+  if (pix.length) {
+    const item = { pk: "meta", sk: m.desde, titulo: m.titulo, alvo: m.alvo, desde: m.desde, ate, arrecadado: somar(pix), ...(m.prazo ? { prazo: m.prazo } : {}) }
+    await db.send(new PutCommand({ TableName: T, Item: item }))
+  }
+  await seCondicao(
+    db.send(new DeleteCommand({ TableName: T, Key: { pk: "meta", sk: "atual" }, ConditionExpression: "#d = :d", ExpressionAttributeNames: { "#d": "desde" }, ExpressionAttributeValues: { ":d": m.desde } })),
+  )
 }
 
-/** Ends the goal on screen; it goes to the history, unless no Pix came while it was up (a typo, say). */
-async function encerrar() {
-  const m = await ler("meta", "atual")
-  if (!m) return
-  const pix = await todos("pix", { desde: m.desde })
-  if (pix.length) {
-    const arrecadado = pix.reduce((t, p) => t + p.centavos, 0)
-    await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: m.desde, titulo: m.titulo, alvo: m.alvo, desde: m.desde, ate: iso(Date.now()), arrecadado } }))
+/**
+ * The goal on screen and the one scheduled, after moving the calendar on to `agora`: the one on screen ends at its
+ * `prazo` or when the scheduled one starts, whichever comes first, and the scheduled one takes the screen on its day.
+ */
+async function vigente(agora = Date.now()) {
+  let [m, p] = await Promise.all([ler("meta", "atual"), ler("meta", "proxima")])
+  for (let volta = 0; volta < 3; volta++) {
+    const comeca = p && Date.parse(p.desde) <= agora ? p.desde : null
+    const fim = [m?.prazo, comeca].filter((t) => t && Date.parse(t) <= agora).sort()[0]
+    if (m && fim) {
+      await arquivar(m, fim)
+      m = null
+    }
+    if (m || !comeca) break
+    const nova = { pk: "meta", sk: "atual", titulo: p.titulo, alvo: p.alvo, desde: p.desde, ...(p.prazo ? { prazo: p.prazo } : {}) }
+    const pus = await seCondicao(db.send(new PutCommand({ TableName: T, Item: nova, ConditionExpression: "attribute_not_exists(sk)" })))
+    await seCondicao(
+      db.send(new DeleteCommand({ TableName: T, Key: { pk: "meta", sk: "proxima" }, ConditionExpression: "#d = :d", ExpressionAttributeNames: { "#d": "desde" }, ExpressionAttributeValues: { ":d": p.desde } })),
+    )
+    // Someone else moved it on at the same moment: theirs is on screen.
+    m = pus ? nova : await ler("meta", "atual")
+    p = await ler("meta", "proxima")
   }
-  await apagar("meta", "atual")
+  return { atual: m ?? null, proxima: p ?? null }
+}
+
+const datas = (m) => ({ desde: m.desde, prazo: m.prazo ?? null })
+const agendada = (p) => (p ? { titulo: p.titulo, alvo: p.alvo, ...datas(p) } : null)
+
+async function meta() {
+  const { atual: m } = await vigente()
+  if (!m) return null
+  const arrecadado = somar(await todos("pix", { desde: m.desde }))
+  return { titulo: m.titulo, alvo: m.alvo, arrecadado, ...datas(m) }
 }
 
 /**
@@ -290,7 +342,7 @@ async function encerrar() {
  * own (Luan's tests); now, if there's none.
  */
 async function semMeta() {
-  const fim = (await todos("meta")).filter((m) => m.sk !== "atual").reduce((a, m) => (m.ate > a ? m.ate : a), "")
+  const fim = historico(await todos("meta")).reduce((a, m) => (m.ate > a ? m.ate : a), "")
   const primeiro = (await todos("pix", fim ? { desde: fim } : {})).find((p) => p.login !== DONO)
   return primeiro ? primeiro.sk.slice(0, 24) : iso(Date.now())
 }
@@ -302,14 +354,13 @@ async function semMeta() {
 // goals only the Pix whose `mural` is set show (every one from the form since 2026-11-10): the rest are the channel's
 // tests from before the first goal.
 async function mural() {
+  const { atual, proxima } = await vigente()
   const [todosPix, metas] = await Promise.all([todos("pix"), todos("meta")])
-  const atual = metas.find((m) => m.sk === "atual")
   const goals = [
-    ...(atual ? [{ titulo: atual.titulo, alvo: atual.alvo, desde: atual.desde, ate: null }] : []),
-    ...metas
-      .filter((m) => m.sk !== "atual")
+    ...(atual ? [{ titulo: atual.titulo, alvo: atual.alvo, ...datas(atual), ate: null }] : []),
+    ...historico(metas)
       .sort((a, b) => (a.desde < b.desde ? 1 : -1))
-      .map((m) => ({ titulo: m.titulo, alvo: m.alvo, desde: m.desde, ate: m.ate })),
+      .map((m) => ({ titulo: m.titulo, alvo: m.alvo, ...datas(m), ate: m.ate })),
   ]
   const daMeta = (p) => goals.findIndex((g) => p.sk >= g.desde && (!g.ate || p.sk < g.ate))
   const mostra = (p) => ({
@@ -338,7 +389,22 @@ async function mural() {
   return out(200, {
     meta: atual ? lista[0] : null,
     metas: atual ? lista.slice(1) : lista,
+    proxima: agendada(proxima),
     pix: semMeta,
+  })
+}
+
+// The goals alone, for the agenda's calendar: the one on screen (with its count), the one scheduled, and the ended ones
+// with what each made, newest first. Light: no Pix but the current goal's.
+async function metas() {
+  const m = await meta()
+  const [proxima, todas] = await Promise.all([ler("meta", "proxima"), todos("meta")])
+  return out(200, {
+    meta: m,
+    proxima: agendada(proxima),
+    metas: historico(todas)
+      .sort((a, b) => (a.desde < b.desde ? 1 : -1))
+      .map((g) => ({ titulo: g.titulo, alvo: g.alvo, ...datas(g), ate: g.ate, arrecadado: g.arrecadado })),
   })
 }
 
@@ -554,6 +620,7 @@ async function canal() {
     todos("reserva"),
     meta(),
   ])
+  const proxima = await ler("meta", "proxima")
   const comMusica = (p) => (p.musica ? { ...p, musica: { ...p.musica, estado: estadoDe(p.musica, agora), url: p.musica.arquivo ? MUSICAS_URL + p.musica.arquivo : undefined } } : p)
   return out(200, {
     agora,
@@ -563,6 +630,7 @@ async function canal() {
       .filter((r) => !r.pago && r.expira + FOLGA >= agora)
       .map(({ sk, centavos, nome, mensagem, audio, transcricao, sujo, voz, quando, expira, musica }) => ({ id: sk, centavos, nome, mensagem, audio, transcricao, sujo, voz, quando, expira, musica: musica && { estilo: musica.estilo } })),
     meta: m,
+    proxima: agendada(proxima),
   })
 }
 
@@ -648,17 +716,47 @@ async function acao(p) {
     return out(200, { texto, sujo })
   }
   // A new goal ends the one before; "ajustar" changes the one on screen and keeps its count. With "avulsos", a goal
-  // (new or adjusted) counts from the first Pix since the last goal ended (or the first ever, if none did).
+  // (new or adjusted) counts from the first Pix since the last goal ended (or the first ever, if none did). `ate` is
+  // its last day (Brasília's "YYYY-MM-DD"; none, or "" when adjusting, runs until it's ended by hand). With
+  // "proxima", it's set ahead of time, from its first day (`de`), replacing any scheduled before; an alvo of 0
+  // takes the scheduled one off.
   if (acao === "meta") {
+    const agora = Date.now()
     const alvo = Number(p.alvo)
-    if (!Number.isInteger(alvo) || alvo < 1) {
-      await encerrar()
+    const valido = Number.isInteger(alvo) && alvo >= 1
+    const titulo = valido ? filtrar(linha(p.titulo, 60)).texto : ""
+    const prazo = p.ate ? fimDoDia(p.ate) : null
+    if (p.ate && !prazo) return out(400, { erro: "Data de fim inválida." })
+    if (prazo && Date.parse(prazo) <= agora) return out(400, { erro: "Esse dia já acabou." })
+    if (p.proxima) {
+      if (!valido) {
+        await apagar("meta", "proxima")
+        return out(200, { proxima: null })
+      }
+      const desde = inicioDoDia(p.de)
+      if (!desde || Date.parse(desde) <= agora) return out(400, { erro: "A próxima meta começa num dia que ainda não chegou." })
+      if (prazo && prazo <= desde) return out(400, { erro: "A meta acaba antes de começar." })
+      const item = { pk: "meta", sk: "proxima", titulo, alvo, desde, ...(prazo ? { prazo } : {}) }
+      await db.send(new PutCommand({ TableName: T, Item: item }))
+      return out(200, { proxima: agendada(item) })
+    }
+    const { atual } = await vigente(agora)
+    if (!valido) {
+      if (atual) await arquivar(atual, iso(agora))
       return out(200, { meta: null })
     }
-    const titulo = filtrar(linha(p.titulo, 60)).texto
-    if (!(p.ajustar && (await atualizar("meta", "atual", { titulo, alvo, ...(p.avulsos ? { desde: await semMeta() } : {}) })))) {
-      await encerrar()
-      await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: "atual", titulo, alvo, desde: p.avulsos ? await semMeta() : iso(Date.now()) } }))
+    if (p.ajustar && atual) {
+      const desde = p.avulsos ? await semMeta() : atual.desde
+      const fica = p.ate === undefined ? atual.prazo : prazo
+      const item = { pk: "meta", sk: "atual", titulo, alvo, desde, ...(fica ? { prazo: fica } : {}) }
+      const ok = await seCondicao(
+        db.send(new PutCommand({ TableName: T, Item: item, ConditionExpression: "#d = :d", ExpressionAttributeNames: { "#d": "desde" }, ExpressionAttributeValues: { ":d": atual.desde } })),
+      )
+      if (!ok) return out(409, { erro: "A meta mudou enquanto isso. Tente de novo." })
+    } else {
+      if (atual) await arquivar(atual, iso(agora))
+      const desde = p.avulsos ? await semMeta() : iso(agora)
+      await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: "atual", titulo, alvo, desde, ...(prazo ? { prazo } : {}) } }))
     }
     return out(200, { meta: await meta() })
   }
@@ -676,6 +774,7 @@ export async function handler(event) {
   if (metodo === "GET" && caminho === "/reserva") return situacao(event.queryStringParameters?.id)
   if (metodo === "POST" && caminho === "/musica") return editarMusica(event)
   if (metodo === "GET" && caminho === "/mural") return mural()
+  if (metodo === "GET" && caminho === "/metas") return metas()
   if (metodo === "POST" && caminho === "/notificacao") return notificacao(event)
 
   if (!igual(event.headers?.["x-chave"], process.env.CHAVE)) return out(caminho === "/canal" || caminho === "/audio" ? 401 : 404, {})

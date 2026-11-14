@@ -28,15 +28,27 @@ export interface Goal {
   titulo: string
   alvo: number
   desde: string
+  /** When it ended; null while it's on screen. */
   ate: string | null
+  /** The Brasília midnight after its last day, when it was set with one (it ends there by itself); null runs until ended by hand. */
+  prazo: string | null
   arrecadado: number
   pix: number
   apoiadores: MuralPix[]
 }
 
+/** A goal set ahead of time: it takes the screen at the midnight that begins its first day. */
+export interface PlannedGoal {
+  titulo: string
+  alvo: number
+  desde: string
+  prazo: string | null
+}
+
 export interface Mural {
   meta: Goal | null
   metas: Goal[]
+  proxima: PlannedGoal | null
   /** The named Pix of no goal. */
   pix: MuralPix[]
 }
@@ -112,6 +124,34 @@ export async function loadMural(): Promise<Mural> {
   if (!response.ok) throw new Error(String(response.status))
   return response.json()
 }
+
+/** The goals alone, with their dates (GET /metas): the one on screen with its count, the one scheduled, the ended ones. */
+export interface Goals {
+  meta: Pick<Goal, "titulo" | "alvo" | "desde" | "prazo" | "arrecadado"> | null
+  proxima: PlannedGoal | null
+  metas: Pick<Goal, "titulo" | "alvo" | "desde" | "prazo" | "ate" | "arrecadado">[]
+}
+
+export async function loadGoals(): Promise<Goals> {
+  const response = await fetch(`${PIX_API}/metas`)
+  if (!response.ok) throw new Error(String(response.status))
+  return response.json()
+}
+
+// A goal's dates are Brasília's days: it starts at the midnight of its first and runs until the one after its last.
+const BRASILIA = "America/Sao_Paulo"
+/** The Brasília day of an instant, "YYYY-MM-DD". */
+export const dayInBrasilia = (instant: string | number) => new Date(instant).toLocaleDateString("sv-SE", { timeZone: BRASILIA })
+/** A goal's first day, "YYYY-MM-DD". */
+export const firstDayOf = (goal: { desde: string }) => dayInBrasilia(goal.desde)
+/** A goal's last day, "YYYY-MM-DD": the day it ended, or the one it's set to end; null for one on screen with no end. */
+export function lastDayOf(goal: { prazo: string | null; ate?: string | null }) {
+  const end = goal.ate ?? goal.prazo
+  return end ? dayInBrasilia(Date.parse(end) - 1) : null
+}
+/** Whole days from today to a goal's last day (Brasília's): 0 on the last day. */
+export const daysLeft = (goal: { prazo: string }, now = Date.now()) =>
+  Math.round((Date.parse(lastDayOf(goal)!) - Date.parse(dayInBrasilia(now))) / 86_400_000)
 
 /** A refused song's new text: checked again, then made again. */
 export async function editSong(id: string, text: { sobre: string } | { letra: string }): Promise<SongStatus> {

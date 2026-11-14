@@ -343,7 +343,7 @@ export function PixPage() {
           <p className="text-[13px] font-medium uppercase tracking-[0.12em] text-klein">
             {text.goal}: {goal.titulo}
           </p>
-          <GoalBar goal={goal} of={of} />
+          <GoalBar goal={goal} of={of} when />
         </a>
       )}
 
