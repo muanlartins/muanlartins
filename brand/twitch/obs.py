@@ -13,7 +13,8 @@ alerts. Import with Scene Collection → Import. Devices and the canvas below ar
 --apply merges instead of replacing: it adds to the collection OBS already has (and its secrets: the alerts URL,
 the overlays' keys) only what's missing here — sources, scenes, items in existing scenes, transitions, hotkeys
 not yet bound — and never changes or removes anything, but for the hotkeys in RETIRED, which it unbinds, the items in
-RETIRED_ITEMS, which it takes out, and the settings in FILTER_SETTINGS and SOURCE_SETTINGS, which it makes sure of. It also copies the sound effects (brand/twitch/sons/) next
+RETIRED_ITEMS, which it takes out, the settings in FILTER_SETTINGS, SOURCE_SETTINGS and SYNC, which it makes sure of,
+and the place of the items in PLACED in each scene. It also copies the sound effects (brand/twitch/sons/) next
 to the stinger and adds the "Efeitos", "Filtros" and "Anúncios" docks (and takes out the ones in RETIRED_DOCKS). OBS must
 be closed: it rewrites these files when it exits.
 """
@@ -70,9 +71,9 @@ def browser(name, page, restart=False):
                                             "fps": 60, "restart_when_active": restart, "shutdown": False, "css": ""})
 
 
-def item(src, i, pos=(0, 0), bounds=None, crop=(0, 0, 0, 0)):
+def item(src, i, pos=(0, 0), bounds=None, crop=(0, 0, 0, 0), scale_filter="disable"):
     """A scene item at `pos`; with `bounds`, the source is scaled to fill that box and cropped to it;
-    `crop` (left, top, right, bottom) cuts the source first.
+    `crop` (left, top, right, bottom) cuts the source first; `scale_filter` is OBS's (area, bicubic…).
     Both are in the overlays' 1920×1080 pixels. OBS 31+ reads the *_rel fields (relative to the canvas,
     in units of half its height, from its centre); the absolute ones are written too, for older versions."""
     (x, y), (w, h) = [v * K for v in pos], [v * K for v in bounds or (0, 0)]
@@ -85,7 +86,7 @@ def item(src, i, pos=(0, 0), bounds=None, crop=(0, 0, 0, 0)):
             "bounds": {"x": w, "y": h}, "bounds_rel": {"x": w / half, "y": h / half},
             "crop_left": round(crop[0] * K), "crop_top": round(crop[1] * K), "crop_right": round(crop[2] * K),
             "crop_bottom": round(crop[3] * K),
-            "scale_filter": "disable",
+            "scale_filter": scale_filter,
             "blend_method": "default", "blend_type": "normal", "private_settings": {}}
 
 
@@ -169,6 +170,9 @@ alerts = ALERTS and source("browser_source", "Alertas", {"url": ALERTS, "width":
 # In the game, centred under the scoreboard; in Conversa, under the camera.
 alerts_in_game = [(alerts, {"pos": (410, 130), "bounds": ALERTS_SIZE})] if alerts else []
 alerts_in_talk = [(alerts, {"pos": (154, 800), "bounds": ALERTS_SIZE})] if alerts else []
+# In Terapia, centred at the bottom (over the step's word while one plays), like its Pix band.
+alerts_in_calm = [(alerts, {"pos": (410, 830), "bounds": ALERTS_SIZE})] if alerts else []
+PIX_IN_CALM = {"pos": (410, 740), "crop": PIX_BAND}
 
 # The game's sound comes with its capture. The rest of the computer is captured app by app, not as desktop audio,
 # which would carry the game a second time; each has its own fader.
@@ -226,7 +230,8 @@ sounds = [player] + [trigger(f"Som · {label}", key) for label, key in (
 # has "Sons" play the sting.
 bad_play = browser("Efeito · Lance ruim", "lance.html", restart=True)
 # "Terapia": water, breathing and music made by the page (so on every track, and in Luan's headphones); it starts
-# over each time and stops off screen.
+# over each time and stops off screen. Laid out around the middle since 2026-11-14 (a short's centre cut keeps it):
+# the camera under the page, seen through the breathing circle (centre 960, 500), its face on the circle's centre.
 calm = browser("Tela · Terapia", "terapia.html", restart=True)
 calm["settings"].update(reroute_audio=True, shutdown=True)
 calm.update(monitoring_type=MONITOR_AND_OUTPUT)
@@ -240,36 +245,45 @@ booth.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
 
 # Hole positions match jogo.html and conversa.html.
-# The camera filters (public/stream/filtros.html): one full-screen source just above the camera in every scene with
-# it; the page reads the scene and draws the filtered camera in that scene's box (BOXES there mirrors these
-# positions), clear while no filter is on. Served from WSL on localhost by "Filtros muanlartins.vbs" at login, since
-# Phoenix's model stays off the site. OBS must start with --enable-media-stream for a page to open the camera.
+# The camera filters (public/stream/filtros.html): the filtered camera at the camera's own 1280×720, clear while no
+# filter is on, one source just above the camera in every scene with it and placed over it like the camera itself
+# (filters_at), so during a transition each scene shows it in its own box. (Until 2026-11-13 it was full screen and
+# the page moved its box when OBS said the scene changed, which OBS says only once a transition ends: right after the
+# stinger the game scene showed the filter in the talk scene's box.) Served from WSL on localhost by "Filtros
+# muanlartins.vbs" at login, since Phoenix's model stays off the site. OBS must start with --enable-media-stream for a
+# page to open the camera.
 filters = browser("Filtros", "filtros.html")
-# Page permission 2 (read user information) lets it ask for the current scene when it loads, not only hear changes.
+# Page permission 2 (read user information), kept from when the page asked for the current scene.
 # At 60 fps like the camera (at 30 until 2026-11-12, the filtered camera stepped beside OBS's own).
-filters["settings"].update(url="http://localhost:8126/stream/filtros.html", fps=60, webpage_control_level=2)
+filters["settings"].update(url="http://localhost:8126/stream/filtros.html", width=1280, height=720, fps=60,
+                           webpage_control_level=2)
 # The abilities' sounds (sfx.js) go through OBS, to the stream and Luan's headphones like the Sons source's.
 filters["settings"]["reroute_audio"] = True
 filters.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_rocket_league = {"pos": (44, 740), "bounds": (480, 270)}
 in_valorant = {"pos": (44, 44), "bounds": (480, 270)}
+in_talk = {"pos": (64, 64), "bounds": (1280, 720)}
+in_calm = {"pos": (336, 76), "bounds": (1248, 702)}
+# The filters over the camera, shrunk with OBS's Area filter (made for scaling down: the 3D's edges stay smooth).
+filters_at = {name: {**box, "scale_filter": "area"} for name, box in
+              {"rl": in_rocket_league, "valorant": in_valorant, "talk": in_talk, "calm": in_calm}.items()}
 scenes = [
     scene("Começando", (starting, {})),
-    scene("RL + chat", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, {}),
+    scene("RL + chat", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
           (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
-    scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, {}),
+    scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, filters_at["valorant"]),
           (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
-    scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (filters, {}), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
+    scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
     scene("Lance ruim", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
           (camera, in_rocket_league), (bad_play, {})),
     scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
           *alerts_in_game, (pix, {}), (camera, in_valorant), (bad_play, {})),
     scene("VAR · Rocket League", (camera, in_var_camera), (booth, {}), (crowd, {}), *alerts_in_game, (pix, {})),
     scene("VAR · Valorant", (camera, in_var_camera), (booth, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {})),
-    scene("Terapia", (camera, {"pos": (64, 64), "bounds": (560, 315)}), (filters, {}), (calm, {}), *alerts_in_talk,
-          (pix, {"pos": (154, 760), "crop": PIX_BAND})),
+    scene("Terapia", (camera, in_calm), (filters, filters_at["calm"]), (calm, {}), *alerts_in_calm,
+          (pix, PIX_IN_CALM)),
     scene("Já volto", (back, {})),
-    scene("Fim", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (filters, {}), (end, {})),
+    scene("Fim", (camera, in_talk), (filters, filters_at["talk"]), (end, {})),
 ]
 # Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
@@ -301,9 +315,13 @@ stinger = {"id": "obs_stinger_transition", "name": "muanlartins", "uuid": str(uu
 # next to the other): the Efeitos dock sets it as the VAR scenes' override, in and out, by this name.
 var_stinger = {"id": "obs_stinger_transition", "name": "VAR", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "stinger-var")),
                "settings": {"path": f"{FOLDER}/transicao-var.webm", "tp_type": 0, "transition_point": 600, "hw_decode": False}}
-# "Lance ruim" comes in on a cut (its first frame is the game scene's) and "Terapia" on a slow fade: OBS's own cut
-# and fade, which it names in its language and won't take from a collection, so the Efeitos dock finds them by kind
-# and sets the two scenes' transition overrides each time it connects.
+# Terapia's own stinger, "Água" (public/stream/transicao-terapia.html, rendered the same way; `--apply` copies it),
+# in and out of Terapia in place of the fade it had until 2026-11-14 (the Efeitos dock sets it as Terapia's override).
+water_stinger = {"id": "obs_stinger_transition", "name": "Água", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "stinger-agua")),
+                 "settings": {"path": f"{FOLDER}/transicao-terapia.webm", "tp_type": 0, "transition_point": 500, "hw_decode": False}}
+# "Lance ruim" comes in on a cut (its first frame is the game scene's): OBS's own cut, which it names in its language
+# and won't take from a collection, so the Efeitos dock finds it by kind and sets the scenes' transition overrides
+# (Terapia's: "Água") each time it connects.
 
 collection = {
     "name": "muanlartins",
@@ -315,7 +333,7 @@ collection = {
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
-    "transitions": [stinger, var_stinger],
+    "transitions": [stinger, var_stinger, water_stinger],
     "current_transition": "muanlartins",
     "transition_duration": 1300,
     "quick_transitions": [],
@@ -342,8 +360,24 @@ RETIRED_DOCKS = ["Ads"]
 
 
 # Fields of sources OBS already has that `--apply` brings up to date (the rest stays as Luan left it): the camera
-# filters' sound through OBS (2026-11-12).
-SYNC = {"Filtros": {"settings": ["reroute_audio"], "fields": ["monitoring_type"]}}
+# filters' sound through OBS (2026-11-12) and their size (2026-11-13).
+SYNC = {"Filtros": {"settings": ["reroute_audio", "width", "height"], "fields": ["monitoring_type"]}}
+# Scene items OBS already has whose place `--apply` brings up to date: by name in every scene, or (scene, name) in
+# one. The camera filters over each scene's camera (2026-11-13; full screen before); Terapia laid out around the
+# middle (2026-11-14).
+PLACED = {"Filtros", ("Terapia", "Câmera"), ("Terapia", "Pix"), ("Terapia", "Alertas")}
+PLACE_FIELDS = ["pos", "pos_rel", "scale", "scale_rel", "scale_ref", "align", "bounds_type", "bounds_align",
+                "bounds_crop", "bounds", "bounds_rel", "crop_left", "crop_top", "crop_right", "crop_bottom", "rot",
+                "scale_filter"]
+
+
+def same(a, b):
+    """Equal, but for the float32 rounding OBS saves numbers with (pos_rel and the like)."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        return a.keys() == b.keys() and all(same(a[k], b[k]) for k in a)
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool):
+        return abs(a - b) < 1e-4
+    return a == b
 
 
 def merge(live, new):
@@ -414,6 +448,11 @@ def merge(live, new):
         items = mine["settings"].setdefault("items", [])
         for it in s["settings"]["items"]:
             it["source_uuid"] = uuids[it["name"]]
+            if mine is not s and (it["name"] in PLACED or (s["name"], it["name"]) in PLACED):
+                for there in (i for i in items if i["name"] == it["name"]):
+                    if any(not same(there.get(k), it[k]) for k in PLACE_FIELDS):
+                        there.update({k: it[k] for k in PLACE_FIELDS})
+                        added.append(f"{it['name']} reposicionado na cena {s['name']}")
             if mine is s or any(i["name"] == it["name"] for i in items):
                 continue
             mine["settings"]["id_counter"] = mine["settings"].get("id_counter", len(items)) + 1
@@ -504,10 +543,11 @@ def apply(dry=False):
         silence.writeframes(bytes(2 * 4800))
     print("\n".join(added) or "nada novo na coleção")
     print(f"silêncio dos gatilhos em {sons}")
-    var_webm = Path(__file__).resolve().parents[2] / "public/stream/transicao-var.webm"
-    if var_webm.exists():
-        shutil.copy(var_webm, sons.parent / var_webm.name)
-        print(f"stinger do VAR copiado para {sons.parent}")
+    for name in ("transicao-var.webm", "transicao-terapia.webm"):
+        webm = Path(__file__).resolve().parents[2] / "public/stream" / name
+        if webm.exists():
+            shutil.copy(webm, sons.parent / webm.name)
+            print(f"{name} copiado para {sons.parent}")
     print(f"docks: {', '.join(docks)}" if (docks := add_docks()) else "os docks já estavam lá")
     print(f"cópias de antes: {LIVE.name}.antes-{stamp}, user.ini.antes-{stamp}")
 

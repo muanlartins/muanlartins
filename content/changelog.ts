@@ -35,6 +35,7 @@ export const PEOPLE = {
   lucca_3098: { name: "lucca_3098", where: "twitch", login: "lucca_3098", url: "https://www.twitch.tv/lucca_3098" },
   jpmartins_1: { name: "jpmartins_1", where: "twitch", login: "jpmartins_1", url: "https://www.twitch.tv/jpmartins_1" },
   maxchadoz: { name: "maxchadoz", where: "twitch", login: "maxchadoz", url: "https://www.twitch.tv/maxchadoz" },
+  ccamara: { name: "ccamara", where: "twitch", login: "ccamara", url: "https://www.twitch.tv/ccamara" },
 } satisfies Record<string, Person>
 
 export type PersonId = keyof typeof PEOPLE
@@ -141,7 +142,7 @@ export const UPCOMING: Upcoming[] = [
 export const SHIPPED: Shipped[] = [
   {
     id: "agenda-editavel",
-    date: "2026-11-13",
+    date: "2026-11-14",
     tag: "site",
     title: "A agenda das lives, dia a dia",
     text: "A agenda virou um calendário que eu planejo dia a dia no site: cada live com horário, jogo, título e o roteiro do que vai rolar, e o fim de semana detalhado. O calendário da Twitch muda junto e a live já abre com o título e a categoria certos.",
@@ -150,6 +151,33 @@ export const SHIPPED: Shipped[] = [
       media("agenda-editavel", "A agenda no site: o calendário do mês e o dia escolhido com o roteiro de cada live"),
       media("agenda-editavel-editor", "Planejando um dia na agenda: as lives, o título e o roteiro de cada uma"),
     ],
+  },
+  {
+    id: "terapia-repaginada",
+    date: "2026-11-14",
+    tag: "live",
+    title: "A Terapia repaginada",
+    text: "A cena da Terapia ganhou cara nova: eu no meio de um círculo que respira junto com o guia (abre no inspira, fecha no solta), os passos da respiração de um lado e o chat do outro, e ela agora entra e sai numa onda de água no lugar daquele fade lento. Centralizada, cabe inteira num short vertical.",
+    media: [media("terapia-repaginada", "A nova cena da Terapia: Luan no meio do círculo de respiração, com os passos de um lado e o chat do outro", { video: true })],
+  },
+  {
+    id: "carros-pintura",
+    date: "2026-11-14",
+    tag: "live",
+    title: "Pintura e decalque animado nos carros da câmera",
+    text: "O Octane e o Fennec na minha cabeça agora vêm laranja, pra não sumir no meu fundo azul, e dá pra trocar a cor e botar um decalque animado como os do jogo: chamas, neon, arco-íris ou listras.",
+    credit: { by: "ccamara" },
+    media: [
+      media("carros-pintura", "Luan com a cara de Octane: o azul de antes sumindo no fundo azul, e o laranja de agora"),
+      media("carros-decalques", "O Octane na cabeça do Luan com decalques animados: chamas, neon, arco-íris e listras"),
+    ],
+  },
+  {
+    id: "filtro-na-troca-de-cena",
+    date: "2026-11-14",
+    tag: "live",
+    title: "O filtro da câmera no lugar certo na troca de cena",
+    text: "Voltando da conversa pro jogo, o filtro aparecia por um instante grande no canto de cima antes de ir pra câmera. Agora cada cena já mostra ele no lugar dela durante a transição.",
   },
   {
     id: "filtros-60fps",

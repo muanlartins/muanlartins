@@ -12,8 +12,9 @@
         scene: the game's, with the camera on top, its sting and lance.html's speed lines), zooms the camera from its frame
         to the whole screen, shakes it a little, holds 4 s, shrinks it back and cuts to the scene it came from.
         Only by hand (Luan's choice, 2026-11-08): nothing fires it on its own.
-      - Terapia (F3): the calm scene (terapia.html), faded in.
-      - Voltar (F4): back to the scene before, faded: from an effect (Terapia, Lance ruim, the VAR) the scene it came
+      - Terapia (F3): the calm scene (terapia.html), on its own stinger, "Água" (transicao-terapia.webm; a fade until
+        2026-11-14, and still if OBS lacks it).
+      - Voltar (F4): back to the scene before, faded (from Terapia, on "Água"): from an effect (Terapia, Lance ruim, the VAR) the scene it came
         from; from Conversa, Já volto and the like the last scene before it, skipping effects and the breaks
         (Começando, Já volto, Fim); in a game scene already, nothing. Never a fixed scene (Luan, 2026-11-10). The
         dock shows where it would go, under the buttons.
@@ -55,8 +56,8 @@
         replay's clock is `t` at epoch ms `em`, which the pages carry forward (replayPosicao() in stream.js), so a dock
         out of sight never puts them out of step.
 
-      The two scenes' transitions are OBS's own cut and fade, found here by kind (OBS names them in its language) and
-      set as the scenes' transition overrides each time the dock connects. Leaving them (the return from Lance ruim,
+      Lance ruim's transition is OBS's own cut, found here by kind (OBS names it in its language), and Terapia's the
+      "Água" stinger, by name; both set as the scenes' transition overrides each time the dock connects. Leaving them (the return from Lance ruim,
       F4), the dock never touches OBS's current transition: it sets the destination's override, switches, and takes
       the override back as OBS starts the transition (an event, not a timer, which a dock out of sight delays). A
       switch asked for during a transition, which OBS would ignore, waits for it to end.
@@ -656,7 +657,7 @@
       }
 
       // OBS's own cut and fade, by kind: their names are in OBS's language ("Cortar", "Esmaecer").
-      const transitions = { cut: null, fade: null, var: null }
+      const transitions = { cut: null, fade: null, var: null, agua: null }
       async function setup() {
         const list = await request("GetSceneTransitionList")
         for (const t of list?.transitions ?? []) {
@@ -664,12 +665,15 @@
           if (t.transitionKind === "fade_transition") transitions.fade = t.transitionName
           // The VAR's own stinger (transicao-var.webm), by the name brand/twitch/obs.py gives it.
           if (t.transitionName === "VAR") transitions.var = t.transitionName
+          // Terapia's (transicao-terapia.webm), by its name there too.
+          if (t.transitionName === "Água") transitions.agua = t.transitionName
         }
         for (const sceneName of VARS)
           if (transitions.var) request("SetSceneSceneTransitionOverride", { sceneName, transitionName: transitions.var, transitionDuration: 1300 })
         for (const sceneName of LANCES)
           if (transitions.cut) request("SetSceneSceneTransitionOverride", { sceneName, transitionName: transitions.cut, transitionDuration: 50 })
-        if (transitions.fade) request("SetSceneSceneTransitionOverride", { sceneName: TERAPIA, transitionName: transitions.fade, transitionDuration: 1500 })
+        if (transitions.agua) request("SetSceneSceneTransitionOverride", { sceneName: TERAPIA, transitionName: transitions.agua, transitionDuration: 1100 })
+        else if (transitions.fade) request("SetSceneSceneTransitionOverride", { sceneName: TERAPIA, transitionName: transitions.fade, transitionDuration: 1500 })
       }
 
       // OBS ignores a scene switch while a transition runs: one asked for then waits for its end (the last one asked).
@@ -785,7 +789,9 @@
         if (varAtual || VARS.includes(current)) return fecharVar(true)
         whenFree(() => {
           const to = anterior()
-          if (to && to !== current) switchWith("fade", to, 1500)
+          if (!to || to === current) return
+          if (current === TERAPIA && transitions.agua) switchWith("agua", to, 1100)
+          else switchWith("fade", to, 1500)
         })
       }
 

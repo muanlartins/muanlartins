@@ -28,9 +28,10 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   Valorant's Phoenix, Sage and Sova with their faces from `public/valorant/agentes/`, then Rocket League's Octane,
   Fennec and the ball) and a power button beside it; picking one turns it on, the button turns the picked one off
   and on; under them, the one that's on's one-offs (each agent's abilities with their keys, the cars' Demolição and
-  Flip), its switches and its gestures (Pop and the lens stay in the page, off the dock). Making a new one: the
+  Flip), its switches, the cars' paint and animated decal (both cars; orange by default since 2026-11-13, against
+  the blue behind Luan: ccamara's idea) and its gestures (Pop and the lens stay in the page, off the dock). Making a new one: the
   filtros skill. It tells the page with obs-browser's emit_event `muanlartins-filtro`
-  (`{"filtro": "phoenix" | "sage" | "sova" | "bola" | "octane" | "fennec" | "nenhum", "opcoes": {"patrulha": true}}`, and the one-offs `{"acao": ...}`:
+  (`{"filtro": "phoenix" | "sage" | "sova" | "bola" | "octane" | "fennec" | "nenhum", "opcoes": {"patrulha": true, "mudo": false, "cor": "laranja", "decalque": "chamas"}}`, and the one-offs `{"acao": ...}`:
   Phoenix's `blaze`, `flash`, `molotov`, `ult`; Sage's `barreira`, `lentidao`, `cura`, `ult`; Sova's `recon`, `choque`, `drone`, `ult`; the cars' `demo`, `flip`),
   which `scripts/obs.mjs` can send as well (`CallVendorRequest`). Phoenix's, Sova's and Sage's effects are drawn by `vfx.js` from the game's textures
   and values (`vfx-phoenix.js`, `vfx-sova.js`, `vfx-sage.js`, textures in `privado/valorant/`), and Sova's bow, arrows
@@ -47,9 +48,12 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   stream only because "Filtros" has "Control audio via OBS" on (`reroute_audio`, monitored like Sons, so Luan hears
   them; set by hand in Live.json and Shorts.json on 2026-11-12 and kept by `obs.py`'s `SYNC`); without it the page
   plays them straight to Windows' speakers. One browser
-  source "Filtros", full screen and just above Câmera in RL + chat, Valorant + chat, Conversa and
-  Terapia (page permission 2, so it can ask for the scene; the page draws in that scene's camera box and stays clear
-  with no filter). It loads `http://localhost:8126/stream/filtros.html`, served from this working copy by
+  source "Filtros", 1280×720 (the camera's size), just above Câmera in RL + chat, Valorant + chat, Conversa, Terapia
+  and Fim and placed over it in each like Câmera itself (`obs.py`'s `PLACED` keeps the place in step on `--apply`);
+  the page is the camera's box, clear with no filter. Until 2026-11-13 it was full screen and the page moved its box
+  on obs-browser's `obsSceneChanged`, which OBS fires only once a transition has ended: for ~0.2 s after the
+  stinger the game scene showed the filter in Conversa's box. The Shorts collection's Filtros has
+  `?caixa=0,0,1920,1080` (the whole page, in a 1920×1080 page's pixels) and is placed over its camera the same way. It loads `http://localhost:8126/stream/filtros.html`, served from this working copy by
   "Filtros muanlartins.vbs" in Startup (log `~/.cache/muanlartins/filtros.log`), because Phoenix's and Sova's models
   and the game's extracted effects (`public/stream/privado/`, gitignored) must never reach the site. OBS has to start with
   `--enable-media-stream --use-fake-ui-for-media-stream` (set on the Public Desktop shortcut and a user Start Menu
