@@ -13,7 +13,8 @@ alerts. Import with Scene Collection → Import. Devices and the canvas below ar
 --apply merges instead of replacing: it adds to the collection OBS already has (and its secrets: the alerts URL,
 the overlays' keys) only what's missing here — sources, scenes, items in existing scenes, transitions, hotkeys
 not yet bound — and never changes or removes anything, but for the hotkeys in RETIRED, which it unbinds, the items in
-RETIRED_ITEMS, which it takes out, and the settings in FILTER_SETTINGS and SOURCE_SETTINGS, which it makes sure of. It also copies the sound effects (brand/twitch/sons/) next
+RETIRED_ITEMS, which it takes out, the settings in FILTER_SETTINGS, SOURCE_SETTINGS and SYNC, which it makes sure of,
+and the place of the items in PLACED in each scene. It also copies the sound effects (brand/twitch/sons/) next
 to the stinger and adds the "Efeitos", "Filtros" and "Anúncios" docks (and takes out the ones in RETIRED_DOCKS). OBS must
 be closed: it rewrites these files when it exits.
 """
@@ -70,9 +71,9 @@ def browser(name, page, restart=False):
                                             "fps": 60, "restart_when_active": restart, "shutdown": False, "css": ""})
 
 
-def item(src, i, pos=(0, 0), bounds=None, crop=(0, 0, 0, 0)):
+def item(src, i, pos=(0, 0), bounds=None, crop=(0, 0, 0, 0), scale_filter="disable"):
     """A scene item at `pos`; with `bounds`, the source is scaled to fill that box and cropped to it;
-    `crop` (left, top, right, bottom) cuts the source first.
+    `crop` (left, top, right, bottom) cuts the source first; `scale_filter` is OBS's (area, bicubic…).
     Both are in the overlays' 1920×1080 pixels. OBS 31+ reads the *_rel fields (relative to the canvas,
     in units of half its height, from its centre); the absolute ones are written too, for older versions."""
     (x, y), (w, h) = [v * K for v in pos], [v * K for v in bounds or (0, 0)]
@@ -85,7 +86,7 @@ def item(src, i, pos=(0, 0), bounds=None, crop=(0, 0, 0, 0)):
             "bounds": {"x": w, "y": h}, "bounds_rel": {"x": w / half, "y": h / half},
             "crop_left": round(crop[0] * K), "crop_top": round(crop[1] * K), "crop_right": round(crop[2] * K),
             "crop_bottom": round(crop[3] * K),
-            "scale_filter": "disable",
+            "scale_filter": scale_filter,
             "blend_method": "default", "blend_type": "normal", "private_settings": {}}
 
 
@@ -240,36 +241,45 @@ booth.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
 
 # Hole positions match jogo.html and conversa.html.
-# The camera filters (public/stream/filtros.html): one full-screen source just above the camera in every scene with
-# it; the page reads the scene and draws the filtered camera in that scene's box (BOXES there mirrors these
-# positions), clear while no filter is on. Served from WSL on localhost by "Filtros muanlartins.vbs" at login, since
-# Phoenix's model stays off the site. OBS must start with --enable-media-stream for a page to open the camera.
+# The camera filters (public/stream/filtros.html): the filtered camera at the camera's own 1280×720, clear while no
+# filter is on, one source just above the camera in every scene with it and placed over it like the camera itself
+# (filters_at), so during a transition each scene shows it in its own box. (Until 2026-11-13 it was full screen and
+# the page moved its box when OBS said the scene changed, which OBS says only once a transition ends: right after the
+# stinger the game scene showed the filter in the talk scene's box.) Served from WSL on localhost by "Filtros
+# muanlartins.vbs" at login, since Phoenix's model stays off the site. OBS must start with --enable-media-stream for a
+# page to open the camera.
 filters = browser("Filtros", "filtros.html")
-# Page permission 2 (read user information) lets it ask for the current scene when it loads, not only hear changes.
+# Page permission 2 (read user information), kept from when the page asked for the current scene.
 # At 60 fps like the camera (at 30 until 2026-11-12, the filtered camera stepped beside OBS's own).
-filters["settings"].update(url="http://localhost:8126/stream/filtros.html", fps=60, webpage_control_level=2)
+filters["settings"].update(url="http://localhost:8126/stream/filtros.html", width=1280, height=720, fps=60,
+                           webpage_control_level=2)
 # The abilities' sounds (sfx.js) go through OBS, to the stream and Luan's headphones like the Sons source's.
 filters["settings"]["reroute_audio"] = True
 filters.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_rocket_league = {"pos": (44, 740), "bounds": (480, 270)}
 in_valorant = {"pos": (44, 44), "bounds": (480, 270)}
+in_talk = {"pos": (64, 64), "bounds": (1280, 720)}
+in_calm = {"pos": (64, 64), "bounds": (560, 315)}
+# The filters over the camera, shrunk with OBS's Area filter (made for scaling down: the 3D's edges stay smooth).
+filters_at = {name: {**box, "scale_filter": "area"} for name, box in
+              {"rl": in_rocket_league, "valorant": in_valorant, "talk": in_talk, "calm": in_calm}.items()}
 scenes = [
     scene("Começando", (starting, {})),
-    scene("RL + chat", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, {}),
+    scene("RL + chat", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
           (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
-    scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, {}),
+    scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, filters_at["valorant"]),
           (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
-    scene("Conversa", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (filters, {}), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
+    scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
     scene("Lance ruim", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
           (camera, in_rocket_league), (bad_play, {})),
     scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
           *alerts_in_game, (pix, {}), (camera, in_valorant), (bad_play, {})),
     scene("VAR · Rocket League", (camera, in_var_camera), (booth, {}), (crowd, {}), *alerts_in_game, (pix, {})),
     scene("VAR · Valorant", (camera, in_var_camera), (booth, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {})),
-    scene("Terapia", (camera, {"pos": (64, 64), "bounds": (560, 315)}), (filters, {}), (calm, {}), *alerts_in_talk,
+    scene("Terapia", (camera, in_calm), (filters, filters_at["calm"]), (calm, {}), *alerts_in_talk,
           (pix, {"pos": (154, 760), "crop": PIX_BAND})),
     scene("Já volto", (back, {})),
-    scene("Fim", (camera, {"pos": (64, 64), "bounds": (1280, 720)}), (filters, {}), (end, {})),
+    scene("Fim", (camera, in_talk), (filters, filters_at["talk"]), (end, {})),
 ]
 # Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
@@ -342,8 +352,14 @@ RETIRED_DOCKS = ["Ads"]
 
 
 # Fields of sources OBS already has that `--apply` brings up to date (the rest stays as Luan left it): the camera
-# filters' sound through OBS (2026-11-12).
-SYNC = {"Filtros": {"settings": ["reroute_audio"], "fields": ["monitoring_type"]}}
+# filters' sound through OBS (2026-11-12) and their size (2026-11-13).
+SYNC = {"Filtros": {"settings": ["reroute_audio", "width", "height"], "fields": ["monitoring_type"]}}
+# Scene items OBS already has whose place `--apply` brings up to date in every scene: the camera filters over each
+# scene's camera (2026-11-13; full screen before).
+PLACED = {"Filtros"}
+PLACE_FIELDS = ["pos", "pos_rel", "scale", "scale_rel", "scale_ref", "align", "bounds_type", "bounds_align",
+                "bounds_crop", "bounds", "bounds_rel", "crop_left", "crop_top", "crop_right", "crop_bottom", "rot",
+                "scale_filter"]
 
 
 def merge(live, new):
@@ -414,6 +430,11 @@ def merge(live, new):
         items = mine["settings"].setdefault("items", [])
         for it in s["settings"]["items"]:
             it["source_uuid"] = uuids[it["name"]]
+            if mine is not s and it["name"] in PLACED:
+                for there in (i for i in items if i["name"] == it["name"]):
+                    if any(there.get(k) != it[k] for k in PLACE_FIELDS):
+                        there.update({k: it[k] for k in PLACE_FIELDS})
+                        added.append(f"{it['name']} reposicionado na cena {s['name']}")
             if mine is s or any(i["name"] == it["name"] for i in items):
                 continue
             mine["settings"]["id_counter"] = mine["settings"].get("id_counter", len(items)) + 1

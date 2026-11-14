@@ -11,7 +11,8 @@
       Octane, Fennec and ball), and beside it the power button. Picking one turns it on; the power button turns the
       picked one off and on again. Under them, for the one that's on, its one-offs (each agent's abilities with their
       keys, the cars' Demolição and Flip), its switches (Sova's "Coruja sobrevoando": his drone flying behind Luan
-      all the while) and its gestures. "Sons dos filtros" is for all of them.
+      all the while), the cars' paint and animated decal (both cars, opcoes.cor and opcoes.decalque; orange by
+      default, against the blue behind Luan) and its gestures. "Sons dos filtros" is for all of them.
 
       It's served like filtros.html, from this working copy on localhost:8126 ("Filtros muanlartins.vbs" in Startup),
       so a new filter needs no release: an entry in FILTROS here and its drawing there.
@@ -269,6 +270,41 @@
       .opcoes button.active::before {
         background: var(--klein-claro) radial-gradient(circle at 19px 50%, var(--paper) 5px, transparent 5.5px);
       }
+      /* The cars' paint: colour swatches, then the decals. */
+      .pintura {
+        margin-top: 12px;
+      }
+      .pintura h3 {
+        margin: 10px 0 6px;
+        color: rgb(244 245 247 / 0.6);
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .cores {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .cores button {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border-radius: 50%;
+        border: 2px solid rgb(244 245 247 / 0.35);
+      }
+      .cores button.active {
+        border-color: var(--paper);
+        box-shadow: 0 0 0 3px var(--klein-claro);
+      }
+      .decalques {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .decalques button {
+        padding: 7px 10px;
+        font-size: 13px;
+      }
       button.disparou {
         border-color: var(--paper);
         background: rgb(133 167 255 / 0.35);
@@ -325,6 +361,12 @@
       <h2 id="titulo"></h2>
       <div class="grid" id="acoes"></div>
       <div class="opcoes" id="opcoes"></div>
+      <div class="pintura" id="pintura" hidden>
+        <h3>Pintura · nos dois carros</h3>
+        <div class="cores" id="cores"></div>
+        <h3>Decalque animado</h3>
+        <div class="decalques" id="decalques"></div>
+      </div>
       <div id="dicas"></div>
     </section>
 
@@ -384,9 +426,27 @@
             ["Drone Coruja", "mostre as duas palmas abertas para a câmera, lado a lado."],
           ],
         },
-        { id: "octane", nome: "Octane", jogo: "Rocket League", desenho: "carro", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]] },
-        { id: "fennec", nome: "Fennec", jogo: "Rocket League", desenho: "carro", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]] },
+        { id: "octane", nome: "Octane", jogo: "Rocket League", desenho: "carro", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]], pintura: true },
+        { id: "fennec", nome: "Fennec", jogo: "Rocket League", desenho: "carro", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]], pintura: true },
         { id: "bola", nome: "Bola", jogo: "Rocket League", desenho: "bola" },
+      ]
+      // The cars' paints ([id, name, swatch]; the page has the colours it draws) and decals ([id, name]).
+      const CORES = [
+        ["laranja", "Laranja", "#ff4205"],
+        ["rosa", "Rosa", "#ff339e"],
+        ["verde", "Verde-limão", "#6bff1f"],
+        ["branco", "Branco", "#eef0f4"],
+        ["preto", "Preto", "#141418"],
+        ["dourado", "Dourado", "#ffb82e"],
+        ["roxo", "Roxo", "#801fff"],
+        ["azul", "Azul", "#0c22ff"],
+      ]
+      const DECALQUES = [
+        ["nenhum", "Nenhum"],
+        ["chamas", "Chamas"],
+        ["neon", "Neon"],
+        ["arcoiris", "Arco-íris"],
+        ["listras", "Listras"],
       ]
       // Rocket League's pictures: a car from the side and a ball, drawn here.
       const DESENHOS = {
@@ -584,6 +644,34 @@
             return b
           }),
         )
+        $("pintura").hidden = !ativo.pintura
+        if (ativo.pintura) {
+          const pintar = (chave, valor) => {
+            state.opcoes[chave] = valor
+            save()
+            send({ filtro: atual, opcoes: state.opcoes })
+            desenhar()
+          }
+          const cor = state.opcoes.cor || "laranja"
+          $("cores").replaceChildren(
+            ...CORES.map(([id, nome, amostra]) => {
+              const b = botao("", () => pintar("cor", id))
+              b.style.background = amostra
+              b.title = nome
+              b.setAttribute("aria-label", nome)
+              b.classList.toggle("active", id === cor)
+              return b
+            }),
+          )
+          const decalque = state.opcoes.decalque || "nenhum"
+          $("decalques").replaceChildren(
+            ...DECALQUES.map(([id, nome]) => {
+              const b = botao(texto(nome), () => pintar("decalque", id))
+              b.classList.toggle("active", id === decalque)
+              return b
+            }),
+          )
+        }
         $("dicas").replaceChildren(
           ...(ativo.gestos || []).map(([nome, como]) => {
             const p = document.createElement("p")
