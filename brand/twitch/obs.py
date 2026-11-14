@@ -371,6 +371,15 @@ PLACE_FIELDS = ["pos", "pos_rel", "scale", "scale_rel", "scale_ref", "align", "b
                 "scale_filter"]
 
 
+def same(a, b):
+    """Equal, but for the float32 rounding OBS saves numbers with (pos_rel and the like)."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        return a.keys() == b.keys() and all(same(a[k], b[k]) for k in a)
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool):
+        return abs(a - b) < 1e-4
+    return a == b
+
+
 def merge(live, new):
     """Adds to `live` what `new` has and it lacks; returns what was added, to print."""
     added = []
@@ -441,7 +450,7 @@ def merge(live, new):
             it["source_uuid"] = uuids[it["name"]]
             if mine is not s and (it["name"] in PLACED or (s["name"], it["name"]) in PLACED):
                 for there in (i for i in items if i["name"] == it["name"]):
-                    if any(there.get(k) != it[k] for k in PLACE_FIELDS):
+                    if any(not same(there.get(k), it[k]) for k in PLACE_FIELDS):
                         there.update({k: it[k] for k in PLACE_FIELDS})
                         added.append(f"{it['name']} reposicionado na cena {s['name']}")
             if mine is s or any(i["name"] == it["name"] for i in items):
