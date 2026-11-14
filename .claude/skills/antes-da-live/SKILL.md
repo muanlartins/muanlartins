@@ -5,8 +5,13 @@ description: Before and during one of Luan's Twitch lives on the stream PC: what
 
 # Before and during a live
 
-Luan streams Rocket League ranked on Twitch from this PC (Windows + WSL), on the schedule in
-`content/agenda.json` (weekdays 14:30–16:30, Brasília). Talk to him in pt-BR.
+Luan streams on Twitch from this PC (Windows + WSL), on the agenda he edits at `/canal/agenda` (the profile API's
+`GET /agenda`, the `agenda` skill; Rocket League in the afternoons, Valorant at night). Talk to him in pt-BR.
+
+The opening runs itself from the Anúncios dock (`abertura.js`): up to 90 min before a scheduled live it sets the
+channel's Twitch title and category from the agenda, and once the stream is on and a game scene has been on air, it
+posts the Instagram story after a 30 s countdown ("Não postar" in the dock stops it). Its section "Abertura" says
+what it did; "Prévia do story" draws it from OBS without posting.
 
 ## While he's live, Claude stays light
 

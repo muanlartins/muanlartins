@@ -1,7 +1,9 @@
 import type { Metadata } from "next"
 import { Space_Grotesk } from "next/font/google"
+import { AgendaProvider } from "@/components/site/agenda/agenda-context"
 import { SiteFooter } from "@/components/site/site-footer"
 import { SiteHeader } from "@/components/site/site-header"
+import { buildAgenda } from "@/lib/agenda-build"
 import { channelPath } from "@/lib/channel"
 import { HTML_LANG, LINKS, LOCALE, ORIGIN } from "@/lib/site"
 import "./globals.css"
@@ -26,7 +28,9 @@ const person = {
   sameAs: LINKS.map((link) => link.href),
 }
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // The lives' agenda as the API has it now; pages that show it ask again in the browser.
+  const agenda = await buildAgenda()
   return (
     <html lang={HTML_LANG[LOCALE]} className={spaceGrotesk.variable}>
       <body className="flex min-h-dvh flex-col">
@@ -34,9 +38,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(person) }}
         />
-        <SiteHeader lives={channelPath("lives")} />
-        <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-24 pt-32">{children}</main>
-        <SiteFooter />
+        <AgendaProvider initial={agenda}>
+          <SiteHeader lives={channelPath("lives")} />
+          <main className="mx-auto w-full max-w-3xl flex-1 px-6 pb-24 pt-32">{children}</main>
+          <SiteFooter />
+        </AgendaProvider>
       </body>
     </html>
   )

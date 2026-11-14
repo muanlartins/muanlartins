@@ -55,25 +55,30 @@ export const channel = {
       pt: "As lives inteiras, com capítulos, partidas e transcrição.",
       en: "Every stream in full, with chapters, matches and a transcript.",
     },
-    /** When the lives are; the times themselves are in content/agenda.json. */
+    /** When the lives are; the times themselves are the agenda Luan edits at /canal/agenda (lib/agenda.ts). */
     agenda: {
       title: { pt: "Agenda", en: "Schedule" },
       zone: { pt: "Horário de Brasília", en: "Brasília time" },
       yours: { pt: "No seu horário", en: "In your time" },
-      weekend: { pt: "Fins de semana a definir.", en: "Weekends to be decided." },
       next: { pt: "Próxima live", en: "Next stream" },
       now: { pt: "Agora, no horário da live", en: "Now, in stream hours" },
       today: { pt: "hoje", en: "today" },
       tomorrow: { pt: "amanhã", en: "tomorrow" },
+      /** A day with no live. */
+      none: { pt: "sem live", en: "no stream" },
+      empty: { pt: "Nenhuma live marcada nos próximos dias.", en: "No stream scheduled in the coming days." },
+      unavailable: { pt: "Não deu para carregar a agenda agora.", en: "The schedule couldn't be loaded right now." },
+      full: { pt: "Agenda completa", en: "Full schedule" },
       subscribe: { pt: "Adicionar à sua agenda", en: "Add to your calendar" },
+      otherApps: { pt: "Apple e outros", en: "Apple and others" },
       /** The calendar's name, and each event's with its game after a colon. */
       calendar: { pt: "Live do muanlartins", en: "muanlartins live" },
     },
   },
   games: {
     title: { pt: "Jogos", en: "Games" },
-    /** Before each game's slots in the agenda. */
-    live: { pt: "Ao vivo", en: "Live" },
+    /** Before each game's next live in the agenda. */
+    next: { pt: "Próxima live", en: "Next stream" },
   },
 
   pix: {
@@ -101,6 +106,20 @@ export const channel = {
   },
 
   /** /canal/roadmap: what comes next and everything released, with credits. Its entries are in content/changelog.ts. */
+  /** /canal/agenda: the lives' calendar, which the channel's account plans right there. */
+  agenda: {
+    title: { pt: "Agenda", en: "Schedule" },
+    description: {
+      pt: "Quando é cada live, de qual jogo e o que vai rolar, dia a dia.",
+      en: "When each stream is, of which game and what's on, day by day.",
+    },
+    previous: { pt: "Mês anterior", en: "Previous month" },
+    next: { pt: "Próximo mês", en: "Next month" },
+    noLive: { pt: "Sem live neste dia.", en: "No stream this day." },
+    upNext: { pt: "Próxima live", en: "Next stream" },
+    seeDay: { pt: "Ver o dia no calendário", en: "See the day on the calendar" },
+  },
+
   roadmap: {
     title: { pt: "Roadmap", en: "Roadmap" },
     description: {

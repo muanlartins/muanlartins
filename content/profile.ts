@@ -14,6 +14,8 @@ export const profile = {
     en: "Only to know your Twitch name, which is your fan's name. The site sees nothing else of your account. You can build first and sign in just to save.",
   },
   signedInAs: { pt: "Você é", en: "You're" },
+  /** Only for the channel's own account. */
+  agenda: { pt: "Editar a agenda das lives", en: "Edit the streams' schedule" },
   loadout: { pt: "Seu loadout dos sonhos no Valorant", en: "Your dream Valorant loadout" },
   loadoutHint: {
     pt: "Monte com qualquer skin do jogo e exporte numa imagem; entrando com a Twitch, fica salvo aqui no seu perfil.",

@@ -2,13 +2,14 @@
 
 import { CalendarDays, Play } from "lucide-react"
 import Link from "next/link"
-import { useSyncExternalStore } from "react"
 import { TwitchIcon, YouTubeIcon } from "@/components/site/brand-icons"
+import { useAgenda } from "@/components/site/agenda/agenda-context"
 import { GameIcon } from "@/components/site/game/game-icon"
+import { gameName, useNow } from "@/components/site/lives/agenda"
 import { Pulse } from "@/components/site/lives/live-badge"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
-import { nextLive, whenOf } from "@/lib/agenda"
+import { nextOccurrence, whenOf } from "@/lib/agenda"
 import { channelPath } from "@/lib/channel"
 import { LINKS, localize } from "@/lib/site"
 import { useLive } from "@/lib/twitch"
@@ -17,22 +18,17 @@ const T = localize(channel)
 const TWITCH = LINKS.find((link) => link.label === "Twitch")!
 const YOUTUBE = LINKS.find((link) => link.label === "YouTube")!
 
-function everyMinute(listener: () => void) {
-  const timer = setInterval(listener, 10_000)
-  return () => clearInterval(timer)
-}
-
 /**
  * The home's first block, the answer most visitors come for: the live on air (watch it here), or when the next one
  * is and of which game, from the viewer's clock; then where to watch and the whole week's agenda.
  */
 export function NextLive() {
   const live = useLive()
-  const minute = useSyncExternalStore(everyMinute, () => Math.floor(Date.now() / 60_000), () => undefined)
-  const now = minute === undefined ? undefined : new Date(minute * 60_000)
-  const next = now && nextLive(now)
-  const game = next && games.find((game) => game.id === next.game)
-  const when = next && now && whenOf(next, now)
+  const { agenda } = useAgenda()
+  const now = useNow()
+  const next = agenda && now ? nextOccurrence(agenda, now) : null
+  const game = next && games.find((game) => game.id === next.jogo)
+  const when = next && now && whenOf({ start: new Date(next.inicio), end: new Date(next.fim) }, now, agenda!.timeZone)
 
   return (
     <section className="mt-10 rounded-md border border-line bg-paper/70 p-5 backdrop-blur-sm sm:p-6">
@@ -47,10 +43,10 @@ export function NextLive() {
       {!live && (
         <p className="mt-1 flex min-h-9 flex-wrap items-center gap-x-3 gap-y-1 text-2xl font-medium tracking-[-0.02em] text-ink first-letter:uppercase sm:text-3xl">
           {when && <span className="first-letter:uppercase">{when.when}</span>}
-          {game && (
+          {next && (
             <span className="inline-flex items-center gap-2 text-klein">
-              <GameIcon game={game.id} size={22} />
-              {localize(game.title)}
+              {game && <GameIcon game={game.id} size={22} />}
+              {gameName(agenda!, next.jogo)}
             </span>
           )}
         </p>
@@ -70,7 +66,7 @@ export function NextLive() {
         <Away href={TWITCH.href} icon={<TwitchIcon className="h-4 w-4" />} label="Twitch" hint={T.where.twitch} />
         <Away href={YOUTUBE.href} icon={<YouTubeIcon className="h-4 w-4" />} label="YouTube" hint={T.where.youtube} />
         <Link
-          href={`${channelPath("lives")}#agenda`}
+          href={channelPath("agenda")}
           className="inline-flex items-center gap-2 rounded-md border border-line px-3.5 py-2 text-[14px] text-ink transition-colors hover:border-klein hover:text-klein"
         >
           <CalendarDays aria-hidden className="h-4 w-4" />

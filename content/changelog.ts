@@ -109,6 +109,20 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
+    id: "story-ao-abrir-a-live",
+    status: "agora",
+    tag: "live",
+    title: "Story no Instagram quando a live abre",
+    text: "Quando a live começa, sai sozinho um story com a minha câmera, o jogo, o título da live e o link da Twitch.",
+  },
+  {
+    id: "video-de-boas-vindas",
+    status: "proximo",
+    tag: "live",
+    title: "Vídeo de boas-vindas na Twitch",
+    text: "Um vídeo curto que toca pra quem chega no canal quando não estou ao vivo: quem eu sou, o que rola nas lives e quando elas são.",
+  },
+  {
     id: "var-com-replay",
     status: "agora",
     tag: "live",
@@ -126,6 +140,18 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "agenda-editavel",
+    date: "2026-11-14",
+    tag: "site",
+    title: "A agenda das lives, dia a dia",
+    text: "A agenda virou um calendário que eu planejo dia a dia no site: cada live com horário, jogo, título e o roteiro do que vai rolar, e o fim de semana detalhado. O calendário da Twitch muda junto e a live já abre com o título e a categoria certos.",
+    href: "/canal/agenda",
+    media: [
+      media("agenda-editavel", "A agenda no site: o calendário com as lives de cada dia e o dia escolhido com a live dele"),
+      media("agenda-editavel-editor", "Planejando um dia na agenda: o horário, o jogo, o título e o roteiro de cada live"),
+    ],
+  },
   {
     id: "terapia-repaginada",
     date: "2026-11-14",

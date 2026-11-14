@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Story · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      The Instagram story of a live's opening (story.js), drawn here to look at it: ?camera=<url>&jogo=<url> are the
+      pictures (OBS's screenshots in the dock), ?titulo= and ?nome= the live's title and game. Without pictures it
+      draws the Klein ground alone. Nothing is posted from here.
+    -->
+    <style>
+      html,
+      body {
+        overflow: auto;
+        background: #111;
+      }
+      body {
+        display: grid;
+        place-items: center;
+        min-height: 100%;
+        padding: 24px;
+      }
+      canvas {
+        width: 405px;
+        height: 720px;
+        border-radius: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="story.js"></script>
+    <script>
+      const p = new URLSearchParams(location.search)
+      const imagem = (url) =>
+        url
+          ? new Promise((ok) => {
+              const i = new Image()
+              i.crossOrigin = "anonymous"
+              i.onload = () => ok(i)
+              i.onerror = () => ok(null)
+              i.src = url
+            })
+          : null
+      window.desenhar = async (o = {}) => {
+        const canvas = await Story.desenhar({
+          camera: await imagem(o.camera ?? p.get("camera")),
+          jogo: await imagem(o.jogo ?? p.get("jogo")),
+          titulo: o.titulo ?? p.get("titulo") ?? "Ranqueadas de Rocket League",
+          nomeJogo: o.nome ?? p.get("nome") ?? "Rocket League",
+        })
+        document.querySelector("canvas")?.remove()
+        document.body.append(canvas)
+        return canvas.toDataURL("image/jpeg", 0.9)
+      }
+      desenhar()
+    </script>
+  </body>
+</html>

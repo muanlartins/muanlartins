@@ -8,7 +8,7 @@ import { PageIntro } from "@/components/site/page-intro"
 import { longDate } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
-import { slotsOf, slotText } from "@/lib/agenda"
+import { GameNext } from "@/components/site/agenda/game-next"
 import { channelPath } from "@/lib/channel"
 import { gamePath } from "@/lib/game"
 import type { Live } from "@/lib/lives"
@@ -46,11 +46,7 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-xl font-medium tracking-[-0.02em] text-klein">{localize(game.title)}</span>
-                {slotsOf(game.id).map((slot) => (
-                  <span key={slot.start} className="block text-[13px] text-muted">
-                    {slotText(slot)}
-                  </span>
-                ))}
+                <GameNext game={game.id} className="block text-[13px] text-muted" prefix={`${localize(channel.games.next)}: `} />
               </span>
               <ArrowRight aria-hidden className="h-4 w-4 shrink-0 text-muted transition-colors group-hover:text-klein" />
             </Link>

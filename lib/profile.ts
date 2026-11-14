@@ -169,8 +169,11 @@ const store = {
   },
 }
 
-/** Sends the browser to Twitch, keeping the fan being built so it's still there on the way back. */
-export function signIn(draft: Fan | null, back?: string) {
+/**
+ * Sends the browser to Twitch, keeping the fan being built so it's still there on the way back. `scope` asks for more
+ * than who they are: the agenda's editor asks the channel's account for `channel:manage:schedule`.
+ */
+export function signIn(draft: Fan | null, back?: string, scope = "") {
   const state = crypto.randomUUID()
   store.set(STATE_KEY, state, true)
   if (draft) store.set(DRAFT_KEY, JSON.stringify(draft), true)
@@ -180,7 +183,7 @@ export function signIn(draft: Fan | null, back?: string) {
     client_id: TWITCH_CLIENT_ID,
     redirect_uri: `${ORIGIN}/${profileSlug()}`,
     response_type: "token",
-    scope: "",
+    scope,
     state,
   }).toString()
   location.assign(url)
