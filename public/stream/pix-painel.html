@@ -21,6 +21,8 @@
         A song shows its state (being made, ready, refused and waiting for its sender's new text, couldn't be made,
         with why): Ouvir plays it here only (the dock's sound isn't on the stream), Pular música cuts it on the live
         (or leaves only the announcement), Gerar de novo makes it again (US$ 0,08) and plays it again once ready.
+        A ready song says whether its lyrics are in time (the overlay shows them only then); Sincronizar letra asks
+        Gemini again (a fraction of a cent, ~15 s), for a song made before it existed or one it missed.
       - Meta: the goal bar on the overlay, /pix and /mural; it counts from when it's set. A new one (or
         Encerrar) sends the one before to /mural's history; Ajustar changes the one on screen and keeps its count.
         Ticking "fora de meta", a new one (or Ajustar) counts from the first Pix since the last goal ended.
@@ -205,10 +207,12 @@
       const botao = (texto, acao) => el("button", { type: "button", textContent: texto, onclick: acao })
       const ESTILOS = { funk: "Funk", sertanejo: "Sertanejo", pagode: "Pagode", forro: "Forró", rock: "Rock", rap: "Rap", eletronica: "Eletrônica", pop: "Pop" }
       const ESTADOS = { gerando: "fazendo…", pronta: "pronta", recusada: "recusada, esperando o texto novo de quem mandou", falhou: "não saiu: toca só o anúncio" }
-      // A song's line: style, theme (or "letra própria"), state and, when it went wrong, why.
+      // A song's line: style, theme (or "letra própria"), state and, when it went wrong, why; ready, whether its lyrics are in time.
+      const sincronizada = (m) => Array.isArray(m.tempos) && m.tempos.some(Boolean)
       function musica(m) {
         const ruim = m.estado === "recusada" || m.estado === "falhou"
-        return el("span", { className: `musica${ruim ? " ruim" : ""}`, textContent: `♪ ${ESTILOS[m.estilo] ?? "Música"} · ${m.sobre || "letra própria"} · ${ESTADOS[m.estado] ?? m.estado}${ruim && m.motivo ? ` (${m.motivo})` : ""}` })
+        const letra = m.estado === "pronta" && m.letraCantada ? (sincronizada(m) ? " · letra sincronizada" : " · letra sem sincronia") : ""
+        return el("span", { className: `musica${ruim ? " ruim" : ""}`, textContent: `♪ ${ESTILOS[m.estilo] ?? "Música"} · ${m.sobre || "letra própria"} · ${ESTADOS[m.estado] ?? m.estado}${letra}${ruim && m.motivo ? ` (${m.motivo})` : ""}` })
       }
       let ouvindo = null
       function ouvir(url) {
@@ -231,6 +235,19 @@
       async function agir(corpo) {
         try {
           await pedir("/canal", corpo)
+        } catch (e) {
+          alert(`Não deu: ${e.message}`)
+        }
+        ler()
+      }
+
+      // The lyrics' timing again: Gemini hears the song (~15 s), so the button says it's working meanwhile.
+      async function sincronizar(b, sk) {
+        b.disabled = true
+        b.textContent = "Sincronizando…"
+        try {
+          const r = await pedir("/canal", { acao: "letra", pix: sk })
+          b.textContent = `Letra sincronizada (${r.linhas} de ${r.de} linhas)`
         } catch (e) {
           alert(`Não deu: ${e.message}`)
         }
@@ -283,6 +300,7 @@
                     botao("Repetir", () => agir({ acao: "repetir", pix: p.sk })),
                     p.musica?.url ? botao("Ouvir", () => ouvir(p.musica.url)) : "",
                     p.musica?.estado === "pronta" && !p.exibido && !p.pular ? botao("Pular música", () => agir({ acao: "pular", pix: p.sk })) : "",
+                    p.musica?.estado === "pronta" && p.musica.letraCantada ? botao("Sincronizar letra", (e) => sincronizar(e.currentTarget, p.sk)) : "",
                     p.musica && p.musica.estado !== "gerando" ? botao("Gerar de novo", () => confirm("Gerar a música de novo? Custa uns R$ 0,45, e ela toca de novo quando ficar pronta.") && agir({ acao: "musica", pix: p.sk })) : "",
                     // Every Pix with a name or words shows them on the mural (an old one too, ticked or not); taking it off leaves its value, as anonymous.
                     p.nome || p.mensagem || p.transcricao ? botao(p.oculto ? "Voltar ao mural" : "Tirar do mural", () => agir({ acao: "ocultar", pix: p.sk, oculto: !p.oculto })) : "",
