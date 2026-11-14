@@ -6,10 +6,9 @@ import { useAgenda } from "@/components/site/agenda/agenda-context"
 import { AgendaEditor } from "@/components/site/agenda/agenda-editor"
 import { Calendar, showDay } from "@/components/site/agenda/calendar"
 import { AgendaGameIcon, DayDetail } from "@/components/site/agenda/day-detail"
-import { Weekly } from "@/components/site/agenda/weekly"
 import { gameName, Subscribe, useNow } from "@/components/site/lives/agenda"
 import { channel } from "@/content/channel"
-import { dataEm, dia, dias } from "@/infra/comum/agenda.mjs"
+import { dataEm, dias } from "@/infra/comum/agenda.mjs"
 import { clock, nextOccurrence, whenOf, type Agenda, type Day } from "@/lib/agenda"
 import { SCHEDULE_SCOPE, whoIs, type TwitchUser } from "@/lib/agenda-twitch"
 import { channelPath } from "@/lib/channel"
@@ -28,7 +27,7 @@ const E = localize({
 })
 
 /** A day of the agenda with its lives as occurrences. */
-export const dayOf = (agenda: Agenda, date: string): Day => dias(agenda, new Date(`${date}T15:00:00Z`), 1)[0] ?? { ...dia(agenda, date), lives: [] }
+export const dayOf = (agenda: Agenda, date: string): Day => dias(agenda, new Date(`${date}T15:00:00Z`), 1)[0]
 
 /**
  * /canal/agenda in the browser: for visitors, the next live, the month as a calendar and the day picked in full; for
@@ -78,7 +77,7 @@ export function AgendaView() {
   )
 }
 
-/** What visitors see: the next live, the calendar and the picked day, the subscription and the usual week. */
+/** What visitors see: the next live, the calendar and the picked day, and the subscription. */
 function PublicAgenda() {
   const { agenda, fresh } = useAgenda()
   const now = useNow()
@@ -104,7 +103,6 @@ function PublicAgenda() {
       <div className="mt-8">
         <Subscribe />
       </div>
-      <Weekly />
     </>
   )
 }

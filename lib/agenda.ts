@@ -10,22 +10,13 @@ import { HTML_LANG, LOCALE, localize } from "@/lib/site"
  * (`components/site/agenda/agenda-context.tsx`), so a change shows without a release.
  */
 
-/** The usual week: ISO weekdays (1 Monday … 7 Sunday), "HH:MM" in the agenda's zone, a game's id in `games`. */
-export interface Slot {
-  days: number[]
-  start: string
-  end: string
-  game: string
-  title?: string
-}
-
 /** One step of a live's run of the show, at a time or not. */
 export interface PlanItem {
   at?: string
   text: string
 }
 
-/** A live on a planned day. */
+/** A live on a day: "HH:MM" in the agenda's zone, a game's id in `games`. */
 export interface PlannedLive {
   start: string
   end: string
@@ -34,7 +25,7 @@ export interface PlannedLive {
   plan?: PlanItem[]
 }
 
-/** A planned day: its own lives (none is a day off) and a note for the whole day. */
+/** A planned day: its lives and a note for the whole day (a note alone says why there's no live). */
 export interface PlannedDay {
   note?: string
   lives: PlannedLive[]
@@ -49,7 +40,6 @@ export interface AgendaGame {
 
 export interface Agenda {
   timeZone: string
-  slots: Slot[]
   dates: Record<string, PlannedDay>
   games: Record<string, AgendaGame>
 }
@@ -66,14 +56,11 @@ export interface Occurrence {
   categoria: string | null
   titulo: string
   roteiro: PlanItem[]
-  /** Planned by hand, not from the usual week. */
-  planejada: boolean
 }
 
-/** A day as it stands: planned or following the usual week, with its lives. */
+/** A day with its note and its lives (none when it isn't planned). */
 export interface Day {
   data: string
-  planejado: boolean
   nota: string
   lives: Occurrence[]
 }
@@ -94,9 +81,12 @@ export const nextOccurrence = (agenda: Agenda, now: Date) => proxima(agenda, now
 /** A slot's length in minutes (an end at or before the start is the next day's). */
 export const lengthOf = (start: string, end: string) => duracao(start, end) as number
 
-/** A game's slots, earliest in the week first. */
-export const slotsOf = (agenda: Agenda, game: string) =>
-  agenda.slots.filter((slot) => slot.game === game).sort((a, b) => Math.min(...a.days) - Math.min(...b.days))
+/** A game's next live (on air or ahead), within six weeks. */
+export const nextOf = (agenda: Agenda, game: string, now: Date) =>
+  occurrences(agenda, now, 42).find((live) => live.jogo === game && Date.parse(live.fim) > +now) ?? null
+
+/** Whether the agenda has any live of a game. */
+export const hasGame = (agenda: Agenda, game: string) => Object.values(agenda.dates).some((day) => day.lives.some((live) => live.game === game))
 
 const LANG = HTML_LANG[LOCALE]
 
@@ -108,11 +98,8 @@ export const WEEKDAYS = Array.from({ length: 7 }, (_, index) =>
   new Intl.DateTimeFormat(LANG, { weekday: "short", timeZone: "UTC" }).format(new Date(Date.UTC(2024, 0, 1 + index))).replace(".", ""),
 )
 
-/** "seg e qua, 21h–23h": a slot in a line, in the agenda's time zone. */
-export function slotText(slot: Slot) {
-  const days = new Intl.ListFormat(LANG, { type: "conjunction" }).format(slot.days.map((day) => WEEKDAYS[day - 1]))
-  return `${days}, ${clock(slot.start)}–${clock(slot.end)}`
-}
+/** "sáb 21/11, 15h": a live in a line, in the agenda's time zone. */
+export const liveText = (live: Occurrence) => `${weekdayOf(live.data)} ${dayMonth(live.data)}, ${clock(live.start)}`
 
 /** "sábado, 21 de novembro": a date in full. */
 export const longDay = (date: string) =>

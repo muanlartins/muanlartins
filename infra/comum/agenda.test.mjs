@@ -8,12 +8,18 @@ const GAMES = {
   "rocket-league": { name: "Rocket League", category: "30921", title: "Ranqueadas de Rocket League" },
   valorant: { name: "Valorant", category: "516575", title: "Aprendendo Valorant" },
 }
+const RL = { start: "14:30", end: "16:30", game: "rocket-league" }
+const VAL = { start: "21:00", end: "23:00", game: "valorant" }
 const AGENDA = limpar({
-  slots: [
-    { days: [2, 4, 5], start: "14:30", end: "16:30", game: "rocket-league" },
-    { days: [3, 1], start: "21:00", end: "23:00", game: "valorant" },
-  ],
   dates: {
+    "2026-11-13": { lives: [RL] },
+    "2026-11-16": { lives: [VAL] },
+    "2026-11-17": { lives: [RL] },
+    "2026-11-19": { lives: [RL] },
+    "2026-11-20": { lives: [RL] },
+    "2026-11-23": { lives: [VAL] },
+    // Not planned: nothing.
+    "2026-11-24": { lives: [] },
     // Sunday: two lives, one with its run of the show.
     "2026-11-15": {
       note: "Domingo com os viewers",
@@ -22,7 +28,7 @@ const AGENDA = limpar({
         { start: "15:00", end: "17:00", game: "valorant", title: "Inhouse com os viewers", plan: [{ at: "15:00", text: "Montar os times" }, { text: "  Jogar  " }, { text: "" }] },
       ],
     },
-    // Wednesday: a day off.
+    // Wednesday: a day off, with its note.
     "2026-11-18": { note: "Folga: médico", lives: [] },
   },
   games: GAMES,
@@ -34,12 +40,9 @@ test("limpar keeps the shape and drops what doesn't fit", () => {
   const a = limpar(
     {
       timeZone: "Europe/Paris",
-      slots: [
-        { days: [9, 1, 1], start: "21:00", end: "23:00", game: "valorant", title: "   " },
-        { days: [2], start: "25:00", end: "23:00", game: "valorant" },
-        { days: [2], start: "10:00", end: "12:00", game: "minecraft" },
-      ],
+      slots: [{ days: [1], start: "21:00", end: "23:00", game: "valorant" }],
       dates: {
+        "2026-11-21": { note: " ", lives: [{ start: "25:00", end: "23:00", game: "valorant" }] },
         "2026-02-30": { lives: [] },
         "2026-11-01": { lives: [] },
         "2026-11-20": { note: "  x  ", lives: [{ start: "10:00", end: "11:00", game: "minecraft" }, { start: "12:00", end: "13:00", game: "valorant", plan: [{ at: "9", text: "a" }] }] },
@@ -49,7 +52,7 @@ test("limpar keeps the shape and drops what doesn't fit", () => {
     "2026-11-13",
   )
   assert.equal(a.timeZone, "America/Sao_Paulo")
-  assert.deepEqual(a.slots, [{ days: [1], start: "21:00", end: "23:00", game: "valorant" }])
+  assert.equal("slots" in a, false)
   assert.deepEqual(a.dates, { "2026-11-20": { note: "x", lives: [{ start: "12:00", end: "13:00", game: "valorant", plan: [{ text: "a" }] }] } })
   assert.deepEqual(Object.keys(a.games), ["rocket-league", "valorant"])
   assert.equal(limpar(null), null)
@@ -62,26 +65,25 @@ test("times are Brasília's, and a live past midnight ends the next day", () => 
   assert.equal(duracao("14:30", "16:30"), 120)
 })
 
-test("a planned day stands on its own; the others follow the usual week", () => {
-  assert.deepEqual(dia(AGENDA, "2026-11-16"), { data: "2026-11-16", planejado: false, nota: "", lives: [{ start: "21:00", end: "23:00", game: "valorant" }] })
-  assert.equal(dia(AGENDA, "2026-11-18").planejado, true)
-  assert.deepEqual(dia(AGENDA, "2026-11-18").lives, [])
+test("the days: what's planned, and nothing where nothing is", () => {
+  assert.deepEqual(dia(AGENDA, "2026-11-16"), { data: "2026-11-16", nota: "", lives: [VAL] })
+  assert.deepEqual(dia(AGENDA, "2026-11-14"), { data: "2026-11-14", nota: "", lives: [] })
+  assert.equal("2026-11-24" in AGENDA.dates, false)
   assert.deepEqual(
-    dias(AGENDA, SEXTA, 7).map((d) => [d.data, d.planejado, d.nota, d.lives.map((o) => `${o.start} ${o.jogo}`)]),
+    dias(AGENDA, SEXTA, 7).map((d) => [d.data, d.nota, d.lives.map((o) => `${o.start} ${o.jogo}`)]),
     [
-      ["2026-11-13", false, "", ["14:30 rocket-league"]],
-      ["2026-11-14", false, "", []],
-      ["2026-11-15", true, "Domingo com os viewers", ["15:00 valorant", "19:00 rocket-league"]],
-      ["2026-11-16", false, "", ["21:00 valorant"]],
-      ["2026-11-17", false, "", ["14:30 rocket-league"]],
-      ["2026-11-18", true, "Folga: médico", []],
-      ["2026-11-19", false, "", ["14:30 rocket-league"]],
+      ["2026-11-13", "", ["14:30 rocket-league"]],
+      ["2026-11-14", "", []],
+      ["2026-11-15", "Domingo com os viewers", ["15:00 valorant", "19:00 rocket-league"]],
+      ["2026-11-16", "", ["21:00 valorant"]],
+      ["2026-11-17", "", ["14:30 rocket-league"]],
+      ["2026-11-18", "Folga: médico", []],
+      ["2026-11-19", "", ["14:30 rocket-league"]],
     ],
   )
   const domingo = ocorrencias(AGENDA, SEXTA, 7).find((o) => o.data === "2026-11-15")
   assert.equal(domingo.titulo, "Inhouse com os viewers")
   assert.deepEqual(domingo.roteiro, [{ at: "15:00", text: "Montar os times" }, { text: "Jogar" }])
-  assert.equal(domingo.planejada, true)
   assert.equal(ocorrencias(AGENDA, SEXTA, 7)[0].titulo, "Ranqueadas de Rocket League")
 })
 
@@ -102,8 +104,7 @@ test("the calendar file has one event per live, with the run of the show", () =>
   assert.match(texto, /DESCRIPTION:Inhouse com os viewers\\n· 15h · Montar os times\\n· Jogar\\nDomingo com os viewers\\nhttps/)
   assert.doesNotMatch(texto, /20261118T210000/)
   assert.doesNotMatch(texto, /RRULE/)
-  // A week back to eight ahead: the past week's Tuesday is there.
-  assert.match(texto, /DTSTART;TZID=America\/Sao_Paulo:20261110T143000\r\n/)
+  assert.match(texto, /DTSTART;TZID=America\/Sao_Paulo:20261123T210000\r\n/)
 })
 
 const segmento = (id, inicio, fim, titulo, categoria, extra = {}) => ({
@@ -143,7 +144,7 @@ test("the plan for Twitch: single segments for eight weeks, recurring series rem
     category_id: "30921",
     title: "Ranqueadas de Rocket League",
   })
-  // Eight weeks of five lives a week, minus the day off, plus Sunday's two, minus the one kept and today's, over.
+  // Every live from now on, but the one kept.
   assert.equal(criadas.length + plano.mantem.length, ocorrencias(AGENDA, SEXTA, 56).filter((o) => Date.parse(o.inicio) > +SEXTA).length)
   assert.ok(!criadas.some((c) => c.start_time === "2026-11-19T00:00:00.000Z"))
 })

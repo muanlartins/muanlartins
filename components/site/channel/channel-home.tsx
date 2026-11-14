@@ -8,7 +8,7 @@ import { PageIntro } from "@/components/site/page-intro"
 import { longDate } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
-import { GameSlots } from "@/components/site/agenda/game-slots"
+import { GameNext } from "@/components/site/agenda/game-next"
 import { channelPath } from "@/lib/channel"
 import { gamePath } from "@/lib/game"
 import type { Live } from "@/lib/lives"
@@ -46,7 +46,7 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-xl font-medium tracking-[-0.02em] text-klein">{localize(game.title)}</span>
-                <GameSlots game={game.id} className="block text-[13px] text-muted" />
+                <GameNext game={game.id} className="block text-[13px] text-muted" prefix={`${localize(channel.games.next)}: `} />
               </span>
               <ArrowRight aria-hidden className="h-4 w-4 shrink-0 text-muted transition-colors group-hover:text-klein" />
             </Link>

@@ -77,8 +77,8 @@ export const channel = {
   },
   games: {
     title: { pt: "Jogos", en: "Games" },
-    /** Before each game's slots in the agenda. */
-    live: { pt: "Ao vivo", en: "Live" },
+    /** Before each game's next live in the agenda. */
+    next: { pt: "Próxima live", en: "Next stream" },
   },
 
   pix: {
@@ -113,13 +113,9 @@ export const channel = {
       pt: "Quando é cada live, de qual jogo e o que vai rolar, dia a dia.",
       en: "When each stream is, of which game and what's on, day by day.",
     },
-    weekly: { pt: "Normalmente", en: "Usually" },
-    weeklyHint: { pt: "Os dias ainda sem roteiro seguem esta semana.", en: "Days not planned yet follow this week." },
     previous: { pt: "Mês anterior", en: "Previous month" },
     next: { pt: "Próximo mês", en: "Next month" },
     noLive: { pt: "Sem live neste dia.", en: "No stream this day." },
-    noLiveShort: { pt: "sem live", en: "no stream" },
-    planned: { pt: "Planejado", en: "Planned" },
     upNext: { pt: "Próxima live", en: "Next stream" },
     seeDay: { pt: "Ver o dia no calendário", en: "See the day on the calendar" },
   },

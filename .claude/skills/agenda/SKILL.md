@@ -9,18 +9,17 @@ Since 2026-11-13 the agenda is the one source of truth, and **Luan plans it hims
 `https://muanlartins.com.br/canal/agenda`, signed in with the channel's Twitch ("Planejar a agenda (conta do canal)" at
 the bottom of the page, or the link on `/perfil`). The page becomes the editor:
 
-- **The calendar:** a month, the usual week's lives dashed, planned days dotted. Clicking a day opens it below.
+- **The calendar:** a month; clicking a day opens it below. There's no fixed week (his call, 2026-11-14): a day
+  he didn't plan has no live.
 - **The day:** a note for the day, its lives (time, game, title; blank = the game's default) and each one's **roteiro**
-  (steps at a time or not: "15h · inhouse com os viewers"). "Sem live neste dia" leaves it with none (a day off: the
-  note says why), "Repetir em <next week>" copies it to the same weekday next week, "Voltar à semana padrão" undoes the
-  plan. Any change to a day that follows the usual week plans it.
-- **Semana padrão** (folded): the usual week, which fills every day not planned yet, weekends too.
-- **Jogos** (folded): each game's Twitch category and default title; "Buscar categoria na Twitch" adds any game.
+  (steps at a time or not: "15h · inhouse com os viewers"). A day off is a day with only a note. "Repetir em <next
+  week>" copies it to the same weekday next week, "Limpar o dia" empties it.
+- **Any game:** "Outro jogo…" in a live's game picker searches Twitch's categories and adds it; **Jogos** (folded)
+  has each game's default title.
 - **Ver como visitante** shows the page as viewers see it.
 
 **Salvar** puts it in the profile API (`PUT /agenda`, the channel only) and then on Twitch's calendar from his browser
-(`lib/agenda-twitch.ts`): each live of the next eight weeks as its own segment, so any day can differ from the usual
-week. Opening the editor moves Twitch's eight weeks on by itself. If the sign-in lacks `channel:manage:schedule`, the
+(`lib/agenda-twitch.ts`): each live of the next eight weeks as its own segment. Opening the editor moves Twitch's eight weeks on by itself. If the sign-in lacks `channel:manage:schedule`, the
 editor offers "Conectar o calendário da Twitch" and saving changes only the site. Twitch's calendar only mirrors the
 agenda: changes made on Twitch's dashboard are undone by the next sync. With `NEXT_PUBLIC_PROFILE_API` on localhost
 (a local stand-in) the editor never touches Twitch.
@@ -29,7 +28,7 @@ agenda: changes made on Twitch's dashboard are undone by the next sync. With `NE
 
 - **The site, without a release:** `/canal/agenda` (the next live with its roteiro, the month, the day picked in full),
   the lives page (the next 7 days with dates, a day's note or "sem live", the week's titles), the home's next live and
-  each game's usual slots. Pages are built with the API's agenda of that moment and ask again in the browser.
+  each game's next live. Pages are built with the API's agenda of that moment and ask again in the browser.
 - **Calendar apps:** `GET /agenda.ics` on the profile API, always current (the page's "Google" and "Apple e outros"
   links). The site's own `/agenda.ics` is the agenda as of the last release, for subscriptions from before.
 - **Twitch's title and category:** the Anúncios dock (`public/stream/abertura.js`) sets them from 90 minutes before a

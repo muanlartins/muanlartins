@@ -1,12 +1,12 @@
 "use client"
 
-import { CalendarOff, Check, Copy, Eye, LoaderCircle, Plus, RefreshCw, RotateCcw, Search, Trash2, TriangleAlert, X } from "lucide-react"
+import { Check, Copy, Eraser, Eye, LoaderCircle, Plus, RefreshCw, RotateCcw, Search, Trash2, TriangleAlert, X } from "lucide-react"
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useAgenda } from "@/components/site/agenda/agenda-context"
 import { Calendar, showDay } from "@/components/site/agenda/calendar"
 import { gameName, useNow } from "@/components/site/lives/agenda"
-import { dataEm, dia, limpar, somaDias } from "@/infra/comum/agenda.mjs"
-import { AGENDA_URL, dayMonth, longDay, weekdayOf, WEEKDAYS, type Agenda, type PlannedDay, type PlannedLive, type Slot } from "@/lib/agenda"
+import { dataEm, limpar, somaDias } from "@/infra/comum/agenda.mjs"
+import { AGENDA_URL, dayMonth, longDay, weekdayOf, type Agenda, type PlannedDay, type PlannedLive } from "@/lib/agenda"
 import { MissingScope, SCHEDULE_SCOPE, searchCategories, syncTwitch, type Category, type SyncReport, type TwitchUser } from "@/lib/agenda-twitch"
 import { channelPath } from "@/lib/channel"
 import { signIn } from "@/lib/profile"
@@ -14,19 +14,16 @@ import { localize } from "@/lib/site"
 
 const T = localize({
   intro: {
-    pt: "Clique num dia para planejar: as lives, o roteiro de cada uma e uma nota. Os dias que você não planejar seguem a semana padrão. Salvar muda o site na hora e o calendário da Twitch junto, e o título e a categoria de cada live também abrem a live na Twitch.",
-    en: "Click a day to plan it: its streams, each one's run of the show and a note. Days you don't plan follow the usual week. Saving changes the site at once and Twitch's calendar too, and each stream's title and category also open it on Twitch.",
+    pt: "Clique num dia para planejar: as lives, o roteiro de cada uma e uma nota. Dia sem nada é dia sem live. Salvar muda o site na hora e o calendário da Twitch junto, e o título e a categoria de cada live também abrem a live na Twitch.",
+    en: "Click a day to plan it: its streams, each one's run of the show and a note. A day with nothing has no stream. Saving changes the site at once and Twitch's calendar too, and each stream's title and category also open it on Twitch.",
   },
   connect: { pt: "Conectar o calendário da Twitch", en: "Connect Twitch's calendar" },
   connectNote: { pt: "Sem isso, salvar muda só o site.", en: "Without it, saving changes only the site." },
   localApi: { pt: "API local: salvar não mexe no calendário da Twitch.", en: "Local API: saving leaves Twitch's calendar alone." },
-  planned: { pt: "Planejado", en: "Planned" },
-  fromWeek: { pt: "Segue a semana padrão", en: "Follows the usual week" },
-  fromWeekHint: { pt: "Qualquer mudança aqui planeja este dia.", en: "Any change here plans this day." },
   note: { pt: "Nota do dia (opcional): folga, viagem, fim de semana de torneio…", en: "The day's note (optional)" },
   addLive: { pt: "Adicionar live", en: "Add a stream" },
-  dayOff: { pt: "Sem live neste dia", en: "No stream this day" },
-  reset: { pt: "Voltar à semana padrão", en: "Back to the usual week" },
+  clear: { pt: "Limpar o dia", en: "Clear the day" },
+  otherGame: { pt: "Outro jogo…", en: "Another game…" },
   repeat: { pt: "Repetir em", en: "Repeat on" },
   repeated: { pt: "Copiado para", en: "Copied to" },
   noLives: { pt: "Sem live neste dia.", en: "No stream this day." },
@@ -35,18 +32,11 @@ const T = localize({
   planText: { pt: "O que vai rolar", en: "What's on" },
   planTime: { pt: "Horário (opcional)", en: "Time (optional)" },
   addItem: { pt: "Adicionar tópico", en: "Add a step" },
-  week: { pt: "Semana padrão", en: "The usual week" },
-  weekHint: {
-    pt: "Preenche os dias que você ainda não planejou. Um horário por jogo; fim de semana também.",
-    en: "Fills the days you haven't planned yet. A slot per game; weekends too.",
-  },
-  addSlot: { pt: "Adicionar horário", en: "Add a slot" },
   games: { pt: "Jogos", en: "Games" },
-  gamesHint: { pt: "A categoria da Twitch de cada jogo e o título padrão das lives dele.", en: "Each game's Twitch category and its streams' default title." },
+  gamesHint: { pt: "Cada jogo é uma categoria da Twitch, com o título padrão das lives dele.", en: "Each game is a Twitch category, with its streams' default title." },
   searchGame: { pt: "Buscar categoria na Twitch", en: "Search a Twitch category" },
   defaultTitle: { pt: "Título padrão", en: "Default title" },
   inUse: { pt: "em uso", en: "in use" },
-  noDays: { pt: "Escolha pelo menos um dia.", en: "Pick at least one day." },
   sameTimes: { pt: "Início e fim iguais.", en: "Same start and end." },
   pastMidnight: { pt: "termina no dia seguinte", en: "ends the next day" },
   remove: { pt: "Remover", en: "Remove" },
@@ -68,7 +58,7 @@ const T = localize({
 const LOCAL_API = /^http:\/\/(localhost|127\.)/.test(AGENDA_URL)
 
 const field = "rounded-sm border border-line bg-paper px-2.5 py-1.5 text-[15px] text-ink"
-const EMPTY: Agenda = { timeZone: "America/Sao_Paulo", slots: [], dates: {}, games: {} }
+const EMPTY: Agenda = { timeZone: "America/Sao_Paulo", dates: {}, games: {} }
 
 /** What saving would send: the shape the API keeps. */
 const cleaned = (agenda: Agenda, today: string) => limpar(agenda, today) as Agenda
@@ -91,8 +81,8 @@ type Status =
 
 /**
  * The agenda's editor, for the channel's account (signed in with Twitch, which the profile API checks): the month as a
- * calendar, a day picked to plan (its lives with time, game, title and run of the show, and a note), the usual week
- * that fills the days not planned, and the games. Saving puts it in the API, then on Twitch's calendar
+ * calendar, a day picked to plan (its lives with time, game, title and run of the show, and a note), and the games
+ * (any Twitch category, picked right on a live with "Outro jogo…"). Saving puts it in the API, then on Twitch's calendar
  * (`lib/agenda-twitch.ts`) when the sign-in carries `channel:manage:schedule`; opening it brings Twitch up to date too.
  */
 export function AgendaEditor({ token, me, onPreview }: { token: string; me: TwitchUser; onPreview: () => void }) {
@@ -112,9 +102,7 @@ export function AgendaEditor({ token, me, onPreview }: { token: string; me: Twit
   const base = useMemo(() => (agenda && today ? JSON.stringify(cleaned(agenda, today)) : ""), [agenda, today])
   const next = useMemo(() => (draft && today ? cleaned(draft, today) : null), [draft, today])
   const dirty = Boolean(next && JSON.stringify(next) !== base)
-  const problems = draft
-    ? draft.slots.some((s) => s.start === s.end || !s.days.length) || Object.values(draft.dates).some((d) => d.lives.some((l) => l.start === l.end))
-    : false
+  const problems = draft ? Object.values(draft.dates).some((d) => d.lives.some((l) => l.start === l.end)) : false
   const busy = status.kind === "saving" || status.kind === "syncing"
 
   async function sync(saved: Agenda, after: boolean) {
@@ -140,14 +128,13 @@ export function AgendaEditor({ token, me, onPreview }: { token: string; me: Twit
 
   const picked = selected ?? today
   const set = (patch: Partial<Agenda>) => setEdited({ ...draft, ...patch })
-  const gameIds = Object.keys(draft.games)
-  /** A day's plan as it stands, planned or from the usual week. */
-  const planOf = (date: string): PlannedDay => draft.dates[date] ?? { lives: (dia(draft, date).lives as PlannedLive[]).map((l) => ({ ...l })) }
-  const setDay = (date: string, day: PlannedDay | null) => {
+  const planOf = (date: string): PlannedDay => draft.dates[date] ?? { lives: [] }
+  /** A day changed (a day with nothing left is no longer planned), with the games when one was just added. */
+  const setDay = (date: string, day: PlannedDay | null, games?: Agenda["games"]) => {
     const dates = { ...draft.dates }
-    if (day) dates[date] = day
+    if (day && (day.lives.length || day.note)) dates[date] = day
     else delete dates[date]
-    set({ dates })
+    set({ dates, ...(games ? { games } : {}) })
     setCopied("")
   }
 
@@ -190,39 +177,23 @@ export function AgendaEditor({ token, me, onPreview }: { token: string; me: Twit
           onMonth={setMonth}
           selected={picked}
           onSelect={(date) => (setSelected(date), setCopied(""), showDay())}
-          editing
         />
       </div>
 
       <DayEditor
         agenda={draft}
+        token={token}
         date={picked}
-        planned={Boolean(draft.dates[picked])}
         day={planOf(picked)}
         copied={copied}
-        onChange={(day) => setDay(picked, day)}
-        onReset={() => setDay(picked, null)}
+        onChange={(day, games) => setDay(picked, day, games)}
+        onClear={() => setDay(picked, null)}
         onRepeat={() => {
           const target = somaDias(picked, 7)
           setDay(target, structuredClone(planOf(picked)))
           setCopied(target)
         }}
       />
-
-      <Fold title={T.week} hint={T.weekHint}>
-        {draft.slots.map((slot, index) => (
-          <SlotRow
-            key={index}
-            slot={slot}
-            agenda={draft}
-            onChange={(patch) => set({ slots: draft.slots.map((s, i) => (i === index ? { ...s, ...patch } : s)) })}
-            onRemove={() => set({ slots: draft.slots.filter((_, i) => i !== index) })}
-          />
-        ))}
-        <AddButton disabled={!gameIds.length} onClick={() => set({ slots: [...draft.slots, { days: [6], start: "15:00", end: "17:00", game: gameIds[0] }] })}>
-          {T.addSlot}
-        </AddButton>
-      </Fold>
 
       <Fold title={T.games} hint={T.gamesHint}>
         <Games agenda={draft} token={token} onChange={(games) => set({ games })} />
@@ -262,44 +233,33 @@ export function AgendaEditor({ token, me, onPreview }: { token: string; me: Twit
 /** The day picked: its note, its lives, and what can be done with it. */
 function DayEditor({
   agenda,
+  token,
   date,
-  planned,
   day,
   copied,
   onChange,
-  onReset,
+  onClear,
   onRepeat,
 }: {
   agenda: Agenda
+  token: string
   date: string
-  planned: boolean
   day: PlannedDay
   copied: string
-  onChange: (day: PlannedDay) => void
-  onReset: () => void
+  onChange: (day: PlannedDay, games?: Agenda["games"]) => void
+  onClear: () => void
   onRepeat: () => void
 }) {
   const gameIds = Object.keys(agenda.games)
   const nextWeek = somaDias(date, 7)
-  const setLive = (index: number, live: PlannedLive | null) =>
-    onChange({ ...day, lives: live ? day.lives.map((l, i) => (i === index ? live : l)) : day.lives.filter((_, i) => i !== index) })
-  const lastEnd = day.lives.at(-1)?.end
+  const empty = !day.lives.length && !day.note
+  const setLive = (index: number, live: PlannedLive | null, games?: Agenda["games"]) =>
+    onChange({ ...day, lives: live ? day.lives.map((l, i) => (i === index ? live : l)) : day.lives.filter((_, i) => i !== index) }, games)
+  const last = day.lives.at(-1)
 
   return (
     <section id="dia" className="mt-8 scroll-mt-20 rounded-md border border-klein/40 bg-paper/80 p-4 sm:p-5">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h3 className="text-[19px] font-medium text-ink first-letter:uppercase">{longDay(date)}</h3>
-        {planned ? (
-          <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-klein">
-            <span className="h-1.5 w-1.5 rounded-full bg-klein" />
-            {T.planned}
-          </span>
-        ) : (
-          <span className="text-[13px] text-muted" title={T.fromWeekHint}>
-            {T.fromWeek}
-          </span>
-        )}
-      </div>
+      <h3 className="text-[19px] font-medium text-ink first-letter:uppercase">{longDay(date)}</h3>
 
       <input
         value={day.note ?? ""}
@@ -312,36 +272,40 @@ function DayEditor({
 
       <div className="mt-4 space-y-3">
         {day.lives.map((live, index) => (
-          <LiveCard key={index} live={live} agenda={agenda} onChange={(l) => setLive(index, l)} onRemove={() => setLive(index, null)} />
+          <LiveCard
+            key={index}
+            live={live}
+            agenda={agenda}
+            token={token}
+            onChange={(l, games) => setLive(index, l, games)}
+            onRemove={() => setLive(index, null)}
+          />
         ))}
         {!day.lives.length && <p className="text-[14px] text-muted">{T.noLives}</p>}
+        {!gameIds.length && <GameSearch agenda={agenda} token={token} onPick={(id, games) => onChange({ ...day, lives: [{ start: "15:00", end: "17:00", game: id }] }, games)} />}
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
         <AddButton
           disabled={!gameIds.length}
           onClick={() => {
-            const start = lastEnd && lastEnd < "22:00" ? lastEnd : "15:00"
+            const start = last && last.end < "22:00" ? last.end : "15:00"
             const end = `${String((Number(start.slice(0, 2)) + 2) % 24).padStart(2, "0")}${start.slice(2)}`
-            onChange({ ...day, lives: [...day.lives, { start, end, game: gameIds[0] }] })
+            onChange({ ...day, lives: [...day.lives, { start, end, game: last?.game ?? gameIds[0] }] })
           }}
         >
           {T.addLive}
         </AddButton>
-        {day.lives.length > 0 && (
-          <button onClick={() => onChange({ ...day, lives: [] })} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
-            <CalendarOff className="h-4 w-4" />
-            {T.dayOff}
+        {!empty && (
+          <button onClick={onRepeat} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
+            <Copy className="h-4 w-4" />
+            {T.repeat} <span className="capitalize">{weekdayOf(nextWeek)}</span> {dayMonth(nextWeek)}
           </button>
         )}
-        <button onClick={onRepeat} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
-          <Copy className="h-4 w-4" />
-          {T.repeat} <span className="capitalize">{weekdayOf(nextWeek)}</span> {dayMonth(nextWeek)}
-        </button>
-        {planned && (
-          <button onClick={onReset} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
-            <RotateCcw className="h-4 w-4" />
-            {T.reset}
+        {!empty && (
+          <button onClick={onClear} className="inline-flex items-center gap-1.5 text-[14px] text-muted hover:text-klein">
+            <Eraser className="h-4 w-4" />
+            {T.clear}
           </button>
         )}
         {copied && (
@@ -354,8 +318,23 @@ function DayEditor({
   )
 }
 
-/** A live on the day: times, game, title and its run of the show. */
-function LiveCard({ live, agenda, onChange, onRemove }: { live: PlannedLive; agenda: Agenda; onChange: (live: PlannedLive) => void; onRemove: () => void }) {
+const OTHER = "__outro__"
+
+/** A live on the day: times, game (any Twitch category with "Outro jogo…"), title and its run of the show. */
+function LiveCard({
+  live,
+  agenda,
+  token,
+  onChange,
+  onRemove,
+}: {
+  live: PlannedLive
+  agenda: Agenda
+  token: string
+  onChange: (live: PlannedLive, games?: Agenda["games"]) => void
+  onRemove: () => void
+}) {
+  const [picking, setPicking] = useState(false)
   const game = agenda.games[live.game]
   const plan = live.plan ?? []
   const setPlan = (items: NonNullable<PlannedLive["plan"]>) => onChange({ ...live, plan: items.length ? items : undefined })
@@ -368,17 +347,34 @@ function LiveCard({ live, agenda, onChange, onRemove }: { live: PlannedLive; age
           –
           <input type="time" step={300} value={live.end} onChange={(e) => e.target.value && onChange({ ...live, end: e.target.value })} className={field} />
         </span>
-        <select value={live.game} onChange={(e) => onChange({ ...live, game: e.target.value })} className={field}>
+        <select
+          value={picking ? OTHER : live.game}
+          onChange={(e) => (e.target.value === OTHER ? setPicking(true) : (setPicking(false), onChange({ ...live, game: e.target.value })))}
+          className={field}
+        >
           {Object.keys(agenda.games).map((id) => (
             <option key={id} value={id}>
               {gameName(agenda, id)}
             </option>
           ))}
+          <option value={OTHER}>{T.otherGame}</option>
         </select>
         <button onClick={onRemove} aria-label={T.remove} title={T.remove} className="ml-auto rounded-sm p-2 text-muted hover:text-klein">
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
+      {picking && (
+        <GameSearch
+          agenda={agenda}
+          token={token}
+          autoFocus
+          onPick={(id, games) => {
+            setPicking(false)
+            onChange({ ...live, game: id }, games)
+          }}
+          onCancel={() => setPicking(false)}
+        />
+      )}
       {live.start === live.end && <p className="text-[13px] text-red-600">{T.sameTimes}</p>}
       {overnight && <p className="text-[13px] text-muted">{T.pastMidnight}</p>}
       <input
@@ -426,6 +422,84 @@ function LiveCard({ live, agenda, onChange, onRemove }: { live: PlannedLive; age
   )
 }
 
+/**
+ * Twitch's categories for a search: picking one gives its id in the agenda's games, adding it with its name as the
+ * default title when it's new (`onPick(id, games)`, the games only when they changed).
+ */
+function GameSearch({
+  agenda,
+  token,
+  autoFocus,
+  onPick,
+  onCancel,
+}: {
+  agenda: Agenda
+  token: string
+  autoFocus?: boolean
+  onPick: (id: string, games?: Agenda["games"]) => void
+  onCancel?: () => void
+}) {
+  const [query, setQuery] = useState("")
+  const [found, setFound] = useState<Category[] | null>(null)
+  const [searching, setSearching] = useState(false)
+
+  async function search() {
+    if (!query.trim()) return
+    setSearching(true)
+    setFound(await searchCategories(token, query.trim()).catch(() => []))
+    setSearching(false)
+  }
+
+  function pick(category: Category) {
+    const known = Object.entries(agenda.games).find(([, g]) => g.category === category.id)
+    if (known) return onPick(known[0])
+    const base = slug(category.name).slice(0, 29)
+    let id = base
+    for (let n = 2; agenda.games[id]; n++) id = `${base}-${n}`
+    onPick(id, { ...agenda.games, [id]: { name: category.name, category: category.id, title: category.name } })
+  }
+
+  return (
+    <div className="space-y-2">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          search()
+        }}
+        className="flex items-center gap-2"
+      >
+        <input
+          value={query}
+          autoFocus={autoFocus}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={T.searchGame}
+          aria-label={T.searchGame}
+          className={`${field} min-w-0 flex-1`}
+        />
+        <button type="submit" aria-label={T.searchGame} className="rounded-sm border border-line p-2 text-muted hover:border-klein hover:text-klein">
+          {searching ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+        </button>
+        {onCancel && (
+          <button type="button" onClick={onCancel} aria-label={T.remove} className="rounded-sm p-2 text-muted hover:text-klein">
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </form>
+      {found && (
+        <div className="flex flex-wrap gap-2">
+          {found.map((category) => (
+            <button key={category.id} onClick={() => pick(category)} className="flex items-center gap-2 rounded-sm border border-line p-1.5 pr-3 text-[14px] text-ink hover:border-klein">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={category.box} alt="" width={26} height={36} className="rounded-[2px]" />
+              {category.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function Fold({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
   return (
     <details className="mt-6 rounded-md border border-line bg-paper/60 p-4 open:bg-paper/80">
@@ -447,85 +521,9 @@ function AddButton({ onClick, disabled, children }: { onClick: () => void; disab
   )
 }
 
-/** A slot of the usual week: its days, times, game and title. */
-function SlotRow({ slot, agenda, onChange, onRemove }: { slot: Slot; agenda: Agenda; onChange: (patch: Partial<Slot>) => void; onRemove: () => void }) {
-  const game = agenda.games[slot.game]
-  return (
-    <div className="space-y-2 rounded-md border border-line bg-paper p-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex gap-1">
-          {WEEKDAYS.map((name, index) => {
-            const day = index + 1
-            const on = slot.days.includes(day)
-            return (
-              <button
-                key={name}
-                onClick={() => onChange({ days: on ? slot.days.filter((d) => d !== day) : [...slot.days, day].sort() })}
-                aria-pressed={on}
-                className={`w-10 rounded-sm py-1 text-[13px] font-medium capitalize ${on ? "bg-klein text-paper" : "border border-line text-muted hover:border-klein"}`}
-              >
-                {name}
-              </button>
-            )
-          })}
-        </div>
-        <span className="flex items-center gap-1.5">
-          <input type="time" step={300} value={slot.start} onChange={(e) => e.target.value && onChange({ start: e.target.value })} className={field} />
-          –
-          <input type="time" step={300} value={slot.end} onChange={(e) => e.target.value && onChange({ end: e.target.value })} className={field} />
-        </span>
-        <select value={slot.game} onChange={(e) => onChange({ game: e.target.value })} className={field}>
-          {Object.keys(agenda.games).map((id) => (
-            <option key={id} value={id}>
-              {gameName(agenda, id)}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="flex items-center gap-2">
-        <input
-          value={slot.title ?? ""}
-          maxLength={140}
-          placeholder={game?.title ?? T.title}
-          aria-label={T.title}
-          onChange={(e) => onChange({ title: e.target.value || undefined })}
-          className={`${field} min-w-0 flex-1`}
-        />
-        <button onClick={onRemove} aria-label={T.remove} title={T.remove} className="rounded-sm p-2 text-muted hover:text-klein">
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
-      {!slot.days.length && <p className="text-[13px] text-red-600">{T.noDays}</p>}
-      {slot.start === slot.end && <p className="text-[13px] text-red-600">{T.sameTimes}</p>}
-      {slot.end < slot.start && <p className="text-[13px] text-muted">{T.pastMidnight}</p>}
-    </div>
-  )
-}
-
 /** The games: each one's default title; add one from Twitch's categories, remove one nothing uses. */
 function Games({ agenda, token, onChange }: { agenda: Agenda; token: string; onChange: (games: Agenda["games"]) => void }) {
-  const [query, setQuery] = useState("")
-  const [found, setFound] = useState<Category[] | null>(null)
-  const [searching, setSearching] = useState(false)
-  const used = new Set([...agenda.slots.map((s) => s.game), ...Object.values(agenda.dates).flatMap((d) => d.lives.map((l) => l.game))])
-
-  async function search() {
-    if (!query.trim()) return
-    setSearching(true)
-    setFound(await searchCategories(token, query.trim()).catch(() => []))
-    setSearching(false)
-  }
-
-  function add(category: Category) {
-    if (Object.values(agenda.games).some((g) => g.category === category.id)) return setFound(null)
-    const base = slug(category.name).slice(0, 29)
-    let id = base
-    for (let n = 2; agenda.games[id]; n++) id = `${base}-${n}`
-    onChange({ ...agenda.games, [id]: { name: category.name, category: category.id, title: category.name } })
-    setFound(null)
-    setQuery("")
-  }
-
+  const used = new Set(Object.values(agenda.dates).flatMap((d) => d.lives.map((l) => l.game)))
   return (
     <>
       {Object.entries(agenda.games).map(([id, game]) => (
@@ -553,29 +551,7 @@ function Games({ agenda, token, onChange }: { agenda: Agenda; token: string; onC
           )}
         </div>
       ))}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          search()
-        }}
-        className="flex items-center gap-2"
-      >
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={T.searchGame} className={`${field} min-w-0 flex-1`} />
-        <button type="submit" aria-label={T.searchGame} className="rounded-sm border border-line p-2 text-muted hover:border-klein hover:text-klein">
-          {searching ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-        </button>
-      </form>
-      {found && (
-        <div className="flex flex-wrap gap-2">
-          {found.map((category) => (
-            <button key={category.id} onClick={() => add(category)} className="flex items-center gap-2 rounded-sm border border-line p-1.5 pr-3 text-[14px] text-ink hover:border-klein">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={category.box} alt="" width={26} height={36} className="rounded-[2px]" />
-              {category.name}
-            </button>
-          ))}
-        </div>
-      )}
+      <GameSearch agenda={agenda} token={token} onPick={(_, games) => games && onChange(games)} />
     </>
   )
 }

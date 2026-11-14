@@ -9,7 +9,7 @@ import { localize, ORIGIN } from "@/lib/site"
 export const dynamic = "force-static"
 
 export async function GET() {
-  const agenda = (await buildAgenda()) ?? { slots: [], dates: {}, games: {} }
+  const agenda = (await buildAgenda()) ?? { dates: {}, games: {} }
   const body = ics(agenda, { nome: localize(channel.lives.agenda.calendar), url: `${ORIGIN}${channelPath("agenda")}` })
   return new Response(body, { headers: { "content-type": "text/calendar; charset=utf-8" } })
 }

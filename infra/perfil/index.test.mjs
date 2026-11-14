@@ -94,9 +94,14 @@ test("without a valid token, nothing personal", async () => {
   assert.equal((await chamar("OPTIONS", "/eu")).status, 204)
 })
 
+// Tomorrow in Brasília, so the next lives always have one.
+const AMANHA = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date(Date.now() + 86_400_000))
 const AGENDA = {
-  slots: [{ days: [1, 3], start: "21:00", end: "23:00", game: "valorant", title: "Aprendendo Valorant" }],
-  dates: { "2099-01-03": { lives: [{ start: "15:00", end: "17:00", game: "valorant" }] }, "2000-01-03": { note: "passou", lives: [] } },
+  dates: {
+    [AMANHA]: { lives: [{ start: "21:00", end: "23:00", game: "valorant", title: "Aprendendo Valorant" }] },
+    "2099-01-03": { lives: [{ start: "15:00", end: "17:00", game: "valorant" }] },
+    "2000-01-03": { note: "passou", lives: [] },
+  },
   games: { valorant: { name: "VALORANT", category: "516575", title: "Aprendendo Valorant" } },
 }
 
@@ -109,12 +114,11 @@ test("the agenda: only the channel saves it, everyone reads it, with the next li
   const salvo = await chamar("PUT", "/agenda", { token: "canal", corpo: AGENDA })
   assert.equal(salvo.status, 200)
   // A day planned in the past goes.
-  assert.deepEqual(Object.keys(salvo.body.agenda.dates), ["2099-01-03"])
+  assert.deepEqual(Object.keys(salvo.body.agenda.dates), [AMANHA, "2099-01-03"])
   const lido = await chamar("GET", "/agenda")
   assert.deepEqual(lido.body.agenda, salvo.body.agenda)
   assert.ok(lido.body.em)
-  // Two weeks hold at least four Monday and Wednesday lives.
-  assert.ok(lido.body.proximas.filter((o) => o.jogo === "valorant" && !o.planejada).length >= 4)
+  assert.deepEqual(lido.body.proximas.map((o) => [o.data, o.start, o.titulo]), [[AMANHA, "21:00", "Aprendendo Valorant"]])
   const cal = await handler({ requestContext: { http: { method: "GET" } }, rawPath: "/agenda.ics", headers: {} })
   assert.match(cal.headers["content-type"], /^text\/calendar/)
   assert.match(cal.body, /DTSTART;TZID=America\/Sao_Paulo:\d{8}T210000\r\n/)

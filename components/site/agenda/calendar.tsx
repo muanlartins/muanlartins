@@ -25,10 +25,9 @@ const addMonths = (month: string, n: number) => {
 }
 
 /**
- * A month of the agenda as a calendar, Monday first: each day with its lives (time and game), a planned day's note,
- * "sem live" on a planned day without one; today ringed, days gone faded, empty and not clickable (the agenda doesn't
- * keep the past). `editing` marks the days
- * planned by hand and draws the usual week's lives as provisional. The month is the caller's (`month`, "YYYY-MM").
+ * A month of the agenda as a calendar, Monday first: each day with its lives (time and game) and its note (a mark on
+ * a phone); today ringed, days gone faded, empty and not clickable (the agenda doesn't keep
+ * the past). The month is the caller's (`month`, "YYYY-MM").
  */
 export function Calendar({
   agenda,
@@ -37,7 +36,6 @@ export function Calendar({
   onMonth,
   selected,
   onSelect,
-  editing = false,
 }: {
   agenda: Agenda
   today: string
@@ -45,7 +43,6 @@ export function Calendar({
   onMonth: (month: string) => void
   selected: string
   onSelect: (date: string) => void
-  editing?: boolean
 }) {
   const first = `${month}-01`
   const last = somaDias(addMonths(month, 1) + "-01", -1)
@@ -90,7 +87,6 @@ export function Calendar({
           const outside = !day.data.startsWith(month)
           const isToday = day.data === today
           const isSelected = day.data === selected
-          const off = day.planejado && !day.lives.length
           return (
             <li key={day.data} className={outside ? "opacity-45" : ""}>
               <button
@@ -110,25 +106,20 @@ export function Calendar({
                   >
                     {Number(day.data.slice(8))}
                   </span>
-                  {editing && day.planejado && !gone && <span className="h-1.5 w-1.5 rounded-full bg-klein" title={T.planned} />}
                 </span>
                 {!gone &&
                   day.lives.map((live) => (
                     <span
                       key={live.inicio}
                       title={live.titulo}
-                      className={`truncate rounded-[3px] px-0.5 py-0.5 text-center text-[9px] font-medium leading-tight tabular-nums sm:px-1 sm:text-left sm:text-[12px] ${
-                        editing && !day.planejado ? "border border-dashed border-klein/50 text-klein" : "bg-klein text-paper"
-                      }`}
+                      className="truncate rounded-[3px] bg-klein px-0.5 py-0.5 text-center text-[9px] font-medium leading-tight tabular-nums text-paper sm:px-1 sm:text-left sm:text-[12px]"
                     >
                       {clock(live.start)}
                       <span className="hidden sm:inline"> {gameLabel(agenda, live.jogo)}</span>
                     </span>
                   ))}
-                {(day.nota || off) && !gone && (
-                  <span className="hidden truncate text-[11px] leading-tight text-muted sm:block">{day.nota || T.noLiveShort}</span>
-                )}
-                {(day.nota || off) && !gone && <span className="text-[10px] leading-none text-muted sm:hidden">{off ? "—" : "•"}</span>}
+                {day.nota && !gone && <span className="hidden truncate text-[11px] leading-tight text-muted sm:block">{day.nota}</span>}
+                {day.nota && !gone && <span className="text-[10px] leading-none text-muted sm:hidden">{day.lives.length ? "•" : "—"}</span>}
               </button>
             </li>
           )

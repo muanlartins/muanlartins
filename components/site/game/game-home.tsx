@@ -8,8 +8,8 @@ import { CollectionGlimpse } from "@/components/site/inventory/collection-glimps
 import { divisionOf, longDate, tierOf, type RankInfo } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { channelPath } from "@/lib/channel"
-import { GameSlots } from "@/components/site/agenda/game-slots"
-import { slotsOf } from "@/lib/agenda"
+import { GameNext } from "@/components/site/agenda/game-next"
+import { hasGame } from "@/lib/agenda"
 import { buildAgenda } from "@/lib/agenda-build"
 import { fundamentals, gamePath, type Game } from "@/lib/game"
 import type { Live } from "@/lib/lives"
@@ -67,7 +67,7 @@ export async function GameHome({
   const roadmap = fundamentals(game)
   const topics = entries(roadmap)
   const agenda = await buildAgenda()
-  const weekly = agenda ? slotsOf(agenda, game.id).length > 0 : false
+  const scheduled = agenda ? hasGame(agenda, game.id) : false
   const videos = topics.filter(({ topic }) => topic.video).length
 
   // The rank in the mode played last.
@@ -191,7 +191,7 @@ export async function GameHome({
                     },
                   ]
                 : []),
-              ...(lives[0] || weekly
+              ...(lives[0] || scheduled
                 ? [
                     {
                       href: channelPath("lives"),
@@ -201,7 +201,7 @@ export async function GameHome({
                       badge: <LanguageBadge language="pt" />,
                       glimpse: (
                         <span className="space-y-0.5">
-                          <GameSlots game={game.id} className="block text-[14px] font-medium text-ink" />
+                          <GameNext game={game.id} className="block text-[14px] font-medium text-ink" prefix={`${localize(channel.games.next)}: `} />
                           {lives[0] && (
                             <span className="block text-[12px] text-muted">
                               {T.latestLive}: {longDate(lives[0].date)}

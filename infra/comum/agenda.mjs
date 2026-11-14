@@ -1,21 +1,18 @@
-// The lives' calendar, the one source of truth for when the lives are (since 2026-11-13). Luan plans it day by day on
-// the site (/canal/agenda, signed in with the channel's Twitch), the profile API keeps it (GET and PUT /agenda) and
+// The lives' calendar, the one source of truth for when the lives are (since 2026-11-13). Luan plans it by hand, day
+// by day, on the site (/canal/agenda, signed in with the channel's Twitch), the profile API keeps it (GET and PUT /agenda) and
 // everything else reads it from there: the site's calendar, the subscribable calendar (GET /agenda.ics), the stream's
 // credits and the Anúncios dock (the live's Twitch title and game, the Instagram story). The editor mirrors it on
 // Twitch's own calendar with planoTwitch. Pure functions, shared by the API (Node) and the site (the browser).
 //
 // The agenda, in the channel's time zone (FUSO):
-//   slots   the usual week, which fills every day not planned yet:
-//           { days: [1…7] (ISO, 1 = Monday), start: "HH:MM", end: "HH:MM", game, title? }
-//   dates   the days planned, each on its own (the usual week no longer applies to them):
-//           { "YYYY-MM-DD": { note?, lives: [{ start, end, game, title?, plan?: [{ at?: "HH:MM", text }] }] } }
-//           A planned day with no lives is a day off; its note says why, if Luan wants.
+//   dates   the days planned: { "YYYY-MM-DD": { note?, lives: [{ start: "HH:MM", end: "HH:MM", game, title?,
+//           plan?: [{ at?: "HH:MM", text }] }] } }. A day not in it has no live; a day with only a note says why.
 //   games   each game: { name, category (Twitch's id), title (a live's default title) }
 // An end at or before the start runs past midnight. A live's title is its own, else its game's.
 
 export const FUSO = "America/Sao_Paulo"
 
-export const LIMITES = { jogos: 20, slots: 21, datas: 120, lives: 6, roteiro: 12, titulo: 140, nome: 60, nota: 100, item: 120 }
+export const LIMITES = { jogos: 20, datas: 120, lives: 6, roteiro: 12, titulo: 140, nome: 60, nota: 100, item: 120 }
 
 const HORA = /^([01]\d|2[0-3]):[0-5]\d$/
 const DATA = /^\d{4}-\d{2}-\d{2}$/
@@ -74,18 +71,6 @@ export function limpar(a, hoje) {
   }
   const horario = (s) => s && typeof s === "object" && HORA.test(s.start) && HORA.test(s.end) && s.start !== s.end && games[s.game]
 
-  const slots = lista(a.slots)
-    .filter(horario)
-    .map((s) => ({
-      days: [...new Set(lista(s.days).filter((d) => Number.isInteger(d) && d >= 1 && d <= 7))].sort(),
-      start: s.start,
-      end: s.end,
-      game: s.game,
-      ...titulo(s.title),
-    }))
-    .filter((s) => s.days.length)
-    .slice(0, LIMITES.slots)
-
   const dates = {}
   const datas = a.dates && typeof a.dates === "object" && !Array.isArray(a.dates) ? Object.keys(a.dates).sort() : []
   for (const data of datas.filter((d) => dataValida(d) && (!hoje || d >= hoje)).slice(0, LIMITES.datas)) {
@@ -104,21 +89,16 @@ export function limpar(a, hoje) {
       .sort((x, y) => x.start.localeCompare(y.start))
       .slice(0, LIMITES.lives)
     const note = linha(d.note, LIMITES.nota)
-    dates[data] = { ...(note ? { note } : {}), lives }
+    // A day with nothing is a day not planned.
+    if (lives.length || note) dates[data] = { ...(note ? { note } : {}), lives }
   }
-  return { timeZone: FUSO, slots, dates, games }
+  return { timeZone: FUSO, dates, games }
 }
 
-/** A day as it stands: planned (its own lives and note) or following the usual week. Lives as the agenda has them. */
+/** A day as it stands: { data, nota, lives } (none when it isn't planned). Lives as the agenda has them. */
 export function dia(agenda, data) {
-  const planejado = agenda?.dates?.[data]
-  if (planejado) return { data, planejado: true, nota: planejado.note || "", lives: planejado.lives || [] }
-  const semana = diaDaSemana(data)
-  const lives = (agenda?.slots || [])
-    .filter((s) => s.days.includes(semana))
-    .map(({ start, end, game, title }) => ({ start, end, game, ...(title ? { title } : {}) }))
-    .sort((x, y) => x.start.localeCompare(y.start))
-  return { data, planejado: false, nota: "", lives }
+  const d = agenda?.dates?.[data]
+  return { data, nota: d?.note || "", lives: d?.lives || [] }
 }
 
 /** One live of a day with its instants (ISO strings), its game's name and category, and its title. */
@@ -137,11 +117,10 @@ function ocorrencia(agenda, d, l) {
     categoria: g.category || null,
     titulo: l.title || g.title || g.name || l.game,
     roteiro: l.plan || [],
-    planejada: d.planejado,
   }
 }
 
-/** The days from the date `de` falls on (in the agenda's zone) through `n` days: { data, planejado, nota, lives }. */
+/** The days from the date `de` falls on (in the agenda's zone) through `n` days: { data, nota, lives }. */
 export function dias(agenda, de = new Date(), n = 7) {
   const primeiro = dataEm(de, agenda?.timeZone || FUSO)
   return Array.from({ length: n }, (_, i) => {
@@ -241,8 +220,7 @@ export const SEMANAS_TWITCH = 8
 
 /**
  * What to change on Twitch's calendar (GET /helix/schedule's segments) so it shows the agenda's lives of the next
- * eight weeks, each as a single segment (a day can differ from the usual week however Luan likes; Twitch would only
- * cancel a recurring series' next occurrence):
+ * eight weeks, each as a single segment (recurring series, from before the agenda was planned by day, go):
  *   cria    bodies for POST /schedule/segment, with a label
  *   remove  { id, rotulo } for DELETE: recurring series (all of them) and future segments the agenda doesn't have
  *   mantem  labels of what's already right
