@@ -36,6 +36,12 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 - Valorant (`scripts/valorant.py`, started at login too, log `~/.cache/muanlartins/valorant.log`): reads Luan's
   own presence from the Riot Client every 2 s (two `curl.exe` calls, negligible) for the Valorant scene's stand and
   rank plate. `http://127.0.0.1:8792/` shows what it knows; if the plate or the rounds stop, check that first.
+- After WSL restarts (`uptime` of minutes; on 2026-11-14 it had, and nothing said so), the five helpers that Windows'
+  Startup launches are all down: filters (:8126), narrator (:8788), captions (:8790), Valorant (:8792), replays
+  (:8794). Check them with `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:<port>/` (200 each) and relaunch
+  the missing ones with `wscript.exe "C:\Users\muanl\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\<Filtros|Narrador|Legendas|Replay|Valorant> muanlartins.vbs"`.
+  An OBS that opened meanwhile has the "Filtros" source and dock on an error page: refresh the source
+  (`PressInputPropertiesButton` `refreshnocache` on "Filtros") and have Luan reload the dock (or reopen OBS).
 - Never restart or close OBS, or change scenes/inputs, while he's live unless he asks for that change.
 - The same goes, more mildly, whenever OBS is open: a 9-minute ffmpeg encode on 11-05 left OBS with 35% of its
   render frames skipped while it sat idle.
