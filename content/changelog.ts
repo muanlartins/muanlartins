@@ -36,6 +36,7 @@ export const PEOPLE = {
   jpmartins_1: { name: "jpmartins_1", where: "twitch", login: "jpmartins_1", url: "https://www.twitch.tv/jpmartins_1" },
   maxchadoz: { name: "maxchadoz", where: "twitch", login: "maxchadoz", url: "https://www.twitch.tv/maxchadoz" },
   ccamara: { name: "ccamara", where: "twitch", login: "ccamara", url: "https://www.twitch.tv/ccamara" },
+  leila_m_30: { name: "leila_m_30", where: "twitch", login: "leila_m_30", url: "https://www.twitch.tv/leila_m_30" },
 } satisfies Record<string, Person>
 
 export type PersonId = keyof typeof PEOPLE
@@ -108,6 +109,21 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
 export const UPCOMING: Upcoming[] = [
+  {
+    id: "metas-com-prazo",
+    status: "agora",
+    tag: "site",
+    title: "Metas com data pra acabar",
+    text: "Cada meta do Pix mostra até quando vai, fecha sozinha no último dia e fica no mural como cumprida ou não. As metas aparecem na agenda. A dos três dígitos vai até 30/11.",
+  },
+  {
+    id: "natal-na-live",
+    status: "proximo",
+    tag: "live",
+    title: "Natal na live",
+    text: "A meta de dezembro vira uma árvore de Natal: cada Pix pendura na árvore um presente que você monta no site, na live e no mural. A cada R$ 10, um sub de presente sorteado pra arquibancada, e a torcida inteira de touca de Papai Noel.",
+    credit: { by: "leila_m_30" },
+  },
   {
     id: "story-ao-abrir-a-live",
     status: "agora",
