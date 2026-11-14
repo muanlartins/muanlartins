@@ -141,6 +141,15 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "letra-da-musica",
+    date: "2026-11-14",
+    tag: "live",
+    title: "A letra da música do Pix, no tempo da música",
+    text: "A música feita por IA no Pix agora vem com a letra acompanhando, como no Spotify: na live aparece a linha que está sendo cantada e a próxima, e no mural a letra acende junto com o player (clique numa linha pra ir até ela).",
+    href: "/mural",
+    media: [media("letra-da-musica", "Uma música do Pix tocando na live: embaixo do nome de quem mandou, a linha que está sendo cantada e a próxima, mais clara")],
+  },
+  {
     id: "agenda-editavel",
     date: "2026-11-14",
     tag: "site",

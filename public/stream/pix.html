@@ -28,15 +28,22 @@
       queue until it's ready, letting the others by; then the band announces
       it ("Fulano mandou 5 reais e uma música!"), shrinks, and the song plays
       under it, at most 60 s, faded out at the end, a little quieter than it
-      comes (about −16 LUFS, like the effects). The dock's "Pular música" fades
-      it out (or, before it starts, leaves only the announcement). A song that
-      couldn't be made plays as a plain alert, name and amount.
+      comes (about −16 LUFS, like the effects). Under the shrunk band, its
+      lyrics in time, Spotify-style: the line being sung and the next one,
+      fainter (a ♪ between lines), from the API's `tempos` (when each line of
+      `letraCantada` is sung, by Gemini); a song without them shows no lyrics.
+      All of it stays inside the band's crop in Conversa and Terapia
+      (PIX_BAND in brand/twitch/obs.py: x 410–1510, y 110–420). The dock's
+      "Pular música" fades it out (or, before it starts, leaves only the
+      announcement). A song that couldn't be made plays as a plain alert,
+      name and amount.
 
       "Entre partidas" holds a Pix until the match ends, as the Partidas dock
       says (partidas.html, through obs-browser's emit_event); an alert never
       plays twice, and the dock can ask for one again.
 
-      ?demo: a made-up Pix every 12 s, without the API, to place the source.
+      ?demo: a made-up Pix every 12 s, without the API, to place the source;
+      ?demo=letra: the lyrics alone, frozen on a line, to place them.
     -->
     <style>
       .alerta {
@@ -154,6 +161,60 @@
         }
       }
 
+      /* A song's lyrics in time, under the shrunk band (--topo, set when it starts): the line being sung, the next one
+         fainter. 1060 px at most, so it stays inside the band's crop in Conversa and Terapia (x 410–1510, y ≤ 420). */
+      .letra {
+        position: absolute;
+        top: var(--topo, 250px);
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.5s var(--ease);
+      }
+      .letra.ativa {
+        opacity: 1;
+      }
+      .letra .placa {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        max-width: 1060px;
+        padding: 12px 34px 14px;
+        background: rgb(0 20 71 / 0.82);
+        clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+        text-align: center;
+      }
+      .letra p {
+        margin: 0;
+      }
+      .letra .agora {
+        font-size: 40px;
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+      }
+      .letra .agora.troca {
+        animation: subir 0.35s var(--ease) both;
+      }
+      .letra .depois {
+        font-size: 24px;
+        font-weight: 500;
+        line-height: 1.2;
+        color: var(--klein-claro);
+      }
+      .letra .depois:empty {
+        display: none;
+      }
+      @keyframes subir {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+      }
+
       /* Top left, clear of the scoreboard (top centre): the call, and the goal under it. */
       .canto {
         position: absolute;
@@ -240,6 +301,12 @@
           </div>
         </div>
       </div>
+      <div class="letra" aria-hidden="true">
+        <div class="placa">
+          <p class="agora"></p>
+          <p class="depois"></p>
+        </div>
+      </div>
       <p class="aviso" hidden></p>
     </main>
     <script src="stream.js"></script>
@@ -318,8 +385,63 @@
         })
       }
       const decodificar = (dados) => som.decodeAudioData(dados).catch(() => null)
+      // --- A song's lyrics in time -----------------------------------------------------------------------
+      // `tempos` is one [start, end] (seconds) or null per non-blank line of `letraCantada`. A line shows a little
+      // before it's sung, stays until the next starts (a ♪ when the gap after it is long), with the next one under it.
+      const ADIANTA = 0.15
+      const PAUSA = 1.5
+      const letra = $(".letra")
+      function mostrarLinha(agora, depois, troca) {
+        const el = letra.querySelector(".agora")
+        el.textContent = agora
+        letra.querySelector(".depois").textContent = depois
+        if (troca) {
+          el.classList.remove("troca")
+          void el.offsetWidth
+          el.classList.add("troca")
+        }
+      }
+      function acompanhar(m, t0, dura) {
+        const linhas = String(m?.letraCantada ?? "").split("\n").map((l) => l.trim()).filter(Boolean)
+        if (!Array.isArray(m?.tempos) || m.tempos.length !== linhas.length) return () => {}
+        const postas = linhas.flatMap((texto, i) => (Array.isArray(m.tempos[i]) ? [{ texto, de: m.tempos[i][0], ate: m.tempos[i][1] }] : []))
+        if (!postas.length) return () => {}
+        // Under the band once it has shrunk (scale 0.55 from its top, at 132), as wide as the song's longest line, so
+        // the plate doesn't change size with each line.
+        letra.style.setProperty("--topo", `${Math.round(132 + $(".faixa").offsetHeight * 0.55 + 14)}px`)
+        const placa = letra.querySelector(".placa")
+        placa.style.width = ""
+        let largura = 0
+        for (const l of postas) {
+          mostrarLinha(l.texto, "")
+          largura = Math.max(largura, placa.offsetWidth)
+        }
+        placa.style.width = `${Math.min(1060, largura)}px`
+        let mostrada = ""
+        let quadro = 0
+        const passo = () => {
+          const s = som.currentTime - t0 + ADIANTA
+          let k = -1
+          while (k + 1 < postas.length && postas[k + 1].de <= s) k++
+          const cantando = k >= 0 && s <= postas[k].ate + PAUSA
+          const fim = s >= dura || (k === postas.length - 1 && !cantando)
+          const chave = fim ? "fim" : `${k}:${cantando}`
+          if (chave !== mostrada) {
+            if (!fim) mostrarLinha(cantando ? postas[k].texto : "♪", postas[k + 1]?.texto ?? "", true)
+            letra.classList.toggle("ativa", !fim)
+            mostrada = chave
+          }
+          quadro = requestAnimationFrame(passo)
+        }
+        passo()
+        return () => {
+          cancelAnimationFrame(quadro)
+          letra.classList.remove("ativa")
+        }
+      }
+
       let pararMusica = null // fades the song playing out, for the dock's "Pular música"
-      function tocarMusica(buffer) {
+      function tocarMusica(buffer, m) {
         return new Promise((fim) => {
           const fonte = som.createBufferSource()
           const ganho = som.createGain()
@@ -330,8 +452,10 @@
           ganho.gain.setValueAtTime(MUSICA_GANHO, t0)
           ganho.gain.setValueAtTime(MUSICA_GANHO, t0 + Math.max(0, dura - MUSICA_FADE))
           ganho.gain.linearRampToValueAtTime(0.0001, t0 + dura)
+          let largar = () => {}
           fonte.onended = () => {
             pararMusica = null
+            largar()
             fim()
           }
           pararMusica = () => {
@@ -343,6 +467,7 @@
           }
           fonte.start(t0)
           fonte.stop(t0 + dura)
+          largar = acompanhar(m, t0, dura)
         })
       }
 
@@ -454,7 +579,7 @@
           for (const b of falas) await tocar(b)
           if (musica) {
             alerta.classList.add("mini")
-            await tocarMusica(musica)
+            await tocarMusica(musica, pix.musica)
           } else await new Promise((r) => setTimeout(r, Math.max(0, segundos * 1000 - 1200 - falando * 1000)))
           alerta.classList.remove("tocando", "mini")
           vistos.set(pix.sk, Date.now())
@@ -496,7 +621,17 @@
         proximo()
       }
 
-      if (DEMO) {
+      if (params.get("demo") === "letra") {
+        // The lyrics alone, frozen on a line, to place them (and for pictures).
+        $(".rotulo").textContent = "Música · R$ 5,00"
+        $(".nome").textContent = "Ana"
+        $(".mensagem").textContent = "♪ Funk · o Luan perdendo gol feito"
+        $(".alerta").classList.add("tocando", "mini")
+        $(".alerta").style.animation = "none"
+        letra.style.setProperty("--topo", `${Math.round(132 + $(".faixa").offsetHeight * 0.55 + 14)}px`)
+        mostrarLinha("Presta atenção na jogada que o Luan vai fazer!", "Ele tá com a bola, tá livre o caminho!")
+        letra.classList.add("ativa")
+      } else if (DEMO) {
         const nomes = ["Ana", "pedrinho_rl", "", "Duda"]
         const msgs = ["Que gol, Luan!", "Bora subir pra Campeão", "", "Manda um abraço pra galera do Discord!"]
         let n = 0

@@ -29,7 +29,10 @@
 // change it EDICOES times within ESPERA, else it plays as a plain alert ("falhou"). Trouble on the way throws, and
 // Lambda tries an async event twice more; the third failure is "falhou" too, and the dock can make it again. The
 // stream plays a song once it's "pronta" (or the plain alert once "falhou"), and the mural shows it, to listen and
-// download, only after it played on the live (`tocou`).
+// download, only after it played on the live (`tocou`). Before "pronta", Gemini Flash hears it with its lyrics and says
+// when each line is sung (`tempos`, one [start, end] per line of `letraCantada`, ~12 s): the overlay and the mural show
+// the lyrics in time, Spotify-style; without them (Google out of reach, too few lines placed) the song plays all the
+// same. The dock's "Sincronizar letra" (POST /canal acao "letra") asks again, from the song on the site.
 
 import { createHash, randomBytes } from "node:crypto"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
@@ -39,7 +42,7 @@ import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCom
 import { corpo as lerCorpo, igual, json as lerJson, out } from "./comum/http.mjs"
 import { quem } from "./comum/twitch.mjs"
 import { filtrar } from "./filtro.mjs"
-import { EDICOES, ESPERA, estadoDe, gerar, MINIMO_MUSICA, PERDIDA, pedidoDe, revisar, segundosDe } from "./musica.mjs"
+import { EDICOES, ESPERA, estadoDe, gerar, MINIMO_MUSICA, PERDIDA, pedidoDe, revisar, segundosDe, sincronizar } from "./musica.mjs"
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({}), { marshallOptions: { removeUndefinedValues: true } })
 const s3 = new S3Client({})
@@ -60,8 +63,10 @@ const BASE64 = /^[A-Za-z0-9+/]+=*$/
 const MAX_AUDIO = 360_000 // base64 characters: ~270 KB, far more than 20 s of Opus
 // Where the site serves the songs; a local stand-in points it at itself.
 const MUSICAS_URL = process.env.MUSICAS_URL ?? "/musicas/"
+const SITE = "https://muanlartins.com.br"
 const FALHAS = 3 // tries at making a song before it plays as a plain alert: one and Lambda's two retries
 const RODANDO = 110_000 // a run that claimed a song this long ago died (Google's own wait is 95 s, the function's 120 s)
+const SINCRONIA = 30_000 // the most the lyrics' timing may take; a run still ends by 100 s, well before RODANDO
 const SUJA = "Tem uma palavra aí que não pode tocar na live. Mude o texto e tente de novo."
 
 const novoId = () => randomBytes(9).toString("base64url")
@@ -315,7 +320,7 @@ async function mural() {
     login: p.login,
     musica:
       p.musica?.tocou && p.musica.arquivo
-        ? { url: MUSICAS_URL + p.musica.arquivo, estilo: p.musica.estilo, sobre: p.musica.sobre, letra: p.musica.letraCantada, segundos: p.musica.segundos }
+        ? { url: MUSICAS_URL + p.musica.arquivo, estilo: p.musica.estilo, sobre: p.musica.sobre, letra: p.musica.letraCantada, tempos: p.musica.tempos, segundos: p.musica.segundos }
         : undefined,
   })
   const anonimo = (p) => ({ em: p.sk.slice(0, 24), nome: "", mensagem: "", centavos: p.centavos })
@@ -430,9 +435,13 @@ async function fazerMusica(sk) {
   let r = await gerar(m, { chave: process.env.GEMINI_CHAVE })
   if (r.ok) {
     const arquivo = `${novoId()}.mp3`
+    const segundos = segundosDe(r.audio.length)
     try {
       await s3.send(new PutObjectCommand({ Bucket: process.env.BUCKET, Key: `pt/musicas/${arquivo}`, Body: r.audio, ContentType: r.mime, CacheControl: "public, max-age=31536000, immutable" }))
-      await mudarMusica(sk, { estado: "pronta", arquivo, letraCantada: r.letra, segundos: segundosDe(r.audio.length), prontaEm: Date.now() }, { remover: ["rodando", "motivo"] })
+      const prazo = Math.min(SINCRONIA, 100_000 - (Date.now() - agora))
+      const tempos = await sincronizar({ audio: r.audio, mime: r.mime, letra: r.letra, segundos }, { chave: process.env.GEMINI_CHAVE, prazo })
+      if (!tempos) console.log("musica: letra sem tempos", sk)
+      await mudarMusica(sk, { estado: "pronta", arquivo, letraCantada: r.letra, segundos, ...(tempos ? { tempos } : {}), prontaEm: Date.now() }, { remover: ["rodando", "motivo", ...(tempos ? [] : ["tempos"])] })
       return
     } catch (e) {
       r = { ok: false, recusada: false, motivo: `Não deu para guardar a música (${String(e.message ?? e).slice(0, 80)}).` }
@@ -608,6 +617,19 @@ async function acao(p) {
     await atualizar("pix", p.pix, { exibido: false, pular: false })
     await disparar(p.pix)
     return out(200, {})
+  }
+  // The lyrics' timing again (a song made before it existed, or one Google missed), from the song on the site.
+  if (acao === "letra") {
+    const m = typeof p.pix === "string" && (await ler("pix", p.pix))?.musica
+    if (!m?.arquivo || !m.letraCantada) return out(404, { erro: "Essa música não tem letra." })
+    const audio = await fetch(new URL(MUSICAS_URL + m.arquivo, SITE))
+      .then((x) => (x.ok ? x.arrayBuffer() : null))
+      .catch(() => null)
+    if (!audio) return out(502, { erro: "Não achei a música no site." })
+    const tempos = await sincronizar({ audio: Buffer.from(audio), letra: m.letraCantada, segundos: m.segundos }, { chave: process.env.GEMINI_CHAVE, prazo: 25_000 })
+    if (!tempos) return out(502, { erro: "O Google não conseguiu acompanhar a letra. Tente de novo." })
+    await mudarMusica(p.pix, { tempos })
+    return out(200, { linhas: tempos.filter(Boolean).length, de: tempos.length })
   }
   // Cut a song short: the overlay fades it out (or, before it starts, plays only the announcement).
   if (acao === "pular") {

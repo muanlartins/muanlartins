@@ -1,14 +1,14 @@
 "use client"
 
 import Script from "next/script"
-import { useEffect, useRef, useState, type KeyboardEvent } from "react"
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { PageIntro } from "@/components/site/page-intro"
 import { Audience } from "@/components/site/pix/audience"
 import { FanSpot } from "@/components/site/pix/fan-spot"
 import { GoalBar } from "@/components/site/pix/goal-bar"
 import { BadgeChips } from "@/components/site/profile/badges"
 import { mural as muralCopy, STYLES } from "@/content/pix"
-import { loadMural, PIX_API, reais, type Goal, type Mural, type MuralPix } from "@/lib/pix"
+import { loadMural, PIX_API, reais, type Goal, type Mural, type MuralPix, type SongTimes } from "@/lib/pix"
 import { loadFans, loadSigmas, type Choice, type Sigma, type SigmaStats, type Torcedor } from "@/lib/profile"
 import { LOCALE, localize, PIX_SLUG } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -50,25 +50,119 @@ function Supporters({ list, look: { T, fans, S, sigmas } }: { list: MuralPix[]; 
   )
 }
 
-/** A Pix's song, once it played on the live: to listen to, download and read. */
+/** The lyrics as sections of lines, each non-blank line with its time when the API has them (and they match the lines). */
+function lyricSections(lyrics: string, times?: SongTimes) {
+  const lines = lyrics.split("\n").map((l) => l.trim())
+  const count = lines.filter(Boolean).length
+  const timed = Array.isArray(times) && times.length === count
+  const sections: { k: number; text: string; at: number | null }[][] = [[]]
+  let k = 0
+  for (const line of lines) {
+    if (!line) {
+      if (sections.at(-1)!.length) sections.push([])
+      continue
+    }
+    const t = timed ? times[k] : null
+    sections.at(-1)!.push({ k, text: line, at: Array.isArray(t) ? t[0] : null })
+    k++
+  }
+  return { sections: sections.filter((s) => s.length), timed: timed && times.some(Boolean) }
+}
+
+/** A Pix's song, once it played on the live: to listen to, download and read; the lyrics follow the player, Spotify-style, when they're timed. */
 function Song({ song, name }: { song: NonNullable<MuralPix["musica"]>; name: string }) {
   const style = STYLES.find((s) => s.id === song.estilo)?.name
+  const audio = useRef<HTMLAudioElement>(null)
+  const box = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false)
+  const [current, setCurrent] = useState(-1)
+  const { sections, timed } = useMemo(() => lyricSections(song.letra ?? "", song.tempos), [song.letra, song.tempos])
+
+  // The line being sung: the last one started (a little early, as karaoke does), followed every frame while it plays.
+  useEffect(() => {
+    const a = audio.current
+    if (!a || !timed) return
+    const starts = sections.flat().filter((l) => l.at !== null) as { k: number; at: number }[]
+    let frame = 0
+    const follow = () => {
+      const t = a.currentTime + 0.15
+      let k = -1
+      for (const l of starts) if (l.at <= t) k = l.k
+      setCurrent(k)
+    }
+    const tick = () => {
+      follow()
+      if (!a.paused) frame = requestAnimationFrame(tick)
+    }
+    const play = () => {
+      setOpen(true)
+      cancelAnimationFrame(frame)
+      tick()
+    }
+    a.addEventListener("play", play)
+    a.addEventListener("seeked", follow)
+    a.addEventListener("pause", follow)
+    return () => {
+      cancelAnimationFrame(frame)
+      a.removeEventListener("play", play)
+      a.removeEventListener("seeked", follow)
+      a.removeEventListener("pause", follow)
+    }
+  }, [sections, timed])
+
+  // The lit line stays in view, a third down the box (the box scrolls, not the page).
+  useEffect(() => {
+    const b = box.current
+    const line = b?.querySelector<HTMLElement>(`[data-k="${current}"]`)
+    if (b && line && open) b.scrollTo({ top: line.offsetTop - b.clientHeight / 3, behavior: "smooth" })
+  }, [current, open])
+
+  const playFrom = (at: number | null) => {
+    const a = audio.current
+    if (!a || at === null) return
+    a.currentTime = at
+    void a.play()
+  }
+
   return (
     <div className="space-y-2 pt-1">
       <p className="text-[14px] font-medium break-words text-klein">
         ♪ {style}
         {song.sobre && ` · ${song.sobre}`}
       </p>
-      <audio controls preload="metadata" src={song.url} className="h-9 w-full max-w-[26rem]" />
+      <audio ref={audio} controls preload="metadata" src={song.url} className="h-9 w-full max-w-[26rem]" />
       <div className="flex flex-wrap gap-x-5 gap-y-1 text-[14px]">
         <a href={song.url} download={`${name || text.anonymous} - muanlartins.mp3`} className="text-muted underline underline-offset-2 hover:text-klein">
           {text.songDownload}
         </a>
       </div>
       {song.letra && (
-        <details className="text-[14px]">
+        <details className="text-[14px]" open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
           <summary className="cursor-pointer text-muted hover:text-klein">{text.songLyrics}</summary>
-          <p className="mt-2 leading-[1.6] whitespace-pre-line text-ink">{song.letra}</p>
+          {timed ? (
+            <div ref={box} className="relative mt-2 max-h-72 max-w-[32rem] space-y-4 overflow-y-auto pr-2 leading-[1.6]">
+              {sections.map((section) => (
+                <div key={section[0].k}>
+                  {section.map((l) => (
+                    <p
+                      key={l.k}
+                      data-k={l.k}
+                      onClick={() => playFrom(l.at)}
+                      className={cn(
+                        "transition-colors duration-300",
+                        l.at !== null && "cursor-pointer hover:text-klein",
+                        l.k === current ? "font-medium text-ink" : current >= 0 && l.k < current ? "text-muted/70" : "text-muted",
+                      )}
+                    >
+                      {l.text}
+                    </p>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 leading-[1.6] whitespace-pre-line text-ink">{song.letra}</p>
+          )}
         </details>
       )}
     </div>

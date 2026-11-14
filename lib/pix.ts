@@ -17,9 +17,11 @@ export interface MuralPix {
   mensagem: string
   centavos: number
   login?: string
-  /** Its song, once it played on the live. */
-  musica?: { url: string; estilo: string; sobre?: string; letra?: string; segundos?: number }
+  /** Its song, once it played on the live; `tempos`, when the API timed its lyrics: [start, end] in seconds (or null) per non-blank line of `letra`. */
+  musica?: { url: string; estilo: string; sobre?: string; letra?: string; tempos?: SongTimes; segundos?: number }
 }
+
+export type SongTimes = ([number, number] | null)[]
 
 /** A goal and what came in while it was up: every Pix, each by its name and message unless it's anonymous. */
 export interface Goal {

@@ -158,3 +158,82 @@ export async function gerar(pedido, { chave, fetch: buscar = fetch, prazo = 95_0
 
 /** Seconds of an MP3 at Lyria's 192 kb/s, close enough for the dock and the mural. */
 export const segundosDe = (bytes) => Math.round((bytes * 8) / 192_000)
+
+// --- The lyrics in time, Spotify-style: when each line is sung -------------------------------------------------
+// Gemini Flash hears the song with its lyrics and says when each line starts and ends. Tested 2026-11-14 on two
+// of the test songs: within about half a second of whisper's segments. Without the song's length it once put the
+// last chorus at 110 s of an 82 s song, so it's told the length, and what comes back is checked (in order, inside
+// the song); a line that fails is left without a time, and a song with too few timed lines has no timing at all
+// (the overlay and the mural then show the lyrics as they are).
+
+/** The lines that get a time: the lyrics' non-blank lines, in order (letraLimpa's blank lines part the sections). */
+export const linhasDe = (letra) => String(letra ?? "").split("\n").map((l) => l.trim()).filter(Boolean)
+
+/**
+ * What Gemini said ([{ i, inicio, fim }]), checked: one [start, end] in seconds (tenths) per line, or null for a
+ * line it didn't place well. Null when fewer than half the lines are placed.
+ */
+export function temposDe(brutos, total, segundos) {
+  const tempos = Array(total).fill(null)
+  for (const b of Array.isArray(brutos) ? brutos : []) {
+    const { i, inicio, fim } = b ?? {}
+    if (!Number.isInteger(i) || i < 0 || i >= total || tempos[i]) continue
+    if (!Number.isFinite(inicio) || !Number.isFinite(fim) || inicio < 0 || fim <= inicio || fim - inicio > 20) continue
+    if (segundos && fim > segundos + 1.5) continue
+    tempos[i] = [Math.round(inicio * 10) / 10, Math.round(fim * 10) / 10]
+  }
+  // In order: a line starting before the one sung before it is a misplaced line.
+  let antes = -Infinity
+  for (let i = 0; i < total; i++) {
+    if (!tempos[i]) continue
+    if (tempos[i][0] < antes - 0.3) tempos[i] = null
+    else antes = tempos[i][0]
+  }
+  // A line ends when the next one starts, at the latest.
+  const postos = tempos.filter(Boolean)
+  postos.forEach((t, k) => {
+    const seguinte = postos[k + 1]
+    if (seguinte && t[1] > seguinte[0]) t[1] = Math.round(Math.max(t[0] + 0.1, seguinte[0]) * 10) / 10
+  })
+  return total > 0 && postos.length * 2 >= total ? tempos : null
+}
+
+/**
+ * When each line of the lyrics is sung: temposDe's array, one entry per line of linhasDe(letra), or null (no
+ * lyrics, Google out of reach, too few lines placed). Never throws: a song without timing still plays.
+ */
+export async function sincronizar({ audio, mime = "audio/mpeg", letra, segundos }, { chave, fetch: buscar = fetch, prazo = 30_000 }) {
+  const linhas = linhasDe(letra)
+  if (!linhas.length || !audio?.length || prazo < 3000) return null
+  const pedido =
+    `Esta é uma música gerada por IA, cantada em português do Brasil, com ${segundos} segundos. Abaixo está a letra, ` +
+    "uma linha por item, na ordem em que é cantada (um refrão repetido aparece de novo). Para cada linha, diga em que " +
+    "segundo do áudio ela começa a ser cantada e em que segundo termina, com precisão de décimos. Se uma linha não " +
+    "for cantada, use -1 nos dois.\n\n" +
+    linhas.map((l, i) => `${i}: ${l}`).join("\n")
+  const corpo = {
+    contents: [{ role: "user", parts: [{ inline_data: { mime_type: mime, data: Buffer.from(audio).toString("base64") } }, { text: pedido }] }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "ARRAY",
+        items: { type: "OBJECT", properties: { i: { type: "INTEGER" }, inicio: { type: "NUMBER" }, fim: { type: "NUMBER" } }, required: ["i", "inicio", "fim"] },
+      },
+      temperature: 0,
+    },
+  }
+  try {
+    const r = await buscar(`${API}/models/${REVISOR}:generateContent`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-goog-api-key": chave },
+      body: JSON.stringify(corpo),
+      signal: AbortSignal.timeout(prazo),
+    })
+    if (!r.ok) return null
+    const j = await r.json()
+    const t = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? ""
+    return temposDe(JSON.parse(t), linhas.length, segundos)
+  } catch {
+    return null
+  }
+}

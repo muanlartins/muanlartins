@@ -1,7 +1,9 @@
 // The Pix API on this machine, for trying the site's /pix and /mural, the overlay and the dock without AWS: the real
 // index.mjs over aws.mjs (in memory, gone when it stops), on http://localhost:8130.
 //
-//   node infra/pix/local/servidor.mjs                fake Google: songs from Downloads\teste-musica-ia, ~4 s each
+//   node infra/pix/local/servidor.mjs                fake Google: songs from Downloads\teste-musica-ia (each with its
+//                                                    own lyrics), ~4 s each, the lyrics' timing spread evenly
+//   node infra/pix/local/servidor.mjs --sincronia    fake songs, but the real timing of their lyrics (a fraction of a cent)
 //   node infra/pix/local/servidor.mjs --google       the real one, with %USERPROFILE%\.config\muanlartins\gemini-chave.txt (US$ 0,08 a song)
 //
 // In the fake, a theme or lyrics with "recusa" is refused by Lyria, with "erro" fails on the way, with "anitta" is
@@ -18,6 +20,7 @@ const { local } = await import("./aws.mjs")
 
 const PORTA = 8130
 const GOOGLE_REAL = process.argv.includes("--google")
+const SINCRONIA_REAL = GOOGLE_REAL || process.argv.includes("--sincronia")
 const TESTES = "/mnt/c/Users/muanl/Downloads/teste-musica-ia"
 Object.assign(process.env, {
   TABLE: "pix",
@@ -30,21 +33,38 @@ Object.assign(process.env, {
   BUCKET: "site",
   AWS_LAMBDA_FUNCTION_NAME: "pix-local",
   MUSICAS_URL: `http://localhost:${PORTA}/musicas/`,
-  GEMINI_CHAVE: GOOGLE_REAL ? readFileSync("/mnt/c/Users/muanl/.config/muanlartins/gemini-chave.txt", "utf8").trim() : "falsa",
+  GEMINI_CHAVE: SINCRONIA_REAL ? readFileSync("/mnt/c/Users/muanl/.config/muanlartins/gemini-chave.txt", "utf8").trim() : "falsa",
 })
 
 if (!GOOGLE_REAL) {
   let n = 0
+  const LETRA = "[[A0]]\n[:] Ô Luan, chuta essa bola\n[:] Que a torcida tá aqui agora\n[[B1]]\n[:] Ô Luan, faz mais um gol\n[:] Que hoje a live é um show"
+  // Each test song with the lyrics Lyria sent with it (its .json), when there's one.
   const mp3s = (() => {
     try {
-      return readdirSync(TESTES).filter((f) => f.endsWith(".mp3")).map((f) => readFileSync(`${TESTES}/${f}`))
+      return readdirSync(TESTES)
+        .filter((f) => f.endsWith(".mp3"))
+        .map((f) => {
+          let letra = LETRA
+          try {
+            const j = JSON.parse(readFileSync(`${TESTES}/${f.replace(/\.mp3$/, ".json")}`, "utf8"))
+            letra = j.steps.flatMap((s) => s.content).filter((b) => b.type === "text").map((b) => b.text).join("\n") || LETRA
+          } catch {}
+          return { audio: readFileSync(`${TESTES}/${f}`), letra }
+        })
     } catch {
-      return [Buffer.alloc(48_000)]
+      return [{ audio: Buffer.alloc(48_000), letra: LETRA }]
     }
   })()
   const real = globalThis.fetch
   globalThis.fetch = async (url, opcoes) => {
     const json = (status, corpo) => new Response(JSON.stringify(corpo), { status, headers: { "content-type": "application/json" } })
+    // The lyrics' timing: real with --sincronia, else the lines spread from 8 s, 3 s each.
+    if (String(url).endsWith(":generateContent") && opcoes.body.includes('"inline_data"')) {
+      if (SINCRONIA_REAL) return real(url, opcoes)
+      const linhas = JSON.parse(opcoes.body).contents[0].parts[1].text.split("\n").filter((l) => /^\d+: /.test(l))
+      return json(200, { candidates: [{ content: { parts: [{ text: JSON.stringify(linhas.map((_, i) => ({ i, inicio: 8 + i * 3, fim: 10.5 + i * 3 }))) }] } }] })
+    }
     if (String(url).endsWith(":generateContent")) {
       const anitta = /anitta/i.test(opcoes.body)
       return json(200, { candidates: [{ content: { parts: [{ text: JSON.stringify({ ok: !anitta, motivo: anitta ? "Sem nome de cantor ou cantora, por favor: troque por um estilo." : "" }) }] } }] })
@@ -54,10 +74,10 @@ if (!GOOGLE_REAL) {
       await new Promise((r) => setTimeout(r, 4000))
       if (/recusa/i.test(pedido)) return json(400, { error: { code: "prohibited_content", message: "Input blocked" } })
       if (/erro/i.test(pedido)) return json(503, { error: { code: "unavailable", message: "The service is currently unavailable." } })
-      const audio = mp3s[n++ % mp3s.length]
+      const { audio, letra } = mp3s[n++ % mp3s.length]
       return json(200, {
         steps: [
-          { type: "model_output", content: [{ type: "text", text: "[[A0]]\n[:] Ô Luan, chuta essa bola\n[:] Que a torcida tá aqui agora\n[[B1]]\n[:] Ô Luan, faz mais um gol\n[:] Que hoje a live é um show" }] },
+          { type: "model_output", content: [{ type: "text", text: letra }] },
           { type: "model_output", content: [{ type: "audio", mime_type: "audio/mpeg", data: audio.toString("base64") }] },
         ],
       })
@@ -118,4 +138,4 @@ createServer(async (req, res) => {
     console.error(e)
     responder(500, "application/json", JSON.stringify({ erro: String(e.message) }))
   }
-}).listen(PORTA, () => console.log(`Pix local em http://localhost:${PORTA} (Google ${GOOGLE_REAL ? "de verdade" : "falso"})`))
+}).listen(PORTA, () => console.log(`Pix local em http://localhost:${PORTA} (Google ${GOOGLE_REAL ? "de verdade" : SINCRONIA_REAL ? "falso, letra sincronizada de verdade" : "falso"})`))
