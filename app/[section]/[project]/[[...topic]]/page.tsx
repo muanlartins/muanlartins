@@ -3,6 +3,7 @@ import { AimPage } from "@/components/site/aim/aim-page"
 import { AgendaPage } from "@/components/site/agenda/agenda-page"
 import { BackstagePage } from "@/components/site/channel/backstage-page"
 import { ChangelogPage } from "@/components/site/channel/changelog-page"
+import { CommandsPage } from "@/components/site/channel/commands-page"
 import { GameHome } from "@/components/site/game/game-home"
 import { InventoryPage } from "@/components/site/inventory/inventory-page"
 import { LivePage } from "@/components/site/lives/live-page"
@@ -28,7 +29,7 @@ import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
  * /conteudo/<project>: its home, its roadmap at /fundamentals (an older
  * edition at /fundamentals/v<n>), its ranked record at /ranked, its aim training at /aim, its weapon skins at /inventory, and each
  * topic, of any edition, at /<topic>. In the channel, its lives
- * at /canal/lives, each at /canal/lives/<date>, its agenda at /canal/agenda, its backstage at
+ * at /canal/lives, each at /canal/lives/<date>, its agenda at /canal/agenda, the chat's commands at /canal/comandos, its backstage at
  * /canal/backstage and its roadmap at /canal/roadmap. One route for all, so a roadmap with no topics yet still
  * builds.
  */
@@ -59,6 +60,7 @@ export function generateStaticParams() {
     { section, project: "lives", topic: [] },
     ...lives().map((live) => ({ section, project: "lives", topic: [live.date] })),
     { section, project: "agenda", topic: [] },
+    { section, project: "comandos", topic: [] },
     { section, project: "backstage", topic: [] },
     { section, project: "roadmap", topic: [] },
   ]
@@ -74,7 +76,7 @@ type Found =
 async function find(params: Props["params"]): Promise<Found | undefined> {
   const { section, project, topic: [id, ...rest] = [] } = await params
   if (sectionFromSlug(section) === "channel") {
-    if ((project === "agenda" || project === "backstage" || project === "roadmap") && !id) return { channel: project }
+    if ((project === "agenda" || project === "comandos" || project === "backstage" || project === "roadmap") && !id) return { channel: project }
     if (project !== "lives" || rest.length > 0) return undefined
     if (!id) return { channel: "lives" }
     const live = lives().find((live) => live.date === id)
@@ -146,6 +148,7 @@ export default async function SectionSubpage({ params }: Props) {
     if (found.channel === "lives") return <LivesPage lives={lives()} sessions={sessions()} />
     if (found.channel === "roadmap") return <ChangelogPage />
     if (found.channel === "agenda") return <AgendaPage />
+    if (found.channel === "comandos") return <CommandsPage />
     return <BackstagePage />
   }
   const { game, page, roadmap, entry } = found

@@ -9,7 +9,7 @@ import { longDate } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
 import { GameNext } from "@/components/site/agenda/game-next"
-import { channelPath } from "@/lib/channel"
+import { channelPath, type ChannelPage } from "@/lib/channel"
 import { gamePath } from "@/lib/game"
 import type { Live } from "@/lib/lives"
 import { PIX_API } from "@/lib/pix"
@@ -72,15 +72,29 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
         <ul className="mt-8 grid gap-4 sm:grid-cols-3">
           {T.inside.moments.map((moment) => {
             const Icon = MOMENT_ICONS[moment.icon]
-            return (
-              <li key={moment.title} className="flex gap-3">
+            const inner = (
+              <>
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-klein text-paper">
                   <Icon aria-hidden className="h-[18px] w-[18px]" />
                 </span>
                 <span>
-                  <span className="block text-[15px] font-medium text-ink">{moment.title}</span>
+                  <span className="flex items-center gap-1 text-[15px] font-medium text-ink group-hover:text-klein">
+                    {moment.title}
+                    {"page" in moment && <ArrowRight aria-hidden className="h-3.5 w-3.5 text-muted transition-colors group-hover:text-klein" />}
+                  </span>
                   <span className="block text-[13px] leading-[1.5] text-muted">{moment.text}</span>
                 </span>
+              </>
+            )
+            return (
+              <li key={moment.title}>
+                {"page" in moment ? (
+                  <Link href={channelPath(moment.page as ChannelPage)} className="group flex gap-3">
+                    {inner}
+                  </Link>
+                ) : (
+                  <div className="flex gap-3">{inner}</div>
+                )}
               </li>
             )
           })}

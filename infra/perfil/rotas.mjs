@@ -15,6 +15,8 @@
 // (not a login, so no viewer's):
 // Public:   GET /agenda                  the agenda, when it was saved and the lives of the next two weeks (proximas)
 //           GET /agenda.ics              it for calendar apps (the site's "Adicionar à sua agenda")
+//           GET /agenda.txt              the next live in a line of chat, as plain text: the chat bot's !agenda
+//                                        (StreamElements' customapi shows the answer as it comes)
 // Channel:  PUT /agenda                  the channel's Twitch only: the editor on /canal/agenda
 //
 // The live's Instagram story (the Anúncios dock draws it when the live opens; Instagram fetches it by URL, so it must
@@ -22,7 +24,7 @@
 // Channel:  PUT /canal/story             the JPEG (image/jpeg, ≤ 350 KB) → { url } (PUT: the API's CORS allows no POST)
 // Public:   GET /canal/story/<id>.jpg    it, for Instagram
 
-import { FUSO, dataEm, ics, limpar, ocorrencias } from "./comum/agenda.mjs"
+import { FUSO, dataEm, ics, limpar, noChat, ocorrencias } from "./comum/agenda.mjs"
 import { daLive, json, LOGIN, out } from "./comum/http.mjs"
 
 export const CANAL = "muanlartins"
@@ -98,6 +100,13 @@ export function rotas({ banco, usuario, chave }) {
   async function agenda(event, metodo, caminho) {
     if (metodo === "GET") {
       const i = await banco.ler(AGENDA)
+      if (caminho === "/agenda.txt") {
+        return {
+          statusCode: 200,
+          headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+          body: noChat(i?.agenda ?? { dates: {}, games: {} }, { url: PAGINA_AGENDA }),
+        }
+      }
       if (caminho === "/agenda.ics") {
         return {
           statusCode: 200,
@@ -168,7 +177,7 @@ export function rotas({ banco, usuario, chave }) {
       return out(200, { armas: Object.keys(lido.equipado).length, skins: lido.skins.length, chromas: lido.chromas.length })
     }
 
-    if (caminho === "/agenda" || caminho === "/agenda.ics") return agenda(event, metodo, caminho)
+    if (caminho === "/agenda" || caminho === "/agenda.ics" || caminho === "/agenda.txt") return agenda(event, metodo, caminho)
     if (caminho === "/canal/story" || caminho.startsWith("/canal/story/")) return story(event, metodo, caminho)
 
     if (caminho !== "/eu" && caminho !== "/eu/loadout") return out(404, {})
