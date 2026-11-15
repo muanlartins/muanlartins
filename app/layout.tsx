@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Space_Grotesk } from "next/font/google"
 import { AgendaProvider } from "@/components/site/agenda/agenda-context"
+import { Snowfall } from "@/components/site/december"
 import { SiteFooter } from "@/components/site/site-footer"
 import { SiteHeader } from "@/components/site/site-header"
 import { buildAgenda } from "@/lib/agenda-build"
@@ -34,6 +35,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang={HTML_LANG[LOCALE]} className={spaceGrotesk.variable}>
       <body className="flex min-h-dvh flex-col">
+        <Snowfall />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(person) }}

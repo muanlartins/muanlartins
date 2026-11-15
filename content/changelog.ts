@@ -165,6 +165,17 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "gorro-de-natal",
+    date: "2026-11-15",
+    tag: "live",
+    title: "Gorro de Natal na câmera, e o canal enfeitado",
+    text: "Em dezembro eu uso um gorro de Papai Noel na câmera, por cima de qualquer filtro: no meu cabelo, no do Phoenix, do Sova ou da Sage, na bola ou no teto do Octane e do Fennec. A ponta balança quando eu mexo a cabeça, e numa Demolição ele voa e cai de volta. A moldura da câmera ganha luzinhas piscando, as telas de começo, intervalo, conversa e fim ficam com neve, e o site também: neve no fundo e a torcida de touca.",
+    media: [
+      media("gorro-de-natal", "Um gorro de Papai Noel cai na minha cabeça na câmera; com o filtro do Octane ele vai pro teto do carro, e numa Demolição voa dando uma volta, cai na minha cabeça e volta pro teto quando o carro reaparece", { video: true }),
+      media("natal-na-moldura", "A cena de conversa em dezembro: a moldura da câmera com luzinhas coloridas e neve caindo no fundo azul"),
+    ],
+  },
+  {
     id: "natal-na-live",
     date: "2026-11-15",
     tag: "live",
