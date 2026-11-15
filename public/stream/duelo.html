@@ -435,9 +435,11 @@
       setInterval(() => pedir([...presentes.keys()].slice(0, 100)), 120000)
 
       const sigma = (login) => (login === CHANNEL ? Sigma.RL.at(-1)[0] : sigmas.get(login) ?? 0)
+      // In December (or with ?natal) they wear Santa's hat, as in the stand and the credits.
       function aparencia(login) {
         const a = Torcedor.normalizar(escolhas.get(login), login)
-        return login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+        const propria = login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+        return Torcedor.natal() || params.has("natal") ? { ...propria, touca: true } : propria
       }
 
       // --- The weapon's material: the viewer's Σ rank, looks only -------------------------------------------------
