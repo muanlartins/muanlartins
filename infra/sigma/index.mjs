@@ -17,6 +17,8 @@
 // (once, however many calls), and on their first minute of a live 10 Σ plus 5 for each live in a row before
 // it, up to 50. A live is a day, in Luan's time. POST /var comes from the crowd overlay too, with the key, when the
 // chat's verdict on a VAR comes out: who voted for it gets VAR_SIGMA, once per VAR (its id), however many calls.
+// GET /presentes, with the key, is who's in the chat right now (credited by POST /presenca in the last PRESENTE
+// minutes) with their Σ: the Pix API draws the Christmas gift subs from them.
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { BatchGetCommand, DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
@@ -29,6 +31,8 @@ const CANAL = "#canal"
 const DONO = "muanlartins" // the channel itself: in its own stand, but it neither earns Σ nor shows any
 // Getting the VAR right: very little, three minutes of watching (Luan's call, 2026-11-09).
 const VAR_SIGMA = 3
+// The crowd overlay credits the chat once a minute: whoever got one of the last few is still there.
+const PRESENTE = 2
 const lista = (l) => [...new Set(l.map((x) => String(x).toLowerCase()))].filter((x) => LOGIN.test(x)).slice(0, 100)
 const diaDe = (t) => new Date(t).toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
 
@@ -173,6 +177,19 @@ async function acertouVar(event) {
   return out(200, { creditados })
 }
 
+async function presentes(event) {
+  if (!daLive(event)) return out(401, {})
+  const desde = Math.floor(Date.now() / 60000) - PRESENTE
+  const itens = []
+  let ExclusiveStartKey
+  do {
+    const r = await db.send(new ScanCommand({ TableName: T, FilterExpression: "minuto >= :m", ExpressionAttributeValues: { ":m": desde }, ExclusiveStartKey }))
+    itens.push(...(r.Items || []))
+    ExclusiveStartKey = r.LastEvaluatedKey
+  } while (ExclusiveStartKey)
+  return out(200, { pessoas: itens.filter((i) => i.login !== CANAL && i.login !== DONO).map((i) => ({ login: i.login, sigma: i.sigma ?? 0 })) })
+}
+
 export async function handler(event) {
   const metodo = event.requestContext.http.method
   const caminho = event.rawPath
@@ -202,6 +219,7 @@ export async function handler(event) {
     return out(200, { login, stats: i ? { ...publico(i, itens[CANAL] || {}, hoje), doado: i.doado ?? 0 } : null })
   }
   if (metodo === "POST" && caminho === "/presenca") return presenca(event)
+  if (metodo === "GET" && caminho === "/presentes") return presentes(event)
   if (metodo === "POST" && caminho === "/var") return acertouVar(event)
   return out(404, {})
 }

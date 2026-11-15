@@ -4,6 +4,7 @@ import Script from "next/script"
 import qrcode from "qrcode-generator"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { PageIntro } from "@/components/site/page-intro"
+import { PresentPicker, PresentView } from "@/components/site/pix/christmas"
 import { GoalBar } from "@/components/site/pix/goal-bar"
 import { VoicePicker } from "@/components/site/pix/voice-picker"
 import { FanView } from "@/components/site/profile/fan-view"
@@ -23,6 +24,8 @@ import {
   SOBRE_MAX,
   type Goal,
   type Order,
+  type Present,
+  type PresentKit,
   type Reservation,
   type SongStatus,
 } from "@/lib/pix"
@@ -53,6 +56,8 @@ interface Draft {
   modoLetra: "sobre" | "letra"
   sobre: string
   letra: string
+  /** The present on the Christmas goal's tree, once presente.js picked the first one. */
+  presente: Present | null
 }
 interface Recording {
   blob: Blob
@@ -90,6 +95,7 @@ const blank: Draft = {
   modoLetra: "sobre",
   sobre: "",
   letra: "",
+  presente: null,
 }
 
 const hour = (t: number) => new Date(t).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
@@ -141,6 +147,7 @@ export function PixPage() {
   const [goal, setGoal] = useState<Goal | null>(null)
   const [T, setT] = useState<Torcedor | null>(null)
   const [look, setLook] = useState<Choice | null>(null)
+  const [P, setP] = useState<PresentKit | null>(null)
   const recorder = useRef<MediaRecorder | null>(null)
   // The song of the Pix being paid (null for a message): its state on the way, and a refused one's new text.
   const [song, setSong] = useState<SongStatus | null>(null)
@@ -155,6 +162,8 @@ export function PixPage() {
   const songState = song?.estado
   const centavos = draft.preset ?? centavosDe(draft.outro)
   const voices = VOICES.filter((v) => (draft.modo === "texto" ? v.text : v.recording))
+  // A Christmas goal on screen: each Pix hangs a present on its tree.
+  const natal = goal?.tema === "natal"
 
   // The form kept from before going to Twitch, and whoever is signed in.
   useEffect(() => {
@@ -288,6 +297,7 @@ export function PixPage() {
             quando: draft.quando,
           }
       if (!isSong && draft.modo === "audio" && recording) order.audio = { tipo: recording.blob.type, dados: await base64(recording.blob) }
+      if (natal && draft.presente) order.presente = draft.presente
       const r = await reserve(order, login ? token : null)
       songRef.current = isSong ? { estado: "esperando" } : null
       setSong(songRef.current)
@@ -336,6 +346,17 @@ export function PixPage() {
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
       <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />
+      {natal && (
+        <Script
+          src="/stream/presente.js"
+          onReady={() => {
+            const kit = window.Presente ?? null
+            setP(kit)
+            // A present to start from, different for each visit: whoever doesn't choose sends this one.
+            if (kit) setDraft((d) => (d.presente ? d : { ...d, presente: kit.normalizar(null, String(Date.now())) }))
+          }}
+        />
+      )}
       <PageIntro title={text.title} description={text.description} />
 
       {PIX_API && goal && step === "form" && (
@@ -457,6 +478,12 @@ export function PixPage() {
             </>
           )}
 
+          {natal && P && draft.presente && (
+            <Field label={text.present} hint={text.presentHint}>
+              <PresentPicker kit={P} value={draft.presente} onChange={(presente) => change({ presente })} />
+            </Field>
+          )}
+
           <Field label={text.amount}>
             <div className="flex flex-wrap gap-2">
               {(isSong ? SONG_PRESETS : PRESETS).map((c) => (
@@ -562,6 +589,17 @@ export function PixPage() {
           ) : (
             <>
               <h2 className="text-2xl font-medium text-klein">{text.doneTitle}</h2>
+              {natal && P && draft.presente && (
+                <div className="flex items-center gap-4 rounded-md bg-[#001447] px-4 py-3">
+                  <PresentView kit={P} present={draft.presente} className="h-14 w-14 shrink-0" />
+                  <p className="text-[15px] text-paper">
+                    {text.presentDone}{" "}
+                    <a href={`/${MURAL_SLUG}`} className="text-[#85a7ff] underline underline-offset-2">
+                      {text.presentSee} →
+                    </a>
+                  </p>
+                </div>
+              )}
               {!song ? (
                 <p className="text-[15px] text-ink">{text.doneNote}</p>
               ) : song.estado === "pronta" ? (

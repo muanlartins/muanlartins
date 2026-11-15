@@ -42,8 +42,19 @@
       says (partidas.html, through obs-browser's emit_event); an alert never
       plays twice, and the dock can ask for one again.
 
+      A Christmas goal (tema "natal", from the dock): the goal's box gets its
+      tree (presente.js), its lights lit as far as the goal has come and its
+      star once it's reached, with a present from each of its Pix; a Pix's
+      present shows in the band where the mark is, and drops onto the tree when
+      the band goes. Under the amount, how far the next gift sub is; the call
+      says it's Christmas. A sub drawn by the dock ("Sortear sub") plays in the
+      band like a Pix, in the queue: the names of who was in the stand spin and
+      stop on the winner, the voice says it, and the crowd's stand (torcida.html)
+      hears it through this site's storage (natal:sorteio).
+
       ?demo: a made-up Pix every 12 s, without the API, to place the source;
-      ?demo=letra: the lyrics alone, frozen on a line, to place them.
+      ?demo=letra: the lyrics alone, frozen on a line, to place them;
+      ?demo=natal: a Christmas goal with its tree, a present every 12 s and a sub drawn every third.
     -->
     <style>
       .alerta {
@@ -275,6 +286,53 @@
         background: var(--paper);
         transition: width 1.2s var(--ease);
       }
+      /* A Christmas goal: its tree beside the numbers (presente.js), every Pix's present on it. */
+      .meta.natal {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px 12px 8px;
+      }
+      .meta.natal[hidden] {
+        display: none;
+      }
+      .meta .arvore {
+        width: 136px;
+        flex: none;
+      }
+      .meta .arvore svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .meta .info {
+        flex: 1;
+        min-width: 0;
+      }
+      .meta.natal .quanto {
+        flex-wrap: wrap;
+        gap: 0 10px;
+        font-size: 16px;
+      }
+      .meta .sub {
+        margin-top: 8px;
+        color: #ffd23f;
+        font-size: 15px;
+        font-weight: 500;
+        line-height: 1.25;
+        font-variant-numeric: tabular-nums;
+      }
+      /* A Christmas Pix's present in the band, where the mark is for the others. */
+      .presente {
+        position: relative;
+        width: 108px;
+        height: 108px;
+        flex: none;
+      }
+      .presente svg {
+        width: 100%;
+        height: 100%;
+      }
       .aviso {
         position: absolute;
         right: 16px;
@@ -293,15 +351,20 @@
       <div class="canto">
         <div id="chamada"></div>
         <div class="meta" hidden>
-          <p class="titulo"></p>
-          <div class="barra"><div></div></div>
-          <p class="quanto"><span class="valor"></span><span class="pct"></span></p>
-          <p class="prazo" hidden></p>
+          <div class="arvore" hidden></div>
+          <div class="info">
+            <p class="titulo"></p>
+            <div class="barra"><div></div></div>
+            <p class="quanto"><span class="valor"></span><span class="pct"></span></p>
+            <p class="prazo" hidden></p>
+            <p class="sub" hidden></p>
+          </div>
         </div>
       </div>
       <div class="alerta">
         <div class="faixa">
           <img class="marca" src="/brand/mark-small-clear.svg" alt="" />
+          <div class="presente" hidden></div>
           <div class="texto">
             <p class="rotulo"></p>
             <p class="nome"></p>
@@ -318,6 +381,7 @@
       <p class="aviso" hidden></p>
     </main>
     <script src="stream.js"></script>
+    <script src="presente.js"></script>
     <script>
       // The stack's PixApiUrl; ?api= points it elsewhere (a local stand-in).
       const API = params.get("api") ?? "https://g2x6kdnhr0.execute-api.us-east-1.amazonaws.com"
@@ -564,6 +628,15 @@
         tocando = true
         atual = pix.sk
         try {
+          if (pix.sorteio) {
+            await mostrarSorteio(pix.sorteio)
+            vistos.set(pix.sk, Date.now())
+            return
+          }
+          // A Pix of the Christmas goal shows its present in the band, and hangs it on the tree when the band goes.
+          const em = pix.sk.slice(0, 24)
+          const comPresente = !!natalDesde && pix.sk >= natalDesde
+          mostrarPresente(comPresente && pix.presente, comPresente ? em : null)
           const pronta = await Promise.race([preparar(pix, pix.sk), new Promise((r) => setTimeout(() => r(null), 15000))])
           const texto = pronta?.texto ?? pix.mensagem ?? ""
           // A recording transcribed while its reservation waited: the paid Pix keeps the words for the mural.
@@ -590,6 +663,7 @@
             await tocarMusica(musica, pix.musica)
           } else await new Promise((r) => setTimeout(r, Math.max(0, segundos * 1000 - 1200 - falando * 1000)))
           alerta.classList.remove("tocando", "mini")
+          if (comPresente) soltar(em)
           vistos.set(pix.sk, Date.now())
           if (!DEMO) await pedir("/canal", { acao: "exibido", pix: pix.sk, reserva: pix.reserva }).catch(() => {})
         } finally {
@@ -597,6 +671,89 @@
           atual = null
           setTimeout(proximo, 800)
         }
+      }
+
+      // --- Christmas (a goal with tema "natal") ---------------------------------------------------------------
+      let natalDesde = null // the Christmas goal's start while one is on screen: its Pix carry a present
+      let arvoreItens = [] // its Pix, { em, presente, centavos }, oldest first
+      let arvoreProgresso = 0
+      let arvoreDesenhada = ""
+      const escondidos = new Set() // the moments of its Pix whose band hasn't played: their present waits for it
+      function desenharArvore(novo = null) {
+        const lista = arvoreItens.filter((p) => !escondidos.has(p.em)).map((p) => ({ id: p.em, presente: p.presente, centavos: p.centavos }))
+        // Drawn again only when something changed (or a present drops in), so the lights don't start over.
+        const chave = JSON.stringify([lista.map((p) => p.id), arvoreProgresso])
+        if (chave === arvoreDesenhada && !novo) return
+        arvoreDesenhada = chave
+        $(".meta .arvore").innerHTML = Presente.arvore(lista, { progresso: arvoreProgresso, novo })
+      }
+      function soltar(em) {
+        if (escondidos.delete(em)) desenharArvore(em)
+      }
+      // The call says it's Christmas while the goal is on; its own words come back after.
+      function chamadaDeNatal(ligado) {
+        const textos = { pix: "Pix de Natal", convite: "Seu presente na árvore da live" }
+        for (const [classe, natalino] of Object.entries(textos)) {
+          const el = document.querySelector(`#chamada .${classe}`)
+          if (!el) continue
+          el.dataset.texto ??= el.textContent
+          const texto = ligado ? natalino : el.dataset.texto
+          if (el.textContent !== texto) el.textContent = texto
+        }
+      }
+      function natal(estado) {
+        const m = estado.meta
+        const ligado = m?.tema === "natal" && !!window.Presente
+        natalDesde = ligado ? m.desde : null
+        $(".meta").classList.toggle("natal", ligado)
+        $(".meta .arvore").hidden = !ligado
+        chamadaDeNatal(ligado)
+        const subs = ligado && estado.subs?.desde === m.desde ? estado.subs : null
+        $(".meta .sub").hidden = !subs
+        if (subs) $(".meta .sub").textContent = `Próximo sub de presente com mais R$ ${reais(subs.cada * (subs.devidos + 1) - m.arrecadado)}`
+        if (!ligado) return
+        arvoreItens = estado.arvore ?? []
+        arvoreProgresso = m.alvo ? m.arrecadado / m.alvo : 0
+        desenharArvore()
+      }
+      function mostrarPresente(presente, em) {
+        $(".marca").hidden = !!em
+        $(".presente").hidden = !em
+        if (em) $(".presente").innerHTML = Presente.figura(Presente.normalizar(presente, em))
+      }
+      const esperar = (ms) => new Promise((r) => setTimeout(r, ms))
+      // A gift sub drawn by the dock: who was in the stand spins in the band, slowing down, and stops on the winner.
+      async function mostrarSorteio(s) {
+        const nomes = [...new Set(s.candidatos?.length ? s.candidatos : [s.login])].sort(() => Math.random() - 0.5)
+        const fala = falar(`O sub de presente vai para ${s.login.replace(/_/g, " ")}!`, "antonio")
+        mostrarPresente({ formato: "caixa", cor: "#e03131", detalhe: "#ffd23f", padrao: "liso" }, "sorteio")
+        $(".rotulo").textContent = "Sorteio · sub de presente"
+        $(".mensagem").textContent = "Quem está na arquibancada concorre"
+        const alerta = $(".alerta")
+        alerta.style.setProperty("--dura", "12s")
+        alerta.classList.remove("tocando")
+        void alerta.offsetWidth
+        alerta.classList.add("tocando")
+        chime()
+        await esperar(900)
+        let passo = 55
+        for (let t = 0, i = 0; t < 4200; t += passo, passo *= 1.13) {
+          $(".nome").textContent = nomes[i++ % nomes.length]
+          await esperar(passo)
+        }
+        $(".nome").textContent = s.login
+        $(".mensagem").textContent = "Ganhou um sub de presente! Feliz Natal!"
+        chime()
+        // The stand (torcida.html) puts the winner's fan forward, if they're there: OBS's sources share this storage.
+        try {
+          localStorage.setItem("natal:sorteio", JSON.stringify({ login: s.login, em: Date.now() }))
+        } catch {}
+        const inicio = Date.now()
+        const voz = await Promise.race([fala, esperar(4000).then(() => null)])
+        if (voz) await tocar(voz)
+        await esperar(Math.max(0, 6000 - (Date.now() - inicio)))
+        alerta.classList.remove("tocando")
+        if (!DEMO) await pedir("/canal", { acao: "sorteio", sk: s.sk, exibido: true }).catch(() => {})
       }
 
       function meta(m) {
@@ -638,7 +795,17 @@
           if (p.exibido || p.sk === atual || p.sk < recente || fila.some((f) => f.sk === p.sk) || (visto && Date.now() - visto < 30000)) continue
           vistos.set(p.sk, Date.now())
           fila.push(p)
+          if (estado.meta?.tema === "natal" && p.sk >= estado.meta.desde) escondidos.add(p.sk.slice(0, 24))
         }
+        // The gift subs the dock drew, in the same queue: each plays once.
+        for (const sorteio of estado.subs?.sorteios ?? []) {
+          const id = `sorteio:${sorteio.sk}`
+          const visto = vistos.get(id)
+          if (sorteio.exibido || sorteio.em < recente || id === atual || fila.some((f) => f.sk === id) || (visto && Date.now() - visto < 30000)) continue
+          vistos.set(id, Date.now())
+          fila.push({ sk: id, quando: "agora", sorteio })
+        }
+        natal(estado)
         proximo()
       }
 
@@ -652,6 +819,41 @@
         letra.style.setProperty("--topo", `${Math.round(132 + $(".faixa").offsetHeight * 0.55 + 14)}px`)
         mostrarLinha("Presta atenção na jogada que o Luan vai fazer!", "Ele tá com a bola, tá livre o caminho!")
         letra.classList.add("ativa")
+      } else if (params.get("demo") === "natal") {
+        // A Christmas goal with its tree, a Pix every 12 s hanging its present, and a gift sub drawn every third.
+        const agora = Date.now()
+        const desde = new Date(agora - 5 * 86_400_000).toISOString()
+        const prazo = new Date(agora + 20 * 86_400_000).toISOString()
+        const itens = Array.from({ length: 16 }, (_, i) => ({ em: new Date(agora - (16 - i) * 3_600_000).toISOString(), centavos: [100, 300, 200, 500][i % 4] }))
+        let arrecadado = itens.reduce((t, p) => t + p.centavos, 0)
+        const estado = () => ({
+          meta: { titulo: "Natal na live", alvo: 10000, arrecadado, desde, prazo, tema: "natal" },
+          arvore: itens,
+          subs: { desde, cada: 1000, devidos: Math.floor(arrecadado / 1000), sorteios: [] },
+        })
+        const atualizar = () => (meta(estado().meta), natal(estado()))
+        atualizar()
+        const NOMES = ["Ana", "pedrinho_rl", "", "Duda"]
+        const MSGS = ["Feliz Natal, Luan!", "Bora bater a meta!", "", "Presente pra árvore!"]
+        const PRESENTES = [{ formato: "sino", cor: "#e03131", detalhe: "#ffd23f", padrao: "listras" }, { formato: "caixa", cor: "#85a7ff", detalhe: "#f4f5f7", padrao: "bolinhas" }, undefined, { formato: "estrela", cor: "#ffd23f", detalhe: "#e03131", padrao: "bolinhas" }]
+        let n = 0
+        const um = () => {
+          if (++n % 3 === 0) {
+            fila.push({ sk: `sorteio:demo${n}`, quando: "agora", sorteio: { sk: `demo${n}`, login: "pedrinho_rl", candidatos: ["ana", "pedrinho_rl", "duda_gamer", "exp0nja", "o_jkxss", "eduzeras07", "leila_m_30"] } })
+            return proximo()
+          }
+          const i = (n - 1) % 4
+          const em = new Date().toISOString()
+          const p = { sk: `${em}#demo${n}`, nome: NOMES[i], mensagem: MSGS[i], centavos: [500, 1000, 201, 2000][i], voz: "antonio", quando: "agora", presente: PRESENTES[i] }
+          itens.push({ em, centavos: p.centavos, presente: p.presente })
+          arrecadado += p.centavos
+          escondidos.add(em)
+          atualizar()
+          fila.push(p)
+          proximo()
+        }
+        um()
+        setInterval(um, 12000)
       } else if (DEMO) {
         const nomes = ["Ana", "pedrinho_rl", "", "Duda"]
         const msgs = ["Que gol, Luan!", "Bora subir pra Campeão", "", "Manda um abraço pra galera do Discord!"]
