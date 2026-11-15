@@ -7,7 +7,8 @@
 //   node infra/pix/local/servidor.mjs --google       the real one, with %USERPROFILE%\.config\muanlartins\gemini-chave.txt (US$ 0,08 a song)
 //
 // In the fake, a theme or lyrics with "recusa" is refused by Lyria, with "erro" fails on the way, with "anitta" is
-// turned down before the Pix. POST /_pagar {"centavos"} pays as the phone would.
+// turned down before the Pix. POST /_pagar {"centavos"} pays as the phone would. The Christmas subs are drawn from a
+// made-up chat (CHAT), in place of the Σ API's GET /presentes.
 //   NEXT_PUBLIC_PIX_API=http://localhost:8130 pnpm dev   → /pix, /mural
 //   /stream/pix.html?api=http://localhost:8130#chave=local   /stream/pix-painel.html?api=http://localhost:8130#chave=local
 
@@ -85,6 +86,15 @@ if (!GOOGLE_REAL) {
     return real(url, opcoes)
   }
 }
+
+// Who's in the chat for the Christmas subs' draw, with their Σ: the Σ API's GET /presentes, made up.
+const CHAT = [["ana_rl", 20000], ["pedrinho_rl", 1200], ["duda_gamer", 300], ["leila_m_30", 238], ["exp0nja", 900], ["novato", 11]]
+process.env.SIGMA_API = `http://localhost:${PORTA}/_sigma`
+const semChat = globalThis.fetch
+globalThis.fetch = async (url, opcoes) =>
+  String(url) === `${process.env.SIGMA_API}/presentes`
+    ? new Response(JSON.stringify({ pessoas: CHAT.map(([login, sigma]) => ({ login, sigma })) }), { headers: { "content-type": "application/json" } })
+    : semChat(url, opcoes)
 
 const { handler } = await import("../index.mjs")
 local.invocar = handler

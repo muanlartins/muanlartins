@@ -6,6 +6,7 @@ import { useAgenda } from "@/components/site/agenda/agenda-context"
 import { AgendaEditor } from "@/components/site/agenda/agenda-editor"
 import { Calendar, showDay } from "@/components/site/agenda/calendar"
 import { AgendaGameIcon, DayDetail } from "@/components/site/agenda/day-detail"
+import { goalMarks, GoalsNow, useGoals } from "@/components/site/agenda/goals"
 import { gameName, Subscribe, useNow } from "@/components/site/lives/agenda"
 import { channel } from "@/content/channel"
 import { dataEm, dias } from "@/infra/comum/agenda.mjs"
@@ -77,10 +78,11 @@ export function AgendaView() {
   )
 }
 
-/** What visitors see: the next live, the calendar and the picked day, and the subscription. */
+/** What visitors see: the next live, the Pix goal, the calendar and the picked day (with the goals' first and last days), and the subscription. */
 function PublicAgenda() {
   const { agenda, fresh } = useAgenda()
   const now = useNow()
+  const goals = useGoals()
   const [month, setMonth] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
 
@@ -89,16 +91,18 @@ function PublicAgenda() {
   }
   const today = dataEm(now, agenda.timeZone)
   const picked = selected ?? today
+  const marks = goalMarks(goals)
 
   return (
     <>
       <NextUp agenda={agenda} now={now} onPick={(date) => (setSelected(date), setMonth(date.slice(0, 7)))} />
+      <GoalsNow goals={goals} />
       <div className="mt-12">
-        <Calendar agenda={agenda} today={today} month={month ?? today.slice(0, 7)} onMonth={setMonth} selected={picked} onSelect={(date) => (setSelected(date), showDay())} />
+        <Calendar agenda={agenda} today={today} month={month ?? today.slice(0, 7)} onMonth={setMonth} selected={picked} onSelect={(date) => (setSelected(date), showDay())} goals={marks} />
         <p className="mt-2 text-[13px] text-muted">{L.zone}</p>
       </div>
       <div id="dia" className="mt-8 scroll-mt-20">
-        <DayDetail agenda={agenda} day={dayOf(agenda, picked)} today={today} />
+        <DayDetail agenda={agenda} day={dayOf(agenda, picked)} today={today} goals={marks[picked]} />
       </div>
       <div className="mt-8">
         <Subscribe />

@@ -4,11 +4,12 @@ import Script from "next/script"
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { PageIntro } from "@/components/site/page-intro"
 import { Audience } from "@/components/site/pix/audience"
+import { GiftSubs, PresentView, TreeView } from "@/components/site/pix/christmas"
 import { FanSpot } from "@/components/site/pix/fan-spot"
-import { GoalBar } from "@/components/site/pix/goal-bar"
+import { GoalBar, timeLeft } from "@/components/site/pix/goal-bar"
 import { BadgeChips } from "@/components/site/profile/badges"
 import { mural as muralCopy, STYLES } from "@/content/pix"
-import { loadMural, PIX_API, reais, type Goal, type Mural, type MuralPix, type SongTimes } from "@/lib/pix"
+import { firstDayOf, lastDayOf, loadMural, PIX_API, reais, type Goal, type Mural, type MuralPix, type PlannedGoal, type PresentKit, type SongTimes } from "@/lib/pix"
 import { loadFans, loadSigmas, type Choice, type Sigma, type SigmaStats, type Torcedor } from "@/lib/profile"
 import { LOCALE, localize, PIX_SLUG } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -23,10 +24,15 @@ interface Look {
   fans: Record<string, Choice> | null
   S: Sigma | null
   sigmas: Record<string, SigmaStats>
+  /** presente.js, loaded when there's a Christmas goal. */
+  P: PresentKit | null
 }
 
-/** Each Pix: the sender's fan (or initial), name, value, badges, day and message; an anonymous one, a short line with its value and day. */
-function Supporters({ list, look: { T, fans, S, sigmas } }: { list: MuralPix[]; look: Look }) {
+/**
+ * Each Pix: the sender's fan (or initial), name, value, badges, day and message; an anonymous one, a short line with its
+ * value and day. In a Christmas goal (`tree`), the present it hung by its value.
+ */
+function Supporters({ list, look: { T, fans, S, sigmas, P }, tree }: { list: MuralPix[]; look: Look; tree?: boolean }) {
   return (
     <ul className="space-y-3">
       {list.map((p) => (
@@ -35,7 +41,9 @@ function Supporters({ list, look: { T, fans, S, sigmas } }: { list: MuralPix[]; 
           <div className="min-w-0 flex-1 space-y-2 py-1 pr-1">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
               <strong className="text-[16px] font-medium break-words text-ink">{p.nome || text.anonymous}</strong>
-              <span className="text-[17px] font-medium text-klein tabular-nums">R$ {reais(p.centavos)}</span>
+              <span className="flex items-center gap-2 text-[17px] font-medium text-klein tabular-nums">
+                {tree && P && <PresentView kit={P} present={P.normalizar(p.presente, p.em)} className="h-6 w-6" />}R$ {reais(p.centavos)}
+              </span>
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               {S && p.login && sigmas[p.login] && <BadgeChips badges={S.medalhas(sigmas[p.login], LOCALE)} streak={sigmas[p.login].sequencia} />}
@@ -169,8 +177,14 @@ function Song({ song, name }: { song: NonNullable<MuralPix["musica"]>; name: str
   )
 }
 
+/** "14/11/2026" from a Brasília day ("YYYY-MM-DD"). */
+const dayOf = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString(LANG, { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" })
+
 function GoalCard({ goal, current, look }: { goal: Goal; current?: boolean; look: Look }) {
   const reached = goal.arrecadado >= goal.alvo
+  const last = lastDayOf(goal)
+  const left = current ? timeLeft(goal, !reached) : null
+  const natal = goal.tema === "natal"
   return (
     <section className={cn("rounded-md border", current ? "border-klein/50 bg-paper/80" : "border-line bg-paper/60")}>
       <div className="space-y-4 px-4 pt-5 pb-5 sm:px-6 sm:pt-6">
@@ -178,34 +192,60 @@ function GoalCard({ goal, current, look }: { goal: Goal; current?: boolean; look
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h3 className={cn("font-medium tracking-[-0.02em] text-ink", current ? "text-3xl" : "text-xl")}>{goal.titulo || text.goalNow}</h3>
             {reached && <span className="rounded-full bg-klein px-2.5 py-0.5 text-[12px] font-medium text-paper">✓ {text.reached}</span>}
+            {!reached && !current && <span className="rounded-full border border-line px-2.5 py-0.5 text-[12px] font-medium text-muted">{text.missed}</span>}
           </div>
           <p className="text-[13px] text-muted tabular-nums">
-            {day(goal.desde)}
-            {goal.ate && ` – ${day(goal.ate)}`}
+            {dayOf(firstDayOf(goal))}
+            {last ? ` – ${dayOf(last)}` : ` · ${text.noEnd}`}
           </p>
         </div>
+        {natal && look.P && <TreeView kit={look.P} goal={goal} />}
         <GoalBar goal={goal} of={text.of} large={current} />
-        {current && !reached && (
+        {current && (!reached || left) && (
           <p className="text-[14px] text-muted tabular-nums">
-            {text.toGo} R$ {reais(goal.alvo - goal.arrecadado)}
+            {!reached && `${text.toGo} R$ ${reais(goal.alvo - goal.arrecadado)}`}
+            {!reached && left && " · "}
+            {left}
           </p>
         )}
+        {goal.arrecadado > goal.alvo && (
+          <p className="text-[14px] font-medium text-klein tabular-nums">
+            + R$ {reais(goal.arrecadado - goal.alvo)} {text.extra}
+          </p>
+        )}
+        {natal && <GiftSubs goal={goal} />}
       </div>
       <div className="space-y-3 border-t border-line px-4 pt-5 pb-5 sm:px-6">
         <p className={heading}>{text.supporters}</p>
-        {goal.apoiadores.length ? <Supporters list={goal.apoiadores} look={look} /> : <p className="text-[15px] text-muted">{text.noneYet}</p>}
+        {goal.apoiadores.length ? <Supporters list={goal.apoiadores} look={look} tree={natal} /> : <p className="text-[15px] text-muted">{text.noneYet}</p>}
       </div>
     </section>
   )
 }
 
-/** The Pix tab: the goal on screen, the ones before, and the named Pix of no goal. */
+/** A goal set ahead of time: its name, target and days. */
+function NextGoal({ goal }: { goal: PlannedGoal }) {
+  const last = lastDayOf(goal)
+  return (
+    <section className="rounded-md border border-dashed border-klein/40 px-4 py-4 sm:px-6">
+      <p className={heading}>{text.next}</p>
+      <p className="mt-1 text-xl font-medium tracking-[-0.02em] text-ink">{goal.titulo}</p>
+      <p className="mt-1 text-[14px] text-muted tabular-nums">
+        R$ {reais(goal.alvo)} · {dayOf(firstDayOf(goal))}
+        {last && ` – ${dayOf(last)}`}
+      </p>
+    </section>
+  )
+}
+
+/** The Pix tab: the goal on screen, the one scheduled, the ones before, and the named Pix of no goal. */
 function PixTab({ mural, look }: { mural: Mural; look: Look }) {
   return (
     <div className="space-y-10">
       <div className="space-y-4">
         <h2 className={heading}>{text.goalNow}</h2>
         {mural.meta ? <GoalCard goal={mural.meta} current look={look} /> : <p className="text-[15px] text-muted">{text.noGoal}</p>}
+        {mural.proxima && <NextGoal goal={mural.proxima} />}
       </div>
 
       {mural.metas.length > 0 && (
@@ -243,8 +283,10 @@ export function MuralPage() {
   const [fans, setFans] = useState<Record<string, Choice> | null>(null)
   const [S, setS] = useState<Sigma | null>(null)
   const [sigmas, setSigmas] = useState<Record<string, SigmaStats>>({})
+  const [P, setP] = useState<PresentKit | null>(null)
   const buttons = useRef<Record<Tab, HTMLButtonElement | null>>({ pix: null, audience: null })
-  const look = { T, fans, S, sigmas }
+  const look = { T, fans, S, sigmas, P }
+  const christmas = !!mural && [mural.meta, ...mural.metas].some((g) => g?.tema === "natal")
 
   useEffect(() => {
     const fromHash = () => setTab(location.hash.slice(1) === text.audienceHash ? "audience" : "pix")
@@ -288,6 +330,7 @@ export function MuralPage() {
       <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
       <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />
       <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />
+      {christmas && <Script src="/stream/presente.js" onReady={() => setP(window.Presente ?? null)} />}
       <PageIntro title={text.title} description={text.description}>
         {PIX_API && (
           <a href={`/${PIX_SLUG}`} className="inline-block rounded-sm bg-klein px-5 py-3 text-[17px] font-medium text-paper transition-opacity hover:opacity-90">

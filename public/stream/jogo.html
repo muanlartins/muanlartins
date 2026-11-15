@@ -14,7 +14,7 @@
       messages (?canal= and ?demo as in conversa.html); with ?jogo=valorant it
       starts at y 340, under Valorant's killfeed; with ?duelo=1 it starts at y 472, under the ball duel
       (duelo.html), 420×264, and in Valorant (where the duel sits under the killfeed) it goes to the left instead, under
-      the Pix call and goal, 420×360 at (44, 668). The rank and the day's record sit on the frame's top edge
+      the Pix call and goal, 420×296 at (44, 740). The rank and the day's record sit on the frame's top edge
       while the "Partidas" dock (partidas.html) sends them; ?placar=0 leaves them out (the commented videos, recorded
       after the live: the frame and the site, not the day's record).
     -->
@@ -50,10 +50,11 @@
         height: 264px;
       }
       /* In Valorant the duel takes the right, under the killfeed (OBS sets its source 238 px lower there), so the chat
-         goes to the left, under pix.html's call and goal (y 380 to ~650 in Valorant's scenes). */
+         goes to the left, under pix.html's call and goal (from y 380: to 657 with a goal's end date, 724 with the Christmas
+         tree). */
       .game-chat.valorant.duelo {
-        top: 668px;
-        height: 360px;
+        top: 740px;
+        height: 296px;
         right: auto;
         left: 44px;
       }
@@ -79,7 +80,7 @@
         bottom: 308px;
       }
       .chat-pane.valorant.duelo {
-        bottom: 40px;
+        bottom: 32px;
         right: auto;
         left: 32px;
       }

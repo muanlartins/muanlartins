@@ -118,6 +118,15 @@ export const channel = {
     noLive: { pt: "Sem live neste dia.", en: "No stream this day." },
     upNext: { pt: "Próxima live", en: "Next stream" },
     seeDay: { pt: "Ver o dia no calendário", en: "See the day on the calendar" },
+    goals: { pt: "Meta do Pix", en: "Pix goal" },
+    seeMural: { pt: "Ver no mural", en: "See it on the mural" },
+    after: { pt: "Depois", en: "Then" },
+    /** On the calendar: a goal's first and last day. */
+    goalStarts: { pt: "nova meta", en: "new goal" },
+    goalEnds: { pt: "fim da meta", en: "goal ends" },
+    /** The day picked: "Começa a meta Natal". */
+    goalStartsDay: { pt: "Começa a meta", en: "The goal starts:" },
+    goalEndsDay: { pt: "Último dia da meta", en: "Last day of the goal" },
   },
 
   /** /canal/comandos: every way to take part in the live from the chat. The commands themselves, with what each does,

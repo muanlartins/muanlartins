@@ -46,7 +46,7 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   the drone flies behind him all the while, and the drone ability is then that drone. The abilities have the
   games' own sounds (2026-11-12, `sfx.js`): cues made by `scripts/filtros_sons.py` into `privado/sons/` from
   `~/.local/share/valorant-extract/sons.sh phoenix|sova|sage` and `~/.local/share/rl-extract/run.sh` (re-run all three
-  after a patch); the dock's "Sons dos filtros" (`opcoes.mudo`) turns them off for every filter. They reach the
+  after a patch); the dock's "Sons dos filtros" (`opcoes.mudo`) turns them off for every filter. Its "Gorro de Natal" (`opcoes.gorro`) puts the Santa hat (`gorro.js`) on his head over any filter or none: on by itself through December, a click holds for the rest of that month. With only the hat on, the page draws its own camera (like a filter), so OBS's Câmera is covered there too. They reach the
   stream only because "Filtros" has "Control audio via OBS" on (`reroute_audio`, monitored like Sons, so Luan hears
   them; set by hand in Live.json and Shorts.json on 2026-11-12 and kept by `obs.py`'s `SYNC`); without it the page
   plays them straight to Windows' speakers. One browser
