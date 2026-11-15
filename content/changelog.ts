@@ -154,10 +154,10 @@ export const UPCOMING: Upcoming[] = [
   },
   {
     id: "duelo-de-bolinhas",
-    status: "proximo",
+    status: "agora",
     tag: "live",
     title: "Duelo de bolinhas no canto da tela",
-    text: "Dois viewers sorteados da arquibancada se enfrentam sem parar, cada um como uma bolinha armada da classe que escolheu no site. Seus Σ viram pontos numa árvore de talentos, sem gastar nenhum, e cada vitória e partida fica registrada no site.",
+    text: "Dois viewers sorteados do chat se enfrentam sem parar, cada um como uma bolinha com as cores do seu torcedor e uma arma que cresce a cada acerto: espada, adaga, arco, lança, machado ou foice. Todo mundo tem a mesma força; seus Σ só deixam a bolinha mais bonita, e cada vitória e partida fica registrada no site.",
     credit: { by: "lucca_3098" },
   },
   {

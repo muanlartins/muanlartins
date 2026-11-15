@@ -12,7 +12,8 @@
       (the positions are in brand/README.md). ?chat=1 adds the Twitch chat on
       the other side, above the boost meter, on a translucent pane while it has
       messages (?canal= and ?demo as in conversa.html); with ?jogo=valorant it
-      starts at y 340, under Valorant's killfeed. The rank and the day's record sit on the frame's top edge
+      starts at y 340, under Valorant's killfeed; with ?duelo=1 (not in Valorant) it starts at y 472, under the ball duel
+      (duelo.html), 420×264. The rank and the day's record sit on the frame's top edge
       while the "Partidas" dock (partidas.html) sends them; ?placar=0 leaves them out (the commented videos, recorded
       after the live: the frame and the site, not the day's record).
     -->
@@ -41,6 +42,11 @@
       .game-chat.valorant {
         top: 340px;
         height: 420px;
+      }
+      /* Under the ball duel (duelo.html, ?duelo=1), which takes the VAR's mini player's corner, 640×360 at (1236, 92). */
+      .game-chat.duelo {
+        top: 472px;
+        height: 264px;
       }
       .game-chat.left {
         right: auto;
@@ -126,6 +132,7 @@
         pane.classList.toggle("left", params.get("lado") === "direita")
         // In Valorant, under its killfeed.
         box.classList.toggle("valorant", params.get("jogo") === "valorant")
+        box.classList.toggle("duelo", params.has("duelo") && params.get("jogo") !== "valorant")
         pane.classList.toggle("valorant", params.get("jogo") === "valorant")
         // From the oldest message still there (or the column's faded top) down. Messages fading out still count.
         const fit = () => {
