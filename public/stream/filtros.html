@@ -95,6 +95,10 @@
       OBS hears them only with the source's "Control audio via OBS" on. The dock's "Sons dos filtros" switch
       (opcoes.mudo), key M, ?mudo and ?som=<volume>.
 
+      The Santa hat (gorro.js, 2026-11-15, December's): over any filter or none, on whatever his head is (his hair,
+      an agent's hair, the ball, a car's roof), its top swinging as he moves, thrown up by a demolition. The dock's
+      "Gorro de Natal" (opcoes.gorro, on by itself through December), key G, ?gorro (=y,z,tilt,size on his own head).
+
       ?debug shows fps, how long each model takes and the hands seen; ?cpu runs the models on the CPU;
       ?modo=pop|bola|phoenix|sova|octane|fennec|lente starts with a filter on; ?texto=A|B the title's two lines in Pop; it frames the camera as OBS's
       "Enquadramento" crop does (NVIDIA Broadcast's auto frame is off), or ?zoom=1.3 and ?foco=x,y (0..1 of the
@@ -206,6 +210,7 @@
       import * as SOVA from "./vfx-sova.js"
       import * as SAGE from "./vfx-sage.js"
       import { createSfx } from "./sfx.js"
+      import { createHat } from "./gorro.js"
 
       const q = new URLSearchParams(location.search)
       // The page's size: the camera's own (1280×720 at 60). In OBS each scene scales it into its camera box.
@@ -1028,7 +1033,8 @@
       // over the clothes. Sova's torso also takes the folded bow on his back (its own materials, `extra`), and his
       // long locks hang beside the face, so his face and hands are drawn back over his hair too (`behind`).
       const AGENTS = {
-        phoenix: { url: q.get("phoenix") || "privado/phoenix.glb" },
+        // (`gorro`: where the Santa hat sits on the agent's hair, [up, size] from its place on Luan's own head.)
+        phoenix: { url: q.get("phoenix") || "privado/phoenix.glb", gorro: [2.2, 1.02] },
         // Sova's forehead comes down to the brows (`forehead`: how far above them his skin starts, in metres) and
         // Luan's face stops a little above them (`trim`: of the brows-to-chin height), since Luan's curls fall
         // over his forehead and would show under Sova's hair.
@@ -1037,7 +1043,7 @@
         // numbered by the export, Neck_12, and its body's material without "Body" in the name; her orb left out).
         // Her locks fall beside the face, like Sova's; her braid, down to her waist, is cut at the chin (`hairDown`:
         // how far below the eyes her hair is kept, in metres), or it hangs over his whole body.
-        sage: { url: q.get("sage") || "privado/sage.glb", body: /CS_Thorne_S0_MI/, behind: true, hairDown: 0.12 },
+        sage: { url: q.get("sage") || "privado/sage.glb", body: /CS_Thorne_S0_MI/, behind: true, hairDown: 0.12, gorro: [1.2, 1] },
       }
       // Luan's own hair around the agent's, painted over with what the camera shows behind him: NVIDIA Broadcast's
       // virtual background (brand/webcam/webcam-enquadrado, at 1920×1080: camera-fundo.png, from brand/build.py;
@@ -1209,6 +1215,14 @@
         }
         headPiece.add(piece(body, (i, p, g) => g === "head" && scalp(p)))
         a.hair.add(headPiece)
+        // The hair's box in the face's centimetres, for the Santa hat on top of it (gorro.js).
+        a.hatBox = new THREE.Box3()
+        headPiece.updateMatrix()
+        const hp = new THREE.Vector3()
+        for (const m of headPiece.children) {
+          const pos = m.geometry.getAttribute("position")
+          for (const i of m.geometry.index.array) a.hatBox.expandByPoint(hp.fromBufferAttribute(pos, i).applyMatrix4(headPiece.matrix))
+        }
 
         // Torso piece, in metres with the shoulders' midpoint at the origin; placed each frame.
         const mid = bone.L_Shoulder.clone().add(bone.R_Shoulder).multiplyScalar(0.5)
@@ -3020,6 +3034,16 @@
         const mouthY = box.min.y + size.y * 0.27
         const hit = new THREE.Raycaster(new THREE.Vector3(box.max.x + 100, mouthY, center.z), new THREE.Vector3(-1, 0, 0)).intersectObjects(meshes, false)[0]
         const mouthAt = hit ? hit.point.clone() : new THREE.Vector3(box.max.x, mouthY, center.z)
+        // The top of the roof along the car's middle, for the Santa hat (gorro.js), from its centre in the model's
+        // units, and the car's size.
+        let roof = null
+        for (let i = 0; i <= 32; i++) {
+          const from = new THREE.Vector3(box.min.x + (size.x * i) / 32, box.max.y + 100, center.z)
+          const top = new THREE.Raycaster(from, new THREE.Vector3(0, -1, 0)).intersectObjects(meshes, false)[0]
+          if (top && (!roof || top.point.y > roof.y)) roof = top.point.clone()
+        }
+        c.roof = (roof || new THREE.Vector3(center.x, box.max.y, center.z)).sub(center)
+        c.size = size.clone()
         // Screen right once the car faces the camera is the model's −z.
         const right = new THREE.Vector3(0, 0, -1)
         const along = (n) => right.clone().addScaledVector(n, -right.dot(n)).normalize()
@@ -3146,6 +3170,7 @@
         if (!c || c.boom >= 0) return
         c.boom = now
         sfx.play("carro-demo", { pan: panAt(faceBox().c.x) })
+        gorro.launch(now)
       }
       function flipCar(now) {
         const c = CARS[mode]
@@ -3154,6 +3179,87 @@
         const pan = panAt(faceBox().c.x)
         sfx.play("carro-pulo", { pan, gain: 0.7 })
         sfx.play("carro-flip", { pan, delay: 0.08 })
+      }
+
+      // ---------- the Santa hat (gorro.js) ----------
+      // Luan's idea for December (2026-11-15): a Santa hat on his head over any filter, with the dock's "Gorro de
+      // Natal" (opcoes.gorro; ?gorro in a browser, G there too). It sits on what's on his head: his own curls, an
+      // agent's hair (on top of its box), the ball, a car's roof. Switching filters it slides from one to the next,
+      // with each one's weight as it comes on; a demolition throws it up, and it lands back where his head is.
+      const gorro = createHat(THREE)
+      gorro.want = q.has("gorro")
+      // On his own head, in the face's centimetres: the brim's centre (up, forward), how far it leans back (°) and
+      // its size; ?gorro=9,-3.5,-10,0.96 to tune (all four, or it's just "on").
+      const HAT_AT = (q.get("gorro") || "").split(",").map(Number)
+      const [HAT_Y, HAT_Z, HAT_TILT, HAT_K] = HAT_AT.length === 4 && HAT_AT.every(Number.isFinite) ? HAT_AT : [9, -3.5, -10, 0.96]
+      // On an agent's hair: this far below its top (cm), as wide as the hair around it.
+      const HAT_IN_HAIR = Number(q.get("gorro-cabelo") || 7)
+      // On the ball and on a car's roof: its size there.
+      const HAT_BALL = Number(q.get("gorro-bola") || 0.8)
+      const HAT_CAR = Number(q.get("gorro-carro") || 0.6)
+      const hatTilt = (deg) => new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(deg))
+      const hatPlace = () => ({ p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3(), collider: null })
+      const hatNow = hatPlace(), hatOther = hatPlace()
+      // A place on the head: a point in the face's centimetres, leaning back so much, this size (x, y, z).
+      function onHead(out, x, y, z, tilt, sx, sy, sz) {
+        out.p.set(x, y, z).applyMatrix4(head.matrix)
+        out.q.copy(headQuat).multiply(hatTilt(tilt))
+        out.s.set(sx, sy, sz).multiply(headScale)
+      }
+      function hatAnchor() {
+        if (!headSeen) return null
+        // His own head, with what's under the brim (an ellipsoid in the hat's centimetres) to keep the pompom out of.
+        onHead(hatNow, 0, HAT_Y, HAT_Z, HAT_TILT, HAT_K, HAT_K, HAT_K)
+        hatNow.collider = { c: new THREE.Vector3(0, -9, 0), r: new THREE.Vector3(9.5, 11, 10.5) }
+        let most = 0
+        const toward = (o, k) => {
+          if (k <= 0) return
+          hatNow.p.lerp(o.p, k)
+          hatNow.q.slerp(o.q, k)
+          hatNow.s.lerp(o.s, k)
+          if (k >= most) {
+            most = k
+            hatNow.collider = o.collider
+          }
+        }
+        // An agent's hair: by default the brim a little under its top, round it; an agent's `gorro` ([up, size] from
+        // where it sits on Luan's own head; ?gorro-<agent>=up,size) where its hair asks for another place.
+        for (const a of agentList) {
+          if (!(a.amt > 0 && a.ready && a.hatBox)) continue
+          const b = a.hatBox
+          const own = q.get(`gorro-${a.id}`)?.split(",").map(Number) || a.gorro
+          const k = own ? own[1] : Math.max(HAT_K, ((b.max.x - b.min.x) / 2 / gorro.A) * 0.86)
+          const y = own ? HAT_Y + own[0] : Math.max(HAT_Y, b.max.y - HAT_IN_HAIR)
+          onHead(hatOther, (b.min.x + b.max.x) / 2, y, Math.min(HAT_Z, (b.min.z + b.max.z) / 2), HAT_TILT, k, k, k)
+          hatOther.collider = { c: new THREE.Vector3(0, -9, 0), r: new THREE.Vector3(9.5, 11, 10.5) }
+          toward(hatOther, Math.min(1, a.amt))
+        }
+        // The ball: the brim round it a little above its middle, a circle.
+        if (ballIn > 0) {
+          const kb = easeOutBack(ballIn)
+          const r = gorro.A * HAT_BALL
+          const up = Math.sqrt(Math.max(0, BALL_R * BALL_R - r * r)) * kb
+          onHead(hatOther, BALL_AT[0], BALL_AT[1] + up, BALL_AT[2], -6, kb * HAT_BALL, kb * HAT_BALL, kb * HAT_BALL * (gorro.A / gorro.B))
+          hatOther.collider = { c: new THREE.Vector3(0, -up / kb / HAT_BALL, 0), r: new THREE.Vector3(1, 1, gorro.B / gorro.A).multiplyScalar(BALL_R / HAT_BALL) }
+          toward(hatOther, Math.min(1, ballIn))
+        }
+        // A car: on its roof, small, turning and flipping with it.
+        for (const c of carList) {
+          if (!(c.group.visible && c.ready && c.shown > 0 && c.roof)) continue
+          c.group.updateWorldMatrix(true, false)
+          // The roof in the car group's space (the body is turned a quarter round, and longer as he turns).
+          const roofG = new THREE.Vector3(-c.roof.z * c.s, c.roof.y * c.s, c.roof.x * c.s * c.len)
+          const hs = HAT_CAR
+          hatOther.p.copy(roofG).add(new THREE.Vector3(0, -0.4, 0)).applyMatrix4(c.group.matrixWorld)
+          c.group.getWorldQuaternion(hatOther.q).multiply(hatTilt(-THREE.MathUtils.radToDeg(CAR_PITCH)))
+          hatOther.s.setScalar(hs * Math.max(c.group.scale.x, 1e-3)).multiply(headScale)
+          hatOther.collider = {
+            c: roofG.clone().multiplyScalar(-1 / hs),
+            r: new THREE.Vector3(CAR_W / 2, (c.size.y * c.s) / 2, (c.size.x * c.s * c.len) / 2).multiplyScalar(0.92 / hs),
+          }
+          toward(hatOther, Math.min(1, c.shown))
+        }
+        return hatNow
       }
 
       // ---------- trackers ----------
@@ -3331,6 +3437,8 @@
           // The cars' paint and decal.
           if (CAR_PAINTS[detail.opcoes.cor]) carLook.cor = detail.opcoes.cor
           if (CAR_DECALS[detail.opcoes.decalque] !== undefined) carLook.decalque = detail.opcoes.decalque
+          // The Santa hat, over any filter or none.
+          if (detail.opcoes.gorro !== undefined) gorro.want = !!detail.opcoes.gorro
         }
         if (detail?.acao) acao(detail.acao)
       })
@@ -3352,11 +3460,12 @@
         if (keys[k]) acao(keys[k])
         if (k === "p") sova.patrol.want = !sova.patrol.want
         if (k === "m") sfx.on = !sfx.on
+        if (k === "g") gorro.want = !gorro.want
         if (e.key === "0") setMode("nenhum")
       })
       setMode(mode)
       const DEBUG = q.has("debug")
-      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, armsCrossed, armsOpen, get mode() { return mode }, get trackers() { return trackersReady() } }
+      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, gorro, setMode, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, armsCrossed, armsOpen, get mode() { return mode }, get trackers() { return trackersReady() } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -3835,7 +3944,7 @@
             const bodyEvery = handsOn && mode !== "pop" ? 80 : 0
             if ((mode === "pop" || pop > 0 || sovaMask || ((agentOn || carOn) && ERASE)) && now - bodySentAt >= bodyEvery) want.corpo = true
             if ((agentOn || carOn) && ERASE && (plate.off === undefined || now - plate.at > 250)) want.fundo = true
-            if (mode === "bola" || ballIn > 0 || agentOn || carOn || mode === "sage") want.rosto = true
+            if (mode === "bola" || ballIn > 0 || agentOn || carOn || mode === "sage" || gorro.want || gorro.visible) want.rosto = true
             // The shoulders ride the head between answers, so ~15 a second is plenty; Sage's barrier gesture reads the
             // arms, so as often as it can there.
             if ((agentOn || mode === "sage") && now - pose.sentAt > (mode === "sage" ? 0 : 60)) want.ombros = true
@@ -3876,6 +3985,7 @@
         if (sovaOn) updateSova(now, dt)
         if (mode === "sage") updateSage(now, dt)
         updateCars(now, dt)
+        gorro.update(now, dt, hatAnchor())
         // Erasing his hair: around an agent's, or his whole head under a car (back while it's demolished).
         const carShown = Math.max(0, ...carList.map((c) => (c.group.visible ? c.shown : 0)))
         uniforms.uErase.value = headSeen && ERASE ? Math.max(agentAmt, carShown) : 0
@@ -3922,7 +4032,7 @@
         renderer.setViewport(bx + sx, H - by - bh + sy, bw, bh)
         renderer.setScissor(bx, H - by - bh, bw, bh)
         renderer.setScissorTest(true)
-        if (!IN_OBS || mode !== "nenhum" || pop > 0 || ballIn > 0 || agentAmt > 0 || carAmt > 0) renderer.render(baseScene, ortho)
+        if (!IN_OBS || mode !== "nenhum" || pop > 0 || ballIn > 0 || agentAmt > 0 || carAmt > 0 || gorro.visible) renderer.render(baseScene, ortho)
         if (pop > 0) {
           updateShapes(dt, pop, pushes)
           renderer.clearDepth()
@@ -3976,6 +4086,11 @@
           renderer.render(sv3.held, headCam)
           renderer.render(keepHandsScene, ortho)
         }
+        // The Santa hat, over whatever is on his head (the abilities' effects still pass in front of it).
+        if (gorro.visible) {
+          renderer.clearDepth()
+          renderer.render(gorro.scene, headCam)
+        }
         if (sovaOn) {
           renderer.render(sovaScene, ortho)
           const droneFront = drone3.root.visible && !drone3.behind
@@ -4019,7 +4134,7 @@
             `${fps.toFixed(0)} fps · ${delegate || "…"} · ${camLabel}\n` +
             `gesto ${ms.gesto.toFixed(1)} ms · corpo ${ms.corpo.toFixed(1)} ms · rosto ${ms.rosto.toFixed(1)} ms · ombros ${ms.ombros.toFixed(1)} ms\n` +
             `respostas/s: ${Object.entries(trackers).map(([k, t]) => `${k} ${t.rate.toFixed(0)}`).join(" · ")}\n` +
-            `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}` +
+            `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}${gorro.want ? ` · gorro ${gorro.visible ? "na cabeça" : "sem rosto"}` : ""}` +
             (ag ? `\n${mode}: modelo ${ag.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"}${AGENTS[mode] ? ` · ombros ${pose.seen ? "sim" : "não"} · fundo ${!ERASE ? "desligado" : plate.off === undefined ? "…" : `${plate.ok ? "ok" : "não bate"} (${plate.off.toFixed(1)})`}` : ""}` : "") +
             (mode === "sova" ? `\nsova: peças ${bow3.model ? "ok" : "…"} · arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? ` · flecha (${sova.arrow.kind})` : ""}${sova.dart ? " · reconhecimento" : ""}${sova.drone ? " · coruja" : ""}${sova.patrol.amt > 0 ? " · coruja sobrevoando" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
             (mode === "sage" ? `\nsage: peças ${sg3.ok}/2${sage.c ? " · barreira" : ""}${sage.q ? " · lentidão" : ""}${sage.e ? " · cura" : ""}${sage.x ? " · ressurreição" : ""}${sage.pray ? " · prece" : ""}` : "") +
