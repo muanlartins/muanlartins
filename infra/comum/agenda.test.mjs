@@ -2,7 +2,7 @@
 
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { dia, dias, daVez, duracao, ics, instante, limpar, ocorrencias, planoTwitch, proxima } from "./agenda.mjs"
+import { dia, dias, daVez, duracao, ics, instante, limpar, noChat, ocorrencias, planoTwitch, proxima } from "./agenda.mjs"
 
 const GAMES = {
   "rocket-league": { name: "Rocket League", category: "30921", title: "Ranqueadas de Rocket League" },
@@ -95,6 +95,24 @@ test("the next live skips days off and the one already over", () => {
   // The live of the moment: on air, or within 90 minutes.
   assert.equal(daVez(AGENDA, new Date("2026-11-16T22:45:00Z"))?.data, "2026-11-16")
   assert.equal(daVez(AGENDA, new Date("2026-11-16T22:00:00Z")), null)
+})
+
+test("the chat bot's line: the next live and the one after, the one on air, or the page when there's none", () => {
+  const url = "https://muanlartins.com.br/canal/agenda"
+  assert.equal(
+    noChat(AGENDA, { url, agora: SEXTA }),
+    "Próxima live dom 15/11 às 15h (horário de Brasília): Valorant, Inhouse com os viewers. Depois, dom 15/11 às 19h: Rocket League.",
+  )
+  // Friday 15:00 in Brasília: the afternoon's Rocket League is on.
+  assert.equal(
+    noChat(AGENDA, { url, agora: new Date("2026-11-13T18:00:00Z") }),
+    "Ao vivo agora, até as 16h30: Rocket League, Ranqueadas de Rocket League. Depois, dom 15/11 às 15h: Valorant.",
+  )
+  // Saturday: tomorrow's.
+  assert.match(noChat(AGENDA, { url, agora: new Date("2026-11-14T15:00:00Z") }), /^Próxima live amanhã às 15h /)
+  // Monday, after Sunday's: today's.
+  assert.match(noChat(AGENDA, { url, agora: new Date("2026-11-16T12:00:00Z") }), /^Próxima live hoje às 21h .*: Valorant, Aprendendo Valorant\. Depois, amanhã às 14h30: Rocket League\.$/)
+  assert.equal(noChat(limpar({ dates: {}, games: GAMES }), { url, agora: SEXTA }), `Nenhuma live marcada nas próximas duas semanas. A agenda: ${url}`)
 })
 
 test("the calendar file has one event per live, with the run of the show", () => {

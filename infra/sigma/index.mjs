@@ -17,11 +17,15 @@
 // (once, however many calls), and on their first minute of a live 10 Σ plus 5 for each live in a row before
 // it, up to 50. A live is a day, in Luan's time. POST /var comes from the crowd overlay too, with the key, when the
 // chat's verdict on a VAR comes out: who voted for it gets VAR_SIGMA, once per VAR (its id), however many calls.
+// GET /sigma.txt?login=a&nome=A is public, plain text: someone's Σ, rank and lives in a line of chat (texto.mjs), the
+// chat bot's !sigma, which StreamElements asks with the login and display name of whoever typed it (or of who they
+// named: !sigma @fulano) and shows as it comes, so every answer, even a wrong login, is a 200 with a line to say.
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { BatchGetCommand, DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
 import { daLive, LOGIN, out } from "./comum/http.mjs"
 import { quem } from "./comum/twitch.mjs"
+import { textoSigma } from "./texto.mjs"
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 const T = process.env.TABLE
@@ -185,6 +189,16 @@ export async function handler(event) {
     const itens = await ler([...logins, CANAL])
     const canal = itens[CANAL] || {}
     return out(200, Object.fromEntries(logins.filter((l) => itens[l]).map((l) => [l, publico(itens[l], canal, hoje)])))
+  }
+  if (metodo === "GET" && caminho === "/sigma.txt") {
+    const q = event.queryStringParameters || {}
+    const login = String(q.login || "").trim().replace(/^@/, "").toLowerCase()
+    const exibido = String(q.nome || "").trim().replace(/^@/, "")
+    const texto = (body) => ({ statusCode: 200, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" }, body })
+    if (!LOGIN.test(login)) return texto("Pra ver os seus Σ: !sigma. Os de alguém: !sigma @fulano.")
+    if (login === DONO) return texto("O muanlartins não junta Σ: eles são de quem assiste.")
+    const itens = await ler([login, CANAL])
+    return texto(textoSigma(exibido.toLowerCase() === login ? exibido : login, itens[login] && publico(itens[login], itens[CANAL] || {}, hoje)))
   }
   if (metodo === "GET" && caminho === "/audiencia") {
     const canal = (await ler([CANAL]))[CANAL] || {}
