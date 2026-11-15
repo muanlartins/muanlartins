@@ -41,7 +41,18 @@ export function Snowfall() {
       return { x: Math.random() * w, y: anywhere ? Math.random() * h : -6, z, r: 1 + z * 2.6, v: 14 + z * 38, f: Math.random() * 6.3, a: 0.45 + z * 0.5, s: 6 + Math.random() * 16 }
     }
     const flakes = Array.from({ length: Math.round(Math.min(80, (w * h) / 18000)) }, () => flake(true))
-    ctx.fillStyle = "#ffffff"
+    // A white flake with a faint navy rim, drawn once: plain white all but vanishes on the site's pale blue.
+    const sprite = document.createElement("canvas")
+    sprite.width = sprite.height = 32
+    const paint = sprite.getContext("2d")
+    if (!paint) return
+    const glow = paint.createRadialGradient(16, 16, 0, 16, 16, 16)
+    glow.addColorStop(0, "rgba(255, 255, 255, 1)")
+    glow.addColorStop(0.45, "rgba(255, 255, 255, 1)")
+    glow.addColorStop(0.6, "rgba(0, 20, 71, 0.22)")
+    glow.addColorStop(1, "rgba(0, 20, 71, 0)")
+    paint.fillStyle = glow
+    paint.fillRect(0, 0, 32, 32)
     let before = performance.now()
     let frame = requestAnimationFrame(function fall(now) {
       frame = requestAnimationFrame(fall)
@@ -54,9 +65,8 @@ export function Snowfall() {
         p.x += Math.sin(p.f) * p.s * dt
         if (p.y > h + 6) Object.assign(p, flake(false))
         ctx.globalAlpha = p.a
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fill()
+        const d = p.r * 2.2
+        ctx.drawImage(sprite, p.x - d, p.y - d, d * 2, d * 2)
       }
     })
     return () => {
