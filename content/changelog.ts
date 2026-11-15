@@ -152,6 +152,36 @@ export const UPCOMING: Upcoming[] = [
     title: "Ferramenta de análise de mira pro Valorant",
     text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
   },
+  {
+    id: "comandos-da-live",
+    status: "agora",
+    tag: "live",
+    title: "Todos os comandos da live num lugar só",
+    text: "Uma página com cada comando do chat e cada jeito de interagir com a live, os mesmos nos painéis da Twitch e no !comandos. Comandos novos que respondem com dados de verdade, como os seus Σ, e a arquibancada dos créditos obedecendo !pula, !danca e !ola.",
+  },
+  {
+    id: "duelo-de-bolinhas",
+    status: "proximo",
+    tag: "live",
+    title: "Duelo de bolinhas no canto da tela",
+    text: "Dois viewers sorteados da arquibancada se enfrentam sem parar, cada um como uma bolinha armada da classe que escolheu no site. Seus Σ viram pontos numa árvore de talentos, sem gastar nenhum, e cada vitória e partida fica registrada no site.",
+    credit: { by: "lucca_3098" },
+  },
+  {
+    id: "corrida-de-bolinhas",
+    status: "proximo",
+    tag: "live",
+    title: "Corrida de bolinhas",
+    text: "Uma corrida no estilo marbles, com uma bolinha pra cada viewer, do jeito que você montar no seu perfil.",
+    credit: { by: "lucca_3098" },
+  },
+  {
+    id: "comunidade-no-site",
+    status: "proximo",
+    tag: "site",
+    title: "O site como casa da comunidade",
+    text: "Perfil, torcedor, Σ, mural, minijogos e comandos conversando entre si, com uma cara só, pra quem assiste ter tudo seu num lugar.",
+  },
 ]
 
 /** Everything released, newest first. */
