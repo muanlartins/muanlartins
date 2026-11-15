@@ -153,13 +153,6 @@ export const UPCOMING: Upcoming[] = [
     text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
   },
   {
-    id: "comandos-da-live",
-    status: "agora",
-    tag: "live",
-    title: "Todos os comandos da live num lugar só",
-    text: "Uma página com cada comando do chat e cada jeito de interagir com a live, os mesmos nos painéis da Twitch e no !comandos. Comandos novos que respondem com dados de verdade, como os seus Σ, e a arquibancada dos créditos obedecendo !pula, !danca e !ola.",
-  },
-  {
     id: "duelo-de-bolinhas",
     status: "proximo",
     tag: "live",
@@ -186,6 +179,15 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "comandos-da-live",
+    date: "2026-11-15",
+    tag: "live",
+    title: "Todos os comandos da live num lugar só",
+    text: "Uma página com cada comando do chat e cada jeito de participar da live (os da arquibancada dá pra testar ali mesmo), a mesma lista no painel da Twitch e no !comandos. Comandos novos: !comemora e !grito na arquibancada, !sigma (os seus Σ e o seu ranque) e !agenda no bot. A arquibancada dos créditos agora obedece aos comandos, e de tempos em tempos o meu torcedor ensina um.",
+    href: "/canal/comandos",
+    media: [media("comandos-da-live", "A página de comandos: a arquibancada de exemplo, com o torcedor do meio soltando o grito, em cima da lista de comandos")],
+  },
   {
     id: "letra-da-musica",
     date: "2026-11-14",

@@ -21,7 +21,7 @@
  *   falar(p, text) → a balloon over their fan
  *   frase(p)       → their arrival shout ("" when they have none)
  */
-const Comandos = (() => {
+window.Comandos = (() => {
   const ESPERA_MS = 8000
   const GRITO_MS = 30000
   const OLA_MS = 15000

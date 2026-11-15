@@ -1,7 +1,7 @@
 {
   "_sobre": [
     "Every way to take part in the live from the chat, in one place. Read by: the site's /canal/comandos (lib/commands.ts), the stand's tips, said by the channel's own fan (torcida.html, `dica`), scripts/comandos.py (StreamElements' commands, from `resposta`, and the Twitch panel's text).",
-    "Each command: `comando` (how to type it), `apelidos` (other ways that work), `uso` (how to show it, when it takes something after it), `texto` (what it does, for the site and the panel), `dica` (a tip for the stand's balloon), `resposta` (the chat bot's answer: only these go to StreamElements; ${...} are its variables, customapi answers in plain text) and `espera` (the bot's cooldown in seconds: per person and for everyone).",
+    "Each command: `comando` (how to type it), `apelidos` (other ways that work), `uso` (how to show it, when it takes something after it), `texto` (what it does, for the site and the panel), `dica` (a tip for the stand's balloon), `resposta` (the chat bot's answer: only these go to StreamElements; ${...} are its variables, customapi answers in plain text) and `espera` (the bot's cooldown in seconds, per person and for everyone; 15 and 5 when not given).",
     "The stand's commands are comandos.js; the VAR's, var.html; the channel points' rewards, REWARDS in efeitos.html (keep `recompensas` the same)."
   ],
   "pagina": "https://muanlartins.com.br/canal/comandos",
@@ -35,8 +35,7 @@
         {
           "comando": "!comandos",
           "texto": "O link desta página.",
-          "resposta": "Todos os comandos e jeitos de interagir com a live: https://muanlartins.com.br/canal/comandos",
-          "espera": [30, 10]
+          "resposta": "Todos os comandos e jeitos de interagir com a live: https://muanlartins.com.br/canal/comandos"
         },
         {
           "comando": "!sigma",
@@ -51,51 +50,43 @@
           "comando": "!agenda",
           "apelidos": ["!proxima"],
           "texto": "Quando é a próxima live, e o jogo.",
-          "resposta": "${customapi.https://wtpv8afsak.execute-api.us-east-1.amazonaws.com/agenda.txt}",
-          "espera": [30, 10]
+          "resposta": "${customapi.https://wtpv8afsak.execute-api.us-east-1.amazonaws.com/agenda.txt}"
         },
         {
           "comando": "!perfil",
           "texto": "Onde montar o seu torcedor.",
           "dica": "monte o seu torcedor em muanlartins.com.br/perfil",
-          "resposta": "Monte o seu torcedor da arquibancada (cores, cabeça, roupa, time, comemoração e grito) e veja os seus Σ: https://muanlartins.com.br/perfil",
-          "espera": [30, 10]
+          "resposta": "Monte o seu torcedor da arquibancada (cores, cabeça, roupa, time, comemoração e grito) e veja os seus Σ: https://muanlartins.com.br/perfil"
         },
         {
           "comando": "!pix",
           "texto": "Como mandar um Pix que toca na live.",
-          "resposta": "Mande um Pix com mensagem, numa das vozes ou como uma música feita na hora, e ele toca na live: https://muanlartins.com.br/pix",
-          "espera": [30, 10]
+          "resposta": "Mande um Pix com mensagem, numa das vozes ou como uma música feita na hora, e ele toca na live: https://muanlartins.com.br/pix"
         },
         {
           "comando": "!mural",
           "texto": "Quem apoiou cada meta e a audiência do canal.",
-          "resposta": "Quem apoiou cada meta do Pix e quem mais assiste o canal: https://muanlartins.com.br/mural",
-          "espera": [30, 10]
+          "resposta": "Quem apoiou cada meta do Pix e quem mais assiste o canal: https://muanlartins.com.br/mural"
         },
         {
           "comando": "!roadmap",
           "texto": "O que vem por aí no canal, com quem deu cada ideia.",
-          "resposta": "O que vem por aí no canal e tudo que já saiu, com quem deu cada ideia: https://muanlartins.com.br/canal/roadmap",
-          "espera": [30, 10]
+          "resposta": "O que vem por aí no canal e tudo que já saiu, com quem deu cada ideia: https://muanlartins.com.br/canal/roadmap"
         },
         {
           "comando": "!fundamentos",
           "texto": "Como estou aprendendo cada jogo, rank por rank.",
-          "resposta": "Como estou aprendendo cada jogo, rank por rank. Rocket League: https://muanlartins.com.br/conteudo/rocket-league/fundamentals · Valorant: https://muanlartins.com.br/conteudo/valorant/fundamentals",
-          "espera": [30, 10]
+          "resposta": "Como estou aprendendo cada jogo, rank por rank. Rocket League: https://muanlartins.com.br/conteudo/rocket-league/fundamentals · Valorant: https://muanlartins.com.br/conteudo/valorant/fundamentals"
         },
         {
           "comando": "!site",
           "texto": "O site do canal.",
-          "resposta": "https://muanlartins.com.br",
-          "espera": [30, 10]
+          "resposta": "https://muanlartins.com.br"
         },
         {
           "comando": "!youtube",
           "texto": "As lives inteiras e os vídeos no YouTube.",
-          "resposta": "https://www.youtube.com/@muanlartins",
-          "espera": [30, 10]
+          "resposta": "https://www.youtube.com/@muanlartins"
         }
       ]
     }

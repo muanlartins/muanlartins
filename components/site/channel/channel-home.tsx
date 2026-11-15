@@ -9,7 +9,7 @@ import { longDate } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
 import { GameNext } from "@/components/site/agenda/game-next"
-import { channelPath } from "@/lib/channel"
+import { channelPath, type ChannelPage } from "@/lib/channel"
 import { gamePath } from "@/lib/game"
 import type { Live } from "@/lib/lives"
 import { PIX_API } from "@/lib/pix"
@@ -89,7 +89,7 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
             return (
               <li key={moment.title}>
                 {"page" in moment ? (
-                  <Link href={channelPath(moment.page)} className="group flex gap-3">
+                  <Link href={channelPath(moment.page as ChannelPage)} className="group flex gap-3">
                     {inner}
                   </Link>
                 ) : (
