@@ -264,13 +264,29 @@
         // until then each camera is tried in turn.
         let cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput")
         let stream = null
+        let failed = null
+        // In a browser that hasn't let the site use the camera yet (any but OBS, which allows it by itself), the
+        // cameras come without ids, and one asked for by an empty id fails without ever showing the permission prompt
+        // (2026-11-15, Brave on localhost). So any camera first, which shows it; once allowed, the names come.
+        if (!cams.some((d) => d.deviceId)) {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: size, audio: false })
+          } catch (e) {
+            // Blocked for the site: said as such. Anything else (the webcam NVIDIA Broadcast holds) still unlocked the names.
+            if (e.name === "NotAllowedError") throw new Error("o navegador bloqueou a câmera para este site (o cadeado na barra de endereço libera)")
+            failed = e
+          }
+          cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput")
+        }
         let pick = cams.find((d) => d.label.toLowerCase().includes(want))
-        if (!pick) {
+        if (!pick && !stream) {
           for (const c of cams) {
             try {
               stream = await open(c.deviceId)
               break
-            } catch {}
+            } catch (e) {
+              failed = e
+            }
           }
           cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput")
           pick = cams.find((d) => d.label.toLowerCase().includes(want))
@@ -279,7 +295,7 @@
           stream?.getTracks().forEach((t) => t.stop())
           stream = await open(pick.deviceId)
         }
-        if (!stream) throw new Error(`nenhuma câmera abriu (${cams.map((c) => c.label || "?").join(", ")})`)
+        if (!stream) throw new Error(`nenhuma câmera abriu (${cams.map((c) => c.label || "?").join(", ")}${failed ? `: ${failed.name}` : ""})`)
         video.srcObject = stream
         await video.play()
         await new Promise((r) => (video.videoWidth ? r() : video.addEventListener("loadedmetadata", r, { once: true })))
