@@ -147,8 +147,34 @@ export function daVez(agenda, agora = new Date(), antes = 90) {
   return o && Date.parse(o.inicio) - antes * 60_000 <= +agora ? o : null
 }
 
+/** "15:00" → "15h", "14:30" → "14h30". */
+const hora = (hhmm) => hhmm.replace(":", "h").replace(/h00$/, "h")
+
 /** A live's run of the show as lines: "15h · inhouse com os viewers". */
-export const roteiroEmLinhas = (roteiro) => roteiro.map((p) => (p.at ? `${p.at.replace(":", "h").replace(/h00$/, "h")} · ${p.text}` : p.text))
+export const roteiroEmLinhas = (roteiro) => roteiro.map((p) => (p.at ? `${hora(p.at)} · ${p.text}` : p.text))
+
+const SEMANA = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"]
+
+/**
+ * The agenda as one line of chat, for the chat bot's !agenda (the profile API's GET /agenda.txt): the live on air
+ * or the next one, with its game and title, then the one after it; `url` (the agenda's page) when none is planned
+ * in the next two weeks. Brasília's times, said once.
+ */
+export function noChat(agenda, { url, agora = new Date() }) {
+  const hoje = dataEm(agora, agenda?.timeZone || FUSO)
+  const quando = (o) =>
+    `${o.data === hoje ? "hoje" : o.data === somaDias(hoje, 1) ? "amanhã" : `${SEMANA[diaDaSemana(o.data) - 1]} ${o.data.slice(8)}/${o.data.slice(5, 7)}`} às ${hora(o.start)}`
+  const qual = (o) => (o.titulo === o.nome ? o.nome : `${o.nome}, ${o.titulo}`)
+  const [esta, depois] = ocorrencias(agenda, new Date(+agora - 86_400_000), 16).filter((o) => Date.parse(o.fim) > +agora)
+  if (!esta) return `Nenhuma live marcada nas próximas duas semanas. A agenda: ${url}`
+  const agoraNoAr = Date.parse(esta.inicio) <= +agora
+  return [
+    agoraNoAr ? `Ao vivo agora, até as ${hora(esta.end)}: ${qual(esta)}.` : `Próxima live ${quando(esta)} (horário de Brasília): ${qual(esta)}.`,
+    depois && `Depois, ${quando(depois)}: ${depois.nome}.`,
+  ]
+    .filter(Boolean)
+    .join(" ")
+}
 
 /**
  * The agenda as an iCalendar a calendar app subscribes to: each live from a week ago to eight weeks ahead, one event

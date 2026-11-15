@@ -123,6 +123,10 @@ test("the agenda: only the channel saves it, everyone reads it, with the next li
   assert.match(cal.headers["content-type"], /^text\/calendar/)
   assert.match(cal.body, /DTSTART;TZID=America\/Sao_Paulo:\d{8}T210000\r\n/)
   assert.match(cal.body, /SUMMARY:Live do muanlartins: VALORANT/)
+  const chat = await handler({ requestContext: { http: { method: "GET" } }, rawPath: "/agenda.txt", headers: {} })
+  assert.match(chat.headers["content-type"], /^text\/plain/)
+  // 2099's is past the two weeks the chat looks at.
+  assert.equal(chat.body, "Próxima live amanhã às 21h (horário de Brasília): VALORANT, Aprendendo Valorant.")
 })
 
 test("the story: the channel sends a JPEG, Instagram fetches it by its URL", async () => {
