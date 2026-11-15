@@ -2,6 +2,7 @@
 
 import { Gamepad2 } from "lucide-react"
 import { GameIcon } from "@/components/site/game/game-icon"
+import { GoalDayNotes, type GoalMarks } from "@/components/site/agenda/goals"
 import { gameName } from "@/components/site/lives/agenda"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
@@ -16,8 +17,8 @@ export function AgendaGameIcon({ game, size = 14 }: { game: string; size?: numbe
   return games.some((g) => g.id === game) ? <GameIcon game={game} size={size} /> : <Gamepad2 aria-hidden style={{ width: size, height: size }} className="text-klein" />
 }
 
-/** One day in full: its note, then each live with its time, game, title and run of the show. */
-export function DayDetail({ agenda, day, today }: { agenda: Agenda; day: Day; today: string }) {
+/** One day in full: its note and a Pix goal starting or ending on it, then each live with its time, game, title and run of the show. */
+export function DayDetail({ agenda, day, today, goals }: { agenda: Agenda; day: Day; today: string; goals?: GoalMarks }) {
   return (
     <section aria-live="polite">
       <h3 className="text-[19px] font-medium text-ink first-letter:uppercase">
@@ -25,6 +26,7 @@ export function DayDetail({ agenda, day, today }: { agenda: Agenda; day: Day; to
         {longDay(day.data)}
       </h3>
       {day.nota && <p className="mt-2 rounded-md bg-klein/[0.07] px-3 py-2 text-[15px] text-klein">{day.nota}</p>}
+      <GoalDayNotes marks={goals} />
       {!day.lives.length && <p className="mt-3 text-[15px] text-muted">{T.noLive}</p>}
       <div className="mt-3 space-y-3">
         {day.lives.map((live) => (

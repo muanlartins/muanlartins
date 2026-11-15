@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { GoalFlags, type GoalMarks } from "@/components/site/agenda/goals"
 import { gameLabel } from "@/components/site/lives/agenda"
 import { channel } from "@/content/channel"
 import { diaDaSemana, instante, somaDias } from "@/infra/comum/agenda.mjs"
@@ -27,7 +28,7 @@ const addMonths = (month: string, n: number) => {
 /**
  * A month of the agenda as a calendar, Monday first: each day with its lives (time and game) and its note (a mark on
  * a phone); today ringed, days gone faded, empty and not clickable (the agenda doesn't keep
- * the past). The month is the caller's (`month`, "YYYY-MM").
+ * the past). The month is the caller's (`month`, "YYYY-MM"). `goals` flags the days a Pix goal starts or ends.
  */
 export function Calendar({
   agenda,
@@ -36,6 +37,7 @@ export function Calendar({
   onMonth,
   selected,
   onSelect,
+  goals,
 }: {
   agenda: Agenda
   today: string
@@ -43,6 +45,7 @@ export function Calendar({
   onMonth: (month: string) => void
   selected: string
   onSelect: (date: string) => void
+  goals?: Record<string, GoalMarks>
 }) {
   const first = `${month}-01`
   const last = somaDias(addMonths(month, 1) + "-01", -1)
@@ -118,6 +121,7 @@ export function Calendar({
                       <span className="hidden sm:inline"> {gameLabel(agenda, live.jogo)}</span>
                     </span>
                   ))}
+                {!gone && <GoalFlags marks={goals?.[day.data]} />}
                 {day.nota && !gone && <span className="hidden truncate text-[11px] leading-tight text-muted sm:block">{day.nota}</span>}
                 {day.nota && !gone && <span className="text-[10px] leading-none text-muted sm:hidden">{day.lives.length ? "•" : "—"}</span>}
               </button>

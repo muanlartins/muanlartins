@@ -110,21 +110,6 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
-    id: "metas-com-prazo",
-    status: "agora",
-    tag: "site",
-    title: "Metas com data pra acabar",
-    text: "Cada meta do Pix mostra até quando vai, fecha sozinha no último dia e fica no mural como cumprida ou não. As metas aparecem na agenda. A dos três dígitos vai até 30/11.",
-  },
-  {
-    id: "natal-na-live",
-    status: "proximo",
-    tag: "live",
-    title: "Natal na live",
-    text: "A meta de dezembro vira uma árvore de Natal: cada Pix pendura na árvore um presente que você monta no site, na live e no mural. A cada R$ 10, um sub de presente sorteado pra arquibancada, e a torcida inteira de touca de Papai Noel.",
-    credit: { by: "leila_m_30" },
-  },
-  {
     id: "story-ao-abrir-a-live",
     status: "agora",
     tag: "live",
@@ -179,6 +164,39 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "gorro-de-natal",
+    date: "2026-11-15",
+    tag: "live",
+    title: "Gorro de Natal na câmera, e o canal enfeitado",
+    text: "Em dezembro eu uso um gorro de Papai Noel na câmera, por cima de qualquer filtro: no meu cabelo, no do Phoenix, do Sova ou da Sage, na bola ou no teto do Octane e do Fennec. A ponta balança quando eu mexo a cabeça, e numa Demolição ele voa e cai de volta. A moldura da câmera ganha luzinhas piscando, as telas de começo, intervalo, conversa e fim ficam com neve, e o site também: neve no fundo e a torcida de touca.",
+    media: [
+      media("gorro-de-natal", "Um gorro de Papai Noel cai na minha cabeça na câmera; com o filtro do Octane ele vai pro teto do carro, e numa Demolição voa dando uma volta, cai na minha cabeça e volta pro teto quando o carro reaparece", { video: true }),
+      media("natal-na-moldura", "A cena de conversa em dezembro: a moldura da câmera com luzinhas coloridas e neve caindo no fundo azul"),
+    ],
+  },
+  {
+    id: "natal-na-live",
+    date: "2026-11-15",
+    tag: "live",
+    title: "Natal na live",
+    text: "De 1º a 31 de dezembro, a meta do Pix é uma árvore de Natal: cada Pix pendura nela um presente que você monta no /pix (bola, sino, estrela, bengala ou caixa, nas suas cores), e ela acende conforme a meta enche, na live e no mural. A cada R$ 10, um sub de presente sorteado na live entre quem está na arquibancada, e a torcida inteira de touca de Papai Noel.",
+    href: "/mural",
+    credit: { by: "leila_m_30" },
+    media: [
+      media("natal-na-live", "A live com a árvore de Natal no canto, acesa até a metade, e o Pix da Ana chegando com o presente dela, um sino vermelho listrado de amarelo"),
+      media("natal-na-live-presente", "O /pix na meta de Natal: o presente sendo montado, com o formato, a cor, o detalhe e a estampa, e a prévia ao lado"),
+    ],
+  },
+  {
+    id: "metas-com-prazo",
+    date: "2026-11-15",
+    tag: "site",
+    title: "Metas com data pra acabar",
+    text: "Cada meta do Pix mostra até quando vai, na live e no site, e fecha sozinha à meia-noite do último dia: no mural ela fica como batida ou não, e o que passar do alvo antes disso conta como extra. A agenda mostra a meta de agora, a próxima e o dia em que cada uma começa e acaba.",
+    href: "/canal/agenda",
+    media: [media("metas-com-prazo", "A agenda com a meta dos três dígitos (R$ 67,67 de R$ 100, até 30/11) e a de Natal depois; no calendário de dezembro, o fim de uma meta no dia 30 e o começo da outra no dia 1º")],
+  },
   {
     id: "comandos-da-live",
     date: "2026-11-15",

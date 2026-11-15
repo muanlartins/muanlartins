@@ -80,6 +80,9 @@ All in one block after the other agents' (search "Sage's abilities"), with these
   (the body's material, when it isn't named Body), `extra` (more pieces on the torso), `behind` (locks beside the
   face), `forehead`, `trim`. Bone names may come numbered by an export (Neck_12) and a finer face rig has
   L_Brow_Mid_01 in place of L_Brows: `buildAgent` reads both. Check it on his face with `--video=` (step 6).
+- The Santa hat (`gorro.js`, December's) goes over every look: `hatAnchor()` places its brim on what his head is
+  (his hair, an agent's hair by its box `a.hatBox`, the ball, a car's roof `c.roof`). A new look on the head needs its
+  place there, or the hat sits on his own head inside it.
 
 ## 4. Its sounds
 

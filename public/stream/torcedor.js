@@ -190,18 +190,23 @@
   // While the VAR is open (torcida.html), everyone wears the referee's kit over their own look: a yellow shirt with a
   // black collar and the whistle. Head and name stay theirs; it's never saved to their profile.
   const ARBITRO = { cor: "#ffd23f", detalhe: PRETO, roupa: "gola", acessorio: "apito" }
+  // In December (Brasília's) the stand wears Santa's hat (`touca`), over a cap, crown or top hat; never saved either.
+  const TOUCA = `<g class="touca"><path class="contorno" fill="#e03131" d="M6.4 1.6 C6.8 -3.6 10.6 -6.6 14.8 -6.9 C17.8 -7.1 20.4 -5.8 22 -3.9 L18 1.6 Z"/><path class="contorno" fill="#f4f5f7" d="M5.4 0.6 H18.6 A1.4 1.4 0 0 1 18.6 3.4 H5.4 A1.4 1.4 0 0 1 5.4 0.6 Z"/><circle class="contorno" fill="#f4f5f7" cx="22.2" cy="-3.6" r="2"/></g>`
+  const CHAPEUS = ["bone", "coroa", "cartola"]
+  const natal = (agora = Date.now()) => new Date(agora).toLocaleDateString("en-US", { timeZone: "America/Sao_Paulo", month: "numeric" }) === "12"
   /** The fan as SVG, 24×36 units, feet at the bottom; arms show only while cheering (.bracos). */
   function figura(aparencia) {
-    const { cor, detalhe, cabeca, roupa, numero, acessorio } = aparencia
+    const { cor, detalhe, cabeca, roupa, numero, touca } = aparencia
+    const acessorio = touca && CHAPEUS.includes(aparencia.acessorio) ? "nenhum" : aparencia.acessorio
     return `<svg viewBox="0 0 24 36" aria-hidden="true" style="--cor:${cor}; color:${detalhe}">
       <g class="bracos"><path d="M5 18 L-1 8"/><path d="M19 18 L25 8"/></g>
       <g fill="${cor}">${CABECA[cabeca] || CABECA.losango}<path class="contorno" d="M7 14 H17 L22 19 V36 H2 V19 Z"/></g>
-      <g fill="${detalhe}">${(ROUPA[roupa] || ROUPA.lisa)(numero, aparencia)}${ACESSORIO[acessorio] ?? ""}</g>
+      <g fill="${detalhe}">${(ROUPA[roupa] || ROUPA.lisa)(numero, aparencia)}${ACESSORIO[acessorio] ?? ""}</g>${touca ? TOUCA : ""}
     </svg>`
   }
 
   window.Torcedor = {
     CORES, CABECAS, ROUPAS, TRES_CORES, ACESSORIOS, COMEMORACOES, STICKERS, FRASE_MAX, STICKERS_MAX, TIMES, TIME_MAX,
-    padrao, normalizar, soPaleta, figura, umEmoji, ARBITRO,
+    padrao, normalizar, soPaleta, figura, umEmoji, ARBITRO, natal,
   }
 })()
