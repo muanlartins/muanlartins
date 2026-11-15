@@ -37,7 +37,8 @@ export const channel = {
       {
         icon: "chat",
         title: { pt: "Comandos", en: "Commands" },
-        text: { pt: "!pula, !danca e !ola mexem a arquibancada.", en: "!pula, !danca and !ola move the stand." },
+        text: { pt: "!pula, !danca, !ola e mais: a live pelo chat.", en: "!pula, !danca, !ola and more: the stream from the chat." },
+        page: "comandos",
       },
       {
         icon: "ranked",
@@ -105,7 +106,6 @@ export const channel = {
     },
   },
 
-  /** /canal/roadmap: what comes next and everything released, with credits. Its entries are in content/changelog.ts. */
   /** /canal/agenda: the lives' calendar, which the channel's account plans right there. */
   agenda: {
     title: { pt: "Agenda", en: "Schedule" },
@@ -129,6 +129,30 @@ export const channel = {
     goalEndsDay: { pt: "Último dia da meta", en: "Last day of the goal" },
   },
 
+  /** /canal/comandos: every way to take part in the live from the chat. The commands themselves, with what each does,
+   * are public/stream/comandos.json (also the chat bot's answers and the Twitch panel). */
+  comandos: {
+    title: { pt: "Comandos", en: "Commands" },
+    description: {
+      pt: "Tudo o que dá pra fazer na live pelo chat: mexer o seu torcedor, votar no VAR, perguntar pro bot e trocar os pontos do canal.",
+      en: "Everything you can do on the stream from the chat: move your fan, vote on the VAR, ask the bot and spend channel points.",
+    },
+    /** Before a command's other spellings: "também !dança". */
+    also: { pt: "também", en: "also" },
+    /** Under the stand's commands: try them on the sample fans. */
+    tryIt: { pt: "Toque num comando pra ver.", en: "Tap a command to see it." },
+    /** The sample fan in the middle, who does what's tapped. */
+    you: { pt: "você", en: "you" },
+    /** The sample fan's shout for !grito. */
+    shout: { pt: "bora Luan!", en: "let's go!" },
+    points: { pt: "pontos", en: "points" },
+    profile: {
+      text: { pt: "O seu torcedor é do jeito que você montar.", en: "Your fan looks the way you build it." },
+      cta: { pt: "Monte o seu torcedor", en: "Build your fan" },
+    },
+  },
+
+  /** /canal/roadmap: what comes next and everything released, with credits. Its entries are in content/changelog.ts. */
   roadmap: {
     title: { pt: "Roadmap", en: "Roadmap" },
     description: {
