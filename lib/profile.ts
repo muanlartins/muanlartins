@@ -36,6 +36,8 @@ export interface Fan {
   comemoracao: string
   frase: string
   stickers: { gol: string[]; contra: string[] }
+  /** December's Santa hat (torcedor.js draws it over a cap, crown or top hat): only drawn, never saved. */
+  touca?: boolean
 }
 
 declare global {

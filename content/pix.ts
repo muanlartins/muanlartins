@@ -1,6 +1,8 @@
 /**
  * /pix: a Pix to the live, with a message on screen read by a voice; /mural: every Pix whose sender agreed. The voices' ids are the narrator's (scripts/narrador.py); their samples are in public/pix/vozes/.
  */
+import type { L10n } from "@/lib/site"
+
 export const pix = {
   title: { pt: "Pix na live", en: "Pix on the live" },
   description: {
@@ -68,6 +70,19 @@ export const pix = {
   },
   again: { pt: "Mandar outro Pix", en: "Send another Pix" },
   goal: { pt: "Meta", en: "Goal" },
+  // Christmas (a goal with tema "natal"): drafts for Luan.
+  present: { pt: "Seu presente na árvore", en: "Your present on the tree" },
+  presentHint: {
+    pt: "Cada Pix da meta de Natal pendura um presente na árvore da live e do mural. A cada R$ 10, um sub de presente pra alguém da arquibancada.",
+    en: "Every Pix of the Christmas goal hangs a present on the tree, on the live and on the mural. Every R$ 10 is a gift sub for someone in the stand.",
+  },
+  presentShape: { pt: "Formato", en: "Shape" },
+  presentColor: { pt: "Cor", en: "Colour" },
+  presentDetail: { pt: "Detalhe", en: "Detail" },
+  presentPattern: { pt: "Estampa", en: "Pattern" },
+  presentBox: { pt: "A caixa fica embaixo da árvore, maior a partir de R$ 5 e de R$ 20.", en: "The box goes under the tree, bigger from R$ 5 and from R$ 20." },
+  presentDone: { pt: "Seu presente já está na árvore.", en: "Your present is on the tree." },
+  presentSee: { pt: "Ver a árvore", en: "See the tree" },
   // The song (from R$ 5): a style and a theme or the lyrics; Google's AI writes and sings it.
   kind: { pt: "O que você quer mandar", en: "What you're sending" },
   kindMessage: { pt: "Mensagem", en: "Message" },
@@ -102,6 +117,18 @@ export const pix = {
 } as const
 
 /** The song's styles on the form; the musical direction behind each is ESTILOS in infra/pix/musica.mjs. */
+/** The presents' shapes and patterns by their ids in presente.js. */
+export const PRESENT_NAMES: Record<string, L10n> = {
+  bola: { pt: "Bola", en: "Bauble" },
+  sino: { pt: "Sino", en: "Bell" },
+  estrela: { pt: "Estrela", en: "Star" },
+  bengala: { pt: "Bengala", en: "Candy cane" },
+  caixa: { pt: "Caixa", en: "Box" },
+  liso: { pt: "Lisa", en: "Plain" },
+  listras: { pt: "Listras", en: "Stripes" },
+  bolinhas: { pt: "Bolinhas", en: "Dots" },
+}
+
 export const STYLES: { id: string; name: string }[] = [
   { id: "funk", name: "Funk" },
   { id: "sertanejo", name: "Sertanejo" },
@@ -146,6 +173,15 @@ export const mural = {
   of: { pt: "de", en: "of" },
   toGo: { pt: "faltam", en: "to go:" },
   supporters: { pt: "Quem ajudou", en: "Who helped" },
+  tree: { pt: "A árvore da meta, com um presente de cada Pix", en: "The goal's tree, with a present from each Pix" },
+  subs: { pt: "Subs de presente", en: "Gift subs" },
+  subsNote: {
+    pt: "Um a cada R$ 10, sorteado na live entre quem está na arquibancada. Quem tem mais Σ tem um pouco mais de chance, e cada um ganha no máximo um.",
+    en: "One for every R$ 10, drawn on the live among whoever is in the stand. More Σ is a little more luck, and nobody wins twice.",
+  },
+  subsNone: { pt: "Nenhum sorteado ainda.", en: "None drawn yet." },
+  subsNext: { pt: "O próximo vem com mais R$ {x}.", en: "The next comes with R$ {x} more." },
+  subsWaiting: { pt: "{n} esperando o sorteio na live.", en: "{n} waiting to be drawn on the live." },
   noneYet: { pt: "Nenhum Pix nesta meta ainda. O primeiro pode ser você.", en: "No Pix for this goal yet. The first could be you." },
   outside: { pt: "Fora das metas", en: "Outside the goals" },
   anonymous: { pt: "Anônimo", en: "Anonymous" },

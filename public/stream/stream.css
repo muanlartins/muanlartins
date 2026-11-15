@@ -97,6 +97,32 @@ body {
   inset: 0;
   overflow: visible;
 }
+/* December's lights on the frame (acender() in stream.js), twinkling in three groups out of step. */
+.frame .luzes {
+  animation: piscar 2.7s ease-in-out infinite;
+}
+.frame .luzes-1 {
+  animation-delay: -0.9s;
+}
+.frame .luzes-2 {
+  animation-delay: -1.8s;
+}
+@keyframes piscar {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+/* December's snow on the ground (neve() in stream.js), over the lattice. */
+.ground .neve {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
 .frame .streak {
   animation: lap var(--lap, 9s) linear infinite;
 }

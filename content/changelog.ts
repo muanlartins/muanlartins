@@ -110,14 +110,6 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
-    id: "natal-na-live",
-    status: "proximo",
-    tag: "live",
-    title: "Natal na live",
-    text: "A meta de dezembro vira uma árvore de Natal: cada Pix pendura na árvore um presente que você monta no site, na live e no mural. A cada R$ 10, um sub de presente sorteado pra arquibancada, e a torcida inteira de touca de Papai Noel.",
-    credit: { by: "leila_m_30" },
-  },
-  {
     id: "story-ao-abrir-a-live",
     status: "agora",
     tag: "live",
@@ -172,6 +164,30 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "gorro-de-natal",
+    date: "2026-11-15",
+    tag: "live",
+    title: "Gorro de Natal na câmera, e o canal enfeitado",
+    text: "Em dezembro eu uso um gorro de Papai Noel na câmera, por cima de qualquer filtro: no meu cabelo, no do Phoenix, do Sova ou da Sage, na bola ou no teto do Octane e do Fennec. A ponta balança quando eu mexo a cabeça, e numa Demolição ele voa e cai de volta. A moldura da câmera ganha luzinhas piscando, as telas de começo, intervalo, conversa e fim ficam com neve, e o site também: neve no fundo e a torcida de touca.",
+    media: [
+      media("gorro-de-natal", "Um gorro de Papai Noel cai na minha cabeça na câmera; com o filtro do Octane ele vai pro teto do carro, e numa Demolição voa dando uma volta, cai na minha cabeça e volta pro teto quando o carro reaparece", { video: true }),
+      media("natal-na-moldura", "A cena de conversa em dezembro: a moldura da câmera com luzinhas coloridas e neve caindo no fundo azul"),
+    ],
+  },
+  {
+    id: "natal-na-live",
+    date: "2026-11-15",
+    tag: "live",
+    title: "Natal na live",
+    text: "De 1º a 31 de dezembro, a meta do Pix é uma árvore de Natal: cada Pix pendura nela um presente que você monta no /pix (bola, sino, estrela, bengala ou caixa, nas suas cores), e ela acende conforme a meta enche, na live e no mural. A cada R$ 10, um sub de presente sorteado na live entre quem está na arquibancada, e a torcida inteira de touca de Papai Noel.",
+    href: "/mural",
+    credit: { by: "leila_m_30" },
+    media: [
+      media("natal-na-live", "A live com a árvore de Natal no canto, acesa até a metade, e o Pix da Ana chegando com o presente dela, um sino vermelho listrado de amarelo"),
+      media("natal-na-live-presente", "O /pix na meta de Natal: o presente sendo montado, com o formato, a cor, o detalhe e a estampa, e a prévia ao lado"),
+    ],
+  },
   {
     id: "metas-com-prazo",
     date: "2026-11-15",

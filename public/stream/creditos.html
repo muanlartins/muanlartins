@@ -449,7 +449,9 @@
       let JOGO = "rocket-league"
       const aparencia = (login) => {
         const a = Torcedor.normalizar(escolhas.get(login), login)
-        return login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+        const propria = login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+        // December: Santa's hat, as in the stand (torcedor.js).
+        return Torcedor.natal() || params.has("natal") ? { ...propria, touca: true } : propria
       }
 
       /** Someone to the stand (once): `dados` adds what's known about them. */

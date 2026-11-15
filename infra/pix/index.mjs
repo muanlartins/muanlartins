@@ -17,10 +17,18 @@
 //   meta/atual          the goal on screen, counting every Pix since it was set (`desde`), until its `prazo` if it has one
 //   meta/proxima        a goal set ahead of time: on its `desde` it takes the screen, ending the one before
 //   meta/<iso>          a goal that ended (sk: when it started), for the mural's history
+//   sorteio/<desde>#<n> the n-th gift sub drawn in a Christmas goal (the goal's `desde`), to whom, and whether it was given
 //
 // Public: POST /reservar, GET /reserva?id=, POST /musica (a refused song's new text), GET /mural (the site's /mural:
 // the goals and their Pix), GET /metas (the goals alone, with their dates, for the agenda). The phone: POST /notificacao with x-token. The stream: GET /canal, GET /audio?id= and
 // POST /canal with x-chave (the Σ key, already in OBS).
+//
+// A Christmas goal (tema "natal", from the dock): each of its Pix hangs a present on the tree that the overlay and the
+// mural draw (public/stream/presente.js), as chosen on /pix (`presente`, kept as sent: the drawing checks it) or, with
+// none, one picked from the moment it came; and every R$ 10 it makes (SUB, the extra too) is a sub Luan gives to someone in
+// the stand: the dock's "Sortear sub" (acao "sortear") draws them here, once each, from who's in the chat right now (the
+// Σ API's GET /presentes, with the key) weighted by Σ as the goal's dedication is (1 + ln(1 + Σ), sigma.js), never the
+// channel or someone who already won one in that goal; the overlay plays the draw and the mural lists who won.
 //
 // A goal's dates are Brasília's days (no daylight saving since 2019, so midnight is 03:00 UTC): it runs until the
 // midnight that ends its last day, and one set ahead starts at the midnight that begins its first. Nothing runs at
@@ -74,11 +82,25 @@ const FALHAS = 3 // tries at making a song before it plays as a plain alert: one
 const RODANDO = 110_000 // a run that claimed a song this long ago died (Google's own wait is 95 s, the function's 120 s)
 const SINCRONIA = 30_000 // the most the lyrics' timing may take; a run still ends by 100 s, well before RODANDO
 const SUJA = "Tem uma palavra aí que não pode tocar na live. Mude o texto e tente de novo."
+const TEMAS = ["natal"]
+const SUB = 1000 // a gift sub for every R$ 10 of a Christmas goal (Luan's call, 2026-11-14)
+// The Σ API (infra/sigma), for who's in the chat when a sub is drawn; a local stand-in points it elsewhere.
+const SIGMA_API = process.env.SIGMA_API ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
+const HEX = /^#[0-9a-f]{6}$/
+const NOME_CURTO = /^[a-z]{1,12}$/
 
 const novoId = () => randomBytes(9).toString("base64url")
 const expiraEm = (ms) => Math.floor((Date.now() + ms) / 1000)
 const iso = (t) => new Date(t).toISOString()
 const linha = (s, max) => [...String(s ?? "").replace(/\s+/g, " ").trim()].slice(0, max).join("").trim()
+
+/** A present for the Christmas tree as /pix sends it: its shape, two colours and pattern, kept only in that form. */
+function presenteDe(p) {
+  if (!p || typeof p !== "object") return undefined
+  const { formato, cor, detalhe, padrao } = p
+  const ok = NOME_CURTO.test(formato) && HEX.test(cor) && HEX.test(detalhe) && NOME_CURTO.test(padrao)
+  return ok ? { formato, cor, detalhe, padrao } : undefined
+}
 
 async function todos(pk, { desde, desc = false, limite } = {}) {
   const itens = []
@@ -215,6 +237,7 @@ async function reservar(event) {
         voz: musica ? "antonio" : VOZ.test(p.voz) ? p.voz : undefined,
         musica,
         quando: p.quando === "entre" ? "entre" : "agora",
+        presente: presenteDe(p.presente),
         // Every Pix from the form shows on the mural by the name and message its sender wrote, as the live does
         // (since 2026-11-10; before, only if they ticked the mural). The dock can take one off.
         mural: true,
@@ -284,6 +307,7 @@ const fimDoDia = (dia) => {
   return inicio && iso(Date.parse(inicio) + DIA)
 }
 const historico = (metas) => metas.filter((m) => m.sk !== "atual" && m.sk !== "proxima")
+const comTema = (m) => (m?.tema ? { tema: m.tema } : {})
 const somar = (pix) => pix.reduce((t, p) => t + p.centavos, 0)
 
 /**
@@ -293,7 +317,7 @@ const somar = (pix) => pix.reduce((t, p) => t + p.centavos, 0)
 async function arquivar(m, ate) {
   const pix = (await todos("pix", { desde: m.desde })).filter((p) => p.sk < ate)
   if (pix.length) {
-    const item = { pk: "meta", sk: m.desde, titulo: m.titulo, alvo: m.alvo, desde: m.desde, ate, arrecadado: somar(pix), ...(m.prazo ? { prazo: m.prazo } : {}) }
+    const item = { pk: "meta", sk: m.desde, titulo: m.titulo, alvo: m.alvo, desde: m.desde, ate, arrecadado: somar(pix), ...(m.prazo ? { prazo: m.prazo } : {}), ...comTema(m) }
     await db.send(new PutCommand({ TableName: T, Item: item }))
   }
   await seCondicao(
@@ -315,7 +339,7 @@ async function vigente(agora = Date.now()) {
       m = null
     }
     if (m || !comeca) break
-    const nova = { pk: "meta", sk: "atual", titulo: p.titulo, alvo: p.alvo, desde: p.desde, ...(p.prazo ? { prazo: p.prazo } : {}) }
+    const nova = { pk: "meta", sk: "atual", titulo: p.titulo, alvo: p.alvo, desde: p.desde, ...(p.prazo ? { prazo: p.prazo } : {}), ...comTema(p) }
     const pus = await seCondicao(db.send(new PutCommand({ TableName: T, Item: nova, ConditionExpression: "attribute_not_exists(sk)" })))
     await seCondicao(
       db.send(new DeleteCommand({ TableName: T, Key: { pk: "meta", sk: "proxima" }, ConditionExpression: "#d = :d", ExpressionAttributeNames: { "#d": "desde" }, ExpressionAttributeValues: { ":d": p.desde } })),
@@ -327,15 +351,62 @@ async function vigente(agora = Date.now()) {
   return { atual: m ?? null, proxima: p ?? null }
 }
 
-const datas = (m) => ({ desde: m.desde, prazo: m.prazo ?? null })
-const agendada = (p) => (p ? { titulo: p.titulo, alvo: p.alvo, ...datas(p) } : null)
+// A goal's dates and theme, as every route shows them.
+const detalhes = (m) => ({ desde: m.desde, prazo: m.prazo ?? null, tema: m.tema ?? null })
+const agendada = (p) => (p ? { titulo: p.titulo, alvo: p.alvo, ...detalhes(p) } : null)
 
-async function meta() {
+/** The goal on screen with its count, and its Pix (a Christmas goal's tree); none, if there's no goal. */
+async function metaComPix() {
   const { atual: m } = await vigente()
-  if (!m) return null
-  const arrecadado = somar(await todos("pix", { desde: m.desde }))
-  return { titulo: m.titulo, alvo: m.alvo, arrecadado, ...datas(m) }
+  if (!m) return { meta: null, pix: [] }
+  const pix = await todos("pix", { desde: m.desde })
+  return { meta: { titulo: m.titulo, alvo: m.alvo, arrecadado: somar(pix), ...detalhes(m) }, pix }
 }
+const meta = async () => (await metaComPix()).meta
+
+// --- Christmas: the tree and the gift subs ------------------------------------------------------------------------
+
+const sorteiosDe = async (desde) => (await todos("sorteio", { desde: `${desde}#` })).filter((s) => s.sk.startsWith(`${desde}#`))
+
+/**
+ * The Christmas goal whose subs are drawn now: the one on screen (`m`, as meta() gives it) if it's one, or else the last
+ * that ended, up to a month after (a sub its last Pix earned after the last live of the month is drawn in the next).
+ */
+async function deNatal(m) {
+  if (m?.tema === "natal") return m
+  const mes = iso(Date.now() - 30 * DIA)
+  const ultima = historico(await todos("meta"))
+    .filter((g) => g.tema === "natal" && g.ate >= mes)
+    .sort((a, b) => (a.desde < b.desde ? 1 : -1))[0]
+  return ultima ?? null
+}
+
+/** A Christmas goal's subs: how many its Pix earned (`devidos`, one per SUB) and the ones drawn. */
+async function subsDe(m) {
+  return { titulo: m.titulo, desde: m.desde, cada: SUB, devidos: Math.floor(m.arrecadado / SUB), sorteios: await sorteiosDe(m.desde) }
+}
+
+/** Who is in the chat now, with their Σ, from the Σ API; null when it can't be reached. */
+async function quemEsta() {
+  try {
+    const r = await fetch(`${SIGMA_API}/presentes`, { headers: { "x-chave": process.env.CHAVE }, signal: AbortSignal.timeout(8000) })
+    if (!r.ok) return null
+    const { pessoas } = await r.json()
+    if (!Array.isArray(pessoas)) return null
+    return pessoas.filter((c) => typeof c?.login === "string").map((c) => ({ login: c.login, sigma: Math.max(0, Number(c.sigma) || 0) }))
+  } catch {
+    return null
+  }
+}
+
+/** One of `candidatos` ({ login, sigma }), each weighing 1 + ln(1 + Σ), like the goal's dedication (sigma.js's peso). */
+export function sortear(candidatos, aleatorio = Math.random) {
+  const peso = (c) => 1 + Math.log(1 + c.sigma)
+  let sorte = aleatorio() * candidatos.reduce((t, c) => t + peso(c), 0)
+  return candidatos.find((c) => (sorte -= peso(c)) < 0) ?? candidatos.at(-1)
+}
+
+const reaisDe = (c) => (c / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
 /**
  * When the Pix of no goal began: the first since the last goal ended (or the first ever), leaving out the channel's
@@ -355,12 +426,12 @@ async function semMeta() {
 // tests from before the first goal.
 async function mural() {
   const { atual, proxima } = await vigente()
-  const [todosPix, metas] = await Promise.all([todos("pix"), todos("meta")])
+  const [todosPix, metas, sorteios] = await Promise.all([todos("pix"), todos("meta"), todos("sorteio")])
   const goals = [
-    ...(atual ? [{ titulo: atual.titulo, alvo: atual.alvo, ...datas(atual), ate: null }] : []),
+    ...(atual ? [{ titulo: atual.titulo, alvo: atual.alvo, ...detalhes(atual), ate: null }] : []),
     ...historico(metas)
       .sort((a, b) => (a.desde < b.desde ? 1 : -1))
-      .map((m) => ({ titulo: m.titulo, alvo: m.alvo, ...datas(m), ate: m.ate })),
+      .map((m) => ({ titulo: m.titulo, alvo: m.alvo, ...detalhes(m), ate: m.ate })),
   ]
   const daMeta = (p) => goals.findIndex((g) => p.sk >= g.desde && (!g.ate || p.sk < g.ate))
   const mostra = (p) => ({
@@ -369,12 +440,13 @@ async function mural() {
     mensagem: p.mensagem || p.transcricao || "",
     centavos: p.centavos,
     login: p.login,
+    presente: p.presente,
     musica:
       p.musica?.tocou && p.musica.arquivo
         ? { url: MUSICAS_URL + p.musica.arquivo, estilo: p.musica.estilo, sobre: p.musica.sobre, letra: p.musica.letraCantada, tempos: p.musica.tempos, segundos: p.musica.segundos }
         : undefined,
   })
-  const anonimo = (p) => ({ em: p.sk.slice(0, 24), nome: "", mensagem: "", centavos: p.centavos })
+  const anonimo = (p) => ({ em: p.sk.slice(0, 24), nome: "", mensagem: "", centavos: p.centavos, presente: p.presente })
   const contas = goals.map(() => ({ arrecadado: 0, pix: 0, apoiadores: [] }))
   const semMeta = []
   for (const p of todosPix.reverse()) {
@@ -385,7 +457,9 @@ async function mural() {
       contas[i].apoiadores.push(p.oculto ? anonimo(p) : mostra(p))
     } else if (p.mural && !p.oculto) semMeta.push(mostra(p))
   }
-  const lista = goals.map((g, i) => ({ ...g, ...contas[i] }))
+  // A Christmas goal also lists who won its subs.
+  const subs = (g) => (g.tema === "natal" ? { sorteios: sorteios.filter((s) => s.sk.startsWith(`${g.desde}#`)).map(({ login, em, dado }) => ({ login, em, dado })) } : {})
+  const lista = goals.map((g, i) => ({ ...g, ...contas[i], ...subs(g) }))
   return out(200, {
     meta: atual ? lista[0] : null,
     metas: atual ? lista.slice(1) : lista,
@@ -404,7 +478,7 @@ async function metas() {
     proxima: agendada(proxima),
     metas: historico(todas)
       .sort((a, b) => (a.desde < b.desde ? 1 : -1))
-      .map((g) => ({ titulo: g.titulo, alvo: g.alvo, ...datas(g), ate: g.ate, arrecadado: g.arrecadado })),
+      .map((g) => ({ titulo: g.titulo, alvo: g.alvo, ...detalhes(g), ate: g.ate, arrecadado: g.arrecadado })),
   })
 }
 
@@ -426,6 +500,7 @@ async function registrar(r, origem) {
     quando: r.quando || "agora",
     mural: !!r.mural,
     login: r.login,
+    presente: r.presente,
     reserva: r.sk,
     origem,
     exibido: false,
@@ -614,13 +689,13 @@ async function notificacao(event) {
 
 async function canal() {
   const agora = Date.now()
-  const [pix, pendentes, reservas, m] = await Promise.all([
+  const [pix, pendentes, reservas, { meta: m, pix: daMeta }] = await Promise.all([
     todos("pix", { desc: true, limite: 30 }),
     todos("pendente"),
     todos("reserva"),
-    meta(),
+    metaComPix(),
   ])
-  const proxima = await ler("meta", "proxima")
+  const [proxima, natal] = await Promise.all([ler("meta", "proxima"), deNatal(m)])
   const comMusica = (p) => (p.musica ? { ...p, musica: { ...p.musica, estado: estadoDe(p.musica, agora), url: p.musica.arquivo ? MUSICAS_URL + p.musica.arquivo : undefined } } : p)
   return out(200, {
     agora,
@@ -631,6 +706,9 @@ async function canal() {
       .map(({ sk, centavos, nome, mensagem, audio, transcricao, sujo, voz, quando, expira, musica }) => ({ id: sk, centavos, nome, mensagem, audio, transcricao, sujo, voz, quando, expira, musica: musica && { estilo: musica.estilo } })),
     meta: m,
     proxima: agendada(proxima),
+    // A Christmas goal on screen: every Pix's present, for the tree. And the subs of the one being drawn.
+    arvore: m?.tema === "natal" ? daMeta.map((p) => ({ em: p.sk.slice(0, 24), presente: p.presente, centavos: p.centavos })) : null,
+    subs: natal ? await subsDe(natal) : null,
   })
 }
 
@@ -715,17 +793,54 @@ async function acao(p) {
     if (typeof p.pix === "string") await atualizar("pix", p.pix, { transcricao: texto, sujo })
     return out(200, { texto, sujo })
   }
+  // A gift sub of the Christmas goal being drawn (deNatal), from who's in the chat now (see the header): one a call, the
+  // dock's "Sortear sub", and the n-th only once, however many calls race for it.
+  if (acao === "sortear") {
+    const natal = await deNatal(await meta())
+    if (!natal) return out(409, { erro: "Não tem meta de Natal agora." })
+    const { devidos, sorteios } = await subsDe(natal)
+    if (sorteios.length >= devidos) return out(409, { erro: `Nenhum sub esperando sorteio: o próximo vem com mais R$ ${reaisDe(SUB * (devidos + 1) - natal.arrecadado)}.` })
+    const presentes = await quemEsta()
+    if (!presentes) return out(502, { erro: "Não consegui ver quem está no chat. Tente de novo." })
+    const ganharam = new Set(sorteios.map((s) => s.login))
+    const candidatos = presentes.filter((c) => c.login !== DONO && !ganharam.has(c.login))
+    if (!candidatos.length) return out(409, { erro: presentes.some((c) => c.login !== DONO) ? "Todo mundo no chat já ganhou um sub nessa meta." : "Ninguém na arquibancada agora: o sorteio é com a live no ar." })
+    const vencedor = sortear(candidatos)
+    const item = {
+      pk: "sorteio",
+      sk: `${natal.desde}#${String(sorteios.length + 1).padStart(3, "0")}`,
+      login: vencedor.login,
+      sigma: vencedor.sigma,
+      // Who was in it, for the overlay's roulette (the winner among them, whoever is past the 40th).
+      candidatos: [...new Set([vencedor.login, ...candidatos.map((c) => c.login)])].slice(0, 40),
+      em: iso(Date.now()),
+      exibido: false,
+      dado: false,
+    }
+    const ok = await seCondicao(db.send(new PutCommand({ TableName: T, Item: item, ConditionExpression: "attribute_not_exists(sk)" })))
+    if (!ok) return out(409, { erro: "Esse sub acabou de ser sorteado. Veja a lista." })
+    return out(200, { sorteio: item })
+  }
+  // A drawn sub: played on the live (the overlay; the dock's "Mostrar de novo" sets it back) or given on Twitch (dado).
+  if (acao === "sorteio") {
+    if (typeof p.sk !== "string") return out(400, {})
+    const sets = Object.fromEntries(["exibido", "dado"].filter((k) => typeof p[k] === "boolean").map((k) => [k, p[k]]))
+    if (!Object.keys(sets).length) return out(400, {})
+    return out((await atualizar("sorteio", p.sk, sets)) ? 200 : 404, {})
+  }
   // A new goal ends the one before; "ajustar" changes the one on screen and keeps its count. With "avulsos", a goal
   // (new or adjusted) counts from the first Pix since the last goal ended (or the first ever, if none did). `ate` is
   // its last day (Brasília's "YYYY-MM-DD"; none, or "" when adjusting, runs until it's ended by hand). With
   // "proxima", it's set ahead of time, from its first day (`de`), replacing any scheduled before; an alvo of 0
-  // takes the scheduled one off.
+  // takes the scheduled one off. `tema` "natal" makes it a Christmas goal (the tree and the subs; see the header);
+  // Ajustar keeps the one it had unless it's sent ("" takes it off).
   if (acao === "meta") {
     const agora = Date.now()
     const alvo = Number(p.alvo)
     const valido = Number.isInteger(alvo) && alvo >= 1
     const titulo = valido ? filtrar(linha(p.titulo, 60)).texto : ""
     const prazo = p.ate ? fimDoDia(p.ate) : null
+    const tema = TEMAS.includes(p.tema) ? p.tema : undefined
     if (p.ate && !prazo) return out(400, { erro: "Data de fim inválida." })
     if (prazo && Date.parse(prazo) <= agora) return out(400, { erro: "Esse dia já acabou." })
     if (p.proxima) {
@@ -736,7 +851,7 @@ async function acao(p) {
       const desde = inicioDoDia(p.de)
       if (!desde || Date.parse(desde) <= agora) return out(400, { erro: "A próxima meta começa num dia que ainda não chegou." })
       if (prazo && prazo <= desde) return out(400, { erro: "A meta acaba antes de começar." })
-      const item = { pk: "meta", sk: "proxima", titulo, alvo, desde, ...(prazo ? { prazo } : {}) }
+      const item = { pk: "meta", sk: "proxima", titulo, alvo, desde, ...(prazo ? { prazo } : {}), ...comTema({ tema }) }
       await db.send(new PutCommand({ TableName: T, Item: item }))
       return out(200, { proxima: agendada(item) })
     }
@@ -748,7 +863,7 @@ async function acao(p) {
     if (p.ajustar && atual) {
       const desde = p.avulsos ? await semMeta() : atual.desde
       const fica = p.ate === undefined ? atual.prazo : prazo
-      const item = { pk: "meta", sk: "atual", titulo, alvo, desde, ...(fica ? { prazo: fica } : {}) }
+      const item = { pk: "meta", sk: "atual", titulo, alvo, desde, ...(fica ? { prazo: fica } : {}), ...comTema({ tema: p.tema === undefined ? atual.tema : tema }) }
       const ok = await seCondicao(
         db.send(new PutCommand({ TableName: T, Item: item, ConditionExpression: "#d = :d", ExpressionAttributeNames: { "#d": "desde" }, ExpressionAttributeValues: { ":d": atual.desde } })),
       )
@@ -756,7 +871,7 @@ async function acao(p) {
     } else {
       if (atual) await arquivar(atual, iso(agora))
       const desde = p.avulsos ? await semMeta() : iso(agora)
-      await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: "atual", titulo, alvo, desde, ...(prazo ? { prazo } : {}) } }))
+      await db.send(new PutCommand({ TableName: T, Item: { pk: "meta", sk: "atual", titulo, alvo, desde, ...(prazo ? { prazo } : {}), ...comTema({ tema }) } }))
     }
     return out(200, { meta: await meta() })
   }
