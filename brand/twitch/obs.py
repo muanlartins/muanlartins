@@ -139,10 +139,10 @@ camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_vide
 ])
 # One scene per game, always with the chat (Luan, 2026-11-10: the scenes without it, "Jogo" and "Valorant", are gone,
 # and Rocket League's is "RL + chat"). The overlays' sources keep the names they had.
-game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1")
+game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1&duelo=1")
 chat_overlay = browser("Overlay · Conversa", "conversa.html")
-valorant_chat_overlay = browser("Overlay · Valorant + chat", "jogo.html?chat=1&jogo=valorant&altura=cima")
-various_chat_overlay = browser("Overlay · Diversos + chat", "jogo.html?chat=1&placar=0")
+valorant_chat_overlay = browser("Overlay · Valorant + chat", "jogo.html?chat=1&jogo=valorant&altura=cima&duelo=1")
+various_chat_overlay = browser("Overlay · Diversos + chat", "jogo.html?chat=1&placar=0&duelo=1")
 
 
 def stand(name, page):
@@ -218,7 +218,11 @@ RETIRED_ITEMS = {("Fim", "Tela · Fim"), ("VAR · Rocket League", "VAR · replay
 # buffer for the VAR, on each capture's "Gravar jogo". Never change them while OBS records (the obs skill).
 FILTER_SETTINGS = {(name, "Gravar jogo"): REPLAY_JOGO for name in ("Rocket League", "Captura · Valorant", "Captura · Diversos")}
 # And on sources it already has: the VAR's page plays the clip's sound since 2026-11-12, through OBS, in his headphones.
-SOURCE_SETTINGS = {"Efeito · VAR": ({"reroute_audio": True}, {"monitoring_type": MONITOR_AND_OUTPUT})}
+# The game overlays' chat starts under the ball duel since 2026-11-15 (?duelo=1; these URLs carry no key).
+SOURCE_SETTINGS = {"Efeito · VAR": ({"reroute_audio": True}, {"monitoring_type": MONITOR_AND_OUTPUT}),
+                   "Overlay · Jogo + chat": ({"url": game_chat_overlay["settings"]["url"]}, {}),
+                   "Overlay · Diversos + chat": ({"url": various_chat_overlay["settings"]["url"]}, {}),
+                   "Overlay · Valorant + chat": ({"url": valorant_chat_overlay["settings"]["url"]}, {})}
 
 
 def trigger(name, key):
@@ -253,6 +257,12 @@ calm.update(monitoring_type=MONITOR_AND_OUTPUT)
 # chat is; its sound on the stream and in Luan's headphones (tracks 1 and 5, not the game's own track). The stand in
 # referee kit is the game's own crowd source, so it keeps its people.
 booth = browser("Efeito · VAR", "var.html")
+# The ball duel (duelo.html, 2026-11-15): two viewers from the chat fighting in the mini player's corner, top right, the
+# chat under it (jogo.html?duelo=1); under the VAR, which takes the corner while it's open (the page hides itself).
+# Silent. One source, so a fight goes on across the game scenes: in Valorant's, where that corner is the killfeed's,
+# it sits 238 px lower (its box under the killfeed, at y 330) and the chat goes to the left, under the Pix goal.
+duel = browser("Duelo", "duelo.html")
+duel_in_valorant = {"pos": (0, 238)}
 booth["settings"]["reroute_audio"] = True
 booth.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
@@ -283,11 +293,12 @@ filters_at = {name: {**box, "scale_filter": "area"} for name, box in
 scenes = [
     scene("Começando", (starting, {})),
     scene("RL + chat", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
-          (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
+          (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}), (duel, {}), (booth, {})),
     scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, filters_at["valorant"]),
-          (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
+          (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {}), (duel, duel_in_valorant),
+          (booth, {})),
     scene("Diversos + chat", (various, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
-          (various_chat_overlay, {}), (various_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
+          (various_chat_overlay, {}), (various_crowd, {}), *alerts_in_game, (pix, {}), (duel, {}), (booth, {})),
     scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
     scene("Lance ruim", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
           (camera, in_rocket_league), (bad_play, {})),
@@ -349,7 +360,7 @@ collection = {
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
     "sources": scenes + [game, valorant, various, camera, filters, game_chat_overlay, valorant_chat_overlay,
-                         various_chat_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm, booth] + apps + sounds
+                         various_chat_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm, booth, duel] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,

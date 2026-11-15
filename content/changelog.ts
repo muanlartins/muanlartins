@@ -138,12 +138,26 @@ export const UPCOMING: Upcoming[] = [
     text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
   },
   {
-    id: "duelo-de-bolinhas",
-    status: "proximo",
-    tag: "live",
-    title: "Duelo de bolinhas no canto da tela",
-    text: "Dois viewers sorteados da arquibancada se enfrentam sem parar, cada um como uma bolinha armada da classe que escolheu no site. Seus Σ viram pontos numa árvore de talentos, sem gastar nenhum, e cada vitória e partida fica registrada no site.",
+    id: "duelo-no-site",
+    status: "agora",
+    tag: "site",
+    title: "Seu duelo no site",
+    text: "Uma área de minijogos no canal: lá você escolhe a classe da sua bolinha (ou deixa aleatória) e os visuais que seus Σ já liberaram, vê o ranking de vitórias e o replay de qualquer luta. Cada vitória e partida sua fica registrada.",
     credit: { by: "lucca_3098" },
+  },
+  {
+    id: "pagina-do-viewer",
+    status: "proximo",
+    tag: "site",
+    title: "Uma página pra cada viewer",
+    text: "Seu torcedor, seus Σ e medalhas, seus duelos, seus Pix no mural, suas ideias no roadmap, as partidas que jogou comigo e os gols dedicados a você, tudo num lugar. Todo nome no site leva pra ela, e o !perfil no chat manda o link.",
+  },
+  {
+    id: "perfil-personalizado",
+    status: "proximo",
+    tag: "site",
+    title: "Perfil personalizado",
+    text: "Um cartão seu que aparece igual em todo canto do site, com seu torcedor, nome, emblema e sequência de lives, e que você personaliza do seu jeito, como um perfil do Discord.",
   },
   {
     id: "corrida-de-bolinhas",
@@ -164,6 +178,17 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "duelo-de-bolinhas",
+    date: "2026-11-15",
+    tag: "live",
+    title: "Duelo de bolinhas no canto da tela",
+    text: "Dois viewers sorteados do chat se enfrentam no canto da tela, um duelo atrás do outro: cada um é uma bolinha com as cores do seu torcedor e uma arma que cresce a cada acerto (espada, adaga, arco, lança, machado ou foice, sorteada a cada duelo). Todo mundo tem a mesma força; seus Σ só deixam a arma mais bonita, do bronze à Lenda Supersônica. Quando o VAR abre, o duelo espera.",
+    credit: { by: "lucca_3098" },
+    media: [
+      media("duelo-de-bolinhas", "O duelo no canto da live: lucas_s, de Machado, acerta um crítico e derruba o otto, de Arco, e o torcedor dele comemora", { video: true }),
+    ],
+  },
   {
     id: "gorro-de-natal",
     date: "2026-11-15",

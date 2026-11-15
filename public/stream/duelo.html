@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Duelo · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <link rel="stylesheet" href="torcedor.css" />
+    <!--
+      OBS: Browser source "Duelo", 1920×1080, in the game scenes ("RL + chat", "Valorant + chat", "Diversos + chat"),
+      over the overlays and under the VAR's mini player. Silent.
+
+      The ball duel (Lucca's idea, lucca_3098; Luan's rules, 2026-11-15): in the corner of the VAR's mini player, two
+      viewers in the chat drawn at random fight as balls with weapons, one duel after another, forever, with nobody
+      joining or doing anything. The fight is duelo-motor.js (deterministic: a seed and two classes); this page draws
+      it. Each ball wears its viewer's colours from their fan (/perfil), and its weapon's material is their Σ rank:
+      Σ never makes a ball stronger, only better looking. A viewer who didn't pick a class (the site's page for it
+      comes later) gets one at random each duel.
+
+      Who fights: the viewers logged in with the chat open (Twitch's membership events, as torcida.html), drawn like
+      the goal's dedication (more Σ, a little more chance: Sigma.peso), never the two of the duel before when there
+      are four or more. Alone, the one viewer fights the channel's ball; nobody, the corner stays empty.
+
+      The VAR comes first: while one is open (the Efeitos dock's "muanlartins-var"), the duel stops where it is and
+      the corner is the VAR's; it carries on when the VAR closes. It also stops while the source is off the air.
+
+      The box is the mini player's, 640×360 at (1236, 92); ?x= and ?y= move it (Valorant, under its killfeed:
+      ?y=340). ?api= the profile API, ?sigma= the Σ API, ?canal= the channel. ?demo fills the chat with sample
+      people (keys: v the VAR opens and closes, n next duel, s someone leaves, j someone arrives); ?demo=1v1 has a
+      single viewer; ?semente= fixes the first fight's seed, ?classes=machado,arco the classes (to try one); ?fundo=<image> puts a game screenshot behind.
+      Copy is a draft for Luan.
+    -->
+    <style>
+      :root {
+        --esquerda: #85a7ff;
+        --direita: #ffb347;
+        --caixa-x: 1236px;
+        --caixa-y: 92px;
+      }
+      .fundo-demo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .caixa {
+        position: absolute;
+        left: var(--caixa-x);
+        top: var(--caixa-y);
+        width: 640px;
+        height: 360px;
+        transition:
+          opacity 0.5s var(--ease),
+          transform 0.5s var(--ease);
+      }
+      .caixa.escondida {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+      /* The ground: navy, see-through enough to know the game goes on under it, cut at 45° like the camera frame. */
+      .chao {
+        position: absolute;
+        inset: 0;
+        background: rgb(0 20 71 / 0.86);
+        clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+      }
+      .chao::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          repeating-linear-gradient(45deg, transparent 0 16px, rgb(133 167 255 / 0.07) 0 17px),
+          repeating-linear-gradient(-45deg, transparent 0 16px, rgb(133 167 255 / 0.07) 0 17px);
+      }
+      .borda {
+        position: absolute;
+        inset: 0;
+        overflow: visible;
+      }
+      canvas {
+        position: absolute;
+        left: 8px;
+        top: 64px;
+        width: 624px;
+        height: 288px;
+      }
+
+      /* The band over the top edge, like the VAR's: what this is. */
+      .faixa-titulo {
+        position: absolute;
+        left: -10px;
+        top: -24px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 36px 0 0;
+        background: var(--paper);
+        color: var(--klein);
+        clip-path: polygon(0 0, 100% 0, calc(100% - 30px) 100%, 0 100%);
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .faixa-titulo b {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        padding: 0 12px;
+        background: var(--klein);
+        color: var(--paper);
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+
+      /* The header: each fighter, their bar draining toward their own side, what their weapon has grown to. */
+      .placar {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        top: 8px;
+        height: 52px;
+        display: grid;
+        grid-template-columns: 1fr 44px 1fr;
+        align-items: center;
+      }
+      .lado {
+        display: grid;
+        grid-template-columns: 30px 1fr;
+        grid-template-rows: 22px 12px 14px;
+        column-gap: 8px;
+        align-items: center;
+        min-width: 0;
+      }
+      .lado.direita {
+        grid-template-columns: 1fr 30px;
+        text-align: right;
+      }
+      .lado .fa {
+        grid-row: 1 / 4;
+        position: relative;
+        width: 30px;
+        height: 45px;
+      }
+      .lado.direita .fa {
+        grid-column: 2;
+        grid-row: 1 / 4;
+      }
+      .lado .nome {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .lado.direita .nome {
+        grid-column: 1;
+        grid-row: 1;
+        flex-direction: row-reverse;
+      }
+      .lado .nome span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .lado .nome img {
+        width: 20px;
+        height: 20px;
+        flex: none;
+      }
+      .barra {
+        position: relative;
+        height: 10px;
+        background: rgb(244 245 247 / 0.14);
+        clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+      }
+      .lado.direita .barra {
+        grid-column: 1;
+        grid-row: 2;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 6px 100%);
+      }
+      .barra i {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 100%;
+        background: var(--cor-lado);
+        transition: width 0.25s var(--ease);
+      }
+      .barra i.rastro {
+        background: var(--paper);
+        transition: width 0.8s var(--ease) 0.3s;
+      }
+      .lado.direita .barra i {
+        inset: 0 0 0 auto;
+      }
+      .lado .info {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: rgb(244 245 247 / 0.8);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      .lado.direita .info {
+        grid-column: 1;
+        grid-row: 3;
+        flex-direction: row-reverse;
+      }
+      .lado .info strong {
+        color: var(--paper);
+        font-weight: 700;
+      }
+      .esquerda {
+        --cor-lado: var(--esquerda);
+      }
+      .direita {
+        --cor-lado: var(--direita);
+      }
+      .relogio {
+        text-align: center;
+        font-size: 15px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: rgb(244 245 247 / 0.7);
+      }
+      .relogio.subita {
+        color: #ff6b6b;
+      }
+
+      /* The cards over the arena: who's about to fight, and who won. */
+      .cartao {
+        position: absolute;
+        left: 8px;
+        top: 64px;
+        width: 624px;
+        height: 288px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        background: rgb(0 20 71 / 0.82);
+        opacity: 0;
+        transition: opacity 0.35s var(--ease);
+        pointer-events: none;
+      }
+      .cartao.visivel {
+        opacity: 1;
+      }
+      .cartao .lutador {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        width: 220px;
+      }
+      .cartao .lutador .fa {
+        position: relative;
+        width: 64px;
+        height: 96px;
+      }
+      .cartao .lutador strong {
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 28px;
+        line-height: 1.1;
+      }
+      .cartao .lutador span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--cor-lado);
+      }
+      .cartao .lutador span em {
+        font-style: normal;
+        font-weight: 500;
+        color: rgb(244 245 247 / 0.6);
+      }
+      .cartao .x {
+        font-size: 44px;
+        font-weight: 700;
+        color: var(--klein-claro);
+      }
+      .cartao .vitoria {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        text-align: center;
+      }
+      .cartao .vitoria strong {
+        max-width: 560px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 34px;
+        line-height: 1.1;
+      }
+      .cartao .vitoria small {
+        font-size: 17px;
+        font-weight: 500;
+        color: rgb(244 245 247 / 0.75);
+      }
+      .cartao .vitoria .fa {
+        position: relative;
+        width: 72px;
+        height: 108px;
+        margin-bottom: 4px;
+      }
+      .cartao .vitoria .pose {
+        position: absolute;
+        inset: 0;
+      }
+      .entra .lutador:first-child {
+        animation: entra-esquerda 0.5s var(--ease) both;
+      }
+      .entra .lutador:last-child {
+        animation: entra-direita 0.5s var(--ease) both;
+      }
+      .entra .x {
+        animation: bate 0.4s var(--ease) 0.35s both;
+      }
+      @keyframes entra-esquerda {
+        from {
+          transform: translateX(-60px);
+          opacity: 0;
+        }
+      }
+      @keyframes entra-direita {
+        from {
+          transform: translateX(60px);
+          opacity: 0;
+        }
+      }
+      @keyframes bate {
+        from {
+          transform: scale(2.2);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="caixa escondida">
+        <div class="chao"></div>
+        <svg class="borda" viewBox="0 0 640 360" width="640" height="360" aria-hidden="true">
+          <path d="M24 0.75H639.25V336L615.25 359.25H0.75V24Z" fill="none" stroke="rgb(133 167 255 / 0.5)" stroke-width="1.5" />
+        </svg>
+        <div class="faixa-titulo"><b>DUELO</b><span>dois do chat, sorteados</span></div>
+        <div class="placar">
+          <div class="lado esquerda">
+            <div class="fa torcedor"></div>
+            <div class="nome"><img alt="" hidden /><span></span></div>
+            <div class="barra"><i class="rastro"></i><i class="vida"></i></div>
+            <div class="info"><strong class="hp">100</strong><span class="cresce"></span></div>
+          </div>
+          <div class="relogio">0</div>
+          <div class="lado direita">
+            <div class="fa torcedor"></div>
+            <div class="nome"><img alt="" hidden /><span></span></div>
+            <div class="barra"><i class="rastro"></i><i class="vida"></i></div>
+            <div class="info"><strong class="hp">100</strong><span class="cresce"></span></div>
+          </div>
+        </div>
+        <canvas width="1248" height="576"></canvas>
+        <div class="cartao"></div>
+      </div>
+    </div>
+    <script src="stream.js"></script>
+    <script src="torcedor.js"></script>
+    <script src="sigma.js"></script>
+    <script src="duelo-motor.js"></script>
+    <script>
+      const caixa = document.querySelector(".caixa")
+      const canvas = document.querySelector("canvas")
+      const ctx = canvas.getContext("2d")
+      const cartao = document.querySelector(".cartao")
+      const relogio = document.querySelector(".relogio")
+      const lados = [...document.querySelectorAll(".placar .lado")]
+      if (params.has("x")) caixa.style.setProperty("--caixa-x", `${Number(params.get("x"))}px`)
+      if (params.has("y")) caixa.style.setProperty("--caixa-y", `${Number(params.get("y"))}px`)
+      if (params.get("fundo")) {
+        const img = document.createElement("img")
+        img.className = "fundo-demo"
+        img.src = params.get("fundo")
+        document.querySelector(".stage").prepend(img)
+      }
+
+      const API = params.get("api") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
+      const SIGMA_API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
+      const DEMO = params.has("demo")
+
+      // --- Who's in the chat --------------------------------------------------------------------------------------
+      const presentes = new Map() // login → display name
+      const escolhas = new Map() // login → their fan, from the profile API
+      const sigmas = new Map() // login → Σ
+      function chegar(login, nome = login) {
+        if (BOTS.has(login) || login.startsWith("justinfan")) return
+        if (!presentes.has(login) || nome !== login) presentes.set(login, nome)
+      }
+      function apply(line) {
+        const { tags, prefix, command, trailing } = parseIrc(line)
+        const login = prefix.split("!")[0]
+        if (command === "JOIN") chegar(login)
+        else if (command === "PART") presentes.delete(login)
+        else if (command === "PRIVMSG") chegar(login, tags["display-name"] || login)
+        else if (command === "353") trailing.split(" ").forEach((name) => name && chegar(name))
+      }
+
+      // Their fan and Σ, asked just before each duel for the two drawn (and the pool's Σ, for the draw's weights,
+      // every two minutes).
+      async function pedir(logins) {
+        if (DEMO || !logins.length) return
+        try {
+          const [fas, pontos] = await Promise.all([
+            fetch(`${API}/torcedores?logins=${logins.join(",")}`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
+            fetch(`${SIGMA_API}/sigmas?logins=${logins.join(",")}`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
+          ])
+          for (const login of logins) {
+            if (fas[login]) escolhas.set(login, fas[login])
+            if (pontos[login]) sigmas.set(login, pontos[login].sigma ?? 0)
+          }
+        } catch {
+          // Offline: they fight with the look from their login.
+        }
+      }
+      setInterval(() => pedir([...presentes.keys()].slice(0, 100)), 120000)
+
+      const sigma = (login) => (login === CHANNEL ? Sigma.RL.at(-1)[0] : sigmas.get(login) ?? 0)
+      // In December (or with ?natal) they wear Santa's hat, as in the stand and the credits.
+      function aparencia(login) {
+        const a = Torcedor.normalizar(escolhas.get(login), login)
+        const propria = login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+        return Torcedor.natal() || params.has("natal") ? { ...propria, touca: true } : propria
+      }
+
+      // --- The weapon's material: the viewer's Σ rank, looks only -------------------------------------------------
+      // Bronze, Prata, Ouro: the metal. Platina up: the metal glows. Diamante up: the ball leaves a trail. Campeão up:
+      // sparks fly from the weapon. Lenda Supersônica: the colours turn.
+      const MATERIAIS = {
+        bronze: { cor: "#c98a52", luz: "#f0b27a" },
+        silver: { cor: "#c3cad6", luz: "#eef2f8" },
+        gold: { cor: "#f2c14e", luz: "#ffe39a" },
+        platinum: { cor: "#7fd8d2", luz: "#c8fff9", brilho: true },
+        diamond: { cor: "#7aa2ff", luz: "#d6e2ff", brilho: true, rastro: true },
+        champion: { cor: "#b48cff", luz: "#e6d8ff", brilho: true, rastro: true, faiscas: true },
+        "grand-champion": { cor: "#ff6b6b", luz: "#ffd0d0", brilho: true, rastro: true, faiscas: true },
+        "supersonic-legend": { cor: "#ffffff", luz: "#ffffff", brilho: true, rastro: true, faiscas: true, arco: true },
+      }
+      const tier = (id) => id.replace(/-\d$/, "")
+      const material = (login) => MATERIAIS[tier(Sigma.ranque(sigma(login)).id)] ?? MATERIAIS.bronze
+
+      // --- The draw -----------------------------------------------------------------------------------------------
+      // Like the goal's dedication: more Σ, a little more chance (Sigma.peso). Never the two from the duel before when
+      // there are four or more to choose from; with three, the one who sat out comes in.
+      let anteriores = []
+      function sortear() {
+        const todos = [...presentes.keys()].filter((login) => login !== CHANNEL)
+        if (!todos.length) return null
+        if (todos.length === 1) return [todos[0], CHANNEL]
+        let lista = todos.length >= 4 ? todos.filter((l) => !anteriores.includes(l)) : todos
+        if (todos.length === 3) {
+          const fora = todos.find((l) => !anteriores.includes(l))
+          if (fora) {
+            const outro = um(todos.filter((l) => l !== fora))
+            return Math.random() < 0.5 ? [fora, outro] : [outro, fora]
+          }
+        }
+        const a = um(lista)
+        lista = lista.filter((l) => l !== a)
+        const b = um(lista.length ? lista : todos.filter((l) => l !== a))
+        return [a, b]
+      }
+      function um(lista) {
+        let sorte = Math.random() * lista.reduce((soma, l) => soma + Sigma.peso(sigma(l)), 0)
+        return lista.find((l) => (sorte -= Sigma.peso(sigma(l))) < 0) ?? lista.at(-1)
+      }
+
+      // --- The cycle: the card with the two, the fight, the winner, a breath, again --------------------------------
+      const APRESENTA_MS = 3200
+      const RESULTADO_MS = 4500
+      const PAUSA_MS = 1500
+      let luta = null // the fight going on
+      let lutadores = null // [{ login, nome, classe, sorteada, aparencia, material }]
+      let fase = "vazio" // "apresenta" | "luta" | "resultado" | "vazio"
+      let faseAte = 0
+      let varAberto = false
+      let noAr = true
+      const pausado = () => varAberto || !noAr
+
+      async function proximo() {
+        const par = sortear()
+        if (!par) {
+          fase = "vazio"
+          caixa.classList.add("escondida")
+          faseAte = performance.now() + 5000
+          return
+        }
+        anteriores = par
+        fase = "carregando"
+        await pedir(par.filter((l) => l !== CHANNEL))
+        const semente = params.has("semente") && !luta ? Number(params.get("semente")) : crypto.getRandomValues(new Uint32Array(1))[0]
+        // No class picked yet (the site's page for it comes later): one at random, each duel.
+        const fixas = params.get("classes")?.split(",").filter((c) => Duelo.CLASSES[c])
+        const classes = par.map((_, i) => fixas?.[i] ?? Duelo.IDS[Math.floor(Math.random() * Duelo.IDS.length)])
+        lutadores = par.map((login, i) => ({
+          login,
+          nome: presentes.get(login) ?? (login === CHANNEL ? "muanlartins" : login),
+          classe: classes[i],
+          sorteada: true,
+          aparencia: aparencia(login),
+          material: material(login),
+          ranque: Sigma.ranque(sigma(login)),
+        }))
+        luta = Duelo.criar(semente, classes[0], classes[1])
+        vestirPlacar()
+        mostrarApresentacao()
+        caixa.classList.remove("escondida")
+        fase = "apresenta"
+        faseAte = performance.now() + APRESENTA_MS
+        efeitos.length = 0
+        rastros = [[], []]
+      }
+
+      function vestirPlacar() {
+        lutadores.forEach((l, i) => {
+          const lado = lados[i]
+          lado.querySelector(".fa").innerHTML = Torcedor.figura(l.aparencia)
+          lado.querySelector(".nome span").textContent = l.nome
+          const img = lado.querySelector(".nome img")
+          img.hidden = l.login === CHANNEL
+          img.src = l.ranque.emblema
+          lado.querySelector(".vida").style.width = "100%"
+          lado.querySelector(".rastro").style.width = "100%"
+        })
+        atualizarPlacar()
+      }
+      function atualizarPlacar() {
+        luta.bolas.forEach((bola, i) => {
+          const lado = lados[i]
+          const p = `${(bola.hp / bola.hpMax) * 100}%`
+          lado.querySelector(".vida").style.width = p
+          lado.querySelector(".rastro").style.width = p
+          lado.querySelector(".hp").textContent = Math.ceil(bola.hp)
+          lado.querySelector(".cresce").textContent = `${bola.c.nome} · ${Duelo.contador(bola)}`
+        })
+        const t = Math.floor(luta.t)
+        relogio.textContent = t
+        relogio.classList.toggle("subita", luta.t >= Duelo.MORTE_SUBITA)
+      }
+
+      const texto = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c])
+      function mostrarApresentacao() {
+        const lutador = (l, i) => `<div class="lutador ${i ? "direita" : "esquerda"}">
+          <div class="fa torcedor">${Torcedor.figura(l.aparencia)}</div>
+          <strong>${texto(l.nome)}</strong>
+          <span>${Duelo.CLASSES[l.classe].nome}${l.sorteada ? " <em>sorteada</em>" : ""}</span>
+        </div>`
+        cartao.innerHTML = `${lutador(lutadores[0], 0)}<div class="x">×</div>${lutador(lutadores[1], 1)}`
+        cartao.classList.remove("entra")
+        void cartao.offsetWidth
+        cartao.classList.add("visivel", "entra")
+      }
+      function mostrarResultado(fim) {
+        const l = lutadores[fim.vencedor]
+        const outro = luta.bolas[1 - fim.vencedor]
+        const s = Math.round(fim.t)
+        const como = fim.motivo === "nocaute" ? `nocaute em ${s} s` : fim.motivo === "tempo" ? `no tempo, com ${Math.ceil(luta.bolas[fim.vencedor].hp)} de vida` : "no sorteio, empatados"
+        cartao.innerHTML = `<div class="vitoria ${fim.vencedor ? "direita" : "esquerda"}">
+          <div class="fa torcedor comemora" data-comemoracao="${l.aparencia.comemoracao}"><div class="pose">${Torcedor.figura(l.aparencia)}</div></div>
+          <strong>${texto(l.nome)} venceu!</strong>
+          <small>${Duelo.CLASSES[l.classe].nome} contra ${Duelo.CLASSES[outro.classe].nome}, ${como}</small>
+        </div>`
+        cartao.classList.remove("entra")
+        cartao.classList.add("visivel")
+      }
+
+      // --- Drawing ------------------------------------------------------------------------------------------------
+      const efeitos = [] // damage numbers, sparks, words: { tipo, x, y, ate, ... }
+      let rastros = [[], []]
+      let tremor = 0
+      const ESCALA = canvas.width / Duelo.LARGURA
+      const COR_LADO = [getComputedStyle(document.documentElement).getPropertyValue("--esquerda").trim(), getComputedStyle(document.documentElement).getPropertyValue("--direita").trim()]
+
+      function ouvir(eventos, agora) {
+        for (const e of eventos) {
+          if (e.tipo === "golpe" || e.tipo === "critico" || e.tipo === "flecha" || e.tipo === "sangria") {
+            // Numbers close together merge, so a dagger's flurry is one number going up, not a cloud.
+            const junto = efeitos.find((f) => f.tipo === "numero" && f.alvo === e.alvo && agora - f.desde < 300 && e.tipo !== "critico")
+            if (junto) {
+              junto.valor += e.dano
+              junto.ate = agora + 900
+            } else efeitos.push({ tipo: "numero", alvo: e.alvo, valor: e.dano, x: e.x, y: e.y, desde: agora, ate: agora + 900, critico: e.tipo === "critico", sangria: e.tipo === "sangria" })
+            if (e.tipo !== "sangria") tremor = Math.max(tremor, e.tipo === "critico" ? 6 : 2.5)
+            if (e.tipo === "critico") efeitos.push({ tipo: "palavra", texto: "CRÍTICO!", x: e.x, y: e.y - 26, desde: agora, ate: agora + 1100, cor: "#ffd23f" })
+          } else if (e.tipo === "aparada" || e.tipo === "bloqueio") {
+            efeitos.push({ tipo: "faisca", x: e.x, y: e.y, desde: agora, ate: agora + 260, grande: e.tipo === "aparada" })
+          } else if (e.tipo === "morte-subita") {
+            efeitos.push({ tipo: "faixa", texto: "MORTE SÚBITA", desde: agora, ate: agora + 1800 })
+          }
+        }
+      }
+
+      // The weapons, drawn along +x from the body's edge, in the ball's turn.
+      function desenharArma(bola, l, agora) {
+        const m = l.material
+        const r = bola.r
+        const len = bola.comprimento
+        ctx.save()
+        ctx.translate(bola.x, bola.y)
+        ctx.rotate(bola.angulo)
+        ctx.lineJoin = "round"
+        ctx.lineCap = "round"
+        const contorno = "#001447"
+        const metal = m.arco ? `hsl(${(agora / 8) % 360} 90% 72%)` : m.cor
+        if (m.brilho) {
+          ctx.shadowColor = m.arco ? metal : m.luz
+          ctx.shadowBlur = 10
+        }
+        const traco = (fn, largura, cor) => {
+          ctx.beginPath()
+          fn()
+          ctx.lineWidth = largura + 3
+          ctx.strokeStyle = contorno
+          ctx.stroke()
+          ctx.lineWidth = largura
+          ctx.strokeStyle = cor
+          ctx.stroke()
+        }
+        const forma = (fn, cor) => {
+          ctx.beginPath()
+          fn()
+          ctx.closePath()
+          ctx.fillStyle = cor
+          ctx.fill()
+          ctx.shadowBlur = 0
+          ctx.lineWidth = 2
+          ctx.strokeStyle = contorno
+          ctx.stroke()
+        }
+        const cabo = "#8a6a4a"
+        switch (bola.classe) {
+          case "espada": {
+            // The blade brightens with each hit.
+            const k = Math.min(1, (bola.dano - bola.c.arma.dano) / 10)
+            forma(() => {
+              ctx.moveTo(r - 2, -5)
+              ctx.lineTo(r + len - 11, -5)
+              ctx.lineTo(r + len + 1, 0)
+              ctx.lineTo(r + len - 11, 5)
+              ctx.lineTo(r - 2, 5)
+            }, metal)
+            if (k > 0) {
+              ctx.globalAlpha = k * 0.8
+              forma(() => {
+                ctx.moveTo(r + 2, -1.5)
+                ctx.lineTo(r + len - 8, -1.5)
+                ctx.lineTo(r + len - 3, 0)
+                ctx.lineTo(r + len - 8, 1.5)
+                ctx.lineTo(r + 2, 1.5)
+              }, "#ffffff")
+              ctx.globalAlpha = 1
+            }
+            traco(() => {
+              ctx.moveTo(r + 2, -10)
+              ctx.lineTo(r + 2, 10)
+            }, 5, metal)
+            break
+          }
+          case "adaga": {
+            // Fast enough, a blur ring of its turn.
+            const giro = Math.abs(bola.giro) / bola.c.arma.giro
+            if (giro > 1.6) {
+              ctx.save()
+              ctx.shadowBlur = 0
+              ctx.globalAlpha = Math.min(0.35, (giro - 1.6) * 0.15)
+              ctx.beginPath()
+              ctx.arc(0, 0, r + len * 0.6, 0, Math.PI * 2)
+              ctx.lineWidth = len * 0.8
+              ctx.strokeStyle = metal
+              ctx.stroke()
+              ctx.restore()
+            }
+            forma(() => {
+              ctx.moveTo(r - 2, -6)
+              ctx.lineTo(r + len - 8, -4.5)
+              ctx.lineTo(r + len + 1, 0)
+              ctx.lineTo(r + len - 8, 4.5)
+              ctx.lineTo(r - 2, 6)
+            }, metal)
+            break
+          }
+          case "arco": {
+            traco(() => {
+              ctx.arc(r - 8, 0, len + 4, -1.05, 1.05)
+            }, 7, metal)
+            ctx.shadowBlur = 0
+            ctx.beginPath()
+            const ponta = (s) => [r - 8 + Math.cos(1.05) * (len + 4), s * Math.sin(1.05) * (len + 4)]
+            ctx.moveTo(...ponta(-1))
+            ctx.lineTo(...ponta(1))
+            ctx.lineWidth = 1.5
+            ctx.strokeStyle = "rgb(244 245 247 / 0.8)"
+            ctx.stroke()
+            break
+          }
+          case "lanca": {
+            const p = bola.c.arma.ponta
+            traco(() => {
+              ctx.moveTo(r - 2, 0)
+              ctx.lineTo(r + len - 10, 0)
+            }, 6, cabo)
+            forma(() => {
+              ctx.moveTo(r + len * (1 - p) + 2, -8)
+              ctx.lineTo(r + len + 2, 0)
+              ctx.lineTo(r + len * (1 - p) + 2, 8)
+              ctx.lineTo(r + len * (1 - p) + 8, 0)
+            }, metal)
+            break
+          }
+          case "machado": {
+            traco(() => {
+              ctx.moveTo(r - 2, 0)
+              ctx.lineTo(r + len, 0)
+            }, 6, cabo)
+            // The head glows with the crit's chance.
+            if (bola.critico > 0.3) {
+              ctx.shadowColor = "#ffd23f"
+              ctx.shadowBlur = 6 + bola.critico * 22
+            }
+            forma(() => {
+              ctx.moveTo(r + len - 14, -3)
+              ctx.quadraticCurveTo(r + len + 4, -14, r + len + 2, -21)
+              ctx.quadraticCurveTo(r + len + 16, 0, r + len + 2, 21)
+              ctx.quadraticCurveTo(r + len + 4, 14, r + len - 14, 3)
+            }, metal)
+            break
+          }
+          case "foice": {
+            traco(() => {
+              ctx.moveTo(r - 2, 0)
+              ctx.lineTo(r + len, 0)
+            }, 5, cabo)
+            forma(() => {
+              ctx.moveTo(r + len + 2, -4)
+              ctx.quadraticCurveTo(r + len + 2, 26, r + len - 34, 26)
+              ctx.quadraticCurveTo(r + len - 10, 16, r + len - 6, 4)
+            }, metal)
+            break
+          }
+        }
+        ctx.restore()
+      }
+
+      function desenharBola(bola, i, agora) {
+        const l = lutadores[i]
+        const a = l.aparencia
+        // The trail, from Diamante up.
+        if (l.material.rastro) {
+          const r = rastros[i]
+          r.push([bola.x, bola.y])
+          if (r.length > 14) r.shift()
+          r.forEach(([x, y], k) => {
+            ctx.globalAlpha = (k / r.length) * 0.28
+            ctx.fillStyle = l.material.arco ? `hsl(${(agora / 8 + k * 20) % 360} 90% 70%)` : l.material.cor
+            ctx.beginPath()
+            ctx.arc(x, y, bola.r * (0.4 + (0.6 * k) / r.length), 0, Math.PI * 2)
+            ctx.fill()
+          })
+          ctx.globalAlpha = 1
+        }
+        desenharArma(bola, l, agora)
+        // The body: their fan's colours, ringed in their side's.
+        ctx.save()
+        ctx.translate(bola.x, bola.y)
+        ctx.beginPath()
+        ctx.arc(0, 0, bola.r, 0, Math.PI * 2)
+        ctx.fillStyle = a.cor
+        ctx.fill()
+        ctx.save()
+        ctx.clip()
+        ctx.fillStyle = a.detalhe
+        // The shirt's pattern, roughly: stripes, a sash, halves.
+        if (["listras", "tricolor"].includes(a.roupa)) for (let k = -2; k <= 2; k += 2) ctx.fillRect(k * 7 - 3, -bola.r, 6, bola.r * 2)
+        else if (["listrado", "faixa-dupla", "listra"].includes(a.roupa)) for (let k = -1; k <= 1; k += 2) ctx.fillRect(-bola.r, k * 7 - 3, bola.r * 2, 6)
+        else if (a.roupa === "faixa") {
+          ctx.rotate(Math.PI / 4)
+          ctx.fillRect(-bola.r, -4, bola.r * 2, 8)
+        } else if (a.roupa === "meio") ctx.fillRect(0, -bola.r, bola.r, bola.r * 2)
+        else {
+          ctx.beginPath()
+          ctx.arc(0, 0, bola.r * 0.42, 0, Math.PI * 2)
+          ctx.fill()
+        }
+        ctx.restore()
+        if (bola.flash > 0) {
+          ctx.globalAlpha = Math.min(1, bola.flash / 0.12) * 0.85
+          ctx.fillStyle = "#ffffff"
+          ctx.beginPath()
+          ctx.arc(0, 0, bola.r, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.globalAlpha = 1
+        }
+        ctx.lineWidth = 3.5
+        ctx.strokeStyle = COR_LADO[i]
+        ctx.beginPath()
+        ctx.arc(0, 0, bola.r - 1, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.restore()
+        // Bleeding: red drops.
+        if (bola.sangrando) {
+          for (let k = 0; k < Math.min(5, bola.sangrando); k++) {
+            const fase = (agora / 700 + k / 5) % 1
+            ctx.fillStyle = `rgb(255 70 70 / ${1 - fase})`
+            ctx.beginPath()
+            ctx.arc(bola.x + (k - 2) * 7, bola.y + bola.r + fase * 14, 2.4, 0, Math.PI * 2)
+            ctx.fill()
+          }
+        }
+        // Sparks off the weapon, from Campeão up.
+        if (l.material.faiscas && Math.random() < 0.35) {
+          const w = Duelo.arma(bola)
+          efeitos.push({ tipo: "brilho", x: w.x1, y: w.y1, vx: (Math.random() - 0.5) * 40, vy: (Math.random() - 0.5) * 40, desde: agora, ate: agora + 400, cor: l.material.arco ? `hsl(${Math.random() * 360} 90% 75%)` : l.material.luz })
+        }
+      }
+
+      function desenhar(agora) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        if (!luta) return
+        const sx = tremor ? (Math.random() - 0.5) * tremor : 0
+        const sy = tremor ? (Math.random() - 0.5) * tremor : 0
+        tremor = Math.max(0, tremor - 0.6)
+        ctx.setTransform(ESCALA, 0, 0, ESCALA, sx * ESCALA, sy * ESCALA)
+        // The arena: its floor and walls (closing in during sudden death).
+        const p = luta.paredes
+        ctx.fillStyle = "rgb(0 12 46 / 0.55)"
+        ctx.fillRect(p.x0, p.y0, p.x1 - p.x0, p.y1 - p.y0)
+        ctx.lineWidth = 2
+        ctx.strokeStyle = luta.t >= Duelo.MORTE_SUBITA ? "#ff6b6b" : "rgb(133 167 255 / 0.45)"
+        ctx.strokeRect(p.x0 + 1, p.y0 + 1, p.x1 - p.x0 - 2, p.y1 - p.y0 - 2)
+        // Arrows.
+        for (const f of luta.flechas) {
+          const v = Math.sqrt(f.vx * f.vx + f.vy * f.vy)
+          const dx = (f.vx / v) * 12, dy = (f.vy / v) * 12
+          ctx.lineCap = "round"
+          ctx.lineWidth = 5
+          ctx.strokeStyle = "#001447"
+          ctx.beginPath()
+          ctx.moveTo(f.x - dx, f.y - dy)
+          ctx.lineTo(f.x, f.y)
+          ctx.stroke()
+          ctx.lineWidth = 2.5
+          ctx.strokeStyle = COR_LADO[f.dono]
+          ctx.stroke()
+        }
+        luta.bolas.forEach((bola, i) => desenharBola(bola, i, agora))
+        // Numbers, sparks, words.
+        for (let k = efeitos.length - 1; k >= 0; k--) {
+          const e = efeitos[k]
+          if (agora > e.ate) {
+            efeitos.splice(k, 1)
+            continue
+          }
+          const t = (agora - e.desde) / (e.ate - e.desde)
+          if (e.tipo === "numero") {
+            if (e.valor < 1) continue
+            ctx.font = `700 ${e.critico ? 26 : 18}px "Space Grotesk"`
+            ctx.textAlign = "center"
+            ctx.lineWidth = 4
+            ctx.strokeStyle = "#001447"
+            ctx.globalAlpha = 1 - Math.max(0, t - 0.6) / 0.4
+            const y = e.y - 10 - t * 18
+            ctx.strokeText(Math.round(e.valor), e.x, y)
+            ctx.fillStyle = e.critico ? "#ffd23f" : e.sangria ? "#ff7a7a" : "#f4f5f7"
+            ctx.fillText(Math.round(e.valor), e.x, y)
+            ctx.globalAlpha = 1
+          } else if (e.tipo === "palavra") {
+            ctx.font = `700 22px "Space Grotesk"`
+            ctx.textAlign = "center"
+            ctx.lineWidth = 4
+            ctx.strokeStyle = "#001447"
+            ctx.globalAlpha = 1 - Math.max(0, t - 0.7) / 0.3
+            ctx.strokeText(e.texto, e.x, e.y - t * 10)
+            ctx.fillStyle = e.cor
+            ctx.fillText(e.texto, e.x, e.y - t * 10)
+            ctx.globalAlpha = 1
+          } else if (e.tipo === "faisca") {
+            ctx.strokeStyle = `rgb(255 255 255 / ${1 - t})`
+            ctx.lineWidth = 2.5
+            const n = e.grande ? 8 : 5
+            const raio = (e.grande ? 6 : 3) + t * (e.grande ? 18 : 9)
+            for (let j = 0; j < n; j++) {
+              const ang = (j / n) * Math.PI * 2
+              ctx.beginPath()
+              ctx.moveTo(e.x + Math.cos(ang) * raio * 0.4, e.y + Math.sin(ang) * raio * 0.4)
+              ctx.lineTo(e.x + Math.cos(ang) * raio, e.y + Math.sin(ang) * raio)
+              ctx.stroke()
+            }
+          } else if (e.tipo === "brilho") {
+            ctx.fillStyle = e.cor
+            ctx.globalAlpha = 1 - t
+            ctx.fillRect(e.x + e.vx * t - 1.5, e.y + e.vy * t - 1.5, 3, 3)
+            ctx.globalAlpha = 1
+          } else if (e.tipo === "faixa") {
+            ctx.globalAlpha = t < 0.15 ? t / 0.15 : t > 0.8 ? (1 - t) / 0.2 : 1
+            ctx.fillStyle = "rgb(200 40 40 / 0.85)"
+            ctx.fillRect(0, Duelo.ALTURA / 2 - 22, Duelo.LARGURA, 44)
+            ctx.font = `700 28px "Space Grotesk"`
+            ctx.textAlign = "center"
+            ctx.fillStyle = "#f4f5f7"
+            ctx.fillText(e.texto, Duelo.LARGURA / 2, Duelo.ALTURA / 2 + 10)
+            ctx.globalAlpha = 1
+          }
+        }
+      }
+
+      // --- The clock: fixed steps of the engine, drawn every frame -----------------------------------------------
+      let antes = performance.now()
+      let sobra = 0
+      function quadro(agora) {
+        const dt = Math.min(0.1, (agora - antes) / 1000)
+        antes = agora
+        if (!pausado()) {
+          if (fase === "luta") {
+            sobra += dt
+            while (sobra >= Duelo.DT && !luta.fim) {
+              Duelo.passo(luta)
+              ouvir(luta.eventos, agora)
+              sobra -= Duelo.DT
+            }
+            atualizarPlacar()
+            if (luta.fim) {
+              fase = "resultado"
+              faseAte = agora + RESULTADO_MS
+              setTimeout(() => mostrarResultado(luta.fim), 700)
+            }
+          } else if (fase === "apresenta" && agora >= faseAte) {
+            cartao.classList.remove("visivel")
+            fase = "luta"
+            sobra = 0
+          } else if (fase === "resultado" && agora >= faseAte) {
+            cartao.classList.remove("visivel")
+            fase = "pausa"
+            faseAte = agora + PAUSA_MS
+          } else if ((fase === "pausa" || fase === "vazio") && agora >= faseAte) proximo()
+          else if (fase === "inicio") proximo()
+        } else faseAte += dt * 1000
+        desenhar(agora)
+        requestAnimationFrame(quadro)
+      }
+      fase = "inicio"
+      requestAnimationFrame(quadro)
+
+      // --- The VAR comes first, and off the air nothing runs ------------------------------------------------------
+      addEventListener("muanlartins-var", ({ detail }) => {
+        const v = varDe(detail)
+        if (!v) return
+        varAberto = v.fase !== "fechado"
+        caixa.classList.toggle("escondida", varAberto || fase === "vazio")
+      })
+      addEventListener("obsSourceActiveChanged", ({ detail }) => (noAr = !!detail?.active))
+
+      // --- The chat, or the demo's ------------------------------------------------------------------------------
+      if (!DEMO) irc(apply, { membership: true })
+      else {
+        const nomes = ["rafa", "Giovana_GC", "tiago.mendes", "marinamarina", "lucas_s", "bia.lima", "DuduSantos", "ceci", "otto", "jujuba"]
+        const um_ = (lista) => lista[Math.floor(Math.random() * lista.length)]
+        const quantos = params.get("demo") === "1v1" ? 1 : nomes.length
+        nomes.slice(0, quantos).forEach((n, i) => {
+          const login = n.toLowerCase()
+          presentes.set(login, n)
+          // Half chose their fan; Σ from a newcomer to a regular of a year, so every material shows up.
+          if (i % 2) escolhas.set(login, { cor: um_(Torcedor.CORES), detalhe: um_(Torcedor.CORES), roupa: um_(Torcedor.ROUPAS), cabeca: um_(Torcedor.CABECAS), comemoracao: um_(Torcedor.COMEMORACOES) })
+          sigmas.set(login, [0, 40, 150, 420, 1000, 2200, 4800, 10000, 16000, 21000][i])
+        })
+        presentes.set(CHANNEL, CHANNEL)
+        let varTeste = false
+        const keys = {
+          v: () => dispatchEvent(new CustomEvent("muanlartins-var", { detail: { fase: (varTeste = !varTeste) ? "votacao" : "fechado", layout: "mini" } })),
+          n: () => luta && !luta.fim && (luta.bolas[1].hp = 0),
+          s: () => presentes.delete(um_([...presentes.keys()].filter((l) => l !== CHANNEL))),
+          j: () => presentes.set(`pessoa${presentes.size}`, `pessoa${presentes.size}`),
+        }
+        addEventListener("keydown", (e) => keys[e.key]?.())
+      }
+    </script>
+  </body>
+</html>
