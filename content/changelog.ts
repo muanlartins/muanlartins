@@ -137,6 +137,29 @@ export const UPCOMING: Upcoming[] = [
     title: "Ferramenta de análise de mira pro Valorant",
     text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
   },
+  {
+    id: "duelo-de-bolinhas",
+    status: "proximo",
+    tag: "live",
+    title: "Duelo de bolinhas no canto da tela",
+    text: "Dois viewers sorteados da arquibancada se enfrentam sem parar, cada um como uma bolinha armada da classe que escolheu no site. Seus Σ viram pontos numa árvore de talentos, sem gastar nenhum, e cada vitória e partida fica registrada no site.",
+    credit: { by: "lucca_3098" },
+  },
+  {
+    id: "corrida-de-bolinhas",
+    status: "proximo",
+    tag: "live",
+    title: "Corrida de bolinhas",
+    text: "Uma corrida no estilo marbles, com uma bolinha pra cada viewer, do jeito que você montar no seu perfil.",
+    credit: { by: "lucca_3098" },
+  },
+  {
+    id: "comunidade-no-site",
+    status: "proximo",
+    tag: "site",
+    title: "O site como casa da comunidade",
+    text: "Perfil, torcedor, Σ, mural, minijogos e comandos conversando entre si, com uma cara só, pra quem assiste ter tudo seu num lugar.",
+  },
 ]
 
 /** Everything released, newest first. */
@@ -156,12 +179,21 @@ export const SHIPPED: Shipped[] = [
   },
   {
     id: "metas-com-prazo",
-    date: "2026-11-14",
+    date: "2026-11-15",
     tag: "site",
     title: "Metas com data pra acabar",
     text: "Cada meta do Pix mostra até quando vai, na live e no site, e fecha sozinha à meia-noite do último dia: no mural ela fica como batida ou não, e o que passar do alvo antes disso conta como extra. A agenda mostra a meta de agora, a próxima e o dia em que cada uma começa e acaba.",
     href: "/canal/agenda",
     media: [media("metas-com-prazo", "A agenda com a meta dos três dígitos (R$ 67,67 de R$ 100, até 30/11) e a de Natal depois; no calendário de dezembro, o fim de uma meta no dia 30 e o começo da outra no dia 1º")],
+  },
+  {
+    id: "comandos-da-live",
+    date: "2026-11-15",
+    tag: "live",
+    title: "Todos os comandos da live num lugar só",
+    text: "Uma página com cada comando do chat e cada jeito de participar da live (os da arquibancada dá pra testar ali mesmo), a mesma lista no painel da Twitch e no !comandos. Comandos novos: !comemora e !grito na arquibancada, !sigma (os seus Σ e o seu ranque) e !agenda no bot. A arquibancada dos créditos agora obedece aos comandos, e de tempos em tempos o meu torcedor ensina um.",
+    href: "/canal/comandos",
+    media: [media("comandos-da-live", "A página de comandos: a arquibancada de exemplo, com o torcedor do meio soltando o grito, em cima da lista de comandos")],
   },
   {
     id: "letra-da-musica",
@@ -178,6 +210,7 @@ export const SHIPPED: Shipped[] = [
     tag: "live",
     title: "Uma cena pros outros jogos",
     text: "Jogo que não é Rocket League nem Valorant agora tem cena própria: a câmera, o chat, a arquibancada, o Pix, o VAR e o Lance ruim de sempre, sem ranque na câmera e sem a torcida comemorando gol ou round que não existe. É só abrir o jogo em tela cheia.",
+    media: [media("cena-diversos", "A cena dos outros jogos no OBS: Can 'Em All na tela, Luan na câmera no canto e a arquibancada embaixo")],
   },
   {
     id: "agenda-editavel",
