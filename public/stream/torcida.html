@@ -30,7 +30,8 @@
       captions and the VAR stay. What
       a viewer says in the chat shows in a balloon over their fan for a few
       seconds (three at most at once); they move their own fan with !pula,
-      !danca, !comemora, !grito, !ola (comandos.js). Each fan's look is their profile on the site (/perfil), or
+      !danca, !comemora, !grito, !ola (comandos.js), and every ?dicas= minutes (6; 0 for none) the channel's own fan
+      says one of the chat's commands and does it (comandos.json's tips). Each fan's look is their profile on the site (/perfil), or
       what their login gives them.
 
       On air, each dedication is also kept in this site's storage for the day (torcida:dedicatorias), each stand its
@@ -52,7 +53,7 @@
       ?canal= as in the overlays. The channel stands with its viewers. ?demo fills the stand with sample people and
       plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça, r round nosso, t round deles,
       w vitória, x derrota, f entra/sai de partida (with ?jogo=valorant, the stand tucks away), a VAR (abre, votos, veredito; de novo fecha),
-      p pula, n dança, k comemora, h grito, o ola, m mensagem, j chega alguém, s sai alguém,
+      p pula, n dança, k comemora, h grito, o ola, i uma dica, m mensagem, j chega alguém, s sai alguém,
       l uma legenda de exemplo, v liga/desliga as legendas de verdade (scripts/legenda.py).
     -->
     <style>
@@ -995,6 +996,27 @@
         falar: (p, texto) => falar(p, texto),
         frase: (p) => aparencia(p.login).frase,
       })
+
+      // Tips: every ?dicas= minutes (6; 0 for none) the channel's own fan says one of the chat's commands in a
+      // balloon, in turn, from comandos.json's `dica`, and does it when it's one of the stand's. Not while the stand
+      // is busy (a goal, the VAR) or tucked away.
+      const DICA_MS = Number(params.get("dicas") ?? 6) * 60000
+      let dicas = []
+      let dicaVez = 0
+      function dica() {
+        const p = pessoas.get(CHANNEL)
+        if (!dicas.length || !p?.el || torcida.matches(".festa, .luto, .var, .recolhida")) return
+        const c = dicas[dicaVez++ % dicas.length]
+        falar(p, c.dica)
+        setTimeout(() => comando(CHANNEL, c.comando), 700)
+      }
+      if (DICA_MS > 0) {
+        fetch("comandos.json")
+          .then((r) => r.json())
+          .then((lista) => (dicas = lista.grupos.flatMap((g) => g.comandos.filter((c) => c.dica))))
+          .catch(() => {})
+        if (!params.has("demo")) setInterval(dica, DICA_MS)
+      }
       // Balloons sit just over the highest row in use; one that would overlap another goes on top of it.
       const falas = [] // { el, p }
       function falar(p, texto) {
@@ -1075,7 +1097,8 @@
         }))
         // And each has some Σ, from a newcomer to a regular of a year.
         nomes.forEach((n, i) => sigmas.set(n.toLowerCase(), { sigma: Math.round(20000 * Math.random() ** 3) }))
-        nomes.slice(0, 12).forEach((n) => chegar(n.toLowerCase(), n))
+        // The channel too, as on the live, where its own account is in the chat (and says the tips).
+        ;[CHANNEL, ...nomes.slice(0, 12)].forEach((n) => chegar(n.toLowerCase(), n))
         conectouEm = Date.now() - ASSENTANDO_MS
         const FRASES = ["boa noite!!", "que jogada", "GG", "essa foi limpa demais",
           "qual a tua sensibilidade?", "bora subir hoje", "kkkkkkk", "salvou demais"]
@@ -1110,6 +1133,7 @@
           n: () => say(random(), "!dança"),
           o: () => say(random(), "!ola"),
           k: () => say(random(), "!comemora"),
+          i: dica,
           h: () => say(random(), "!grito"),
           j: () => {
             const novo = nomes.find((n) => !pessoas.has(n.toLowerCase())) || `pessoa${pessoas.size}`
