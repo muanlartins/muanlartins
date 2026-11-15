@@ -87,6 +87,8 @@ export interface Sigma {
   /** In Rocket League's ranks, or Valorant's with `jogo` "valorant". */
   ranque(sigma?: number, lingua?: "pt" | "en", jogo?: "rocket-league" | "valorant"): Rank
   peso(sigma?: number): number
+  /** Rocket League's ranks: [the Σ each starts at, its emblem's id], lowest first. */
+  RL: [number, string][]
   COR_LIVRE: number
   medalhas(stats: Partial<SigmaStats>, lingua?: "pt" | "en"): Badge[]
 }

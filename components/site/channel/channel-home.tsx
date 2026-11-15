@@ -1,4 +1,4 @@
-import { ArrowRight, Clapperboard, Heart, MessagesSquare, Milestone, PartyPopper, QrCode, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
+import { ArrowRight, Clapperboard, Gamepad2, Heart, MessagesSquare, Milestone, PartyPopper, QrCode, Swords, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import type { ReactNode } from "react"
 import { FanStand } from "@/components/site/channel/fan-stand"
@@ -18,7 +18,7 @@ import { localize, MURAL_SLUG, PIX_SLUG, profileSlug } from "@/lib/site"
 const T = localize(channel)
 const L = localize({ latest: { pt: "Última", en: "Latest" } })
 
-const MOMENT_ICONS: Record<string, LucideIcon> = { party: PartyPopper, chat: MessagesSquare, ranked: Trophy }
+const MOMENT_ICONS: Record<string, LucideIcon> = { party: PartyPopper, chat: MessagesSquare, duel: Swords, ranked: Trophy }
 
 /**
  * The channel's home, which is the site's: little to read, a lot to click. The next live (or the one on air) with
@@ -69,7 +69,7 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
             </Link>
           </div>
         </div>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-3">
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2">
           {T.inside.moments.map((moment) => {
             const Icon = MOMENT_ICONS[moment.icon]
             const inner = (
@@ -107,6 +107,7 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
           <Tile href={channelPath("lives")} icon={Clapperboard} title={T.lives.title} summary={lives[0] ? `${L.latest}: ${longDate(lives[0].date)}` : T.lives.description} />
           {PIX_API && <Tile href={`/${PIX_SLUG}`} icon={QrCode} title={T.pix.title} summary={T.pix.description} />}
           {PIX_API && <Tile href={`/${MURAL_SLUG}`} icon={Heart} title={T.mural.title} summary={T.mural.description} />}
+          <Tile href={channelPath("minijogos")} icon={Gamepad2} title={T.minijogos.title} summary={T.minijogos.tile} />
           <Tile href={`/${profileSlug()}`} icon={UserRound} title={T.profile.title} summary={T.profile.description} />
           <Tile href={channelPath("backstage")} icon={Wrench} title={T.backstage.title} summary={T.backstage.description} />
           <Tile href={channelPath("roadmap")} icon={Milestone} title={T.roadmap.title} summary={T.roadmap.tile} />

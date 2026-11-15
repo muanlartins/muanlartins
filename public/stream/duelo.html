@@ -12,9 +12,13 @@
       The ball duel (Lucca's idea, lucca_3098; Luan's rules, 2026-11-15): in the corner of the VAR's mini player, two
       viewers in the chat drawn at random fight as balls with weapons, one duel after another, forever, with nobody
       joining or doing anything. The fight is duelo-motor.js (deterministic: a seed and two classes); this page draws
-      it. Each ball wears its viewer's colours from their fan (/perfil), and its weapon's material is their Σ rank:
-      Σ never makes a ball stronger, only better looking. A viewer who didn't pick a class (the site's page for it
-      comes later) gets one at random each duel.
+      it. Each ball wears its viewer's colours from their fan (/perfil) and fights with the class they picked on
+      /canal/minijogos (the profile API's /duelistas), or one drawn each duel if they didn't. Its weapon's material is
+      their Σ rank, or a lower one they picked there: Σ never makes a ball stronger, only better looking.
+
+      The record: OBS's source URL holds the Σ key (#chave=…, as the stand's), and with it every fight shown while the
+      stream is on (the Partidas dock says so) goes to the Σ API (POST /duelo), which plays it again from its seed and
+      keeps the wins, the ranking and the latest fights for the site.
 
       Who fights: the viewers logged in with the chat open (Twitch's membership events, as torcida.html), drawn like
       the goal's dedication (more Σ, a little more chance: Sigma.peso), never the two of the duel before when there
@@ -26,7 +30,14 @@
       The box is the mini player's, 640×360 at (1236, 92); ?x= and ?y= move it (Valorant, under its killfeed:
       ?y=340). ?api= the profile API, ?sigma= the Σ API, ?canal= the channel. ?demo fills the chat with sample
       people (keys: v the VAR opens and closes, n next duel, s someone leaves, j someone arrives); ?demo=1v1 has a
-      single viewer; ?semente= fixes the first fight's seed, ?classes=machado,arco the classes (to try one); ?fundo=<image> puts a game screenshot behind.
+      single viewer; ?semente= fixes the first fight's seed, ?classes=machado,arco the classes (to try one; a blank
+      side, as in ",arco", keeps its own); ?fundo=<image> puts a game screenshot behind.
+
+      The site's player (/canal/minijogos): ?lutadores=a,b fights those two instead of the chat's, and records
+      nothing; with ?semente= and ?repetir, the same fight over and over (a replay). ?nomes=A,B their names,
+      ?materiais=gold,diamond their weapons' materials (a recorded fight's, or a preview's); "*" in either list is the
+      default (a class drawn, the rank's material) whatever they saved. ?site lays the box out
+      alone on a navy page of 660×390, scaled to the frame's width.
       Copy is a draft for Luan.
     -->
     <style>
@@ -35,6 +46,18 @@
         --direita: #ffb347;
         --caixa-x: 1236px;
         --caixa-y: 92px;
+      }
+      /* The site's player: the box alone, with room for the band above it. */
+      body.site {
+        background: var(--navy);
+      }
+      body.site .stage {
+        width: 660px;
+        height: 390px;
+      }
+      body.site .caixa {
+        --caixa-x: 10px;
+        --caixa-y: 26px;
       }
       .fundo-demo {
         position: absolute;
@@ -397,10 +420,29 @@
       const API = params.get("api") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
       const SIGMA_API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
       const DEMO = params.has("demo")
+      const LOGIN = /^[a-z0-9_]{1,25}$/
+      // The site's player: two given viewers, a fixed fight to replay, the page alone.
+      const FIXOS = (params.get("lutadores") ?? "").toLowerCase().split(",").filter((l) => LOGIN.test(l)).slice(0, 2)
+      const TREINO = FIXOS.length === 2 && FIXOS[0] !== FIXOS[1]
+      const REPETIR = TREINO && params.has("repetir") && params.has("semente")
+      // Positional lists from the address: ?classes=,arco leaves the left side as it would be.
+      const posicional = (nome) => (params.get(nome) ?? "").split(",").map((x) => x.trim())
+      if (params.has("site")) {
+        document.body.classList.add("site")
+        const stage = document.querySelector(".stage")
+        const fit = () => (stage.style.transform = `scale(${innerWidth / 660})`)
+        fit()
+        addEventListener("resize", fit)
+      }
+      if (TREINO) document.querySelector(".faixa-titulo span").textContent = REPETIR ? "replay" : "treino"
+      // The Σ key, in OBS's source URL only (#chave=…): with it, the fights shown while the stream is on are recorded.
+      const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
+      let noArAte = 0
 
       // --- Who's in the chat --------------------------------------------------------------------------------------
       const presentes = new Map() // login → display name
       const escolhas = new Map() // login → their fan, from the profile API
+      const duelistas = new Map() // login → their ball ({ classe, material }), from the profile API
       const sigmas = new Map() // login → Σ
       function chegar(login, nome = login) {
         if (BOTS.has(login) || login.startsWith("justinfan")) return
@@ -415,21 +457,21 @@
         else if (command === "353") trailing.split(" ").forEach((name) => name && chegar(name))
       }
 
-      // Their fan and Σ, asked just before each duel for the two drawn (and the pool's Σ, for the draw's weights,
+      // Their fan, ball and Σ, asked just before each duel for the two drawn (and the pool's, for the draw's weights,
       // every two minutes).
       async function pedir(logins) {
         if (DEMO || !logins.length) return
-        try {
-          const [fas, pontos] = await Promise.all([
-            fetch(`${API}/torcedores?logins=${logins.join(",")}`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
-            fetch(`${SIGMA_API}/sigmas?logins=${logins.join(",")}`).then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
-          ])
-          for (const login of logins) {
-            if (fas[login]) escolhas.set(login, fas[login])
-            if (pontos[login]) sigmas.set(login, pontos[login].sigma ?? 0)
-          }
-        } catch {
-          // Offline: they fight with the look from their login.
+        const pedido = (url) => fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+        const [fas, pontos, bolas] = await Promise.all([
+          pedido(`${API}/torcedores?logins=${logins.join(",")}`),
+          pedido(`${SIGMA_API}/sigmas?logins=${logins.join(",")}`),
+          pedido(`${API}/duelistas?logins=${logins.join(",")}`),
+        ])
+        // Offline: they fight with the look from their login and a class drawn.
+        for (const login of logins) {
+          if (fas?.[login]) escolhas.set(login, fas[login])
+          if (pontos?.[login]) sigmas.set(login, pontos[login].sigma ?? 0)
+          if (bolas) bolas[login] ? duelistas.set(login, bolas[login]) : duelistas.delete(login)
         }
       }
       setInterval(() => pedir([...presentes.keys()].slice(0, 100)), 120000)
@@ -456,7 +498,25 @@
         "supersonic-legend": { cor: "#ffffff", luz: "#ffffff", brilho: true, rastro: true, faiscas: true, arco: true },
       }
       const tier = (id) => id.replace(/-\d$/, "")
-      const material = (login) => MATERIAIS[tier(Sigma.ranque(sigma(login)).id)] ?? MATERIAIS.bronze
+      const ORDEM = Object.keys(MATERIAIS)
+      const temMaterial = (id) => typeof id === "string" && Object.hasOwn(MATERIAIS, id)
+      // Their rank's, or a lower one they picked on the site; on the site's player, the one it gives.
+      function materialDe(login, i) {
+        const dado = posicional("materiais")[i]
+        if (TREINO && temMaterial(dado)) return dado
+        const seu = temMaterial(tier(Sigma.ranque(sigma(login)).id)) ? tier(Sigma.ranque(sigma(login)).id) : "bronze"
+        const quer = TREINO && dado === "*" ? null : duelistas.get(login)?.material
+        return temMaterial(quer) && ORDEM.indexOf(quer) <= ORDEM.indexOf(seu) ? quer : seu
+      }
+      // Their class: the one given (a test, a replay), the one they picked, or none (one is drawn).
+      const temClasse = (id) => typeof id === "string" && Object.hasOwn(Duelo.CLASSES, id)
+      function classeDe(login, i) {
+        const dada = posicional("classes")[i]
+        if (temClasse(dada)) return dada
+        if (dada === "*") return null
+        const sua = duelistas.get(login)?.classe
+        return temClasse(sua) ? sua : null
+      }
 
       // --- The draw -----------------------------------------------------------------------------------------------
       // Like the goal's dedication: more Σ, a little more chance (Sigma.peso). Never the two from the duel before when
@@ -496,8 +556,9 @@
       let noAr = true
       const pausado = () => varAberto || !noAr
 
+      let pedidos = false
       async function proximo() {
-        const par = sortear()
+        const par = TREINO ? FIXOS : sortear()
         if (!par) {
           fase = "vazio"
           caixa.classList.add("escondida")
@@ -506,20 +567,24 @@
         }
         anteriores = par
         fase = "carregando"
-        await pedir(par.filter((l) => l !== CHANNEL))
-        const semente = params.has("semente") && !luta ? Number(params.get("semente")) : crypto.getRandomValues(new Uint32Array(1))[0]
-        // No class picked yet (the site's page for it comes later): one at random, each duel.
-        const fixas = params.get("classes")?.split(",").filter((c) => Duelo.CLASSES[c])
-        const classes = par.map((_, i) => fixas?.[i] ?? Duelo.IDS[Math.floor(Math.random() * Duelo.IDS.length)])
+        // The site's player asks once; the chat's two, before each duel.
+        if (!TREINO || !pedidos) await pedir(par)
+        pedidos = true
+        const semente = params.has("semente") && (REPETIR || !luta) ? Number(params.get("semente")) >>> 0 : crypto.getRandomValues(new Uint32Array(1))[0]
+        // No class picked: one at random, each duel.
+        const escolhidas = par.map(classeDe)
+        const classes = escolhidas.map((c) => c ?? Duelo.IDS[Math.floor(Math.random() * Duelo.IDS.length)])
+        const nomes = posicional("nomes")
         lutadores = par.map((login, i) => ({
           login,
-          nome: presentes.get(login) ?? (login === CHANNEL ? "muanlartins" : login),
+          nome: (TREINO && nomes[i]) || (presentes.get(login) ?? (login === CHANNEL ? "muanlartins" : login)),
           classe: classes[i],
-          sorteada: true,
+          sorteada: !escolhidas[i],
           aparencia: aparencia(login),
-          material: material(login),
+          materialId: materialDe(login, i),
           ranque: Sigma.ranque(sigma(login)),
         }))
+        for (const l of lutadores) l.material = MATERIAIS[l.materialId]
         luta = Duelo.criar(semente, classes[0], classes[1])
         vestirPlacar()
         mostrarApresentacao()
@@ -942,6 +1007,7 @@
               fase = "resultado"
               faseAte = agora + RESULTADO_MS
               setTimeout(() => mostrarResultado(luta.fim), 700)
+              registrar()
             }
           } else if (fase === "apresenta" && agora >= faseAte) {
             cartao.classList.remove("visivel")
@@ -960,6 +1026,28 @@
       fase = "inicio"
       requestAnimationFrame(quadro)
 
+      // --- The record: each fight shown while the stream is on, to the Σ API ------------------------------------
+      // The API plays it again from its seed to know who won; a sample or the site's player records nothing.
+      function registrar() {
+        if (DEMO || TREINO || !CHAVE || !SIGMA_API || Date.now() > noArAte) return
+        const corpo = {
+          versao: Duelo.VERSAO,
+          semente: luta.semente,
+          classes: lutadores.map((l) => l.classe),
+          sorteadas: lutadores.map((l) => l.sorteada),
+          logins: lutadores.map((l) => l.login),
+          nomes: lutadores.map((l) => l.nome),
+          materiais: lutadores.map((l) => l.materialId),
+        }
+        fetch(`${SIGMA_API}/duelo`, { method: "POST", headers: { "content-type": "application/json", "x-chave": CHAVE }, body: JSON.stringify(corpo) }).catch(() => {
+          // The API down: this fight isn't counted.
+        })
+      }
+      // The Partidas dock says every few seconds whether the stream is on, as it does for the stand's Σ.
+      addEventListener("muanlartins-torcida", ({ detail }) => {
+        if (detail?.tipo === "noar") noArAte = detail.ligado ? Date.now() + 15000 : 0
+      })
+
       // --- The VAR comes first, and off the air nothing runs ------------------------------------------------------
       addEventListener("muanlartins-var", ({ detail }) => {
         const v = varDe(detail)
@@ -970,7 +1058,9 @@
       addEventListener("obsSourceActiveChanged", ({ detail }) => (noAr = !!detail?.active))
 
       // --- The chat, or the demo's ------------------------------------------------------------------------------
-      if (!DEMO) irc(apply, { membership: true })
+      if (TREINO) {
+        // The site's player: no chat, and no VAR.
+      } else if (!DEMO) irc(apply, { membership: true })
       else {
         const nomes = ["rafa", "Giovana_GC", "tiago.mendes", "marinamarina", "lucas_s", "bia.lima", "DuduSantos", "ceci", "otto", "jujuba"]
         const um_ = (lista) => lista[Math.floor(Math.random() * lista.length)]
