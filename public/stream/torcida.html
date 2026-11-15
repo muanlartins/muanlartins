@@ -30,7 +30,7 @@
       captions and the VAR stay. What
       a viewer says in the chat shows in a balloon over their fan for a few
       seconds (three at most at once); they move their own fan with !pula,
-      !danca, !ola. Each fan's look is their profile on the site (/perfil), or
+      !danca, !comemora, !grito, !ola (comandos.js). Each fan's look is their profile on the site (/perfil), or
       what their login gives them.
 
       On air, each dedication is also kept in this site's storage for the day (torcida:dedicatorias), each stand its
@@ -52,7 +52,7 @@
       ?canal= as in the overlays. The channel stands with its viewers. ?demo fills the stand with sample people and
       plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça, r round nosso, t round deles,
       w vitória, x derrota, f entra/sai de partida (with ?jogo=valorant, the stand tucks away), a VAR (abre, votos, veredito; de novo fecha),
-      p pula, n dança, o ola, m mensagem, j chega alguém, s sai alguém,
+      p pula, n dança, k comemora, h grito, o ola, m mensagem, j chega alguém, s sai alguém,
       l uma legenda de exemplo, v liga/desliga as legendas de verdade (scripts/legenda.py).
     -->
     <style>
@@ -255,11 +255,9 @@
         }
       }
 
-      /* Our goal: each fan's own celebration (torcedor.css), rippling along the stand. A save, a chat
-         command: arms up. */
-      .defesa .bracos,
-      .pula .bracos,
-      .ola .bracos {
+      /* Our goal: each fan's own celebration (torcedor.css), rippling along the stand. A save: arms up. (The
+         chat's commands are in torcedor.css too, shared with the end credits.) */
+      .defesa .bracos {
         opacity: 1;
         transform: none;
       }
@@ -282,37 +280,6 @@
       /* A save: a quick cheer. */
       .defesa .pose {
         animation: pula 0.28s var(--ease) calc(var(--x) * 0.25ms) 2 alternate;
-      }
-
-      /* From the chat. !pula: three jumps. !danca: a sway, arms taking turns. !ola: a wave out from them. */
-      .fa.pula .pose {
-        animation: pula 0.35s var(--ease) 6 alternate;
-      }
-      .fa.danca .pose {
-        animation: danca 0.9s ease-in-out 4;
-      }
-      @keyframes danca {
-        25% {
-          transform: rotate(-9deg) translateY(-4px);
-        }
-        75% {
-          transform: rotate(9deg) translateY(-4px);
-        }
-      }
-      .fa.danca .bracos {
-        opacity: 1;
-        animation: bracos 0.9s steps(1) 4;
-      }
-      @keyframes bracos {
-        0% {
-          transform: scaleY(1) scaleX(1);
-        }
-        50% {
-          transform: scaleY(1) scaleX(-1);
-        }
-      }
-      .fa.ola .pose {
-        animation: pula 0.32s var(--ease) var(--atraso-ola, 0ms) 2 alternate both;
       }
 
       /* The fan a goal is dedicated to steps forward, bigger. */
@@ -484,6 +451,7 @@
     <script src="stream.js"></script>
     <script src="torcedor.js"></script>
     <script src="sigma.js"></script>
+    <script src="comandos.js"></script>
     <script src="legenda.js"></script>
     <script>
       const torcida = document.getElementById("torcida")
@@ -503,9 +471,6 @@
       const LARGURA = 960 - 2 * MARGEM
       // Twitch sends who was already there as JOINs over the first seconds; they all arrive at once, unanimated.
       const ASSENTANDO_MS = 15000
-      // !pula and !danca once every 8 s per person; one !ola at a time for the whole stand.
-      const ESPERA_MS = 8000
-      const OLA_MS = 15000
       // Chat balloons: 5 s each, at most three at once (a new one pushes out the oldest), cut at 80 characters.
       const FALA_MS = 5000
       const FALAS = 3
@@ -644,7 +609,8 @@
         el.addEventListener("animationend", (e) => {
           if (e.target === el) el.classList.remove("chegando")
           else if (e.target.classList.contains("pose")) {
-            el.classList.remove("pula", "danca", "ola", "dedicado")
+            Comandos.fim(el)
+            el.classList.remove("dedicado")
             if (!falas.some((f) => f.p.el === el)) el.classList.remove("foco")
           }
         })
@@ -1021,29 +987,14 @@
       })
 
       // --- From the chat ---------------------------------------------------------------------------
-      const vez = new Map()
-      let ultimaOla = 0
-      const COMANDOS = {
-        pula(p) {
-          mexer(p, "pula")
-        },
-        danca(p) {
-          mexer(p, "danca")
-        },
-        ola(p) {
-          if (Date.now() - ultimaOla < OLA_MS) return
-          ultimaOla = Date.now()
-          const x0 = Number(p.el.style.getPropertyValue("--x"))
-          p.el.classList.add("foco")
-          for (const { el } of pessoas.values()) {
-            if (!el) continue
-            el.style.setProperty("--atraso-ola", `${Math.abs(Number(el.style.getPropertyValue("--x")) - x0) * 1.4}ms`)
-            el.classList.remove("ola")
-            void el.offsetWidth
-            el.classList.add("ola")
-          }
-        },
-      }
+      // !pula, !danca, !comemora, !grito and !ola (comandos.js), waiting while a goal's party or mourning is on.
+      const comando = Comandos.criar({
+        pessoa: (login) => pessoas.get(login),
+        todos: () => pessoas.values(),
+        pausado: () => torcida.matches(".festa, .luto"),
+        falar: (p, texto) => falar(p, texto),
+        frase: (p) => aparencia(p.login).frase,
+      })
       // Balloons sit just over the highest row in use; one that would overlap another goes on top of it.
       const falas = [] // { el, p }
       function falar(p, texto) {
@@ -1082,28 +1033,8 @@
           fala.el.remove()
           falas.splice(falas.indexOf(fala), 1)
           const el = fala.p.el
-          if (el && !falas.some((f) => f.p === fala.p) && !el.matches(".pula, .danca, .ola, .dedicado")) el.classList.remove("foco")
+          if (el && !falas.some((f) => f.p === fala.p) && !el.matches(".pula, .danca, .ola, .comemora, .dedicado")) el.classList.remove("foco")
         }, 400)
-      }
-
-      function mexer(p, classe) {
-        p.el.classList.remove("pula", "danca", "ola")
-        void p.el.offsetWidth
-        p.el.classList.add(classe, "foco")
-      }
-      function comando(login, texto) {
-        const nome = texto
-          .trim()
-          .split(/\s/)[0]
-          .slice(1)
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/\p{M}/gu, "")
-        const p = pessoas.get(login)
-        if (!COMANDOS[nome] || !p?.el || torcida.matches(".festa, .luto")) return
-        if (nome !== "ola" && Date.now() - (vez.get(login) || 0) < ESPERA_MS) return
-        vez.set(login, Date.now())
-        COMANDOS[nome](p)
       }
 
       function apply(line) {
@@ -1178,6 +1109,8 @@
           p: () => say(random(), "!pula"),
           n: () => say(random(), "!dança"),
           o: () => say(random(), "!ola"),
+          k: () => say(random(), "!comemora"),
+          h: () => say(random(), "!grito"),
           j: () => {
             const novo = nomes.find((n) => !pessoas.has(n.toLowerCase())) || `pessoa${pessoas.size}`
             chegar(novo.toLowerCase(), novo)

@@ -25,8 +25,9 @@
       goes on air). The page waits ?espera= seconds (default 4) on its title for all of it, then rolls at
       ?velocidade= px/s (default 55).
 
-      The chat still talks: what a viewer says shows in a balloon over their fan, and whoever comes into the chat
-      joins the stand. ?api=, ?sigma=, ?pix= point at stand-ins for the profile, Σ and Pix APIs; ?canal= as in the
+      The chat still talks: what a viewer says shows in a balloon over their fan, whoever comes into the chat
+      joins the stand, and the stand's commands move their fan as in the live (!pula, !danca, !comemora, !grito,
+      !ola: comandos.js). With ?demo, keys p, n, k, h, o send them from someone at random. ?api=, ?sigma=, ?pix= point at stand-ins for the profile, Σ and Pix APIs; ?canal= as in the
       overlays; ?demo fills everything with sample people.
     -->
     <style>
@@ -420,6 +421,7 @@
     <script src="stream.js"></script>
     <script src="torcedor.js"></script>
     <script src="sigma.js"></script>
+    <script src="comandos.js"></script>
     <script>
       const $ = (id) => document.getElementById(id)
       const DEMO = params.has("demo")
@@ -505,7 +507,15 @@
         el.className = "fa torcedor" + (chegando ? " chegando" : "")
         el.innerHTML = `<span class="nome"></span><div class="pose"><div class="vivo"></div></div>`
         el.querySelector(".vivo").style.setProperty("--atraso", `${-Math.random() * 3}s`)
-        el.addEventListener("animationend", (e) => e.target === el && el.classList.remove("chegando"))
+        el.addEventListener("animationend", (e) => {
+          if (e.target === el) el.classList.remove("chegando")
+          // A move ended (a command, or their celebration as their name rolled by): standing again, the name unlit
+          // unless they're talking.
+          else if (e.target.classList.contains("pose")) {
+            Comandos.fim(el)
+            if (!falas.some((f) => f.p.el === el)) el.classList.remove("foco")
+          }
+        })
         torcida.append(el)
         p.el = el
         vestir(p)
@@ -636,13 +646,21 @@
         } else if (nome) vestir(p)
         return p
       }
+      // The stand's commands, as in the live (comandos.js).
+      const comando = Comandos.criar({
+        pessoa: (login) => gente.get(login.toLowerCase()),
+        todos: () => gente.values(),
+        falar: (p, texto) => falar(p, texto),
+        frase: (p) => aparencia(p.login).frase,
+      })
       function aplicar(line) {
         const { tags, prefix, command, trailing } = parseIrc(line)
         const login = prefix.split("!")[0]
         if (command === "JOIN") chegar(login)
         else if (command === "PRIVMSG") {
           const p = chegar(login, tags["display-name"] || login)
-          if (!trailing.startsWith("!")) falar(p, trailing.replace(/^\u0001ACTION (.*)\u0001$/, "$1"))
+          if (trailing.startsWith("!")) comando(login, trailing)
+          else falar(p, trailing.replace(/^\u0001ACTION (.*)\u0001$/, "$1"))
         } else if (command === "353") trailing.split(" ").forEach((name) => name && chegar(name))
       }
 
@@ -990,7 +1008,7 @@
         const um = (l) => l[Math.floor(Math.random() * l.length)]
         nomesDemo.forEach((n, i) => {
           const login = n.toLowerCase()
-          if (i % 2) escolhas.set(login, { cabeca: um(Torcedor.CABECAS), roupa: um(Torcedor.ROUPAS), acessorio: um(Torcedor.ACESSORIOS), comemoracao: um(Torcedor.COMEMORACOES) })
+          if (i % 2) escolhas.set(login, { cabeca: um(Torcedor.CABECAS), roupa: um(Torcedor.ROUPAS), acessorio: um(Torcedor.ACESSORIOS), comemoracao: um(Torcedor.COMEMORACOES), frase: um(["bora Luan!", "chegueeei", "hoje sobe!"]) })
           pessoa(login, { nome: n, minutos: Math.max(4, Math.round(150 * Math.random() ** 0.7)), sigma: Math.round(20000 * Math.random() ** 3), sequencia: i % 4 === 0 ? 2 + (i % 5) : 0, primeira: i === 6 || i === 15 ? HOJE : undefined })
         })
         dia.partidas = { mode: "2v2", tier: "diamond-2", division: 3, wins: 6, losses: 3, streak: 3, points: 41 }
@@ -1021,6 +1039,12 @@
           const p = um([...gente.values()].filter((x) => x.el && x.login !== CHANNEL))
           if (p) falar(p, um(FRASES))
         }, 2600)
+        // The stand's commands, from someone at random.
+        const COMANDO_DE = { p: "!pula", n: "!dança", k: "!comemora", h: "!grito", o: "!ola" }
+        addEventListener("keydown", (e) => {
+          const p = um([...gente.values()].filter((x) => x.el && x.login !== CHANNEL))
+          if (p && COMANDO_DE[e.key]) comando(p.login, COMANDO_DE[e.key])
+        })
       }
     </script>
   </body>
