@@ -11,8 +11,11 @@
 
       The ball duel (Lucca's idea, lucca_3098; Luan's rules, 2026-11-15): in the corner of the VAR's mini player, two
       viewers in the chat drawn at random fight as balls with weapons, one duel after another, forever, with nobody
-      joining or doing anything. The fight is duelo-motor.js (deterministic: a seed and two classes); this page draws
-      it. Each ball wears its viewer's colours from their fan (/perfil) and fights with the class they picked on
+      joining or doing anything. The fight is duelo-motor.js (deterministic: a seed and two classes; the genre's
+      physics since 2026-11-16, gravity and bounces in a square box); this page draws it: the arena in the middle of
+      the box, each fighter in a column by it (their fan, life, class, what its ability has grown to and what it
+      does), as the genre's videos show their stats by each side, and every ability on the balls themselves (the
+      poison's bubbles, the stun's stars, the katana's slices, the Punho's trail, the Martelo's glowing head). Each ball wears its viewer's colours from their fan (/perfil) and fights with the class they picked on
       /canal/minijogos (the profile API's /duelistas), or one drawn each duel if they didn't. Its weapon's material is
       their Σ rank, or a lower one they picked there: Σ never makes a ball stronger, only better looking.
 
@@ -100,12 +103,14 @@
         inset: 0;
         overflow: visible;
       }
+      /* The whole box, so a weapon can reach past the arena's wall as it swings; the arena is the square in the middle
+         (ARENA_X, ARENA_Y below). */
       canvas {
         position: absolute;
-        left: 8px;
-        top: 64px;
-        width: 624px;
-        height: 288px;
+        left: 0;
+        top: 0;
+        width: 640px;
+        height: 360px;
       }
 
       /* The band over the top edge, like the VAR's: what this is. */
@@ -136,72 +141,83 @@
         letter-spacing: 0.06em;
       }
 
-      /* The header: each fighter, their bar draining toward their own side, what their weapon has grown to. */
-      .placar {
-        position: absolute;
-        left: 12px;
-        right: 12px;
-        top: 8px;
-        height: 52px;
-        display: grid;
-        grid-template-columns: 1fr 44px 1fr;
-        align-items: center;
-      }
+      /* Each fighter in a column by the arena, as the genre shows them (the stats by each side of the box): who, their
+         life (the bar drains toward the arena), their class, what its ability has grown to and what it does. */
       .lado {
-        display: grid;
-        grid-template-columns: 30px 1fr;
-        grid-template-rows: 22px 12px 14px;
-        column-gap: 8px;
-        align-items: center;
+        position: absolute;
+        top: 34px;
+        width: 150px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
         min-width: 0;
       }
+      .lado.esquerda {
+        left: 12px;
+      }
       .lado.direita {
-        grid-template-columns: 1fr 30px;
+        right: 12px;
+        align-items: flex-end;
         text-align: right;
       }
-      .lado .fa {
-        grid-row: 1 / 4;
-        position: relative;
-        width: 30px;
-        height: 45px;
+      .lado .quem {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-width: 0;
       }
-      .lado.direita .fa {
-        grid-column: 2;
-        grid-row: 1 / 4;
+      .lado.direita .quem {
+        flex-direction: row-reverse;
+      }
+      .lado .fa {
+        position: relative;
+        flex: none;
+        width: 36px;
+        height: 54px;
       }
       .lado .nome {
         display: flex;
-        align-items: center;
-        gap: 6px;
+        flex-direction: column;
+        gap: 3px;
         min-width: 0;
-        font-size: 18px;
-        font-weight: 700;
-        line-height: 1;
-        white-space: nowrap;
       }
       .lado.direita .nome {
-        grid-column: 1;
-        grid-row: 1;
-        flex-direction: row-reverse;
+        align-items: flex-end;
       }
       .lado .nome span {
+        max-width: 106px;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.1;
       }
       .lado .nome img {
         width: 20px;
         height: 20px;
-        flex: none;
+      }
+      .lado .hp {
+        font-size: 30px;
+        font-weight: 700;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        margin-top: 4px;
+      }
+      .lado .hp small {
+        font-size: 13px;
+        font-weight: 500;
+        color: rgb(244 245 247 / 0.55);
       }
       .barra {
         position: relative;
+        width: 100%;
         height: 10px;
         background: rgb(244 245 247 / 0.14);
         clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
       }
       .lado.direita .barra {
-        grid-column: 1;
-        grid-row: 2;
         clip-path: polygon(0 0, 100% 0, 100% 100%, 6px 100%);
       }
       .barra i {
@@ -218,24 +234,36 @@
       .lado.direita .barra i {
         inset: 0 0 0 auto;
       }
-      .lado .info {
+      .lado .classe {
         display: flex;
-        justify-content: space-between;
-        gap: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        color: rgb(244 245 247 / 0.8);
-        font-variant-numeric: tabular-nums;
-        white-space: nowrap;
+        align-items: baseline;
+        gap: 6px;
+        margin-top: 10px;
+        font-size: 19px;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--cor-lado);
       }
-      .lado.direita .info {
-        grid-column: 1;
-        grid-row: 3;
+      .lado.direita .classe {
         flex-direction: row-reverse;
       }
-      .lado .info strong {
-        color: var(--paper);
+      .lado .classe em {
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 500;
+        color: rgb(244 245 247 / 0.55);
+      }
+      .lado .cresce {
+        font-size: 15px;
         font-weight: 700;
+        line-height: 1.2;
+        font-variant-numeric: tabular-nums;
+      }
+      .lado .resumo {
+        font-size: 12.5px;
+        font-weight: 500;
+        line-height: 1.25;
+        color: rgb(244 245 247 / 0.7);
       }
       .esquerda {
         --cor-lado: var(--esquerda);
@@ -243,24 +271,30 @@
       .direita {
         --cor-lado: var(--direita);
       }
+      /* Above the arena: the clock. */
       .relogio {
+        position: absolute;
+        left: 170px;
+        width: 300px;
+        top: 14px;
         text-align: center;
-        font-size: 15px;
+        font-size: 18px;
         font-weight: 700;
+        line-height: 30px;
         font-variant-numeric: tabular-nums;
-        color: rgb(244 245 247 / 0.7);
+        color: rgb(244 245 247 / 0.75);
       }
       .relogio.subita {
         color: #ff6b6b;
       }
 
-      /* The cards over the arena: who's about to fight, and who won. */
+      /* The cards over the box: who's about to fight, and who won. */
       .cartao {
         position: absolute;
         left: 8px;
-        top: 64px;
+        top: 8px;
         width: 624px;
-        height: 288px;
+        height: 344px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -305,6 +339,15 @@
         font-style: normal;
         font-weight: 500;
         color: rgb(244 245 247 / 0.6);
+      }
+      .cartao .lutador small {
+        max-width: 210px;
+        min-height: 2.5em;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.25;
+        color: rgb(244 245 247 / 0.72);
       }
       .cartao .x {
         font-size: 44px;
@@ -378,22 +421,30 @@
           <path d="M24 0.75H639.25V336L615.25 359.25H0.75V24Z" fill="none" stroke="rgb(133 167 255 / 0.5)" stroke-width="1.5" />
         </svg>
         <div class="faixa-titulo"><b>DUELO</b><span>dois do chat, sorteados</span></div>
-        <div class="placar">
-          <div class="lado esquerda">
+        <div class="relogio">0</div>
+        <div class="lado esquerda">
+          <div class="quem">
             <div class="fa torcedor"></div>
-            <div class="nome"><img alt="" hidden /><span></span></div>
-            <div class="barra"><i class="rastro"></i><i class="vida"></i></div>
-            <div class="info"><strong class="hp">100</strong><span class="cresce"></span></div>
+            <div class="nome"><span></span><img alt="" hidden /></div>
           </div>
-          <div class="relogio">0</div>
-          <div class="lado direita">
-            <div class="fa torcedor"></div>
-            <div class="nome"><img alt="" hidden /><span></span></div>
-            <div class="barra"><i class="rastro"></i><i class="vida"></i></div>
-            <div class="info"><strong class="hp">100</strong><span class="cresce"></span></div>
-          </div>
+          <div class="hp">100</div>
+          <div class="barra"><i class="rastro"></i><i class="vida"></i></div>
+          <div class="classe"><b></b><em hidden>sorteada</em></div>
+          <div class="cresce"></div>
+          <div class="resumo"></div>
         </div>
-        <canvas width="1248" height="576"></canvas>
+        <div class="lado direita">
+          <div class="quem">
+            <div class="fa torcedor"></div>
+            <div class="nome"><span></span><img alt="" hidden /></div>
+          </div>
+          <div class="hp">100</div>
+          <div class="barra"><i class="rastro"></i><i class="vida"></i></div>
+          <div class="classe"><b></b><em hidden>sorteada</em></div>
+          <div class="cresce"></div>
+          <div class="resumo"></div>
+        </div>
+        <canvas width="1280" height="720"></canvas>
         <div class="cartao"></div>
       </div>
     </div>
@@ -407,7 +458,7 @@
       const ctx = canvas.getContext("2d")
       const cartao = document.querySelector(".cartao")
       const relogio = document.querySelector(".relogio")
-      const lados = [...document.querySelectorAll(".placar .lado")]
+      const lados = [...document.querySelectorAll(".caixa > .lado")]
       if (params.has("x")) caixa.style.setProperty("--caixa-x", `${Number(params.get("x"))}px`)
       if (params.has("y")) caixa.style.setProperty("--caixa-y", `${Number(params.get("y"))}px`)
       if (params.get("fundo")) {
@@ -605,6 +656,9 @@
           img.src = l.ranque.emblema
           lado.querySelector(".vida").style.width = "100%"
           lado.querySelector(".rastro").style.width = "100%"
+          lado.querySelector(".classe b").textContent = Duelo.CLASSES[l.classe].nome
+          lado.querySelector(".classe em").hidden = !l.sorteada
+          lado.querySelector(".resumo").textContent = Duelo.CLASSES[l.classe].resumo
         })
         atualizarPlacar()
       }
@@ -614,11 +668,11 @@
           const p = `${(bola.hp / bola.hpMax) * 100}%`
           lado.querySelector(".vida").style.width = p
           lado.querySelector(".rastro").style.width = p
-          lado.querySelector(".hp").textContent = Math.ceil(bola.hp)
-          lado.querySelector(".cresce").textContent = `${bola.c.nome} · ${Duelo.contador(bola)}`
+          lado.querySelector(".hp").innerHTML = `${Math.ceil(bola.hp)}<small> / ${bola.hpMax}</small>`
+          lado.querySelector(".cresce").textContent = Duelo.contador(bola, luta)
         })
         const t = Math.floor(luta.t)
-        relogio.textContent = t
+        relogio.textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`
         relogio.classList.toggle("subita", luta.t >= Duelo.MORTE_SUBITA)
       }
 
@@ -628,6 +682,7 @@
           <div class="fa torcedor">${Torcedor.figura(l.aparencia)}</div>
           <strong>${texto(l.nome)}</strong>
           <span>${Duelo.CLASSES[l.classe].nome}${l.sorteada ? " <em>sorteada</em>" : ""}</span>
+          <small>${Duelo.CLASSES[l.classe].resumo}</small>
         </div>`
         cartao.innerHTML = `${lutador(lutadores[0], 0)}<div class="x">×</div>${lutador(lutadores[1], 1)}`
         cartao.classList.remove("entra")
@@ -649,23 +704,39 @@
       }
 
       // --- Drawing ------------------------------------------------------------------------------------------------
+      // The canvas is the whole box at twice its size; the arena (Duelo.LADO square) sits in its middle, between the
+      // two fighters' columns, and a weapon may swing past its wall.
       const efeitos = [] // damage numbers, sparks, words: { tipo, x, y, ate, ... }
       let rastros = [[], []]
       let tremor = 0
-      const ESCALA = canvas.width / Duelo.LARGURA
+      const ESCALA = canvas.width / 640
+      const ARENA_X = 170
+      const ARENA_Y = 50
       const COR_LADO = [getComputedStyle(document.documentElement).getPropertyValue("--esquerda").trim(), getComputedStyle(document.documentElement).getPropertyValue("--direita").trim()]
+      const CONTORNO = "#001447"
+      const VENENO = "#b77bff"
 
       function ouvir(eventos, agora) {
         for (const e of eventos) {
-          if (e.tipo === "golpe" || e.tipo === "critico" || e.tipo === "flecha" || e.tipo === "sangria") {
-            // Numbers close together merge, so a dagger's flurry is one number going up, not a cloud.
-            const junto = efeitos.find((f) => f.tipo === "numero" && f.alvo === e.alvo && agora - f.desde < 300 && e.tipo !== "critico")
+          if (e.tipo === "golpe" || e.tipo === "critico" || e.tipo === "flecha" || e.tipo === "veneno" || e.tipo === "corte") {
+            // Numbers close together merge, so a dagger's flurry or a katana's slices are one number going up.
+            const junto = efeitos.find((f) => f.tipo === "numero" && f.alvo === e.alvo && agora - f.desde < 350 && e.tipo !== "critico" && !f.critico && (f.veneno === (e.tipo === "veneno")))
             if (junto) {
               junto.valor += e.dano
               junto.ate = agora + 900
-            } else efeitos.push({ tipo: "numero", alvo: e.alvo, valor: e.dano, x: e.x, y: e.y, desde: agora, ate: agora + 900, critico: e.tipo === "critico", sangria: e.tipo === "sangria" })
-            if (e.tipo !== "sangria") tremor = Math.max(tremor, e.tipo === "critico" ? 6 : 2.5)
-            if (e.tipo === "critico") efeitos.push({ tipo: "palavra", texto: "CRÍTICO!", x: e.x, y: e.y - 26, desde: agora, ate: agora + 1100, cor: "#ffd23f" })
+            } else efeitos.push({ tipo: "numero", alvo: e.alvo, valor: e.dano, x: e.x, y: e.y, desde: agora, ate: agora + 900, critico: e.tipo === "critico", veneno: e.tipo === "veneno" })
+            if (e.tipo === "golpe" || e.tipo === "flecha") tremor = Math.max(tremor, 2.5)
+            if (e.tipo === "critico") {
+              tremor = Math.max(tremor, 7)
+              efeitos.push({ tipo: "palavra", texto: "CRÍTICO!", x: e.x, y: e.y - 26, desde: agora, ate: agora + 1100, cor: "#ffd23f" })
+            }
+            if (e.tipo === "corte" || (e.tipo === "golpe" && luta.bolas[e.de]?.classe === "katana")) {
+              const ang = Math.random() * Math.PI
+              efeitos.push({ tipo: "corte", alvo: e.alvo, ang, desde: agora, ate: agora + 220 })
+            }
+            if (e.tipo === "veneno") efeitos.push({ tipo: "nuvem", alvo: e.alvo, desde: agora, ate: agora + 500 })
+          } else if (e.tipo === "atordoa") {
+            efeitos.push({ tipo: "palavra", texto: "ATORDOADO!", x: luta.bolas[e.alvo].x, y: luta.bolas[e.alvo].y - 44, desde: agora, ate: agora + 1000, cor: "#ffe08a" })
           } else if (e.tipo === "aparada" || e.tipo === "bloqueio") {
             efeitos.push({ tipo: "faisca", x: e.x, y: e.y, desde: agora, ate: agora + 260, grande: e.tipo === "aparada" })
           } else if (e.tipo === "morte-subita") {
@@ -679,12 +750,28 @@
         const m = l.material
         const r = bola.r
         const len = bola.comprimento
+        const parada = Duelo.parada(luta, bola)
         ctx.save()
         ctx.translate(bola.x, bola.y)
+        // Fast enough, the swing leaves a blur: the Adaga's ring, the Martelo's arc, anyone's at their top speeds.
+        const voltas = Math.abs(bola.giro)
+        if (!parada && voltas > 1.6 && bola.c.arma) {
+          ctx.save()
+          ctx.globalAlpha = Math.min(0.32, (voltas - 1.6) * 0.12)
+          ctx.beginPath()
+          const ate = Math.min(Math.PI * 2, voltas * 0.9)
+          const de = bola.angulo - Math.sign(bola.giro) * ate
+          ctx.arc(0, 0, r + len * 0.6, Math.min(de, bola.angulo), Math.max(de, bola.angulo))
+          ctx.lineWidth = len * 0.8
+          ctx.strokeStyle = m.arco ? `hsl(${(agora / 8) % 360} 90% 72%)` : m.cor
+          ctx.stroke()
+          ctx.restore()
+        }
         ctx.rotate(bola.angulo)
         ctx.lineJoin = "round"
         ctx.lineCap = "round"
-        const contorno = "#001447"
+        // Stunned, its weapon goes faint: it doesn't hit or parry until the ball wakes.
+        if (parada) ctx.globalAlpha = 0.35
         const metal = m.arco ? `hsl(${(agora / 8) % 360} 90% 72%)` : m.cor
         if (m.brilho) {
           ctx.shadowColor = m.arco ? metal : m.luz
@@ -694,7 +781,7 @@
           ctx.beginPath()
           fn()
           ctx.lineWidth = largura + 3
-          ctx.strokeStyle = contorno
+          ctx.strokeStyle = CONTORNO
           ctx.stroke()
           ctx.lineWidth = largura
           ctx.strokeStyle = cor
@@ -708,7 +795,7 @@
           ctx.fill()
           ctx.shadowBlur = 0
           ctx.lineWidth = 2
-          ctx.strokeStyle = contorno
+          ctx.strokeStyle = CONTORNO
           ctx.stroke()
         }
         const cabo = "#8a6a4a"
@@ -724,7 +811,7 @@
               ctx.lineTo(r - 2, 5)
             }, metal)
             if (k > 0) {
-              ctx.globalAlpha = k * 0.8
+              ctx.globalAlpha = (parada ? 0.35 : 1) * k * 0.8
               forma(() => {
                 ctx.moveTo(r + 2, -1.5)
                 ctx.lineTo(r + len - 8, -1.5)
@@ -732,7 +819,7 @@
                 ctx.lineTo(r + len - 8, 1.5)
                 ctx.lineTo(r + 2, 1.5)
               }, "#ffffff")
-              ctx.globalAlpha = 1
+              ctx.globalAlpha = parada ? 0.35 : 1
             }
             traco(() => {
               ctx.moveTo(r + 2, -10)
@@ -741,19 +828,6 @@
             break
           }
           case "adaga": {
-            // Fast enough, a blur ring of its turn.
-            const giro = Math.abs(bola.giro) / bola.c.arma.giro
-            if (giro > 1.6) {
-              ctx.save()
-              ctx.shadowBlur = 0
-              ctx.globalAlpha = Math.min(0.35, (giro - 1.6) * 0.15)
-              ctx.beginPath()
-              ctx.arc(0, 0, r + len * 0.6, 0, Math.PI * 2)
-              ctx.lineWidth = len * 0.8
-              ctx.strokeStyle = metal
-              ctx.stroke()
-              ctx.restore()
-            }
             forma(() => {
               ctx.moveTo(r - 2, -6)
               ctx.lineTo(r + len - 8, -4.5)
@@ -797,9 +871,9 @@
               ctx.lineTo(r + len, 0)
             }, 6, cabo)
             // The head glows with the crit's chance.
-            if (bola.critico > 0.3) {
+            if (bola.critico > 0.2) {
               ctx.shadowColor = "#ffd23f"
-              ctx.shadowBlur = 6 + bola.critico * 22
+              ctx.shadowBlur = 6 + bola.critico * 26
             }
             forma(() => {
               ctx.moveTo(r + len - 14, -3)
@@ -819,6 +893,83 @@
               ctx.quadraticCurveTo(r + len + 2, 26, r + len - 34, 26)
               ctx.quadraticCurveTo(r + len - 10, 16, r + len - 6, 4)
             }, metal)
+            // A drop of its poison on the blade.
+            ctx.fillStyle = VENENO
+            ctx.beginPath()
+            ctx.arc(r + len - 14, 20, 3, 0, Math.PI * 2)
+            ctx.fill()
+            break
+          }
+          case "martelo": {
+            traco(() => {
+              ctx.moveTo(r - 2, 0)
+              ctx.lineTo(r + len - 6, 0)
+            }, 6, cabo)
+            // The head reddens as it picks up speed.
+            const k = Math.min(1, voltas / Math.max(1, bola.giroMax))
+            if (k > 0.6) {
+              ctx.shadowColor = "#ff8a3d"
+              ctx.shadowBlur = (k - 0.6) * 40
+            }
+            forma(() => ctx.rect(r + len - 12, -15, 18, 30), metal)
+            ctx.fillStyle = `rgb(255 120 60 / ${Math.max(0, k - 0.5)})`
+            ctx.fillRect(r + len - 12, -15, 18, 30)
+            break
+          }
+          case "katana": {
+            // A long, thin, slightly curved blade and a round guard.
+            forma(() => {
+              ctx.moveTo(r + 4, -3)
+              ctx.quadraticCurveTo(r + len * 0.6, -6, r + len + 2, -1)
+              ctx.lineTo(r + len - 4, 3)
+              ctx.quadraticCurveTo(r + len * 0.6, -1, r + 4, 3)
+            }, metal)
+            traco(() => ctx.moveTo(r - 2, 0) || ctx.lineTo(r + 3, 0), 4, "#2b2b3a")
+            ctx.beginPath()
+            ctx.ellipse(r + 4, 0, 2.5, 7, 0, 0, Math.PI * 2)
+            ctx.fillStyle = "#c9a227"
+            ctx.fill()
+            ctx.lineWidth = 1.5
+            ctx.strokeStyle = CONTORNO
+            ctx.stroke()
+            break
+          }
+          case "punho": {
+            // A glove each side, in the material's colour, the cuff toward the ball.
+            for (const lado of [1, -1]) {
+              ctx.save()
+              ctx.scale(lado, 1)
+              forma(() => ctx.roundRect(r - 4, -7, 7, 14, 2), "#f4f5f7")
+              forma(() => ctx.roundRect(r + 1, -11, len + 5, 22, 10), metal)
+              ctx.globalAlpha = parada ? 0.35 : 1
+              ctx.beginPath()
+              ctx.moveTo(r + len - 2, -6)
+              ctx.lineTo(r + len - 2, 6)
+              ctx.lineWidth = 1.5
+              ctx.strokeStyle = CONTORNO
+              ctx.stroke()
+              ctx.restore()
+            }
+            break
+          }
+          case "clava": {
+            // Thick at the end, with studs.
+            forma(() => {
+              ctx.moveTo(r - 2, -4)
+              ctx.lineTo(r + len - 12, -9)
+              ctx.quadraticCurveTo(r + len + 4, -10, r + len + 4, 0)
+              ctx.quadraticCurveTo(r + len + 4, 10, r + len - 12, 9)
+              ctx.lineTo(r - 2, 4)
+            }, "#9a6b3f")
+            ctx.fillStyle = metal
+            for (const [x, y] of [[r + len - 10, -9], [r + len - 2, -6], [r + len - 10, 9], [r + len - 2, 6], [r + len + 4, 0]]) {
+              ctx.beginPath()
+              ctx.arc(x, y, 2.6, 0, Math.PI * 2)
+              ctx.fill()
+              ctx.lineWidth = 1
+              ctx.strokeStyle = CONTORNO
+              ctx.stroke()
+            }
             break
           }
         }
@@ -828,14 +979,18 @@
       function desenharBola(bola, i, agora) {
         const l = lutadores[i]
         const a = l.aparencia
-        // The trail, from Diamante up.
-        if (l.material.rastro) {
+        const parada = Duelo.parada(luta, bola)
+        // The trail, from Diamante up; the Punho always leaves one, longer the faster it goes.
+        const v = Math.sqrt(bola.vx * bola.vx + bola.vy * bola.vy)
+        const punho = bola.classe === "punho"
+        if ((l.material.rastro || punho) && !parada) {
           const r = rastros[i]
           r.push([bola.x, bola.y])
-          if (r.length > 14) r.shift()
+          const max = punho ? Math.round(4 + v / 40) : 14
+          while (r.length > max) r.shift()
           r.forEach(([x, y], k) => {
-            ctx.globalAlpha = (k / r.length) * 0.28
-            ctx.fillStyle = l.material.arco ? `hsl(${(agora / 8 + k * 20) % 360} 90% 70%)` : l.material.cor
+            ctx.globalAlpha = (k / r.length) * (punho ? 0.35 : 0.28)
+            ctx.fillStyle = l.material.arco ? `hsl(${(agora / 8 + k * 20) % 360} 90% 70%)` : punho ? COR_LADO[i] : l.material.cor
             ctx.beginPath()
             ctx.arc(x, y, bola.r * (0.4 + (0.6 * k) / r.length), 0, Math.PI * 2)
             ctx.fill()
@@ -843,9 +998,22 @@
           ctx.globalAlpha = 1
         }
         desenharArma(bola, l, agora)
+        // Stunned, it shakes where it stands.
+        const tx = parada ? (Math.random() - 0.5) * 3 : 0
         // The body: their fan's colours, ringed in their side's.
         ctx.save()
-        ctx.translate(bola.x, bola.y)
+        ctx.translate(bola.x + tx, bola.y)
+        // The Punho, near its top speed: a white ring, the faster the brighter.
+        if (punho) {
+          const k = Math.min(1, v / Math.max(1, bola.vmax))
+          if (k > 0.5) {
+            ctx.beginPath()
+            ctx.arc(0, 0, bola.r + 4, 0, Math.PI * 2)
+            ctx.strokeStyle = `rgb(255 255 255 / ${(k - 0.5) * 1.4})`
+            ctx.lineWidth = 2.5
+            ctx.stroke()
+          }
+        }
         ctx.beginPath()
         ctx.arc(0, 0, bola.r, 0, Math.PI * 2)
         ctx.fillStyle = a.cor
@@ -866,6 +1034,23 @@
           ctx.fill()
         }
         ctx.restore()
+        // Poisoned: a purple tint, deeper with each stack.
+        if (bola.envenenado) {
+          ctx.globalAlpha = Math.min(0.5, 0.12 + bola.envenenado * 0.04)
+          ctx.fillStyle = VENENO
+          ctx.beginPath()
+          ctx.arc(0, 0, bola.r, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.globalAlpha = 1
+        }
+        if (parada) {
+          ctx.globalAlpha = 0.35
+          ctx.fillStyle = "#c8cbd6"
+          ctx.beginPath()
+          ctx.arc(0, 0, bola.r, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.globalAlpha = 1
+        }
         if (bola.flash > 0) {
           ctx.globalAlpha = Math.min(1, bola.flash / 0.12) * 0.85
           ctx.fillStyle = "#ffffff"
@@ -880,21 +1065,43 @@
         ctx.arc(0, 0, bola.r - 1, 0, Math.PI * 2)
         ctx.stroke()
         ctx.restore()
-        // Bleeding: red drops.
-        if (bola.sangrando) {
-          for (let k = 0; k < Math.min(5, bola.sangrando); k++) {
-            const fase = (agora / 700 + k / 5) % 1
-            ctx.fillStyle = `rgb(255 70 70 / ${1 - fase})`
+        // Poison: bubbles rising, one per stack (up to six).
+        if (bola.envenenado) {
+          for (let k = 0; k < Math.min(6, bola.envenenado); k++) {
+            const fase = (agora / 900 + k / 6) % 1
+            ctx.fillStyle = `rgb(183 123 255 / ${1 - fase})`
             ctx.beginPath()
-            ctx.arc(bola.x + (k - 2) * 7, bola.y + bola.r + fase * 14, 2.4, 0, Math.PI * 2)
+            ctx.arc(bola.x + Math.sin(k * 2.4 + agora / 300) * 10, bola.y - bola.r - fase * 18, 2.2 + (k % 2), 0, Math.PI * 2)
             ctx.fill()
           }
         }
+        // Stunned: stars going round its head.
+        if (parada) {
+          for (let k = 0; k < 3; k++) {
+            const ang = agora / 180 + (k * Math.PI * 2) / 3
+            estrela(bola.x + Math.cos(ang) * 16, bola.y - bola.r - 6 + Math.sin(ang) * 5, 5, "#ffe08a")
+          }
+        }
         // Sparks off the weapon, from Campeão up.
-        if (l.material.faiscas && Math.random() < 0.35) {
+        if (l.material.faiscas && bola.c.arma && Math.random() < 0.35) {
           const w = Duelo.arma(bola)
           efeitos.push({ tipo: "brilho", x: w.x1, y: w.y1, vx: (Math.random() - 0.5) * 40, vy: (Math.random() - 0.5) * 40, desde: agora, ate: agora + 400, cor: l.material.arco ? `hsl(${Math.random() * 360} 90% 75%)` : l.material.luz })
         }
+      }
+
+      function estrela(x, y, r, cor) {
+        ctx.beginPath()
+        for (let k = 0; k < 10; k++) {
+          const ang = -Math.PI / 2 + (k * Math.PI) / 5
+          const rr = k % 2 ? r * 0.45 : r
+          ctx.lineTo(x + Math.cos(ang) * rr, y + Math.sin(ang) * rr)
+        }
+        ctx.closePath()
+        ctx.fillStyle = cor
+        ctx.fill()
+        ctx.lineWidth = 1.2
+        ctx.strokeStyle = CONTORNO
+        ctx.stroke()
       }
 
       function desenhar(agora) {
@@ -904,21 +1111,28 @@
         const sx = tremor ? (Math.random() - 0.5) * tremor : 0
         const sy = tremor ? (Math.random() - 0.5) * tremor : 0
         tremor = Math.max(0, tremor - 0.6)
-        ctx.setTransform(ESCALA, 0, 0, ESCALA, sx * ESCALA, sy * ESCALA)
+        ctx.setTransform(ESCALA, 0, 0, ESCALA, (ARENA_X + sx) * ESCALA, (ARENA_Y + sy) * ESCALA)
         // The arena: its floor and walls (closing in during sudden death).
         const p = luta.paredes
-        ctx.fillStyle = "rgb(0 12 46 / 0.55)"
-        ctx.fillRect(p.x0, p.y0, p.x1 - p.x0, p.y1 - p.y0)
-        ctx.lineWidth = 2
-        ctx.strokeStyle = luta.t >= Duelo.MORTE_SUBITA ? "#ff6b6b" : "rgb(133 167 255 / 0.45)"
-        ctx.strokeRect(p.x0 + 1, p.y0 + 1, p.x1 - p.x0 - 2, p.y1 - p.y0 - 2)
+        ctx.fillStyle = "rgb(0 12 46 / 0.6)"
+        ctx.fillRect(0, 0, Duelo.LADO, Duelo.LADO)
+        if (p.x0 > 0) {
+          ctx.fillStyle = "rgb(200 40 40 / 0.18)"
+          ctx.fillRect(0, 0, Duelo.LADO, p.y0)
+          ctx.fillRect(0, p.y1, Duelo.LADO, Duelo.LADO - p.y1)
+          ctx.fillRect(0, p.y0, p.x0, p.y1 - p.y0)
+          ctx.fillRect(p.x1, p.y0, Duelo.LADO - p.x1, p.y1 - p.y0)
+        }
+        ctx.lineWidth = 2.5
+        ctx.strokeStyle = luta.t >= Duelo.MORTE_SUBITA ? "#ff6b6b" : "rgb(133 167 255 / 0.6)"
+        ctx.strokeRect(p.x0 - 1.25, p.y0 - 1.25, p.x1 - p.x0 + 2.5, p.y1 - p.y0 + 2.5)
         // Arrows.
         for (const f of luta.flechas) {
           const v = Math.sqrt(f.vx * f.vx + f.vy * f.vy)
           const dx = (f.vx / v) * 12, dy = (f.vy / v) * 12
           ctx.lineCap = "round"
           ctx.lineWidth = 5
-          ctx.strokeStyle = "#001447"
+          ctx.strokeStyle = CONTORNO
           ctx.beginPath()
           ctx.moveTo(f.x - dx, f.y - dy)
           ctx.lineTo(f.x, f.y)
@@ -937,26 +1151,49 @@
           }
           const t = (agora - e.desde) / (e.ate - e.desde)
           if (e.tipo === "numero") {
-            if (e.valor < 1) continue
+            if (e.valor < 0.5) continue
             ctx.font = `700 ${e.critico ? 26 : 18}px "Space Grotesk"`
             ctx.textAlign = "center"
             ctx.lineWidth = 4
-            ctx.strokeStyle = "#001447"
+            ctx.strokeStyle = CONTORNO
             ctx.globalAlpha = 1 - Math.max(0, t - 0.6) / 0.4
             const y = e.y - 10 - t * 18
-            ctx.strokeText(Math.round(e.valor), e.x, y)
-            ctx.fillStyle = e.critico ? "#ffd23f" : e.sangria ? "#ff7a7a" : "#f4f5f7"
-            ctx.fillText(Math.round(e.valor), e.x, y)
+            const valor = e.valor >= 10 ? Math.round(e.valor) : Math.round(e.valor * 10) / 10
+            const txt = String(valor).replace(".", ",")
+            ctx.strokeText(txt, e.x, y)
+            ctx.fillStyle = e.critico ? "#ffd23f" : e.veneno ? VENENO : "#f4f5f7"
+            ctx.fillText(txt, e.x, y)
             ctx.globalAlpha = 1
           } else if (e.tipo === "palavra") {
             ctx.font = `700 22px "Space Grotesk"`
             ctx.textAlign = "center"
             ctx.lineWidth = 4
-            ctx.strokeStyle = "#001447"
+            ctx.strokeStyle = CONTORNO
             ctx.globalAlpha = 1 - Math.max(0, t - 0.7) / 0.3
             ctx.strokeText(e.texto, e.x, e.y - t * 10)
             ctx.fillStyle = e.cor
             ctx.fillText(e.texto, e.x, e.y - t * 10)
+            ctx.globalAlpha = 1
+          } else if (e.tipo === "corte") {
+            // A katana's slice: a white line across the ball, gone in a blink.
+            const b = luta.bolas[e.alvo]
+            const c = Math.cos(e.ang) * (b.r + 8), s = Math.sin(e.ang) * (b.r + 8)
+            ctx.globalAlpha = 1 - t
+            ctx.lineCap = "round"
+            ctx.lineWidth = 3
+            ctx.strokeStyle = "#ffffff"
+            ctx.beginPath()
+            ctx.moveTo(b.x - c, b.y - s)
+            ctx.lineTo(b.x + c, b.y + s)
+            ctx.stroke()
+            ctx.globalAlpha = 1
+          } else if (e.tipo === "nuvem") {
+            const b = luta.bolas[e.alvo]
+            ctx.globalAlpha = (1 - t) * 0.5
+            ctx.fillStyle = VENENO
+            ctx.beginPath()
+            ctx.arc(b.x, b.y, b.r + 4 + t * 14, 0, Math.PI * 2)
+            ctx.fill()
             ctx.globalAlpha = 1
           } else if (e.tipo === "faisca") {
             ctx.strokeStyle = `rgb(255 255 255 / ${1 - t})`
@@ -978,11 +1215,11 @@
           } else if (e.tipo === "faixa") {
             ctx.globalAlpha = t < 0.15 ? t / 0.15 : t > 0.8 ? (1 - t) / 0.2 : 1
             ctx.fillStyle = "rgb(200 40 40 / 0.85)"
-            ctx.fillRect(0, Duelo.ALTURA / 2 - 22, Duelo.LARGURA, 44)
+            ctx.fillRect(0, Duelo.LADO / 2 - 22, Duelo.LADO, 44)
             ctx.font = `700 28px "Space Grotesk"`
             ctx.textAlign = "center"
             ctx.fillStyle = "#f4f5f7"
-            ctx.fillText(e.texto, Duelo.LARGURA / 2, Duelo.ALTURA / 2 + 10)
+            ctx.fillText(e.texto, Duelo.LADO / 2, Duelo.LADO / 2 + 10)
             ctx.globalAlpha = 1
           }
         }

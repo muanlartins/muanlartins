@@ -57,7 +57,7 @@ export interface Duelist {
 }
 
 /** The classes, in the order the page shows them (duelo-motor.js's ids). */
-export const CLASSES = ["espada", "adaga", "arco", "lanca", "machado", "foice"] as const
+export const CLASSES = ["espada", "adaga", "arco", "lanca", "machado", "foice", "punho", "martelo", "katana", "clava"] as const
 export type ClassId = (typeof CLASSES)[number]
 
 /** The weapon's materials, from the lowest Σ rank tier to the top (the overlay's MATERIAIS). */

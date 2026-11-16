@@ -197,12 +197,28 @@ export const channel = {
       random: { pt: "Aleatória", en: "Random" },
       randomText: { pt: "Uma diferente a cada duelo.", en: "A different one each duel." },
       classes: {
-        espada: { name: { pt: "Espada", en: "Sword" }, text: { pt: "Cada acerto aumenta o dano.", en: "Every hit adds damage." } },
-        adaga: { name: { pt: "Adaga", en: "Dagger" }, text: { pt: "Golpes rápidos; gira mais rápido a cada acerto.", en: "Quick strikes; spins faster with every hit." } },
-        arco: { name: { pt: "Arco", en: "Bow" }, text: { pt: "Atira de longe; cada acerto, uma flecha a mais.", en: "Shoots from afar; every hit, one more arrow." } },
-        lanca: { name: { pt: "Lança", en: "Spear" }, text: { pt: "A mais longa; cresce a cada acerto.", en: "The longest; grows with every hit." } },
-        machado: { name: { pt: "Machado", en: "Axe" }, text: { pt: "Golpes pesados; cada acerto, mais chance de crítico.", en: "Heavy blows; every hit, more chance of a critical." } },
-        foice: { name: { pt: "Foice", en: "Scythe" }, text: { pt: "Faz sangrar; cada acerto, a sangria aumenta.", en: "Makes them bleed; every hit, more bleeding." } },
+        espada: { name: { pt: "Espada", en: "Sword" }, text: { pt: "Cada acerto, +1 de dano.", en: "Every hit, +1 damage." } },
+        adaga: {
+          name: { pt: "Adaga", en: "Dagger" },
+          text: { pt: "Gira mais rápido a cada acerto, e quanto mais gira, mais corta.", en: "Spins faster with every hit, and the faster it spins, the harder it cuts." },
+        },
+        arco: { name: { pt: "Arco", en: "Bow" }, text: { pt: "Atira de longe; cada flecha que acerta, uma a mais.", en: "Shoots from afar; every arrow that lands, one more." } },
+        lanca: { name: { pt: "Lança", en: "Spear" }, text: { pt: "A mais longa; cada acerto, mais longa e mais forte.", en: "The longest; every hit, longer and stronger." } },
+        machado: { name: { pt: "Machado", en: "Axe" }, text: { pt: "Cada acerto, mais chance de um crítico de 4×.", en: "Every hit, more chance of a 4× critical." } },
+        foice: { name: { pt: "Foice", en: "Scythe" }, text: { pt: "Envenena: cada acerto, +1 de veneno (até 5).", en: "Poisons: every hit, +1 poison (up to 5)." } },
+        punho: {
+          name: { pt: "Punho", en: "Fists" },
+          text: { pt: "Acelera sem parar: quanto mais rápido, mais forte o soco.", en: "Never stops speeding up: the faster, the harder the punch." },
+        },
+        martelo: {
+          name: { pt: "Martelo", en: "Hammer" },
+          text: { pt: "Pega embalo: quanto mais gira, mais dói. Nada inverte o seu giro.", en: "Builds momentum: the faster it spins, the more it hurts. Nothing turns its swing around." },
+        },
+        katana: {
+          name: { pt: "Katana", en: "Katana" },
+          text: { pt: "Cada acerto corta várias vezes; +1 corte por acerto ou defesa.", en: "Every hit slices several times; +1 slice per hit or parry." },
+        },
+        clava: { name: { pt: "Clava", en: "Club" }, text: { pt: "Atordoa: quem apanha fica parado, sem arma.", en: "Stuns: whoever gets hit stands still, weaponless." } },
       },
       materialTitle: { pt: "Visual da arma", en: "Weapon look" },
       materialHint: {
