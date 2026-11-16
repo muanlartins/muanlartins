@@ -4,7 +4,7 @@
   {
    "at": "2026-11-09T22:36:00Z",
    "task": "CsLevel.Lowgravity56.VT Micro.RUKS4O",
-   "name": "VT Micro",
+   "name": "VT Micro 3 Sphere Entry",
    "score": 1843,
    "accuracy": 93.2,
    "seconds": 60
@@ -12,7 +12,7 @@
   {
    "at": "2026-11-09T22:38:10Z",
    "task": "CsLevel.Lowgravity56.VT Phase.RMAGR9",
-   "name": "VT Phase",
+   "name": "VT Phaseshot Easy",
    "score": 344,
    "accuracy": 91.6,
    "seconds": 60
@@ -28,7 +28,7 @@
   {
    "at": "2026-11-09T22:40:42Z",
    "task": "CsLevel.Lowgravity56.VT Twosh.RUKTI8",
-   "name": "VT Twosh",
+   "name": "VT Twoshot Horizontal Entry",
    "score": 683,
    "accuracy": 90.0,
    "seconds": 60
@@ -36,7 +36,7 @@
   {
    "at": "2026-11-09T22:41:53Z",
    "task": "CsLevel.Lowgravity56.VT Twosh.RUKTDF",
-   "name": "VT Twosh",
+   "name": "VT Twoshot Vertical Entry",
    "score": 736,
    "accuracy": 93.8,
    "seconds": 60
@@ -44,7 +44,7 @@
   {
    "at": "2026-11-09T22:43:10Z",
    "task": "CsLevel.Lowgravity56.VT Pulse.RUKVC9",
-   "name": "VT Pulse",
+   "name": "VT Pulseshot Six",
    "score": 1025,
    "accuracy": 85.4,
    "seconds": 60
@@ -68,7 +68,7 @@
   {
    "at": "2026-11-09T22:48:09Z",
    "task": "CsLevel.VT Empyrean.VT Sixsh.R8TGD3",
-   "name": "VT Sixsh",
+   "name": "VT Sixshot Novice",
    "score": 822,
    "accuracy": 91.5,
    "seconds": 60
@@ -84,7 +84,7 @@
   {
    "at": "2026-11-09T22:50:51Z",
    "task": "CsLevel.Lowgravity56.VT Twosh.RUMAX6",
-   "name": "VT Twosh",
+   "name": "VT Twoshot Horizontal Wide TE",
    "score": 666,
    "accuracy": 93.2,
    "seconds": 60
@@ -100,7 +100,7 @@
   {
    "at": "2026-11-09T22:54:31Z",
    "task": "CsLevel.Lowgravity56.VT Berry.RUPVB5",
-   "name": "VT Berry",
+   "name": "VT BerryTS Static Entry",
    "score": 971,
    "accuracy": 94.3,
    "seconds": 60
@@ -140,7 +140,7 @@
   {
    "at": "2026-11-09T23:02:13Z",
    "task": "CsLevel.VT Empyrean.VT Multi.RB6AAB",
-   "name": "VT Multi",
+   "name": "VT Multishot 90 Novice",
    "score": 1042,
    "accuracy": 93.1,
    "seconds": 60

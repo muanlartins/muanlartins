@@ -7,7 +7,8 @@ every task he played each day (the daily routine and the Sunday benchmark alike)
 Aimlabs keeps each play in a SQLite file in AppData\\LocalLow\\Statespace\\aimlab_tb\\Users\\<id>\\LocalDB\\Klutch.bytes
 (TaskData: the task's id, score, start and end, and its stats as JSON), and each play's replay header beside it
 (Replay\\<play>.json) with the task's name, which the database lacks. The file is copied before reading, as Aimlabs
-may hold it open.
+may hold it open. Aimlabs keeps only its last 50 replays, so older plays are named from the copies of tasks it keeps
+(known_names) or, failing those, by Aimlabs' public API (api_names), which is sent only the tasks' public ids.
 
 A day's file keeps what it had: plays are added, never removed, so a reinstalled Aimlabs (an empty database) or a
 replay Aimlabs cleaned up loses nothing already published. A play is known by when it started. Nothing about other
@@ -22,6 +23,7 @@ import json
 import shutil
 import sqlite3
 import tempfile
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -33,6 +35,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "content" / "voltaic"
 BENCHMARK = ROOT / "content" / "voltaic-s3.json"
 AIMLABS = home() / "AppData" / "LocalLow" / "Statespace" / "aimlab_tb" / "Users"
+API = "https://api.aimlab.gg/graphql"
 
 
 def profiles():
@@ -71,6 +74,32 @@ def known_names():
     return names
 
 
+def api_names(tasks: set[str]) -> dict[str, str]:
+    """Task id → name from Aimlabs' public GraphQL API (`aimlab.task(slug: <id>)`, no sign-in), in one request: only
+    the tasks' public ids go out, never his. Nothing on any failure: the plays keep the id's start as their name."""
+    tasks = sorted(tasks)
+    if not tasks:
+        return {}
+    fields = " ".join(f"t{i}: task(slug: $t{i}) {{ name }}" for i in range(len(tasks)))
+    params = ", ".join(f"$t{i}: String!" for i in range(len(tasks)))
+    body = {"query": f"query({params}) {{ aimlab {{ {fields} }} }}", "variables": {f"t{i}": task for i, task in enumerate(tasks)}}
+    request = urllib.request.Request(API, data=json.dumps(body).encode(), headers={"content-type": "application/json", "user-agent": "muanlartins-voltaic"})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            data = (json.load(response).get("data") or {}).get("aimlab") or {}
+    except (OSError, ValueError) as error:
+        print(f"(Aimlabs' API didn't answer, {len(tasks)} tasks keep a cut name: {error})")
+        return {}
+    found = {task: (data.get(f"t{i}") or {}).get("name") for i, task in enumerate(tasks)}
+    return {task: name.strip() for task, name in found.items() if isinstance(name, str) and name.strip()}
+
+
+def cut(task: str) -> str:
+    """The name guessed from an id when there's none anywhere: its third part, the name's start
+    ("CsLevel.Lowgravity56.VT Regen.RX52TZ" → "VT Regen")."""
+    return task.split(".")[2] if task.count(".") >= 3 else task
+
+
 def utc(text: str) -> datetime:
     """Aimlabs' "2026-11-08 15:13:04", which is UTC."""
     return datetime.strptime(text, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
@@ -96,8 +125,7 @@ def plays(folder: Path, names: dict[str, str]):
                 name = json.loads(header.read_text()).get("taskName")
             except (OSError, json.JSONDecodeError):
                 pass
-        # The id's third part is the name's start ("CsLevel.VT Lowgravity56.VT Regen.RX52TZ" → "VT Regen").
-        name = name or names.get(task) or (task.split(".")[2] if task.count(".") >= 3 else task)
+        name = name or names.get(task)
         stats = json.loads(performance) if performance else {}
         accuracy = stats.get("accTotal")
         yield {
@@ -116,20 +144,22 @@ def main():
     args = parser.parse_args()
 
     names = known_names()
+    found_plays = [play for folder in profiles() for play in plays(folder, names)]
+    names.update(api_names({play["task"] for play in found_plays if not play["name"]}))
     days: dict[str, dict[str, dict]] = {}
-    for folder in profiles():
-        for play in plays(folder, names):
-            day = datetime.fromisoformat(play["at"].replace("Z", "+00:00")).astimezone(TIME_ZONE).date().isoformat()
-            days.setdefault(day, {})[play["at"]] = play
+    for play in found_plays:
+        play["name"] = play["name"] or names.get(play["task"]) or cut(play["task"])
+        day = datetime.fromisoformat(play["at"].replace("Z", "+00:00")).astimezone(TIME_ZONE).date().isoformat()
+        days.setdefault(day, {})[play["at"]] = play
 
     changed = 0
     for day, found in sorted(days.items()):
         path = OUT / f"{day}.json"
         kept = {play["at"]: play for play in json.loads(path.read_text())["plays"]} if path.exists() else {}
         merged = {**found, **kept}
-        # A name read from a replay beats one guessed from the id.
+        # A name found (a replay, Aimlabs' copies, its API) beats one guessed from the id.
         for at, play in merged.items():
-            if at in found and found[at]["name"] != play["name"] and play["name"] in found[at]["name"]:
+            if at in found and found[at]["name"] != play["name"] and (play["name"] in found[at]["name"] or play["name"] == cut(play["task"])):
                 play["name"] = found[at]["name"]
         new = sorted(merged.values(), key=lambda play: play["at"])
         if path.exists() and json.loads(path.read_text())["plays"] == new:

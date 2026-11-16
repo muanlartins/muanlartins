@@ -12,7 +12,7 @@
   {
    "at": "2026-11-11T22:12:45Z",
    "task": "CsLevel.Lowgravity56.VT Cente.RX1HFO",
-   "name": "VT Cente",
+   "name": "VT Centering II 180 Entry",
    "score": 2749,
    "accuracy": 46.0,
    "seconds": 60
@@ -36,7 +36,7 @@
   {
    "at": "2026-11-11T22:16:24Z",
    "task": "CsLevel.Lowgravity56.VT Smoot.RX1M4I",
-   "name": "VT Smoot",
+   "name": "VT Smoothsphere LG56 Entry",
    "score": 1827,
    "accuracy": 33.1,
    "seconds": 60
@@ -44,7 +44,7 @@
   {
    "at": "2026-11-11T22:17:35Z",
    "task": "CsLevel.Lowgravity56.VT Suave.RX1PWL",
-   "name": "VT Suave",
+   "name": "VT Suavetrack Glider Entry",
    "score": 1687,
    "accuracy": 30.0,
    "seconds": 60
@@ -52,7 +52,7 @@
   {
    "at": "2026-11-11T22:18:44Z",
    "task": "CsLevel.Lowgravity56.VT Suave.RX1RU5",
-   "name": "VT Suave",
+   "name": "VT Suavetrack Entry Close",
    "score": 2419,
    "accuracy": 46.8,
    "seconds": 60
@@ -68,7 +68,7 @@
   {
    "at": "2026-11-11T22:21:08Z",
    "task": "CsLevel.canner.VT Suave.R8I6UD",
-   "name": "VT Suave",
+   "name": "VT Suavetrack Novice",
    "score": 1636,
    "accuracy": 28.3,
    "seconds": 60
@@ -76,7 +76,7 @@
   {
    "at": "2026-11-11T22:22:21Z",
    "task": "CsLevel.Lowgravity56.VT Angle.RVRH8Z",
-   "name": "VT Angle",
+   "name": "VT Angletrack Entry",
    "score": 5153,
    "accuracy": 86.7,
    "seconds": 60
@@ -84,7 +84,7 @@
   {
    "at": "2026-11-11T22:23:37Z",
    "task": "CsLevel.Lowgravity56.VT Regen.RX54BD",
-   "name": "VT Regen",
+   "name": "VT Regenspheres Control Entry",
    "score": 46,
    "accuracy": 34.3,
    "seconds": 60
@@ -92,7 +92,7 @@
   {
    "at": "2026-11-11T22:24:51Z",
    "task": "CsLevel.Lowgravity56.VT Kontr.RX3DJD",
-   "name": "VT Kontr",
+   "name": "VT Kontrolsphere Entry",
    "score": 2746,
    "accuracy": 47.4,
    "seconds": 60
@@ -100,7 +100,7 @@
   {
    "at": "2026-11-11T22:26:01Z",
    "task": "CsLevel.Lowgravity56.VT Contr.RX3PRJ",
-   "name": "VT Contr",
+   "name": "VT Controltrack Far Entry",
    "score": 2347,
    "accuracy": 39.4,
    "seconds": 60
@@ -108,7 +108,7 @@
   {
    "at": "2026-11-11T22:27:14Z",
    "task": "CsLevel.Lowgravity56.VT Contr.RX3QQ4",
-   "name": "VT Contr",
+   "name": "VT Controltrack Blink Entry",
    "score": 3027,
    "accuracy": 59.3,
    "seconds": 79
@@ -116,7 +116,7 @@
   {
    "at": "2026-11-11T22:28:49Z",
    "task": "CsLevel.Lowgravity56.VT Preci.RX3O07",
-   "name": "VT Preci",
+   "name": "VT Precisionsphere Entry",
    "score": 2175,
    "accuracy": 41.4,
    "seconds": 60
@@ -132,7 +132,7 @@
   {
    "at": "2026-11-11T22:31:25Z",
    "task": "CsLevel.VT Empyrean.VT Stead.RB67MZ",
-   "name": "VT Stead",
+   "name": "VT Steadytrack Novice",
    "score": 1578,
    "accuracy": 26.7,
    "seconds": 60

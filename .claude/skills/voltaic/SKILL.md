@@ -24,15 +24,17 @@ Everything is deterministic: a script copies, the site computes.
   table `TaskData`, copied before reading) and the replay headers beside it (`Replay\<play>.json`, for the tasks'
   names), and writes one file per day (Brasília time) in `content/voltaic/<date>.json`: every play's start, task id,
   name, score, accuracy and seconds. Files only grow: plays are never removed, so an emptied Aimlabs loses nothing.
-- **Names need the script to run every few days.** The database has no task names, only ids
-  (`CsLevel.Lowgravity56.VT Twosh.RUKTDF`), and Aimlabs keeps the replays of only its **last 50 plays** (100 files,
-  `.json` + `.avro`): two or three days of training. Run once a week, Monday to Friday lose their names (found
-  2026-11-15: 81 of the week's plays came out as `VT Twosh`, `VT Midra`…). So the script also reads the copies
-  Aimlabs keeps of tasks (`CreatorStudio\Levels\*\level.es3`, `CreatorStudio\content.es3`, `SaveFile.es3`: Easy
-  Save files, which are JSON, `label` by `id`), which named 28 of them; the other 53 stayed cut (Aimlabs kept no
-  copy, the Steam Workshop folder `steamapps\workshop\content\714010` only repeats those copies, and Aimlabs'
-  GraphQL API answers task names only per user, which would mean sending his Aimlabs id: not without asking). That's
-  why `depois-da-live` runs it after each live too: a later run with the name upgrades a cut one in place.
+- **Names come from three places**, since the database has only ids (`CsLevel.Lowgravity56.VT Twosh.RUKTDF`): the
+  replay headers, but Aimlabs keeps the replays of only its **last 50 plays** (100 files, `.json` + `.avro`), two
+  or three days of training; then the copies Aimlabs keeps of tasks (`CreatorStudio\Levels\*\level.es3`,
+  `CreatorStudio\content.es3`, `SaveFile.es3`: Easy Save files, which are JSON, `label` by `id`); then Aimlabs'
+  public GraphQL API, `aimlab { task(slug: "<task id>") { name } }` at `https://api.aimlab.gg/graphql`, all the
+  missing ones in one request with aliases, no sign-in, only the tasks' public ids sent (never his Aimlabs id).
+  Found 2026-11-15, when a week run once on Sunday had 81 plays named `VT Twosh`, `VT Midra`…: the copies named 28,
+  the API the rest (and agreed with all 68 names the replays gave). A name guessed from the id (its third part) is
+  only the last resort, and a later run that finds the name replaces it in place. Aimlabs' per-user queries
+  (`plays_agg`) need a sign-in since; the per-task one doesn't. If the API stops answering, the script says how many
+  tasks kept a cut name and goes on.
 - `lib/voltaic.ts` finds the benchmarks (a day with at least 12 of a level's 18 scenarios; each scenario's best that
   day) and scores them with Voltaic S3's formula, ported line by line from aimlab-stats.com: energy per scenario,
   the best per subcategory, the harmonic mean of the nine, "Complete" when every scenario reached the rank.

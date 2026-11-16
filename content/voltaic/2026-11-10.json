@@ -4,7 +4,7 @@
   {
    "at": "2026-11-11T01:34:24Z",
    "task": "CsLevel.Lowgravity56.Amare Mi.RVGFMT",
-   "name": "Amare Mi",
+   "name": "Amare Microshot Entry",
    "score": 738,
    "accuracy": 81.2,
    "seconds": 60
@@ -12,7 +12,7 @@
   {
    "at": "2026-11-11T01:35:40Z",
    "task": "CsLevel.Lowgravity56.VT Hyper.RVGHQP",
-   "name": "VT Hyper",
+   "name": "VT Hypershot Entry",
    "score": 562,
    "accuracy": 79.7,
    "seconds": 60
@@ -20,7 +20,7 @@
   {
    "at": "2026-11-11T01:36:57Z",
    "task": "CsLevel.Lowgravity56.VT Float.RVGHZC",
-   "name": "VT Float",
+   "name": "VT Floating Dots Depth Easy",
    "score": 675,
    "accuracy": 95.8,
    "seconds": 60
@@ -28,7 +28,7 @@
   {
    "at": "2026-11-11T01:38:10Z",
    "task": "CsLevel.Lowgravity56.VT Angle.RVRH8Z",
-   "name": "VT Angle",
+   "name": "VT Angletrack Entry",
    "score": 5243,
    "accuracy": 87.6,
    "seconds": 60
@@ -68,7 +68,7 @@
   {
    "at": "2026-11-11T01:44:28Z",
    "task": "CsLevel.VT Empyrean.VT Angle.RB668Z",
-   "name": "VT Angle",
+   "name": "VT Angleshot Novice",
    "score": 588,
    "accuracy": 63.2,
    "seconds": 60
@@ -76,7 +76,7 @@
   {
    "at": "2026-11-11T01:45:42Z",
    "task": "CsLevel.Lowgravity56.VT Straf.RVHIIC",
-   "name": "VT Straf",
+   "name": "VT Strafeshot Entry",
    "score": 62,
    "accuracy": 65.3,
    "seconds": 60
@@ -84,7 +84,7 @@
   {
    "at": "2026-11-11T01:46:54Z",
    "task": "CsLevel.Lowgravity56.VT Flows.RVHG21",
-   "name": "VT Flows",
+   "name": "VT Flowshot Entry",
    "score": 623,
    "accuracy": 63.9,
    "seconds": 60
@@ -92,7 +92,7 @@
   {
    "at": "2026-11-11T01:48:08Z",
    "task": "CsLevel.Lowgravity56.VT Dashs.RVHFIC",
-   "name": "VT Dashs",
+   "name": "VT Dashshot Entry",
    "score": 55,
    "accuracy": 63.1,
    "seconds": 60
@@ -108,7 +108,7 @@
   {
    "at": "2026-11-11T01:50:36Z",
    "task": "CsLevel.Lowgravity56.VT Waves.RVRK8Z",
-   "name": "VT Waves",
+   "name": "VT Waveswitch Entry",
    "score": 55,
    "accuracy": 44.1,
    "seconds": 60
@@ -140,7 +140,7 @@
   {
    "at": "2026-11-11T01:55:31Z",
    "task": "CsLevel.VT Empyrean.VT Waves.R8TGLS",
-   "name": "VT Waves",
+   "name": "VT Waveshot Novice",
    "score": 291,
    "accuracy": 35.5,
    "seconds": 60
