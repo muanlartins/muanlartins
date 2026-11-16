@@ -47,7 +47,8 @@
    "name": "VT Frogshot Novice S3",
    "score": 446,
    "accuracy": 53.5,
-   "seconds": 63
+   "seconds": 63,
+   "pause": 2.6
   },
   {
    "at": "2026-11-16T01:15:04Z",

@@ -95,7 +95,8 @@
    "name": "VT Skyswitch Static Entry",
    "score": 2125,
    "accuracy": 35.6,
-   "seconds": 67
+   "seconds": 67,
+   "pause": 7.5
   },
   {
    "at": "2026-11-13T22:11:51Z",

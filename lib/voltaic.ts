@@ -16,6 +16,8 @@ import type { L10n } from "@/lib/site"
  *
  * A day counts as a benchmark when it played at least BENCHMARK_MIN of a level's 18 scenarios; its score on each is
  * the day's best. Voltaic's own sheet keeps the best ever, but here each Sunday stands alone, so the weeks compare.
+ * A paused attempt doesn't count, as in Voltaic's (2026-11-15: a 446 on Frogshot paused by a cat on the screen, so
+ * the 434 counts): it stays in the day's training, never as a score.
  */
 
 export interface VoltaicPlay {
@@ -27,7 +29,12 @@ export interface VoltaicPlay {
   score: number
   accuracy?: number
   seconds: number
+  /** Seconds it was paused, when it was: the attempt doesn't count (scripts/voltaic.py). */
+  pause?: number
 }
+
+/** An attempt that counts: one played through without a pause. */
+const counts = (play: VoltaicPlay) => !play.pause
 
 export interface VoltaicDay {
   /** YYYY-MM-DD in Brasília's time. */
@@ -120,7 +127,7 @@ export interface ScenarioResult {
   subcategory: string
   /** The rank thresholds, from the first rank (Iron) to the last of the level. */
   thresholds: number[]
-  /** The day's best, or null when it wasn't played. */
+  /** The day's best attempt that counts, or null when there's none. */
   score: number | null
   accuracy?: number
   energy: number
@@ -143,7 +150,7 @@ export interface Benchmark {
 /** One day's benchmark at this level: each scenario's best that day, scored. */
 function score(day: VoltaicDay, level: Level): Benchmark {
   const scenarios = level.scenarios.map((scenario): ScenarioResult => {
-    const plays = day.plays.filter((play) => play.task === scenario.id)
+    const plays = day.plays.filter((play) => play.task === scenario.id && counts(play))
     const best = plays.reduce<VoltaicPlay | undefined>((top, play) => (!top || play.score > top.score ? play : top), undefined)
     const raw = best ? energyOf(scenario, best.score, level) : 0
     const energy = level.id === "advanced" ? Math.min(raw, level.points[4]) : raw
@@ -178,7 +185,7 @@ function score(day: VoltaicDay, level: Level): Benchmark {
           ...level.scenarios
             .filter((s) => s.subcategory === sub.name)
             .map((s) => {
-              const best = Math.max(0, ...day.plays.filter((p) => p.task === s.id).map((p) => p.score))
+              const best = Math.max(0, ...day.plays.filter((p) => p.task === s.id && counts(p)).map((p) => p.score))
               return best ? energyOf(s, best, level) : 0
             }),
         ),
@@ -197,8 +204,9 @@ export interface TrainingDay {
   date: string
   minutes: number
   plays: number
-  /** Each task played, in the order first played, with its best score. */
-  tasks: { name: string; plays: number; best: number; accuracy?: number }[]
+  /** Each task played, in the order first played, with its best score among the attempts that count (or among all,
+   * when every one was paused), and how many were paused. */
+  tasks: { name: string; plays: number; best: number; accuracy?: number; paused: number; allPaused: boolean }[]
   /** The level benchmarked that day, if any. */
   benchmark?: LevelId
 }
@@ -228,16 +236,20 @@ export function summarizeVoltaic(files: VoltaicDay[]): VoltaicSummary {
   const benchmarks: Benchmark[] = []
   const days = sorted.map((day): TrainingDay => {
     // The highest level the day played enough of.
-    const level = [...LEVELS].reverse().find((level) => level.scenarios.filter((s) => day.plays.some((p) => p.task === s.id)).length >= BENCHMARK_MIN)
+    const level = [...LEVELS].reverse().find((level) => level.scenarios.filter((s) => day.plays.some((p) => p.task === s.id && counts(p))).length >= BENCHMARK_MIN)
     if (level) benchmarks.push(score(day, level))
     const tasks = new Map<string, TrainingDay["tasks"][number]>()
     for (const play of [...day.plays].sort((a, b) => a.at.localeCompare(b.at))) {
-      const task = tasks.get(play.name) ?? { name: play.name, plays: 0, best: play.score, accuracy: play.accuracy }
+      const valid = counts(play)
+      const task = tasks.get(play.name) ?? { name: play.name, plays: 0, best: play.score, accuracy: play.accuracy, paused: 0, allPaused: !valid }
       task.plays++
-      if (play.score >= task.best) {
+      if (!valid) task.paused++
+      // The first attempt that counts replaces paused ones' best; after that, only attempts that count compete.
+      if ((valid && (task.allPaused || play.score >= task.best)) || (!valid && task.allPaused && play.score >= task.best)) {
         task.best = play.score
         task.accuracy = play.accuracy
       }
+      if (valid) task.allPaused = false
       tasks.set(play.name, task)
     }
     return {

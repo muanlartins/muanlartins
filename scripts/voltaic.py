@@ -10,6 +10,11 @@ Aimlabs keeps each play in a SQLite file in AppData\\LocalLow\\Statespace\\aimla
 may hold it open. Aimlabs keeps only its last 50 replays, so older plays are named from the copies of tasks it keeps
 (known_names) or, failing those, by Aimlabs' public API (api_names), which is sent only the tasks' public ids.
 
+A paused play gets `pause`, the seconds it was paused: Voltaic doesn't count a paused attempt, so the site leaves it
+out of the benchmark (2026-11-15: a 446 on Frogshot, paused 2.6 s by a cat on the screen). The replay header has it
+exactly (`pauseDuration`, ms); once the replay is gone, it's the wall time past the task's length (the replays'
+`duration` for that task, else the time most of its plays took), at Aimlabs' one-second resolution.
+
 A day's file keeps what it had: plays are added, never removed, so a reinstalled Aimlabs (an empty database) or a
 replay Aimlabs cleaned up loses nothing already published. A play is known by when it started. Nothing about other
 players, and no Steam or Aimlabs ids: the task, its score, the accuracy and how long it took.
@@ -119,13 +124,15 @@ def plays(folder: Path, names: dict[str, str]):
         start = utc(started or created)
         end = utc(ended or created)
         header = folder / "Replay" / f"{play}.json"
-        name = None
+        replay = {}
         if play and header.exists():
             try:
-                name = json.loads(header.read_text()).get("taskName")
+                replay = json.loads(header.read_text())
             except (OSError, json.JSONDecodeError):
                 pass
-        name = name or names.get(task)
+        name = replay.get("taskName") or names.get(task)
+        pause = replay.get("pauseDuration")
+        length = replay.get("duration")
         stats = json.loads(performance) if performance else {}
         accuracy = stats.get("accTotal")
         yield {
@@ -135,7 +142,32 @@ def plays(folder: Path, names: dict[str, str]):
             "score": score,
             **({"accuracy": round(accuracy, 1)} if isinstance(accuracy, (int, float)) else {}),
             "seconds": max(0, round((end - start).total_seconds())),
+            # Dropped before writing: the pause from the replay (seconds) and the task's length, when it's there.
+            "_pause": pause / 1000 if isinstance(pause, (int, float)) else None,
+            "_length": length if isinstance(length, (int, float)) and length > 0 else None,
         }
+
+
+def mark_pauses(found: list[dict]):
+    """Each paused play's `pause`, in seconds: the replay's when there's one, else the wall time past the task's
+    length (2 s or more, as Aimlabs' times are whole seconds)."""
+    lengths: dict[str, float] = {}
+    walls: dict[str, list[int]] = {}
+    for play in found:
+        if play["_length"]:
+            lengths.setdefault(play["task"], play["_length"])
+        walls.setdefault(play["task"], []).append(play["seconds"])
+    for task, seconds in walls.items():
+        typical = max(set(seconds), key=seconds.count)
+        if task not in lengths and seconds.count(typical) >= 2:
+            lengths[task] = typical
+    for play in found:
+        pause = play.pop("_pause")
+        length = play.pop("_length") or lengths.get(play["task"])
+        if pause is None and length and play["seconds"] - length >= 2:
+            pause = play["seconds"] - length
+        if pause:
+            play["pause"] = round(pause, 1)
 
 
 def main():
@@ -146,6 +178,7 @@ def main():
     names = known_names()
     found_plays = [play for folder in profiles() for play in plays(folder, names)]
     names.update(api_names({play["task"] for play in found_plays if not play["name"]}))
+    mark_pauses(found_plays)
     days: dict[str, dict[str, dict]] = {}
     for play in found_plays:
         play["name"] = play["name"] or names.get(play["task"]) or cut(play["task"])
@@ -161,6 +194,9 @@ def main():
         for at, play in merged.items():
             if at in found and found[at]["name"] != play["name"] and (play["name"] in found[at]["name"] or play["name"] == cut(play["task"])):
                 play["name"] = found[at]["name"]
+            # A pause found later is added; one already kept stays (the replay's exact one beats an estimate).
+            if at in found and "pause" in found[at] and "pause" not in play:
+                play["pause"] = found[at]["pause"]
         new = sorted(merged.values(), key=lambda play: play["at"])
         if path.exists() and json.loads(path.read_text())["plays"] == new:
             continue

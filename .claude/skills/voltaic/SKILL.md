@@ -35,6 +35,14 @@ Everything is deterministic: a script copies, the site computes.
   only the last resort, and a later run that finds the name replaces it in place. Aimlabs' per-user queries
   (`plays_agg`) need a sign-in since; the per-task one doesn't. If the API stops answering, the script says how many
   tasks kept a cut name and goes on.
+- **Paused attempts don't count** (Luan, 2026-11-15, as Voltaic doesn't count them: his 446 on Frogshot was paused
+  2.6 s by his cat on the screen, so the 434 counts). The script writes `pause` (seconds) on a paused play: exactly
+  from the replay header's `pauseDuration` (ms), or, once the replay is gone, the wall time past the task's length
+  (the replays' `duration`, else the time most of that task's plays took; 2 s or more, as the database has whole
+  seconds: 11-08's Shifttrack 1710 took 114 s of a 60 s task). `lib/voltaic.ts` leaves paused plays out of the
+  benchmark (the best, the 12-scenario count) and of each day's best in the calendar, which still lists them
+  ("· 1 com pausa"; a task whose only attempts were paused shows its score struck through). Every play stays in the
+  files: Luan wants it transparent ("acho que faz parte, vamos ser transparentes").
 - `lib/voltaic.ts` finds the benchmarks (a day with at least 12 of a level's 18 scenarios; each scenario's best that
   day) and scores them with Voltaic S3's formula, ported line by line from aimlab-stats.com: energy per scenario,
   the best per subcategory, the harmonic mean of the nine, "Complete" when every scenario reached the rank.
@@ -61,7 +69,7 @@ Everything is deterministic: a script copies, the site computes.
 | Sunday | Level | Rank | Energy | Weakest |
 | --- | --- | --- | --- | --- |
 | 2026-11-08 | Novice | Iron | 132 | Control 83 |
-| 2026-11-15 | Novice | Iron | 190 (+58) | Precise 94 |
+| 2026-11-15 | Novice | Iron | 190 (+58) | Precise 94 (Frogshot 434: the 446 was paused) |
 
 Add a line each Sunday: it's the quick answer to "como estou indo?" without building the site.
 
