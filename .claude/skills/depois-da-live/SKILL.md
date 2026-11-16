@@ -68,6 +68,17 @@ two matches or more with him, then the day's watchers by minutes from the Σ API
 The in-game names stay out of everything but `aliados.json` (the repo is public). Valorant has no replays: there the
 dock tags only viewers with a `riot` Riot ID in `aliados.json`.
 
+## 1c. The aim training (every day)
+
+```sh
+python3 scripts/voltaic.py --apply
+```
+
+Light (it copies Aimlabs' database), so run it after every live, Valorant or not: Aimlabs keeps the replays that
+name each task for its last 50 plays only (two or three days of training), and a week left for Sunday loses Monday
+to Friday's names (see the `voltaic` skill). Its days go in the release commit; Sunday's benchmark is still the
+`voltaic` skill's routine.
+
 ## 2. The live's page, transcript and thumbnail
 
 ```sh

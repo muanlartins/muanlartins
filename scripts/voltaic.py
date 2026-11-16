@@ -43,9 +43,32 @@ def profiles():
 
 
 def known_names():
-    """Task id → name for the benchmark's scenarios, for plays whose replay header is gone."""
+    """Task id → name for plays whose replay header is gone: the benchmark's scenarios, then every task Aimlabs keeps
+    a copy of (CreatorStudio's levels and content packs, its content index, SaveFile.es3: Easy Save files, which are
+    JSON). Aimlabs keeps the replays of only its last 50 plays, about two or three days of training, so a week's first
+    days are named from these, or not at all when Aimlabs kept no copy of the task."""
+    names = {}
+
+    def walk(node):
+        if isinstance(node, dict):
+            if str(node.get("id", "")).startswith("CsLevel.") and isinstance(node.get("label"), str) and node["label"].strip():
+                names.setdefault(node["id"], node["label"].strip())
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    root = AIMLABS.parent
+    for path in [root / "SaveFile.es3", root / "CreatorStudio" / "content.es3", *sorted((root / "CreatorStudio").glob("**/level.es3"))]:
+        try:
+            walk(json.loads(path.read_text(encoding="utf-8-sig")))
+        except (OSError, ValueError):
+            pass
+
     data = json.loads(BENCHMARK.read_text())
-    return {s["id"]: f'{s["name"]} {level["name"]["en"]} S3' for level in data["levels"] for s in level["scenarios"]}
+    names.update({s["id"]: f'{s["name"]} {level["name"]["en"]} S3' for level in data["levels"] for s in level["scenarios"]})
+    return names
 
 
 def utc(text: str) -> datetime:
