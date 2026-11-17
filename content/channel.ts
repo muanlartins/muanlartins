@@ -166,7 +166,23 @@ export const channel = {
       pt: "Os jogos que rolam no canto da live com quem está no chat. Escolha como você joga, veja quem está ganhando e assista de novo a qualquer luta.",
       en: "The games running in the corner of the stream with whoever is in the chat. Pick how you play, see who's winning and watch any fight again.",
     },
-    tile: { pt: "O duelo de bolinhas: sua classe, o ranking e os replays.", en: "The ball duel: your class, the ranking and the replays." },
+    tile: { pt: "O duelo de bolinhas e a corrida: sua classe, os rankings e os replays.", en: "The ball duel and the race: your class, the rankings and the replays." },
+    /** The marble race (lib/corrida.ts). */
+    race: {
+      title: { pt: "Corrida de bolinhas", en: "Marble race" },
+      lead: {
+        pt: "Entre uma partida e outra, quando a live vai pra conversa, sai uma corrida com todo mundo do chat: uma bolinha pra cada um, nas cores do seu torcedor, descendo um tubo com rampas, degraus, saltos e pinos. A pista muda a cada corrida, e ninguém precisa fazer nada.",
+        en: "Between matches, when the stream cuts to the talk, a race starts with everyone in the chat: one marble each, in the colours of their fan, down a tube of ramps, steps, jumps and pegs. The track changes every race, and nobody has to do anything.",
+      },
+      fair: { pt: "Vale só o registro: vitórias e pódios ficam aqui e na página de cada um.", en: "Only the record counts: wins and podiums stay here and on each one's page." },
+      ranking: { pt: "Ranking da corrida", en: "Race ranking" },
+      wins: { pt: "vitórias", en: "wins" },
+      podiums: { pt: "pódios", en: "podiums" },
+      races: { pt: "corridas", en: "races" },
+      latest: { pt: "Últimas corridas", en: "Latest races" },
+      of: { pt: "{n} na pista", en: "{n} on the track" },
+      none: { pt: "Ainda não teve corrida. A primeira sai na próxima conversa da live.", en: "No race yet. The first one comes at the stream's next talk." },
+    },
     duel: {
       title: { pt: "Duelo de bolinhas", en: "Ball duel" },
       lead: {
@@ -337,6 +353,12 @@ export const channel = {
       close: { pt: "Fechar o replay", en: "Close the replay" },
       none: { pt: "Ainda não foi sorteado pra um duelo.", en: "Not drawn for a duel yet." },
       pick: { pt: "Escolher a minha bolinha", en: "Pick my ball" },
+    },
+    race: {
+      title: { pt: "Corrida de bolinhas", en: "Marble race" },
+      record: { pt: "{w} vitórias · {p} pódios em {n} corridas", en: "{w} wins · {p} podiums in {n} races" },
+      best: { pt: "melhor: {b}º", en: "best: #{b}" },
+      place: { pt: "{l}º de {n}", en: "#{l} of {n}" },
     },
     pix: {
       title: { pt: "Pix no mural", en: "Pix on the mural" },

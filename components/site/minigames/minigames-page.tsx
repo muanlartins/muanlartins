@@ -30,6 +30,7 @@ import { HTML_LANG, LOCALE, localize } from "@/lib/site"
 import { CHANNEL, TWITCH } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
 import { ViewerName } from "@/components/site/viewer/viewer-name"
+import { RaceSection } from "@/components/site/minigames/race-section"
 
 const text = localize(channel.minijogos)
 const LANG = HTML_LANG[LOCALE]
@@ -465,6 +466,8 @@ export function MinigamesPage() {
           </ul>
         </section>
       )}
+
+      <RaceSection T={T} />
     </div>
   )
 }

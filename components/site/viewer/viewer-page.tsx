@@ -10,6 +10,7 @@ import { dateBR, number, ViewerCard } from "@/components/site/viewer/viewer-card
 import { ViewerName } from "@/components/site/viewer/viewer-name"
 import { channel } from "@/content/channel"
 import { channelPath, livePath } from "@/lib/channel"
+import { loadRacer, type Racer } from "@/lib/corrida"
 import { loadDuelist, replayUrl, type Duelist, type Fight } from "@/lib/duelo"
 import { loadMural, type Mural, type MuralPix } from "@/lib/pix"
 import { keptToken, loadMine, type Sigma, type Torcedor } from "@/lib/profile"
@@ -72,6 +73,7 @@ export function ViewerPage({ login: given }: { login: string }) {
   const [look, setLook] = useState<Look | null | undefined>(undefined)
   const [person, setPerson] = useState<Person | null | undefined>(undefined)
   const [duels, setDuels] = useState<Duelist | null>(null)
+  const [races, setRaces] = useState<Racer | null>(null)
   const [mural, setMural] = useState<Mural | null>(null)
   const [data, setData] = useState<ViewerData | null>(null)
   const [mine, setMine] = useState(false)
@@ -82,6 +84,7 @@ export function ViewerPage({ login: given }: { login: string }) {
     loadLook(login).then(setLook)
     loadPerson(login).then(setPerson)
     loadDuelist(login).then(setDuels).catch(() => setDuels(null))
+    loadRacer(login).then(setRaces).catch(() => setRaces(null))
     loadMural().then(setMural).catch(() => setMural(null))
     loadViewerData().then(setData)
     const token = keptToken()
@@ -216,6 +219,30 @@ export function ViewerPage({ login: given }: { login: string }) {
               <ArrowRight aria-hidden className="h-4 w-4" />
             </Link>
           )}
+        </Section>
+      )}
+
+      {races && races.corridas > 0 && (
+        <Section
+          title={text.race.title}
+          icon={<span aria-hidden>🏁</span>}
+          aside={[
+            text.race.record.replace("{w}", number(races.vitorias)).replace("{p}", number(races.podios)).replace("{n}", number(races.corridas)),
+            races.melhor ? text.race.best.replace("{b}", String(races.melhor)) : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        >
+          <ul className="flex flex-wrap gap-2">
+            {races.ultimas.map((r) => (
+              <li key={r.id} className="rounded-md border border-line bg-paper/60 px-3 py-2 text-[14px]">
+                <span className={cn("font-medium tabular-nums", r.lugar === 1 ? "text-win" : r.lugar <= 3 ? "text-klein" : "text-ink")}>
+                  {text.race.place.replace("{l}", String(r.lugar)).replace("{n}", String(r.de))}
+                </span>
+                <span className="text-muted"> · {dateBR(r.em)}</span>
+              </li>
+            ))}
+          </ul>
         </Section>
       )}
 
