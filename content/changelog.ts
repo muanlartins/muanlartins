@@ -150,6 +150,17 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "duelo-compacto",
+    date: "2026-11-17",
+    tag: "live",
+    title: "Duelo menor na live: só a arena",
+    text: "O duelo ocupa metade do canto: só a arena com a luta, os dois nomes com a vida e a classe em cima, e a vida de cada um dentro da bolinha. Nada passa da parede. No site, o replay continua com as colunas.",
+    href: "/canal/minijogos",
+    media: [
+      media("duelo-compacto", "O duelo menor no canto da tela: Punho contra Clava, os nomes e as barras de vida em cima da arena e a vida de cada um dentro da bolinha"),
+    ],
+  },
+  {
     id: "duelo-com-fisica",
     date: "2026-11-16",
     tag: "live",

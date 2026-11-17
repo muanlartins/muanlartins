@@ -12,10 +12,13 @@
       The ball duel (Lucca's idea, lucca_3098; Luan's rules, 2026-11-15): in the corner of the VAR's mini player, two
       viewers in the chat drawn at random fight as balls with weapons, one duel after another, forever, with nobody
       joining or doing anything. The fight is duelo-motor.js (deterministic: a seed and two classes; the genre's
-      physics since 2026-11-16, gravity and bounces in a square box); this page draws it: the arena in the middle of
-      the box, each fighter in a column by it (their fan, life, class, what its ability has grown to and what it
-      does), as the genre's videos show their stats by each side, and every ability on the balls themselves (the
-      poison's bubbles, the stun's stars, the katana's slices, the Punho's trail, the Martelo's glowing head). Each ball wears its viewer's colours from their fan (/perfil) and fights with the class they picked on
+      physics since 2026-11-16, gravity and bounces in a square box); this page draws it. On the live (since
+      2026-11-17, Luan: "só o quadrado do jogo com o jogo rolando") the box is the arena alone: the two names, their
+      life bars and classes in a strip over it, the clock on its band and each ball's life inside it, as the genre's
+      videos show it; nothing crosses its wall. With the columns (the site's player, or ?completo), the arena sits in
+      the middle of a wider box with each fighter in a column by it (their fan, life, class, what its ability has
+      grown to and what it does). Either way every ability shows on the balls themselves (the poison's bubbles, the
+      stun's stars, the katana's slices, the Punho's trail, the Martelo's glowing head). Each ball wears its viewer's colours from their fan (/perfil) and fights with the class they picked on
       /canal/minijogos (the profile API's /duelistas), or one drawn each duel if they didn't. Its weapon's material is
       their Σ rank, or a lower one they picked there: Σ never makes a ball stronger, only better looking.
 
@@ -30,8 +33,10 @@
       The VAR comes first: while one is open (the Efeitos dock's "muanlartins-var"), the duel stops where it is and
       the corner is the VAR's; it carries on when the VAR closes. It also stops while the source is off the air.
 
-      The box is the mini player's, 640×360 at (1236, 92); ?x= and ?y= move it (Valorant, under its killfeed:
-      ?y=340). ?api= the profile API, ?sigma= the Σ API, ?canal= the channel. ?demo fills the chat with sample
+      The box sits in the mini player's corner, 640×360 at (1236, 92): on the live, the arena of 280 (?tamanho= from
+      200 to 420) and its strip, 292×342 with its right edge on the mini player's, so at (1584, 92); with the columns,
+      the mini player's whole box. ?x= and ?y= move it (in Valorant OBS sets the source 238 px lower, under the
+      killfeed). ?api= the profile API, ?sigma= the Σ API, ?canal= the channel. ?demo fills the chat with sample
       people (keys: v the VAR opens and closes, n next duel, s someone leaves, j someone arrives); ?demo=1v1 has a
       single viewer; ?semente= fixes the first fight's seed, ?classes=machado,arco the classes (to try one; a blank
       side, as in ",arco", keeps its own); ?fundo=<image> puts a game screenshot behind.
@@ -411,6 +416,139 @@
           opacity: 0;
         }
       }
+
+      /* The live's box since 2026-11-17 (Luan: "só o quadrado do jogo com o jogo rolando"): the arena alone, with the
+         two names, their life and their class in a strip over it, the clock on the band and each ball's life inside it,
+         as the genre's videos show it. Its right edge is the mini player's (x 1876). --arena is the square's side on
+         screen (?tamanho=, 280 by default); ?completo brings the columns back, and the site's player keeps them. */
+      body.compacto .caixa {
+        --arena: 280px;
+        --caixa-x: calc(1876px - var(--arena) - 12px);
+        width: calc(var(--arena) + 12px);
+        height: calc(var(--arena) + 62px);
+      }
+      body.compacto .chao {
+        clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+      }
+      body.compacto canvas {
+        top: 50px;
+        width: calc(var(--arena) + 12px);
+        height: calc(var(--arena) + 12px);
+      }
+      body.compacto .faixa-titulo {
+        left: -8px;
+        top: -20px;
+        height: 24px;
+        gap: 8px;
+        padding-right: 28px;
+        clip-path: polygon(0 0, 100% 0, calc(100% - 24px) 100%, 0 100%);
+        font-size: 14px;
+      }
+      body.compacto .faixa-titulo b {
+        padding: 0 9px;
+        font-size: 14px;
+      }
+      body.compacto .faixa-titulo span {
+        display: none;
+      }
+      body.compacto .faixa-titulo .relogio {
+        position: static;
+        width: auto;
+        font-size: 14px;
+        line-height: inherit;
+        color: var(--klein);
+      }
+      body.compacto .faixa-titulo .relogio.subita {
+        color: #d62828;
+      }
+      body.compacto .lado {
+        top: 7px;
+        width: calc(var(--arena) / 2 - 8px);
+        gap: 4px;
+      }
+      body.compacto .lado.esquerda {
+        left: 6px;
+      }
+      body.compacto .lado.direita {
+        right: 6px;
+      }
+      body.compacto .lado .fa,
+      body.compacto .lado .hp,
+      body.compacto .lado .cresce,
+      body.compacto .lado .resumo,
+      body.compacto .lado .classe em {
+        display: none;
+      }
+      body.compacto .lado .nome {
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+      }
+      body.compacto .lado.direita .nome {
+        flex-direction: row-reverse;
+      }
+      body.compacto .lado .nome span {
+        max-width: calc(var(--arena) / 2 - 30px);
+        font-size: 15px;
+      }
+      body.compacto .lado .nome img {
+        width: 15px;
+        height: 15px;
+      }
+      body.compacto .barra {
+        height: 6px;
+      }
+      body.compacto .lado .classe {
+        margin-top: 0;
+        font-size: 12px;
+      }
+      /* The cards cover the arena. */
+      body.compacto .cartao {
+        left: 6px;
+        top: 56px;
+        width: var(--arena);
+        height: var(--arena);
+        gap: 4px;
+        background: rgb(0 20 71 / 0.92);
+      }
+      body.compacto .cartao .lutador {
+        gap: 5px;
+        width: calc(var(--arena) / 2 - 22px);
+      }
+      body.compacto .cartao .lutador .fa {
+        width: 40px;
+        height: 60px;
+      }
+      body.compacto .cartao .lutador strong {
+        max-width: 100%;
+        font-size: 17px;
+      }
+      body.compacto .cartao .lutador span {
+        font-size: 13px;
+      }
+      body.compacto .cartao .lutador small {
+        max-width: 100%;
+        font-size: 11.5px;
+        min-height: 3.75em;
+      }
+      body.compacto .cartao .x {
+        font-size: 28px;
+      }
+      body.compacto .cartao .vitoria {
+        padding: 0 14px;
+      }
+      body.compacto .cartao .vitoria strong {
+        max-width: calc(var(--arena) - 28px);
+        font-size: 21px;
+      }
+      body.compacto .cartao .vitoria small {
+        font-size: 13px;
+        line-height: 1.3;
+      }
+      body.compacto .cartao .vitoria .fa {
+        width: 56px;
+        height: 84px;
+      }
     </style>
   </head>
   <body>
@@ -486,6 +624,22 @@
         addEventListener("resize", fit)
       }
       if (TREINO) document.querySelector(".faixa-titulo span").textContent = REPETIR ? "replay" : "treino"
+      // The live's box: the arena alone (the CSS above); the site's player and ?completo keep the columns.
+      const COMPACTO = !params.has("site") && !params.has("completo")
+      const ARENA_TELA = COMPACTO ? Math.min(420, Math.max(200, Number(params.get("tamanho")) || 280)) : Duelo.LADO
+      if (COMPACTO) {
+        document.body.classList.add("compacto")
+        caixa.style.setProperty("--arena", `${ARENA_TELA}px`)
+        document.querySelector(".faixa-titulo").append(relogio)
+        const w = ARENA_TELA + 12
+        const h = ARENA_TELA + 62
+        const borda = document.querySelector(".borda")
+        borda.setAttribute("viewBox", `0 0 ${w} ${h}`)
+        borda.setAttribute("width", w)
+        borda.setAttribute("height", h)
+        borda.querySelector("path").setAttribute("d", `M14 0.75H${w - 0.75}V${h - 14}L${w - 14} ${h - 0.75}H0.75V14Z`)
+        canvas.width = canvas.height = w * 2
+      }
       // The Σ key, in OBS's source URL only (#chave=…): with it, the fights shown while the stream is on are recorded.
       const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
       let noArAte = 0
@@ -693,7 +847,7 @@
         const l = lutadores[fim.vencedor]
         const outro = luta.bolas[1 - fim.vencedor]
         const s = Math.round(fim.t)
-        const como = fim.motivo === "nocaute" ? `nocaute em ${s} s` : fim.motivo === "tempo" ? `no tempo, com ${Math.ceil(luta.bolas[fim.vencedor].hp)} de vida` : "no sorteio, empatados"
+        const como = fim.motivo === "nocaute" ? `nocaute em ${s}\u00a0s` : fim.motivo === "tempo" ? `no tempo, com ${Math.ceil(luta.bolas[fim.vencedor].hp)}\u00a0de vida` : "no sorteio, empatados"
         cartao.innerHTML = `<div class="vitoria ${fim.vencedor ? "direita" : "esquerda"}">
           <div class="fa torcedor comemora" data-comemoracao="${l.aparencia.comemoracao}"><div class="pose">${Torcedor.figura(l.aparencia)}</div></div>
           <strong>${texto(l.nome)} venceu!</strong>
@@ -704,14 +858,16 @@
       }
 
       // --- Drawing ------------------------------------------------------------------------------------------------
-      // The canvas is the whole box at twice its size; the arena (Duelo.LADO square) sits in its middle, between the
-      // two fighters' columns, and a weapon may swing past its wall.
+      // The canvas is drawn at twice its size on screen. With the columns it is the whole box: the arena (Duelo.LADO
+      // square) sits in its middle, between them, and a weapon may swing past its wall. In the live's box it is the
+      // arena with a margin of 6 px, scaled to ARENA_TELA, and the weapons end at the wall.
       const efeitos = [] // damage numbers, sparks, words: { tipo, x, y, ate, ... }
       let rastros = [[], []]
       let tremor = 0
-      const ESCALA = canvas.width / 640
-      const ARENA_X = 170
-      const ARENA_Y = 50
+      const ESCALA = 2 // canvas pixels per pixel on screen
+      const UNIDADE = ARENA_TELA / Duelo.LADO // pixels on screen per unit of the engine
+      const ARENA_X = COMPACTO ? 6 : 170
+      const ARENA_Y = COMPACTO ? 6 : 50
       const COR_LADO = [getComputedStyle(document.documentElement).getPropertyValue("--esquerda").trim(), getComputedStyle(document.documentElement).getPropertyValue("--direita").trim()]
       const CONTORNO = "#001447"
       const VENENO = "#b77bff"
@@ -1064,6 +1220,20 @@
         ctx.beginPath()
         ctx.arc(0, 0, bola.r - 1, 0, Math.PI * 2)
         ctx.stroke()
+        // In the live's box, its life inside it, as the genre's videos show it.
+        if (COMPACTO) {
+          const vida = String(Math.max(0, Math.ceil(bola.hp)))
+          ctx.font = `700 ${vida.length > 2 ? 14 : 17}px "Space Grotesk"`
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.lineJoin = "round"
+          ctx.lineWidth = 4
+          ctx.strokeStyle = CONTORNO
+          ctx.strokeText(vida, 0, 1)
+          ctx.fillStyle = "#f4f5f7"
+          ctx.fillText(vida, 0, 1)
+          ctx.textBaseline = "alphabetic"
+        }
         ctx.restore()
         // Poison: bubbles rising, one per stack (up to six).
         if (bola.envenenado) {
@@ -1111,7 +1281,7 @@
         const sx = tremor ? (Math.random() - 0.5) * tremor : 0
         const sy = tremor ? (Math.random() - 0.5) * tremor : 0
         tremor = Math.max(0, tremor - 0.6)
-        ctx.setTransform(ESCALA, 0, 0, ESCALA, (ARENA_X + sx) * ESCALA, (ARENA_Y + sy) * ESCALA)
+        ctx.setTransform(ESCALA * UNIDADE, 0, 0, ESCALA * UNIDADE, (ARENA_X + sx) * ESCALA, (ARENA_Y + sy) * ESCALA)
         // The arena: its floor and walls (closing in during sudden death).
         const p = luta.paredes
         ctx.fillStyle = "rgb(0 12 46 / 0.6)"
@@ -1126,6 +1296,13 @@
         ctx.lineWidth = 2.5
         ctx.strokeStyle = luta.t >= Duelo.MORTE_SUBITA ? "#ff6b6b" : "rgb(133 167 255 / 0.6)"
         ctx.strokeRect(p.x0 - 1.25, p.y0 - 1.25, p.x1 - p.x0 + 2.5, p.y1 - p.y0 + 2.5)
+        // In the live's box nothing crosses the wall: the arrows, balls and weapons are cut at its outer edge.
+        if (COMPACTO) {
+          ctx.save()
+          ctx.beginPath()
+          ctx.rect(-2.5, -2.5, Duelo.LADO + 5, Duelo.LADO + 5)
+          ctx.clip()
+        }
         // Arrows.
         for (const f of luta.flechas) {
           const v = Math.sqrt(f.vx * f.vx + f.vy * f.vy)
@@ -1142,7 +1319,13 @@
           ctx.stroke()
         }
         luta.bolas.forEach((bola, i) => desenharBola(bola, i, agora))
-        // Numbers, sparks, words.
+        if (COMPACTO) ctx.restore()
+        // Numbers, sparks, words (in the live's box, words and numbers kept inside the arena).
+        const dentro = (txt, x, y) => {
+          if (!COMPACTO) return [x, y]
+          const meia = ctx.measureText(txt).width / 2 + 3
+          return [Math.min(Duelo.LADO - meia, Math.max(meia, x)), Math.max(24, y)]
+        }
         for (let k = efeitos.length - 1; k >= 0; k--) {
           const e = efeitos[k]
           if (agora > e.ate) {
@@ -1160,9 +1343,10 @@
             const y = e.y - 10 - t * 18
             const valor = e.valor >= 10 ? Math.round(e.valor) : Math.round(e.valor * 10) / 10
             const txt = String(valor).replace(".", ",")
-            ctx.strokeText(txt, e.x, y)
+            const [nx, ny] = dentro(txt, e.x, y)
+            ctx.strokeText(txt, nx, ny)
             ctx.fillStyle = e.critico ? "#ffd23f" : e.veneno ? VENENO : "#f4f5f7"
-            ctx.fillText(txt, e.x, y)
+            ctx.fillText(txt, nx, ny)
             ctx.globalAlpha = 1
           } else if (e.tipo === "palavra") {
             ctx.font = `700 22px "Space Grotesk"`
@@ -1170,9 +1354,10 @@
             ctx.lineWidth = 4
             ctx.strokeStyle = CONTORNO
             ctx.globalAlpha = 1 - Math.max(0, t - 0.7) / 0.3
-            ctx.strokeText(e.texto, e.x, e.y - t * 10)
+            const [px, py] = dentro(e.texto, e.x, e.y - t * 10)
+            ctx.strokeText(e.texto, px, py)
             ctx.fillStyle = e.cor
-            ctx.fillText(e.texto, e.x, e.y - t * 10)
+            ctx.fillText(e.texto, px, py)
             ctx.globalAlpha = 1
           } else if (e.tipo === "corte") {
             // A katana's slice: a white line across the ball, gone in a blink.
