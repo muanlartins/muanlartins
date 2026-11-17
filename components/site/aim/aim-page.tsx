@@ -1,13 +1,15 @@
-import { CalendarDays, Crosshair as CrosshairIcon, Flame, Gauge, Hexagon, Radar, Timer, TrendingUp, type LucideIcon } from "lucide-react"
+import { Activity, CalendarDays, Crosshair as CrosshairIcon, Flame, Gauge, Hexagon, Radar, Timer, TrendingUp, type LucideIcon } from "lucide-react"
 import type { CSSProperties, ReactNode } from "react"
 import { AimRadar } from "@/components/site/aim/aim-radar"
 import { Crosshair } from "@/components/site/game/crosshair"
 import { EnergyChart } from "@/components/site/aim/energy-chart"
 import { EnergyCore } from "@/components/site/aim/energy-core"
+import { FlickAnalysis } from "@/components/site/aim/flick-analysis"
 import { ScenarioList } from "@/components/site/aim/scenario-list"
 import { TrainingCalendar } from "@/components/site/aim/training-calendar"
 import { PageIntro } from "@/components/site/page-intro"
 import { longDate, signed } from "@/components/site/ranked/format"
+import { summarizeMira, type MiraDay } from "@/lib/mira"
 import { dayOf } from "@/lib/ranked"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -43,6 +45,11 @@ const T = localize({
   },
   progress: { pt: "Energia por domingo", en: "Energy by Sunday" },
   scenarios: { pt: "Cenários", en: "Scenarios" },
+  flicks: { pt: "Como a mira se move", en: "How the aim moves" },
+  flicksHint: {
+    pt: "Overshooting, undershooting, correções e tremedeira, flick por flick, dos replays dos cenários de clique.",
+    en: "Overshooting, undershooting, corrections and shake, flick by flick, from the click scenarios' replays.",
+  },
   scenariosHint: {
     pt: "A melhor pontuação de cada cenário no dia do benchmark. A barra acende pelos ranks; o traço é o domingo anterior.",
     en: "Each scenario's best score on benchmark day. The bar lights up through the ranks; the tick is the Sunday before.",
@@ -77,10 +84,11 @@ const T = localize({
  * Luan's aim training with Voltaic (lib/voltaic.ts): the latest benchmark's rank and energy as a core with the way to
  * the next rank, the subcategory holding it back, the aim's shape (a radar of the nine subcategories against the
  * Sunday before), the energy Sunday by Sunday over the ranks, every scenario through its rank thresholds, and every
- * day trained as a calendar that opens each day's tasks.
+ * day trained as a calendar that opens each day's tasks; then how the aim moves, flick by flick (lib/mira.ts).
  */
-export function AimPage({ title, description, days, credits }: { title: string; description: string; days: VoltaicDay[]; credits: string }) {
+export function AimPage({ title, description, days, mira, credits }: { title: string; description: string; days: VoltaicDay[]; mira: MiraDay[]; credits: string }) {
   const summary = summarizeVoltaic(days)
+  const flicks = summarizeMira(mira)
   const today = dayOf(new Date().toISOString())
   const latest = summary.benchmarks.at(-1)
   const previous = summary.benchmarks.at(-2)
@@ -110,6 +118,12 @@ export function AimPage({ title, description, days, credits }: { title: string; 
             {latest && (
               <Section icon={CrosshairIcon} title={T.scenarios} hint={T.scenariosHint}>
                 <ScenarioList benchmark={latest} previous={previous} />
+              </Section>
+            )}
+
+            {flicks && (
+              <Section icon={Activity} title={T.flicks} hint={T.flicksHint}>
+                <FlickAnalysis summary={flicks} />
               </Section>
             )}
 

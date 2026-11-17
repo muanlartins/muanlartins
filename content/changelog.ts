@@ -124,13 +124,6 @@ export const UPCOMING: Upcoming[] = [
     text: "Um vídeo curto que toca pra quem chega no canal quando não estou ao vivo: quem eu sou, o que rola nas lives e quando elas são.",
   },
   {
-    id: "analise-de-mira",
-    status: "proximo",
-    tag: "site",
-    title: "Ferramenta de análise de mira pro Valorant",
-    text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
-  },
-  {
     id: "comunidade-no-site",
     status: "agora",
     tag: "site",
@@ -149,6 +142,18 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "analise-de-mira",
+    date: "2026-11-17",
+    tag: "site",
+    title: "Análise de mira: overshooting, undershooting e tremedeira",
+    text: "Na página de mira do Valorant, uma seção nova mostra como a minha mira se move, flick por flick, lida dos replays do próprio Aimlabs: quantas vezes o primeiro movimento para antes do alvo e quantas passa dele, quanto do caminho ele faz, as correções depois, se eu clico com a mira ainda andando (e quanto acerto assim), a tremedeira antes do clique e por que cada erro errou. Atualiza junto com o treino.",
+    href: "/conteudo/valorant/aim",
+    media: [
+      media("analise-de-mira", "A seção nova: o primeiro movimento leva a mira a 88% do caminho, paro antes do alvo em 62% dos flicks e passo em 32%, e acerto 46% clicando em movimento contra 62% parado"),
+      media("analise-de-mira-primeiro", "Onde o primeiro movimento termina: colunas por faixa do caminho até o alvo, a maioria um pouco antes da linha do alvo"),
+    ],
+  },
   {
     id: "duelo-compacto",
     date: "2026-11-17",
