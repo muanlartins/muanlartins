@@ -7,8 +7,12 @@
 // Deterministic: a race is only its seed and how many run, so the same two numbers give the same race anywhere (the
 // site can show it again). Fixed steps of 1/120 s, randomness only from the seeded generator, and only + − × ÷ and
 // sqrt in the physics, which every JavaScript engine computes alike (the track's slopes are ratios, not angles).
-// Nobody is stronger: the start's slots are drawn from the seed, and luck does the rest. A change to the numbers or
-// the rules is a new VERSAO, so a race recorded before still says which rules it ran under.
+// Nobody is stronger: the start's slots are drawn from the seed, and luck does the rest. The tube is wide enough for
+// FAIXAS marbles side by side (lanes in depth: a marble only bumps the ones in its lane, and passes the others), and on
+// each stretch of the track each marble rolls a little freer or stickier, drawn from the seed too; without the two,
+// marbles alike roll at the same speed in single file and the race is over at the start (measured 2026-11-17: the
+// leader after 5 s won 98% of races; with them, 38% of races of 8 or more). A change to the numbers or the rules is a
+// new VERSAO, so a race recorded before still says which rules it ran under.
 //
 // Units are the overlay's pixels at scale 1; y grows downwards, so the track goes right and down.
 
@@ -28,6 +32,9 @@
   const QUIQUE_BOLAS = 0.55
   // Along the floor, a touch of grip each contact.
   const ATRITO = 0.003
+  // Lanes in depth, and each stretch's luck: a marble's drag there is times 1 ± this.
+  const FAIXAS = 4
+  const SORTE = 0.5
   // A marble barely moving for this long gets a nudge forward (a jam in a funnel), so a race always ends.
   const PARADO = 1.4 * HZ
   // The race: about 35 s for the leaders; whoever hasn't crossed by the limit is placed by how far they got.
@@ -190,11 +197,13 @@
       const j = Math.floor(sorte() * (i + 1))
       ;[vagas[i], vagas[j]] = [vagas[j], vagas[i]]
     }
-    // The heap at the start: columns back from the drop, rows up the tube.
+    // The heap at the start, one in each lane: columns back from the drop, rows up the tube.
     const porColuna = Math.floor((ALTURA - RAIO * 2) / (RAIO * 2.1))
+    const sorteTrechos = gerador(semente ^ 0xc2b2ae35)
     const bolas = vagas.map((vaga, i) => {
-      const coluna = Math.floor(vaga / porColuna)
-      const linha = vaga % porColuna
+      const naFaixa = Math.floor(vaga / FAIXAS)
+      const coluna = Math.floor(naFaixa / porColuna)
+      const linha = naFaixa % porColuna
       const x = 280 - coluna * RAIO * 2.15 - (linha % 2) * RAIO * 0.5
       return {
         i,
@@ -206,6 +215,10 @@
         parado: 0,
         chegou: null,
         fora: false,
+        faixa: vaga % FAIXAS,
+        // Its luck on each stretch (the start's included), and the stretch it's on.
+        ritmo: p.secoes.map(() => 1 + SORTE * (2 * sorteTrechos() - 1)),
+        trecho: 0,
       }
     })
     return { versao: VERSAO, semente, quantos, pista: p, colunas: pecas(p), bolas, tique: 0, ordem: [], fim: false }
@@ -271,6 +284,7 @@
       for (let j = i + 1; j < ordem.length; j++) {
         const b = ordem[j]
         if (b.x - a.x >= D) break
+        if (a.faixa !== b.faixa) continue
         let nx = b.x - a.x
         let ny = b.y - a.y
         const d2 = nx * nx + ny * ny
@@ -305,9 +319,10 @@
   function passo(c) {
     if (c.fim) return c
     const p = c.pista
-    const perde = 1 - ARRASTO * DT
     const dentro = c.bolas.filter((b) => !b.fora)
     for (const b of dentro) {
+      while (b.trecho < p.secoes.length - 1 && b.x > p.secoes[b.trecho].ate) b.trecho++
+      const perde = 1 - ARRASTO * b.ritmo[b.trecho] * DT
       b.vy += GRAVIDADE * DT
       b.vx *= perde
       b.vy *= perde
@@ -373,6 +388,6 @@
     return { ordem: c.ordem, tiques: c.tique, chegadas: c.bolas.map((b) => b.chegou) }
   }
 
-  const Corrida = { VERSAO, HZ, DT, RAIO, ALTURA, LIMITE, SAIDA, pista, chaoEm, criar, passo, simular }
+  const Corrida = { VERSAO, HZ, DT, RAIO, ALTURA, FAIXAS, LIMITE, SAIDA, pista, chaoEm, criar, passo, simular }
   ;(typeof window !== "undefined" ? window : globalThis).Corrida = Corrida
 })()

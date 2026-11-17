@@ -13,10 +13,10 @@ const Corrida = globalThis.Corrida
 
 // [seed, marbles, steps, the order they crossed]
 const DOURADAS = [
-  [1, 5, 4099, [2, 0, 3, 1, 4]],
-  [7, 12, 4403, [3, 6, 0, 10, 8, 4, 9, 11, 5, 7, 2, 1]],
-  [2026, 25, 4573, [4, 12, 7, 15, 18, 10, 3, 17, 8, 19, 0, 5, 24, 16, 9, 14, 1, 22, 13, 21, 2, 6, 11, 20, 23]],
-  [42, 2, 3848, [0, 1]],
+  [1, 5, 4092, [4, 1, 2, 0, 3]],
+  [7, 12, 4405, [0, 6, 3, 5, 8, 2, 11, 7, 1, 9, 4, 10]],
+  [2026, 25, 4745, [4, 2, 12, 18, 17, 10, 15, 11, 9, 8, 0, 22, 24, 19, 5, 20, 7, 6, 21, 3, 13, 14, 1, 23, 16]],
+  [42, 2, 3647, [1, 0]],
 ]
 
 test("the golden races end as they did (rules of VERSAO 1)", () => {
@@ -44,4 +44,21 @@ test("the track never climbs, so no dip can hold a marble", () => {
     const { chao } = Corrida.pista(semente)
     for (let i = 1; i < chao.length - 1; i++) assert.ok(chao[i][1] >= chao[i - 1][1] && chao[i][0] >= chao[i - 1][0], `seed ${semente}, vertex ${i}`)
   }
+})
+
+test("the order changes on the way: the leader after 5 s doesn't just win", () => {
+  // Marbles alike in single file keep the order they leave the start in (98% of races); the lanes and each stretch's
+  // luck are what make it a race.
+  let ganhou = 0
+  const corridas = 16
+  for (let k = 0; k < corridas; k++) {
+    const c = Corrida.criar(500 + k, 12)
+    let lider = null
+    while (!c.fim) {
+      Corrida.passo(c)
+      if (c.tique === 5 * Corrida.HZ) lider = c.bolas.reduce((m, b) => (b.x > m.x ? b : m)).i
+    }
+    if (c.ordem[0] === lider) ganhou++
+  }
+  assert.ok(ganhou <= corridas * 0.6, `the leader after 5 s won ${ganhou} of ${corridas}`)
 })

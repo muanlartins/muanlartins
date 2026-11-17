@@ -130,18 +130,22 @@ export const UPCOMING: Upcoming[] = [
     title: "Ferramenta de análise de mira pro Valorant",
     text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
   },
-  {
-    id: "corrida-de-bolinhas",
-    status: "proximo",
-    tag: "live",
-    title: "Corrida de bolinhas",
-    text: "Uma corrida no estilo marbles, com uma bolinha pra cada viewer, do jeito que você montar no seu perfil.",
-    credit: { by: "lucca_3098" },
-  },
 ]
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "corrida-de-bolinhas",
+    date: "2026-11-17",
+    tag: "live",
+    title: "Corrida de bolinhas entre as partidas",
+    text: "Quando a cena de conversa entra, entre uma partida e outra, começa sozinha uma corrida com todo mundo do chat: uma bolinha pra cada um, nas cores do seu torcedor. A pista muda a cada corrida, com rampas, degraus, saltos, pinos e funis, e ninguém é mais forte: a sorte em cada trecho decide quem passa quem. Os três primeiros sobem no pódio, e as vitórias ficam em Minijogos e na página de cada um.",
+    credit: { by: "lucca_3098" },
+    href: "/canal/minijogos",
+    media: [
+      media("corrida-de-bolinhas", "A corrida embaixo da câmera: a contagem, a largada do monte, a bia.lima passando a pessoa13 nos degraus, a chegada e o pódio", { video: true }),
+    ],
+  },
   {
     id: "casa-da-comunidade",
     date: "2026-11-17",
