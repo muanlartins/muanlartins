@@ -13,6 +13,14 @@ the routine. Talk to Luan in pt-BR. `<date>` is the live's day, `YYYY-MM-DD`.
 - `node scripts/obs.mjs` says `live: no` (or OBS is closed). Until then, nothing heavy (see `antes-da-live`).
 - The session is published: `git pull` and look for `content/matches/<date>-*.json` and `.events.json`. If
   it's missing, ask Luan to press "Publicar sessões" in the Partidas dock (he forgot once).
+- One session per live. Since 11-17 a stream back on within 15 min of its end (OBS or the PC down mid-live)
+  continues the dock's session, as `videos.py` joins its recordings; before that each restart opened a new one
+  (11-09 Valorant, 11-17 Rocket League: the cat at the PC). Two sessions of one live, published: join them into the
+  first (outputs, matches and ranks end to end, its `end` the second's, the events' matches too; keep the dock's
+  formats: `JSON.stringify(v, null, 2)` for the session, one event per line for `.events.json`) and delete the
+  second's files. A recording restarted just before the stream lands in the first session with no `end`: give it its
+  start plus its piece's length. The dock still holds the second session: Luan shouldn't edit those matches there
+  (it would publish it again).
 - Replays are saved: `ls "/mnt/c/Users/muanl/OneDrive/Documents/My Games/Rocket League/TAGame/DemosEpic"`
   (`Demos` holds only old ones). One per match is the goal.
 
