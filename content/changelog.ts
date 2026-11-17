@@ -124,13 +124,6 @@ export const UPCOMING: Upcoming[] = [
     text: "Um vídeo curto que toca pra quem chega no canal quando não estou ao vivo: quem eu sou, o que rola nas lives e quando elas são.",
   },
   {
-    id: "var-com-replay",
-    status: "agora",
-    tag: "live",
-    title: "VAR com replay de verdade",
-    text: "O replay instantâneo do jogo limpo, sem câmera nem overlay: passa uma vez normal e outra em câmera lenta, num mini player no canto enquanto a partida segue. E a votação do chat aparecendo direito.",
-  },
-  {
     id: "analise-de-mira",
     status: "proximo",
     tag: "site",
@@ -138,18 +131,11 @@ export const UPCOMING: Upcoming[] = [
     text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
   },
   {
-    id: "pagina-do-viewer",
+    id: "comunidade-no-site",
     status: "agora",
     tag: "site",
-    title: "Uma página pra cada viewer",
-    text: "Seu torcedor, seus Σ e medalhas, seus duelos, seus Pix no mural, suas ideias no roadmap, as partidas que jogou comigo e os gols dedicados a você, tudo num lugar. Todo nome no site leva pra ela, e o !perfil no chat manda o link.",
-  },
-  {
-    id: "perfil-personalizado",
-    status: "proximo",
-    tag: "site",
-    title: "Perfil personalizado",
-    text: "Um cartão seu que aparece igual em todo canto do site, com seu torcedor, nome, emblema e sequência de lives, e que você personaliza do seu jeito, como um perfil do Discord.",
+    title: "O site como casa da comunidade",
+    text: "Uma página pra cada viewer, com seu torcedor, seus Σ e medalhas, seus duelos, seus Pix, suas ideias no roadmap, as partidas que jogou comigo e os gols dedicados a você, num cartão que você personaliza como um perfil do Discord e que aparece igual em todo canto do site. Todo nome leva pra ela, o !perfil no chat manda o link, e perfil, mural, minijogos e comandos ganham uma cara só.",
   },
   {
     id: "corrida-de-bolinhas",
@@ -158,13 +144,6 @@ export const UPCOMING: Upcoming[] = [
     title: "Corrida de bolinhas",
     text: "Uma corrida no estilo marbles, com uma bolinha pra cada viewer, do jeito que você montar no seu perfil.",
     credit: { by: "lucca_3098" },
-  },
-  {
-    id: "comunidade-no-site",
-    status: "proximo",
-    tag: "site",
-    title: "O site como casa da comunidade",
-    text: "Perfil, torcedor, Σ, mural, minijogos e comandos conversando entre si, com uma cara só, pra quem assiste ter tudo seu num lugar.",
   },
 ]
 
@@ -309,6 +288,16 @@ export const SHIPPED: Shipped[] = [
     title: "Os filtros da câmera a 60 fps",
     text: "A câmera foi pra 60 fps e os filtros agora acompanham sem travar: antes, ligar um filtro derrubava a câmera pra uns 15 quadros por segundo. O arco do Sova e a bola do Phoenix seguem as minhas mãos quadro a quadro, as roupas dos agentes grudam nos ombros, e a parede da Sage agora sai quando eu cruzo os braços em X e abro.",
     media: [media("filtros-60fps", "Luan acenando com a cara de Octane na câmera a 60 fps", { video: true })],
+  },
+  {
+    id: "var-com-replay",
+    date: "2026-11-12",
+    tag: "live",
+    title: "VAR com replay de verdade",
+    text: "O VAR agora passa o replay do jogo limpo, sem câmera nem overlay, num mini player no canto enquanto a partida segue: uma vez normal, outra em câmera lenta e uma tela de últimos votos. A votação do chat aparece direito, e empate é sorteado.",
+    media: [
+      media("var-com-replay", "O VAR no canto da live: o replay do lance em câmera lenta a 50% e, embaixo, a votação do chat com !1 ou !2"),
+    ],
   },
   {
     id: "filtro-sage",
