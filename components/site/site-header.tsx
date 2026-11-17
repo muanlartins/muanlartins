@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { SantaHat, useDecember } from "@/components/site/december"
 import { LiveBadge } from "@/components/site/lives/live-badge"
 import { cn } from "@/lib/utils"
+import { VIEWER_SLUG } from "@/lib/viewer"
 import {
   hasSection,
   HOME_SECTION,
@@ -42,8 +43,8 @@ export function SiteHeader({ lives }: { lives?: string }) {
   const page = usePathname().replace(/\/$/, "")
   const current = currentSection(page)
   const onPrivacy = page === `/${privacySlug()}`
-  // The profile, Pix and the mural sit beside the sections, but they're the channel's: its menu has them.
-  const ofChannel = page === `/${profileSlug()}` || page === `/${PIX_SLUG}` || page === `/${MURAL_SLUG}`
+  // The profile, Pix, the mural and the viewers' pages sit beside the sections, but they're the channel's: its menu has them.
+  const ofChannel = page === `/${profileSlug()}` || page === `/${PIX_SLUG}` || page === `/${MURAL_SLUG}` || page.startsWith(`/${VIEWER_SLUG}/`)
   const shown = onPrivacy ? null : ofChannel ? "channel" : current
   const december = useDecember()
   // Pages under a section keep the same path in both languages.

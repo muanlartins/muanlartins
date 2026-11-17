@@ -29,6 +29,7 @@ import { canSave, keptToken, loadFans, loadMySigma, signIn, signOut, SignedOut, 
 import { HTML_LANG, LOCALE, localize } from "@/lib/site"
 import { CHANNEL, TWITCH } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
+import { ViewerName } from "@/components/site/viewer/viewer-name"
 
 const text = localize(channel.minijogos)
 const LANG = HTML_LANG[LOCALE]
@@ -391,7 +392,7 @@ export function MinigamesPage() {
                 <span className="w-6 shrink-0 text-right text-[15px] font-medium text-muted tabular-nums">{i + 1}</span>
                 <FanSpot T={T} fans={fans} login={r.login} name={r.nome} size="sm" />
                 <p className="min-w-0 flex-1 truncate text-[15px] font-medium text-ink">
-                  {r.nome}
+                  {r.login === CHANNEL ? r.nome : <ViewerName login={r.login}>{r.nome}</ViewerName>}
                   {r.login === login && <span className="ml-1.5 text-[12px] font-normal text-klein">({text.ranking.you})</span>}
                 </p>
                 <div className="shrink-0 text-right tabular-nums">
@@ -427,7 +428,7 @@ export function MinigamesPage() {
               const how = f.motivo === "nocaute" ? text.latest.knockout.replace("{s}", String(f.segundos)) : f.motivo === "tempo" ? text.latest.time : text.latest.draw
               const side = (i: 0 | 1) => (
                 <>
-                  <strong className="font-medium text-ink">{f.nomes[i]}</strong>{" "}
+                  <strong className="font-medium text-ink">{f.logins[i] === CHANNEL ? f.nomes[i] : <ViewerName login={f.logins[i]}>{f.nomes[i]}</ViewerName>}</strong>{" "}
                   <span className="text-muted">
                     ({className(f.classes[i])}
                     {f.sorteadas[i] ? `, ${text.latest.drawn}` : ""})

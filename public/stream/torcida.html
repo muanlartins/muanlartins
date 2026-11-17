@@ -35,7 +35,8 @@
       what their login gives them.
 
       On air, each dedication is also kept in this site's storage for the day (torcida:dedicatorias), each stand its
-      own game's: the end credits (creditos.html) list them.
+      own game's: the end credits (creditos.html) list them. And it goes to the Σ API (POST /dedicatoria, with the
+      key), which keeps it for the viewer's page on the site (/torcedor/<login>).
 
       Goals are narrated in the narrator's voice by scripts/narrador.py, running
       on this PC (?narrador= its address, ?narrador=0 for none); OBS sends this
@@ -757,14 +758,23 @@
       // storage, which OBS's browser sources share). Both stands hear every moment: each keeps its own game's.
       function anotarDedicatoria(p, tipo, detalhe) {
         if (!p || p.login === CHANNEL || params.has("demo") || Date.now() > noArAte) return
-        const dia = new Date().toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
+        const em = Date.now()
+        const dia = new Date(em).toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
         try {
           const salvo = JSON.parse(localStorage.getItem("torcida:dedicatorias") || "null")
           const lista = salvo?.dia === dia ? salvo.lista : []
-          lista.push({ login: p.login, nome: p.nome, tipo, detalhe: detalhe ?? null, em: Date.now() })
+          lista.push({ login: p.login, nome: p.nome, tipo, detalhe: detalhe ?? null, em })
           localStorage.setItem("torcida:dedicatorias", JSON.stringify({ dia, lista: lista.slice(-60) }))
         } catch {
           // No storage: the credits go without them.
+        }
+        // Kept for good on their page on the site; the API down, this one is only in today's credits.
+        if (SIGMA_API && CHAVE) {
+          fetch(`${SIGMA_API}/dedicatoria`, {
+            method: "POST",
+            headers: { "content-type": "application/json", "x-chave": CHAVE },
+            body: JSON.stringify({ id: em, login: p.login, tipo, detalhe: detalhe == null ? null : String(detalhe), jogo: JOGO }),
+          }).catch(() => {})
         }
       }
 

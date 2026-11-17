@@ -7,6 +7,7 @@ import Link from "next/link"
 import { PageIntro } from "@/components/site/page-intro"
 import { FanView } from "@/components/site/profile/fan-view"
 import { SigmaPanel } from "@/components/site/profile/sigma-panel"
+import { CardEditor } from "@/components/site/viewer/card-editor"
 import { profile } from "@/content/profile"
 import {
   canSave,
@@ -29,6 +30,7 @@ import { channelPath } from "@/lib/channel"
 import { LOCALE, localize, sectionPath } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
+import { viewerPath, type Card } from "@/lib/viewer"
 
 const text = localize(profile)
 type Status = "idle" | "saving" | "saved" | "erased" | "error" | "expired"
@@ -141,6 +143,8 @@ export function ProfilePage() {
   const [token, setToken] = useState<string | null>(null)
   const [login, setLogin] = useState("")
   const [saved, setSaved] = useState<Fan | null>(null)
+  // Their card as saved (null: never), once their profile came back.
+  const [card, setCard] = useState<Card | null | undefined>(undefined)
   const [fan, setFan] = useState<Fan | null>(null)
   const [status, setStatus] = useState<Status>("idle")
   const [confirmErase, setConfirmErase] = useState(false)
@@ -169,8 +173,9 @@ export function ProfilePage() {
       return
     }
     loadMine(found)
-      .then(({ login, aparencia }) => {
+      .then(({ login, aparencia, cartao }) => {
         setLogin(login)
+        setCard(cartao ?? null)
         loadMySigma(found, login)
           .then(setStats)
           .catch(() => setStats(null))
@@ -252,6 +257,7 @@ export function ProfilePage() {
     signOut()
     setToken(null)
     setLogin("")
+    setCard(undefined)
     setStats(undefined)
     setSaved(null)
     setFan(T!.padrao())
@@ -286,7 +292,10 @@ export function ProfilePage() {
         {token && login ? (
           <>
             <span className="text-ink">
-              {text.signedInAs} <strong className="font-medium text-klein">{login}</strong>
+              {text.signedInAs}{" "}
+              <Link href={viewerPath(login)} className="font-medium text-klein hover:underline">
+                {login}
+              </Link>
             </span>
             <button onClick={leave} className="text-muted underline underline-offset-2 hover:text-klein">
               {text.signOut}
@@ -316,6 +325,23 @@ export function ProfilePage() {
 
       {/* The channel earns no Σ of its own. */}
       {S && canSave && !(token && login === CHANNEL) && <SigmaPanel S={S} login={token ? login : ""} stats={stats} />}
+
+      {/* Their card, the same on every name of theirs on the site and on top of their page. */}
+      {token && login && T && fan && card !== undefined && (
+        <CardEditor
+          token={token}
+          login={login}
+          saved={card}
+          fan={fan}
+          stats={stats}
+          T={T}
+          S={S}
+          onExpired={() => {
+            setToken(null)
+            setStatus("expired")
+          }}
+        />
+      )}
 
       {/* Their ball in the live's duel and their dream loadout are kept with the profile too, each on its own page. */}
       <div className="grid gap-3 sm:grid-cols-2">

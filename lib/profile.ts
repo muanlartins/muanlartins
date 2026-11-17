@@ -5,6 +5,7 @@
  * and the API checks it with Twitch on every call.
  */
 import { ORIGIN, profileSlug } from "@/lib/site"
+import type { Card } from "@/lib/viewer"
 
 /** The Twitch app (dev.twitch.tv/console); its redirect URLs are /perfil and /profile on both sites and localhost. */
 export const TWITCH_CLIENT_ID = process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID ?? "dploislenvijye1obbcm5dqxcxu5y1"
@@ -245,7 +246,7 @@ async function call(method: string, token: string, body?: unknown) {
     throw new SignedOut()
   }
   if (!response.ok) throw new Error(String(response.status))
-  return (await response.json()) as { login: string; aparencia: Choice | null }
+  return (await response.json()) as { login: string; aparencia: Choice | null; cartao?: Card | null }
 }
 
 /** The fans saved under these logins (the public side of the profile API); a login missing has none saved. */
