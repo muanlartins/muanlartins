@@ -509,6 +509,7 @@
         width: var(--arena);
         height: var(--arena);
         gap: 4px;
+        background: rgb(0 20 71 / 0.92);
       }
       body.compacto .cartao .lutador {
         gap: 5px;
@@ -846,7 +847,7 @@
         const l = lutadores[fim.vencedor]
         const outro = luta.bolas[1 - fim.vencedor]
         const s = Math.round(fim.t)
-        const como = fim.motivo === "nocaute" ? `nocaute em ${s} s` : fim.motivo === "tempo" ? `no tempo, com ${Math.ceil(luta.bolas[fim.vencedor].hp)} de vida` : "no sorteio, empatados"
+        const como = fim.motivo === "nocaute" ? `nocaute em ${s}\u00a0s` : fim.motivo === "tempo" ? `no tempo, com ${Math.ceil(luta.bolas[fim.vencedor].hp)}\u00a0de vida` : "no sorteio, empatados"
         cartao.innerHTML = `<div class="vitoria ${fim.vencedor ? "direita" : "esquerda"}">
           <div class="fa torcedor comemora" data-comemoracao="${l.aparencia.comemoracao}"><div class="pose">${Torcedor.figura(l.aparencia)}</div></div>
           <strong>${texto(l.nome)} venceu!</strong>
