@@ -261,8 +261,12 @@ booth = browser("Efeito · VAR", "var.html")
 # chat under it (jogo.html?duelo=1); under the VAR, which takes the corner while it's open (the page hides itself).
 # Silent. One source, so a fight goes on across the game scenes: in Valorant's, where that corner is the killfeed's,
 # it sits 238 px lower (its box under the killfeed, at y 330) and the chat goes to the left, under the Pix goal.
+# Since 2026-11-15 it records each fight shown while the stream is on (the Σ API's POST /duelo), which takes the
+# stand's Σ key in its URL (#chave=…): NEEDS_KEY gives it the stand's.
 duel = browser("Duelo", "duelo.html")
 duel_in_valorant = {"pos": (0, 238)}
+# Sources OBS got before they needed the stand's Σ key, and the stand's page they take it from (never printed).
+NEEDS_KEY = {"Duelo": "torcida.html"}
 booth["settings"]["reroute_audio"] = True
 booth.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
@@ -444,6 +448,17 @@ def merge(live, new):
             live["sources"].append(s)
             by_name[s["name"]] = s
             added.append(f"fonte {s['name']}" + (f" (com a chave de {twin[0]})" if twin else ""))
+    for name, page in NEEDS_KEY.items():
+        mine = by_name.get(name)
+        url = (mine or {}).get("settings", {}).get("url", "")
+        if not mine or "#" in url:
+            continue
+        key = next((s["settings"]["url"].split("#", 1)[1] for s in live["sources"]
+                    if s.get("id") == "browser_source" and "#" in s["settings"].get("url", "")
+                    and s["settings"]["url"].split("#")[0].split("?")[0].endswith("/" + page)), None)
+        if key:
+            mine["settings"]["url"] = f"{url}#{key}"
+            added.append(f"{name}: com a chave de {page}")
     for scene_name, item_name in RETIRED_ITEMS:
         mine = by_name.get(scene_name)
         items = (mine or {}).get("settings", {}).get("items", [])

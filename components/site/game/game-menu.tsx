@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpRight, CalendarDays, Clapperboard, Heart, House, MessagesSquare, Milestone, QrCode, Route, Swords, Target, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
+import { ArrowUpRight, CalendarDays, Clapperboard, Gamepad2, Heart, House, MessagesSquare, Milestone, QrCode, Route, Swords, Target, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
 import { motion } from "motion/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -27,6 +27,7 @@ const ICONS = {
   lives: Clapperboard,
   agenda: CalendarDays,
   commands: MessagesSquare,
+  minigames: Gamepad2,
   pix: QrCode,
   mural: Heart,
   profile: UserRound,

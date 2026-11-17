@@ -156,3 +156,24 @@ test("the story: the channel sends a JPEG, Instagram fetches it by its URL", asy
   const velho = await handler({ requestContext: { http: { method: "GET" } }, rawPath: "/canal/story/outro123.jpg", headers: {} })
   assert.equal(velho.statusCode, 404)
 })
+
+test("the ball in the duel: saved on its own, public by login for the overlay, junk dropped", async () => {
+  const { chamar } = montar()
+  await chamar("PUT", "/eu", { token: "bom", corpo: { cabeca: "bone" } })
+  assert.equal((await chamar("PUT", "/eu/duelo", { corpo: { classe: "machado" } })).status, 401)
+  const salvo = await chamar("PUT", "/eu/duelo", { token: "bom", corpo: { classe: "machado", material: "Gold!", extra: 1 } })
+  assert.deepEqual(salvo.body, { login: "fulano", duelo: { classe: "machado" } })
+  const eu = await chamar("GET", "/eu", { token: "bom" })
+  assert.deepEqual(eu.body.duelo, { classe: "machado" })
+  assert.deepEqual(eu.body.aparencia, { cabeca: "bone" })
+  assert.deepEqual((await chamar("GET", "/duelistas", { query: { logins: "FULANO,outro,a b" } })).body, { fulano: { classe: "machado" } })
+  // Saving the fan keeps the ball.
+  await chamar("PUT", "/eu", { token: "bom", corpo: { cabeca: "coroa" } })
+  assert.deepEqual((await chamar("GET", "/eu", { token: "bom" })).body.duelo, { classe: "machado" })
+  // Everything back to the default: nobody's ball in the list.
+  await chamar("PUT", "/eu/duelo", { token: "bom", corpo: {} })
+  assert.deepEqual((await chamar("GET", "/duelistas", { query: { logins: "fulano" } })).body, {})
+  await chamar("PUT", "/eu/duelo", { token: "bom", corpo: { material: "diamond" } })
+  await chamar("DELETE", "/eu/duelo", { token: "bom" })
+  assert.equal((await chamar("GET", "/eu", { token: "bom" })).body.duelo, null)
+})

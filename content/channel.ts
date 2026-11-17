@@ -41,6 +41,12 @@ export const channel = {
         page: "comandos",
       },
       {
+        icon: "duel",
+        title: { pt: "Duelo de bolinhas", en: "Ball duel" },
+        text: { pt: "Dois do chat, sorteados, lutam no canto da tela.", en: "Two from the chat, drawn by lot, fight in the corner." },
+        page: "minijogos",
+      },
+      {
         icon: "ranked",
         title: { pt: "Ranqueadas", en: "Ranked" },
         text: { pt: "Ranque e placar na tela; cada partida no site.", en: "Rank and score on screen; every match on the site." },
@@ -149,6 +155,140 @@ export const channel = {
     profile: {
       text: { pt: "O seu torcedor é do jeito que você montar.", en: "Your fan looks the way you build it." },
       cta: { pt: "Monte o seu torcedor", en: "Build your fan" },
+    },
+  },
+
+  /** /canal/minijogos: the games in the corner of the live, played by whoever is in the chat. For now the ball duel
+   * (lib/duelo.ts): your ball, the ranking and the latest fights, each with its replay. Copy is a draft for Luan. */
+  minijogos: {
+    title: { pt: "Minijogos", en: "Minigames" },
+    description: {
+      pt: "Os jogos que rolam no canto da live com quem está no chat. Escolha como você joga, veja quem está ganhando e assista de novo a qualquer luta.",
+      en: "The games running in the corner of the stream with whoever is in the chat. Pick how you play, see who's winning and watch any fight again.",
+    },
+    tile: { pt: "O duelo de bolinhas: sua classe, o ranking e os replays.", en: "The ball duel: your class, the ranking and the replays." },
+    duel: {
+      title: { pt: "Duelo de bolinhas", en: "Ball duel" },
+      lead: {
+        pt: "Durante a live, dois do chat são sorteados e se enfrentam no canto da tela, um duelo atrás do outro. Cada um é uma bolinha com as cores do seu torcedor e uma arma que cresce a cada acerto.",
+        en: "During the stream, two people from the chat are drawn and fight in the corner of the screen, one duel after another. Each is a ball in their fan's colours with a weapon that grows with every hit.",
+      },
+      fair: {
+        pt: "Todo mundo tem a mesma força: seus Σ só deixam a arma mais bonita. Quem tem mais Σ tem um pouco mais de chance de ser sorteado, como na dedicatória do gol.",
+        en: "Everyone is equally strong: your Σ only make your weapon look better. More Σ gives a little more chance of being drawn, like the goal's dedication.",
+      },
+      idea: { pt: "Ideia de", en: "Idea by" },
+      command: { pt: "No chat, !duelo mostra as suas vitórias.", en: "In the chat, !duelo shows your wins." },
+    },
+    yours: {
+      title: { pt: "Sua bolinha", en: "Your ball" },
+      signIn: { pt: "Entrar com a Twitch", en: "Sign in with Twitch" },
+      signInNote: {
+        pt: "Pra escolher a classe e o visual da sua bolinha. Sem entrar, ela luta com uma classe sorteada a cada duelo.",
+        en: "To pick your ball's class and look. Without signing in, it fights with a class drawn each duel.",
+      },
+      signedInAs: { pt: "Entrou como", en: "Signed in as" },
+      signOut: { pt: "Sair", en: "Sign out" },
+      classTitle: { pt: "Classe", en: "Class" },
+      classHint: {
+        pt: "Cada classe vence perto de metade das lutas: escolha a que você mais curte ver. Sem escolha, uma é sorteada a cada duelo.",
+        en: "Every class wins about half its fights: pick the one you most like to watch. With none, one is drawn each duel.",
+      },
+      random: { pt: "Aleatória", en: "Random" },
+      randomText: { pt: "Uma diferente a cada duelo.", en: "A different one each duel." },
+      classes: {
+        espada: { name: { pt: "Espada", en: "Sword" }, text: { pt: "Cada acerto, +1 de dano.", en: "Every hit, +1 damage." } },
+        adaga: {
+          name: { pt: "Adaga", en: "Dagger" },
+          text: { pt: "Gira mais rápido a cada acerto, e quanto mais gira, mais corta.", en: "Spins faster with every hit, and the faster it spins, the harder it cuts." },
+        },
+        arco: { name: { pt: "Arco", en: "Bow" }, text: { pt: "Atira de longe; cada flecha que acerta, uma a mais.", en: "Shoots from afar; every arrow that lands, one more." } },
+        lanca: { name: { pt: "Lança", en: "Spear" }, text: { pt: "A mais longa; cada acerto, mais longa e mais forte.", en: "The longest; every hit, longer and stronger." } },
+        machado: { name: { pt: "Machado", en: "Axe" }, text: { pt: "Cada acerto, mais chance de um crítico de 4×.", en: "Every hit, more chance of a 4× critical." } },
+        foice: { name: { pt: "Foice", en: "Scythe" }, text: { pt: "Envenena: cada acerto, +1 de veneno (até 5).", en: "Poisons: every hit, +1 poison (up to 5)." } },
+        punho: {
+          name: { pt: "Punho", en: "Fists" },
+          text: { pt: "Acelera sem parar: quanto mais rápido, mais forte o soco.", en: "Never stops speeding up: the faster, the harder the punch." },
+        },
+        martelo: {
+          name: { pt: "Martelo", en: "Hammer" },
+          text: { pt: "Pega embalo: quanto mais gira, mais dói. Nada inverte o seu giro.", en: "Builds momentum: the faster it spins, the more it hurts. Nothing turns its swing around." },
+        },
+        katana: {
+          name: { pt: "Katana", en: "Katana" },
+          text: { pt: "Cada acerto corta várias vezes; +1 corte por acerto ou defesa.", en: "Every hit slices several times; +1 slice per hit or parry." },
+        },
+        clava: { name: { pt: "Clava", en: "Club" }, text: { pt: "Atordoa: quem apanha fica parado, sem arma.", en: "Stuns: whoever gets hit stands still, weaponless." } },
+      },
+      materialTitle: { pt: "Visual da arma", en: "Weapon look" },
+      materialHint: {
+        pt: "Seus Σ liberam um visual por ranque, do Bronze à Lenda Supersônica. Sem escolha, a arma usa o do seu ranque.",
+        en: "Your Σ unlock one look per rank, from Bronze to Supersonic Legend. With none, the weapon wears your rank's.",
+      },
+      auto: { pt: "O do meu ranque", en: "My rank's" },
+      metal: { pt: "só o metal", en: "just the metal" },
+      /** "Próximo visual: Diamante, com 2.000 Σ (você tem 1.000)." */
+      next: { pt: "Próximo visual: {nome}, com {n} Σ (você tem {s}).", en: "Next look: {nome}, at {n} Σ (you have {s})." },
+      /** "Libera com 900 Σ". */
+      locked: { pt: "Libera com {n} Σ", en: "Unlocks at {n} Σ" },
+      effects: {
+        brilho: { pt: "brilha", en: "glows" },
+        rastro: { pt: "deixa rastro", en: "leaves a trail" },
+        faiscas: { pt: "solta faíscas", en: "throws sparks" },
+        arco: { pt: "muda de cor", en: "changes colour" },
+      },
+      save: { pt: "Salvar", en: "Save" },
+      signInToSave: { pt: "Entrar com a Twitch pra salvar", en: "Sign in with Twitch to save" },
+      saving: { pt: "Salvando…", en: "Saving…" },
+      saved: { pt: "Salvo. Vale a partir do próximo duelo.", en: "Saved. It counts from the next duel." },
+      reset: { pt: "Voltar ao padrão", en: "Back to default" },
+      error: { pt: "Não deu pra salvar. Tente de novo.", en: "It couldn't be saved. Try again." },
+      expired: { pt: "Sua entrada com a Twitch expirou. Entre de novo.", en: "Your Twitch sign-in expired. Sign in again." },
+    },
+    player: {
+      preview: { pt: "Prévia: sua bolinha contra a do canal", en: "Preview: your ball against the channel's" },
+      replay: { pt: "Replay: {a} contra {b}", en: "Replay: {a} against {b}" },
+      back: { pt: "Voltar pra prévia", en: "Back to the preview" },
+    },
+    record: {
+      title: { pt: "Seu histórico", en: "Your record" },
+      wins: { pt: "vitórias", en: "wins" },
+      fights: { pt: "duelos", en: "duels" },
+      rate: { pt: "de aproveitamento", en: "win rate" },
+      place: { pt: "no ranking", en: "in the ranking" },
+      none: {
+        pt: "Você ainda não lutou. Fique no chat com a live no ar: o sorteio pode chamar você a qualquer hora.",
+        en: "You haven't fought yet. Stay in the chat while the stream is on: the draw may call you any time.",
+      },
+      byClass: { pt: "Por classe", en: "By class" },
+    },
+    ranking: {
+      title: { pt: "Ranking", en: "Ranking" },
+      note: { pt: "Mais vitórias primeiro; no empate, o melhor aproveitamento.", en: "Most wins first; on a tie, the best win rate." },
+      /** "{n} duelos registrados". */
+      total: { pt: "{n} duelos registrados", en: "{n} duels recorded" },
+      empty: {
+        pt: "Nenhum duelo registrado ainda. Os primeiros saem na próxima live.",
+        en: "No duel recorded yet. The first ones come in the next stream.",
+      },
+      channel: {
+        pt: "A bolinha do canal, que enfrenta quem está sozinho no chat: {v} em {p}.",
+        en: "The channel's ball, which fights whoever is alone in the chat: {v} of {p}.",
+      },
+      unavailable: { pt: "Não deu pra carregar os duelos agora.", en: "The duels couldn't be loaded right now." },
+      wins: { pt: "V", en: "W" },
+      fights: { pt: "D", en: "D" },
+      you: { pt: "você", en: "you" },
+    },
+    latest: {
+      title: { pt: "Últimas lutas", en: "Latest fights" },
+      won: { pt: "venceu", en: "beat" },
+      knockout: { pt: "nocaute em {s} s", en: "knockout in {s} s" },
+      time: { pt: "no tempo", en: "on time" },
+      draw: { pt: "no sorteio", en: "by lot" },
+      drawn: { pt: "sorteada", en: "drawn" },
+      watch: { pt: "Assistir", en: "Watch" },
+      old: { pt: "regras antigas", en: "old rules" },
     },
   },
 

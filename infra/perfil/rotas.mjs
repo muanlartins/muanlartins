@@ -1,14 +1,17 @@
 // The profile API's routes, apart from DynamoDB so a test can run them (index.test.mjs): index.mjs gives them the table.
 //
 // The table, keyed by login: aparencia (the fan for the stream's crowd, /perfil), id (their Twitch user id), em (when
-// the fan was saved), loadout and loadoutEm (their dream Valorant loadout, the inventory's builder), and, on the
-// channel's own login only, jogo (Luan's Valorant inventory as the game last had it, sent by scripts/valorant.py).
+// the fan was saved), loadout and loadoutEm (their dream Valorant loadout, the inventory's builder), duelo (their ball
+// in the duel: its class and its weapon's material, /canal/minijogos) and, on the channel's own login only, jogo
+// (Luan's Valorant inventory as the game last had it, sent by scripts/valorant.py).
 //
 // Public:   GET /torcedores?logins=a,b   the fans of whoever is in the stand (the crowd, the mural, the roadmap)
+//           GET /duelistas?logins=a,b    the balls of whoever is in the duel (public/stream/duelo.html)
 //           GET /loadout?login=a         someone's dream loadout; the channel's also brings its game reading
-// Twitch:   GET /eu                      their fan and loadout
+// Twitch:   GET /eu                      their fan, loadout and ball
 //           PUT /eu, DELETE /eu          their fan (deleting it keeps the loadout)
 //           PUT /eu/loadout, DELETE /eu/loadout
+//           PUT /eu/duelo, DELETE /eu/duelo
 // The live: POST /canal/jogo with x-chave, from the stream PC: the channel's inventory read from the game
 //
 // The lives' calendar (comum/agenda.mjs), the one source of truth for when the lives are, kept in the item "#agenda"
@@ -45,6 +48,7 @@ const ARMA = /^[a-z]{2,16}$/
 const ARMAS = 30 // Valorant has 21 weapons; room for new ones
 const VARIANTES = 6
 const POSSES = 5000
+const NOME = /^[a-z-]{2,24}$/
 
 const linha = (s, max) => [...String(s).replace(/\s+/g, " ").trim()].slice(0, max).join("").trim()
 const uuid = (x) => (typeof x === "string" && UUID.test(x.toLowerCase()) ? x.toLowerCase() : null)
@@ -61,6 +65,16 @@ export function aparencia(a) {
   if (typeof a.frase === "string") o.frase = linha(a.frase, 30)
   const st = (l) => (Array.isArray(l) ? l.filter((e) => typeof e === "string" && e.length <= 16 && EMOJI.test(e)).slice(0, 3) : [])
   if (a.stickers && typeof a.stickers === "object") o.stickers = { gol: st(a.stickers.gol), contra: st(a.stickers.contra) }
+  return o
+}
+
+// Their ball in the duel: { classe, material }, either left out for the default (a class drawn each duel; the material
+// of their Σ rank). Only the shape is checked: duelo-motor.js knows the classes, and the overlay draws a material only
+// once their Σ has unlocked it.
+export function duelo(d) {
+  const o = {}
+  if (!d || typeof d !== "object") return o
+  for (const k of ["classe", "material"]) if (typeof d[k] === "string" && NOME.test(d[k])) o[k] = d[k]
   return o
 }
 
@@ -161,6 +175,13 @@ export function rotas({ banco, usuario, chave }) {
       return out(200, Object.fromEntries(itens.filter((i) => i.aparencia).map((i) => [i.login, i.aparencia])))
     }
 
+    if (metodo === "GET" && caminho === "/duelistas") {
+      const logins = [...new Set((event.queryStringParameters?.logins || "").toLowerCase().split(","))].filter((l) => LOGIN.test(l)).slice(0, 100)
+      if (!logins.length) return out(200, {})
+      const itens = await banco.varios(logins)
+      return out(200, Object.fromEntries(itens.filter((i) => i.duelo && Object.keys(i.duelo).length).map((i) => [i.login, i.duelo])))
+    }
+
     if (metodo === "GET" && caminho === "/loadout") {
       const login = (event.queryStringParameters?.login || "").toLowerCase()
       if (!LOGIN.test(login)) return out(400, {})
@@ -180,10 +201,25 @@ export function rotas({ banco, usuario, chave }) {
     if (caminho === "/agenda" || caminho === "/agenda.ics" || caminho === "/agenda.txt") return agenda(event, metodo, caminho)
     if (caminho === "/canal/story" || caminho.startsWith("/canal/story/")) return story(event, metodo, caminho)
 
-    if (caminho !== "/eu" && caminho !== "/eu/loadout") return out(404, {})
+    if (caminho !== "/eu" && caminho !== "/eu/loadout" && caminho !== "/eu/duelo") return out(404, {})
     const v = await usuario(event.headers || {})
     if (!v) return out(401, { erro: "Entre com a Twitch de novo." })
     const agora = new Date().toISOString()
+
+    if (caminho === "/eu/duelo") {
+      if (metodo === "PUT") {
+        const corpo = json(event)
+        if (!corpo) return out(400, {})
+        const d = duelo(corpo)
+        await banco.definir(v.login, { id: v.id, duelo: d })
+        return out(200, { login: v.login, duelo: d })
+      }
+      if (metodo === "DELETE") {
+        await banco.remover(v.login, ["duelo"])
+        return out(200, { login: v.login, duelo: null })
+      }
+      return out(405, {})
+    }
 
     if (caminho === "/eu/loadout") {
       if (metodo === "PUT") {
@@ -202,7 +238,7 @@ export function rotas({ banco, usuario, chave }) {
 
     if (metodo === "GET") {
       const i = (await banco.ler(v.login)) || {}
-      return out(200, { login: v.login, aparencia: i.aparencia ?? null, loadout: i.loadout ?? null })
+      return out(200, { login: v.login, aparencia: i.aparencia ?? null, loadout: i.loadout ?? null, duelo: i.duelo ?? null })
     }
     if (metodo === "PUT") {
       const corpo = json(event)

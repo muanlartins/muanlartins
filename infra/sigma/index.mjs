@@ -22,11 +22,16 @@
 // GET /sigma.txt?login=a&nome=A is public, plain text: someone's Σ, rank and lives in a line of chat (texto.mjs), the
 // chat bot's !sigma, which StreamElements asks with the login and display name of whoever typed it (or of who they
 // named: !sigma @fulano) and shows as it comes, so every answer, even a wrong login, is a 200 with a line to say.
+// The ball duel's records (duelo.mjs keeps the score): POST /duelo comes from the duel overlay with the key, once per
+// fight shown while the stream is on; GET /duelos is public, the ranking and the latest fights, and GET
+// /duelos?login=a someone's record and their latest fights; GET /duelo.txt?login=a&nome=A is the chat bot's !duelo,
+// like !sigma.
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { BatchGetCommand, DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
-import { daLive, LOGIN, out } from "./comum/http.mjs"
+import { daLive, json, LOGIN, out } from "./comum/http.mjs"
 import { quem } from "./comum/twitch.mjs"
+import { anotar, cedo, deViewer, doViewer, Duelo, GERAL, luta, repetida, resumo, textoDuelo } from "./duelo.mjs"
 import { textoSigma } from "./texto.mjs"
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({}))
@@ -37,6 +42,7 @@ const DONO = "muanlartins" // the channel itself: in its own stand, but it neith
 const VAR_SIGMA = 3
 // The crowd overlay credits the chat once a minute: whoever got one of the last few is still there.
 const PRESENTE = 2
+const MINIJOGOS = "muanlartins.com.br/canal/minijogos"
 const lista = (l) => [...new Set(l.map((x) => String(x).toLowerCase()))].filter((x) => LOGIN.test(x)).slice(0, 100)
 const diaDe = (t) => new Date(t).toLocaleDateString("sv", { timeZone: "America/Sao_Paulo" })
 
@@ -194,6 +200,46 @@ async function presentes(event) {
   return out(200, { pessoas: itens.filter((i) => i.login !== CANAL && i.login !== DONO).map((i) => ({ login: i.login, sigma: i.sigma ?? 0 })) })
 }
 
+// A fight the duel overlay showed: played again here (duelo.mjs), counted in "#duelos" and on both viewers' items.
+// "#duelos" is written only if nobody else wrote it since it was read; the overlay is the only writer, so a clash is
+// a second copy of it, whose fight is dropped.
+async function duelo(event) {
+  if (!daLive(event)) return out(401, {})
+  const corpo = json(event)
+  if (!corpo) return out(400, {})
+  if (corpo.versao !== Duelo.VERSAO) return out(409, { versao: Duelo.VERSAO })
+  const l = luta(corpo)
+  if (!l) return out(400, {})
+  const itens = await ler([GERAL, ...l.logins])
+  const geral = itens[GERAL]
+  if (repetida(geral, l)) return out(200, { repetida: true })
+  if (cedo(geral, l)) return out(429, {})
+  const novo = anotar(geral, l)
+  try {
+    await db.send(
+      new UpdateCommand({
+        TableName: T,
+        Key: { login: GERAL },
+        ConditionExpression: "attribute_not_exists(#t) OR #t = :antes",
+        UpdateExpression: "SET #t = :t, placar = :p, lutas = :l",
+        ExpressionAttributeNames: { "#t": "total" },
+        ExpressionAttributeValues: { ":antes": geral?.total ?? 0, ":t": novo.total, ":p": novo.placar, ":l": novo.lutas },
+      }),
+    )
+  } catch (e) {
+    if (e.name === "ConditionalCheckFailedException") return out(409, {})
+    throw e
+  }
+  await Promise.all(
+    l.logins.map((login, i) =>
+      login === DONO
+        ? null
+        : db.send(new UpdateCommand({ TableName: T, Key: { login }, UpdateExpression: "SET duelos = :d", ExpressionAttributeValues: { ":d": doViewer(itens[login]?.duelos, l, i) } })),
+    ),
+  )
+  return out(200, { id: l.id, vencedor: l.vencedor, motivo: l.motivo, segundos: l.segundos })
+}
+
 export async function handler(event) {
   const metodo = event.requestContext.http.method
   const caminho = event.rawPath
@@ -232,6 +278,23 @@ export async function handler(event) {
     const i = login === DONO ? null : itens[login]
     return out(200, { login, stats: i ? { ...publico(i, itens[CANAL] || {}, hoje), doado: i.doado ?? 0 } : null })
   }
+  if (metodo === "GET" && (caminho === "/duelos" || caminho === "/duelo.txt")) {
+    const q = event.queryStringParameters || {}
+    const login = String(q.login || "").trim().replace(/^@/, "").toLowerCase()
+    if (caminho === "/duelo.txt") {
+      const exibido = String(q.nome || "").trim().replace(/^@/, "")
+      const texto = (body) => ({ statusCode: 200, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" }, body })
+      if (!LOGIN.test(login)) return texto(`Pra ver o seu duelo: !duelo. O de alguém: !duelo @fulano. Ranking: ${MINIJOGOS}`)
+      const itens = await ler([GERAL, login])
+      const nome = exibido.toLowerCase() === login ? exibido : login
+      return texto(textoDuelo(nome, deViewer(login, itens[login]?.duelos, itens[GERAL], DONO), MINIJOGOS))
+    }
+    if (q.login !== undefined && !LOGIN.test(login)) return out(400, {})
+    const itens = await ler(login ? [GERAL, login] : [GERAL])
+    const r = out(200, login ? deViewer(login, itens[login]?.duelos, itens[GERAL], DONO) : resumo(itens[GERAL], DONO))
+    return { ...r, headers: { ...r.headers, "cache-control": "public, max-age=15" } }
+  }
+  if (metodo === "POST" && caminho === "/duelo") return duelo(event)
   if (metodo === "POST" && caminho === "/presenca") return presenca(event)
   if (metodo === "GET" && caminho === "/presentes") return presentes(event)
   if (metodo === "POST" && caminho === "/var") return acertouVar(event)

@@ -47,6 +47,15 @@
           "espera": [30, 3]
         },
         {
+          "comando": "!duelo",
+          "apelidos": ["!duelos"],
+          "uso": "!duelo ou !duelo @alguém",
+          "texto": "Quantas vitórias você tem no duelo de bolinhas (ou alguém), em quantos duelos, e o seu lugar no ranking.",
+          "dica": "!duelo: suas vitórias no duelo",
+          "resposta": "${customapi.https://p1rblei1o9.execute-api.us-east-1.amazonaws.com/duelo.txt?login=${user.name}&nome=${user}}",
+          "espera": [30, 3]
+        },
+        {
           "comando": "!agenda",
           "apelidos": ["!proxima"],
           "texto": "Quando é a próxima live, e o jogo.",

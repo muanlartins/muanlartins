@@ -21,6 +21,11 @@ export const profile = {
     pt: "Monte com qualquer skin do jogo e exporte numa imagem; entrando com a Twitch, fica salvo aqui no seu perfil.",
     en: "Build it from any skin in the game and export it as one image; signed in with Twitch, it's kept in your profile.",
   },
+  duel: { pt: "Sua bolinha no duelo", en: "Your ball in the duel" },
+  duelHint: {
+    pt: "A classe e o visual da arma que seus Σ liberaram, suas vitórias e o ranking do duelo de bolinhas da live.",
+    en: "The class and the weapon look your Σ unlocked, your wins and the ranking of the stream's ball duel.",
+  },
   you: { pt: "você", en: "you" },
   signOut: { pt: "Sair", en: "Sign out" },
   save: { pt: "Salvar", en: "Save" },

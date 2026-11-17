@@ -2,7 +2,7 @@
 
 import Script from "next/script"
 import { useRef, useState, type ReactNode } from "react"
-import { ArrowRight, Swords } from "lucide-react"
+import { ArrowRight, Gamepad2, Swords } from "lucide-react"
 import Link from "next/link"
 import { PageIntro } from "@/components/site/page-intro"
 import { FanView } from "@/components/site/profile/fan-view"
@@ -317,18 +317,22 @@ export function ProfilePage() {
       {/* The channel earns no Σ of its own. */}
       {S && canSave && !(token && login === CHANNEL) && <SigmaPanel S={S} login={token ? login : ""} stats={stats} />}
 
-      {/* Their dream loadout is kept with the profile too; it's built on Valorant's inventory. */}
-      <Link
-        href={`${sectionPath("content")}/valorant/inventory#montar`}
-        className="group flex items-center gap-4 rounded-md border border-line bg-paper/60 p-4 transition-colors hover:border-klein"
-      >
-        <Swords aria-hidden className="h-6 w-6 shrink-0 text-klein" />
-        <span className="min-w-0 flex-1">
-          <span className="block font-medium text-klein">{text.loadout}</span>
-          <span className="block text-[14px] text-muted">{text.loadoutHint}</span>
-        </span>
-        <ArrowRight aria-hidden className="h-5 w-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-klein" />
-      </Link>
+      {/* Their ball in the live's duel and their dream loadout are kept with the profile too, each on its own page. */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {[
+          { href: channelPath("minijogos"), Icon: Gamepad2, title: text.duel, hint: text.duelHint },
+          { href: `${sectionPath("content")}/valorant/inventory#montar`, Icon: Swords, title: text.loadout, hint: text.loadoutHint },
+        ].map(({ href, Icon, title, hint }) => (
+          <Link key={href} href={href} className="group flex items-center gap-4 rounded-md border border-line bg-paper/60 p-4 transition-colors hover:border-klein">
+            <Icon aria-hidden className="h-6 w-6 shrink-0 text-klein" />
+            <span className="min-w-0 flex-1">
+              <span className="block font-medium text-klein">{title}</span>
+              <span className="block text-[14px] text-muted">{hint}</span>
+            </span>
+            <ArrowRight aria-hidden className="h-5 w-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-klein" />
+          </Link>
+        ))}
+      </div>
 
       {T && fan && (
         <div className="grid gap-10 sm:grid-cols-[15rem_1fr]">

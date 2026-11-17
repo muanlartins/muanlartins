@@ -1,7 +1,9 @@
 // The ball duel's balance (public/stream/duelo-motor.js): thousands of fights between every pair of classes, on
 // every core, to see how often each class wins and how long fights last, and to tune each class's `forca` until
-// every class wins about half its fights (47–53%), no pairing is lopsided (35–65%) and the median fight lasts about
-// 40 s. CPU-heavy for a minute or two: never while Luan is live.
+// every class wins about half its fights (47–53%) and the median fight lasts about 40 s. Pairings: no worse than
+// 30–70% (ten classes with real abilities make a few counters, flagged "!" outside 35–65%; the class's own numbers
+// fix those, as the Adaga's and the Arco's flatter growth did, not forca). What counts for a viewer is the class's
+// whole rate: the other side is drawn. CPU-heavy for a couple of minutes: never while Luan is live.
 //
 //   node scripts/duelo-balanco.mjs              the matchups with the engine's numbers as they are
 //   node scripts/duelo-balanco.mjs --ajustar    tune `forca` first (prints the new numbers to put in CLASSES)
@@ -113,10 +115,10 @@ if (!isMainThread) {
     console.log("".padEnd(9) + IDS.map((id) => id.slice(0, 7).padStart(8)).join(""))
     for (const a of IDS) {
       const linha = IDS.map((b) => {
-        if (a === b) return "     —  "
+        if (a === b) return "     —   "
         const p = r.par[[a, b].sort().join("×")]
         const x = p[a] / p.n
-        return `${(x * 100).toFixed(0).padStart(6)}%${x < 0.35 || x > 0.65 ? "!" : " "}`
+        return `${(x * 100).toFixed(0).padStart(6)}%${x < 0.3 || x > 0.7 ? "!!" : x < 0.35 || x > 0.65 ? "! " : "  "}`
       })
       console.log(a.padEnd(9) + linha.join(""))
     }

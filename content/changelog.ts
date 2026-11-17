@@ -138,16 +138,8 @@ export const UPCOMING: Upcoming[] = [
     text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
   },
   {
-    id: "duelo-no-site",
-    status: "agora",
-    tag: "site",
-    title: "Seu duelo no site",
-    text: "Uma área de minijogos no canal: lá você escolhe a classe da sua bolinha (ou deixa aleatória) e os visuais que seus Σ já liberaram, vê o ranking de vitórias e o replay de qualquer luta. Cada vitória e partida sua fica registrada.",
-    credit: { by: "lucca_3098" },
-  },
-  {
     id: "pagina-do-viewer",
-    status: "proximo",
+    status: "agora",
     tag: "site",
     title: "Uma página pra cada viewer",
     text: "Seu torcedor, seus Σ e medalhas, seus duelos, seus Pix no mural, suas ideias no roadmap, as partidas que jogou comigo e os gols dedicados a você, tudo num lugar. Todo nome no site leva pra ela, e o !perfil no chat manda o link.",
@@ -178,6 +170,29 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "duelo-com-fisica",
+    date: "2026-11-16",
+    tag: "live",
+    title: "Duelo de bolinhas com física de verdade e 10 classes",
+    text: "As bolinhas agora caem e quicam numa arena quadrada, sem ninguém guiando, como nos vídeos do earclacks, e cada classe tem uma habilidade que aparece na tela e cresce a cada acerto: veneno, atordoamento, cortes, embalo, socos. Chegaram Punho, Martelo, Katana e Clava, e todas vencem perto de metade das lutas.",
+    href: "/canal/minijogos",
+    media: [
+      media("duelo-com-fisica", "O duelo novo: a bolinha de Punho, atordoada pela Clava, fica parada com estrelas na cabeça e as luvas apagadas", { video: true }),
+    ],
+  },
+  {
+    id: "duelo-no-site",
+    date: "2026-11-15",
+    tag: "site",
+    title: "Minijogos no site: sua bolinha, o ranking e os replays",
+    text: "Em Minijogos, no canal, você escolhe a classe da sua bolinha (ou deixa aleatória) e o visual da arma entre os que seus Σ já liberaram, e vê ela lutando na hora. Cada duelo da live fica registrado: suas vitórias, o ranking e as últimas lutas, cada uma com o replay daquela luta.",
+    credit: { by: "lucca_3098" },
+    media: [
+      media("minijogos", "A prévia na página de minijogos: a sua bolinha, de Katana, lutando contra a do canal, de Espada"),
+      media("minijogos-escolha", "A página no celular: a prévia e as dez classes, com o Martelo escolhido", { portrait: true }),
+    ],
+  },
   {
     id: "duelo-de-bolinhas",
     date: "2026-11-15",
