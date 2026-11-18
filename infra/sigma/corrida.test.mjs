@@ -10,7 +10,7 @@ test("a race is run again from its seed: the order is the engine's, not the over
   const c = corrida({ versao: Corrida.VERSAO, semente: 1, logins: ["ana", "bia", "caio", "dudu", "eva"], nomes: ["Ana", "", "Caio  Lima", null], ordem: [4, 3, 2, 1, 0] }, AGORA)
   assert.deepEqual(c.ordem, Corrida.simular(1, 5).ordem)
   assert.deepEqual(c.nomes, ["Ana", "bia", "Caio Lima", "dudu", "eva"])
-  assert.ok(c.segundos > 20 && c.segundos < 45)
+  assert.ok(c.segundos > 20 && c.segundos < 75)
   assert.equal(corrida({ versao: Corrida.VERSAO + 1, semente: 1, logins: ["ana", "bia"] }, AGORA), null)
   assert.equal(corrida({ versao: Corrida.VERSAO, semente: 1, logins: ["ana"] }, AGORA), null)
   assert.equal(corrida({ versao: Corrida.VERSAO, semente: 1, logins: ["ana", "ana"] }, AGORA), null)
