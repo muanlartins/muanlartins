@@ -1,6 +1,6 @@
 ---
 name: depois-da-live
-description: The routine after one of Luan's Twitch lives - file the recordings and replays, write the live's page and transcript, set the YouTube VOD, release. Use when he says the live ended or asks to process a live's VOD.
+description: The routine after one of Luan's Twitch lives - file the recordings and replays, write the live's page and transcript, cut three videos of its matches, schedule the YouTube VOD after them, release. Use when he says the live ended or asks to process a live's VOD.
 ---
 
 # After a live
@@ -146,6 +146,50 @@ vitórias em 14 jogos | Rocket League ao vivo`; on a day without a climb, the ho
 (`Esses caras vão humilhar a gente… | Valorant ao vivo`). The template only covers a climb or the record: write one
 for him to approve when the day has a better story.
 
+## 2c. The videos of the matches (since 11-17)
+
+Luan's plan from 11-17 (he'd said it on stream that day too: "só vídeos normais de 20 minutos"): the full VOD is held
+back and three videos of about 20 minutes go out first, each with two or three **whole** matches of the live, a
+cold open of the best moments, the intro's first sentence and the outro. `scripts/partidas.py` does the edit; what
+takes judgment is a small roteiro per video in `scripts/roteiros/partidas/<date>-<nome>.json` (its docstring has the
+format). Background and numbers: `pesquisa-videos-longos.md` beside this file (research of 11-17).
+
+1. **Pick (Claude), approve (Luan).** `partidas.py <date>` lists the matches (where in Live.mp4, score, goals).
+   Read the transcript with the matches and goals marked in (it's what tells the story: on 11-17 the cat turning
+   the PC off mid-match, the cat on his head, "muito perto do Champion"). Three groups, matches in order, no match in
+   two videos, ~17–22 min each (a match is ~6–7 min): the best stories, not just the wins. Leftovers stay in the VOD.
+   A standalone hook title for each (never "Parte 1"): `Minha gata desligou o PC no meio da ranqueada | Rocket League`.
+2. **Cold open**: two or three moments of his, ~30 s in all, each played whole (`"abertura"`, Live.mp4 times); the
+   strongest reaction or line, then a goal. The research says one moment of 8–15 s works best; Luan asked for "uma
+   edição de melhores momentos": compare retention at 0:30 in Studio once a few are out. No profanity there (the
+   first seconds weigh on ads). `@camera` zooms 2.4× into the camera box, which is small on the stream, for what only
+   the camera shows (the cat). Every edge must sit on a pause of his mic: the plan prints each edge's level; `!` lines
+   mean no pause was near, so move the time (`pauses()` lists them).
+3. **Plan, then render**: `partidas.py <roteiro>` (parts, edges, chapters), then `--apply`: ~5 min per video
+   (NVENC), ~5 GB, `Videos\Partidas\<date> <nome>.mp4`, and `content/videos/<date>-<nome>.json` for YouTube (id
+   empty, description with the chapters, Epic's disclaimer and links). Check the seams (a frame on each side), the
+   card if any, and the loudness (-14 to -16 LUFS).
+4. **Thumbnails**, as in 2b but per video: `thumb.py <date> --folha <nome> --trecho <first match start>-<last
+   match end>` makes a sheet of that stretch; drafts with `--folha <nome> --quadro 7b --texto "…" --etiqueta "3V3
+   RANQUEADO" --saida "Videos\Lives\<date>\Thumb\rascunho <nome> A.jpg"` (a Live.mp4 second works as `--quadro` too);
+   the pick goes to `brand/youtube/thumbnails/<date>-<nome>.jpg`. Picking is Luan's.
+5. **Publish**: Luan uploads the three files in Studio (private) and the ids go into the records; `publish_at` one a
+   day from the day after the live (12:00 BRT until Studio has audience data), the VOD at least a day after the last
+   (`youtube.publish_at` in `content/lives/<date>.json`: `youtube.py live` schedules it, and the site keeps that live
+   off its pages until a build after that moment, so its page never embeds a private video). Then
+   `youtube.py video content/videos/<date>-<nome>.json --dry-run`, show him, apply (it makes the playlist "Rocket
+   League: partidas da live" the first time). The end screen (last 10 s, over the outro) is set in Studio by hand:
+   the API can't.
+6. Mark the day `--done` (step 4) only once the three are uploaded; the files in `Videos\Partidas` go by themselves
+   with `videos.py --clean` once YouTube has each whole.
+
+What 11-17 taught: the recording's track 1 is quiet (-41 LUFS, peaks at -17 dBFS), so each part is levelled by
+loudnorm, not one gain; a jump in the recording (the PC went down) gets a 2.5 s card (`"cartelas"`); a match the dock
+caught late needs its start (`"inicio"`: the stinger out of Conversa is the start); the talk after a match is cut at
+his first pause past the scoreboard unless `"fim"` keeps a line worth it ("estamos muito perto do Champion").
+Check with Luan that Rocket League's **Streamer Safe Music** is on: a claimed song in the VOD comes back in every
+video cut from it.
+
 ## 3. YouTube
 
 1. Luan uploads `Videos\Lives\<date>\<hh-mm-ss> Live.mp4` in YouTube Studio (the API can't: unverified apps'
@@ -156,7 +200,7 @@ for him to approve when the day has a better story.
    `scripts/.venv/bin/python scripts/youtube.py live <date> --dry-run`, show Luan, then without `--dry-run`:
    title, description (his summary, the game's line, Twitch first among the links, chapters, the date, three
    hashtags), tags (the game's, plus mode, rank, agents and maps played), thumbnail (thumb.py's `.jpg` over
-   build.py's `.png`), **public** (`PRIVACY`), the game's playlist ("Rocket League ao vivo", "Valorant ao vivo":
+   build.py's `.png`), **public** (`PRIVACY`; scheduled instead when `youtube.publish_at` holds it back, 2c), the game's playlist ("Rocket League ao vivo", "Valorant ao vivo":
    made the first time it's missing, kept as public as the videos), captions. Per game in `GAMES` in `youtube.py`.
    `--no-captions` when only the metadata changed (captions cost 400+ of the 10,000 daily quota units).
 
@@ -175,7 +219,7 @@ utilizarmos".
 ```sh
 scripts/.venv/bin/python scripts/videos.py --clean            # lists what goes, and why
 scripts/.venv/bin/python scripts/videos.py --clean --apply    # deletes it, for good
-python3 scripts/videos.py --done <date>                        # after that day's thumbnail, shorts and commented videos
+python3 scripts/videos.py --done <date>                        # after that day's thumbnail, match videos and shorts
 ```
 
 - A day's `Live.mp4`, `Jogo`, `Câmera` and `VAR` clips go together when the day is marked `--done`; otherwise they
@@ -186,7 +230,8 @@ python3 scripts/videos.py --done <date>                        # after that day'
   skill), and before 11-06 it's the studio's only copy of the matches. It never goes before its YouTube video is
   processed and as long as the file (checked through the API), not even for space.
 - Replays stay (a few MB). Show Luan the list before `--apply`: nothing comes back.
-- Free space under ~150 GB before a live: tell him.
+- Free space under ~150 GB before a live: tell him. The rest of the Videos folder (shorts' candidates, OBS's
+  stubs, the match videos) is in the `faxina` skill.
 
 ## 4b. Valorant's skins (Valorant days)
 
