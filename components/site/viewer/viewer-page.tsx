@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowRight, ArrowUpRight, Clock, Flame, Gift, Lightbulb, Pencil, Play, Sigma as SigmaIcon, Swords, Trash2, Trophy, Tv, Volleyball, X } from "lucide-react"
+import { ArrowRight, ArrowUpRight, Clock, Flag, Flame, Shuffle, Gift, Lightbulb, Pencil, Play, Sigma as SigmaIcon, Swords, Trash2, Trophy, Tv, Volleyball, X } from "lucide-react"
 import Link from "next/link"
 import Script from "next/script"
 import { useEffect, useMemo, useState, type ReactNode } from "react"
@@ -11,7 +11,9 @@ import { ViewerName } from "@/components/site/viewer/viewer-name"
 import { channel } from "@/content/channel"
 import { profile } from "@/content/profile"
 import { channelPath, livePath } from "@/lib/channel"
-import { loadRacer, type Racer } from "@/lib/corrida"
+import { ClassArt, duelKit, type DuelKit } from "@/components/site/minigames/class-art"
+import { Marble, marbleKit, type MarbleKit } from "@/components/site/minigames/marble"
+import { loadRacer, loadRaces, RACE_ASPECT, raceUrl, type Race, type Racer } from "@/lib/corrida"
 import { loadDuelist, PLAYER_ASPECT, replayUrl, type Duelist, type Fight } from "@/lib/duelo"
 import { loadMural, type Mural, type MuralPix } from "@/lib/pix"
 import { keptToken, loadMine, type Badge, type Sigma, type Torcedor } from "@/lib/profile"
@@ -22,6 +24,7 @@ import { forgetLook, isLogin, loadLook, loadPerson, loadViewerData, takeDownImag
 
 const text = localize(channel.viewer)
 const medalText = localize(profile.sigma)
+const minigames = localize(channel.minijogos)
 const reais = (centavos: number) => (centavos / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 
 /** A showcase on their page, Steam-style: a panel with its title bar. */
@@ -103,6 +106,11 @@ export function ViewerPage({ login: given }: { login: string }) {
   const [person, setPerson] = useState<Person | null | undefined>(undefined)
   const [duels, setDuels] = useState<Duelist | null>(null)
   const [races, setRaces] = useState<Racer | null>(null)
+  // The latest races in full (their seeds), to replay the ones they ran.
+  const [recent, setRecent] = useState<Record<string, Race>>({})
+  const [raceReplay, setRaceReplay] = useState<Race | null>(null)
+  const [kit, setKit] = useState<DuelKit | null>(null)
+  const [mkit, setMkit] = useState<MarbleKit | null>(null)
   const [mural, setMural] = useState<Mural | null>(null)
   const [data, setData] = useState<ViewerData | null>(null)
   const [mine, setMine] = useState(false)
@@ -116,6 +124,9 @@ export function ViewerPage({ login: given }: { login: string }) {
     loadPerson(login).then(setPerson)
     loadDuelist(login).then(setDuels).catch(() => setDuels(null))
     loadRacer(login).then(setRaces).catch(() => setRaces(null))
+    loadRaces()
+      .then((r) => setRecent(Object.fromEntries(r.ultimas.filter((x) => x.versao === 2).map((x) => [x.id, x]))))
+      .catch(() => {})
     loadMural().then(setMural).catch(() => setMural(null))
     loadViewerData().then(setData)
     const token = keptToken()
@@ -177,6 +188,9 @@ export function ViewerPage({ login: given }: { login: string }) {
     <div className="space-y-8">
       <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />
       <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />
+      <Script src="/stream/duelo-motor.js" onReady={() => setKit(duelKit())} />
+      <Script src="/stream/duelo-arte.js" onReady={() => setKit(duelKit())} />
+      <Script src="/stream/bolinha.js" onReady={() => setMkit(marbleKit())} />
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
 
@@ -235,6 +249,19 @@ export function ViewerPage({ login: given }: { login: string }) {
             .filter(Boolean)
             .join(" · ")}
         >
+          <div className="flex items-center gap-3 rounded-lg bg-navy p-2 pr-4 text-white">
+            {look?.duelo?.classe ? (
+              <ClassArt kit={kit} classe={look.duelo.classe} material={look.duelo.material ?? (S && stats ? S.ranque(stats.sigma).id.replace(/-\d$/, "") : "bronze")} fan={T ? T.normalizar(look?.aparencia ?? null, login) : { cor: "#85a7ff", detalhe: "#002fa7", roupa: "lisa" }} size={64} />
+            ) : (
+              <span className="grid h-16 w-16 place-items-center">
+                <Shuffle aria-hidden className="h-6 w-6 text-white/70" />
+              </span>
+            )}
+            <div className="min-w-0">
+              <p className="text-[12px] uppercase tracking-[0.1em] text-white/50">{text.duel.ball}</p>
+              <p className="text-[16px] font-medium">{look?.duelo?.classe ? (minigames.yours.classes as Record<string, { name: string }>)[look.duelo.classe]?.name ?? look.duelo.classe : minigames.yours.random}</p>
+            </div>
+          </div>
           {replay && (
             <div className="space-y-2">
               <div className="mx-auto max-w-[20rem] overflow-hidden rounded-md bg-navy" style={{ aspectRatio: PLAYER_ASPECT }}>
@@ -277,7 +304,7 @@ export function ViewerPage({ login: given }: { login: string }) {
       {races && races.corridas > 0 && (
         <Section
           title={text.race.title}
-          icon={<span aria-hidden>🏁</span>}
+          icon={<Flag aria-hidden className="h-4 w-4" />}
           aside={[
             text.race.record.replace("{w}", number(races.vitorias)).replace("{p}", number(races.podios)).replace("{n}", number(races.corridas)),
             races.melhor ? text.race.best.replace("{b}", String(races.melhor)) : null,
@@ -285,16 +312,37 @@ export function ViewerPage({ login: given }: { login: string }) {
             .filter(Boolean)
             .join(" · ")}
         >
-          <ul className="flex flex-wrap gap-2">
-            {races.ultimas.map((r) => (
-              <li key={r.id} className="rounded-md border border-line bg-paper/60 px-3 py-2 text-[14px]">
-                <span className={cn("font-medium tabular-nums", r.lugar === 1 ? "text-win" : r.lugar <= 3 ? "text-klein" : "text-ink")}>
-                  {text.race.place.replace("{l}", String(r.lugar)).replace("{n}", String(r.de))}
-                </span>
-                <span className="text-muted"> · {dateBR(r.em)}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="grid h-[104px] w-[104px] shrink-0 place-items-center rounded-full bg-navy">
+              {T && <Marble kit={mkit} fan={T.normalizar(look?.aparencia ?? null, login) as unknown as Record<string, unknown>} rankId={S && stats ? S.ranque(stats.sigma).id : undefined} size={92} />}
+            </div>
+            <ul className="flex flex-1 flex-wrap gap-2">
+              {races.ultimas.map((r) => (
+                <li key={r.id} className="flex items-center gap-2 rounded-md border border-line bg-paper/60 px-3 py-2 text-[14px]">
+                  <span className={cn("font-medium tabular-nums", r.lugar === 1 ? "text-win" : r.lugar <= 3 ? "text-klein" : "text-ink")}>
+                    {text.race.place.replace("{l}", String(r.lugar)).replace("{n}", String(r.de))}
+                  </span>
+                  <span className="text-muted">· {dateBR(r.em)}</span>
+                  {recent[r.id] && (
+                    <button type="button" onClick={() => setRaceReplay(recent[r.id])} aria-label={text.duel.replay} className="text-klein hover:opacity-70">
+                      <Play aria-hidden className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+          {raceReplay && (
+            <div className="space-y-2">
+              <div className="overflow-hidden rounded-md bg-navy" style={{ aspectRatio: RACE_ASPECT }}>
+                <iframe key={raceReplay.id} src={raceUrl(raceReplay)} title={text.race.title} className="h-full w-full border-0" />
+              </div>
+              <button type="button" onClick={() => setRaceReplay(null)} className="inline-flex items-center gap-1 text-[14px] font-medium text-klein hover:underline">
+                <X aria-hidden className="h-4 w-4" />
+                {text.duel.close}
+              </button>
+            </div>
+          )}
         </Section>
       )}
 

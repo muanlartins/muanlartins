@@ -563,7 +563,7 @@ export function MinigamesPage() {
         )}
       </section>
 
-      <RaceSection T={T} />
+      <RaceSection T={T} S={S} login={login} fan={login ? (mine as unknown as Record<string, unknown>) : null} sigma={sigma} />
     </div>
   )
 }

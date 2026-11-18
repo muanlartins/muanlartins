@@ -53,3 +53,13 @@ async function get<T>(url: string): Promise<T> {
 
 export const loadRaces = () => get<Races>(`${SIGMA_API}/corridas`)
 export const loadRacer = (login: string) => get<Racer>(`${SIGMA_API}/corridas?login=${encodeURIComponent(login)}`)
+
+/** The site's player: the live's overlay alone (corrida.html?site), in a 16:9 box; width / height of its frame. */
+export const RACE_ASPECT = "660 / 390"
+const PLAYER = "/stream/corrida.html?site&w=640&h=360"
+
+/** A recorded race played again, the very race the live showed (its seed and who ran, in the order it had them). */
+export const raceUrl = (r: Race) =>
+  `${PLAYER}&semente=${r.semente}&lutadores=${r.logins.join(",")}&nomes=${r.nomes.map(encodeURIComponent).join(",")}`
+/** Sample people racing, for the page before any race was recorded. */
+export const demoRaceUrl = (n = 12) => `${PLAYER}&demo=${n}`

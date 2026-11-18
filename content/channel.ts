@@ -170,18 +170,45 @@ export const channel = {
     /** The marble race (lib/corrida.ts). */
     race: {
       title: { pt: "Corrida de bolinhas", en: "Marble race" },
-      lead: {
-        pt: "Entre uma partida e outra, quando a live vai pra conversa, sai uma corrida com todo mundo do chat: uma bolinha pra cada um, nas cores do seu torcedor, descendo um tubo com rampas, degraus, saltos e pinos. A pista muda a cada corrida, e ninguém precisa fazer nada.",
-        en: "Between matches, when the stream cuts to the talk, a race starts with everyone in the chat: one marble each, in the colours of their fan, down a tube of ramps, steps, jumps and pegs. The track changes every race, and nobody has to do anything.",
-      },
-      fair: { pt: "Vale só o registro: vitórias e pódios ficam aqui e na página de cada um.", en: "Only the record counts: wins and podiums stay here and on each one's page." },
       short: { pt: "Todo mundo do chat numa pista 3D cheia de obstáculos, na conversa entre partidas.", en: "Everyone in the chat on a 3D track full of obstacles, in the talk between matches." },
+      /** The rules as chips under the title. */
+      rules: {
+        everyone: { pt: "Todo mundo do chat corre", en: "Everyone in the chat races" },
+        track: { pt: "Pista nova a cada corrida", en: "A new track every race" },
+        falls: { pt: "Caiu, volta um pedaço", en: "Fall off, go back a bit" },
+        record: { pt: "Só vale o registro", en: "Only the record counts" },
+      },
+      player: {
+        /** "Replay: the latest race, 12 on the track, 17/11". */
+        replay: { pt: "Replay: {n} na pista · {d}", en: "Replay: {n} on the track · {d}" },
+        demo: { pt: "Uma corrida de exemplo, até sair a primeira na live", en: "A sample race, until the first one on the live" },
+        back: { pt: "Voltar pra última", en: "Back to the latest" },
+      },
+      yours: {
+        title: { pt: "Sua bolinha", en: "Your marble" },
+        text: {
+          pt: "Feita do seu torcedor: as cores e a estampa da camisa. Seus Σ só deixam ela mais bonita.",
+          en: "Made from your fan: the shirt's colours and pattern. Your Σ only make it prettier.",
+        },
+        edit: { pt: "Mudar o torcedor", en: "Change my fan" },
+      },
+      finish: {
+        title: { pt: "Acabamento pelo ranque", en: "Finish by rank" },
+        plain: { pt: "vidro", en: "glass" },
+        glow: { pt: "brilha", en: "glows" },
+        trail: { pt: "deixa rastro", en: "leaves a trail" },
+        sparks: { pt: "faísca", en: "sparkles" },
+        colours: { pt: "muda de cor", en: "changes colour" },
+      },
       ranking: { pt: "Ranking da corrida", en: "Race ranking" },
+      total: { pt: "{n} corridas registradas", en: "{n} races recorded" },
       wins: { pt: "vitórias", en: "wins" },
       podiums: { pt: "pódios", en: "podiums" },
       races: { pt: "corridas", en: "races" },
       latest: { pt: "Últimas corridas", en: "Latest races" },
       of: { pt: "{n} na pista", en: "{n} on the track" },
+      watch: { pt: "Assistir", en: "Watch" },
+      old: { pt: "pista antiga, em 2D", en: "old 2D track" },
       none: { pt: "Ainda não teve corrida. A primeira sai na próxima conversa da live.", en: "No race yet. The first one comes at the stream's next talk." },
     },
     duel: {
@@ -389,6 +416,7 @@ export const channel = {
       close: { pt: "Fechar o replay", en: "Close the replay" },
       none: { pt: "Ainda não foi sorteado pra um duelo.", en: "Not drawn for a duel yet." },
       pick: { pt: "Escolher a minha bolinha", en: "Pick my ball" },
+      ball: { pt: "Bolinha no duelo", en: "Ball in the duel" },
     },
     race: {
       title: { pt: "Corrida de bolinhas", en: "Marble race" },

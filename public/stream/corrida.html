@@ -851,6 +851,8 @@
         }
       }
       requestAnimationFrame(quadro)
+      // For headless checks and clips: where the race is.
+      window.estadoCorrida = () => ({ fase, tique: corrida?.tique ?? -1, chegaram: corrida?.ordem.length ?? 0, quedas: corrida ? corrida.bolas.reduce((s, b) => s + b.quedas, 0) : 0, lider: corrida ? corrida.pista.modulos[corrida.bolas[lugares()[0]].modulo].tipo : null })
 
       // --- The record: each race that ends while the stream is on, to the Σ API ---------------------------------
       let noArAte = 0
