@@ -3,8 +3,19 @@
   "nome": "champion",
   "titulo": "Estamos muito perto do Champion! | Rocket League",
   "descricao": "As últimas partidas da live: 3v3 ranqueado com o JK e o Edu, a uma divisão do Champion, com a gata ajudando na mesa.",
-  "partidas": [12, 13, 14],
-  "capitulos": {"12": "Peraí, filha", "13": "Que jogada!", "14": "A saideira"},
-  "abertura": ["1:47:34.5-1:47:43.6", "1:35:00-1:35:14", "1:50:34-1:50:43"],
-  "fim": {"12": "1:35:16", "14": "1:50:43"}
+  "partidas": [
+    12,
+    13,
+    14
+  ],
+  "capitulos": {
+    "12": "Peraí, filha",
+    "13": "Que jogada!",
+    "14": "A saideira"
+  },
+  "fim": {
+    "12": "1:35:16",
+    "14": "1:50:43"
+  },
+  "publicar": "2026-11-19T12:00:00-03:00"
 }

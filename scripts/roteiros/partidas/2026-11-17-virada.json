@@ -3,7 +3,15 @@
   "nome": "virada",
   "titulo": "Viramos com raça! 3 vitórias seguidas no Diamante 3 | Rocket League",
   "descricao": "As três primeiras partidas da live: 3v3 ranqueado no Diamante 3 com o JK e o Exponja, começando com uma virada.",
-  "partidas": [1, 2, 3],
-  "capitulos": {"1": "A virada", "2": "O tirambaço", "3": "Marcação bluetooth"},
-  "abertura": ["13:53-14:03.5", "22:11-22:24.6", "9:10-9:20"]
+  "partidas": [
+    1,
+    2,
+    3
+  ],
+  "capitulos": {
+    "1": "A virada",
+    "2": "O tirambaço",
+    "3": "Marcação bluetooth"
+  },
+  "publicar": "2026-11-20T12:00:00-03:00"
 }

@@ -149,46 +149,52 @@ for him to approve when the day has a better story.
 ## 2c. The videos of the matches (since 11-17)
 
 Luan's plan from 11-17 (he'd said it on stream that day too: "só vídeos normais de 20 minutos"): the full VOD is held
-back and three videos of about 20 minutes go out first, each with two or three **whole** matches of the live, a
-cold open of the best moments, the intro's first sentence and the outro. `scripts/partidas.py` does the edit; what
-takes judgment is a small roteiro per video in `scripts/roteiros/partidas/<date>-<nome>.json` (its docstring has the
-format). Background and numbers: `pesquisa-videos-longos.md` beside this file (research of 11-17).
+back and three videos of about 20 minutes go out first, each with three **whole** matches of the live, the intro and
+the outro, and the live's own transition between them. `scripts/partidas.py` does the edit; what takes judgment is a
+small roteiro per video in `scripts/roteiros/partidas/<date>-<nome>.json` (its docstring has the format).
+
+**No editing beyond that.** The first version (11-17) had a cold open of three best moments, only the intro's first
+sentence, hard cuts and a card where the PC went down. Luan, 11-18: "os cortes ficaram HORRÍVEIS hahaha é
+impressionante como você não é bom nisso. Até a intro sofreu e ficou cortada coitada." What he asked for instead:
+the matches, the whole intro and the outro, "uma transição como a da live entre as partidas". He pointed to
+ApparentlyJack and Retals on YouTube as styles to learn from someday; until he says otherwise, don't add montages,
+zooms, cards or effects. The research of 11-17 (`pesquisa-videos-longos.md` beside this file) still holds for titles,
+schedule and policy; its editing advice was overruled by him.
 
 1. **Pick (Claude), approve (Luan).** `partidas.py <date>` lists the matches (where in Live.mp4, score, goals).
-   Read the transcript with the matches and goals marked in (it's what tells the story: on 11-17 the cat turning
-   the PC off mid-match, the cat on his head, "muito perto do Champion"). Three groups, matches in order, no match in
-   two videos, ~17–22 min each (a match is ~6–7 min): the best stories, not just the wins. Leftovers stay in the VOD.
-   A standalone hook title for each (never "Parte 1"): `Minha gata desligou o PC no meio da ranqueada | Rocket League`.
-2. **Cold open**: two or three moments of his, ~30 s in all, each played whole (`"abertura"`, Live.mp4 times); the
-   strongest reaction or line, then a goal. The research says one moment of 8–15 s works best; Luan asked for "uma
-   edição de melhores momentos": compare retention at 0:30 in Studio once a few are out. No profanity there (the
-   first seconds weigh on ads). `@camera` zooms 2.4× into the camera box, which is small on the stream, for what only
-   the camera shows (the cat). Every edge must sit on a pause of his mic: the plan prints each edge's level; `!` lines
-   mean no pause was near, so move the time (`pauses()` lists them).
-3. **Plan, then render**: `partidas.py <roteiro>` (parts, edges, chapters), then `--apply`: ~5 min per video
-   (NVENC), ~5 GB, `Videos\Partidas\<date> <nome>.mp4`, and `content/videos/<date>-<nome>.json` for YouTube (id
-   empty, description with the chapters, Epic's disclaimer and links). Check the seams (a frame on each side), the
-   card if any, and the loudness (-14 to -16 LUFS).
-4. **Thumbnails**, as in 2b but per video: `thumb.py <date> --folha <nome> --trecho <first match start>-<last
+   Read the transcript with the matches and goals marked in (it's what tells the story: on 11-17 the cats turning
+   the PC off mid-match, "muito perto do Champion"). Three groups of three matches in order, no match in two videos,
+   ~16–21 min each: the best stories, not just the wins. Leftovers stay in the VOD. A standalone hook title for each
+   (never "Parte 1"): `Minha gata desligou o PC no meio da ranqueada | Rocket League`.
+2. **Plan, then render**: `partidas.py <roteiro>` prints each match's edges (with his mic's level there: all should be
+   pauses, ≤ -60 dB; `!` lines say where none was found) and the chapters; then `--apply`: ~5 min per video (NVENC),
+   ~4 GB, `Videos\Partidas\<date> <nome>.mp4`, and `content/videos/<date>-<nome>.json` for YouTube (id empty,
+   description with the chapters, Epic's disclaimer and links, `publish_at` from the roteiro's `publicar`). Each match
+   starts just after the recording's own stinger into the game and ends at his first pause after the cut to Conversa;
+   the stinger (transicao.webm) covers every join, as on the stream. Check a frame on each side of each join and the
+   loudness (-14 to -16 LUFS).
+3. **Thumbnails**, as in 2b but per video: `thumb.py <date> --folha <nome> --trecho <first match start>-<last
    match end>` makes a sheet of that stretch; drafts with `--folha <nome> --quadro 7b --texto "…" --etiqueta "3V3
-   RANQUEADO" --saida "Videos\Lives\<date>\Thumb\rascunho <nome> A.jpg"` (a Live.mp4 second works as `--quadro` too);
-   the pick goes to `brand/youtube/thumbnails/<date>-<nome>.jpg`. Picking is Luan's.
-5. **Publish**: Luan uploads the three files in Studio (private) and the ids go into the records; `publish_at` one a
-   day from the day after the live (12:00 BRT until Studio has audience data), the VOD at least a day after the last
+   RANQUEADO" --saida "Videos\Lives\<date>\Thumb\rascunho <nome> A.jpg"` (a Live.mp4 second works as `--quadro` too,
+   and a frame from elsewhere in the live is fine when it tells the story better: 11-17's cat video uses the cat in
+   his lap from match 12); the pick goes to `brand/youtube/thumbnails/<date>-<nome>.jpg`. Picking is Luan's.
+4. **Publish**: Luan uploads the three files in Studio (private) and the ids go into the records; one a day from the
+   day after the live, 12:00 BRT (until Studio has audience data), the VOD at least a day after the last
    (`youtube.publish_at` in `content/lives/<date>.json`: `youtube.py live` schedules it, and the site keeps that live
    off its pages until a build after that moment, so its page never embeds a private video). Then
    `youtube.py video content/videos/<date>-<nome>.json --dry-run`, show him, apply (it makes the playlist "Rocket
    League: partidas da live" the first time). The end screen (last 10 s, over the outro) is set in Studio by hand:
    the API can't.
-6. Mark the day `--done` (step 4) only once the three are uploaded; the files in `Videos\Partidas` go by themselves
+5. Mark the day `--done` (step 4) only once the three are uploaded; the files in `Videos\Partidas` go by themselves
    with `videos.py --clean` once YouTube has each whole.
 
 What 11-17 taught: the recording's track 1 is quiet (-41 LUFS, peaks at -17 dBFS), so each part is levelled by
-loudnorm, not one gain; a jump in the recording (the PC went down) gets a 2.5 s card (`"cartelas"`); a match the dock
-caught late needs its start (`"inicio"`: the stinger out of Conversa is the start); the talk after a match is cut at
-his first pause past the scoreboard unless `"fim"` keeps a line worth it ("estamos muito perto do Champion").
-Check with Luan that Rocket League's **Streamer Safe Music** is on: a claimed song in the VOD comes back in every
-video cut from it.
+loudnorm, not one gain; a jump in the recording (the PC went down) is listed in `"saltos"` (the piece before ends at
+its last real frame, a second before the join, and the stinger covers it); a match the dock caught late needs its
+start (`"inicio"`); the talk after a match ends at his first pause past the scoreboard unless `"fim"` keeps a line
+worth it ("estamos muito perto do Champion"). The dock's switch to the game comes 4–10 s before its recorded start,
+with a stinger; to Conversa 5.5 s after the end. Check with Luan that Rocket League's **Streamer Safe Music** is on:
+a claimed song in the VOD comes back in every video cut from it.
 
 ## 3. YouTube
 
