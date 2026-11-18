@@ -164,7 +164,7 @@ export function ViewerCard({
   return (
     <div className={cn("relative overflow-hidden text-white", page ? "rounded-xl" : "rounded-lg", className)} style={{ background: `linear-gradient(180deg, ${palette.body}, ${palette.deep})` }}>
       <Banner login={login} look={look} palette={palette} className={page ? "aspect-[3/1]" : "h-[92px]"}>
-        <StandingFan login={login} look={look} T={T} className={cn("absolute bottom-0", page ? "right-5 h-[132px] w-[92px] sm:right-7 sm:h-[150px] sm:w-[104px]" : "right-3 h-[78px] w-[54px]")} />
+        <StandingFan login={login} look={look} T={T} className={cn("absolute bottom-0", page ? "right-4 h-[96px] w-[68px] sm:right-7 sm:h-[150px] sm:w-[104px]" : "right-3 h-[78px] w-[54px]")} />
       </Banner>
 
       <div className={cn("relative", page ? "px-5 pb-5 sm:px-7 sm:pb-6" : "px-3.5 pb-3.5")}>

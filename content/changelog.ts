@@ -147,7 +147,7 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-17",
     tag: "site",
     title: "Uma página pra cada viewer",
-    text: "Cada um da torcida tem a sua página no site: o torcedor, os Σ e as medalhas, os gols dedicados, os duelos com replay, os Pix no mural, as ideias no roadmap e as partidas que jogou comigo. Passe o mouse em qualquer nome do site e aparece o cartão da pessoa, que você monta no seu perfil com as suas cores, uma linha sobre você e o seu jogo. No chat, o !perfil manda o link.",
+    text: "Cada um da torcida tem a sua página no site: o torcedor, os Σ e as medalhas, os gols dedicados, os duelos com replay, os Pix no mural, as ideias no roadmap e as partidas que jogou comigo. Passe o mouse em qualquer nome do site e aparece o cartão da pessoa, que você monta no seu perfil como no Discord: banner, foto, cores, pronomes, um “sobre mim” e o seu jogo. No chat, o !perfil manda o link.",
     href: "/torcedor/jpmartins_1",
     media: [
       media("casa-da-comunidade", "A página do jpmartins_1: o cartão com o torcedor de camisa do Fluminense, 721 Σ em Ouro III, as horas, as lives, a sequência e as medalhas"),
