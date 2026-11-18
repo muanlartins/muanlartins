@@ -8,7 +8,13 @@
   },
   "youtube": {
     "title": "10 vitórias em 14 jogos, pertinho do Champion | Rocket League ao vivo",
-    "publish_at": "2026-11-21T12:00:00-03:00"
+    "publish_at": "2026-11-21T12:00:00-03:00",
+    "thumb": {
+      "quadro": "7b",
+      "segundo": 3215.5,
+      "texto": "10 VITÓRIAS|EM 14 JOGOS",
+      "emblema": false
+    }
   },
   "chapters": [
     { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
