@@ -33,7 +33,7 @@ export function RaceSection({ T }: { T: Torcedor | null }) {
   const name = (login: string, nome: string) => (login === CHANNEL ? nome : <ViewerName login={login}>{nome}</ViewerName>)
 
   return (
-    <section className="space-y-6 border-t border-line pt-10">
+    <section id="corrida" className="scroll-mt-24 space-y-6 border-t border-line pt-10">
       <div className="space-y-3">
         <h2 className="text-2xl font-medium tracking-[-0.02em] text-ink sm:text-3xl">{text.title}</h2>
         <p className="max-w-[40rem] text-[16px] leading-[1.6] text-ink">{text.lead}</p>

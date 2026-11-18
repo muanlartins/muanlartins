@@ -12,7 +12,7 @@ import { channel } from "@/content/channel"
 import { profile } from "@/content/profile"
 import { channelPath, livePath } from "@/lib/channel"
 import { loadRacer, type Racer } from "@/lib/corrida"
-import { loadDuelist, replayUrl, type Duelist, type Fight } from "@/lib/duelo"
+import { loadDuelist, PLAYER_ASPECT, replayUrl, type Duelist, type Fight } from "@/lib/duelo"
 import { loadMural, type Mural, type MuralPix } from "@/lib/pix"
 import { keptToken, loadMine, type Badge, type Sigma, type Torcedor } from "@/lib/profile"
 import { localize, profileSlug } from "@/lib/site"
@@ -236,8 +236,8 @@ export function ViewerPage({ login: given }: { login: string }) {
             .join(" · ")}
         >
           {replay && (
-            <div className="max-w-[720px] space-y-2">
-              <div className="overflow-hidden rounded-md bg-navy" style={{ aspectRatio: "660 / 390" }}>
+            <div className="space-y-2">
+              <div className="mx-auto max-w-[20rem] overflow-hidden rounded-md bg-navy" style={{ aspectRatio: PLAYER_ASPECT }}>
                 <iframe key={replay.id} src={replayUrl(replay)} title={text.duel.title} className="h-full w-full border-0" />
               </div>
               <button type="button" onClick={() => setReplay(null)} className="inline-flex items-center gap-1 text-[14px] font-medium text-klein hover:underline">

@@ -175,6 +175,7 @@ export const channel = {
         en: "Between matches, when the stream cuts to the talk, a race starts with everyone in the chat: one marble each, in the colours of their fan, down a tube of ramps, steps, jumps and pegs. The track changes every race, and nobody has to do anything.",
       },
       fair: { pt: "Vale só o registro: vitórias e pódios ficam aqui e na página de cada um.", en: "Only the record counts: wins and podiums stay here and on each one's page." },
+      short: { pt: "Todo mundo do chat numa pista 3D cheia de obstáculos, na conversa entre partidas.", en: "Everyone in the chat on a 3D track full of obstacles, in the talk between matches." },
       ranking: { pt: "Ranking da corrida", en: "Race ranking" },
       wins: { pt: "vitórias", en: "wins" },
       podiums: { pt: "pódios", en: "podiums" },
@@ -195,6 +196,15 @@ export const channel = {
       },
       idea: { pt: "Ideia de", en: "Idea by" },
       command: { pt: "No chat, !duelo mostra as suas vitórias.", en: "In the chat, !duelo shows your wins." },
+      /** The rules as chips under the title, a few words each. */
+      rules: {
+        drawn: { pt: "2 do chat, sorteados", en: "2 from the chat, drawn" },
+        loop: { pt: "Um duelo atrás do outro", en: "One duel after another" },
+        fair: { pt: "Mesma força pra todos", en: "Everyone equally strong" },
+        looks: { pt: "Σ só deixa a arma mais bonita", en: "Σ only make it prettier" },
+        command: { pt: "!duelo no chat", en: "!duelo in the chat" },
+      },
+      short: { pt: "Bolinhas com armas que crescem a cada acerto, no canto da live.", en: "Balls with weapons that grow with every hit, in the stream's corner." },
     },
     yours: {
       title: { pt: "Sua bolinha", en: "Your ball" },
@@ -212,6 +222,25 @@ export const channel = {
       },
       random: { pt: "Aleatória", en: "Random" },
       randomText: { pt: "Uma diferente a cada duelo.", en: "A different one each duel." },
+      stats: {
+        dano: { pt: "Dano", en: "Damage" },
+        alcance: { pt: "Alcance", en: "Reach" },
+        velocidade: { pt: "Velocidade", en: "Speed" },
+        cresce: { pt: "Crescimento", en: "Growth" },
+      },
+      /** The class's ability in a word, on its sheet. */
+      tags: {
+        espada: { pt: "Dano crescente", en: "Growing damage" },
+        adaga: { pt: "Giro", en: "Spin" },
+        arco: { pt: "Flechas", en: "Arrows" },
+        lanca: { pt: "Alcance", en: "Reach" },
+        machado: { pt: "Crítico", en: "Critical" },
+        foice: { pt: "Veneno", en: "Poison" },
+        punho: { pt: "Velocidade", en: "Speed" },
+        martelo: { pt: "Embalo", en: "Momentum" },
+        katana: { pt: "Cortes", en: "Slices" },
+        clava: { pt: "Atordoar", en: "Stun" },
+      },
       classes: {
         espada: { name: { pt: "Espada", en: "Sword" }, text: { pt: "Cada acerto, +1 de dano.", en: "Every hit, +1 damage." } },
         adaga: {
