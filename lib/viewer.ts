@@ -39,12 +39,46 @@ export interface Card {
   tema?: string
   /** Their own two colours, with tema "livre". */
   cores?: [string, string]
-  /** A line about them (the API runs it through the Pix's word filter). */
+  /** "Sobre mim": what they say about themselves, up to two blank lines kept (the API runs it through the Pix's word filter). */
   sobre?: string
+  /** Their pronouns, filtered the same way. */
+  pronomes?: string
   /** Their game, by the site's id. */
   jogo?: string
 }
-export const ABOUT_MAX = 140
+export const ABOUT_MAX = 300
+export const PRONOUNS_MAX = 24
+
+/** Their banner and photo, each "<id>.<webp|jpg>" (a new picture is a new id, so the browser keeps each for good). */
+export interface Images {
+  banner?: string
+  foto?: string
+}
+export type ImageKind = keyof Images
+/** The pictures as the site draws them before sending (lib/viewer-images.ts) and the most the API keeps of each. */
+export const IMAGE_SIZE: Record<ImageKind, { width: number; height: number; max: number }> = {
+  banner: { width: 1500, height: 500, max: 300_000 },
+  foto: { width: 320, height: 320, max: 90_000 },
+}
+export const imageUrl = (login: string, kind: ImageKind, file: string) => `${PROFILE_API}/imagem/${login.toLowerCase()}/${kind}/${file}`
+
+const avatars = new Map<string, Promise<string | null>>()
+/**
+ * Their Twitch photo, the photo of anyone who never sent one (null for Twitch's default picture or out of reach): from
+ * DecAPI, as the site's "Ao vivo" (the site has no backend for Twitch's API).
+ */
+export function loadTwitchAvatar(login: string): Promise<string | null> {
+  const key = login.toLowerCase()
+  let found = avatars.get(key)
+  if (!found) {
+    found = fetch(`https://decapi.me/twitch/avatar/${encodeURIComponent(key)}`)
+      .then((r) => (r.ok ? r.text() : ""))
+      .then((url) => (/^https:\/\/static-cdn\.jtvnw\.net\//.test(url.trim()) && !url.includes("user-default-pictures") ? url.trim().replace("300x300", "150x150") : null))
+      .catch(() => null)
+    avatars.set(key, found)
+  }
+  return found
+}
 /** The games a card can show: the channel's (content/projects.ts, kept light here for the browser). */
 export const CARD_GAMES = [
   { id: "rocket-league", name: "Rocket League" },
@@ -58,11 +92,12 @@ export function cardColors(card: Card | null | undefined, sigma: number, S: Sigm
   return [theme.colors[0], theme.colors[1]]
 }
 
-/** Someone's look on the site: their fan, card and duel ball, any of them null when never saved. */
+/** Someone's look on the site: their fan, card, duel ball and pictures, any of them null when never saved. */
 export interface Look {
   aparencia: Choice | null
   cartao: Card | null
   duelo: { classe?: string; material?: string } | null
+  imagens?: Images | null
 }
 
 /** A goal (in Valorant, a win) the stand dedicated to them. */
@@ -135,7 +170,7 @@ function flush() {
       // Without /cartoes (an API from before it, or trouble with it), at least the fans.
       .catch(() =>
         loadFans(part.map((p) => p.login))
-          .then((fans) => part.forEach((p) => p.resolve(fans[p.login] ? { aparencia: fans[p.login], cartao: null, duelo: null } : null)))
+          .then((fans) => part.forEach((p) => p.resolve(fans[p.login] ? { aparencia: fans[p.login], cartao: null, duelo: null, imagens: null } : null)))
           .catch(() => part.forEach((p) => p.resolve(null))),
       )
   }
@@ -197,3 +232,29 @@ async function call(method: "PUT" | "DELETE", token: string, body?: Card) {
 
 export const saveMyCard = (token: string, card: Card) => call("PUT", token, card)
 export const eraseMyCard = (token: string) => call("DELETE", token)
+
+/** Sends their banner or photo (already drawn to size by lib/viewer-images.ts): the card's pictures after it. */
+export async function saveMyImage(token: string, kind: ImageKind, picture: Blob): Promise<Images | null> {
+  const response = await fetch(`${PROFILE_API}/eu/imagem/${kind}`, { method: "PUT", headers: { authorization: `Bearer ${token}`, "content-type": picture.type }, body: picture })
+  if (response.status === 401) {
+    signOut()
+    throw new SignedOut()
+  }
+  if (!response.ok) throw new Error(String(response.status))
+  return ((await response.json()) as { imagens: Images | null }).imagens
+}
+
+async function erase(path: string, token: string): Promise<Images | null> {
+  const response = await fetch(`${PROFILE_API}${path}`, { method: "DELETE", headers: { authorization: `Bearer ${token}` } })
+  if (response.status === 401) {
+    signOut()
+    throw new SignedOut()
+  }
+  if (!response.ok) throw new Error(String(response.status))
+  return ((await response.json()) as { imagens: Images | null }).imagens
+}
+
+/** Takes their own banner or photo down. */
+export const eraseMyImage = (token: string, kind: ImageKind) => erase(`/eu/imagem/${kind}`, token)
+/** The channel takes anyone's picture down (a picture that shouldn't be on the site). */
+export const takeDownImage = (token: string, login: string, kind: ImageKind) => erase(`/canal/imagem/${login.toLowerCase()}/${kind}`, token)

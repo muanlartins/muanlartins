@@ -9,7 +9,7 @@ import type { Sigma, Torcedor } from "@/lib/profile"
 import { cn } from "@/lib/utils"
 import { isLogin, loadLook, loadPerson, viewerPath, type Look, type Person } from "@/lib/viewer"
 
-const CARD_WIDTH = 272
+const CARD_WIDTH = 300
 
 /**
  * A viewer's name, wherever the site shows one: it leads to their page (/torcedor/<login>), and with a mouse, resting on
@@ -53,7 +53,7 @@ export function ViewerName({ login, children, className }: { login: string; chil
         if (!box) return
         const left = Math.max(8, Math.min(box.left, innerWidth - CARD_WIDTH - 8))
         // Room under the name for the card, or it opens above.
-        setPlace(innerHeight - box.bottom > 300 ? { left, top: box.bottom } : { left, bottom: innerHeight - box.top })
+        setPlace(innerHeight - box.bottom > 380 ? { left, top: box.bottom } : { left, bottom: innerHeight - box.top })
         setOpen(true)
       },
       now ? 0 : 350,
@@ -91,7 +91,7 @@ export function ViewerName({ login, children, className }: { login: string; chil
             <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
             {!T && <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />}
             {!S && <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />}
-            <ViewerCard login={key} look={look} stats={person?.stats} primeira={person?.primeira} T={T} S={S} size="pop" className="shadow-[0_12px_32px_-12px_rgba(0,20,71,0.45)]" />
+            <ViewerCard login={key} look={look} stats={person?.stats} primeira={person?.primeira} T={T} S={S} size="pop" className="shadow-[0_18px_44px_-14px_rgba(0,20,71,0.6)] ring-1 ring-navy/20" />
           </div>,
           document.body,
         )}

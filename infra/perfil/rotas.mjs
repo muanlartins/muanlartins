@@ -5,6 +5,9 @@
 // in the duel: its class and its weapon's material, /canal/minijogos), cartao (their card, the same everywhere on the
 // site and on top of their page, /torcedor/<login>: its colours, a line about them and their game) and, on the
 // channel's own login only, jogo (Luan's Valorant inventory as the game last had it, sent by scripts/valorant.py).
+// imagens says which version of their banner and photo is current ({ banner, foto }, each an id); the pictures
+// themselves are items of their own, "<login>#banner" and "<login>#foto" ("#" is never in a login), so the batch reads
+// of the cards never carry them.
 //
 // Public:   GET /torcedores?logins=a,b   the fans of whoever is in the stand (the crowd, the mural, the roadmap)
 //           GET /cartoes?logins=a,b      their cards: the fan, the card and the ball (a viewer's page, a name's card)
@@ -15,6 +18,10 @@
 //           PUT /eu/loadout, DELETE /eu/loadout
 //           PUT /eu/duelo, DELETE /eu/duelo
 //           PUT /eu/cartao, DELETE /eu/cartao
+//           PUT /eu/imagem/banner, PUT /eu/imagem/foto   a WebP or JPEG drawn by the site (banner 3:1, photo square)
+//           DELETE /eu/imagem/banner, DELETE /eu/imagem/foto
+// Public:   GET /imagem/<login>/<banner|foto>/<id>.<webp|jpg>   the picture, cached for good (a new one is a new id)
+// Channel:  DELETE /canal/imagem/<login>/<banner|foto>         takes anyone's picture down
 // The live: POST /canal/jogo with x-chave, from the stream PC: the channel's inventory read from the game
 //
 // The lives' calendar (comum/agenda.mjs), the one source of truth for when the lives are, kept in the item "#agenda"
@@ -53,10 +60,30 @@ const ARMAS = 30 // Valorant has 21 weapons; room for new ones
 const VARIANTES = 6
 const POSSES = 5000
 const NOME = /^[a-z-]{2,24}$/
-// The card's line about them: what the Pix's word filter lets through, as the live would show it.
-export const SOBRE_MAX = 140
+// The card's text about them ("Sobre mim") and their pronouns: what the Pix's word filter lets through.
+export const SOBRE_MAX = 300
+export const PRONOMES_MAX = 24
+// The pictures: an item holds 400 KB. The site draws them small enough (lib/viewer-images.ts): a banner of 1500×500
+// and a photo of 320×320.
+export const IMAGEM_MAX = { banner: 300_000, foto: 90_000 }
+const IMAGEM = /^\/imagem\/([a-z0-9_]{1,25})\/(banner|foto)\/([a-z0-9]{6,20})\.(webp|jpg)$/
+const CANAL_IMAGEM = /^\/canal\/imagem\/([a-z0-9_]{1,25})\/(banner|foto)$/
 
 const linha = (s, max) => [...String(s).replace(/\s+/g, " ").trim()].slice(0, max).join("").trim()
+// Text that may break lines: at most two in a row, spaces folded within each line.
+const texto = (s, max) =>
+  [...String(s).replace(/\r/g, "").split("\n").map((l) => l.replace(/\s+/g, " ").trim()).join("\n").replace(/\n{3,}/g, "\n\n").trim()]
+    .slice(0, max)
+    .join("")
+    .trim()
+
+// What a picture is, by its first bytes: a WebP ("RIFF", size, "WEBP") or a JPEG.
+export function formato(b) {
+  if (b.length > 12 && b.toString("latin1", 0, 4) === "RIFF" && b.toString("latin1", 8, 12) === "WEBP") return "webp"
+  if (b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg"
+  return null
+}
+const novoId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
 const uuid = (x) => (typeof x === "string" && UUID.test(x.toLowerCase()) ? x.toLowerCase() : null)
 const uuids = (l, max) => [...new Set((Array.isArray(l) ? l : []).map(uuid).filter(Boolean))].slice(0, max)
 
@@ -84,9 +111,10 @@ export function duelo(d) {
   return o
 }
 
-// Their card: { tema, cores, sobre, jogo }, any left out for the default. tema is one of the site's themes (lib/viewer.ts)
-// or "livre" with cores, two colours of their own, which the site draws only once their Σ unlocks free colours (as the
-// fan's); sobre is a line about them, through the word filter; jogo is their game, by the site's id.
+// Their card: { tema, cores, sobre, pronomes, jogo }, any left out for the default. tema is one of the site's themes
+// (lib/viewer.ts) or "livre" with cores, two colours of their own, which the site draws only once their Σ unlocks free
+// colours (as the fan's); sobre is what they say about themselves and pronomes their pronouns, both through the word
+// filter; jogo is their game, by the site's id. The banner and the photo aren't in it: they're saved apart (imagens).
 export function cartao(c) {
   const o = {}
   if (!c || typeof c !== "object") return o
@@ -96,8 +124,12 @@ export function cartao(c) {
     if (cores.length === 2) o.cores = cores
   }
   if (typeof c.sobre === "string") {
-    const sobre = filtrar(linha(c.sobre, SOBRE_MAX)).texto
+    const sobre = filtrar(texto(c.sobre, SOBRE_MAX)).texto
     if (sobre) o.sobre = sobre
+  }
+  if (typeof c.pronomes === "string") {
+    const pronomes = filtrar(linha(c.pronomes, PRONOMES_MAX)).texto
+    if (pronomes) o.pronomes = pronomes
   }
   if (typeof c.jogo === "string" && NOME.test(c.jogo)) o.jogo = c.jogo
   return o
@@ -135,6 +167,37 @@ export function jogo(j) {
  */
 export function rotas({ banco, usuario, chave }) {
   const doCanal = async (event) => (await usuario(event.headers || {}))?.login === CANAL
+
+  // Takes someone's banner or photo down: the picture's item emptied, and the card back to its colours / Twitch photo.
+  async function tirarImagem(login, tipo) {
+    await banco.remover(`${login}#${tipo}`, ["imagem", "ext", "id", "em"])
+    const i = await banco.ler(login)
+    if (!i?.imagens?.[tipo]) return i?.imagens ?? null
+    const resto = Object.fromEntries(Object.entries(i.imagens).filter(([k]) => k !== tipo))
+    if (Object.keys(resto).length) await banco.definir(login, { imagens: resto })
+    else await banco.remover(login, ["imagens"])
+    return Object.keys(resto).length ? resto : null
+  }
+
+  async function imagem(event, metodo, caminho) {
+    const doCanalPedido = CANAL_IMAGEM.exec(caminho)
+    if (doCanalPedido) {
+      if (metodo !== "DELETE") return out(405, {})
+      if (!(await doCanal(event))) return out(403, {})
+      return out(200, { login: doCanalPedido[1], imagens: await tirarImagem(doCanalPedido[1], doCanalPedido[2]) })
+    }
+    const pedido = IMAGEM.exec(caminho)
+    if (metodo !== "GET" || !pedido) return out(404, {})
+    const [, login, tipo, id, ext] = pedido
+    const i = await banco.ler(`${login}#${tipo}`)
+    if (!i?.imagem || i.id !== id || i.ext !== ext) return out(404, {})
+    return {
+      statusCode: 200,
+      headers: { "content-type": ext === "webp" ? "image/webp" : "image/jpeg", "cache-control": "public, max-age=31536000, immutable" },
+      body: Buffer.from(i.imagem).toString("base64"),
+      isBase64Encoded: true,
+    }
+  }
 
   async function agenda(event, metodo, caminho) {
     if (metodo === "GET") {
@@ -208,8 +271,11 @@ export function rotas({ banco, usuario, chave }) {
         200,
         Object.fromEntries(
           itens
-            .filter((i) => i.aparencia || i.cartao || i.duelo)
-            .map((i) => [i.login, { aparencia: i.aparencia ?? null, cartao: i.cartao ?? null, duelo: i.duelo && Object.keys(i.duelo).length ? i.duelo : null }]),
+            .filter((i) => i.aparencia || i.cartao || i.duelo || i.imagens)
+            .map((i) => [
+              i.login,
+              { aparencia: i.aparencia ?? null, cartao: i.cartao ?? null, duelo: i.duelo && Object.keys(i.duelo).length ? i.duelo : null, imagens: i.imagens ?? null },
+            ]),
         ),
       )
       return { ...r, headers: { ...r.headers, "cache-control": "public, max-age=30" } }
@@ -238,13 +304,31 @@ export function rotas({ banco, usuario, chave }) {
       return out(200, { armas: Object.keys(lido.equipado).length, skins: lido.skins.length, chromas: lido.chromas.length })
     }
 
+    if (caminho.startsWith("/imagem/") || caminho.startsWith("/canal/imagem/")) return imagem(event, metodo, caminho)
     if (caminho === "/agenda" || caminho === "/agenda.ics" || caminho === "/agenda.txt") return agenda(event, metodo, caminho)
     if (caminho === "/canal/story" || caminho.startsWith("/canal/story/")) return story(event, metodo, caminho)
 
-    if (caminho !== "/eu" && caminho !== "/eu/loadout" && caminho !== "/eu/duelo" && caminho !== "/eu/cartao") return out(404, {})
+    const minha = /^\/eu\/imagem\/(banner|foto)$/.exec(caminho)
+    if (caminho !== "/eu" && caminho !== "/eu/loadout" && caminho !== "/eu/duelo" && caminho !== "/eu/cartao" && !minha) return out(404, {})
     const v = await usuario(event.headers || {})
     if (!v) return out(401, { erro: "Entre com a Twitch de novo." })
     const agora = new Date().toISOString()
+
+    if (minha) {
+      const tipo = minha[1]
+      if (metodo === "PUT") {
+        const bytes = Buffer.from(event.body || "", event.isBase64Encoded ? "base64" : "binary")
+        const ext = formato(bytes)
+        if (!ext || bytes.length < 200 || bytes.length > IMAGEM_MAX[tipo]) return out(400, { erro: "Imagem grande demais ou num formato que não dá." })
+        const id = novoId()
+        await banco.definir(`${v.login}#${tipo}`, { imagem: bytes, ext, id, em: agora })
+        const imagens = { ...((await banco.ler(v.login))?.imagens ?? {}), [tipo]: `${id}.${ext}` }
+        await banco.definir(v.login, { id: v.id, imagens })
+        return out(200, { login: v.login, imagens })
+      }
+      if (metodo === "DELETE") return out(200, { login: v.login, imagens: await tirarImagem(v.login, tipo) })
+      return out(405, {})
+    }
 
     if (caminho === "/eu/duelo") {
       if (metodo === "PUT") {
@@ -293,7 +377,7 @@ export function rotas({ banco, usuario, chave }) {
 
     if (metodo === "GET") {
       const i = (await banco.ler(v.login)) || {}
-      return out(200, { login: v.login, aparencia: i.aparencia ?? null, loadout: i.loadout ?? null, duelo: i.duelo ?? null, cartao: i.cartao ?? null })
+      return out(200, { login: v.login, aparencia: i.aparencia ?? null, loadout: i.loadout ?? null, duelo: i.duelo ?? null, cartao: i.cartao ?? null, imagens: i.imagens ?? null })
     }
     if (metodo === "PUT") {
       const corpo = json(event)

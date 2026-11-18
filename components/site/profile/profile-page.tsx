@@ -30,7 +30,7 @@ import { channelPath } from "@/lib/channel"
 import { LOCALE, localize, sectionPath } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
-import { viewerPath, type Card } from "@/lib/viewer"
+import { viewerPath, type Card, type Images } from "@/lib/viewer"
 
 const text = localize(profile)
 type Status = "idle" | "saving" | "saved" | "erased" | "error" | "expired"
@@ -145,6 +145,7 @@ export function ProfilePage() {
   const [saved, setSaved] = useState<Fan | null>(null)
   // Their card as saved (null: never), once their profile came back.
   const [card, setCard] = useState<Card | null | undefined>(undefined)
+  const [images, setImages] = useState<Images | null>(null)
   const [fan, setFan] = useState<Fan | null>(null)
   const [status, setStatus] = useState<Status>("idle")
   const [confirmErase, setConfirmErase] = useState(false)
@@ -173,9 +174,10 @@ export function ProfilePage() {
       return
     }
     loadMine(found)
-      .then(({ login, aparencia, cartao }) => {
+      .then(({ login, aparencia, cartao, imagens }) => {
         setLogin(login)
         setCard(cartao ?? null)
+        setImages(imagens ?? null)
         loadMySigma(found, login)
           .then(setStats)
           .catch(() => setStats(null))
@@ -332,6 +334,7 @@ export function ProfilePage() {
           token={token}
           login={login}
           saved={card}
+          images={images}
           fan={fan}
           stats={stats}
           T={T}
