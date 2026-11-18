@@ -5,7 +5,7 @@
  * and the API checks it with Twitch on every call.
  */
 import { ORIGIN, profileSlug } from "@/lib/site"
-import type { Card } from "@/lib/viewer"
+import type { Card, Images } from "@/lib/viewer"
 
 /** The Twitch app (dev.twitch.tv/console); its redirect URLs are /perfil and /profile on both sites and localhost. */
 export const TWITCH_CLIENT_ID = process.env.NEXT_PUBLIC_TWITCH_CLIENT_ID ?? "dploislenvijye1obbcm5dqxcxu5y1"
@@ -156,6 +156,9 @@ export interface Torcedor {
 }
 
 export const canSave = Boolean(TWITCH_CLIENT_ID && PROFILE_API)
+// A stand-in for Twitch's sign-in, to try the profile on a laptop against infra/perfil/local/servidor.mjs: it comes back
+// to this very address rather than the site's.
+const AUTHORIZE = process.env.NEXT_PUBLIC_TWITCH_AUTHORIZE
 
 const store = {
   get: (key: string, session = false) => {
@@ -183,10 +186,10 @@ export function signIn(draft: Fan | null, back?: string, scope = "") {
   store.set(STATE_KEY, state, true)
   if (draft) store.set(DRAFT_KEY, JSON.stringify(draft), true)
   if (back) store.set(BACK_KEY, back, true)
-  const url = new URL("https://id.twitch.tv/oauth2/authorize")
+  const url = new URL(AUTHORIZE ?? "https://id.twitch.tv/oauth2/authorize")
   url.search = new URLSearchParams({
     client_id: TWITCH_CLIENT_ID,
-    redirect_uri: `${ORIGIN}/${profileSlug()}`,
+    redirect_uri: `${AUTHORIZE ? location.origin : ORIGIN}/${profileSlug()}`,
     response_type: "token",
     scope,
     state,
@@ -246,7 +249,7 @@ async function call(method: string, token: string, body?: unknown) {
     throw new SignedOut()
   }
   if (!response.ok) throw new Error(String(response.status))
-  return (await response.json()) as { login: string; aparencia: Choice | null; cartao?: Card | null }
+  return (await response.json()) as { login: string; aparencia: Choice | null; cartao?: Card | null; imagens?: Images | null }
 }
 
 /** The fans saved under these logins (the public side of the profile API); a login missing has none saved. */

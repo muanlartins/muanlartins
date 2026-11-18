@@ -1,50 +1,79 @@
 "use client"
 
-import { ArrowRight, ArrowUpRight, Flame, Gift, Lightbulb, Play, Trophy, X } from "lucide-react"
+import { ArrowRight, ArrowUpRight, Clock, Flame, Gift, Lightbulb, Pencil, Play, Sigma as SigmaIcon, Swords, Trash2, Trophy, Tv, Volleyball, X } from "lucide-react"
 import Link from "next/link"
 import Script from "next/script"
 import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { GameIcon } from "@/components/site/game/game-icon"
-import { BadgeGrid } from "@/components/site/profile/badges"
+import { amount, LEVELS, Medal } from "@/components/site/profile/badges"
 import { dateBR, number, ViewerCard } from "@/components/site/viewer/viewer-card"
 import { ViewerName } from "@/components/site/viewer/viewer-name"
 import { channel } from "@/content/channel"
+import { profile } from "@/content/profile"
 import { channelPath, livePath } from "@/lib/channel"
 import { loadDuelist, replayUrl, type Duelist, type Fight } from "@/lib/duelo"
 import { loadMural, type Mural, type MuralPix } from "@/lib/pix"
-import { keptToken, loadMine, type Sigma, type Torcedor } from "@/lib/profile"
+import { keptToken, loadMine, type Badge, type Sigma, type Torcedor } from "@/lib/profile"
 import { localize, profileSlug } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
-import { isLogin, loadLook, loadPerson, loadViewerData, type Look, type Person, type ViewerData } from "@/lib/viewer"
+import { forgetLook, isLogin, loadLook, loadPerson, loadViewerData, takeDownImage, type ImageKind, type Look, type Person, type ViewerData } from "@/lib/viewer"
 
 const text = localize(channel.viewer)
+const medalText = localize(profile.sigma)
 const reais = (centavos: number) => (centavos / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 
+/** A showcase on their page, Steam-style: a panel with its title bar. */
 function Section({ title, icon, aside, children }: { title: string; icon: ReactNode; aside?: ReactNode; children: ReactNode }) {
   return (
-    <section className="space-y-4 border-t border-line pt-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+    <section className="overflow-hidden rounded-xl border border-line bg-paper/70">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-line bg-klein/[0.045] px-4 py-3 sm:px-5">
         <h2 className="flex items-center gap-2 text-[13px] font-medium uppercase tracking-[0.12em] text-klein">
           {icon}
           {title}
         </h2>
-        {aside && <p className="text-[14px] text-muted tabular-nums">{aside}</p>}
+        {aside && <p className="text-[13px] text-muted tabular-nums">{aside}</p>}
       </div>
-      {children}
+      <div className="space-y-4 p-4 sm:p-5">{children}</div>
     </section>
   )
 }
 
-function Stat({ value, label, icon }: { value: string; label: string; icon?: ReactNode }) {
+function Stat({ value, label, icon, tint }: { value: string; label: string; icon: ReactNode; tint: string }) {
   return (
-    <div className="rounded-md border border-line bg-paper/60 px-4 py-3">
-      <p className="flex items-center gap-1.5 text-2xl font-medium tracking-[-0.02em] text-klein tabular-nums">
+    <div className="flex items-center gap-3 rounded-lg border border-line bg-paper/70 px-3.5 py-3">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full" style={{ background: `${tint}1f`, color: tint }}>
         {icon}
-        {value}
-      </p>
-      <p className="text-[13px] text-muted">{label}</p>
+      </span>
+      <div className="min-w-0">
+        <p className="text-xl font-medium leading-tight tracking-[-0.02em] text-ink tabular-nums">{value}</p>
+        <p className="text-[12px] leading-tight text-muted">{label}</p>
+      </div>
     </div>
+  )
+}
+
+/** The badges as a showcase: each medal with its level as pips and the way to the next. */
+function MedalShowcase({ badges }: { badges: Badge[] }) {
+  return (
+    <ul className="grid gap-3 sm:grid-cols-3">
+      {badges.map((b) => {
+        const color = b.nivel ? LEVELS[b.nivel - 1] : undefined
+        return (
+          <li key={b.id} className="flex flex-col items-center gap-2 rounded-lg border border-line bg-paper/60 px-3 pb-3 pt-4 text-center">
+            <Medal badge={b} />
+            <p className="text-[13px] font-medium text-ink">{b.nome}</p>
+            <p className="text-lg font-medium leading-none text-klein tabular-nums">{amount(b.id, b.valor)}</p>
+            <div className="flex gap-1" aria-label={`${b.nivel}/${b.niveis}`}>
+              {Array.from({ length: b.niveis }, (_, i) => (
+                <span key={i} className="h-1.5 w-3 rounded-full" style={{ background: i < b.nivel ? color : "var(--color-line)" }} />
+              ))}
+            </div>
+            <p className="text-[11px] text-muted tabular-nums">{b.proximo === null ? medalText.maxed : `${medalText.toGo} ${amount(b.id, b.proximo)}`}</p>
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
@@ -75,6 +104,8 @@ export function ViewerPage({ login: given }: { login: string }) {
   const [mural, setMural] = useState<Mural | null>(null)
   const [data, setData] = useState<ViewerData | null>(null)
   const [mine, setMine] = useState(false)
+  // Signed in as the channel on someone else's page: Luan can take a picture down.
+  const [moderator, setModerator] = useState<string | null>(null)
   const [replay, setReplay] = useState<Fight | null>(null)
 
   useEffect(() => {
@@ -87,7 +118,10 @@ export function ViewerPage({ login: given }: { login: string }) {
     const token = keptToken()
     if (token) {
       loadMine(token)
-        .then((me) => setMine(me.login === login))
+        .then((me) => {
+          setMine(me.login === login)
+          if (me.login === CHANNEL && login !== CHANNEL) setModerator(token)
+        })
         .catch(() => {})
     }
   }, [login])
@@ -101,33 +135,50 @@ export function ViewerPage({ login: given }: { login: string }) {
 
   if (!isLogin(login)) return <p className="text-muted">{text.notFound}</p>
 
+  async function takeDown(kind: ImageKind) {
+    if (!moderator || !confirm(text.takeDown.replace("{what}", kind === "banner" ? text.banner : text.photo) + "?")) return
+    const imagens = await takeDownImage(moderator, login, kind).catch(() => undefined)
+    if (imagens === undefined) return
+    forgetLook(login)
+    setLook((l) => (l ? { ...l, imagens } : l))
+  }
+
+  const button = "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors"
+  const actions = (
+    <>
+      {mine && (
+        <Link href={`/${profileSlug()}#cartao`} className={cn(button, "bg-white text-navy hover:bg-white/85")}>
+          <Pencil aria-hidden className="h-3.5 w-3.5" />
+          {text.edit}
+        </Link>
+      )}
+      {login !== CHANNEL && (
+        <a href={`https://www.twitch.tv/${login}`} target="_blank" rel="noreferrer" className={cn(button, "bg-white/10 text-white ring-1 ring-white/15 hover:bg-white/20")}>
+          {text.twitch}
+          <ArrowUpRight aria-hidden className="h-3.5 w-3.5" />
+        </a>
+      )}
+      {moderator &&
+        (["banner", "foto"] as const)
+          .filter((kind) => look?.imagens?.[kind])
+          .map((kind) => (
+            <button key={kind} type="button" onClick={() => takeDown(kind)} className={cn(button, "bg-[#b42318]/80 text-white hover:bg-[#b42318]")}>
+              <Trash2 aria-hidden className="h-3.5 w-3.5" />
+              {text.takeDown.replace("{what}", kind === "banner" ? text.banner : text.photo)}
+            </button>
+          ))}
+    </>
+  )
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />
       <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,26rem)_1fr] lg:items-end">
-        <ViewerCard login={login} look={look} stats={stats} primeira={person?.primeira} T={T} S={S} />
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[15px]">
-          {mine && (
-            <>
-              <span className="text-muted">{text.mine}</span>
-              <Link href={`/${profileSlug()}`} className="inline-flex items-center gap-1.5 font-medium text-klein hover:underline">
-                {text.edit}
-                <ArrowRight aria-hidden className="h-4 w-4" />
-              </Link>
-            </>
-          )}
-          {login !== CHANNEL && (
-            <a href={`https://www.twitch.tv/${login}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-muted hover:text-klein">
-              {text.twitch}
-              <ArrowUpRight aria-hidden className="h-4 w-4" />
-            </a>
-          )}
-        </div>
-      </div>
+      <ViewerCard login={login} look={look} stats={stats} primeira={person?.primeira} T={T} S={S} actions={actions} />
+      {mine && <p className="-mt-6 text-[13px] text-muted">{text.mine}</p>}
 
       {login !== CHANNEL && (
         <Section title={text.stats.title} icon={<Trophy aria-hidden className="h-4 w-4" />}>
@@ -138,24 +189,25 @@ export function ViewerPage({ login: given }: { login: string }) {
           ) : (
             <>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Stat value={number(stats.sigma)} label={text.stats.sigma} />
-                <Stat value={number(Math.floor(stats.minutos / 60))} label={text.stats.hours} />
-                <Stat value={number(stats.lives)} label={text.stats.lives} />
+                <Stat value={number(stats.sigma)} label={text.stats.sigma} icon={<SigmaIcon aria-hidden className="h-5 w-5" />} tint="#002fa7" />
+                <Stat value={`${number(Math.floor(stats.minutos / 60))} h`} label={text.stats.hours} icon={<Clock aria-hidden className="h-5 w-5" />} tint="#2fb0bb" />
+                <Stat value={number(stats.lives)} label={text.stats.lives} icon={<Tv aria-hidden className="h-5 w-5" />} tint="#9b5cf6" />
                 <Stat
                   value={number(stats.sequencia)}
                   label={`${text.stats.streak} · ${text.stats.record.replace("{n}", number(stats.recorde))}`}
-                  icon={<Flame aria-hidden className={cn("h-6 w-6", stats.sequencia ? "text-[#ff7a1a]" : "text-muted")} />}
+                  icon={<Flame aria-hidden className="h-5 w-5" />}
+                  tint={stats.sequencia ? "#e0620a" : "#8e9aa8"}
                 />
               </div>
               {/* What they sent by Pix is theirs alone: its badge stays on their /perfil. */}
-              {S && <BadgeGrid badges={S.medalhas(stats).filter((b) => b.id !== "doado")} />}
+              {S && <MedalShowcase badges={S.medalhas(stats).filter((b) => b.id !== "doado")} />}
             </>
           )}
         </Section>
       )}
 
       {dedications.length > 0 && (
-        <Section title={text.dedications.title} icon={<span aria-hidden>⚽</span>} aside={number(dedications.length)}>
+        <Section title={text.dedications.title} icon={<Volleyball aria-hidden className="h-4 w-4" />} aside={number(dedications.length)}>
           <ul className="grid gap-2 sm:grid-cols-2">
             {dedications.map((d) => (
               <li key={d.id} className="flex items-center gap-3 rounded-md border border-line bg-paper/60 px-4 py-3 text-[14px]">
@@ -172,7 +224,7 @@ export function ViewerPage({ login: given }: { login: string }) {
       {duels && duels.partidas > 0 && (
         <Section
           title={text.duel.title}
-          icon={<span aria-hidden>🗡️</span>}
+          icon={<Swords aria-hidden className="h-4 w-4" />}
           aside={[
             text.duel.record.replace("{w}", number(duels.vitorias)).replace("{n}", number(duels.partidas)),
             duels.posicao ? text.duel.position.replace("{p}", String(duels.posicao)) : null,

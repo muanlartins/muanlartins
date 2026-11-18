@@ -303,9 +303,16 @@ export const channel = {
     since: { pt: "Na torcida desde {date}", en: "In the crowd since {date}" },
     sinceStart: { pt: "Na torcida desde o começo", en: "In the crowd from the start" },
     never: { pt: "Ainda sem Σ", en: "No Σ yet" },
-    open: { pt: "Ver página", en: "See page" },
+    open: { pt: "Ver perfil", en: "See profile" },
     mine: { pt: "Esta é a sua página.", en: "This is your page." },
-    edit: { pt: "Editar o meu perfil", en: "Edit my profile" },
+    edit: { pt: "Editar perfil", en: "Edit profile" },
+    about: { pt: "Sobre mim", en: "About me" },
+    next: { pt: "Próximo:", en: "Next:" },
+    /** "{n}" lives in a row now. */
+    streakChip: { pt: "{n} lives seguidas", en: "{n} lives in a row" },
+    takeDown: { pt: "Tirar {what}", en: "Take down {what}" },
+    banner: { pt: "banner", en: "banner" },
+    photo: { pt: "foto", en: "photo" },
     twitch: { pt: "Na Twitch", en: "On Twitch" },
     loading: { pt: "Carregando…", en: "Loading…" },
     stats: {
