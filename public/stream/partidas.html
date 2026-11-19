@@ -357,6 +357,10 @@
       const SESSION_GAP_MS = 6 * 3600 * 1000
       // A stream back on within this long of the last one's end continues its session (videos.py's RESTART).
       const RESTART_MS = 15 * 60 * 1000
+      // No stream lasts this long: an output still open after it lost its stop, and its session isn't on air.
+      // (11-18: a stream start left open on 11-12's Valorant session kept it "on air", and 11-18's match went into it.)
+      const STALE_MS = 12 * 3600 * 1000
+      const onAir = (session) => session?.outputs?.some((o) => !o.end && Date.now() - Date.parse(o.start) < STALE_MS)
       // OBS scenes: where a match is played (Rocket League's, Valorant's), and where the talk between matches happens.
       const GAME_SCENES = ["RL + chat", "Valorant + chat"]
       const TALK_SCENE = "Conversa"
@@ -375,6 +379,17 @@
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
       const hash = new URLSearchParams(location.hash.slice(1))
       if (hash.get("obs")) state.obsPassword = hash.get("obs")
+      // 11-18's Valorant match was published in 11-12's session (see STALE_MS); its file was moved by hand to
+      // content/valorant/2026-11-18-1950.json. The dock's copy follows, so publishing doesn't write the old one back;
+      // and that day's Rocket League session, with no match, goes. Remove once the dock has loaded this (late 11-2026).
+      for (const s of state.val.sessions)
+        if (s.id === "2026-11-12-1437" && s.matches.some((m) => m.id === "81c0514d-e653-44e2-80fd-7d62e334839f"))
+          Object.assign(s, {
+            id: "2026-11-18-1950", start: "2026-11-18T22:50:24.886Z", dirty: false, outputs: [
+              { kind: "record", start: "2026-11-18T22:53:17.785Z", end: "2026-11-19T00:39:57.035Z", file: "2026-11-18 19-53-17.mp4" },
+              { kind: "stream", start: "2026-11-18T22:53:18.700Z", end: "2026-11-19T00:39:57.035Z" }],
+          })
+      state.sessions = state.sessions.filter((s) => !(s.id === "2026-11-18-1950" && !s.matches.length && !s.ranks.length))
       save()
 
       const pad = (n) => String(n).padStart(2, "0")
@@ -394,7 +409,7 @@
         const lastAt = last && (last.matches.length ? last.matches[last.matches.length - 1].at : last.start)
         // Sessions from before the dock followed OBS's outputs.
         if (last) last.outputs ??= []
-        const airing = last?.outputs.some((o) => !o.end)
+        const airing = onAir(last)
         if (!last || (!airing && Date.now() - Date.parse(lastAt) > SESSION_GAP_MS)) newSession()
         return state.sessions[state.sessions.length - 1]
       }
@@ -498,7 +513,7 @@
         const sessions = state.val.sessions
         const last = sessions[sessions.length - 1]
         const lastAt = last && (last.matches.length ? last.matches[last.matches.length - 1].at : last.start)
-        const airing = last?.outputs.some((o) => !o.end)
+        const airing = onAir(last)
         if (!last || (!airing && Date.now() - Date.parse(lastAt) > SESSION_GAP_MS)) {
           const month = Date.now() - 30 * 86400 * 1000
           state.val.sessions = sessions.filter((s) => (s.matches.length || s.outputs.length) && (s.dirty || Date.parse(s.start) > month))
@@ -573,7 +588,7 @@
             const was = valorant.fase
             Object.assign(valorant, { fase: event.fase, aberto: !!event.aberto })
             // The tab follows the game that's open.
-            if (event.aberto && !gameConnected && state.jogo !== "valorant") (state.jogo = "valorant"), save()
+            if (event.aberto && !gameConnected && state.jogo !== "valorant") (state.jogo = "valorant"), save(), catchUp()
             if (was && was !== event.fase && event.fase === "selecao") backToGame()
           }
           if (event.tipo === "partida") cutToTalk()
@@ -634,7 +649,7 @@
       $("obs-password").onchange = () => ((state.obsPassword = $("obs-password").value), save(), obs.close())
       $("token").onchange = () => ((state.token = $("token").value.trim()), save())
       $("new-session").onclick = () => (state.jogo === "valorant" ? ((valCurrent(), state.val.sessions.push({ id: sessionId(new Date()), start: new Date().toISOString(), outputs: [], matches: [], dirty: false })), save()) : newSession(), render())
-      $("games").querySelectorAll("button").forEach((b) => (b.onclick = () => ((state.jogo = b.dataset.jogo), save(), render())))
+      $("games").querySelectorAll("button").forEach((b) => (b.onclick = () => ((state.jogo = b.dataset.jogo), save(), render(), catchUp())))
       const manual = (result) => () => {
         const session = current()
         edit(session, () =>
@@ -837,7 +852,7 @@
         ws.onopen = () => {
           gameConnected = true
           // The tab follows the game that's open.
-          if (state.jogo !== "rocket-league") (state.jogo = "rocket-league"), save(), render()
+          if (state.jogo !== "rocket-league") (state.jogo = "rocket-league"), save(), render(), catchUp()
           status()
         }
         ws.onmessage = ({ data }) => onGame(data)
@@ -948,13 +963,21 @@
         }
         const open = session.outputs.findLast((o) => o.kind === kind && !o.end)
         if (started && !open) session.outputs.push({ kind, start: new Date().toISOString() })
-        if (stopped && open) {
-          open.end = new Date().toISOString()
-          if (outputPath) open.file = outputPath.split(/[\\/]/).pop()
-        }
         session.dirty = true
+        if (stopped) close(kind, outputPath)
         save()
         status()
+      }
+      // A stop closes the output wherever it's open: the game open, and so its session, may have changed since it
+      // started (11-18: Diversos, then Valorant).
+      function close(kind, outputPath) {
+        for (const session of [...state.sessions, ...state.val.sessions]) {
+          const open = session.outputs?.findLast((o) => o.kind === kind && !o.end)
+          if (!open || Date.now() - Date.parse(open.start) > STALE_MS) continue
+          open.end = new Date().toISOString()
+          if (outputPath) open.file = outputPath.split(/[\\/]/).pop()
+          session.dirty = true
+        }
       }
       // The dock may open after the stream started: the start is now minus how long it's been on.
       async function catchUp() {
@@ -966,10 +989,7 @@
           if (status.outputActive && !open) {
             session.outputs.push({ kind, start: new Date(Date.now() - status.outputDuration).toISOString() })
             session.dirty = true
-          } else if (!status.outputActive && open) {
-            open.end = new Date().toISOString()
-            session.dirty = true
-          }
+          } else if (!status.outputActive) close(kind)
         }
         save()
         status()
@@ -1009,6 +1029,8 @@
       // --- Publishing: one JSON file per session, in the repository the site is built from -----------
       // The session goes to <id>.json; its matches' logs, which only editing needs, to <id>.events.json.
       $("publish").onclick = async () => {
+        // A session with no match or rank (a live of another game: 11-18) isn't published.
+        for (const s of state.sessions) if (s.dirty && !s.matches.length && !s.ranks.length) s.dirty = false
         const dirty = state.sessions.filter((s) => s.dirty)
         const valDirty = state.val.sessions.filter((s) => s.dirty && s.matches.some((m) => m.counted))
         if (!state.token) return ($("publish-note").textContent = "Falta o token do GitHub, em Mais.")
