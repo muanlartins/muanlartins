@@ -128,6 +128,12 @@ def compose(roteiro, out=None):
     thumb.plate(draw, (W - tw - 52) / 2, 150, tw + 52, 70, KLEIN)
     draw.text(((W - tw) / 2, 160), label, font=tag, fill=PAPER)
 
+    if spec.get("figurinha"):  # the short's sticker beside him ({"arquivo" under Videos, "x", "y", "altura"}; 11-19)
+        st = spec["figurinha"]
+        sticker = Image.open(VIDEOS / st["arquivo"]).convert("RGBA")
+        sticker = sticker.resize((round(sticker.width * st["altura"] / sticker.height), st["altura"]), Image.LANCZOS)
+        cover.alpha_composite(sticker, (round(st["x"] - sticker.width / 2), round(st["y"] - sticker.height / 2)))
+
     target = out or VIDEOS / "Shorts" / "prontos" / f"{date} destaque - {roteiro['nome']} (capa).jpg"
     cover.convert("RGB").save(target, quality=90, optimize=True)
     print(target)
