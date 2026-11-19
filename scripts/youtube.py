@@ -245,7 +245,10 @@ def live(args):
     thumbnail = next((f for f in (folder / f"live-{args.date}.jpg", folder / f"live-{args.date}.png") if f.exists()),
                      folder / f"live-{args.date}.png")
     transcript = LIVES / f"{args.date}.transcript.json"
-    print(f"Vídeo {video_id}  ({PRIVACY})\n\n{title}  ({len(title)} caracteres)\n\n{description}\n\n"
+    # Held back (since 11-17 the videos of its matches go out first, partidas.py): private until then, and YouTube
+    # publishes it by itself. publishAt only works on a video that was never public.
+    publish_at = record.get("youtube", {}).get("publish_at")
+    print(f"Vídeo {video_id}  ({f'agendado para {publish_at}' if publish_at else PRIVACY})\n\n{title}  ({len(title)} caracteres)\n\n{description}\n\n"
           f"Tags: {', '.join(tags)}\nThumbnail: {thumbnail.relative_to(ROOT)}\n"
           f"Playlist: {GAMES[record.get('game', 'rocket-league')]['playlist']} ({PRIVACY}, criada se faltar)\n")
     if args.dry_run:
@@ -264,6 +267,8 @@ def live(args):
     status = {key: value for key, value in video["status"].items()
               if key in ("embeddable", "license", "publicStatsViewable", "publishAt")}
     status.update(privacyStatus=PRIVACY, selfDeclaredMadeForKids=False, containsSyntheticMedia=False)
+    if publish_at:
+        status.update(privacyStatus="private", publishAt=publish_at)
     api.videos().update(part="snippet,status", body={"id": video_id, "snippet": snippet, "status": status}).execute()
     print("Título, descrição, tags e status: ok")
 
@@ -353,7 +358,14 @@ def video(args):
     if record.get("playlist"):
         playlist = next((p for p in all_playlists(api) if p["snippet"]["title"] == record["playlist"]), None)
         if not playlist:
-            print(f"Playlist: não achei “{record['playlist']}”")
+            # The first video of a new series (partidas.py's "Rocket League: partidas da live", 11-17): public, as
+            # the videos will be. Just made, it's empty: listing it right away answers 404.
+            playlist = api.playlists().insert(part="snippet,status", body={
+                "snippet": {"title": record["playlist"], "defaultLanguage": "pt-BR"},
+                "status": {"privacyStatus": "public"}}).execute()
+            api.playlistItems().insert(part="snippet", body={"snippet": {
+                "playlistId": playlist["id"], "resourceId": {"kind": "youtube#video", "videoId": video_id}}}).execute()
+            print(f"Playlist “{record['playlist']}”: criada (pública), com o vídeo")
         else:
             inside = api.playlistItems().list(part="id", playlistId=playlist["id"], videoId=video_id).execute()["items"]
             if not inside:

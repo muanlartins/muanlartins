@@ -1,0 +1,29 @@
+{
+  "id": "2026-11-18-1950",
+  "start": "2026-11-18T22:50:24.886Z",
+  "end": "2026-11-18T22:50:24.886Z",
+  "startRanks": {
+    "3v3": {
+      "tier": "diamond-3",
+      "division": 3,
+      "mmr": 1047
+    },
+    "2v2": {
+      "tier": "diamond-3",
+      "division": 2,
+      "mmr": 1024
+    }
+  },
+  "outputs": [
+    {
+      "kind": "record",
+      "start": "2026-11-18T22:53:17.785Z"
+    },
+    {
+      "kind": "stream",
+      "start": "2026-11-18T22:53:18.700Z"
+    }
+  ],
+  "matches": [],
+  "ranks": []
+}
