@@ -23,7 +23,16 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   2 Microfone, 3 Jogo, 4 Discord go to the recording; 5 "Live" is the stream's only. Music (the "Spotify" source)
   is on 5 alone.
 - The main recording: Hybrid MP4, NVENC CQP 22 (`recordEncoder.json` in the profile; 18 until 11-06, measured
-  under 1 VMAF point apart and ~40% smaller). Change it only with OBS closed.
+  under 1 VMAF point apart and ~40% smaller), preset p4, single pass, no look-ahead, no AQ since 2026-11-18. Change it
+  only with OBS closed. OBS's NVENC (`obs_nvenc_h264_tex`) reads `preset` and `adaptive_quantization`; `preset2` and
+  `psycho_aq` are the old encoder's keys and do nothing (until 11-18 every encode ran at the default p5 that way).
+- **The video encoder is the budget.** The RTX 4070 has one NVENC; each 1080p60 H.264 encode takes, measured
+  (2026-11-18, ffmpeg's h264_nvenc at CQP 22): p5 21%, p4 13%, p3 8%, p1/p2 6%. On 11-18 the stream (p5, two passes,
+  look-ahead), the recording, two "Gravar jogo" and "Gravar câmera", all p5, ran it at 90–99% and the live lost 26.7%
+  of its frames to encoding lag (OBS's log: "number of skipped frames due to encoding lag"; obs.mjs's "encode skipped"
+  is that counter, and "stream skipped" only network drops). Read `nvidia-smi.exe encodersessions` (one line per encode)
+  and `--query-gpu=utilization.encoder` before adding any output, filter or replay buffer that encodes. The stream stays
+  p5 with its passes (what viewers see); everything that records goes p4 (`ENCODER_LEVE` in `obs.py`).
 - Camera filters (`public/stream/filtros.html`): switched from the "Filtros" dock
   (`filtros-painel.html`, served from localhost:8126 too; `obs.py --apply` adds it with OBS closed), never by
   gestures (Luan, 2026-11-10). The dock (2026-11-12) has a dropdown with every filter by game (`FILTROS` there:
@@ -46,7 +55,7 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   the drone flies behind him all the while, and the drone ability is then that drone. The abilities have the
   games' own sounds (2026-11-12, `sfx.js`): cues made by `scripts/filtros_sons.py` into `privado/sons/` from
   `~/.local/share/valorant-extract/sons.sh phoenix|sova|sage` and `~/.local/share/rl-extract/run.sh` (re-run all three
-  after a patch); the dock's "Sons dos filtros" (`opcoes.mudo`) turns them off for every filter. Its "Gorro de Natal" (`opcoes.gorro`) puts the Santa hat (`gorro.js`) on his head over any filter or none: on by itself through December, a click holds for the rest of that month. With only the hat on, the page draws its own camera (like a filter), so OBS's Câmera is covered there too. They reach the
+  after a patch); the dock's "Sons dos filtros" (`opcoes.mudo`) turns them off for every filter. Its "Gorro de Natal" (`opcoes.gorro`) puts the Santa hat (`gorro.js`) on his head over any filter or none: off until Luan turns it on, and kept as he left it (until 2026-11-18 it came on by itself through December, which kept the camera and the face tracker running every live of the month). With only the hat on, the page draws its own camera (like a filter), so OBS's Câmera is covered there too. They reach the
   stream only because "Filtros" has "Control audio via OBS" on (`reroute_audio`, monitored like Sons, so Luan hears
   them; set by hand in Live.json and Shorts.json on 2026-11-12 and kept by `obs.py`'s `SYNC`); without it the page
   plays them straight to Windows' speakers. One browser
@@ -55,7 +64,7 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   the page is the camera's box, clear with no filter. Until 2026-11-13 it was full screen and the page moved its box
   on obs-browser's `obsSceneChanged`, which OBS fires only once a transition has ended: for ~0.2 s after the
   stinger the game scene showed the filter in Conversa's box. The Shorts collection's Filtros has
-  `?caixa=0,0,1920,1080` (the whole page, in a 1920×1080 page's pixels) and is placed over its camera the same way. It loads `http://localhost:8126/stream/filtros.html`, served from this working copy by
+  `?caixa=0,0,1920,1080` (the whole page, in a 1920×1080 page's pixels) and is placed over its camera the same way. The page opens NVIDIA Broadcast's camera only while a filter or the hat is on, lets it go 3 s after, and opens it again when it stops sending frames (2026-11-18: held with nothing on, Broadcast served two apps at once, ~1 CPU core; and after a camera restart mid-live the page stayed dark until a refresh). It loads `http://localhost:8126/stream/filtros.html`, served from this working copy by
   "Filtros muanlartins.vbs" in Startup (log `~/.cache/muanlartins/filtros.log`), because Phoenix's and Sova's models
   and the game's extracted effects (`public/stream/privado/`, gitignored) must never reach the site. OBS has to start with
   `--enable-media-stream --use-fake-ui-for-media-stream` (set on the Public Desktop shortcut and a user Start Menu
@@ -126,6 +135,12 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   clients from WSL changed the camera twice in 4 s (the second time its device settings); Source Record stopped the
   camera's file ("Gravar câmera") and OBS crashed tearing it down (`Crash 2026-11-09 21-29-43.txt`,
   `video_output_disconnect2`), so the live came out in pieces.
+- **One "Gravar jogo" at a time** (2026-11-18): once a capture has been on screen its Source Record encodes until OBS
+  closes, the replay buffer even with nothing recording and the game gone (black frames). So the Efeitos dock
+  (`gravarSoOJogo` in `efeitos.html`) keeps on only the "Gravar jogo" of the game scene on screen, turning the others
+  off first (other scenes leave them as they are, so the VAR and the Jogo file go on between matches), and turns all
+  off once neither the stream nor the recording runs. Turning the filter off and on is the plugin's own stop/start (a
+  file ends, a new one starts); changing its settings while it records is not (the 11-09 crash).
 - Source Record filters write files of their own while OBS records: "Gravar câmera" on Câmera (`… câmera.mkv`)
   and "Gravar jogo" on Rocket League (`… jogo.mkv`, the game without camera or overlays, CQP 22, its own sound;
   added 2026-11-05). `videos.py` files both.

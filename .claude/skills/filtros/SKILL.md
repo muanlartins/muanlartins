@@ -12,7 +12,8 @@ abilities, all in one block of filtros.html ("Sage's abilities"), `public/stream
 
 Never while Luan is live (the extraction and the test load the CPU for minutes), and the game's files never leave
 `public/stream/privado/` (gitignored, never committed or published): the pages read them from the working copy that
-serves localhost:8126, the shared checkout `~/repos/muanlartins`.
+serves localhost:8126, the shared checkout `~/repos/muanlartins` (`scripts/servidor_filtros.py`, with `Cache-Control:
+no-cache` since 2026-11-18: plain http.server let OBS run a cached, older filtros.html after a restart).
 
 ## 1. The game's files
 

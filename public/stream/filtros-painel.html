@@ -21,8 +21,9 @@
       with { filtro: "<id>", opcoes: { <switch>: true|false } } ("nenhum" for none), sent on each click and again
       every 4 s, so the page catches up after a reload; { acao: "<id>" } is a one-off. "Sons dos filtros" turns the
       abilities' sounds on and off for every filter (opcoes.mudo, on by default). "Gorro de Natal" puts the Santa hat
-      (gorro.js) on his head over any filter or none (opcoes.gorro): on by itself through December, off the rest of the
-      year, and a click sets it for the rest of that month (it falls back to the season the month after). The dock is where the choice
+      (gorro.js) on his head over any filter or none (opcoes.gorro): off until he turns it on, and kept as he left it
+      (until 2026-11-18 it came on by itself through December, which kept the camera and the face tracker running
+      every live of the month). The dock is where the choice
       lives and the filter isn't kept on: opening OBS always starts with none, with the last one picked ready in
       the dropdown (the switches are kept too). The OBS websocket password is kept in the dock's storage;
       #obs=<password> in the URL fills it.
@@ -463,9 +464,9 @@
       const state = { obsPassword: "", ultimo: FILTROS[0].id, opcoes: {}, ...JSON.parse(localStorage.getItem(KEY) || "{}") }
       if (!FILTROS.some((f) => f.id === state.ultimo)) state.ultimo = FILTROS[0].id
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
-      // The Santa hat: December's by default; a click holds for the month it was made in (São Paulo's).
-      const mes = () => new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit" })
-      const gorroLigado = () => (state.gorroMes === mes() ? !!state.opcoes.gorro : mes().endsWith("-12"))
+      // The Santa hat: off unless Luan turns it on, and kept as he left it (2026-11-18: on by itself through December,
+      // it kept the camera and the face tracker running every live of the month, ~1 CPU core and GPU besides).
+      const gorroLigado = () => !!state.opcoes.gorro
       // What the page gets: the switches, with the hat as it is now.
       const opcoes = () => ({ ...state.opcoes, gorro: gorroLigado() })
       const fromHash = new URLSearchParams(location.hash.slice(1)).get("obs")
@@ -700,7 +701,6 @@
       const gorro = () => $("gorro").classList.toggle("active", gorroLigado())
       $("gorro").onclick = () => {
         state.opcoes.gorro = !gorroLigado()
-        state.gorroMes = mes()
         save()
         send({ filtro: atual, opcoes: opcoes() })
         gorro()

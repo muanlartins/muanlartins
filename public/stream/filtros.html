@@ -97,7 +97,7 @@
 
       The Santa hat (gorro.js, 2026-11-15, December's): over any filter or none, on whatever his head is (his hair,
       an agent's hair, the ball, a car's roof), its top swinging as he moves, thrown up by a demolition. The dock's
-      "Gorro de Natal" (opcoes.gorro, on by itself through December), key G, ?gorro (=y,z,tilt,size on his own head).
+      "Gorro de Natal" (opcoes.gorro, off until Luan turns it on), key G, ?gorro (=y,z,tilt,size on his own head).
 
       ?debug shows fps, how long each model takes and the hands seen; ?cpu runs the models on the CPU;
       ?modo=pop|bola|phoenix|sova|octane|fennec|lente starts with a filter on; ?texto=A|B the title's two lines in Pop; it frames the camera as OBS's
@@ -3914,6 +3914,7 @@
       // ?fps=60 draws at most that many frames a second (a browser at 144 Hz drawing like OBS's 60 fps source).
       const FPS_CAP = Number(q.get("fps")) || 0
       let lastDraw = 0
+      let limpo = false
       function tick() {
         requestAnimationFrame(tick)
         const now = performance.now()
@@ -3921,14 +3922,21 @@
         lastDraw = now
         const dt = Math.min(0.05, (now - last) / 1000)
         last = now
-        const camReady = video.readyState >= 2 && video.videoWidth > 0
+        camera(now)
+        const camReady = camState === "aberta" && video.readyState >= 2 && video.videoWidth > 0
         if (!showing || !camReady) {
-          renderer.setScissorTest(false)
-          renderer.setViewport(0, 0, W, H)
-          renderer.clear()
-          hud.textContent = `parado: ${!showing ? "fonte fora da tela" : "sem câmera"}` + (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
+          // Cleared once: a frame with nothing drawn gives OBS nothing new to take.
+          if (!limpo) {
+            renderer.setScissorTest(false)
+            renderer.setViewport(0, 0, W, H)
+            renderer.clear()
+            limpo = true
+          }
+          const porque = !showing ? "fonte fora da tela" : camState === "fechada" && mode === "nenhum" && !gorro.want ? "nenhum filtro, câmera fechada" : "abrindo a câmera"
+          hud.textContent = `parado: ${porque}` + (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
           return
         }
+        limpo = false
         const phoenix = AGENTS.phoenix.amt
         const agentOn = agentList.some((a) => a.amt > 0) || !!AGENTS[mode]
         const carOn = carList.some((c) => c.amt > 0) || !!CARS[mode]
@@ -4158,15 +4166,54 @@
         }
       }
 
-      // Opens the camera, and again every 5 s while it fails (busy, Broadcast restarting).
+      // The camera only while something on the page needs it (a filter, the hat), and let go SOLTA_MS after
+      // (fade-outs, the hat's fall) or off screen. Held with nothing on, NVIDIA Broadcast served two apps at once:
+      // measured 2026-11-18, ~1 CPU core and +9 points of GPU with no filter on. Opening takes a fraction of a
+      // second, under the filter's fade-in; OBS's own Câmera shows meanwhile. A camera that stops sending frames
+      // (Broadcast restarting it; on 11-18 the page stayed dark the rest of the live) is let go and opened again.
+      const SOLTA_MS = 3000
+      const MUDA_MS = 3000 // no new frame for this long: the camera is gone
+      let camState = "fechada" // "abrindo", "aberta"
+      let camStream = null
+      let camRetryAt = 0
+      let neededAt = -Infinity
+      let frameSeen = -1
+      let frameAt = 0
       async function startCamera() {
+        camState = "abrindo"
         try {
           camLabel = await openCamera()
+          camStream = video.srcObject
+          const s = camStream
+          s.getVideoTracks()[0].addEventListener("ended", () => camStream === s && stopCamera())
           setupCamera()
+          camState = "aberta"
+          frameAt = performance.now()
         } catch (e) {
           fail("câmera", e)
-          setTimeout(startCamera, 5000)
+          stopCamera()
+          camRetryAt = performance.now() + 5000
         }
+      }
+      function stopCamera() {
+        ;(camStream ?? video.srcObject)?.getTracks().forEach((t) => t.stop())
+        camStream = null
+        video.srcObject = null
+        camState = "fechada"
+      }
+      /** Opens or lets go of the camera for this frame. */
+      function camera(now) {
+        if (showing && (mode !== "nenhum" || gorro.want)) neededAt = now
+        const want = now - neededAt < SOLTA_MS
+        if (video.currentTime !== frameSeen) {
+          frameSeen = video.currentTime
+          frameAt = now
+        }
+        if (camState === "aberta" && (!want || now - frameAt > MUDA_MS)) {
+          if (want) fail("câmera", "parou de mandar imagem; abrindo de novo")
+          stopCamera()
+        }
+        if (want && camState === "fechada" && now >= camRetryAt) startCamera()
       }
       function setupCamera() {
         fitCover()
@@ -4176,7 +4223,6 @@
         maskTex = makeMaskTex()
         uniforms.uMask.value = maskTex
       }
-      startCamera()
       tick()
       loadModels()
     </script>

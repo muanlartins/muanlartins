@@ -128,6 +128,13 @@ export const UPCOMING: Upcoming[] = [
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "live-mais-leve",
+    date: "2026-11-18",
+    tag: "live",
+    title: "Live mais leve",
+    text: "A imagem da live travava porque o OBS gravava vídeo demais ao mesmo tempo, todos no mesmo encoder da placa de vídeo: a live, a gravação, a câmera e o jogo, às vezes dois jogos. Agora só o jogo que está na tela é gravado, as gravações usam um modo mais leve e a câmera dos filtros só liga enquanto um filtro está ligado.",
+  },
+  {
     id: "analise-de-mira",
     date: "2026-11-18",
     tag: "site",

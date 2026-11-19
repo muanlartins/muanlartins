@@ -548,6 +548,7 @@
       // --- obs-websocket --------------------------------------------------------------------------------------
       let obs = null
       let ready = false
+      let conhecido = false // connected and the stream's and the recording's states read (gravarSoOJogo waits for it)
       let requests = 0
       const pending = new Map()
       const GENERAL = 1 << 0
@@ -578,6 +579,8 @@
             if (stream) onAir(stream.outputActive)
             const recording = await request("GetRecordStatus")
             gravando = !!recording?.outputActive
+            conhecido = true
+            gravarSoOJogo()
             await bufferStatus()
             enviarVar()
           } else if (op === 5) {
@@ -589,6 +592,7 @@
             if (d.eventType === "RecordStateChanged" && !d.eventData.outputState.endsWith("ING")) {
               gravando = d.eventData.outputActive
               bufferPreciso()
+              gravarSoOJogo()
             }
             if (d.eventType === "ReplayBufferStateChanged" && !d.eventData.outputState.endsWith("ING")) bufferStatus()
           } else if (op === 7) {
@@ -599,6 +603,7 @@
         ws.onerror = () => ws.close()
         ws.onclose = () => {
           ready = false
+          conhecido = false
           transitionEnded()
           onAir(false)
           bufferAtivo = false
@@ -636,6 +641,7 @@
         const isLance = LANCES.includes(scene)
         if (!EFFECTS.includes(scene)) before = scene
         cenaMudou(scene)
+        gravarSoOJogo()
         $("lance").classList.toggle("active", isLance)
         $("terapia").classList.toggle("active", scene === TERAPIA)
         if (isLance) play("lance")
@@ -811,6 +817,32 @@
       const REPLAYS = params.get("replays") ?? "http://127.0.0.1:8794"
       // Each game's capture, whose "Gravar jogo" filter (Source Record) keeps the game alone in a replay buffer.
       const CAPTURAS = { rl: "Rocket League", val: "Captura · Valorant", div: "Captura · Diversos" }
+
+      // One game recording at a time. Each capture's "Gravar jogo" encodes the game alone (the day's Jogo file and
+      // the replay buffer above) from the first time its capture is on screen until OBS closes, even once the game is
+      // gone (black frames), and even with nothing on the air (the replay buffer). Each is about a quarter of the
+      // RTX 4070's only video encoder: on 2026-11-18 two of them, with the stream, the recording and the camera's,
+      // cost the live 26.7% of its frames ("encoding lag"). So a game scene keeps its capture's on and turns the
+      // others' off; the other scenes (Conversa, the breaks, the effects) leave them as they are, so the VAR and the
+      // Jogo file go on between matches; and with neither the stream nor the recording on, all go off.
+      const GRAVAR_JOGO = "Gravar jogo"
+      let ajustandoJogo = Promise.resolve()
+      function gravarSoOJogo() {
+        ajustandoJogo = ajustandoJogo.then(async () => {
+          if (!ready || !conhecido) return
+          const noAr = stateOnAir || gravando
+          if (noAr && !isGameScene(current)) return
+          const quer = noAr ? gameOf(current) : null
+          // The ones going off first, so two never encode at once.
+          const ordem = Object.keys(CAPTURAS).sort((a, b) => (a === quer) - (b === quer))
+          for (const jogo of ordem) {
+            const sourceName = CAPTURAS[jogo]
+            const filtro = await request("GetSourceFilter", { sourceName, filterName: GRAVAR_JOGO })
+            if (!filtro || filtro.filterEnabled === (jogo === quer)) continue
+            await request("SetSourceFilterEnabled", { sourceName, filterName: GRAVAR_JOGO, filterEnabled: jogo === quer })
+          }
+        })
+      }
       const SEGURA_MS = 7000 // the verdict on screen before going back
       const SORTEIO_MS = 2500 // a tie on screen before the draw settles it
       const DERIVA = 0.5 // the preview seeks when it's this far (s) from the clock, like var.html
@@ -1497,6 +1529,7 @@
       function onAir(live) {
         stateOnAir = live
         bufferPreciso()
+        gravarSoOJogo()
         syncing = syncing.then(async () => {
           const want = stateOnAir
           if (!tw.user || airing === want) return

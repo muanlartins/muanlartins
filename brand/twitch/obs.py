@@ -100,6 +100,13 @@ def scene(name, *items):
 # scripts/replay.py serves to var.html. It runs once the game has been on screen since OBS opened.
 REPLAY_JOGO = {"replay_buffer": True, "replay_duration": 20,
                "replay_filename_formatting": "Replay %CCYY-%MM-%DD %hh-%mm-%ss jogo"}
+# The Source Record files' encoder, light (2026-11-18): the RTX 4070 has one video encoder, and each 1080p60 encode at
+# OBS's default p5 took ~21-24% of it; with the stream, the recording, two "Gravar jogo" and the camera's, the live lost
+# 26.7% of its frames to encoding lag. Measured per 1080p60 encode (ffmpeg's h264_nvenc, CQP 22): p5 21%, p4 13%,
+# p3 8%, p1/p2 6%. At CQP the passes, the look-ahead and AQ buy little (they steer a bitrate there isn't), so these go
+# p4, single pass; the stream keeps p5 with its passes. OBS's NVENC (obs_nvenc_*_tex) reads "preset" and
+# "adaptive_quantization": the old encoder's "preset2" and "psycho_aq" were never read, so p5 was only the default.
+ENCODER_LEVE = {"preset": "p4", "multipass": "disabled", "lookahead": False, "adaptive_quantization": False}
 
 
 # The game also goes to a file of its own while recording, without camera or overlays (the Source Record plugin), for
@@ -111,8 +118,8 @@ def capture(name, window=None):
                   mixers=EVERYWHERE | TRACK_GAME, filters=[
         source("source_record_filter", "Gravar jogo", {
             "record_mode": 3, "path": "C:\\Users\\muanl\\Videos", "filename_formatting": "%CCYY-%MM-%DD %hh-%mm-%ss jogo",
-            "rec_format": "mkv", "encoder": "nvenc", "rate_control": "CQP", "cqp": 22, "keyint_sec": 2, "preset2": "p5",
-            "profile": "high", "different_audio": False, **REPLAY_JOGO}),
+            "rec_format": "mkv", "encoder": "nvenc", "rate_control": "CQP", "cqp": 22, "keyint_sec": 2, "profile": "high",
+            "different_audio": False, **ENCODER_LEVE, **REPLAY_JOGO}),
     ])
 
 
@@ -134,8 +141,8 @@ camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_vide
     camera_framing(source),
     source("source_record_filter", "Gravar câmera", {
         "record_mode": 3, "path": "C:\\Users\\muanl\\Videos", "filename_formatting": "%CCYY-%MM-%DD %hh-%mm-%ss câmera",
-        "rec_format": "mkv", "encoder": "nvenc", "rate_control": "CQP", "cqp": 18, "keyint_sec": 2, "preset2": "p5",
-        "profile": "high", "different_audio": True, "audio_source": "Microfone"}),
+        "rec_format": "mkv", "encoder": "nvenc", "rate_control": "CQP", "cqp": 18, "keyint_sec": 2, "profile": "high",
+        "different_audio": True, "audio_source": "Microfone", **ENCODER_LEVE}),
 ])
 # One scene per game, always with the chat (Luan, 2026-11-10: the scenes without it, "Jogo" and "Valorant", are gone,
 # and Rocket League's is "RL + chat"). The overlays' sources keep the names they had.
@@ -215,8 +222,11 @@ RETIRED = {("Lance ruim", "OBSBasic.SelectScene", "OBS_KEY_F2"), ("Jogo + chat",
 # to the credits on 2026-11-10; the VAR's media source to var.html's own player on 2026-11-12.
 RETIRED_ITEMS = {("Fim", "Tela · Fim"), ("VAR · Rocket League", "VAR · replay"), ("VAR · Valorant", "VAR · replay")}
 # Settings `--apply` makes sure of on filters the collection already has (it only adds otherwise): the game's replay
-# buffer for the VAR, on each capture's "Gravar jogo". Never change them while OBS records (the obs skill).
-FILTER_SETTINGS = {(name, "Gravar jogo"): REPLAY_JOGO for name in ("Rocket League", "Captura · Valorant", "Captura · Diversos")}
+# buffer for the VAR, on each capture's "Gravar jogo", and the light encoder on every Source Record filter. Never change
+# them while OBS records (the obs skill). Which "Gravar jogo" is on is the Efeitos dock's: only the game on screen's.
+FILTER_SETTINGS = {(name, "Gravar jogo"): {**ENCODER_LEVE, **REPLAY_JOGO}
+                   for name in ("Rocket League", "Captura · Valorant", "Captura · Diversos")}
+FILTER_SETTINGS[("Câmera", "Gravar câmera")] = ENCODER_LEVE
 # And on sources it already has: the VAR's page plays the clip's sound since 2026-11-12, through OBS, in his headphones.
 # The game overlays' chat starts under the ball duel since 2026-11-15 (?duelo=1; these URLs carry no key).
 SOURCE_SETTINGS = {"Efeito · VAR": ({"reroute_audio": True}, {"monitoring_type": MONITOR_AND_OUTPUT}),
@@ -369,7 +379,7 @@ collection = {
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
     "sources": scenes + [game, valorant, various, camera, filters, game_chat_overlay, valorant_chat_overlay,
-                         various_chat_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm, booth, duel] + apps + sounds
+                         various_chat_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm, booth, duel, race] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
