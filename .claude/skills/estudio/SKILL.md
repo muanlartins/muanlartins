@@ -405,6 +405,16 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
   Valorant's): `videos.py` would join them end to end, wrongly. Câmera.mkv has been 854×480 since 11-13 (OBS crops it, "Enquadramento", before "Gravar câmera"; taken at 1280×720 by
   `hd_camera` and `camera_lag`). No camera filter that day: `"filtro": false` (Câmera.mkv alone on top) and
   `"camera_recorte"` frames his head.
+- **The meme gag (11-19, approved: "ficou muito interessante, até que tu tem um bom senso de humor!!"):** Luan asked
+  to mock his mouth moving while he concentrates, the way meme edits pop a picture that looks like the person on
+  screen with a sound effect. Strips of his mouth every 0.2 s (Câmera.mkv cropped around it) showed an "O" on kills
+  2, 3 and 4, so: a goldfish with his round glasses, curly hair and moustache, drawn by Gemini's image model
+  (`gemini-3.1-flash-image`, his key in `%USERPROFILE%\.config\muanlartins\gemini-chave.txt`; a text prompt only,
+  no photo of him; then the same image with the mouth closed; on flat green, keyed with a white sticker outline into
+  `Videos\Shorts\Partes\figurinhas\`). Each beat: a `"soco"` on the camera (1.7 about a `"centro"` that lands his
+  mouth on the left), the sticker on the right (`"figurinhas"`, swapping to the open mouth over the ranges his mouth
+  is open), a `bloop` per opening; on the last kill this replaces the game's punch (never both halves moving). Stock
+  meme pictures are someone's copyright: draw our own. The cover takes the sticker too (`capa.figurinha`).
 - **Still open:** music (none yet); the outro's effect on retention once a few shorts have their numbers.
 
 **The effects-heavy edit (`scripts/cortes.py`, rejected 11-11):** five picks chopped into 14 stretches in 34 s,
