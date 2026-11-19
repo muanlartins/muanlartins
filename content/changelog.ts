@@ -229,10 +229,13 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-10",
     tag: "site",
     title: "Loadout dos sonhos no Valorant",
-    text: "Escolha a skin de cada arma entre todas do jogo e exporte numa imagem.",
+    text: "Escolha a skin de cada arma entre todas do jogo; o loadout fica na sua página e vira imagem.",
     href: "/conteudo/valorant/inventory#montar",
     credits: [{ by: "maxchadoz" }],
-    media: [media("loadout-dos-sonhos", "A minha coleção dos sonhos exportada como imagem: as 21 armas, 13 com skin escolhida")],
+    media: [
+      media("loadout-no-perfil", "O loadout dos sonhos do canal na página dele: 14 das 21 armas com skin"),
+      media("loadout-dos-sonhos", "A minha coleção dos sonhos exportada como imagem: as 21 armas, 13 com skin escolhida"),
+    ],
   },
   {
     id: "creditos-da-live",

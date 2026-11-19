@@ -397,6 +397,14 @@ export const channel = {
       record: { pt: "recorde {n}", en: "best {n}" },
       none: { pt: "Os Σ vêm assistindo às lives: 1 por minuto, e mais por live e por sequência.", en: "Σ come from watching the lives: 1 a minute, and more per live and per run." },
     },
+    loadout: {
+      title: { pt: "Loadout dos sonhos", en: "Dream loadout" },
+      count: { pt: "{n} de {t} armas", en: "{n} of {t} weapons" },
+      none: { pt: "Escolha a skin de cada arma entre todas do Valorant, e o seu loadout aparece aqui.", en: "Pick a skin for each weapon from all of Valorant's, and your loadout shows here." },
+      build: { pt: "Montar o meu", en: "Build mine" },
+      edit: { pt: "Editar o meu", en: "Edit mine" },
+      see: { pt: "Ver no inventário", en: "See it in the inventory" },
+    },
     dedications: {
       title: { pt: "Gols dedicados", en: "Goals dedicated" },
       goal: { pt: "Gol", en: "Goal" },
