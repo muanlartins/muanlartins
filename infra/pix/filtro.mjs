@@ -4,7 +4,7 @@
 // with one never plays (its transcript is read by the chosen voice instead). Everyday swearing ("porra",
 // "puta jogada") passes: this is for slurs, hate and the explicitly sexual. Add to it as the chat teaches us.
 
-const PALAVRAS = [
+export const PALAVRAS = [
   // slurs
   "viado", "viadinh", "viadao", "bichona", "traveco", "sapatao", "crioul", "macaquinh", "retardad", "mongoloid",
   "nigger", "nigga", "faggot",

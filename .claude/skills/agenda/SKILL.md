@@ -35,6 +35,9 @@ agenda: changes made on Twitch's dashboard are undone by the next sync. With `NE
   scheduled live, once per live (needs the dock's Twitch sign-in to carry `channel:manage:broadcast`: if the dock says
   "Conecte a Twitch de novo (permissão do título)", he clicks Conectar in "Conexão com a Twitch" once).
 - **The end credits'** next live (`creditos.html`).
+- **The Discord server's events:** each live of the next seven days is an event there (external, at twitch.tv), made
+  by the profile API on every save and every hour (`infra/perfil/discord.mjs`); the bot only touches its own events
+  still to come. The live's ping in #lives comes from the Anúncios dock when the stream opens.
 
 ## When Claude is asked
 

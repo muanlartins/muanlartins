@@ -21,6 +21,24 @@ export const profile = {
     pt: "Monte com qualquer skin do jogo e exporte numa imagem; entrando com a Twitch, fica salvo aqui no seu perfil.",
     en: "Build it from any skin in the game and export it as one image; signed in with Twitch, it's kept in your profile.",
   },
+  /** The Discord server (lib/discord.ts). Copy is a draft for Luan. */
+  discord: {
+    title: { pt: "Discord", en: "Discord" },
+    hint: {
+      pt: "Entre no servidor da comunidade com o seu rank Σ como cargo. Ele sobe sozinho conforme você ganha Σ nas lives.",
+      en: "Join the community's server with your Σ rank as a role. It climbs by itself as you earn Σ in the streams.",
+    },
+    connect: { pt: "Conectar o Discord", en: "Connect Discord" },
+    connecting: { pt: "Conectando…", en: "Connecting…" },
+    linked: { pt: "Conectado como", en: "Connected as" },
+    joined: { pt: "Pronto: você entrou no servidor com o seu rank.", en: "Done: you joined the server with your rank." },
+    updated: { pt: "Pronto: o seu rank chegou no servidor.", en: "Done: your rank reached the server." },
+    open: { pt: "Abrir o servidor", en: "Open the server" },
+    unlink: { pt: "Desconectar", en: "Disconnect" },
+    error: { pt: "Não deu para conectar:", en: "Couldn't connect:" },
+    refused: { pt: "O Discord não deixou. Tente de novo.", en: "Discord didn't allow it. Try again." },
+    signInFirst: { pt: "Entre com a Twitch acima para conectar o seu Discord.", en: "Sign in with Twitch above to connect your Discord." },
+  },
   duel: { pt: "Sua bolinha no duelo", en: "Your ball in the duel" },
   duelHint: {
     pt: "A classe e o visual da arma que seus Σ liberaram, suas vitórias e o ranking do duelo de bolinhas da live.",

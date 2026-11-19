@@ -113,6 +113,12 @@ export const LINKS = [
   { label: "GitHub", href: "https://github.com/muanlartins" },
 ]
 
+/**
+ * The community's Discord server (lib/discord.ts): its permanent invite. Not one of the profiles above (an invite isn't
+ * an account of Luan's), so it stays out of sameAs; the footer and the channel's home show it on the Portuguese site.
+ */
+export const DISCORD_INVITE = "https://discord.gg/TODO"
+
 export const HTML_LANG: Record<Locale, string> = { pt: "pt-BR", en: "en" }
 
 /** How the language switch and badges name each language: Brazilian Portuguese is "BR". */

@@ -12,6 +12,7 @@ export const channel = {
   where: {
     twitch: { pt: "Ao vivo", en: "Live" },
     youtube: { pt: "Vídeos e lives", en: "Videos and streams" },
+    discord: { pt: "A comunidade", en: "The community" },
   },
   /** The home's first block: the live on air, or the next one. */
   next: {

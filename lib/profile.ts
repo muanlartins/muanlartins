@@ -200,6 +200,8 @@ export function signIn(draft: Fan | null, back?: string, scope = "") {
 /** The token: just back from Twitch (then taken out of the address bar), or kept from before. */
 export function takeToken(): string | null {
   const fragment = new URLSearchParams(location.hash.slice(1))
+  // Discord's way back (lib/discord.ts) is its own to take.
+  if (fragment.get("state")?.startsWith("discord.")) return store.get(TOKEN_KEY)
   const token = fragment.get("access_token")
   if (token || fragment.get("error")) history.replaceState(null, "", location.pathname)
   if (token && fragment.get("state") === store.get(STATE_KEY, true)) {
@@ -249,7 +251,13 @@ async function call(method: string, token: string, body?: unknown) {
     throw new SignedOut()
   }
   if (!response.ok) throw new Error(String(response.status))
-  return (await response.json()) as { login: string; aparencia: Choice | null; cartao?: Card | null; imagens?: Images | null }
+  return (await response.json()) as {
+    login: string
+    aparencia: Choice | null
+    cartao?: Card | null
+    imagens?: Images | null
+    discord?: { id: string; nome: string; em: string } | null
+  }
 }
 
 /** The fans saved under these logins (the public side of the profile API); a login missing has none saved. */

@@ -9,8 +9,10 @@ Luan streams on Twitch from this PC (Windows + WSL), on the agenda he edits at `
 `GET /agenda`, the `agenda` skill; Rocket League in the afternoons, Valorant at night). Talk to him in pt-BR.
 
 The opening runs itself from the Anúncios dock (`abertura.js`): up to 90 min before a scheduled live it sets the
-channel's Twitch title and category from the agenda. Its section "Abertura" says what it did. The Instagram story
-Luan posts by hand (the automatic one was dropped on 2026-11-19).
+channel's Twitch title and category from the agenda, and 30 s after the stream of a scheduled live opens it has the
+Discord server's bot post "Ao vivo agora" in #lives, pinging "Avisos de live" (once per stream; an unscheduled
+stream, like an OBS test, pings nobody). Its section "Abertura" says what it did ("Aviso no Discord"). The Instagram
+story Luan posts by hand (the automatic one was dropped on 2026-11-19).
 
 ## While he's live, Claude stays light
 

@@ -30,7 +30,16 @@
 //           GET /agenda.ics              it for calendar apps (the site's "Adicionar à sua agenda")
 //           GET /agenda.txt              the next live in a line of chat, as plain text: the chat bot's !agenda
 //                                        (StreamElements' customapi shows the answer as it comes)
-// Channel:  PUT /agenda                  the channel's Twitch only: the editor on /canal/agenda
+// Channel:  PUT /agenda                  the channel's Twitch only: the editor on /canal/agenda (and the Discord
+//                                        server's events follow it)
+//
+// The Discord server (discord.mjs has the story; without the bot's token these answer 503):
+// Twitch:   PUT /eu/discord              { token }: their Discord (its implicit grant's token) linked, in the server
+//                                        with their Σ rank; DELETE /eu/discord unlinks it. GET /eu brings `discord`.
+// Channel:  PUT /canal/discord/live      { inicio, titulo, jogo }: the stream opened (the Anúncios dock); the ping
+//           PUT /canal/discord/sincronizar    the ranks and the events now (the hourly run does the same)
+//           (PUT, not POST: the API's CORS lets browsers PUT, and the dock is a page of the site)
+// The hourly run (EventBridge, { discord: "sincronizar" }): the ranks and the events.
 
 import { FUSO, dataEm, ics, limpar, noChat, ocorrencias } from "./comum/agenda.mjs"
 import { daLive, json, LOGIN, out } from "./comum/http.mjs"
@@ -155,9 +164,10 @@ export function jogo(j) {
 /**
  * The handler, given the table and how to know the caller:
  *   banco.ler(login) → the item or null; banco.varios(logins) → items; banco.definir(login, campos) sets fields;
- *   banco.remover(login, nomes) removes fields; usuario(headers) → { login, id } or null; chave is the stream's key.
+ *   banco.remover(login, nomes) removes fields; usuario(headers) → { login, id } or null; chave is the stream's key;
+ *   discord: discord.mjs's automacoes, or null while the bot has no token.
  */
-export function rotas({ banco, usuario, chave }) {
+export function rotas({ banco, usuario, chave, discord = null }) {
   const doCanal = async (event) => (await usuario(event.headers || {}))?.login === CANAL
 
   // Takes someone's banner or photo down: the picture's item emptied, and the card back to its colours / Twitch photo.
@@ -217,10 +227,49 @@ export function rotas({ banco, usuario, chave }) {
     if (!a) return out(400, {})
     const em = new Date().toISOString()
     await banco.definir(AGENDA, { agenda: a, em })
+    // Discord's events follow; trouble there never fails the save (the hourly run tries again).
+    if (discord) await discord.eventos(a).catch((e) => console.error("Discord, eventos:", e.message))
     return out(200, { agenda: a, em, proximas: ocorrencias(a, new Date(), 14) })
   }
 
+  /** The ranks and the events, now: the hourly run and the channel's button. */
+  async function sincronizar() {
+    const a = (await banco.ler(AGENDA))?.agenda
+    const [eventos, ranks] = await Promise.allSettled([discord.eventos(a), discord.ranks()])
+    const lido = (r) => (r.status === "fulfilled" ? r.value : { erro: r.reason?.message })
+    return { eventos: lido(eventos), ranks: lido(ranks) }
+  }
+
+  async function doDiscord(event, metodo, caminho) {
+    if (!discord) return out(503, { erro: "O Discord ainda não foi ligado." })
+    if (caminho === "/canal/discord/live" || caminho === "/canal/discord/sincronizar") {
+      if (metodo !== "PUT") return out(405, {})
+      if (!(await doCanal(event))) return out(403, {})
+      if (caminho === "/canal/discord/sincronizar") return out(200, await sincronizar())
+      const corpo = json(event)
+      if (!corpo) return out(400, {})
+      return out(200, await discord.aoVivo({ inicio: corpo.inicio, titulo: corpo.titulo, jogo: corpo.jogo }))
+    }
+    const v = await usuario(event.headers || {})
+    if (!v) return out(401, { erro: "Entre com a Twitch de novo." })
+    if (metodo === "DELETE") {
+      await discord.desvincular(v.login)
+      return out(200, { login: v.login, discord: null })
+    }
+    if (metodo !== "PUT") return out(405, {})
+    const token = json(event)?.token
+    if (typeof token !== "string" || !/^[\w.-]{10,200}$/.test(token)) return out(400, {})
+    const r = await discord.vincular(v.login, token).catch((e) => {
+      console.error("Discord, vincular:", e.message)
+      return { erro: e.status === 403 && e.body?.code === 40007 ? "Você foi banido do servidor." : "O Discord não respondeu. Tente de novo." }
+    })
+    if (!r) return out(401, { erro: "O Discord não aceitou: conecte de novo." })
+    if (r.erro) return out(502, r)
+    return out(200, { login: v.login, ...r })
+  }
+
   return async function handler(event) {
+    if (event.discord === "sincronizar") return discord ? sincronizar() : null
     const metodo = event.requestContext.http.method
     const caminho = event.rawPath
     // The $default route takes the browser's preflight too; API Gateway adds the CORS headers.
@@ -276,6 +325,7 @@ export function rotas({ banco, usuario, chave }) {
 
     if (caminho.startsWith("/imagem/") || caminho.startsWith("/canal/imagem/")) return imagem(event, metodo, caminho)
     if (caminho === "/agenda" || caminho === "/agenda.ics" || caminho === "/agenda.txt") return agenda(event, metodo, caminho)
+    if (caminho === "/eu/discord" || caminho.startsWith("/canal/discord/")) return doDiscord(event, metodo, caminho)
 
     const minha = /^\/eu\/imagem\/(banner|foto)$/.exec(caminho)
     if (caminho !== "/eu" && caminho !== "/eu/loadout" && caminho !== "/eu/duelo" && caminho !== "/eu/cartao" && !minha) return out(404, {})
@@ -346,7 +396,7 @@ export function rotas({ banco, usuario, chave }) {
 
     if (metodo === "GET") {
       const i = (await banco.ler(v.login)) || {}
-      return out(200, { login: v.login, aparencia: i.aparencia ?? null, loadout: i.loadout ?? null, duelo: i.duelo ?? null, cartao: i.cartao ?? null, imagens: i.imagens ?? null })
+      return out(200, { login: v.login, aparencia: i.aparencia ?? null, loadout: i.loadout ?? null, duelo: i.duelo ?? null, cartao: i.cartao ?? null, imagens: i.imagens ?? null, discord: i.discord ?? null })
     }
     if (metodo === "PUT") {
       const corpo = json(event)
