@@ -109,17 +109,18 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
 export const UPCOMING: Upcoming[] = [
-  {
-    id: "video-de-boas-vindas",
-    status: "agora",
-    tag: "live",
-    title: "Vídeo de boas-vindas na Twitch",
-    text: "A intro dos vídeos do YouTube passa a tocar pra quem chega no canal da Twitch quando não estou ao vivo.",
-  },
 ]
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "video-de-boas-vindas",
+    date: "2026-11-19",
+    tag: "live",
+    title: "Vídeo de boas-vindas na Twitch",
+    text: "Quem chega no canal da Twitch quando não estou ao vivo vê a intro dos vídeos do YouTube: quem eu sou e o que a gente faz aqui.",
+    media: [media("video-de-boas-vindas", "A intro tocando como trailer do canal: eu na câmera, sobre o fundo azul do canal, dando boas-vindas", { video: true })],
+  },
   {
     id: "live-mais-leve",
     date: "2026-11-18",

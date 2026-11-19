@@ -280,6 +280,7 @@ function Community({ look }: { look: Fans }) {
 
 /** What comes next, by how sure it is: what's being made now, what's decided, and ideas. */
 function Next({ look }: { look: Fans }) {
+  if (!UPCOMING.length) return null
   return (
     <section className="mt-16">
       <Heading>{R.next.title}</Heading>
