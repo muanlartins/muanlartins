@@ -242,7 +242,7 @@ function overwrites(item, categoria) {
   }
   return lista
 }
-async function garantir(chave, item, tipos, quer, categoria) {
+async function garantir(chave, item, tipos, quer) {
   const c = achar(chave, tipos, item.nome)
   if (!c) {
     const novo = await fazer(`criar ${quer.type === 4 ? "a categoria" : "o canal"} ${item.nome}`, () => pedir("POST", `/guilds/${G}/channels`, quer, { motivo: "Montagem do servidor" }), { name: item.nome })
@@ -265,14 +265,14 @@ async function garantir(chave, item, tipos, quer, categoria) {
 }
 const comunidade = guild.features.includes("COMMUNITY")
 for (const cat of CATEGORIAS) {
-  await garantir(`cat-${cat.chave}`, cat, [4], { type: 4, name: cat.nome, permission_overwrites: overwrites(cat) }, null)
+  await garantir(`cat-${cat.chave}`, cat, [4], { type: 4, name: cat.nome, permission_overwrites: overwrites(cat) })
   for (const item of cat.canais) {
     const tipo = item.voz ? 2 : 0
     const quer = { type: tipo, name: item.nome, parent_id: canal[`cat-${cat.chave}`], permission_overwrites: overwrites(item, cat) }
     if (!item.voz) quer.topic = item.topico ?? ""
     if (item.voz) quer.user_limit = item.limite ?? 0
     if (String(quer.parent_id).startsWith("<")) delete quer.parent_id
-    await garantir(item.chave, item, item.voz ? [2] : [0, 5], quer, cat)
+    await garantir(item.chave, item, item.voz ? [2] : [0, 5], quer)
   }
 }
 
@@ -387,7 +387,8 @@ for (const r of REGRAS_AUTOMOD) {
     await fazer(`criar a regra do AutoMod "${r.name}"`, () => pedir("POST", `/guilds/${G}/auto-moderation/rules`, corpo))
     continue
   }
-  const { trigger_type, ...resto } = corpo
+  // trigger_type can't change on an existing rule.
+  const resto = Object.fromEntries(Object.entries(corpo).filter(([k]) => k !== "trigger_type"))
   const igual = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
   const tm = (x) => Object.fromEntries(Object.keys(r.trigger_metadata ?? {}).map((k) => [k, x?.[k]]))
   const difere = !igual(atual.actions.map((a) => [a.type, a.metadata]), resto.actions.map((a) => [a.type, a.metadata])) ||
