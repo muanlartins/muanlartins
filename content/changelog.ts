@@ -283,7 +283,10 @@ export const SHIPPED: Shipped[] = [
     title: "Inventário do Valorant",
     text: "A coleção de skins que estou montando, arma por arma, lida do próprio jogo.",
     href: "/conteudo/valorant/inventory",
-    media: [media("inventario", "O inventário: as skins da coleção e as que faltam")],
+    media: [
+      media("inventario", "O inventário: as skins da coleção e as que faltam"),
+      media("loadout-no-perfil", "O loadout dos sonhos na página de cada um: o do canal, 14 das 21 armas com skin"),
+    ],
   },
   {
     id: "jogar-o-replay",

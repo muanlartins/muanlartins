@@ -8,6 +8,7 @@ import { GameIcon } from "@/components/site/game/game-icon"
 import { amount, LEVELS, Medal } from "@/components/site/profile/badges"
 import { dateBR, number, ViewerCard } from "@/components/site/viewer/viewer-card"
 import { ViewerName } from "@/components/site/viewer/viewer-name"
+import { loadShowcase, LoadoutTiles, type Showcase } from "@/components/site/viewer/loadout-showcase"
 import { channel } from "@/content/channel"
 import { profile } from "@/content/profile"
 import { channelPath, livePath } from "@/lib/channel"
@@ -17,7 +18,7 @@ import { loadRacer, loadRaces, RACE_ASPECT, raceUrl, type Race, type Racer } fro
 import { loadDuelist, PLAYER_ASPECT, replayUrl, type Duelist, type Fight } from "@/lib/duelo"
 import { loadMural, type Mural, type MuralPix } from "@/lib/pix"
 import { keptToken, loadMine, type Badge, type Sigma, type Torcedor } from "@/lib/profile"
-import { localize, profileSlug } from "@/lib/site"
+import { localize, profileSlug, sectionPath } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
 import { forgetLook, isLogin, loadLook, loadPerson, loadViewerData, takeDownImage, type ImageKind, type Look, type Person, type ViewerData } from "@/lib/viewer"
@@ -112,6 +113,7 @@ export function ViewerPage({ login: given }: { login: string }) {
   const [kit, setKit] = useState<DuelKit | null>(null)
   const [mkit, setMkit] = useState<MarbleKit | null>(null)
   const [mural, setMural] = useState<Mural | null>(null)
+  const [loadout, setLoadout] = useState<Showcase | null | undefined>(undefined)
   const [data, setData] = useState<ViewerData | null>(null)
   const [mine, setMine] = useState(false)
   // Signed in as the channel on someone else's page: Luan can take a picture down.
@@ -128,6 +130,7 @@ export function ViewerPage({ login: given }: { login: string }) {
       .then((r) => setRecent(Object.fromEntries(r.ultimas.filter((x) => x.versao === 2).map((x) => [x.id, x]))))
       .catch(() => {})
     loadMural().then(setMural).catch(() => setMural(null))
+    loadShowcase(login).then(setLoadout).catch(() => setLoadout(null))
     loadViewerData().then(setData)
     const token = keptToken()
     if (token) {
@@ -220,6 +223,24 @@ export function ViewerPage({ login: given }: { login: string }) {
               {S && <MedalShowcase badges={S.medalhas(stats).filter((b) => b.id !== "doado")} />}
             </>
           )}
+        </Section>
+      )}
+
+      {/* Their dream loadout from the inventory's builder; on their own page without one, the way to build it. */}
+      {(loadout || (mine && loadout === null)) && (
+        <Section
+          title={text.loadout.title}
+          icon={<GameIcon game="valorant" size={14} />}
+          aside={loadout ? text.loadout.count.replace("{n}", number(loadout.picked.length)).replace("{t}", number(loadout.total)) : undefined}
+        >
+          {loadout ? <LoadoutTiles picked={loadout.picked} /> : <p className="max-w-[40rem] text-[14px] text-muted">{text.loadout.none}</p>}
+          <Link
+            href={`${sectionPath("content")}/valorant/inventory${mine ? "#montar" : login === CHANNEL ? "" : `?de=${login}`}`}
+            className="inline-flex items-center gap-1.5 text-[14px] font-medium text-klein hover:underline"
+          >
+            {mine ? (loadout ? text.loadout.edit : text.loadout.build) : text.loadout.see}
+            <ArrowRight aria-hidden className="h-4 w-4" />
+          </Link>
         </Section>
       )}
 
