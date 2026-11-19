@@ -110,18 +110,11 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
-    id: "story-ao-abrir-a-live",
+    id: "video-de-boas-vindas",
     status: "agora",
     tag: "live",
-    title: "Story no Instagram quando a live abre",
-    text: "Quando a live começa, sai sozinho um story com a minha câmera, o jogo, o título da live e o link da Twitch.",
-  },
-  {
-    id: "video-de-boas-vindas",
-    status: "proximo",
-    tag: "live",
     title: "Vídeo de boas-vindas na Twitch",
-    text: "Um vídeo curto que toca pra quem chega no canal quando não estou ao vivo: quem eu sou, o que rola nas lives e quando elas são.",
+    text: "A intro dos vídeos do YouTube passa a tocar pra quem chega no canal da Twitch quando não estou ao vivo.",
   },
 ]
 
