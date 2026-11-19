@@ -1,8 +1,8 @@
 {
   "live": "2026-11-18",
-  "nome": "4K de Sage",
+  "nome": "4K sem risadinha",
   "jogo": "valorant",
-  "post": "4K de Sage no pós-plant 💚 #valorant",
+  "post": "4K sem risadinha 😐 #valorant",
   "arquivos": {
     "live": "2026-11-18 19-53-17.mp4",
     "jogo": "2026-11-18 20-24-35 jogo.mkv",
@@ -16,7 +16,7 @@
     {"de": 3425.0, "ate": 3430.8, "camera": "jogo", "seco": true, "entrada": "seco"},
     {"de": 3438.8, "ate": 3442.3, "camera": "jogo", "seco": true, "entrada": "seco"}
   ],
-  "titulo": {"linhas": ["4K DE SAGE"], "de": 3408.0, "ate": 3410.5, "y": 770, "tamanho": 112},
+  "titulo": {"linhas": ["4K SEM", "RISADINHA"], "de": 3408.0, "ate": 3410.5, "y": 1030, "tamanho": 108},
   "impactos": [
     {"em": 3408.0, "flash": "branco", "forca": 0.35, "flash_tau": 0.06, "onde": "jogo"},
     {"em": 3428.70, "flash": "branco", "forca": 0.45, "flash_tau": 0.03, "onde": "jogo",
@@ -29,5 +29,5 @@
     [3428.70, "hit", -11],
     [3428.70, "click", -16]
   ],
-  "capa": {"quadro": 3416.6, "origem": "camera", "fundo": 3428.9, "texto": "4K|DE SAGE"}
+  "capa": {"quadro": 3416.6, "origem": "camera", "fundo": 3428.9, "texto": "4K SEM|RISADINHA"}
 }
