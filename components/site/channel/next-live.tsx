@@ -2,7 +2,7 @@
 
 import { CalendarDays, Play } from "lucide-react"
 import Link from "next/link"
-import { TwitchIcon, YouTubeIcon } from "@/components/site/brand-icons"
+import { DiscordIcon, TwitchIcon, YouTubeIcon } from "@/components/site/brand-icons"
 import { useAgenda } from "@/components/site/agenda/agenda-context"
 import { GameIcon } from "@/components/site/game/game-icon"
 import { gameName, useNow } from "@/components/site/lives/agenda"
@@ -11,7 +11,7 @@ import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
 import { nextOccurrence, whenOf } from "@/lib/agenda"
 import { channelPath } from "@/lib/channel"
-import { LINKS, localize } from "@/lib/site"
+import { DISCORD_INVITE, LINKS, localize } from "@/lib/site"
 import { useLive } from "@/lib/twitch"
 
 const T = localize(channel)
@@ -65,6 +65,7 @@ export function NextLive() {
         )}
         <Away href={TWITCH.href} icon={<TwitchIcon className="h-4 w-4" />} label="Twitch" hint={T.where.twitch} />
         <Away href={YOUTUBE.href} icon={<YouTubeIcon className="h-4 w-4" />} label="YouTube" hint={T.where.youtube} />
+        <Away href={DISCORD_INVITE} icon={<DiscordIcon className="h-4 w-4" />} label="Discord" hint={T.where.discord} />
         <Link
           href={channelPath("agenda")}
           className="inline-flex items-center gap-2 rounded-md border border-line px-3.5 py-2 text-[14px] text-ink transition-colors hover:border-klein hover:text-klein"

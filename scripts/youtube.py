@@ -98,6 +98,8 @@ def playlists(_):
 SITE = "https://muanlartins.com.br"
 THIS_LIVE = ("Esta live no site, com cada partida e a transcrição", f"{SITE}/canal/lives/{{date}}")
 TWITCH = ("Ao vivo na Twitch", "https://www.twitch.tv/muanlartins")
+# The community's Discord server (its permanent invite, lib/site.ts's DISCORD_INVITE), right after Twitch.
+DISCORD = ("A comunidade no Discord", "https://discord.gg/q5qxT7Pw2E")
 # Each game's lives (content/lives/<date>.json's "game"): the name in the title, the line that says what the channel
 # is, the links (Twitch first: the VOD is there to bring people to the next live), the playlist (made when it's
 # missing), its privacy, the tags (YouTube weighs them little; they catch spellings and searches like "rocket league
@@ -108,6 +110,7 @@ GAMES = {
         "pitch": "Rocket League ranqueado ao vivo, em português, subindo de rank com método: cada partida medida e "
                  "explicada no site.",
         "links": [TWITCH,
+                  DISCORD,
                   THIS_LIVE,
                   ("Minhas ranqueadas", f"{SITE}/conteudo/rocket-league/ranked"),
                   ("Os fundamentos, organizados por rank", f"{SITE}/conteudo/rocket-league/fundamentals"),
@@ -122,6 +125,7 @@ GAMES = {
         "pitch": "Valorant ao vivo, em português, aprendendo do Prata com método: cada partida medida no site, mira "
                  "treinada todo dia.",
         "links": [TWITCH,
+                  DISCORD,
                   THIS_LIVE,
                   ("Minhas competitivas", f"{SITE}/conteudo/valorant/ranked"),
                   ("Meu treino de mira", f"{SITE}/conteudo/valorant/aim")],

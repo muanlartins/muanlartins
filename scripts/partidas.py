@@ -389,7 +389,8 @@ def youtube_record(roteiro, marks, path):
     lines = [roteiro.get("descricao", ""), "",
              f"Partidas inteiras da live de {day}. Todas as lives: https://muanlartins.com.br/canal/lives",
              "Minhas ranqueadas: https://muanlartins.com.br/conteudo/rocket-league/ranked",
-             "Ao vivo na Twitch: https://www.twitch.tv/muanlartins", "", *[f"{clock(t)} {name}" for t, name in marks],
+             "Ao vivo na Twitch: https://www.twitch.tv/muanlartins", "A comunidade no Discord: https://discord.gg/q5qxT7Pw2E",
+             "", *[f"{clock(t)} {name}" for t, name in marks],
              "", EPIC, "", "#RocketLeague #RocketLeagueBrasil #3v3"]
     record = {"id": "", "title": title(roteiro), "description": "\n".join(lines).strip(), "tags": TAGS,
               "thumbnail": f"brand/youtube/thumbnails/{date}-{roteiro['nome']}.jpg", "playlist": PLAYLIST,

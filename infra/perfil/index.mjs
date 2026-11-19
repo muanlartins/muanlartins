@@ -4,7 +4,10 @@
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { BatchGetCommand, DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
+import { readFileSync } from "node:fs"
+import { cliente } from "./comum/discord.mjs"
 import { usuario } from "./comum/twitch.mjs"
+import { automacoes, sigmasDe } from "./discord.mjs"
 import { rotas } from "./rotas.mjs"
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({}), { marshallOptions: { removeUndefinedValues: true } })
@@ -46,4 +49,16 @@ const banco = {
   },
 }
 
-export const handler = rotas({ banco, usuario, chave: process.env.CHAVE })
+// The Discord server's automations, once the stack gives the bot's token (DISCORD_BOT) and the setup script has written
+// the server's ids (comum/discord.json).
+const SIGMA_API = process.env.SIGMA_API || "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
+const ids = (() => {
+  try {
+    return JSON.parse(readFileSync(new URL("./comum/discord.json", import.meta.url), "utf8"))
+  } catch {
+    return null
+  }
+})()
+const discord = process.env.DISCORD_BOT && ids?.servidor ? automacoes({ pedir: cliente(process.env.DISCORD_BOT), ids, banco, sigmas: sigmasDe(SIGMA_API) }) : null
+
+export const handler = rotas({ banco, usuario, chave: process.env.CHAVE, discord })

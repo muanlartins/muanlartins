@@ -115,7 +115,8 @@ only that take is new.
   (11-09: Valorant's aim short Mon 18:00, before the 21:00 Valorant live; affiliate Tue 18:00). Times in Brasília.
 - **YouTube:** the upload is Luan's, in Studio, as private (an unverified app's uploads stay locked private). He
   gives the ids; each short has `content/videos/<date>-<slug>.json` (id, title ending in the game's hashtag,
-  description with the site page of the subject, Twitch and the site, tags, `publish_at` ISO with -03:00), then
+  description with the site page of the subject, Twitch, the Discord (`https://discord.gg/q5qxT7Pw2E`, as "A comunidade
+  no Discord") and the site, tags, `publish_at` ISO with -03:00), then
   `scripts/.venv/bin/python scripts/youtube.py video content/videos/<file>.json --dry-run`, then without
   `--dry-run`: it sets the metadata and schedules; YouTube publishes by itself.
 - **Instagram:** the Windows session with a browser schedules them in Meta Business Suite, Luan logged in. The

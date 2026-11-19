@@ -109,17 +109,19 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
 export const UPCOMING: Upcoming[] = [
-  {
-    id: "servidor-do-discord",
-    status: "agora",
-    tag: "live",
-    title: "Servidor do Discord",
-    text: "Um servidor da comunidade no Discord: o aviso de quando tem live e do que vai ser, canais pra conversar com o seu rank Σ e o de sub como cargos, e canais de voz pra jogar e assistir junto. O site continua sendo a casa de tudo.",
-  },
 ]
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "servidor-do-discord",
+    date: "2026-11-19",
+    tag: "live",
+    title: "Servidor do Discord",
+    text: "A comunidade tem um servidor no Discord: o aviso de quando a live abre, as próximas lives da agenda como eventos, canais pra conversar e canais de voz pra jogar e assistir junto. Conecte o Discord no seu perfil e o seu rank Σ vira cargo lá; quem é sub na Twitch ganha o cargo de sub.",
+    href: "/perfil",
+    media: [media("servidor-do-discord", "O servidor no Discord: os canais da comunidade e a mensagem de boas-vindas")],
+  },
   {
     id: "video-de-boas-vindas",
     date: "2026-11-19",

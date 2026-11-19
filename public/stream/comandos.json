@@ -97,6 +97,12 @@
           "comando": "!youtube",
           "texto": "As lives inteiras e os vídeos no YouTube.",
           "resposta": "https://www.youtube.com/@muanlartins"
+        },
+        {
+          "comando": "!discord",
+          "texto": "O servidor da comunidade no Discord.",
+          "dica": "!discord: o servidor da comunidade",
+          "resposta": "O servidor da comunidade: o aviso de quando a live abre, papo e canais de voz. Conecte o Discord no seu perfil do site e o seu rank Σ vira cargo lá: https://discord.gg/q5qxT7Pw2E"
         }
       ]
     }

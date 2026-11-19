@@ -880,7 +880,7 @@ if __name__ == "__main__":
     # Twitch panels, under the player. "Pix ao vivo" points at the site's /pix (the alert on stream, the voices);
     # the old one carries the bank's QR code, so it is drawn only when PIX_BRCODE (the "copia e cola" text) is set,
     # and git ignores it: the key stays out of this public repo.
-    for name in ("Comandos", "Roadmap", "YouTube", "Regras"):
+    for name in ("Comandos", "Roadmap", "YouTube", "Regras", "Discord"):
         write(f"twitch/paineis/{name.lower()}.svg", panel(name))
         png(f"twitch/paineis/{name.lower()}.svg", f"twitch/paineis/{name.lower()}.png", 640)
     write("twitch/paineis/pix-ao-vivo.svg", pix_panel("https://muanlartins.com.br/pix"))

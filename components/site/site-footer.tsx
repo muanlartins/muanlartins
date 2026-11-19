@@ -1,7 +1,7 @@
 import { ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { BRAND_ICONS } from "@/components/site/brand-icons"
-import { hasSection, LINKS, UI, privacySlug } from "@/lib/site"
+import { DISCORD_INVITE, hasSection, LINKS, UI, privacySlug } from "@/lib/site"
 
 // The English site is Luan's life and work: its links leave out the channel's (Twitch, YouTube).
 const CHANNEL_ONLY = ["Twitch", "YouTube"]
@@ -11,7 +11,11 @@ const CHANNEL_ONLY = ["Twitch", "YouTube"]
  * below, small, where a legal page belongs rather than beside the name.
  */
 export function SiteFooter() {
-  const links = LINKS.filter((link) => hasSection("channel") || !CHANNEL_ONLY.includes(link.label))
+  // The community's Discord after the channel's links: an invite, not a profile of Luan's, so no rel="me".
+  const links = [
+    ...LINKS.filter((link) => hasSection("channel") || !CHANNEL_ONLY.includes(link.label)).map((link) => ({ ...link, me: true })),
+    ...(hasSection("channel") ? [{ label: "Discord", href: DISCORD_INVITE, me: false }] : []),
+  ]
   return (
     <footer className="border-t border-line">
       <div className="mx-auto w-full max-w-3xl space-y-5 px-6 py-8">
@@ -26,7 +30,7 @@ export function SiteFooter() {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    rel="me"
+                    rel={link.me ? "me" : undefined}
                     title={link.label}
                     className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-[13px] text-ink transition-colors hover:border-klein hover:text-klein"
                   >

@@ -211,7 +211,7 @@ a claimed song in the VOD comes back in every video cut from it.
 2. `scripts/.venv/bin/python scripts/live.py <date> --video <id>`
 3. Wait until YouTube has processed it (a 50 GB upload takes a while after the upload ends), then
    `scripts/.venv/bin/python scripts/youtube.py live <date> --dry-run`, show Luan, then without `--dry-run`:
-   title, description (his summary, the game's line, Twitch first among the links, chapters, the date, three
+   title, description (his summary, the game's line, Twitch first among the links and the Discord right after, chapters, the date, three
    hashtags), tags (the game's, plus mode, rank, agents and maps played), thumbnail (thumb.py's `.jpg` over
    build.py's `.png`), **public** (`PRIVACY`; scheduled instead when `youtube.publish_at` holds it back, 2c), the game's playlist ("Rocket League ao vivo", "Valorant ao vivo":
    made the first time it's missing, kept as public as the videos), captions. Per game in `GAMES` in `youtube.py`.
