@@ -32,6 +32,11 @@ The roteiro is JSON and every time in it is a Live.mp4 second:
 - "zoom": [{"de", "ate", "onde", "z", "centro": [x, y]}]: a slow push from 1 to z over the range, back at its end.
 - "sons": [[t, name, dB] or [t, name, dB, "fim"] (ending at t)]: short-editing's files (impact-boom, riser, zhhh,
   pop-back, glass-shatter) or edicao.sfx's (hit, pop, ding, whoosh…, and the stream's palmas, uuuh, boing…).
+- "figurinhas": [{"arquivo" (a PNG with alpha, under Videos), "de", "ate", "x", "y", "altura", "trocas": [[from, to,
+  "other.png"]]}]: a sticker popping in at (x, y) of the short, breathing a little, swapped for another picture over
+  each "trocas" range (a meme's mouth opening with his, 11-19). A "soco" can take "centro": [x, y], the point it zooms
+  about (a point off his mouth puts the mouth where the zoom lands: p = (m' - z·m) / (1 - z)).
+- "sons" also take "bloop" (a bubble, synthesised).
 - "capa": the cover's second (a frame of the short), or the cover drawn in the lives' thumbnail style, as
   capa.py takes it ({"quadro", "origem", "fundo", "texto", "emblema"}).
 
@@ -487,6 +492,14 @@ class Effects:
         self.titles = [{"de": o(t["de"]), "ate": o(t["ate"]), "anim": "slam", "y": t.get("y", TITLE_Y),
                         "sprite": title_sprite(t["linhas"], t.get("tamanho", 118))}
                        for t in ([roteiro["titulo"]] if roteiro.get("titulo") else []) + roteiro.get("rotulos", [])]
+        self.stickers = []
+        for st in roteiro.get("figurinhas", []):
+            def load(path, h=st["altura"]):
+                im = np.array(Image.open(VIDEOS / path).convert("RGBA"))
+                return cv2.resize(im, None, fx=h / im.shape[0], fy=h / im.shape[0], interpolation=cv2.INTER_AREA)
+            self.stickers.append({"de": o(st["de"]), "ate": o(st["ate"]), "anim": "pop", "x": st["x"], "y": st["y"],
+                                  "base": load(st["arquivo"]),
+                                  "trocas": [(o(a), o(b), load(path)) for a, b, path in st.get("trocas", [])]})
 
     def zoom(self, o, where):
         z, center = 1.0, ((W / 2, CAM_H * 0.45) if where == "camera" else (W / 2, GAME_H / 2))
@@ -504,6 +517,8 @@ class Effects:
                 k = (ease(x / up) if 0 <= x < up else 1.0 if up <= x < up + hold
                      else 1 - ease((x - up - hold) / down) if up + hold <= x < up + hold + down else 0.0)
                 z *= 1 + (punch["z"] - 1) * k
+                if k > 0 and punch.get("centro"):
+                    center = tuple(punch["centro"])
         return z, center
 
     def shake(self, o):
@@ -568,6 +583,15 @@ class Effects:
             color, a = self.flash(o, where)
             if a > 0.004:
                 f[y0:y1] = (f[y0:y1].astype(np.float32) * (1 - a) + np.array(color, np.float32) * a).astype(np.uint8)
+        for st in self.stickers:
+            if st["de"] - 0.1 <= o <= st["ate"] + 0.5:
+                scale, alpha, lift = animate(st, o)
+                sprite, bump = st["base"], 1.0
+                for a, b, im in st["trocas"]:
+                    if a <= o < b:  # the other picture, popping a little as it comes in
+                        sprite, bump = im, 1 + 0.1 * math.exp(-(o - a) / 0.05)
+                breathe = 1 + 0.025 * math.sin(2 * math.pi * 2.5 * (o - st["de"]))
+                place(f, sprite, st["x"], st["y"] + lift, scale * bump * breathe, alpha)
         for title in self.titles:
             if title["de"] - 0.1 <= o <= title["ate"] + 0.5:
                 scale, alpha, lift = animate(title, o)
@@ -586,6 +610,10 @@ def pcm(path, a=None, n=None, stream="0:a:0", channels=2):
 
 
 def sound(name):
+    if name == "bloop":  # a bubble: a short sine gliding up, for a fish's mouth (11-19)
+        t = np.arange(int(0.11 * SR)) / SR
+        x = np.sin(2 * np.pi * np.cumsum(260 * (1100 / 260) ** np.minimum(1, t / 0.07)) / SR)
+        return (x * np.minimum(1, t / 0.003) * np.exp(-t * 32)).astype(np.float32)
     path = SFX / f"{name}.mp3"
     if path.exists():
         x = pcm(path, stream="0:a:0", channels=1)[:, 0]
