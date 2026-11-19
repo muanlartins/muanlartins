@@ -108,7 +108,9 @@ Nobody has heard or seen it live until Luan tries it in OBS: say so.
 
 ## 7. Release
 
-The roadmap entry (`content/changelog.ts`, in the same commit, with a clip if there's a picture to show; credit only
-if a viewer suggested it), the dock's list in the obs skill, and AGENTS.md's credits line (the game's files used).
+The roadmap: a new agent or filter isn't an entry of its own. It goes into the camera filters' entry
+(`filtros-na-camera` in `content/changelog.ts`, same commit): its name in the line if it fits, a picture or clip of it,
+and the viewer who suggested it in `credits` with `about`, if one did. Then the dock's list in the obs skill, and
+AGENTS.md's credits line (the game's files used).
 OBS reads the pages from the shared checkout: after the release they reach it with a pull there (other sessions keep
 uncommitted work in it, so look before touching it).

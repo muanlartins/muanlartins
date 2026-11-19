@@ -42,16 +42,20 @@ const person = (id: PersonId): Person => PEOPLE[id]
 
 /** The changelog's filter: everything, a tag, or what the community suggested or told about. */
 type Filter = Tag | "comunidade" | null
-const shows = (filter: Filter, entry: Shipped) => !filter || (filter === "comunidade" ? Boolean(entry.credit) : entry.tag === filter)
+const shows = (filter: Filter, entry: Shipped) => !filter || (filter === "comunidade" ? Boolean(entry.credits?.length) : entry.tag === filter)
 
 /** Newest first; within a day, as written. */
 const ENTRIES = SHIPPED.map((entry, index) => ({ entry, index }))
   .sort((a, b) => b.entry.date.localeCompare(a.entry.date) || a.index - b.index)
   .map(({ entry }) => entry)
 
-/** Who suggested (or told about) what, in the order of PEOPLE, with everything of theirs (released or coming). */
+/** Who suggested (or told about) what, in the order of PEOPLE, with everything of theirs (released or coming) and
+ * their credit on it. */
 const SUGGESTIONS = (Object.keys(PEOPLE) as PersonId[])
-  .map((id) => ({ id, items: [...ENTRIES, ...UPCOMING].filter((item) => item.credit?.by === id) }))
+  .map((id) => ({
+    id,
+    items: [...ENTRIES, ...UPCOMING].flatMap((item) => (item.credits ?? []).filter((credit) => credit.by === id).map((credit) => ({ item, credit }))),
+  }))
   .filter((suggestion) => suggestion.items.length > 0)
 
 const LOGINS = SUGGESTIONS.flatMap(({ id }) => {
@@ -195,7 +199,7 @@ function Community({ look }: { look: Fans }) {
                 const p = person(id)
                 return (
                   <li key={id} className="flex justify-center" style={{ width: slot }}>
-                    <a href={`#${items[0].id}`} className={cn("group relative block", compact ? "h-[72px] w-12" : "h-[96px] w-16")} aria-label={p.name}>
+                    <a href={`#${items[0].item.id}`} className={cn("group relative block", compact ? "h-[72px] w-12" : "h-[96px] w-16")} aria-label={p.name}>
                       <span
                         className={cn(
                           "absolute flex items-center gap-1 whitespace-nowrap bg-navy/80 px-1 py-px text-[10px] font-semibold text-paper transition-colors group-hover:bg-klein sm:px-1.5 sm:text-[11px]",
@@ -251,18 +255,18 @@ function Community({ look }: { look: Fans }) {
               )}
               {p.note && <span className="ml-1.5 text-[13px] text-muted">{p.note}</span>}
               {[
-                { label: R.community.suggested, list: items.filter((item) => item.credit?.as !== "report") },
-                { label: R.community.reported, list: items.filter((item) => item.credit?.as === "report") },
+                { label: R.community.suggested, list: items.filter(({ credit }) => credit.as !== "report") },
+                { label: R.community.reported, list: items.filter(({ credit }) => credit.as === "report") },
               ].map(
                 ({ label, list }) =>
                   list.length > 0 && (
                     <div key={label}>
                       <p className="mt-2 text-[12px] font-medium uppercase tracking-[0.1em] text-muted">{label}</p>
                       <ul className="mt-1 space-y-0.5">
-                        {list.map((item) => (
+                        {list.map(({ item, credit }) => (
                           <li key={item.id}>
                             <a href={`#${item.id}`} className="text-[14px] leading-[1.5] text-klein underline decoration-line underline-offset-4 hover:decoration-klein">
-                              {item.credit?.about ?? item.title}
+                              {credit.about ?? item.title}
                             </a>
                           </li>
                         ))}
@@ -335,7 +339,7 @@ function UpcomingCard({ item, look }: { item: Upcoming; look: Fans }) {
       <TagChip tag={item.tag} inverted={now} />
       <p className={cn("mt-2 font-medium tracking-[-0.01em]", now ? "text-[20px]" : "text-[16px] text-ink")}>{item.title}</p>
       <p className={cn("mt-1 text-[14px] leading-[1.55]", now ? "text-paper/80" : "text-muted")}>{item.text}</p>
-      {item.credit && <CreditLine credit={item.credit} look={look} inverted={now} />}
+      <Credits credits={item.credits} look={look} inverted={now} />
     </li>
   )
 }
@@ -359,11 +363,24 @@ function PlatformIcon({ where, className }: { where: Person["where"]; className?
   return where === "twitch" ? <TwitchIcon className={className} /> : <YouTubeIcon className={className} />
 }
 
-/** "Ideia de <fan> Woody_fdp" ("Avisado por" for a bug they told about): their fan on a sliver of the stand, a link to their channel or to where they said it. */
+/** An entry's credits, one line each: whoever had the idea, then whoever suggested a part of it. */
+function Credits({ credits, look, inverted }: { credits?: Credit[]; look: Fans; inverted?: boolean }) {
+  if (!credits?.length) return null
+  return (
+    <div className="mt-3 space-y-1">
+      {credits.map((credit) => (
+        <CreditLine key={credit.by} credit={credit} look={look} inverted={inverted} />
+      ))}
+    </div>
+  )
+}
+
+/** "Ideia de <fan> Woody_fdp" ("Avisado por" for a bug they told about), and what part was theirs when it's a part:
+ * their fan on a sliver of the stand, a link to their channel or to where they said it. */
 function CreditLine({ credit, look, inverted }: { credit: Credit; look: Fans; inverted?: boolean }) {
   const p = person(credit.by)
   return (
-    <div className={cn("mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px]", inverted ? "text-paper/85" : "text-muted")}>
+    <div className={cn("flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px]", inverted ? "text-paper/85" : "text-muted")}>
       <Lightbulb aria-hidden className={cn("h-4 w-4", inverted ? "text-paper" : "text-klein")} />
       {credit.as === "report" ? R.shipped.reported : R.shipped.idea}
       {/* A viewer's name leads to their page on the site; a YouTube commenter's to their channel. */}
@@ -386,6 +403,7 @@ function CreditLine({ credit, look, inverted }: { credit: Credit; look: Fans; in
         <PlatformIcon where={p.where} className="h-3.5 w-3.5 opacity-70" />
       </a>
       {p.note && <span>({p.note})</span>}
+      {credit.about && <span>· {credit.about}</span>}
       {credit.link && (
         <a href={credit.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-0.5 underline decoration-current/30 underline-offset-4 hover:decoration-current">
           {R.community.comment}
@@ -495,7 +513,7 @@ function ShippedEntry({ entry, look }: { entry: Shipped; look: Fans }) {
           aria-hidden
           className={cn(
             "relative z-10 block rounded-full ring-4 ring-ground",
-            entry.credit ? "h-2.5 w-2.5 bg-klein" : "h-1.5 w-1.5 bg-zinc-400",
+            entry.credits?.length ? "h-2.5 w-2.5 bg-klein" : "h-1.5 w-1.5 bg-zinc-400",
           )}
         />
       </div>
@@ -503,14 +521,14 @@ function ShippedEntry({ entry, look }: { entry: Shipped; look: Fans }) {
         id={entry.id}
         className={cn(
           "min-w-0 scroll-mt-28 rounded-md transition-colors duration-700",
-          entry.credit ? "border border-klein/25 bg-klein/[0.04] p-4" : "py-1",
+          entry.credits?.length ? "border border-klein/25 bg-klein/[0.04] p-4" : "py-1",
           "target:bg-klein/[0.08]",
         )}
       >
         <TagChip tag={entry.tag} />
         <h3 className="mt-2 text-[18px] font-medium leading-snug tracking-[-0.01em] text-ink">{entry.title}</h3>
         <p className="mt-1 max-w-[34rem] text-[15px] leading-[1.6] text-muted">{entry.text}</p>
-        {entry.credit && <CreditLine credit={entry.credit} look={look} />}
+        <Credits credits={entry.credits} look={look} />
 
         {(entry.href || entry.video) && (
           <div className="mt-3 flex flex-wrap gap-2">

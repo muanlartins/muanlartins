@@ -22,8 +22,8 @@ export function viewerData(): ViewerData {
     if (!credit || !login) return
     ;(ideias[login] ??= []).push({ ...idea, as: credit.as ?? "idea", ...(credit.about ? { about: credit.about } : {}) })
   }
-  for (const item of UPCOMING) add(item.credit, { id: item.id, title: item.title, shipped: false })
-  for (const entry of SHIPPED) add(entry.credit, { id: entry.id, title: entry.title, shipped: true, date: entry.date })
+  for (const item of UPCOMING) for (const credit of item.credits ?? []) add(credit, { id: item.id, title: item.title, shipped: false })
+  for (const entry of SHIPPED) for (const credit of entry.credits ?? []) add(credit, { id: entry.id, title: entry.title, shipped: true, date: entry.date })
 
   const moments = matchMoments(lives())
   const partidas: Record<string, PlayedMatch[]> = {}

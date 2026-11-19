@@ -20,11 +20,13 @@ Luan Martins' personal site and the home of the muanlartins channel: improving a
 - `brand/` is the source of truth for the identity (see `brand/README.md`). Don't delete anything in it, explorations included.
 - Small changes go straight to `main`; bigger features go through a branch and PR. A push to `main` is a release (below), so run `pnpm lint` first.
 - Commit messages are imperative and short, with no names.
-- **Every feature goes on the roadmap page** (`/canal/roadmap`, `content/changelog.ts`). When Luan decides on a
-  feature that won't be released the same day, add it to `UPCOMING` right then, in its own commit if need be. When a
-  feature is released, add its entry at the top of `SHIPPED` in the same commit as the feature, with the credit of
-  whoever suggested it, and take it out of `UPCOMING`. This holds for features made in RLR, in OBS or in the scripts
-  too, not only the site's. See "The roadmap and the changelog" below.
+- **Every new feature goes on the roadmap page** (`/canal/roadmap`, `content/changelog.ts`), once: one entry per
+  feature, never one per improvement. When Luan decides on a new feature that won't be released the same day, add it
+  to `UPCOMING` right then, in its own commit if need be. When it's released, add its entry at the top of `SHIPPED`
+  in the same commit, with the credit of whoever suggested it, and take it out of `UPCOMING`; when an existing
+  feature gets better, update its entry instead (or leave it alone). This holds for features made in RLR, in OBS or
+  in the scripts too, not only the site's. Before touching it, read "The roadmap and the changelog" below: not
+  everything goes in.
 
 ## Routines (skills)
 
@@ -81,7 +83,7 @@ Next.js 16, static export (`output: "export"`), Tailwind v4 with the brand token
 `content/channel.ts` under `roadmap`; Luan's brother lucca_3098 suggested it) is the channel's roadmap and changelog:
 who suggested what, standing on a strip of the stream's stand as their fans; what comes next (`UPCOMING`, by `status`:
 `agora` = being made, `proximo` = decided, `ideia` = may change); and everything released (`SHIPPED`) as a timeline like
-the personal page's, filtered by tag or by "Comunidade" (every entry with a credit) (`components/lifeline/`): the day since the site went up (`FIRST_DAY`), the date, each release with
+the personal page's, filtered by tag or by "Comunidade" (every entry with credits) (`components/lifeline/`): the day since the site went up (`FIRST_DAY`), the date, each release with
 its tag, a line, its links and its pictures and clips as tilted cards (`LifelinePhotoCard`: drag, click to open, a clip
 plays on hover). The channel exists only on the Portuguese site, so the entries are Portuguese only.
 
@@ -89,28 +91,42 @@ plays on hover). The channel exists only on the Portuguese site, so the entries 
 order, never ideas taken from elsewhere (the handoff's backlog included) unless he says so. A feature he'll make and
 release the same day can go straight to `SHIPPED`. Keep `UPCOMING` true: what's being made now is `agora`.
 
-**When you release something new, add it there in the same commit.** Not only the site's features: a new overlay,
-dock feature, scene or effect on the live, a script that changes what viewers get, an RLR feature (RLR is another
-repository, but its releases are listed here too), new brand art, a change only in Luan's OBS that the live shows,
-and a fix viewers noticed (credit whoever told about it with `as: "report"`, shown as "Avisado por", and `about`
-saying what they reported, like "Pix tocando duas vezes": their card lists that, not the fix's title). Not a
-release: ranked sessions, a live's page, a video's metadata, and fixes or internal tooling nobody watching or
-visiting would notice.
+**The roadmap is a list of features, each once** (Luan, 2026-11-19: "nem tudo entra como item do Roadmap"; entries
+"significativas, e não duplicadas ou triplicadas"; "copy mínima, o foco na feature, com preferência pras
+demonstrações visuais"). On that day it was cleaned from 63 entries to 41: every feature's later versions folded into
+its first entry, and the fixes and tooling taken out. Keep it that way. Before adding anything, ask:
 
-- **The entry:** a unique kebab-case `id` (the anchor, `/canal/roadmap#<id>`), the `date` it was released (the push to
-  `main`, or the day it went into Luan's OBS), a `tag` (`live`, `site`, `videos`, `rlr`, `marca`), a `title` and one
-  or two lines of `text` for whoever watches or visits (not how it's built), `href` to where it is on the site (or
-  `/rlr/`), and `video` when a YouTube video or short is about it. Newest first, at the top of `SHIPPED`. Draft the
-  copy in Luan's terms and tell him it's a draft; he revises it.
-- **The credit:** when the idea came from someone (Luan says so, or a YouTube comment or a chat message asked for it),
+1. **Is it a new feature?** Something a viewer or visitor can now see or use that wasn't there: a page, an overlay, a
+   scene or effect on the live, a minigame, a way to take part, a filter, an RLR feature, new brand art. If so, it's
+   an entry, in the same commit as its release. Not in, ever: fixes (even ones viewers noticed), performance, a
+   setting or label changed, internal tooling and scripts, OBS setup, ranked sessions, a live's page, a video's
+   metadata.
+2. **Is there already an entry for it?** Search `SHIPPED` first. A new version, a new class or agent, a new mode, a
+   redesign or a feature's site page are the same feature: update its entry (a newer picture or clip, a word in its
+   line, whoever suggested the part added to `credits` with `about`) and keep its date. Changing nothing is fine too.
+   Only a thing that stands on its own is a new entry (a second game, a second minigame, a new page of its own).
+3. **Can it be shown?** Every entry has a picture or a clip of it working. Something with nothing to show is rarely
+   an entry.
+
+- **The entry:** a unique kebab-case `id` (the anchor, `/canal/roadmap#<id>`; keep it when the entry grows), the
+  `date` the feature first came out (the push to `main`, or the day it went into Luan's OBS), a `tag` (`live`,
+  `site`, `videos`, `rlr`, `marca`), a `title` that names the feature in a few words, one short line of `text` (about
+  20 words at most: what it is for whoever watches or visits, never how it's built or a list of everything it does;
+  the pictures show the rest), `href` to where it is on the site (or `/rlr/`), and `video` when a YouTube video or
+  short is about it. Newest first, at the top of `SHIPPED`. Draft the copy in Luan's terms and tell him it's a draft;
+  he revises it.
+- **The credits:** when the idea came from someone (Luan says so, or a YouTube comment or a chat message asked for it),
   add them to `PEOPLE` once (their name as shown, `twitch` with their `login`, which draws their fan, or `youtube`
-  with their channel's URL) and set `credit: { by, link }` on the entry, `link` pointing at where they said it when
+  with their channel's URL) and put `{ by, link }` in the entry's `credits`, `link` pointing at where they said it when
   there's one (a YouTube comment's link is `watch?v=<video>&lc=<comment id>`; `scripts/youtube.py`'s client reads
-  the channel's comments). Credit only what Luan confirms came from them. Upcoming items take a credit too.
-- **Every entry gets a picture (or a clip) of the thing whenever there's something to see** (Luan: "é bom ter
-  demonstrações visuais do que foi feito"): add it in the same commit as the entry, not later. Prefer showing it
-  working with real data (the page live on the site, the overlay on a live's recording) over a mock; a clip when it
-  moves. Leave it out only when nothing can be shown (a fix nobody sees, a voice, a schedule).
+  the channel's comments). Whoever had the idea comes first; someone who suggested a part of the feature later goes
+  after, with `about` naming their part ("Pintura e decalques nos carros"), which their card and their page list in
+  place of the title. Each idea is credited once. Credit only what Luan confirms came from them. Upcoming items take
+  credits too.
+- **The picture (or clip) of the thing goes in with the entry** (Luan: "é bom ter demonstrações visuais do que foi
+  feito"), in the same commit, not later; when the feature changes how it looks, swap in a new one and delete the old
+  file. Prefer showing it working with real data (the page live on the site, the overlay on a live's recording) over
+  a mock; a clip when it moves. Two or three per entry, the newest look first.
 - **The pictures** live in `public/canal/roadmap/<name>.webp` (960×540, 16:9 like the rest; ffmpeg's `libwebp` at quality
   ~84), with an optional `<name>.mp4` clip (a few seconds, 640 px wide, no sound, H.264 CRF 28, `+faststart`),
   added with `media(name, alt, { video, portrait })` (`portrait` for a short's 9:16 frame). Good sources: the
@@ -119,7 +135,7 @@ visiting would notice.
   `colorkey=black`), a stream page screenshot with headless Chrome (`?demo` where a page has one), or the site
   itself (headless Chrome on the live site at 1440×810, scrolled to the feature, scaled to 960×540). **Never show other players' names** (lobby lists, the kill feed, RLR's name tags, the top-right feed in
   Rocket League): crop, blur or pick another frame. Viewers' names in the stand are fine; the chat's messages, keep out.
-- When a feature from `UPCOMING` ships, delete it there and write its `SHIPPED` entry (keep the credit).
+- When a feature from `UPCOMING` ships, delete it there and write its `SHIPPED` entry (keep the credits).
 
 ## Fundamentals: "Como estou aprendendo"
 

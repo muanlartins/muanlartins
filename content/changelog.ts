@@ -2,9 +2,9 @@
  * The channel's roadmap at /canal/roadmap: what comes next and everything already released (the changelog), on the
  * site, on the live, in the videos and in RLR, each with the credit of whoever suggested it.
  *
- * Every release of something new adds an entry to `SHIPPED` in the same commit (AGENTS.md, "The roadmap and the
- * changelog"); moving an item out of `UPCOMING` when it ships. The channel exists only on the Portuguese site, so
- * the copy here is Portuguese only.
+ * One entry per feature, with a line of copy and pictures of it working: an improvement goes into its feature's entry,
+ * and fixes or tooling don't go in at all (AGENTS.md, "The roadmap and the changelog"). The channel exists only on the
+ * Portuguese site, so the copy here is Portuguese only.
  */
 
 export type Tag = "live" | "site" | "videos" | "rlr" | "marca"
@@ -33,7 +33,6 @@ export const PEOPLE = {
   woody_fdp: { name: "Woody_fdp", where: "twitch", login: "woody_fdp", url: "https://www.twitch.tv/woody_fdp" },
   victormendes: { name: "victormendes", where: "youtube", url: "https://www.youtube.com/@victormendes9510" },
   lucca_3098: { name: "lucca_3098", where: "twitch", login: "lucca_3098", url: "https://www.twitch.tv/lucca_3098" },
-  jpmartins_1: { name: "jpmartins_1", where: "twitch", login: "jpmartins_1", url: "https://www.twitch.tv/jpmartins_1" },
   maxchadoz: { name: "maxchadoz", where: "twitch", login: "maxchadoz", url: "https://www.twitch.tv/maxchadoz" },
   ccamara: { name: "ccamara", where: "twitch", login: "ccamara", url: "https://www.twitch.tv/ccamara" },
   leila_m_30: { name: "leila_m_30", where: "twitch", login: "leila_m_30", url: "https://www.twitch.tv/leila_m_30" },
@@ -45,8 +44,8 @@ export interface Credit {
   by: PersonId
   /** "report" when they told about a bug rather than suggesting something: "Avisado por" instead of "Ideia de". */
   as?: "idea" | "report"
-  /** What they said, for their card on the page when the entry's title doesn't say it: a bug's report is what was
-   * wrong ("Pix tocando duas vezes"), not the fix's title. */
+  /** What they suggested, for their card on the page when the entry's title doesn't say it: a part of a bigger
+   * feature ("Pintura e decalques nos carros" on the camera filters). */
   about?: string
   /** Where the idea was given, when there's a link to it (a YouTube comment, a moment of a live). */
   link?: string
@@ -65,15 +64,17 @@ export interface Media {
 export interface Shipped {
   /** Unique and kebab-case: the entry's address, /canal/roadmap#<id>. */
   id: string
-  /** The day it was released (YYYY-MM-DD). */
+  /** The day the feature first came out (YYYY-MM-DD); improving it later doesn't move it. */
   date: string
   tag: Tag
+  /** The feature's name, in a few words. */
   title: string
-  /** One or two lines: what it is for whoever watches or visits. */
+  /** One short line: what it is for whoever watches or visits. The pictures show the rest. */
   text: string
   /** Where to see it: a page of the site, or RLR. */
   href?: string
-  credit?: Credit
+  /** Whoever had the idea, and whoever suggested a part of it later. */
+  credits?: Credit[]
   /** A YouTube video or short about it, by id. */
   video?: string
   media?: Media[]
@@ -93,7 +94,7 @@ export interface Upcoming {
   tag: Tag
   title: string
   text: string
-  credit?: Credit
+  credits?: Credit[]
 }
 
 /** public/canal/roadmap/<name>.webp, with <name>.mp4 as its clip when there's one. */
@@ -105,44 +106,37 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
 })
 
 /**
- * What comes next, in order within each status. Every feature Luan decides on and won't release the same day goes
+ * What comes next, in order within each status. Every new feature Luan decides on and won't release the same day goes
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
 export const UPCOMING: Upcoming[] = [
 ]
 
-/** Everything released, newest first. */
+/** Every feature released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
     id: "servidor-do-discord",
     date: "2026-11-19",
     tag: "live",
     title: "Servidor do Discord",
-    text: "A comunidade tem um servidor no Discord: o aviso de quando a live abre, as próximas lives da agenda como eventos, canais pra conversar e canais de voz pra jogar e assistir junto. Conecte o Discord no seu perfil e o seu rank Σ vira cargo lá; quem é sub na Twitch ganha o cargo de sub.",
+    text: "O aviso de quando a live abre, as próximas lives como eventos, papo e canais de voz. Conectando o Discord no perfil, o seu rank Σ vira cargo lá.",
     href: "/perfil",
     media: [media("servidor-do-discord", "O servidor no Discord: os canais da comunidade e a mensagem de boas-vindas")],
   },
   {
     id: "video-de-boas-vindas",
     date: "2026-11-19",
-    tag: "live",
-    title: "Vídeo de boas-vindas na Twitch",
-    text: "Quem chega no canal da Twitch quando não estou ao vivo vê a intro dos vídeos do YouTube: quem eu sou e o que a gente faz aqui.",
+    tag: "marca",
+    title: "Trailer na Twitch",
+    text: "Quem chega no canal fora da live vê quem eu sou e o que a gente faz aqui.",
     media: [media("video-de-boas-vindas", "A intro tocando como trailer do canal: eu na câmera, sobre o fundo azul do canal, dando boas-vindas", { video: true })],
-  },
-  {
-    id: "live-mais-leve",
-    date: "2026-11-18",
-    tag: "live",
-    title: "Live mais leve",
-    text: "A imagem da live travava porque o OBS gravava vídeo demais ao mesmo tempo, todos no mesmo encoder da placa de vídeo: a live, a gravação, a câmera e o jogo, às vezes dois jogos. Agora só o jogo que está na tela é gravado, as gravações usam um modo mais leve e a câmera dos filtros só liga enquanto um filtro está ligado.",
   },
   {
     id: "analise-de-mira",
     date: "2026-11-18",
     tag: "site",
-    title: "Análise de mira: overshooting, undershooting e tremedeira",
-    text: "Na página de mira do Valorant, uma seção nova mostra como a minha mira se move, flick por flick, lida dos replays do próprio Aimlabs: quantas vezes o primeiro movimento para antes do alvo e quantas passa dele, quanto do caminho ele faz, as correções depois, se eu clico com a mira ainda andando (e quanto acerto assim), a tremedeira antes do clique e por que cada erro errou. Atualiza junto com o treino.",
+    title: "Análise de mira",
+    text: "Flick por flick, lido dos replays do Aimlabs: onde a minha mira para, quanto passa do alvo e quanto treme antes do clique.",
     href: "/conteudo/valorant/aim",
     media: [
       media("analise-de-mira", "A seção nova: o primeiro movimento leva a mira a 88% do caminho, paro antes do alvo em 62% dos flicks e passo em 32%, e acerto 46% clicando em movimento contra 62% parado"),
@@ -150,22 +144,13 @@ export const SHIPPED: Shipped[] = [
     ],
   },
   {
-    id: "minijogos-com-cara-de-jogo",
-    date: "2026-11-18",
-    tag: "site",
-    title: "Minijogos com cara de jogo",
-    text: "A página dos minijogos virou uma tela de seleção: cada classe do duelo com o desenho da live, uma ficha em barras (dano, alcance, velocidade, crescimento), os visuais da arma lado a lado e o pódio do ranking. O replay no site agora é o mesmo quadrado da live, e a corrida tem a sua bolinha em 3D e o replay de cada corrida.",
-    href: "/canal/minijogos",
-    media: [media("minijogos-com-cara-de-jogo", "A tela de seleção do duelo: a arena à esquerda, a ficha da Adaga com as barras e os visuais da arma, e as classes embaixo")],
-  },
-  {
     id: "corrida-de-bolinhas",
     date: "2026-11-18",
     tag: "live",
-    title: "Corrida de bolinhas em 3D entre as partidas",
-    text: "Quando a cena de conversa entra, entre uma partida e outra, começa sozinha uma corrida em 3D com todo mundo do chat: uma bolinha pra cada um, feita do seu torcedor (as cores e a estampa da camisa). Cada corrida monta uma pista nova: campo de pinos, moinhos girando, funil, escadaria, ponte sem grade com empurradores, vale com para-choques e salto. Quem cai volta um pedaço. Os três primeiros sobem no pódio, e as vitórias ficam em Minijogos, com o replay de cada corrida, e na página de cada um.",
-    credit: { by: "lucca_3098" },
+    title: "Corrida de bolinhas",
+    text: "Entre as partidas, todo mundo do chat corre numa pista 3D nova a cada corrida, com a bolinha do seu torcedor.",
     href: "/canal/minijogos",
+    credits: [{ by: "lucca_3098" }],
     media: [
       media("corrida-de-bolinhas", "A corrida 3D embaixo da câmera: a largada no portão, os moinhos, a ponte sem grade, o campo de pinos, a chegada e o pódio", { video: true }),
     ],
@@ -175,7 +160,7 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-18",
     tag: "site",
     title: "Uma página pra cada viewer",
-    text: "Cada um da torcida tem a sua página no site: o torcedor, os Σ e as medalhas, os gols dedicados, os duelos com replay, os Pix no mural, as ideias no roadmap e as partidas que jogou comigo. Passe o mouse em qualquer nome do site e aparece o cartão da pessoa, que você monta no seu perfil como no Discord: banner, foto, cores, pronomes, um “sobre mim” e o seu jogo. No chat, o !perfil manda o link.",
+    text: "O seu torcedor, os Σ, as medalhas, os duelos, os Pix e as partidas comigo, com um cartão que você monta no perfil.",
     href: "/torcedor/jpmartins_1",
     media: [
       media("casa-da-comunidade", "A página do jpmartins_1: o cartão com o torcedor de camisa do Fluminense, 721 Σ em Ouro III, as horas, as lives, a sequência e as medalhas"),
@@ -183,59 +168,17 @@ export const SHIPPED: Shipped[] = [
     ],
   },
   {
-    id: "duelo-compacto",
-    date: "2026-11-17",
-    tag: "live",
-    title: "Duelo menor na live: só a arena",
-    text: "O duelo ocupa metade do canto: só a arena com a luta, os dois nomes com a vida e a classe em cima, e a vida de cada um dentro da bolinha. Nada passa da parede.",
-    href: "/canal/minijogos",
-    media: [
-      media("duelo-compacto", "O duelo menor no canto da tela: Punho contra Clava, os nomes e as barras de vida em cima da arena e a vida de cada um dentro da bolinha"),
-    ],
-  },
-  {
-    id: "duelo-com-fisica",
-    date: "2026-11-16",
-    tag: "live",
-    title: "Duelo de bolinhas com física de verdade e 10 classes",
-    text: "As bolinhas agora caem e quicam numa arena quadrada, sem ninguém guiando, como nos vídeos do earclacks, e cada classe tem uma habilidade que aparece na tela e cresce a cada acerto: veneno, atordoamento, cortes, embalo, socos. Chegaram Punho, Martelo, Katana e Clava, e todas vencem perto de metade das lutas.",
-    href: "/canal/minijogos",
-    media: [
-      media("duelo-com-fisica", "O duelo novo: a bolinha de Punho, atordoada pela Clava, fica parada com estrelas na cabeça e as luvas apagadas", { video: true }),
-    ],
-  },
-  {
-    id: "duelo-no-site",
-    date: "2026-11-15",
-    tag: "site",
-    title: "Minijogos no site: sua bolinha, o ranking e os replays",
-    text: "Em Minijogos, no canal, você escolhe a classe da sua bolinha (ou deixa aleatória) e o visual da arma entre os que seus Σ já liberaram, e vê ela lutando na hora. Cada duelo da live fica registrado: suas vitórias, o ranking e as últimas lutas, cada uma com o replay daquela luta.",
-    credit: { by: "lucca_3098" },
-    media: [
-      media("minijogos", "A prévia na página de minijogos: a sua bolinha, de Katana, lutando contra a do canal, de Espada"),
-      media("minijogos-escolha", "A página no celular: a prévia e as dez classes, com o Martelo escolhido", { portrait: true }),
-    ],
-  },
-  {
     id: "duelo-de-bolinhas",
     date: "2026-11-15",
     tag: "live",
-    title: "Duelo de bolinhas no canto da tela",
-    text: "Dois viewers sorteados do chat se enfrentam no canto da tela, um duelo atrás do outro: cada um é uma bolinha com as cores do seu torcedor e uma arma que cresce a cada acerto (espada, adaga, arco, lança, machado ou foice, sorteada a cada duelo). Todo mundo tem a mesma força; seus Σ só deixam a arma mais bonita, do bronze à Lenda Supersônica. Quando o VAR abre, o duelo espera.",
-    credit: { by: "lucca_3098" },
+    title: "Duelo de bolinhas",
+    text: "Dois do chat se enfrentam no canto da tela. A classe da sua bolinha você escolhe no site, onde ficam o ranking e o replay de cada luta.",
+    href: "/canal/minijogos",
+    credits: [{ by: "lucca_3098" }],
     media: [
-      media("duelo-de-bolinhas", "O duelo no canto da live: lucas_s, de Machado, acerta um crítico e derruba o otto, de Arco, e o torcedor dele comemora", { video: true }),
-    ],
-  },
-  {
-    id: "gorro-de-natal",
-    date: "2026-11-15",
-    tag: "live",
-    title: "Gorro de Natal na câmera, e o canal enfeitado",
-    text: "Em dezembro eu uso um gorro de Papai Noel na câmera, por cima de qualquer filtro: no meu cabelo, no do Phoenix, do Sova ou da Sage, na bola ou no teto do Octane e do Fennec. A ponta balança quando eu mexo a cabeça, e numa Demolição ele voa e cai de volta. A moldura da câmera ganha luzinhas piscando, as telas de começo, intervalo, conversa e fim ficam com neve, e o site também: neve no fundo e a torcida de touca.",
-    media: [
-      media("gorro-de-natal", "Um gorro de Papai Noel cai na minha cabeça na câmera; com o filtro do Octane ele vai pro teto do carro, e numa Demolição voa dando uma volta, cai na minha cabeça e volta pro teto quando o carro reaparece", { video: true }),
-      media("natal-na-moldura", "A cena de conversa em dezembro: a moldura da câmera com luzinhas coloridas e neve caindo no fundo azul"),
+      media("duelo-compacto", "O duelo no canto da tela: Punho contra Clava, os nomes e as barras de vida em cima da arena e a vida de cada um dentro da bolinha"),
+      media("duelo-com-fisica", "A bolinha de Punho, atordoada pela Clava, fica parada com estrelas na cabeça e as luvas apagadas", { video: true }),
+      media("minijogos-com-cara-de-jogo", "A tela de seleção no site: a arena, a ficha da Adaga com as barras e os visuais da arma, e as classes embaixo"),
     ],
   },
   {
@@ -243,166 +186,52 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-15",
     tag: "live",
     title: "Natal na live",
-    text: "De 1º a 31 de dezembro, a meta do Pix é uma árvore de Natal: cada Pix pendura nela um presente que você monta no /pix (bola, sino, estrela, bengala ou caixa, nas suas cores), e ela acende conforme a meta enche, na live e no mural. A cada R$ 10, um sub de presente sorteado na live entre quem está na arquibancada, e a torcida inteira de touca de Papai Noel.",
+    text: "Em dezembro, cada Pix pendura um presente na árvore da meta, e a cada R$ 10 sai um sub de presente. Com gorro na câmera.",
     href: "/mural",
-    credit: { by: "leila_m_30" },
+    credits: [{ by: "leila_m_30" }],
     media: [
       media("natal-na-live", "A live com a árvore de Natal no canto, acesa até a metade, e o Pix da Ana chegando com o presente dela, um sino vermelho listrado de amarelo"),
+      media("gorro-de-natal", "Um gorro de Papai Noel cai na minha cabeça na câmera; com o filtro do Octane ele vai pro teto do carro, e numa Demolição voa e volta", { video: true }),
       media("natal-na-live-presente", "O /pix na meta de Natal: o presente sendo montado, com o formato, a cor, o detalhe e a estampa, e a prévia ao lado"),
     ],
   },
   {
-    id: "metas-com-prazo",
-    date: "2026-11-15",
-    tag: "site",
-    title: "Metas com data pra acabar",
-    text: "Cada meta do Pix mostra até quando vai, na live e no site, e fecha sozinha à meia-noite do último dia: no mural ela fica como batida ou não, e o que passar do alvo antes disso conta como extra. A agenda mostra a meta de agora, a próxima e o dia em que cada uma começa e acaba.",
-    href: "/canal/agenda",
-    media: [media("metas-com-prazo", "A agenda com a meta dos três dígitos (R$ 67,67 de R$ 100, até 30/11) e a de Natal depois; no calendário de dezembro, o fim de uma meta no dia 30 e o começo da outra no dia 1º")],
-  },
-  {
     id: "comandos-da-live",
     date: "2026-11-15",
-    tag: "live",
-    title: "Todos os comandos da live num lugar só",
-    text: "Uma página com cada comando do chat e cada jeito de participar da live (os da arquibancada dá pra testar ali mesmo), a mesma lista no painel da Twitch e no !comandos. Comandos novos: !comemora e !grito na arquibancada, !sigma (os seus Σ e o seu ranque) e !agenda no bot. A arquibancada dos créditos agora obedece aos comandos, e de tempos em tempos o meu torcedor ensina um.",
+    tag: "site",
+    title: "Comandos da live",
+    text: "Todo jeito de participar pelo chat numa página só, com a arquibancada pra testar.",
     href: "/canal/comandos",
     media: [media("comandos-da-live", "A página de comandos: a arquibancada de exemplo, com o torcedor do meio soltando o grito, em cima da lista de comandos")],
-  },
-  {
-    id: "letra-da-musica",
-    date: "2026-11-14",
-    tag: "live",
-    title: "A letra da música do Pix, no tempo da música",
-    text: "A música feita por IA no Pix agora vem com a letra acompanhando, como no Spotify: na live aparece a linha que está sendo cantada e a próxima, e no mural a letra acende junto com o player (clique numa linha pra ir até ela).",
-    href: "/mural",
-    media: [media("letra-da-musica", "Uma música do Pix tocando na live: embaixo do nome de quem mandou, a linha que está sendo cantada e a próxima, mais clara")],
-  },
-  {
-    id: "cena-diversos",
-    date: "2026-11-14",
-    tag: "live",
-    title: "Uma cena pros outros jogos",
-    text: "Jogo que não é Rocket League nem Valorant agora tem cena própria: a câmera, o chat, a arquibancada, o Pix, o VAR e o Lance ruim de sempre, sem ranque na câmera e sem a torcida comemorando gol ou round que não existe. É só abrir o jogo em tela cheia.",
-    media: [media("cena-diversos", "A cena dos outros jogos no OBS: Can 'Em All na tela, Luan na câmera no canto e a arquibancada embaixo")],
-  },
-  {
-    id: "agenda-editavel",
-    date: "2026-11-14",
-    tag: "site",
-    title: "A agenda das lives, dia a dia",
-    text: "A agenda virou um calendário que eu planejo dia a dia no site: cada live com horário, jogo, título e o roteiro do que vai rolar, e o fim de semana detalhado. O calendário da Twitch muda junto e a live já abre com o título e a categoria certos.",
-    href: "/canal/agenda",
-    media: [
-      media("agenda-editavel", "A agenda no site: o calendário com as lives de cada dia e o dia escolhido com a live dele"),
-      media("agenda-editavel-editor", "Planejando um dia na agenda: o horário, o jogo, o título e o roteiro de cada live"),
-    ],
-  },
-  {
-    id: "terapia-repaginada",
-    date: "2026-11-14",
-    tag: "live",
-    title: "A Terapia repaginada",
-    text: "A cena da Terapia ganhou cara nova: eu no meio de um círculo que respira junto com o guia (abre no inspira, fecha no solta), os passos da respiração de um lado e o chat do outro, e ela agora entra e sai numa onda de água no lugar daquele fade lento. Centralizada, cabe inteira num short vertical.",
-    media: [media("terapia-repaginada", "A nova cena da Terapia: Luan no meio do círculo de respiração, com os passos de um lado e o chat do outro", { video: true })],
-  },
-  {
-    id: "carros-pintura",
-    date: "2026-11-14",
-    tag: "live",
-    title: "Pintura e decalque animado nos carros da câmera",
-    text: "O Octane e o Fennec na minha cabeça agora vêm laranja, pra não sumir no meu fundo azul, e dá pra trocar a cor e botar um decalque animado como os do jogo: chamas, neon, arco-íris ou listras.",
-    credit: { by: "ccamara" },
-    media: [
-      media("carros-pintura", "Luan com a cara de Octane: o azul de antes sumindo no fundo azul, e o laranja de agora"),
-      media("carros-decalques", "O Octane na cabeça do Luan com decalques animados: chamas, neon, arco-íris e listras"),
-    ],
-  },
-  {
-    id: "filtro-na-troca-de-cena",
-    date: "2026-11-14",
-    tag: "live",
-    title: "O filtro da câmera no lugar certo na troca de cena",
-    text: "Voltando da conversa pro jogo, o filtro aparecia por um instante grande no canto de cima antes de ir pra câmera. Agora cada cena já mostra ele no lugar dela durante a transição.",
-  },
-  {
-    id: "filtros-60fps",
-    date: "2026-11-13",
-    tag: "live",
-    title: "Os filtros da câmera a 60 fps",
-    text: "A câmera foi pra 60 fps e os filtros agora acompanham sem travar: antes, ligar um filtro derrubava a câmera pra uns 15 quadros por segundo. O arco do Sova e a bola do Phoenix seguem as minhas mãos quadro a quadro, as roupas dos agentes grudam nos ombros, e a parede da Sage agora sai quando eu cruzo os braços em X e abro.",
-    media: [media("filtros-60fps", "Luan acenando com a cara de Octane na câmera a 60 fps", { video: true })],
-  },
-  {
-    id: "var-com-replay",
-    date: "2026-11-12",
-    tag: "live",
-    title: "VAR com replay de verdade",
-    text: "O VAR agora passa o replay do jogo limpo, sem câmera nem overlay, num mini player no canto enquanto a partida segue: uma vez normal, outra em câmera lenta e uma tela de últimos votos. A votação do chat aparece direito, e empate é sorteado.",
-    media: [
-      media("var-com-replay", "O VAR no canto da live: o replay do lance em câmera lenta a 50% e, embaixo, a votação do chat com !1 ou !2"),
-    ],
-  },
-  {
-    id: "filtro-sage",
-    date: "2026-11-12",
-    tag: "live",
-    title: "A Sage nos filtros da câmera",
-    text: "A Sage no meu rosto, com o cabelo e o casaco dela tirados do jogo, e as habilidades dela: a parede de cristal subindo na minha frente e quebrando, o orbe de lentidão que estoura embaixo e deixa gelo subindo em mim, a cura quando eu junto as palmas e a ressurreição, com os efeitos, a parede e os sons do próprio Valorant. E o painel dos filtros no OBS virou uma lista com o rosto de cada agente, pra caber os próximos.",
-  },
-  {
-    id: "sons-dos-filtros",
-    date: "2026-11-12",
-    tag: "live",
-    title: "Os filtros da câmera com os sons do jogo",
-    text: "As habilidades do Phoenix e do Sova agora soam como no Valorant, com os sons tirados do próprio jogo: a Bola Curva estoura e quem está assistindo ouve o zumbido de quem foi cegado, a flecha do Sova crava e faz o sonar, o drone zune voando atrás de mim. E o Octane e o Fennec com o pulo e o dodge do flip e a explosão da demolição do Rocket League.",
-  },
-  {
-    id: "filtros-sova-e-carros",
-    date: "2026-11-11",
-    tag: "live",
-    title: "Filtros na câmera: Phoenix e Sova com as habilidades do jogo, Octane e Fennec",
-    text: "O Phoenix e o Sova com as habilidades feitas com os efeitos e os modelos do próprio jogo. O Phoenix com Labareda, Bola Curva, Mãos Quentes e a ultimate. O Sova com o arco dele, que abre quando eu junto os punhos e atira quando eu solto a corda, a flecha de reconhecimento que crava na borda e me revela em vermelho, a flecha de choque que quica e explode, o drone coruja que aparece quando eu mostro as palmas e pode ficar voando atrás de mim, e a Fúria do Caçador. E a minha cabeça virando um Octane ou um Fennec, com os meus olhos no para-brisa e a boca no para-choque, que dá flip e explode numa demolição. Tudo escolhido num painel novo no OBS.",
-    media: [
-      media("filtros-phoenix-habilidades", "Luan de Phoenix com as quatro habilidades: a Labareda, a Bola Curva na mão, o fogo das Mãos Quentes e a ultimate"),
-      media("filtros-sova-habilidades", "Luan de Sova com as habilidades do jogo: o arco puxado com a flecha de reconhecimento, a flecha de choque explodindo no ombro, o drone coruja acertando o dardo e a Fúria do Caçador disparando"),
-      media("filtros-octane", "Luan com a cara de Octane: os olhos dele no para-brisa e a boca no para-choque"),
-      media("filtros-fennec", "Luan com a cara de Fennec: os olhos dele no para-brisa e a boca no para-choque"),
-    ],
   },
   {
     id: "anuncio-no-intervalo",
     date: "2026-11-11",
     tag: "live",
     title: "Anúncio só no intervalo",
-    text: "Quem chega na live não vê anúncio. Em troca, um intervalo de 3 min por hora, rodado entre uma partida e outra, e o primeiro durante o Começando, que conta até ele acabar.",
+    text: "Quem chega na live não vê anúncio: o intervalo é de 3 min por hora, entre uma partida e outra.",
     media: [media("anuncio-no-intervalo", "A tela de Começando contando 3:10 até o fim do anúncio de abertura, quando a live começa")],
   },
   {
     id: "musica-no-pix",
     date: "2026-11-10",
     tag: "live",
-    title: "Música feita por IA no Pix",
-    text: "A partir de R$ 5: escolha o estilo e diga sobre o que é a música, ou escreva a letra. A IA canta em português, a música toca na live e depois fica no mural pra você ouvir e baixar.",
+    title: "Música no Pix",
+    text: "A partir de R$ 5, a IA faz uma música no estilo e no tema que você escolher, e ela toca na live com a letra.",
     href: "/pix",
-    media: [media("musica-no-pix", "O Pix com a opção de música: os estilos, de funk a pop, e o campo pra dizer sobre o que é a música")],
-  },
-  {
-    id: "legendas-traduzidas",
-    date: "2026-11-10",
-    tag: "live",
-    title: "Legendas traduzidas",
-    text: "A legenda da live pode sair em inglês enquanto eu falo português, ou em português quando eu falo inglês: traduzida na hora, aqui no meu PC.",
-    media: [media("legendas-traduzidas", "A legenda da live em inglês, \"Whoa! What is that?\", enquanto eu falava em português no menu do Rocket League")],
+    media: [
+      media("musica-no-pix", "O Pix com a opção de música: os estilos, de funk a pop, e o campo pra dizer sobre o que é a música"),
+      media("letra-da-musica", "Uma música do Pix tocando na live: embaixo do nome de quem mandou, a linha que está sendo cantada e a próxima"),
+    ],
   },
   {
     id: "loadout-dos-sonhos",
     date: "2026-11-10",
     tag: "site",
-    title: "Monte seu loadout dos sonhos no Valorant",
-    text: "Escolha a skin de cada arma entre todas do jogo e exporte numa imagem só. Entrando com a Twitch, fica salvo no seu perfil, com um link pra mostrar. E a minha coleção agora se atualiza sozinha direto do jogo.",
+    title: "Loadout dos sonhos no Valorant",
+    text: "Escolha a skin de cada arma entre todas do jogo e exporte numa imagem.",
     href: "/conteudo/valorant/inventory#montar",
-    credit: { by: "maxchadoz" },
+    credits: [{ by: "maxchadoz" }],
     media: [media("loadout-dos-sonhos", "A minha coleção dos sonhos exportada como imagem: as 21 armas, 13 com skin escolhida")],
   },
   {
@@ -410,94 +239,30 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-10",
     tag: "live",
     title: "Créditos no fim da live",
-    text: "A live termina como filme: os créditos sobem com quem seguiu, se inscreveu, mandou Pix e assistiu, e cada nome que passa faz o seu torcedor comemorar na arquibancada.",
+    text: "Quem seguiu, se inscreveu, mandou Pix e assistiu sobe nos créditos, e o seu torcedor comemora.",
     media: [media("creditos-da-live", "Os créditos subindo ao lado da câmera, com a arquibancada de quem assistiu embaixo", { video: true })],
-  },
-  {
-    id: "mural-do-pix-com-valores",
-    date: "2026-11-10",
-    tag: "site",
-    title: "Mural do Pix: todo Pix com seu valor",
-    text: "Cada meta lista todos os Pix, com o nome e a mensagem como aparecem na live. Com a Twitch conectada, seu torcedor vem junto e o Pix ainda dá Σ.",
-    href: "/mural",
-    media: [media("mural-pix-valores", "A meta atual no mural, com cada Pix, seu valor e sua mensagem")],
-  },
-  {
-    id: "rlr-em-portugues",
-    date: "2026-11-10",
-    tag: "rlr",
-    title: "RLR em português",
-    text: "Toda a interface do RLR agora em português: o player, o jogar daqui, a prancheta e o estúdio.",
-    href: "/rlr/",
-  },
-  {
-    id: "ranking-do-mural",
-    date: "2026-11-10",
-    tag: "site",
-    title: "Mural: o ranking por Σ",
-    text: "A audiência agora é um ranking por Σ, como a arquibancada da live: os três primeiros no pódio e todo mundo logo abaixo, com os Σ, as horas e as lives de cada um.",
-    href: "/mural#audiencia",
-    media: [media("mural-ranking", "O pódio dos três com mais Σ e o ranking da audiência no mural")],
-  },
-  {
-    id: "politica-de-privacidade",
-    date: "2026-11-10",
-    tag: "site",
-    title: "“Política de privacidade” no rodapé",
-    text: "O link do rodapé dizia só “Privacidade” e parecia perfil de outra plataforma. Agora diz o que é.",
-    href: "/privacidade",
-    credit: { by: "lucca_3098" },
   },
   {
     id: "roadmap",
     date: "2026-11-10",
     tag: "site",
-    title: "Roadmap e changelog",
-    text: "Esta página: o que vem por aí, tudo o que já entrou no canal e quem deu cada ideia.",
-    credit: { by: "lucca_3098" },
-  },
-  {
-    id: "lives-valorant",
-    date: "2026-11-10",
-    tag: "videos",
-    title: "Lives de Valorant no site e no YouTube",
-    text: "As lives de Valorant também ficam inteiras no site, com um capítulo por partida (mapa e RR) e o resumo do competitivo, e na playlist “Valorant ao vivo” no YouTube.",
-    href: "/canal/lives/2026-11-09",
-    media: [media("lives-valorant", "A thumbnail da live de Valorant de 9 de novembro")],
-  },
-  {
-    id: "pix-uma-vez",
-    date: "2026-11-10",
-    tag: "live",
-    title: "Cada Pix toca uma vez só",
-    text: "Um Pix com mensagem longa, de mais de 30 segundos, voltava para a fila e tocava duas vezes na live. Agora toca uma vez, por mais longo que seja.",
-    credit: { by: "jpmartins_1", as: "report", about: "Pix tocando duas vezes" },
-  },
-  {
-    id: "lives-inteiras",
-    date: "2026-11-10",
-    tag: "videos",
-    title: "Live picotada vira um vídeo só",
-    text: "Quando o OBS reinicia no meio da live, os pedaços da gravação viram um vídeo inteiro no YouTube e no site, com os capítulos no lugar certo.",
-    href: "/canal/lives",
-  },
-  {
-    id: "alertas-no-fone",
-    date: "2026-11-10",
-    tag: "live",
-    title: "Alertas no meu fone",
-    text: "Os alertas de inscrição e de pontos do canal agora tocam no meu fone também, então eu ouço na hora e agradeço ao vivo.",
+    title: "Roadmap",
+    text: "Esta página: o que vem por aí, o que já saiu e quem deu cada ideia.",
+    credits: [{ by: "lucca_3098" }],
+    media: [media("roadmap", "As ideias da comunidade no roadmap: o torcedor de cada um que deu uma ideia, na arquibancada")],
   },
   {
     id: "filtros-na-camera",
     date: "2026-11-10",
     tag: "live",
-    title: "Filtros na câmera: Phoenix e a bola",
-    text: "O cabelo e a jaqueta do Phoenix, com fogo entre as mãos e o flash, ou uma bola do Rocket League no lugar da cabeça, trocados por um painel no OBS.",
-    credit: { by: "woody_fdp" },
+    title: "Filtros na câmera",
+    text: "Phoenix, Sova e Sage com as habilidades e os sons do jogo, ou a bola e os carros do Rocket League no lugar da minha cabeça.",
+    credits: [{ by: "woody_fdp" }, { by: "ccamara", about: "Pintura e decalques nos carros" }],
     media: [
       media("filtros-phoenix", "Luan com o cabelo e a jaqueta do Phoenix na câmera da live", { video: true }),
-      media("filtros-bola", "Luan com a cabeça de bola na câmera, no gol de 124 km/h"),
+      media("filtros-sova-habilidades", "Luan de Sova com as habilidades do jogo: o arco puxado com a flecha de reconhecimento, a flecha de choque, o drone coruja e a Fúria do Caçador"),
+      media("filtros-60fps", "Luan acenando com a cara de Octane na câmera", { video: true }),
+      media("carros-decalques", "O Octane na cabeça do Luan com decalques animados: chamas, neon, arco-íris e listras"),
     ],
   },
   {
@@ -505,8 +270,9 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-10",
     tag: "live",
     title: "VAR",
-    text: "Num lance polêmico, o replay volta numa cabine de árbitro de vídeo, a arquibancada veste o uniforme de juiz e o chat vota o veredito com !1, !2 ou !3. Quem votou no veredito ganha 3 Σ.",
+    text: "Num lance polêmico, o replay passa na tela e o chat vota o veredito. Quem acerta ganha 3 Σ.",
     media: [
+      media("var-com-replay", "O VAR no canto da live: o replay do lance em câmera lenta a 50% e, embaixo, a votação do chat com !1 ou !2"),
       media("var", "A cabine do VAR: o replay do gol no monitor, a câmera ao vivo e a votação do chat"),
     ],
   },
@@ -515,142 +281,88 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-09",
     tag: "site",
     title: "Inventário do Valorant",
-    text: "A coleção de skins que estou montando, arma por arma, e o que está em cada uma agora, lido do próprio jogo.",
+    text: "A coleção de skins que estou montando, arma por arma, lida do próprio jogo.",
     href: "/conteudo/valorant/inventory",
-    media: [
-      media("inventario", "O inventário: as skins da coleção e as que faltam"),
-    ],
+    media: [media("inventario", "O inventário: as skins da coleção e as que faltam")],
   },
   {
     id: "jogar-o-replay",
     date: "2026-11-08",
     tag: "rlr",
     title: "Jogar o replay",
-    text: "Em qualquer momento de um replay, assuma o carro de um dos jogadores e tente de novo. E treine os gols de uma partida: defenda o que tomou, marque de novo o que fez.",
+    text: "Em qualquer momento de um replay, assuma o carro de um jogador e tente de novo, com a física do Rocket League no navegador.",
     href: "/rlr/",
-    credit: {
-      by: "victormendes",
-      link: "https://www.youtube.com/watch?v=v4ZrX_l4xD0&lc=Ugwm9jRNHRZMf7VFmQh4AaABAg",
-    },
-    media: [
-      media("jogar-o-replay", "Jogando com o carro do muanlartins a partir de um momento do replay, no RLR"),
-    ],
-  },
-  {
-    id: "free-play",
-    date: "2026-11-08",
-    tag: "rlr",
-    title: "Free play no navegador",
-    text: "A física do Rocket League (RocketSim) rodando no RLR, com o teclado do jogo e boost infinito.",
-    href: "/rlr/",
+    credits: [{ by: "victormendes", link: "https://www.youtube.com/watch?v=v4ZrX_l4xD0&lc=Ugwm9jRNHRZMf7VFmQh4AaABAg" }],
+    media: [media("jogar-o-replay", "Jogando com o carro do muanlartins a partir de um momento do replay, no RLR")],
   },
   {
     id: "mira-valorant",
     date: "2026-11-08",
     tag: "site",
     title: "Mira no Valorant",
-    text: "A rotina do Voltaic no Aimlabs todo dia e o benchmark de domingo, com o meu ranque de mira e o que está me segurando.",
+    text: "O treino do Voltaic no Aimlabs todo dia e o benchmark de domingo, com o meu ranque de mira.",
     href: "/conteudo/valorant/aim",
     video: "39EpzaB0598",
-    media: [
-      media("mira", "A página de mira: o ranque do Voltaic, a energia e onde focar"),
-    ],
+    media: [media("mira", "A página de mira: o ranque do Voltaic, a energia e onde focar")],
   },
   {
     id: "valorant",
     date: "2026-11-08",
     tag: "live",
     title: "Valorant, o segundo jogo",
-    text: "Lives de segunda e quarta à noite, aprendendo do Prata: ranque e RR na tela, a arquibancada torcendo pelos rounds e cada partida registrada no site.",
+    text: "Aprendendo do Prata, com o ranque na tela, a arquibancada torcendo pelos rounds e cada partida no site.",
     href: "/conteudo/valorant",
-    media: [
-      media("valorant", "A página do Valorant, com o estande de tiro"),
-    ],
-  },
-  {
-    id: "canal-na-home",
-    date: "2026-11-08",
-    tag: "site",
-    title: "O canal virou a página inicial",
-    text: "muanlartins.com.br abre na próxima live, nos jogos e na arquibancada.",
-    href: "/",
-  },
-  {
-    id: "quem-jogou-comigo",
-    date: "2026-11-08",
-    tag: "site",
-    title: "Quem jogou comigo",
-    text: "Os viewers que toparam aparecem com o seu torcedor nas ranqueadas, em cada partida que jogaram comigo.",
-    href: "/conteudo/rocket-league/ranked",
-  },
-  {
-    id: "pontos-do-canal",
-    date: "2026-11-08",
-    tag: "live",
-    title: "Pontos do canal",
-    text: "Os sons da live resgatados com pontos do canal na Twitch: 300 pontos cada.",
+    media: [media("valorant", "A página do Valorant, com o estande de tiro")],
   },
   {
     id: "afiliado",
     date: "2026-11-07",
     tag: "marca",
-    title: "Afiliado da Twitch: emotes e selos",
-    text: "Emotes e selos de inscrito desenhados na identidade do canal.",
+    title: "Emotes e selos",
+    text: "Afiliado da Twitch, com emotes e selos de inscrito na identidade do canal.",
     video: "Wq6clV_6UGA",
-    media: [
-      media("emotes", "Os emotes do canal na Twitch"),
-    ],
+    media: [media("emotes", "Os emotes do canal na Twitch")],
   },
   {
     id: "efeitos",
     date: "2026-11-07",
     tag: "live",
     title: "Efeitos na live",
-    text: "Lance ruim dá zoom na minha cara com speed lines de anime, a Terapia acalma com água e música, e os sons são todos sintetizados aqui.",
-    media: [
-      media("terapia", "A cena Terapia: água animada nas cores do canal e um círculo para respirar"),
-    ],
+    text: "Lance ruim dá zoom na minha cara, a Terapia acalma com respiração guiada, e os sons saem com os pontos do canal.",
+    media: [media("terapia-repaginada", "A cena da Terapia: Luan no meio do círculo de respiração, com os passos de um lado e o chat do outro", { video: true })],
   },
   {
     id: "audiencia",
     date: "2026-11-07",
     tag: "site",
-    title: "Mural: a audiência",
-    text: "Todo mundo que já assistiu a uma live, quem mais assiste, os marcos e a arquibancada de quem estava lá na afiliação.",
+    title: "Audiência no mural",
+    text: "Todo mundo que já assistiu, num ranking por Σ com pódio.",
     href: "/mural#audiencia",
-  },
-  {
-    id: "time-do-coracao",
-    date: "2026-11-06",
-    tag: "live",
-    title: "Time do coração no torcedor",
-    text: "A camisa de um clube da Série A, nas cores e no padrão dele, ou qualquer time pelo nome.",
-    href: "/perfil",
+    media: [media("mural-ranking", "O pódio dos três com mais Σ e o ranking da audiência no mural")],
   },
   {
     id: "legendas",
     date: "2026-11-06",
     tag: "live",
     title: "Legendas ao vivo",
-    text: "O que eu falo aparece em cima da arquibancada, transcrito na hora pelo Whisper.",
+    text: "O que eu falo aparece na tela na hora, e pode sair traduzido.",
+    media: [media("legendas-traduzidas", "A legenda da live em inglês, \"Whoa! What is that?\", enquanto eu falava em português no menu do Rocket League")],
   },
   {
     id: "shorts",
     date: "2026-11-06",
     tag: "videos",
     title: "Shorts e vídeos comentados",
-    text: "Gravados no estúdio do RLR, editados de ponta a ponta, com legenda palavra por palavra.",
+    text: "Gravados no estúdio do RLR, com legenda palavra por palavra.",
     video: "f3GpRWPPr8w",
-    media: [
-      media("shorts", "O short do melhor gol da carreira", { video: true, portrait: true }),
-    ],
+    media: [media("shorts", "O short do melhor gol da carreira", { video: true, portrait: true })],
   },
   {
     id: "pix",
     date: "2026-11-05",
     tag: "live",
     title: "Pix na live",
-    text: "Sua mensagem na tela, escrita ou gravada, na voz que você escolher, sem taxa nenhuma. Com login da Twitch, cada real vira 10 Σ.",
+    text: "Sua mensagem na tela, escrita ou gravada, na voz que você escolher, sem taxa.",
     href: "/pix",
     video: "PuE0yF9oIEc",
     media: [
@@ -663,109 +375,85 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-05",
     tag: "site",
     title: "Mural do Pix",
-    text: "Quem apoiou, meta por meta, com o seu torcedor.",
+    text: "Cada meta com todo Pix que chegou, com o nome, a mensagem e o seu torcedor.",
     href: "/mural",
-    media: [
-      media("mural", "O mural com quem apoiou com Pix"),
-    ],
-  },
-  {
-    id: "badges",
-    date: "2026-11-05",
-    tag: "site",
-    title: "Badges e sequência de lives",
-    text: "Horas assistidas, lives, a maior sequência e o Pix viram badges de oito níveis no seu perfil.",
-    href: "/perfil",
+    media: [media("mural-pix-valores", "A meta atual no mural, com cada Pix, seu valor e sua mensagem")],
   },
   {
     id: "agenda",
     date: "2026-11-05",
     tag: "site",
     title: "Agenda das lives",
-    text: "Os horários no site, no calendário do seu celular e na própria Twitch.",
-    href: "/canal/lives",
+    text: "Cada live com horário, jogo e roteiro, no site, no calendário do celular e na Twitch.",
+    href: "/canal/agenda",
+    media: [
+      media("agenda-editavel", "A agenda no site: o calendário com as lives de cada dia e o dia escolhido com a live dele"),
+      media("agenda-editavel-editor", "Planejando um dia na agenda: o horário, o jogo, o título e o roteiro de cada live"),
+    ],
   },
   {
     id: "estudio-rlr",
     date: "2026-11-05",
     tag: "rlr",
     title: "Estúdio de análise",
-    text: "A gravação da live sincronizada com o replay em 3D, para comentar as partidas por qualquer ângulo.",
+    text: "A gravação da live sincronizada com o replay em 3D, pra comentar as partidas de qualquer ângulo.",
     href: "/rlr/",
     video: "v4ZrX_l4xD0",
-    media: [
-      media("estudio", "O estúdio do RLR: uma jogada desenhada por cima do replay em 3D"),
-    ],
+    media: [media("estudio", "O estúdio do RLR: uma jogada desenhada por cima do replay em 3D")],
   },
   {
     id: "arquibancada",
     date: "2026-11-04",
     tag: "live",
     title: "Arquibancada",
-    text: "Quem está no chat vira torcedor na tela: comemora os gols, solta stickers, fala em balões e ganha dedicatória.",
+    text: "Quem está no chat vira torcedor na tela e comemora os gols.",
     video: "qbLnRqsucUI",
-    media: [
-      media("arquibancada", "A arquibancada da live no começo de uma partida", { video: true }),
-    ],
+    media: [media("arquibancada", "A arquibancada da live no começo de uma partida", { video: true })],
   },
   {
     id: "galvao",
     date: "2026-11-04",
     tag: "live",
     title: "Narração dos gols",
-    text: "Um narrador de voz conhecida grita os nossos gols com a velocidade do chute, só na live.",
-    media: [
-      media("galvao", "A arquibancada comemorando um gol de 124 km/h"),
-    ],
+    text: "Um narrador de voz conhecida grita os nossos gols, com a velocidade do chute.",
+    media: [media("galvao", "A arquibancada comemorando um gol de 124 km/h")],
   },
   {
     id: "perfil",
     date: "2026-11-04",
     tag: "site",
     title: "Perfil e torcedor",
-    text: "Entre com a Twitch e monte o seu torcedor: cores, cabeça, roupa, acessório, comemoração e stickers.",
+    text: "Entre com a Twitch e monte o seu torcedor, até com a camisa do seu time.",
     href: "/perfil",
-    media: [
-      media("perfil", "O editor de torcedor no perfil", { video: true }),
-    ],
+    media: [media("perfil", "O editor de torcedor no perfil", { video: true })],
   },
   {
     id: "sigma",
     date: "2026-11-04",
     tag: "live",
     title: "Σ, os pontos do canal",
-    text: "Cada minuto de live vale Σ, que nunca se gasta nem se perde e vira ranque na arquibancada.",
+    text: "Cada minuto de live vale Σ, que nunca se gasta e vira ranque na arquibancada e medalhas no perfil.",
     href: "/perfil",
+    media: [media("sigma", "Os Σ e as medalhas na página da leila_m_30: 598 Σ, 6 horas, 6 lives, 5 seguidas e as medalhas com o próximo nível")],
   },
   {
     id: "lives",
     date: "2026-11-04",
     tag: "site",
     title: "As lives no site",
-    text: "Cada live inteira, com um capítulo por partida e a transcrição pesquisável. Quando estou ao vivo, o site avisa.",
+    text: "Cada live inteira, com um capítulo por partida e a transcrição pesquisável.",
     href: "/canal/lives",
-    media: [
-      media("lives", "A página de uma live, com o vídeo e os capítulos"),
-    ],
+    media: [media("lives", "A página de uma live, com o vídeo e os capítulos")],
   },
   {
     id: "ranqueadas",
     date: "2026-10-28",
     tag: "site",
     title: "Ranqueadas",
-    text: "Cada partida registrada sozinha pelo painel da live, com a evolução do ranque e o dia a dia.",
+    text: "Cada partida registrada sozinha, com a evolução do ranque.",
     href: "/conteudo/rocket-league/ranked",
     video: "5GMvMT8wvo4",
-    media: [
-      media("ranqueadas", "O gráfico de pontos da página de ranqueadas", { video: true }),
-    ],
-  },
-  {
-    id: "placar-na-tela",
-    date: "2026-10-27",
-    tag: "live",
-    title: "Ranque e placar na tela",
-    text: "O ranque, os pontos e as vitórias do dia lidos pela API do próprio Rocket League, partida a partida.",
+    media: [media("ranqueadas", "O gráfico de pontos da página de ranqueadas", { video: true })],
   },
   {
     id: "paineis-e-alertas",
@@ -773,36 +461,30 @@ export const SHIPPED: Shipped[] = [
     tag: "marca",
     title: "Painéis e alertas da Twitch",
     text: "Os painéis do canal e os alertas da live na identidade.",
-    media: [
-      media("paineis", "Os painéis do canal na Twitch"),
-    ],
+    media: [media("paineis", "Os painéis do canal na Twitch")],
   },
   {
     id: "overlays",
     date: "2026-10-24",
     tag: "live",
     title: "Overlays da live",
-    text: "A moldura da câmera, o chat e as cenas, todos páginas deste site que o OBS abre.",
-    media: [
-      media("overlays", "A moldura da câmera e a chamada do Pix na tela da live"),
-    ],
+    text: "A moldura da câmera com o ranque e o placar do dia, o chat e as cenas.",
+    media: [media("overlays", "A moldura da câmera e a chamada do Pix na tela da live")],
   },
   {
     id: "arte-da-twitch",
     date: "2026-10-20",
     tag: "marca",
     title: "Arte do canal na Twitch",
-    text: "Banner, foto e tela offline na identidade do canal.",
-    media: [
-      media("banner", "O banner do canal na Twitch"),
-    ],
+    text: "Banner, foto e tela offline na identidade.",
+    media: [media("banner", "O banner do canal na Twitch")],
   },
   {
     id: "rlr",
     date: "2026-10-09",
     tag: "rlr",
     title: "RLR, o player de replays",
-    text: "Replays do Rocket League em 3D no navegador, com câmeras, desenho e uma prancheta tática.",
+    text: "Replays do Rocket League em 3D no navegador, com prancheta tática.",
     href: "/rlr/",
   },
   {
@@ -810,32 +492,26 @@ export const SHIPPED: Shipped[] = [
     date: "2026-10-08",
     tag: "marca",
     title: "Thumbnails",
-    text: "Cada vídeo com a sua thumbnail na identidade, com o ranque do tópico.",
-    media: [
-      media("thumbnail", "A thumbnail de um tópico do Rocket League"),
-    ],
+    text: "Cada vídeo com a sua thumbnail na identidade.",
+    media: [media("thumbnail", "A thumbnail de um tópico do Rocket League")],
   },
   {
     id: "fundamentos-rocket-league",
     date: "2026-10-07",
     tag: "site",
     title: "Fundamentos do Rocket League",
-    text: "O caminho rank a rank, com um vídeo por tópico e o seu progresso salvo no navegador.",
+    text: "O caminho rank a rank, com um vídeo por tópico.",
     href: "/conteudo/rocket-league/fundamentals",
-    media: [
-      media("fundamentos", "O roadmap de fundamentos do Rocket League"),
-    ],
+    media: [media("fundamentos", "O roadmap de fundamentos do Rocket League")],
   },
   {
     id: "site",
     date: "2026-10-06",
     tag: "site",
     title: "O site no ar",
-    text: "muanlartins.com.br e muanlartins.com, em português e em inglês, com a marca: “Luan” num traço só que vira um Σ.",
+    text: "muanlartins.com.br, com a marca: “Luan” num traço só que vira um Σ.",
     href: "/canal/backstage",
-    media: [
-      media("marca", "A marca do canal, as cores e a tipografia"),
-    ],
+    media: [media("marca", "A marca do canal, as cores e a tipografia")],
   },
 ]
 
