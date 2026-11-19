@@ -182,8 +182,13 @@ console.log(`Servidor: ${guild.name} (${G})${APLICAR ? "" : " · só lendo; --ap
 
 // Roles ------------------------------------------------------------------------------------------------------------------
 let papeis = await pedir("GET", `/guilds/${G}/roles`)
-const doBot = papeis.filter((r) => r.tags?.bot_id === bot.id).sort((a, b) => b.position - a.position)[0]
-const topoBot = doBot?.position ?? 0
+// Discord's order: by position, ties by id (the older on top); a new server leaves every role at position 1 until
+// someone drags one in the app.
+const acima = (a, b) => b.position - a.position || (BigInt(a.id) < BigInt(b.id) ? -1 : 1)
+const lugar = (r) => [...papeis].sort(acima).findIndex((x) => x.id === r.id)
+const doBot = papeis.filter((r) => r.tags?.bot_id === bot.id).sort(acima)[0]
+const lugarBot = () => (doBot ? lugar(doBot) : -1)
+const topoBot = lugarBot()
 // The Twitch integration's own role (it also makes one per tier, left as they come).
 const integracoes = await pedir("GET", `/guilds/${G}/integrations`).catch(() => [])
 const daTwitch = integracoes.find((i) => i.type === "twitch" && i.role_id)?.role_id
@@ -202,7 +207,7 @@ for (const c of CARGOS) {
     r = await fazer(`criar o cargo ${c.nome}`, () => pedir("POST", `/guilds/${G}/roles`, quer, { motivo: "Montagem do servidor" }), { name: c.nome })
   } else {
     const difere = Object.entries(quer).filter(([k, v]) => String(r[k]) !== String(v)).map(([k]) => k)
-    if (difere.length && r.position >= topoBot) avisos.push(`O cargo ${r.name} está acima do bot: arraste o cargo do bot pro topo em Configurações do servidor → Cargos.`)
+    if (difere.length && lugar(r) <= topoBot) avisos.push(`O cargo ${r.name} está acima do bot: arraste o cargo do bot pro topo em Configurações do servidor → Cargos.`)
     else if (difere.length) r = await fazer(`ajustar o cargo ${c.nome} (${difere.join(", ")})`, () => pedir("PATCH", `/guilds/${G}/roles/${r.id}`, quer, { motivo: "Montagem do servidor" }), r)
   }
   cargo[c.chave] = r.id
@@ -213,9 +218,13 @@ if (bits(todos.permissions) !== bits(TODOS)) await fazer("ajustar o que todo mun
 
 // The order: our roles, top to bottom, in the slots they already hold under the bot's.
 if (APLICAR) papeis = await pedir("GET", `/guilds/${G}/roles`)
-const nossos = CARGOS.map((c) => papeis.find((r) => r.id === cargo[c.chave])).filter((r) => r && r.position < topoBot)
+// (Only once Discord has numbered them apart: while they tie, moving one would have to go above the bot's.)
+const nossos = CARGOS.map((c) => papeis.find((r) => r.id === cargo[c.chave])).filter((r) => r && lugar(r) > lugarBot())
 const posicoes = nossos.map((r) => r.position).sort((a, b) => b - a)
-if (nossos.some((r, i) => r.position !== posicoes[i])) {
+if (new Set(posicoes).size < posicoes.length) {
+  if (nossos.map((r) => r.id).join() !== [...nossos].sort(acima).map((r) => r.id).join())
+    avisos.push("Os cargos estão empatados na ordem do Discord: arraste qualquer cargo uma vez em Configurações do servidor → Cargos e rode de novo.")
+} else if (nossos.some((r, i) => r.position !== posicoes[i])) {
   await fazer("pôr os cargos na ordem", () => pedir("PATCH", `/guilds/${G}/roles`, nossos.map((r, i) => ({ id: r.id, position: posicoes[i] }))))
 }
 
