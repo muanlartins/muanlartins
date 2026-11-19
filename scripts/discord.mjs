@@ -184,7 +184,10 @@ console.log(`Servidor: ${guild.name} (${G})${APLICAR ? "" : " · só lendo; --ap
 let papeis = await pedir("GET", `/guilds/${G}/roles`)
 const doBot = papeis.filter((r) => r.tags?.bot_id === bot.id).sort((a, b) => b.position - a.position)[0]
 const topoBot = doBot?.position ?? 0
-const daIntegracao = papeis.filter((r) => r.tags?.integration_id && !r.tags?.bot_id)
+// The Twitch integration's own role (it also makes one per tier, left as they come).
+const integracoes = await pedir("GET", `/guilds/${G}/integrations`).catch(() => [])
+const daTwitch = integracoes.find((i) => i.type === "twitch" && i.role_id)?.role_id
+const daIntegracao = papeis.filter((r) => r.id === daTwitch)
 const cargo = {}
 for (const c of CARGOS) {
   let r = papeis.find((x) => x.id === ids.cargos[c.chave])
