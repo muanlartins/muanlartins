@@ -4,6 +4,7 @@ import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react"
 import { FanSpot } from "@/components/site/pix/fan-spot"
 import { BadgeChips } from "@/components/site/profile/badges"
 import { FanView } from "@/components/site/profile/fan-view"
+import { ViewerName } from "@/components/site/viewer/viewer-name"
 import { COUNTS, MILESTONES, mural as muralCopy } from "@/content/pix"
 import { loadAudience, loadFans, type Choice, type Sigma, type Torcedor, type Viewer } from "@/lib/profile"
 import { LOCALE, localize } from "@/lib/site"
@@ -47,7 +48,9 @@ function NameTag({ p, S, className }: { p: Viewer; S: Sigma | null; className?: 
     <span title={p.login} className={cn("flex max-w-full min-w-0 items-center gap-1 bg-navy/80 px-1.5 py-px font-semibold text-paper", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element -- a static emblem, already sized */}
       {S && <img src={S.ranque(p.sigma, LOCALE).emblema} alt="" className="h-3.5 w-3.5 shrink-0 object-contain" />}
-      <span className="truncate">{p.login}</span>
+      <ViewerName login={p.login} className="block truncate">
+        {p.login}
+      </ViewerName>
     </span>
   )
 }
@@ -195,7 +198,9 @@ export function Audience({ T, S }: { T: Torcedor | null; S: Sigma | null }) {
                     <p className="flex min-w-0 items-center gap-1.5 text-[15px]">
                       {/* eslint-disable-next-line @next/next/no-img-element -- a static emblem, already sized */}
                       {S && <img src={S.ranque(p.sigma, LOCALE).emblema} alt="" className="h-5 w-5 shrink-0 object-contain" />}
-                      <span className="truncate font-medium text-ink">{p.login}</span>
+                      <ViewerName login={p.login} className="block truncate font-medium text-ink">
+                        {p.login}
+                      </ViewerName>
                       {S && <span className="hidden shrink-0 text-[12px] text-muted sm:inline">{S.ranque(p.sigma, LOCALE).nome}</span>}
                     </p>
                     {S && <BadgeChips badges={S.medalhas(p, LOCALE)} streak={p.sequencia} />}

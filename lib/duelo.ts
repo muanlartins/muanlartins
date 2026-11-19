@@ -60,6 +60,26 @@ export interface Duelist {
 export const CLASSES = ["espada", "adaga", "arco", "lanca", "machado", "foice", "punho", "martelo", "katana", "clava"] as const
 export type ClassId = (typeof CLASSES)[number]
 
+/**
+ * Each class's sheet from 1 to 5, read off duelo-motor.js's numbers, so the page can draw it as a game would. dano: a
+ * hit's damage at the start, forca included (the Machado's ×4 critical, the Martelo's and the Punho's once moving);
+ * alcance: the weapon's length (the Arco shoots across the arena); velocidade: how fast the weapon turns (the Punho's,
+ * the ball itself); cresce: how much its ability grows with each hit. Balance is the engine's: every class wins about
+ * half its fights.
+ */
+export const CLASS_STATS: Record<ClassId, { dano: number; alcance: number; velocidade: number; cresce: number }> = {
+  espada: { dano: 2, alcance: 4, velocidade: 3, cresce: 4 },
+  adaga: { dano: 2, alcance: 2, velocidade: 5, cresce: 3 },
+  arco: { dano: 2, alcance: 5, velocidade: 2, cresce: 4 },
+  lanca: { dano: 3, alcance: 5, velocidade: 2, cresce: 3 },
+  machado: { dano: 5, alcance: 3, velocidade: 2, cresce: 3 },
+  foice: { dano: 3, alcance: 4, velocidade: 2, cresce: 4 },
+  punho: { dano: 3, alcance: 1, velocidade: 5, cresce: 4 },
+  martelo: { dano: 4, alcance: 4, velocidade: 1, cresce: 5 },
+  katana: { dano: 1, alcance: 4, velocidade: 3, cresce: 5 },
+  clava: { dano: 4, alcance: 3, velocidade: 2, cresce: 2 },
+}
+
 /** The weapon's materials, from the lowest Σ rank tier to the top (the overlay's MATERIAIS). */
 export const MATERIALS = [
   { id: "bronze", cor: "#c98a52" },
@@ -107,8 +127,11 @@ export const loadMyBall = (token: string) => call("GET", "/eu", token) as Promis
 export const saveMyBall = (token: string, ball: Ball) => call("PUT", "/eu/duelo", token, ball) as Promise<{ login: string; duelo: Ball }>
 export const eraseMyBall = (token: string) => call("DELETE", "/eu/duelo", token) as Promise<{ login: string; duelo: null }>
 
+/** The player's frame: the live's compact box (the engine's 300 arena with its strip and band), width / height. */
+export const PLAYER_ASPECT = "332 / 392"
+
 /**
- * The player's address: the live's overlay alone on the page (duelo.html?site). With a fight, its replay over and over;
+ * The player's address: the live's overlay alone on the page (duelo.html?site), as compact as on the live. With a fight, its replay over and over;
  * without, `logins` fight duel after duel (the preview of a ball, against the channel's). "*" in classes or materials
  * means the default (a class drawn, the rank's material) even if they saved something else.
  */

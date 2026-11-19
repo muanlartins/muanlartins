@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { ViewerFallback } from "@/components/site/viewer/viewer-fallback"
 import { SECTIONS, UI, sectionHref } from "@/lib/site"
 
 export const metadata: Metadata = { title: "404" }
@@ -46,43 +47,45 @@ function Strokes({ color, offset, delay, width = STROKE }: { color: string; offs
 
 export default function NotFound() {
   return (
-    <section className="space-y-10">
-      <div className="overflow-hidden rounded-md bg-klein">
-        <svg viewBox={`0 0 ${WIDTH * U} ${HEIGHT * U}`} className="block w-full" role="img" aria-label="404">
-          <defs>
-            <pattern id="lattice" width={U} height={U} patternUnits="userSpaceOnUse">
-              <path d={`M0 0L${U} ${U}M0 ${U}L${U} 0`} stroke="var(--color-klein-claro)" strokeOpacity={0.22} strokeWidth={1} />
-            </pattern>
-            <radialGradient id="fade" cx="50%" cy="50%" r="50%">
-              <stop offset="0.45" stopColor="#000" />
-              <stop offset="1" stopColor="#fff" />
-            </radialGradient>
-            <mask id="lattice-mask">
-              <rect width="100%" height="100%" fill="url(#fade)" />
-            </mask>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#lattice)" mask="url(#lattice-mask)" />
-          <Strokes color="var(--color-klein-claro)" offset={0.5} delay={0.25} />
-          <Strokes color="var(--color-klein)" offset={0} delay={0} width={STROKE + 2 * GAP} />
-          <Strokes color="var(--color-paper)" offset={0} delay={0} />
-        </svg>
-      </div>
+    <ViewerFallback>
+      <section className="space-y-10">
+        <div className="overflow-hidden rounded-md bg-klein">
+          <svg viewBox={`0 0 ${WIDTH * U} ${HEIGHT * U}`} className="block w-full" role="img" aria-label="404">
+            <defs>
+              <pattern id="lattice" width={U} height={U} patternUnits="userSpaceOnUse">
+                <path d={`M0 0L${U} ${U}M0 ${U}L${U} 0`} stroke="var(--color-klein-claro)" strokeOpacity={0.22} strokeWidth={1} />
+              </pattern>
+              <radialGradient id="fade" cx="50%" cy="50%" r="50%">
+                <stop offset="0.45" stopColor="#000" />
+                <stop offset="1" stopColor="#fff" />
+              </radialGradient>
+              <mask id="lattice-mask">
+                <rect width="100%" height="100%" fill="url(#fade)" />
+              </mask>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#lattice)" mask="url(#lattice-mask)" />
+            <Strokes color="var(--color-klein-claro)" offset={0.5} delay={0.25} />
+            <Strokes color="var(--color-klein)" offset={0} delay={0} width={STROKE + 2 * GAP} />
+            <Strokes color="var(--color-paper)" offset={0} delay={0} />
+          </svg>
+        </div>
 
-      <div className="space-y-6">
-        <h1 className="text-4xl font-medium text-klein tracking-[-0.03em] sm:text-5xl">{UI.notFound.title}</h1>
-        <p className="max-w-[38rem] text-[17px] leading-[1.6] text-ink">{UI.notFound.text}</p>
-        <nav className="flex flex-wrap gap-3 pt-2">
-          {SECTIONS.map((section) => (
-            <Link
-              key={section}
-              href={sectionHref(section)}
-              className="rounded-md border border-line px-4 py-2 text-[15px] text-klein transition-colors hover:border-klein hover:bg-klein hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-klein"
-            >
-              {UI.sections[section]}
-            </Link>
-          ))}
-        </nav>
-      </div>
-    </section>
+        <div className="space-y-6">
+          <h1 className="text-4xl font-medium text-klein tracking-[-0.03em] sm:text-5xl">{UI.notFound.title}</h1>
+          <p className="max-w-[38rem] text-[17px] leading-[1.6] text-ink">{UI.notFound.text}</p>
+          <nav className="flex flex-wrap gap-3 pt-2">
+            {SECTIONS.map((section) => (
+              <Link
+                key={section}
+                href={sectionHref(section)}
+                className="rounded-md border border-line px-4 py-2 text-[15px] text-klein transition-colors hover:border-klein hover:bg-klein hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-klein"
+              >
+                {UI.sections[section]}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </section>
+    </ViewerFallback>
   )
 }

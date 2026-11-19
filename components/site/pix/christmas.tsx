@@ -5,6 +5,7 @@ import { mural as muralCopy, pix, PRESENT_NAMES } from "@/content/pix"
 import { reais, SUB, type Goal, type MuralPix, type Present, type PresentKit } from "@/lib/pix"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
+import { ViewerName } from "@/components/site/viewer/viewer-name"
 
 const text = localize(pix)
 const M = localize(muralCopy)
@@ -47,7 +48,7 @@ export function GiftSubs({ goal }: { goal: Pick<Goal, "arrecadado" | "sorteios">
         <ul className="flex flex-wrap gap-2">
           {drawn.map((s) => (
             <li key={s.em} className="rounded-full bg-klein px-3 py-1 text-[14px] font-medium text-paper">
-              {s.login}
+              <ViewerName login={s.login} />
             </li>
           ))}
         </ul>

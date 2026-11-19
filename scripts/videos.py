@@ -25,6 +25,8 @@ Lives come every day and an hour of them is tens of GB, so the material goes onc
   thumbnail, shorts and commented videos), or, oldest day first, when the disk would otherwise have less than FREE_GB
   free: kept as long as there's room. The Live recording only once its YouTube video (content/lives/<date>.json) is
   processed and as long as the file, never before.
+- the videos of a live's matches (Videos\\Partidas\\<date> <nome>.mp4, partidas.py) once their YouTube video
+  (content/videos/<date>-<nome>.json's id) is processed and as long as the file: they're only the upload.
 Replays are small and stay. Deleting is for good (no Recycle Bin): --clean alone only lists.
 """
 
@@ -43,6 +45,7 @@ from windows import VIDEOS, home
 TIME_ZONE = ZoneInfo("America/Sao_Paulo")
 
 LIVES = VIDEOS / "Lives"
+PARTIDAS = VIDEOS / "Partidas"
 DEMOS = [home() / "OneDrive" / "Documents" / "My Games" / "Rocket League" / "TAGame" / folder for folder in ("DemosEpic", "Demos")]
 LOOSE = re.compile(r"^(\d{4}-\d{2}-\d{2}) (\d{2}-\d{2}-\d{2})(?: (câmera|jogo))?\.(mp4|mkv|mov)$")
 KINDS = {None: "Live", "câmera": "Câmera", "jogo": "Jogo"}
@@ -160,6 +163,19 @@ def expendable():
             gone += [(file, "dia marcado como feito") for file in sorted(kept)]
         elif kept:
             material.append((folder.name, sorted(kept)))
+    # The videos of a live's matches (partidas.py): only the upload, once YouTube has each whole.
+    for file in sorted(PARTIDAS.glob("????-??-?? *.mp4")) if PARTIDAS.exists() else []:
+        record = PAGES.parent / "videos" / f"{file.stem[:10]}-{file.stem[11:]}.json"
+        video = json.loads(record.read_text()).get("id") if record.exists() else None
+        if not video:
+            print(f"keep  {file.relative_to(VIDEOS)}: ainda sem id do YouTube ({record.name})")
+            continue
+        from youtube import processed
+        online = processed(video)
+        if online is None or abs(online - length(file)) > 5:
+            print(f"keep  {file.relative_to(VIDEOS)}: o vídeo {video} ainda não está inteiro no YouTube")
+        else:
+            gone.append((file, "no YouTube, inteiro"))
     # Measured before handing them out: with --apply, clean() deletes each one as it comes.
     free = shutil.disk_usage(VIDEOS).free + sum(file.stat().st_size for file, _ in gone)
     yield from gone

@@ -166,7 +166,51 @@ export const channel = {
       pt: "Os jogos que rolam no canto da live com quem está no chat. Escolha como você joga, veja quem está ganhando e assista de novo a qualquer luta.",
       en: "The games running in the corner of the stream with whoever is in the chat. Pick how you play, see who's winning and watch any fight again.",
     },
-    tile: { pt: "O duelo de bolinhas: sua classe, o ranking e os replays.", en: "The ball duel: your class, the ranking and the replays." },
+    tile: { pt: "O duelo de bolinhas e a corrida: sua classe, os rankings e os replays.", en: "The ball duel and the race: your class, the rankings and the replays." },
+    /** The marble race (lib/corrida.ts). */
+    race: {
+      title: { pt: "Corrida de bolinhas", en: "Marble race" },
+      short: { pt: "Todo mundo do chat numa pista 3D cheia de obstáculos, na conversa entre partidas.", en: "Everyone in the chat on a 3D track full of obstacles, in the talk between matches." },
+      /** The rules as chips under the title. */
+      rules: {
+        everyone: { pt: "Todo mundo do chat corre", en: "Everyone in the chat races" },
+        track: { pt: "Pista nova a cada corrida", en: "A new track every race" },
+        falls: { pt: "Caiu, volta um pedaço", en: "Fall off, go back a bit" },
+        record: { pt: "Só vale o registro", en: "Only the record counts" },
+      },
+      player: {
+        /** "Replay: the latest race, 12 on the track, 17/11". */
+        replay: { pt: "Replay: {n} na pista · {d}", en: "Replay: {n} on the track · {d}" },
+        demo: { pt: "Uma corrida de exemplo, até sair a primeira na live", en: "A sample race, until the first one on the live" },
+        back: { pt: "Voltar pra última", en: "Back to the latest" },
+      },
+      yours: {
+        title: { pt: "Sua bolinha", en: "Your marble" },
+        text: {
+          pt: "Feita do seu torcedor: as cores e a estampa da camisa. Seus Σ só deixam ela mais bonita.",
+          en: "Made from your fan: the shirt's colours and pattern. Your Σ only make it prettier.",
+        },
+        edit: { pt: "Mudar o torcedor", en: "Change my fan" },
+      },
+      finish: {
+        title: { pt: "Acabamento pelo ranque", en: "Finish by rank" },
+        plain: { pt: "vidro", en: "glass" },
+        glow: { pt: "brilha", en: "glows" },
+        trail: { pt: "deixa rastro", en: "leaves a trail" },
+        sparks: { pt: "faísca", en: "sparkles" },
+        colours: { pt: "muda de cor", en: "changes colour" },
+      },
+      ranking: { pt: "Ranking da corrida", en: "Race ranking" },
+      total: { pt: "{n} corridas registradas", en: "{n} races recorded" },
+      wins: { pt: "vitórias", en: "wins" },
+      podiums: { pt: "pódios", en: "podiums" },
+      races: { pt: "corridas", en: "races" },
+      latest: { pt: "Últimas corridas", en: "Latest races" },
+      of: { pt: "{n} na pista", en: "{n} on the track" },
+      watch: { pt: "Assistir", en: "Watch" },
+      old: { pt: "pista antiga, em 2D", en: "old 2D track" },
+      none: { pt: "Ainda não teve corrida. A primeira sai na próxima conversa da live.", en: "No race yet. The first one comes at the stream's next talk." },
+    },
     duel: {
       title: { pt: "Duelo de bolinhas", en: "Ball duel" },
       lead: {
@@ -179,6 +223,15 @@ export const channel = {
       },
       idea: { pt: "Ideia de", en: "Idea by" },
       command: { pt: "No chat, !duelo mostra as suas vitórias.", en: "In the chat, !duelo shows your wins." },
+      /** The rules as chips under the title, a few words each. */
+      rules: {
+        drawn: { pt: "2 do chat, sorteados", en: "2 from the chat, drawn" },
+        loop: { pt: "Um duelo atrás do outro", en: "One duel after another" },
+        fair: { pt: "Mesma força pra todos", en: "Everyone equally strong" },
+        looks: { pt: "Σ só deixa a arma mais bonita", en: "Σ only make it prettier" },
+        command: { pt: "!duelo no chat", en: "!duelo in the chat" },
+      },
+      short: { pt: "Bolinhas com armas que crescem a cada acerto, no canto da live.", en: "Balls with weapons that grow with every hit, in the stream's corner." },
     },
     yours: {
       title: { pt: "Sua bolinha", en: "Your ball" },
@@ -196,6 +249,25 @@ export const channel = {
       },
       random: { pt: "Aleatória", en: "Random" },
       randomText: { pt: "Uma diferente a cada duelo.", en: "A different one each duel." },
+      stats: {
+        dano: { pt: "Dano", en: "Damage" },
+        alcance: { pt: "Alcance", en: "Reach" },
+        velocidade: { pt: "Velocidade", en: "Speed" },
+        cresce: { pt: "Crescimento", en: "Growth" },
+      },
+      /** The class's ability in a word, on its sheet. */
+      tags: {
+        espada: { pt: "Dano crescente", en: "Growing damage" },
+        adaga: { pt: "Giro", en: "Spin" },
+        arco: { pt: "Flechas", en: "Arrows" },
+        lanca: { pt: "Alcance", en: "Reach" },
+        machado: { pt: "Crítico", en: "Critical" },
+        foice: { pt: "Veneno", en: "Poison" },
+        punho: { pt: "Velocidade", en: "Speed" },
+        martelo: { pt: "Embalo", en: "Momentum" },
+        katana: { pt: "Cortes", en: "Slices" },
+        clava: { pt: "Atordoar", en: "Stun" },
+      },
       classes: {
         espada: { name: { pt: "Espada", en: "Sword" }, text: { pt: "Cada acerto, +1 de dano.", en: "Every hit, +1 damage." } },
         adaga: {
@@ -290,6 +362,88 @@ export const channel = {
       watch: { pt: "Assistir", en: "Watch" },
       old: { pt: "regras antigas", en: "old rules" },
     },
+  },
+
+  /** /torcedor/<login>: a viewer's page and card (lib/viewer.ts), everything of theirs in one place. Copy is a draft for Luan. */
+  viewer: {
+    title: { pt: "Torcedor", en: "Fan" },
+    /** "{login}" is theirs. */
+    description: {
+      pt: "{login} na torcida do muanlartins: o torcedor, os Σ, as medalhas, os duelos, os Pix e as partidas com o canal.",
+      en: "{login} in muanlartins' crowd: their fan, Σ, badges, duels, Pix and matches with the channel.",
+    },
+    since: { pt: "Na torcida desde {date}", en: "In the crowd since {date}" },
+    sinceStart: { pt: "Na torcida desde o começo", en: "In the crowd from the start" },
+    never: { pt: "Ainda sem Σ", en: "No Σ yet" },
+    open: { pt: "Ver perfil", en: "See profile" },
+    mine: { pt: "Esta é a sua página.", en: "This is your page." },
+    edit: { pt: "Editar perfil", en: "Edit profile" },
+    about: { pt: "Sobre mim", en: "About me" },
+    next: { pt: "Próximo:", en: "Next:" },
+    /** "{n}" lives in a row now. */
+    streakChip: { pt: "{n} lives seguidas", en: "{n} lives in a row" },
+    takeDown: { pt: "Tirar {what}", en: "Take down {what}" },
+    banner: { pt: "banner", en: "banner" },
+    photo: { pt: "foto", en: "photo" },
+    twitch: { pt: "Na Twitch", en: "On Twitch" },
+    loading: { pt: "Carregando…", en: "Loading…" },
+    stats: {
+      title: { pt: "Σ e medalhas", en: "Σ and badges" },
+      sigma: { pt: "Σ", en: "Σ" },
+      hours: { pt: "horas assistidas", en: "hours watched" },
+      lives: { pt: "lives", en: "lives" },
+      streak: { pt: "seguidas agora", en: "in a row now" },
+      record: { pt: "recorde {n}", en: "best {n}" },
+      none: { pt: "Os Σ vêm assistindo às lives: 1 por minuto, e mais por live e por sequência.", en: "Σ come from watching the lives: 1 a minute, and more per live and per run." },
+    },
+    dedications: {
+      title: { pt: "Gols dedicados", en: "Goals dedicated" },
+      goal: { pt: "Gol", en: "Goal" },
+      win: { pt: "Vitória", en: "Win" },
+      none: {
+        pt: "A cada gol (no Valorant, a cada vitória), a arquibancada sorteia alguém pra dedicar. Os dedicados aparecem aqui.",
+        en: "Each goal (in Valorant, each win) the stand draws someone to dedicate it to. Those show here.",
+      },
+    },
+    duel: {
+      title: { pt: "Duelo de bolinhas", en: "Ball duel" },
+      record: { pt: "{w} vitórias em {n} duelos", en: "{w} wins in {n} duels" },
+      position: { pt: "{p}º no ranking", en: "#{p} in the ranking" },
+      won: { pt: "Venceu", en: "Won" },
+      lost: { pt: "Perdeu", en: "Lost" },
+      against: { pt: "contra", en: "against" },
+      replay: { pt: "Replay", en: "Replay" },
+      close: { pt: "Fechar o replay", en: "Close the replay" },
+      none: { pt: "Ainda não foi sorteado pra um duelo.", en: "Not drawn for a duel yet." },
+      pick: { pt: "Escolher a minha bolinha", en: "Pick my ball" },
+      ball: { pt: "Bolinha no duelo", en: "Ball in the duel" },
+    },
+    race: {
+      title: { pt: "Corrida de bolinhas", en: "Marble race" },
+      record: { pt: "{w} vitórias · {p} pódios em {n} corridas", en: "{w} wins · {p} podiums in {n} races" },
+      best: { pt: "melhor: {b}º", en: "best: #{b}" },
+      place: { pt: "{l}º de {n}", en: "#{l} of {n}" },
+    },
+    pix: {
+      title: { pt: "Pix no mural", en: "Pix on the mural" },
+      sub: { pt: "Ganhou um sub de presente na meta {goal}", en: "Won a gift sub in the goal {goal}" },
+      outside: { pt: "Fora de meta", en: "Outside any goal" },
+    },
+    ideas: {
+      title: { pt: "Ideias no roadmap", en: "Ideas on the roadmap" },
+      idea: { pt: "Ideia", en: "Idea" },
+      report: { pt: "Avisou", en: "Reported" },
+      soon: { pt: "Vem aí", en: "Coming" },
+    },
+    matches: {
+      title: { pt: "Partidas comigo", en: "Matches with me" },
+      summary: { pt: "{n} partidas · {w} vitórias", en: "{n} matches · {w} wins" },
+      win: { pt: "Vitória", en: "Win" },
+      loss: { pt: "Derrota", en: "Loss" },
+      draw: { pt: "Empate", en: "Draw" },
+      watch: { pt: "na live", en: "in the live" },
+    },
+    notFound: { pt: "Esse nome não parece um login da Twitch.", en: "That doesn't look like a Twitch login." },
   },
 
   /** /canal/roadmap: what comes next and everything released, with credits. Its entries are in content/changelog.ts. */

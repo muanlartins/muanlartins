@@ -1,0 +1,78 @@
+{
+  "id": "2026-11-12-1437",
+  "game": "valorant",
+  "start": "2026-11-12T17:37:10.022Z",
+  "end": "2026-11-19T00:07:58Z",
+  "outputs": [
+    {
+      "kind": "record",
+      "start": "2026-11-12T17:39:04.345Z"
+    },
+    {
+      "kind": "stream",
+      "start": "2026-11-12T17:39:05.302Z"
+    }
+  ],
+  "matches": [
+    {
+      "id": "81c0514d-e653-44e2-80fd-7d62e334839f",
+      "start": "2026-11-18T23:28:53Z",
+      "at": "2026-11-19T00:07:58Z",
+      "queue": "competitive",
+      "map": "Lotus",
+      "agent": "Sage",
+      "result": "win",
+      "score": [
+        13,
+        11
+      ],
+      "rounds": 24,
+      "me": {
+        "kills": 21,
+        "deaths": 18,
+        "assists": 12,
+        "score": 6544,
+        "headshots": 14,
+        "bodyshots": 61,
+        "legshots": 4,
+        "damage": 4695,
+        "firstKills": 3
+      },
+      "mates": [
+        {
+          "agent": "Chamber",
+          "kills": 0,
+          "deaths": 1,
+          "assists": 1,
+          "score": 110
+        },
+        {
+          "agent": "Breach",
+          "kills": 25,
+          "deaths": 18,
+          "assists": 3,
+          "score": 7066
+        },
+        {
+          "agent": "Raze",
+          "kills": 23,
+          "deaths": 20,
+          "assists": 5,
+          "score": 6236
+        },
+        {
+          "agent": "Clove",
+          "kills": 20,
+          "deaths": 22,
+          "assists": 14,
+          "score": 6256
+        }
+      ],
+      "rr": 17,
+      "rank": {
+        "tier": 9,
+        "rr": 84
+      }
+    }
+  ]
+}
