@@ -178,7 +178,7 @@ CAM_HEAD = (560, 200, 400, 420)
 
 def heads(path, start, length, x, y, w, h, scale=""):
     """His head, 48×48 grey, 60 frames a second, each frame normalised (so brightness doesn't count). `scale` first
-    (Câmera.mkv to the 1280×720 the places are measured in: it came at 854×480 on 11-18)."""
+    (Câmera.mkv to the 1280×720 the places are measured in: 854×480 since 11-13: OBS crops it before recording)."""
     raw = ffmpeg("-ss", f"{start:.3f}", "-i", str(path), "-t", f"{length:.3f}", "-an", "-vf",
                  (f"scale={scale}," if scale else "") + f"fps=60,crop={round(w)}:{round(h)}:{round(x)}:{round(y)},scale=48:48,format=gray",
                  "-f", "rawvideo", "-", capture_output=True).stdout

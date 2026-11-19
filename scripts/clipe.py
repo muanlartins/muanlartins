@@ -112,7 +112,7 @@ def hd_camera(box, live="0:v", camera="2:v", start=0.0, filtro=True, recorte=CAM
     differs from Câmera.mkv (the costume, the flash, the fire) it goes over the sharp picture, elsewhere his face
     stays sharp. The costume's dark hair over his own differs little from it: a low threshold and a wide blur keep
     it whole (2026-11-12; 38 and 5 left holes). `start`: seconds before the box is in place (a scene sliding in): until then, only Câmera.mkv.
-    Câmera.mkv is taken at 1280×720 whatever it came at (854×480 on 11-18). `filtro=False` (a live without the camera
+    Câmera.mkv is taken at 1280×720 whatever it came at (854×480 since 11-13: OBS crops it before recording). `filtro=False` (a live without the camera
     filters, 11-18): Câmera.mkv alone, the live's box left out (the overlay's edges and compression would show through
     the mask). `recorte`: the part of the camera (in 1280×720) that fills the top, 1080:840 in shape."""
     bx, by, bw, bh = box

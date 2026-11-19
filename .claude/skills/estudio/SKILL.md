@@ -402,7 +402,7 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
   captions (`sem_legenda`).
 - **A live not filed yet (11-18):** `"arquivos"` names the loose recordings in Videos (OBS's names), so a short needn't
   wait for `videos.py`. That day two game recordings ran at once (the Diversos scene's, black once he left it, and
-  Valorant's): `videos.py` would join them end to end, wrongly. Câmera.mkv came at 854×480 (taken at 1280×720 by
+  Valorant's): `videos.py` would join them end to end, wrongly. Câmera.mkv has been 854×480 since 11-13 (OBS crops it, "Enquadramento", before "Gravar câmera"; taken at 1280×720 by
   `hd_camera` and `camera_lag`). No camera filter that day: `"filtro": false` (Câmera.mkv alone on top) and
   `"camera_recorte"` frames his head.
 - **Still open:** music (none yet); the outro's effect on retention once a few shorts have their numbers.
