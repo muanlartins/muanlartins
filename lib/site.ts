@@ -117,7 +117,7 @@ export const LINKS = [
  * The community's Discord server (lib/discord.ts): its permanent invite. Not one of the profiles above (an invite isn't
  * an account of Luan's), so it stays out of sameAs; the footer and the channel's home show it on the Portuguese site.
  */
-export const DISCORD_INVITE = "https://discord.gg/TODO"
+export const DISCORD_INVITE = "https://discord.gg/q5qxT7Pw2E"
 
 export const HTML_LANG: Record<Locale, string> = { pt: "pt-BR", en: "en" }
 

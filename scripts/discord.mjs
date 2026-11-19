@@ -310,13 +310,15 @@ if (avisosCanal && avisosCanal.type === 0) await fazer("fazer do #avisos um cana
 else if (!avisosCanal) console.log("· (depois de criado, o #avisos vira canal de anúncios)")
 
 // Rules screening: accepting the rules before talking. Its API isn't Discord's documented one, so trouble is a warning.
+// (The server's feature MEMBER_VERIFICATION_GATE_ENABLED says it's on.)
 try {
-  const atual = APLICAR || comunidade ? await pedir("GET", `/guilds/${G}/member-verification?with_guild=false`).catch(() => null) : null
+  const atual = await pedir("GET", `/guilds/${G}/member-verification?with_guild=false`).catch(() => null)
+  const ligado = (await pedir("GET", `/guilds/${G}`)).features.includes("MEMBER_VERIFICATION_GATE_ENABLED")
   const campos = [{ field_type: "TERMS", label: "Leia e aceite as regras do servidor", values: ["Tenha bom senso.", ...REGRAS], required: true }]
-  const igual = atual?.form_fields?.[0]?.values?.join("\n") === campos[0].values.join("\n")
-  if (!igual || !atual?.enabled) {
+  const igual = atual?.form_fields?.[0]?.values?.join("\n") === campos[0].values.join("\n") && atual?.description === DESCRICAO
+  if (!igual || !ligado) {
     await fazer("ligar o aceite das regras antes de falar", () =>
-      pedir("PATCH", `/guilds/${G}/member-verification`, { enabled: true, description: DESCRICAO, form_fields: JSON.stringify(campos) }),
+      pedir("PATCH", `/guilds/${G}/member-verification`, { enabled: true, description: DESCRICAO, form_fields: campos }),
     )
   }
 } catch (e) {
@@ -438,7 +440,7 @@ try {
     antes?.options?.length === 1 &&
     antes.options[0].role_ids?.[0] === cargo.avisos
   if (!igual && !padrao.some((x) => String(x).startsWith("<"))) {
-    await fazer("ligar a integração (onboarding): canais de todos e a pergunta do aviso de live", () =>
+    await fazer("ligar o onboarding: os canais de todos e a pergunta do aviso de live", () =>
       pedir("PUT", `/guilds/${G}/onboarding`, { prompts, default_channel_ids: padrao, enabled: true, mode: 0 }),
     )
   } else if (!igual) console.log("· (o onboarding fica pra depois de criados os canais)")
