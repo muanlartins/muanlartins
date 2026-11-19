@@ -48,6 +48,37 @@ Everything is deterministic: a script copies, the site computes.
   the best per subcategory, the harmonic mean of the nine, "Complete" when every scenario reached the rank.
 - `content/voltaic-s3.json` is the benchmark itself: each level's scenario ids, names, subcategories and thresholds.
 
+## What he trains: VDIM S3, and when to move up
+
+Researched on 2026-11-08 by the Windows-side session (it read the Voltaic Discord's #resources and the ~30 guides it
+links); the whole digest is the "Voltaic Field Manual", Luan's private artifact
+https://claude.ai/artifact/W58CiUvaUEi3wjBnfXhWYG (read it with the Artifact tool). What matters here:
+
+- **Three benchmark tiers, six training levels.** The benchmark is Novice (Iron–Gold, energy capped at 499),
+  Intermediate (Platinum–Master), Advanced (Grandmaster–Celestial): move to Intermediate's playlist once Gold.
+  The daily training is **VDIM S3** (Voltaic Daily Improvement Method, by LG56 and 4rK): a playlist per weekday,
+  `VDIM S3 <Day> <Level> by LG56`, played in order, ending on that day's benchmark scenarios:
+
+  | VDIM level | S3 rank |
+  | --- | --- |
+  | Entry | Unranked → Bronze |
+  | Novice | Bronze Complete → Gold |
+  | Adept | Gold Complete → Diamond |
+  | Intermediate | Diamond Complete → Master |
+  | Advanced | Master Complete → Nova |
+  | Elite | Astra+ |
+
+- **The gate is "Complete", not the overall energy**: Bronze Complete means Bronze on all 18 scenarios. Overall
+  Silver (300) isn't a gate: the harmonic mean takes each subcategory's better scenario, so he can be Silver with a
+  scenario still under Bronze. The guide lets him move up early if it's easy or stay if the jump feels big.
+- **The week**: Mon Clicking I (static), Tue Clicking II (dynamic), Wed Tracking I (precise/smooth), Thu Tracking II
+  (reactive), Fri Switching I (speed), Sat Switching II (evasive); Sunday is free (Benchmark Focus S3 for the weak
+  spots, a redo, or rest), which is when he plays the benchmark.
+- **No pausing**: the guide says pausing during a benchmark run breaks the rules (hence `pause` above).
+- Since 2026-11-08 he's on **VDIM Entry** (his routine's tasks end in "Entry"). To answer "when do I move up?",
+  list the latest benchmark's scenarios under the next gate's rank (each `ScenarioResult.thresholds` is
+  Iron/Bronze/Silver/Gold) with what each lacks.
+
 ## After a training or a benchmark
 
 1. Check he isn't live (`node scripts/obs.mjs`); the script is light, the builds aren't.

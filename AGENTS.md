@@ -30,8 +30,8 @@ Luan Martins' personal site and the home of the muanlartins channel: improving a
 
 The stream's recurring work is written down as skills in `.claude/skills/` (Luan calls them as `/name`; read
 the one that fits before starting): `antes-da-live` (what not to run while he's on air, OBS checks),
-`depois-da-live` (filing the material, the live's page, YouTube, release), `estudio` (shorts and commented
-videos with RLR's studio), `agenda` (the lives' schedule on the site and Twitch), `obs` (OBS from WSL,
+`depois-da-live` (filing the material, the live's page, the videos of its matches, YouTube, release), `faxina`
+(cleaning the Videos folder), `estudio` (shorts and commented videos with RLR's studio), `agenda` (the lives' schedule on the site and Twitch), `obs` (OBS from WSL,
 `scripts/obs.mjs`), `filtros` (a new agent's abilities on the camera filters: the game's effects and sounds,
 the page, the dock, the headless test) and `voltaic` (publishing his aim training to Valorant's aim page). When a routine changes, change its skill in the same commit.
 

@@ -6,6 +6,9 @@ with a hook of two to four words. YouTube decides what to show people by who cli
     scripts/.venv/bin/python scripts/thumb.py <date> --quadro 7b --texto "SUBI PRO|DIAMANTE 3"
     scripts/.venv/bin/python scripts/thumb.py <date> --quadro 7b --texto "..." --fundo 56:20 --emblema
     scripts/.venv/bin/python scripts/thumb.py <date> --refazer          # again, from the live's youtube.thumb
+    scripts/.venv/bin/python scripts/thumb.py <date> --folha gata --trecho 54:53-1:21:18   # a sheet of one stretch
+    scripts/.venv/bin/python scripts/thumb.py <date> --folha gata --quadro 4b --texto "..." --etiqueta "3V3 RANQUEADO" \
+        --saida brand/youtube/thumbnails/<date>-gata.jpg            # a partidas.py video's thumbnail
 
 The candidates are his strongest reactions, where the microphone's own track (Live.mp4's second audio) was loudest,
 the transcript's exclamations ("meu Deus", "que isso", "golaço", laughs), his goals (the dock's event log) and the
@@ -19,7 +22,9 @@ his (the `depois-da-live` skill), the rest is fixed:
   can be read, more saturated, and darkened to Klein on the left where the hook goes.
 - The hook in Space Grotesk Bold, uppercase, Branco with a dark Klein outline; a second line (after `|`) on the
   brand's Branco plate cut at 45°. `--emblema`: the rank reached (LIVES in brand/build.py) glowing by the hook.
-- A small "AO VIVO" plate with the day, top left: every live's thumbnail is recognisable as one.
+- A small "AO VIVO" plate with the day, top left: every live's thumbnail is recognisable as one. The videos of
+  matches cut from a live (partidas.py) carry their own (`--etiqueta`), and their sheet comes from their matches only
+  (`--trecho`, Live.mp4 times, as many as needed; `--folha` names the sheet, Thumb\\candidatos <folha>.jpg).
 
 Writes brand/youtube/thumbnails/live-<date>.jpg (JPEG: YouTube takes 2 MB at most), which youtube.py prefers over
 build.py's plain live-<date>.png. Never deletes anything.
@@ -118,8 +123,9 @@ def loudness(date):
     return levels
 
 
-def candidates(date):
-    """[(Live second, why)] of his strongest reactions, loudest first."""
+def candidates(date, spans=None):
+    """[(Live second, why)] of his strongest reactions, loudest first; only inside `spans` ([(from, to)] Live
+    seconds) when given."""
     levels = loudness(date)
     # The loudest second around each reading: a shout or a laugh, not a single click.
     smooth = np.convolve(levels, np.ones(4) / 4, mode="same")
@@ -152,7 +158,8 @@ def candidates(date):
     found = [(s, why if why.startswith("“") else f"{why} {said(s)}".strip()) for s, why in found]
     kept = []
     for s, why in sorted(found, key=lambda c: -loud_at(c[0])):
-        if 120 < s < total - 120 and all(abs(s - k[0]) > APART for k in kept):
+        inside = any(a <= s <= b for a, b in spans) if spans else 120 < s < total - 120
+        if inside and all(abs(s - k[0]) > APART for k in kept):
             kept.append((s, why, loud_at(s)))
         if len(kept) == CANDIDATES:
             break
@@ -177,9 +184,9 @@ def peak(date, live_second):
     return (a + int(np.argmax(levels[a:b]))) * STEP
 
 
-def sheet(date):
+def sheet(date, spans=None, name=None):
     camera = recording(date, "Câmera")
-    found = candidates(date)
+    found = candidates(date, spans)
     cell_w, cell_h, label = 256, 144, 54
     cols = 2
     block_w = cell_w * 3 + 24
@@ -205,9 +212,10 @@ def sheet(date):
         print(f"{n:2d}  {mmss(at):>8}  {level:6.1f} dB  {why[:90]}")
     target = folder(date) / "Thumb"
     target.mkdir(parents=True, exist_ok=True)
-    out.save(target / "candidatos.jpg", quality=88)
-    (target / "candidatos.json").write_text(json.dumps(picks, indent=1))
-    print(target / "candidatos.jpg")
+    stem = f"candidatos {name}" if name else "candidatos"
+    out.save(target / f"{stem}.jpg", quality=88)
+    (target / f"{stem}.json").write_text(json.dumps(picks, indent=1))
+    print(target / f"{stem}.jpg")
 
 
 # --- The thumbnail -------------------------------------------------------------------------------------------
@@ -299,8 +307,8 @@ def fitted(text, width, start, weight=700):
     return font(size, weight)
 
 
-def compose(date, pick, hook, fundo=None, emblem=False, out=None, at=None):
-    sheet_file = folder(date) / "Thumb" / "candidatos.json"
+def compose(date, pick, hook, fundo=None, emblem=False, out=None, at=None, label=None, name=None):
+    sheet_file = folder(date) / "Thumb" / (f"candidatos {name}.json" if name else "candidatos.json")
     picks = json.loads(sheet_file.read_text()) if sheet_file.exists() else {}
     at = at if at is not None else picks[pick] if pick in picks else float(pick)
     when = wall(date, at)
@@ -359,7 +367,7 @@ def compose(date, pick, hook, fundo=None, emblem=False, out=None, at=None):
 
     # The live's tag, top left: AO VIVO and the day.
     tag = font(34, 700)
-    day = f"AO VIVO · {date[8:10]}/{date[5:7]}"
+    day = label or f"AO VIVO · {date[8:10]}/{date[5:7]}"
     tw = tag.getlength(day)
     plate(draw, margin, 52, tw + 44, 60, KLEIN)
     draw.text((margin + 22, 61), day, font=tag, fill=PAPER)
@@ -399,16 +407,20 @@ def main():
     parser.add_argument("--emblema", action="store_true", help="the rank reached, glowing by the hook")
     parser.add_argument("--saida", help="write elsewhere (a draft) instead of brand/youtube/thumbnails/")
     parser.add_argument("--refazer", action="store_true", help="make it again from the live's youtube.thumb")
+    parser.add_argument("--etiqueta", help="the plate top left instead of AO VIVO · dd/mm (a partidas.py video)")
+    parser.add_argument("--trecho", action="append", default=[], help="the sheet only from here: Live.mp4 a-b")
+    parser.add_argument("--folha", help="the sheet's name, for a sheet of --trecho (Thumb\\candidatos <folha>.jpg)")
     args = parser.parse_args()
     if args.refazer:
         picked = json.loads((LIVES / f"{args.date}.json").read_text())["youtube"]["thumb"]
         compose(args.date, picked["quadro"], picked["texto"], picked.get("fundo"), picked["emblema"],
                 Path(args.saida) if args.saida else None, at=picked["segundo"])
     elif not args.quadro:
-        sheet(args.date)
+        spans = [tuple(parse_time(x) for x in span.split("-")) for span in args.trecho]
+        sheet(args.date, spans, args.folha)
     else:
         compose(args.date, args.quadro, args.texto or "", args.fundo, args.emblema,
-                Path(args.saida) if args.saida else None)
+                Path(args.saida) if args.saida else None, label=args.etiqueta, name=args.folha)
 
 
 if __name__ == "__main__":

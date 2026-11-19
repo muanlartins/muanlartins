@@ -355,6 +355,8 @@
       const MODES = ["1v1", "2v2", "3v3"]
       // After this long without a match, the next one starts a new session (a new stream).
       const SESSION_GAP_MS = 6 * 3600 * 1000
+      // A stream back on within this long of the last one's end continues its session (videos.py's RESTART).
+      const RESTART_MS = 15 * 60 * 1000
       // OBS scenes: where a match is played (Rocket League's, Valorant's), and where the talk between matches happens.
       const GAME_SCENES = ["RL + chat", "Valorant + chat"]
       const TALK_SCENE = "Conversa"
@@ -936,8 +938,10 @@
         const stopped = outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED"
         if (!started && !stopped) return
         let session = airSession()
-        // A new stream after one that ended is a new session.
-        if (started && kind === "stream" && session.outputs.some((o) => o.kind === "stream" && o.end)) {
+        // A new stream after one that ended is a new session, unless it's back within RESTART_MS: the stream fell
+        // mid-live (11-17: the cat at the PC, back 3 min later) and it's the same live, as videos.py joins its recordings.
+        const lastStream = session.outputs.findLast((o) => o.kind === "stream")
+        if (started && kind === "stream" && lastStream?.end && Date.now() - Date.parse(lastStream.end) > RESTART_MS) {
           if (state.jogo === "valorant") state.val.sessions.push({ id: sessionId(new Date()), start: new Date().toISOString(), outputs: [], matches: [], dirty: false })
           else newSession()
           session = airSession()
