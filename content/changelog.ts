@@ -130,18 +130,31 @@ export const UPCOMING: Upcoming[] = [
     title: "Ferramenta de análise de mira pro Valorant",
     text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
   },
-  {
-    id: "corrida-de-bolinhas",
-    status: "proximo",
-    tag: "live",
-    title: "Corrida de bolinhas",
-    text: "Uma corrida no estilo marbles, com uma bolinha pra cada viewer, do jeito que você montar no seu perfil.",
-    credit: { by: "lucca_3098" },
-  },
 ]
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "minijogos-com-cara-de-jogo",
+    date: "2026-11-17",
+    tag: "site",
+    title: "Minijogos com cara de jogo",
+    text: "A página dos minijogos virou uma tela de seleção: cada classe do duelo com o desenho da live, uma ficha em barras (dano, alcance, velocidade, crescimento), os visuais da arma lado a lado e o pódio do ranking. O replay no site agora é o mesmo quadrado da live, e a corrida tem a sua bolinha em 3D e o replay de cada corrida.",
+    href: "/canal/minijogos",
+    media: [media("minijogos-com-cara-de-jogo", "A tela de seleção do duelo: a arena à esquerda, a ficha da Adaga com as barras e os visuais da arma, e as classes embaixo")],
+  },
+  {
+    id: "corrida-de-bolinhas",
+    date: "2026-11-17",
+    tag: "live",
+    title: "Corrida de bolinhas em 3D entre as partidas",
+    text: "Quando a cena de conversa entra, entre uma partida e outra, começa sozinha uma corrida em 3D com todo mundo do chat: uma bolinha pra cada um, feita do seu torcedor (as cores e a estampa da camisa). Cada corrida monta uma pista nova: campo de pinos, moinhos girando, funil, escadaria, ponte sem grade com empurradores, vale com para-choques e salto. Quem cai volta um pedaço. Os três primeiros sobem no pódio, e as vitórias ficam em Minijogos, com o replay de cada corrida, e na página de cada um.",
+    credit: { by: "lucca_3098" },
+    href: "/canal/minijogos",
+    media: [
+      media("corrida-de-bolinhas", "A corrida 3D embaixo da câmera: a largada no portão, os moinhos, a ponte sem grade, o campo de pinos, a chegada e o pódio", { video: true }),
+    ],
+  },
   {
     id: "casa-da-comunidade",
     date: "2026-11-17",
@@ -159,7 +172,7 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-17",
     tag: "live",
     title: "Duelo menor na live: só a arena",
-    text: "O duelo ocupa metade do canto: só a arena com a luta, os dois nomes com a vida e a classe em cima, e a vida de cada um dentro da bolinha. Nada passa da parede. No site, o replay continua com as colunas.",
+    text: "O duelo ocupa metade do canto: só a arena com a luta, os dois nomes com a vida e a classe em cima, e a vida de cada um dentro da bolinha. Nada passa da parede.",
     href: "/canal/minijogos",
     media: [
       media("duelo-compacto", "O duelo menor no canto da tela: Punho contra Clava, os nomes e as barras de vida em cima da arena e a vida de cada um dentro da bolinha"),

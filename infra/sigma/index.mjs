@@ -26,6 +26,9 @@
 // fight shown while the stream is on; GET /duelos is public, the ranking and the latest fights, and GET
 // /duelos?login=a someone's record and their latest fights; GET /duelo.txt?login=a&nome=A is the chat bot's !duelo,
 // like !sigma.
+// The marble race's records (corrida.mjs keeps the score): POST /corrida comes from the race overlay with the key, once
+// per race that ends while the stream is on; GET /corridas is public, the ranking and the latest races, and GET
+// /corridas?login=a someone's record.
 // A viewer's page (/torcedor/<login>): POST /dedicatoria comes from the crowd overlay with the key, each goal (a win
 // in Valorant) the stand dedicates to someone (dedicatorias.mjs), and GET /pessoa?login=a is public: their Σ and
 // streak as /sigmas has them, their first live and the dedications.
@@ -34,6 +37,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { BatchGetCommand, DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
 import { daLive, json, LOGIN, out } from "./comum/http.mjs"
 import { quem } from "./comum/twitch.mjs"
+import * as Corridas from "./corrida.mjs"
 import { anotarDedicatoria, dedicatoria } from "./dedicatorias.mjs"
 import { anotar, cedo, deViewer, doViewer, Duelo, GERAL, luta, repetida, resumo, textoDuelo } from "./duelo.mjs"
 import { textoSigma } from "./texto.mjs"
@@ -191,6 +195,45 @@ async function acertouVar(event) {
   return out(200, { creditados })
 }
 
+// A race the overlay showed: run again here (corrida.mjs), counted in "#corridas" and on each viewer's item. Like the
+// duel's, "#corridas" is written only if nobody wrote it since it was read.
+async function correu(event) {
+  if (!daLive(event)) return out(401, {})
+  const corpo = json(event)
+  if (!corpo) return out(400, {})
+  if (corpo.versao !== Corridas.Corrida.VERSAO) return out(409, { versao: Corridas.Corrida.VERSAO })
+  const c = Corridas.corrida(corpo)
+  if (!c) return out(400, {})
+  const itens = await ler([Corridas.GERAL, ...c.logins.filter((l) => l !== DONO)])
+  const geral = itens[Corridas.GERAL]
+  if (Corridas.repetida(geral, c)) return out(200, { repetida: true })
+  if (Corridas.cedo(geral, c)) return out(429, {})
+  const novo = Corridas.anotar(geral, c, DONO)
+  try {
+    await db.send(
+      new UpdateCommand({
+        TableName: T,
+        Key: { login: Corridas.GERAL },
+        ConditionExpression: "attribute_not_exists(#t) OR #t = :antes",
+        UpdateExpression: "SET #t = :t, placar = :p, ultimas = :u",
+        ExpressionAttributeNames: { "#t": "total" },
+        ExpressionAttributeValues: { ":antes": geral?.total ?? 0, ":t": novo.total, ":p": novo.placar, ":u": novo.ultimas },
+      }),
+    )
+  } catch (e) {
+    if (e.name === "ConditionalCheckFailedException") return out(409, {})
+    throw e
+  }
+  await Promise.all(
+    c.logins.map((login, i) =>
+      login === DONO
+        ? null
+        : db.send(new UpdateCommand({ TableName: T, Key: { login }, UpdateExpression: "SET corridas = :c", ExpressionAttributeValues: { ":c": Corridas.doViewer(itens[login]?.corridas, c, i) } })),
+    ),
+  )
+  return out(200, { id: c.id, vencedor: c.logins[c.ordem[0]] })
+}
+
 // A goal the stand dedicated: kept on their item, once (each stand sends only its own game's).
 async function dedicada(event) {
   if (!daLive(event)) return out(401, {})
@@ -324,6 +367,14 @@ export async function handler(event) {
     const r = out(200, login ? deViewer(login, itens[login]?.duelos, itens[GERAL], DONO) : resumo(itens[GERAL], DONO))
     return { ...r, headers: { ...r.headers, "cache-control": "public, max-age=15" } }
   }
+  if (metodo === "GET" && caminho === "/corridas") {
+    const login = String(event.queryStringParameters?.login ?? "").trim().replace(/^@/, "").toLowerCase()
+    if (event.queryStringParameters?.login !== undefined && !LOGIN.test(login)) return out(400, {})
+    const itens = await ler(login ? [Corridas.GERAL, login] : [Corridas.GERAL])
+    const r = out(200, login ? Corridas.deViewer(login, itens[login]?.corridas, itens[Corridas.GERAL]) : Corridas.resumo(itens[Corridas.GERAL]))
+    return { ...r, headers: { ...r.headers, "cache-control": "public, max-age=15" } }
+  }
+  if (metodo === "POST" && caminho === "/corrida") return correu(event)
   if (metodo === "POST" && caminho === "/duelo") return duelo(event)
   if (metodo === "POST" && caminho === "/presenca") return presenca(event)
   if (metodo === "GET" && caminho === "/presentes") return presentes(event)

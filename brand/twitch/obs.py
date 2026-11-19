@@ -265,8 +265,12 @@ booth = browser("Efeito · VAR", "var.html")
 # stand's Σ key in its URL (#chave=…): NEEDS_KEY gives it the stand's.
 duel = browser("Duelo", "duelo.html")
 duel_in_valorant = {"pos": (0, 238)}
+# The marble race (corrida.html, 2026-11-17, Lucca's idea): in the talk scene, over everything, where the topic is
+# under the camera; it starts a race by itself each time the scene comes on, with everyone in the chat. Silent. It
+# records each race that ends while the stream is on (the Σ API's POST /corrida), with the stand's key too.
+race = browser("Corrida", "corrida.html")
 # Sources OBS got before they needed the stand's Σ key, and the stand's page they take it from (never printed).
-NEEDS_KEY = {"Duelo": "torcida.html"}
+NEEDS_KEY = {"Duelo": "torcida.html", "Corrida": "torcida.html"}
 booth["settings"]["reroute_audio"] = True
 booth.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
@@ -303,7 +307,8 @@ scenes = [
           (booth, {})),
     scene("Diversos + chat", (various, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
           (various_chat_overlay, {}), (various_crowd, {}), *alerts_in_game, (pix, {}), (duel, {}), (booth, {})),
-    scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
+    scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk,
+          (race, {})),
     scene("Lance ruim", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
           (camera, in_rocket_league), (bad_play, {})),
     scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
