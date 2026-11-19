@@ -319,7 +319,7 @@ scenes = [
           (various_chat_overlay, {}), (various_crowd, {}), *alerts_in_game, (pix, {}), (duel, {}), (booth, {})),
     scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk,
           (race, {})),
-    scene("Lance ruim", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
+    scene("Lance ruim · RL", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
           (camera, in_rocket_league), (bad_play, {})),
     scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
           *alerts_in_game, (pix, {}), (camera, in_valorant), (bad_play, {})),
@@ -336,7 +336,7 @@ scenes = [
 # Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
 HIDDEN = {"RL + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"},
-          "Lance ruim": {"Discord", "Navegador"}, "Terapia": {"Discord"},
+          "Lance ruim · RL": {"Discord", "Navegador"}, "Terapia": {"Discord"},
           "Valorant + chat": {"Discord", "Navegador"}, "Lance ruim · Valorant": {"Discord", "Navegador"},
           "VAR · Rocket League": {"Discord", "Navegador"}, "VAR · Valorant": {"Discord", "Navegador"},
           "Diversos + chat": {"Discord", "Navegador"}, "Lance ruim · Diversos": {"Discord", "Navegador"},
