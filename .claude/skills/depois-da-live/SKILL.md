@@ -164,8 +164,10 @@ schedule and policy; its editing advice was overruled by him.
 1. **Pick (Claude), approve (Luan).** `partidas.py <date>` lists the matches (where in Live.mp4, score, goals).
    Read the transcript with the matches and goals marked in (it's what tells the story: on 11-17 the cats turning
    the PC off mid-match, "muito perto do Champion"). Three groups of three matches in order, no match in two videos,
-   ~16–21 min each: the best stories, not just the wins. Leftovers stay in the VOD. A standalone hook title for each
-   (never "Parte 1"): `Minha gata desligou o PC no meio da ranqueada | Rocket League`.
+   ~16–21 min each: the best stories, not just the wins. Leftovers stay in the VOD. A standalone hook for each title
+   (never "Parte 1"), the roteiro's `titulo`; partidas.py adds the game, the mode and the rank going into the first
+   match, which Luan wants in every title (11-18): `Minha gata desligou o PC no meio da ranqueada | Rocket League 3v3
+   Diamante 3`. So the hook doesn't say the rank again.
 2. **Plan, then render**: `partidas.py <roteiro>` prints each match's edges (with his mic's level there: all should be
    pauses, ≤ -60 dB; `!` lines say where none was found) and the chapters; then `--apply`: ~5 min per video (NVENC),
    ~4 GB, `Videos\Partidas\<date> <nome>.mp4`, and `content/videos/<date>-<nome>.json` for YouTube (id empty,

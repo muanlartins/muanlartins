@@ -16,7 +16,10 @@ the dock's events and approved by Luan; everything else is fixed here:
       "capitulos": {"9": "A gata desligou o PC"},        # each match's chapter name (default "Partida N")
       "inicio": {"9": "1:08:52"},                        # a match's start, when the dock caught it late
       "fim": {"10": "1:21:18"},                          # a match's end, when the talk after it is worth keeping
-      "saltos": ["1:10:24.512"]                          # where the recording jumps (OBS or the PC went down)
+      "saltos": ["1:10:24.512"],                         # where the recording jumps (OBS or the PC went down)
+      "titulo": "Minha gata desligou o PC no meio da ranqueada",   # the hook; " | Rocket League 3v3 Diamante 3" is added
+      "descricao": "…",                                  # the description's first paragraph
+      "publicar": "2026-11-18T21:00:00-03:00"            # when YouTube publishes it
     }
 
 The video is the intro, the matches and the outro, each joined to the next by **the live's own transition**
@@ -58,7 +61,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from content import LIVES, ROOT  # noqa: E402
+from content import LIVES, ROOT, brand_tables  # noqa: E402
 from live import FFMPEG  # noqa: E402
 from youtube import srt  # noqa: E402
 from thumb import STEP, TIME_ZONE, in_file, loudness, recording  # noqa: E402
@@ -368,6 +371,17 @@ def render(roteiro, parts, out):
     temp.replace(out)
 
 
+def title(roteiro):
+    """The hook, then the game, the mode and the rank going into the video's first match (Luan, 11-18: the title should
+    say the format and the rank): "Minha gata desligou o PC no meio da ranqueada | Rocket League 3v3 Diamante 3"."""
+    first = session(roteiro["data"])[0]["matches"][roteiro["partidas"][0] - 1]
+    ranks, _ = brand_tables()
+    tier = first.get("rank", {}).get("tier", "")
+    base, _, number = tier.rpartition("-")
+    rank = f"{ranks[base][0]} {number}" if base in ranks and number.isdigit() else ranks.get(tier, ("",))[0]
+    return " ".join(part for part in (f"{roteiro.get('titulo', '')} | Rocket League", first.get("mode", ""), rank) if part)
+
+
 def youtube_record(roteiro, marks, path):
     """A first YouTube record for youtube.py video (the id comes after Luan uploads it)."""
     date = roteiro["data"]
@@ -377,7 +391,7 @@ def youtube_record(roteiro, marks, path):
              "Minhas ranqueadas: https://muanlartins.com.br/conteudo/rocket-league/ranked",
              "Ao vivo na Twitch: https://www.twitch.tv/muanlartins", "", *[f"{clock(t)} {name}" for t, name in marks],
              "", EPIC, "", "#RocketLeague #RocketLeagueBrasil #3v3"]
-    record = {"id": "", "title": roteiro.get("titulo", ""), "description": "\n".join(lines).strip(), "tags": TAGS,
+    record = {"id": "", "title": title(roteiro), "description": "\n".join(lines).strip(), "tags": TAGS,
               "thumbnail": f"brand/youtube/thumbnails/{date}-{roteiro['nome']}.jpg", "playlist": PLAYLIST,
               "captions": f"Partidas/{date} {roteiro['nome']}.srt",
               **({"publish_at": roteiro["publicar"]} if roteiro.get("publicar") else {})}
