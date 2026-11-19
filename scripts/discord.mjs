@@ -108,7 +108,7 @@ const MENSAGENS = {
     "",
     "**Os seus cargos**",
     "🔔 Quer ser marcado quando a live abrir? Escolha em **Canais e cargos**, no topo da lista de canais.",
-    `Σ Os Σ que você ganha assistindo às lives viram o seu cargo aqui: conecte o Discord no seu perfil, <${SITE}/perfil>.`,
+    `🏅 Os Σ que você ganha assistindo às lives viram o seu cargo aqui: conecte o Discord no seu perfil, <${SITE}/perfil>.`,
     "💜 Sub na Twitch? Conecte a Twitch nas **Conexões** do seu Discord e o cargo Sub chega sozinho, com o <#subs>.",
     "",
     "Leia as <#regras> e bom papo!",
@@ -159,6 +159,8 @@ const app = await pedir("GET", "/oauth2/applications/@me")
 const bot = await pedir("GET", "/users/@me")
 const servidores = await pedir("GET", "/users/@me/guilds")
 console.log(`Bot: ${bot.username} (app ${app.id})`)
+// The bot wears the channel's avatar.
+if (!bot.avatar) await fazer("pôr o avatar do canal no bot", () => pedir("PATCH", "/users/@me", { avatar: dataUri(ICONE) }))
 if (app.bot_public) avisos.push('O bot está como "Public Bot": desligue em Developer Portal → Bot, pra só você poder adicioná-lo.')
 if (!(app.flags & ((1 << 14) | (1 << 15)))) avisos.push('Ligue "Server Members Intent" em Developer Portal → Bot (o rank Σ precisa).')
 
