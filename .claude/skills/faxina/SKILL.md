@@ -33,6 +33,7 @@ Talk to him in pt-BR.
 | `Lives\<date>\` `… Jogo.mp4`, `… Câmera.mkv`, `VAR\` | the game alone, the camera alone, the VAR's clips: shorts and thumbnails | go with the day, as above |
 | `Lives\<date>\Replays\`, `Thumb\`, `partes.json`, `.feito` | replays (MB), thumbnail sheets and drafts, where the pieces join | stay (small; the studio lists days from the replays) |
 | `Partidas\<date> <nome>.mp4` | the videos of a live's matches (`partidas.py`), ~5 GB each | go once uploaded and processed whole: `videos.py --clean` checks the id in `content/videos/` |
+| `Partidas\<date> <nome>.srt` | their captions (KB), uploaded by `youtube.py video` | stay: small, and a re-upload of the captions needs them |
 | `Comentados\Partes\`, `Shorts\Partes\` | the intro, outros and their raws, clips reused by shorts | **stay**: every video uses them |
 | `Comentados\prontos\`, `Shorts\prontos\` | finished, published videos and covers | stay unless Luan says otherwise (his backup) |
 | `Shorts\candidatos\` | numbered reels for him to pick moments | go once the shorts from them are made |

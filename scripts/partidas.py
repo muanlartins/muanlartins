@@ -4,6 +4,7 @@ post first three videos of about 20 minutes with three matches each, the intro a
     scripts/.venv/bin/python scripts/partidas.py <date>                     # the day's matches: where, score, goals
     scripts/.venv/bin/python scripts/partidas.py scripts/roteiros/partidas/<date>-<nome>.json           # the plan
     scripts/.venv/bin/python scripts/partidas.py scripts/roteiros/partidas/<date>-<nome>.json --apply   # render it
+    scripts/.venv/bin/python scripts/partidas.py scripts/roteiros/partidas/<date>-<nome>.json --legendas  # captions only
 
 The roteiro holds what takes judgment (which matches, their chapter names), picked by Claude from the transcript and
 the dock's events and approved by Luan; everything else is fixed here:
@@ -40,7 +41,10 @@ part levelled to -14 LUFS like the intro and outro (loudnorm, as comentado.py). 
 11-17 track 1 measured -41 LUFS with peaks at -17 dBFS, so one gain for the whole video would have meant +27 dB
 and 10 dB of limiting on every explosion. Picture: 1080p60 as recorded, NVENC on Windows. Writes
 Videos\\Partidas\\<date> <nome>.mp4 and prints the chapters (YouTube needs each at least 10 s). With --apply it also
-writes the YouTube record, content/videos/<date>-<nome>.json, when it's missing (never over one). Nothing is deleted.
+writes the YouTube record, content/videos/<date>-<nome>.json, when it's missing (never over one), and the captions
+beside the video, <date> <nome>.srt (the live's transcript inside each match's piece, and the intro's and outro's
+words; out of the repository, since they have the other players' names as said), which youtube.py video uploads as
+the lives' are. Nothing is deleted.
 """
 
 import argparse
@@ -54,8 +58,9 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from content import ROOT  # noqa: E402
+from content import LIVES, ROOT  # noqa: E402
 from live import FFMPEG  # noqa: E402
+from youtube import srt  # noqa: E402
 from thumb import STEP, TIME_ZONE, in_file, loudness, recording  # noqa: E402
 from windows import TEMP, VIDEOS, home, run, to_windows  # noqa: E402
 
@@ -72,6 +77,20 @@ PAUSE = 0.5  # s: the shortest pause an edge may sit on
 KLEIN = (0, 47, 167)  # the stinger's colour: covered = 95% of the frame within this of it (Conversa is ~80%)
 FPS = 60
 CONVERSA = 3.0  # s: the least of Conversa kept after a match, between the recording's stinger and the join's
+
+# What the intro and the outro say, in their own seconds: the intro's from whisper on the first commented video, placed
+# by the intro's own pauses (speech starts at 0.3 s); the outro's as montagem.py has them (outro-editado is outro.mp4's
+# first 10.64 s).
+INTRO_WORDS = [(0.3, 1.4, "Sejam muito bem-vindos!"),
+               (1.54, 4.22, "Meu nome é Luan Martins e aqui nós estudamos os jogos."),
+               (4.68, 7.64, "O que você vai ver são análises das minhas próprias partidas"),
+               (7.64, 9.36, "em busca de evoluir a minha gameplay."),
+               (10.4, 12.54, "Papel e caneta na mão e bons estudos!")]
+OUTRO_WORDS = [(0.34, 0.78, "Curtiu?"),
+               (0.78, 4.80, "Eu faço live na Twitch com um monte de tecnologia que você nunca viu igual."),
+               (5.34, 6.22, "Dá uma conferida lá."),
+               (6.78, 8.98, "Acessa meu site também que tem tudo organizadinho."),
+               (9.42, 10.04, "Vou estar te esperando.")]
 
 PLAYLIST = "Rocket League: partidas da live"
 # Epic's Fan Content Policy (1.10) asks for this line on videos of its games that may carry ads.
@@ -275,6 +294,26 @@ def chapters(roteiro, parts):
     return out, at
 
 
+def captions(roteiro, parts):
+    """[start, text, end] in the video's seconds: the intro's and outro's words, and the live's transcript
+    (content/lives/<date>.transcript.json, in Live.mp4's seconds) inside each match's piece."""
+    said = json.loads((LIVES / f"{roteiro['data']}.transcript.json").read_text())
+    lines, at = [], 0.0
+    for p in parts:
+        length = p["to"] - p["from"]
+        if p["kind"] == "partida":
+            # The transcript's lines start on whole seconds (cut down), so up to a second early: one that starts half
+            # a second before the piece is its first, and one starting in its last half second belongs to the next.
+            words = [(max(t - p["from"], 0.0), None, text) for t, text in said if p["from"] - 0.5 <= t < p["to"] - 0.5]
+        else:
+            words = INTRO_WORDS if p["kind"] == "intro" else OUTRO_WORDS
+        for i, (start, end, text) in enumerate(words):
+            following = words[i + 1][0] if i + 1 < len(words) else length
+            lines.append([round(at + start, 2), text, round(at + min(end or start + 6, following, length), 2)])
+        at += length
+    return lines
+
+
 # --- Rendering ---------------------------------------------------------------------------------------------
 
 def render(roteiro, parts, out):
@@ -340,6 +379,7 @@ def youtube_record(roteiro, marks, path):
              "", EPIC, "", "#RocketLeague #RocketLeagueBrasil #3v3"]
     record = {"id": "", "title": roteiro.get("titulo", ""), "description": "\n".join(lines).strip(), "tags": TAGS,
               "thumbnail": f"brand/youtube/thumbnails/{date}-{roteiro['nome']}.jpg", "playlist": PLAYLIST,
+              "captions": f"Partidas/{date} {roteiro['nome']}.srt",
               **({"publish_at": roteiro["publicar"]} if roteiro.get("publicar") else {})}
     path.write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
 
@@ -347,7 +387,8 @@ def youtube_record(roteiro, marks, path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("what", help="a date (YYYY-MM-DD: its matches) or a roteiro (.json)")
-    parser.add_argument("--apply", action="store_true", help="render the video")
+    parser.add_argument("--apply", action="store_true", help="render the video (and write its captions)")
+    parser.add_argument("--legendas", action="store_true", help="only write the captions of a video already made")
     args = parser.parse_args()
     if re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.what):
         overview(args.what)
@@ -371,11 +412,19 @@ def main():
     for problem in problems + [f"capítulo com menos de 10 s: {name}" for name in short]:
         print(f"! {problem}")
     out = OUT / f"{roteiro['data']} {roteiro['nome']}.mp4"
+    subtitles = out.with_suffix(".srt")
+    if args.legendas:
+        lines = captions(roteiro, parts)
+        subtitles.write_text(srt(lines), encoding="utf-8")
+        print(f"\nlegendas: Videos\\Partidas\\{subtitles.name} ({len(lines)} falas)")
+        return
     if not args.apply:
         print(f"\n→ Videos\\Partidas\\{out.name} (nada foi feito: rode com --apply)")
         return
     render(roteiro, parts, out)
     print(f"feito: Videos\\Partidas\\{out.name} ({duration(out) / 60:.1f} min)")
+    subtitles.write_text(srt(captions(roteiro, parts)), encoding="utf-8")
+    print(f"legendas: Videos\\Partidas\\{subtitles.name}")
     record = ROOT / "content" / "videos" / f"{roteiro['data']}-{roteiro['nome']}.json"
     if not record.exists():
         youtube_record(roteiro, marks, record)

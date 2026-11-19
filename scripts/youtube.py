@@ -15,6 +15,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 import webbrowser
 from io import BytesIO
@@ -72,6 +73,12 @@ def processed(video_id):
     found = re.fullmatch(r"P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", items[0]["contentDetails"]["duration"])
     d, h, m, s = (int(part or 0) for part in found.groups())
     return ((d * 24 + h) * 60 + m) * 60 + s
+
+
+def ahead(iso):
+    """Whether a publish_at (ISO with offset) is still to come. Once it's past, YouTube has published the video, and
+    setting it again would make the video private: publishAt only works on a video that was never public."""
+    return datetime.fromisoformat(iso) > datetime.now(timezone.utc)
 
 
 def auth(_):
@@ -220,7 +227,8 @@ def describe(date):
 
 
 def srt(lines):
-    """The transcript as SRT: each line lasts until the next, at most 6 s."""
+    """The transcript as SRT: each line lasts until the next, at most 6 s, or until its own end when it has one
+    ([start, text, end]: partidas.py's, which stop where a piece of the live does)."""
     def stamp(t):
         ms = round(t * 1000)
         h, ms = divmod(ms, 3_600_000)
@@ -228,8 +236,8 @@ def srt(lines):
         s, ms = divmod(ms, 1000)
         return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
     blocks = []
-    for i, (start, text) in enumerate(lines):
-        end = min(lines[i + 1][0] if i + 1 < len(lines) else start + 4, start + 6)
+    for i, (start, text, *until) in enumerate(lines):
+        end = min(lines[i + 1][0] if i + 1 < len(lines) else start + 4, start + 6, *until)
         blocks.append(f"{i + 1}\n{stamp(start)} --> {stamp(max(end, start + 0.5))}\n{text}\n")
     return "\n".join(blocks)
 
@@ -248,6 +256,7 @@ def live(args):
     # Held back (since 11-17 the videos of its matches go out first, partidas.py): private until then, and YouTube
     # publishes it by itself. publishAt only works on a video that was never public.
     publish_at = record.get("youtube", {}).get("publish_at")
+    publish_at = publish_at if publish_at and ahead(publish_at) else None
     print(f"Vídeo {video_id}  ({f'agendado para {publish_at}' if publish_at else PRIVACY})\n\n{title}  ({len(title)} caracteres)\n\n{description}\n\n"
           f"Tags: {', '.join(tags)}\nThumbnail: {thumbnail.relative_to(ROOT)}\n"
           f"Playlist: {GAMES[record.get('game', 'rocket-league')]['playlist']} ({PRIVACY}, criada se faltar)\n")
@@ -323,7 +332,8 @@ def video(args):
     as it is unless the record says otherwise."""
     record = json.loads(Path(args.record).read_text())
     video_id, tags = record["id"], record["tags"]
-    when = f"agendado para {record['publish_at']}" if record.get("publish_at") else record.get("privacy", "privacidade como está")
+    publish_at = record["publish_at"] if record.get("publish_at") and ahead(record["publish_at"]) else None
+    when = f"agendado para {publish_at}" if publish_at else record.get("privacy", "privacidade como está")
     print(f"Vídeo {video_id}  ({when})\n\n{record['title']}\n\n"
           f"{record['description']}\n\nTags: {', '.join(tags)}\n")
     thumbnail = ROOT / record["thumbnail"] if record.get("thumbnail") else None
@@ -346,9 +356,10 @@ def video(args):
     status.update(selfDeclaredMadeForKids=False, containsSyntheticMedia=False)
     if record.get("privacy"):
         status["privacyStatus"] = record["privacy"]
-    # Scheduled: private until publish_at (ISO with offset, e.g. "2026-11-07T18:00:00-03:00"), then YouTube publishes it.
-    if record.get("publish_at"):
-        status.update(privacyStatus="private", publishAt=record["publish_at"])
+    # Scheduled: private until publish_at (ISO with offset, e.g. "2026-11-07T18:00:00-03:00"), then YouTube publishes it;
+    # past it, the status stays as YouTube left it.
+    if publish_at:
+        status.update(privacyStatus="private", publishAt=publish_at)
     api.videos().update(part="snippet,status", body={"id": video_id, "snippet": snippet, "status": status}).execute()
     print("Título, descrição, tags e status: ok")
     if thumbnail:

@@ -169,7 +169,9 @@ schedule and policy; its editing advice was overruled by him.
 2. **Plan, then render**: `partidas.py <roteiro>` prints each match's edges (with his mic's level there: all should be
    pauses, ≤ -60 dB; `!` lines say where none was found) and the chapters; then `--apply`: ~5 min per video (NVENC),
    ~4 GB, `Videos\Partidas\<date> <nome>.mp4`, and `content/videos/<date>-<nome>.json` for YouTube (id empty,
-   description with the chapters, Epic's disclaimer and links, `publish_at` from the roteiro's `publicar`). Each match
+   description with the chapters, Epic's disclaimer and links, `publish_at` from the roteiro's `publicar`), and its
+   captions beside the video (`<date> <nome>.srt`: the live's transcript in each match's piece, the intro's and
+   outro's words; `--legendas` writes only them for a video already made). Each match
    starts just after the recording's own stinger into the game and ends at his first pause after the cut to Conversa;
    the stinger (transicao.webm) covers every join, as on the stream. Check a frame on each side of each join and the
    loudness (-14 to -16 LUFS).
@@ -183,8 +185,11 @@ schedule and policy; its editing advice was overruled by him.
    (`youtube.publish_at` in `content/lives/<date>.json`: `youtube.py live` schedules it, and the site keeps that live
    off its pages until a build after that moment, so its page never embeds a private video). Then
    `youtube.py video content/videos/<date>-<nome>.json --dry-run`, show him, apply (it makes the playlist "Rocket
-   League: partidas da live" the first time). The end screen (last 10 s, over the outro) is set in Studio by hand:
-   the API can't.
+   League: partidas da live" the first time, and uploads the captions as the lives' are). The end screen (last 10 s,
+   over the outro) is set in Studio by hand: the API can't. A slot that passes before he uploads (11-18: the noon
+   slot went by; he picked 21:00 the same day) is his call: change `publicar` and `publish_at`. Once a video is out,
+   running `youtube.py` again leaves its status alone (a `publish_at` already past is skipped, since setting it
+   would make the video private).
 5. Mark the day `--done` (step 4) only once the three are uploaded; the files in `Videos\Partidas` go by themselves
    with `videos.py --clean` once YouTube has each whole.
 
