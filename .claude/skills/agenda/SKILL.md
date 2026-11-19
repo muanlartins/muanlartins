@@ -1,6 +1,6 @@
 ---
 name: agenda
-description: The lives' agenda - when the lives are, of which game, with which title and run of the show - which Luan plans himself day by day at muanlartins.com.br/canal/agenda; the site, the subscribable calendar, Twitch's calendar, the live's Twitch title and category and the Instagram story all follow it. Use when he asks about the schedule, a day's plan, a day off, the agenda page or editor, the opening's title/category or story, or when something there looks wrong.
+description: The lives' agenda - when the lives are, of which game, with which title and run of the show - which Luan plans himself day by day at muanlartins.com.br/canal/agenda; the site, the subscribable calendar, Twitch's calendar, and the live's Twitch title and category all follow it. Use when he asks about the schedule, a day's plan, a day off, the agenda page or editor, the opening's title/category, or when something there looks wrong.
 ---
 
 # The lives' agenda
@@ -34,7 +34,6 @@ agenda: changes made on Twitch's dashboard are undone by the next sync. With `NE
 - **Twitch's title and category:** the Anúncios dock (`public/stream/abertura.js`) sets them from 90 minutes before a
   scheduled live, once per live (needs the dock's Twitch sign-in to carry `channel:manage:broadcast`: if the dock says
   "Conecte a Twitch de novo (permissão do título)", he clicks Conectar in "Conexão com a Twitch" once).
-- **The Instagram story** at the live's opening, from the same dock (see the `antes-da-live` skill and AGENTS.md).
 - **The end credits'** next live (`creditos.html`).
 
 ## When Claude is asked

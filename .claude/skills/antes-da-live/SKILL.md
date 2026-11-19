@@ -9,9 +9,8 @@ Luan streams on Twitch from this PC (Windows + WSL), on the agenda he edits at `
 `GET /agenda`, the `agenda` skill; Rocket League in the afternoons, Valorant at night). Talk to him in pt-BR.
 
 The opening runs itself from the Anúncios dock (`abertura.js`): up to 90 min before a scheduled live it sets the
-channel's Twitch title and category from the agenda, and once the stream is on and a game scene has been on air, it
-posts the Instagram story after a 30 s countdown ("Não postar" in the dock stops it). Its section "Abertura" says
-what it did; "Prévia do story" draws it from OBS without posting.
+channel's Twitch title and category from the agenda. Its section "Abertura" says what it did. The Instagram story
+Luan posts by hand (the automatic one was dropped on 2026-11-19).
 
 ## While he's live, Claude stays light
 

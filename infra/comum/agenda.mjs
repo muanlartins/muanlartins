@@ -1,7 +1,7 @@
 // The lives' calendar, the one source of truth for when the lives are (since 2026-11-13). Luan plans it by hand, day
 // by day, on the site (/canal/agenda, signed in with the channel's Twitch), the profile API keeps it (GET and PUT /agenda) and
 // everything else reads it from there: the site's calendar, the subscribable calendar (GET /agenda.ics), the stream's
-// credits and the Anúncios dock (the live's Twitch title and game, the Instagram story). The editor mirrors it on
+// credits and the Anúncios dock (the live's Twitch title and game). The editor mirrors it on
 // Twitch's own calendar with planoTwitch. Pure functions, shared by the API (Node) and the site (the browser).
 //
 // The agenda, in the channel's time zone (FUSO):
@@ -141,7 +141,7 @@ export function proxima(agenda, agora = new Date()) {
   return ocorrencias(agenda, new Date(+agora - 86_400_000), 16).find((o) => Date.parse(o.fim) > +agora) ?? null
 }
 
-/** The live a moment belongs to: on air, or starting within `antes` minutes. For the stream's title, game and story. */
+/** The live a moment belongs to: on air, or starting within `antes` minutes. For the stream's title and game. */
 export function daVez(agenda, agora = new Date(), antes = 90) {
   const o = proxima(agenda, agora)
   return o && Date.parse(o.inicio) - antes * 60_000 <= +agora ? o : null

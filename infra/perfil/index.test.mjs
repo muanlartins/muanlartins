@@ -129,34 +129,6 @@ test("the agenda: only the channel saves it, everyone reads it, with the next li
   assert.equal(chat.body, "Próxima live amanhã às 21h (horário de Brasília): VALORANT, Aprendendo Valorant.")
 })
 
-test("the story: the channel sends a JPEG, Instagram fetches it by its URL", async () => {
-  const { handler } = montar()
-  const jpeg = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(5000, 7)])
-  const enviar = (token, body, tipo = "image/jpeg") =>
-    handler({
-      requestContext: { http: { method: "PUT" }, domainName: "api.exemplo" },
-      rawPath: "/canal/story",
-      headers: { authorization: `Bearer ${token}`, "content-type": tipo },
-      body: body.toString("base64"),
-      isBase64Encoded: true,
-    })
-  assert.equal((await enviar("bom", jpeg)).statusCode, 403)
-  assert.equal((await enviar("canal", Buffer.alloc(5000, 7))).statusCode, 400)
-  assert.equal((await enviar("canal", jpeg, "image/png")).statusCode, 400)
-  assert.equal((await enviar("canal", Buffer.concat([jpeg, Buffer.alloc(400_000)]))).statusCode, 400)
-  const r = await enviar("canal", jpeg)
-  assert.equal(r.statusCode, 200)
-  const { url } = JSON.parse(r.body)
-  assert.match(url, /^https:\/\/api\.exemplo\/canal\/story\/[a-z0-9]+\.jpg$/)
-  const caminho = new URL(url).pathname
-  const img = await handler({ requestContext: { http: { method: "GET" } }, rawPath: caminho, headers: {} })
-  assert.equal(img.statusCode, 200)
-  assert.equal(img.isBase64Encoded, true)
-  assert.deepEqual(Buffer.from(img.body, "base64"), jpeg)
-  const velho = await handler({ requestContext: { http: { method: "GET" } }, rawPath: "/canal/story/outro123.jpg", headers: {} })
-  assert.equal(velho.statusCode, 404)
-})
-
 test("the ball in the duel: saved on its own, public by login for the overlay, junk dropped", async () => {
   const { chamar } = montar()
   await chamar("PUT", "/eu", { token: "bom", corpo: { cabeca: "bone" } })

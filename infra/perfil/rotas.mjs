@@ -31,11 +31,6 @@
 //           GET /agenda.txt              the next live in a line of chat, as plain text: the chat bot's !agenda
 //                                        (StreamElements' customapi shows the answer as it comes)
 // Channel:  PUT /agenda                  the channel's Twitch only: the editor on /canal/agenda
-//
-// The live's Instagram story (the Anúncios dock draws it when the live opens; Instagram fetches it by URL, so it must
-// be public for a moment), the latest one only, in the item "#story":
-// Channel:  PUT /canal/story             the JPEG (image/jpeg, ≤ 350 KB) → { url } (PUT: the API's CORS allows no POST)
-// Public:   GET /canal/story/<id>.jpg    it, for Instagram
 
 import { FUSO, dataEm, ics, limpar, noChat, ocorrencias } from "./comum/agenda.mjs"
 import { daLive, json, LOGIN, out } from "./comum/http.mjs"
@@ -45,11 +40,8 @@ export const CANAL = "muanlartins"
 
 // Items that aren't viewers: "#" is never in a login.
 const AGENDA = "#agenda"
-const STORY = "#story"
 const CALENDARIO = "Live do muanlartins"
 const PAGINA_AGENDA = "https://muanlartins.com.br/canal/agenda"
-// An item holds 400 KB: the story's JPEG stays under it with room for its fields.
-export const STORY_MAX = 350_000
 
 const ID = /^[a-z0-9-]{1,16}$/
 const COR = /^#[0-9a-f]{6}$/
@@ -228,28 +220,6 @@ export function rotas({ banco, usuario, chave }) {
     return out(200, { agenda: a, em, proximas: ocorrencias(a, new Date(), 14) })
   }
 
-  async function story(event, metodo, caminho) {
-    if (metodo === "PUT" && caminho === "/canal/story") {
-      if (!(await doCanal(event))) return out(403, {})
-      const tipo = event.headers?.["content-type"] || ""
-      const imagem = Buffer.from(event.body || "", event.isBase64Encoded ? "base64" : "binary")
-      if (!tipo.startsWith("image/jpeg") || imagem.length < 1000 || imagem.length > STORY_MAX || imagem[0] !== 0xff || imagem[1] !== 0xd8) return out(400, {})
-      const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
-      await banco.definir(STORY, { imagem, id, em: new Date().toISOString() })
-      return out(200, { url: `https://${event.requestContext.domainName}/canal/story/${id}.jpg` })
-    }
-    const pedido = /^\/canal\/story\/([a-z0-9]{6,20})\.jpg$/.exec(caminho)
-    if (metodo !== "GET" || !pedido) return out(404, {})
-    const i = await banco.ler(STORY)
-    if (!i || i.id !== pedido[1]) return out(404, {})
-    return {
-      statusCode: 200,
-      headers: { "content-type": "image/jpeg", "cache-control": "public, max-age=86400, immutable" },
-      body: Buffer.from(i.imagem).toString("base64"),
-      isBase64Encoded: true,
-    }
-  }
-
   return async function handler(event) {
     const metodo = event.requestContext.http.method
     const caminho = event.rawPath
@@ -306,7 +276,6 @@ export function rotas({ banco, usuario, chave }) {
 
     if (caminho.startsWith("/imagem/") || caminho.startsWith("/canal/imagem/")) return imagem(event, metodo, caminho)
     if (caminho === "/agenda" || caminho === "/agenda.ics" || caminho === "/agenda.txt") return agenda(event, metodo, caminho)
-    if (caminho === "/canal/story" || caminho.startsWith("/canal/story/")) return story(event, metodo, caminho)
 
     const minha = /^\/eu\/imagem\/(banner|foto)$/.exec(caminho)
     if (caminho !== "/eu" && caminho !== "/eu/loadout" && caminho !== "/eu/duelo" && caminho !== "/eu/cartao" && !minha) return out(404, {})

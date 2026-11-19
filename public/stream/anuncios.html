@@ -31,7 +31,7 @@
       - The breaks of the live, how each came (opening, between matches, by hand, on schedule) and how long.
 
       The live's opening (abertura.js, its header has the rules): the channel's Twitch title and category from the
-      agenda (/canal/agenda) before a scheduled live, and the Instagram story when the stream opens (story.js draws it).
+      agenda (/canal/agenda) before a scheduled live.
 
       Twitch: device flow with the site's Twitch app, like the Efeitos dock; scopes channel:read:ads (the schedule),
       channel:manage:ads (snooze) and channel:edit:commercial (run), and channel:manage:broadcast (the opening's title
@@ -361,12 +361,6 @@
         background: none;
         font-size: 13px;
       }
-      .story-previa {
-        display: block;
-        width: 50%;
-        margin: 8px 0 0;
-        border-radius: 8px;
-      }
     </style>
   </head>
   <body>
@@ -393,14 +387,6 @@
 
     <h2>Abertura <small id="ab-live">—</small></h2>
     <div class="dado"><span>Título e categoria</span><b id="ab-titulo">—</b></div>
-    <label class="check"><input type="checkbox" id="ab-story" /> <span>Story no Instagram ao abrir a live</span></label>
-    <p class="note" id="ab-msg"></p>
-    <div class="acoes">
-      <button id="ab-postar" hidden>Postar story</button>
-      <button id="ab-pular" hidden>Não postar</button>
-      <button id="ab-previa">Prévia do story</button>
-    </div>
-    <img id="ab-img" class="story-previa" alt="O story" hidden />
 
     <h2>Pre-roll</h2>
     <div class="dado"><span id="preroll-rotulo">Quem chega</span><b id="preroll">—</b></div>
@@ -423,16 +409,6 @@
       </div>
     </details>
     <details>
-      <summary>Conexão com o Instagram</summary>
-      <p class="status" id="ig-status">Instagram desconectado</p>
-      <p class="note">Cole o token de acesso do Instagram (o app da Meta, "Instagram API with Instagram login"). Ele dura 60 dias e o painel renova sozinho todo dia.</p>
-      <input id="ig-token" type="password" placeholder="Token do Instagram" autocomplete="off" />
-      <div class="acoes">
-        <button id="ig-salvar">Salvar</button>
-        <button id="ig-sair">Desconectar</button>
-      </div>
-    </details>
-    <details>
       <summary>Conexão com o OBS</summary>
       <input id="password" type="password" placeholder="Senha do obs-websocket" autocomplete="off" />
     </details>
@@ -442,7 +418,6 @@
       <button class="testar" id="testar">Testar os sons</button>
     </details>
 
-    <script src="story.js"></script>
     <script src="abertura.js"></script>
     <script>
       const $ = (id) => document.getElementById(id)
