@@ -109,6 +109,13 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
 export const UPCOMING: Upcoming[] = [
+  {
+    id: "servidor-do-discord",
+    status: "agora",
+    tag: "live",
+    title: "Servidor do Discord",
+    text: "Um servidor da comunidade no Discord: o aviso de quando tem live e do que vai ser, canais pra conversar com o seu rank Σ e o de sub como cargos, e canais de voz pra jogar e assistir junto. O site continua sendo a casa de tudo.",
+  },
 ]
 
 /** Everything released, newest first. */
