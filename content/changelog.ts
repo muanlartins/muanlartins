@@ -123,20 +123,25 @@ export const UPCOMING: Upcoming[] = [
     title: "Vídeo de boas-vindas na Twitch",
     text: "Um vídeo curto que toca pra quem chega no canal quando não estou ao vivo: quem eu sou, o que rola nas lives e quando elas são.",
   },
-  {
-    id: "analise-de-mira",
-    status: "proximo",
-    tag: "site",
-    title: "Ferramenta de análise de mira pro Valorant",
-    text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
-  },
 ]
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "analise-de-mira",
+    date: "2026-11-18",
+    tag: "site",
+    title: "Análise de mira: overshooting, undershooting e tremedeira",
+    text: "Na página de mira do Valorant, uma seção nova mostra como a minha mira se move, flick por flick, lida dos replays do próprio Aimlabs: quantas vezes o primeiro movimento para antes do alvo e quantas passa dele, quanto do caminho ele faz, as correções depois, se eu clico com a mira ainda andando (e quanto acerto assim), a tremedeira antes do clique e por que cada erro errou. Atualiza junto com o treino.",
+    href: "/conteudo/valorant/aim",
+    media: [
+      media("analise-de-mira", "A seção nova: o primeiro movimento leva a mira a 88% do caminho, paro antes do alvo em 62% dos flicks e passo em 32%, e acerto 46% clicando em movimento contra 62% parado"),
+      media("analise-de-mira-primeiro", "Onde o primeiro movimento termina: colunas por faixa do caminho até o alvo, a maioria um pouco antes da linha do alvo"),
+    ],
+  },
+  {
     id: "minijogos-com-cara-de-jogo",
-    date: "2026-11-17",
+    date: "2026-11-18",
     tag: "site",
     title: "Minijogos com cara de jogo",
     text: "A página dos minijogos virou uma tela de seleção: cada classe do duelo com o desenho da live, uma ficha em barras (dano, alcance, velocidade, crescimento), os visuais da arma lado a lado e o pódio do ranking. O replay no site agora é o mesmo quadrado da live, e a corrida tem a sua bolinha em 3D e o replay de cada corrida.",
@@ -145,7 +150,7 @@ export const SHIPPED: Shipped[] = [
   },
   {
     id: "corrida-de-bolinhas",
-    date: "2026-11-17",
+    date: "2026-11-18",
     tag: "live",
     title: "Corrida de bolinhas em 3D entre as partidas",
     text: "Quando a cena de conversa entra, entre uma partida e outra, começa sozinha uma corrida em 3D com todo mundo do chat: uma bolinha pra cada um, feita do seu torcedor (as cores e a estampa da camisa). Cada corrida monta uma pista nova: campo de pinos, moinhos girando, funil, escadaria, ponte sem grade com empurradores, vale com para-choques e salto. Quem cai volta um pedaço. Os três primeiros sobem no pódio, e as vitórias ficam em Minijogos, com o replay de cada corrida, e na página de cada um.",
@@ -157,7 +162,7 @@ export const SHIPPED: Shipped[] = [
   },
   {
     id: "casa-da-comunidade",
-    date: "2026-11-17",
+    date: "2026-11-18",
     tag: "site",
     title: "Uma página pra cada viewer",
     text: "Cada um da torcida tem a sua página no site: o torcedor, os Σ e as medalhas, os gols dedicados, os duelos com replay, os Pix no mural, as ideias no roadmap e as partidas que jogou comigo. Passe o mouse em qualquer nome do site e aparece o cartão da pessoa, que você monta no seu perfil como no Discord: banner, foto, cores, pronomes, um “sobre mim” e o seu jogo. No chat, o !perfil manda o link.",

@@ -47,6 +47,16 @@ Everything is deterministic: a script copies, the site computes.
   day) and scores them with Voltaic S3's formula, ported line by line from aimlab-stats.com: energy per scenario,
   the best per subcategory, the harmonic mean of the nine, "Complete" when every scenario reached the rank.
 - `content/voltaic-s3.json` is the benchmark itself: each level's scenario ids, names, subcategories and thresholds.
+- **How the aim moves** ("Como a mira se move" on the page, the roadmap's aim analysis, 2026-11-17): `scripts/mira.py`
+  reads the replays themselves (`Replay\<play>.avro`, only the click scenarios: Frogshot, Popshot, Angleshot,
+  Floatshot, Quadshot, Wideshot…; tracking and switching fire nonstop and are left out) and writes
+  `content/mira/<date>.json`: per play, the flicks that stop short of the target and that go past it, how much of the
+  way the first movement covers (and a histogram of where it ends), the corrections, clicking while still moving
+  and the hits each way, the shake in the 150 ms before the click, why the misses missed, and the median flick as a
+  curve. `lib/mira.ts` sums the latest 14 days. The format isn't public: the script's docstring has what was worked
+  out, and every play is checked against its header's shots, targets and hits, so a replay it can't read is skipped
+  with the reason, never guessed. **Only the last 50 plays have replays**: run it at least every two or three days of
+  training, or those plays' flicks are lost for good (their scores aren't: they're in the database).
 
 ## What he trains: VDIM S3, and when to move up
 
@@ -85,7 +95,8 @@ https://claude.ai/artifact/W58CiUvaUEi3wjBnfXhWYG (read it with the Artifact too
 2. `git pull --ff-only`, then `python3 scripts/voltaic.py` shows the days that change, then
    `python3 scripts/voltaic.py --apply`. A Sunday should show about 18+ plays; if a benchmark day shows fewer than
    12 of the scenarios, it won't count as a benchmark: ask him whether he skipped some. Count the plays still named
-   by a cut id (`name` equal to the id's third part) and say so if there are any.
+   by a cut id (`name` equal to the id's third part) and say so if there are any. Then `python3 scripts/mira.py
+   --apply` (the flicks); a play it skips says why: tell him if a click scenario was skipped.
 3. Tell him the week in a few lines, from `lib/voltaic.ts` itself (not by hand): the rank and energy, the change
    since last Sunday, the energy to the next rank, the weakest subcategory (the page's "Onde focar"), the scenarios
    that moved most, and the week's routine (days trained, minutes, the streak). To get the numbers:
@@ -111,5 +122,8 @@ Add a line each Sunday: it's the quick answer to "como estou indo?" without buil
 - **A new Voltaic season**: a new `content/voltaic-<season>.json` with its ids and thresholds (aimlab-stats.com's
   benchmark page bundles them in its JS; Voltaic's own sheet has them too), point `lib/voltaic.ts` at it and keep
   S3's for the old Sundays. Check the energy formula didn't change.
+- **Aimlabs changes its replays**: `scripts/mira.py` skips every play that doesn't add up ("N shots and M targets
+  read, the header says…"). `python3 scripts/mira.py --detalhe <replay.avro>` prints one replay's shots to see where
+  it goes wrong; the layout is in the script's docstring.
 - **Aimlabs changes its database**: `TaskData`'s columns (`taskName` is the id, `score`, `startedAt`, `endedAt`,
   `performance` JSON with `accTotal`, `playId`) are what the script reads.
