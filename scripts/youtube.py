@@ -373,7 +373,7 @@ def video(args):
     if record.get("playlist"):
         playlist = next((p for p in all_playlists(api) if p["snippet"]["title"] == record["playlist"]), None)
         if not playlist:
-            # The first video of a new series (partidas.py's "Rocket League: partidas da live", 11-17): public, as
+            # The first video of a new series (partidas.py's "Rocket League: cortes da live", 11-17): public, as
             # the videos will be. Just made, it's empty: listing it right away answers 404.
             playlist = api.playlists().insert(part="snippet,status", body={
                 "snippet": {"title": record["playlist"], "defaultLanguage": "pt-BR"},

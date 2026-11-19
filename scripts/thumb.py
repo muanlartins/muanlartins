@@ -7,7 +7,7 @@ with a hook of two to four words. YouTube decides what to show people by who cli
     scripts/.venv/bin/python scripts/thumb.py <date> --quadro 7b --texto "..." --fundo 56:20 --emblema
     scripts/.venv/bin/python scripts/thumb.py <date> --refazer          # again, from the live's youtube.thumb
     scripts/.venv/bin/python scripts/thumb.py <date> --folha gata --trecho 54:53-1:21:18   # a sheet of one stretch
-    scripts/.venv/bin/python scripts/thumb.py <date> --folha gata --quadro 4b --texto "..." --etiqueta "3V3 RANQUEADO" \
+    scripts/.venv/bin/python scripts/thumb.py <date> --folha gata --quadro 4b --texto "..." \
         --saida brand/youtube/thumbnails/<date>-gata.jpg            # a partidas.py video's thumbnail
 
 The candidates are his strongest reactions, where the microphone's own track (Live.mp4's second audio) was loudest,
@@ -23,8 +23,9 @@ his (the `depois-da-live` skill), the rest is fixed:
 - The hook in Space Grotesk Bold, uppercase, Branco with a dark Klein outline; a second line (after `|`) on the
   brand's Branco plate cut at 45°. `--emblema`: the rank reached (LIVES in brand/build.py) glowing by the hook.
 - A small "AO VIVO" plate with the day, top left: every live's thumbnail is recognisable as one. The videos of
-  matches cut from a live (partidas.py) carry their own (`--etiqueta`), and their sheet comes from their matches only
-  (`--trecho`, Live.mp4 times, as many as needed; `--folha` names the sheet, Thumb\\candidatos <folha>.jpg).
+  matches cut from a live (partidas.py, made with `--folha`) carry "CORTE DA LIVE" and the day instead (Luan, 11-19:
+  so they stand apart from the videos made for YouTube; `--etiqueta` overrides it), and their sheet comes from their
+  matches only (`--trecho`, Live.mp4 times, as many as needed; `--folha` names the sheet, Thumb\\candidatos <folha>.jpg).
 
 Writes brand/youtube/thumbnails/live-<date>.jpg (JPEG: YouTube takes 2 MB at most), which youtube.py prefers over
 build.py's plain live-<date>.png. Never deletes anything.
@@ -407,7 +408,7 @@ def main():
     parser.add_argument("--emblema", action="store_true", help="the rank reached, glowing by the hook")
     parser.add_argument("--saida", help="write elsewhere (a draft) instead of brand/youtube/thumbnails/")
     parser.add_argument("--refazer", action="store_true", help="make it again from the live's youtube.thumb")
-    parser.add_argument("--etiqueta", help="the plate top left instead of AO VIVO · dd/mm (a partidas.py video)")
+    parser.add_argument("--etiqueta", help="the plate top left instead of AO VIVO · dd/mm, or CORTE DA LIVE · dd/mm with --folha")
     parser.add_argument("--trecho", action="append", default=[], help="the sheet only from here: Live.mp4 a-b")
     parser.add_argument("--folha", help="the sheet's name, for a sheet of --trecho (Thumb\\candidatos <folha>.jpg)")
     args = parser.parse_args()
@@ -420,7 +421,8 @@ def main():
         sheet(args.date, spans, args.folha)
     else:
         compose(args.date, args.quadro, args.texto or "", args.fundo, args.emblema,
-                Path(args.saida) if args.saida else None, label=args.etiqueta, name=args.folha)
+                Path(args.saida) if args.saida else None, name=args.folha,
+                label=args.etiqueta or (f"CORTE DA LIVE · {args.date[8:10]}/{args.date[5:7]}" if args.folha else None))
 
 
 if __name__ == "__main__":

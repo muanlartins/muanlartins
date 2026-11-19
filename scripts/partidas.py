@@ -17,7 +17,7 @@ the dock's events and approved by Luan; everything else is fixed here:
       "inicio": {"9": "1:08:52"},                        # a match's start, when the dock caught it late
       "fim": {"10": "1:21:18"},                          # a match's end, when the talk after it is worth keeping
       "saltos": ["1:10:24.512"],                         # where the recording jumps (OBS or the PC went down)
-      "titulo": "Minha gata desligou o PC no meio da ranqueada",   # the hook; " | Rocket League 3v3 Diamante 3" is added
+      "titulo": "Minha gata desligou o PC no meio da ranqueada",   # the hook; " | Rocket League 3v3 Diamante 3 (corte da live)" is added
       "descricao": "…",                                  # the description's first paragraph
       "publicar": "2026-11-18T21:00:00-03:00"            # when YouTube publishes it
     }
@@ -95,7 +95,10 @@ OUTRO_WORDS = [(0.34, 0.78, "Curtiu?"),
                (6.78, 8.98, "Acessa meu site também que tem tudo organizadinho."),
                (9.42, 10.04, "Vou estar te esperando.")]
 
-PLAYLIST = "Rocket League: partidas da live"
+# Luan, 11-19: a video cut from a live says so (title, thumbnail plate, playlist), so the videos made for YouTube
+# stand apart from the lives' replays.
+PLAYLIST = "Rocket League: cortes da live"
+MARK = "(corte da live)"
 # Epic's Fan Content Policy (1.10) asks for this line on videos of its games that may carry ads.
 EPIC = ("Portions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved "
         "by Epic. This material is not official and is not endorsed by Epic.")
@@ -373,13 +376,15 @@ def render(roteiro, parts, out):
 
 def title(roteiro):
     """The hook, then the game, the mode and the rank going into the video's first match (Luan, 11-18: the title should
-    say the format and the rank): "Minha gata desligou o PC no meio da ranqueada | Rocket League 3v3 Diamante 3"."""
+    say the format and the rank), and that it's cut from a live (11-19): "Minha gata desligou o PC no meio da ranqueada |
+    Rocket League 3v3 Diamante 3 (corte da live)"."""
     first = session(roteiro["data"])[0]["matches"][roteiro["partidas"][0] - 1]
     ranks, _ = brand_tables()
     tier = first.get("rank", {}).get("tier", "")
     base, _, number = tier.rpartition("-")
     rank = f"{ranks[base][0]} {number}" if base in ranks and number.isdigit() else ranks.get(tier, ("",))[0]
-    return " ".join(part for part in (f"{roteiro.get('titulo', '')} | Rocket League", first.get("mode", ""), rank) if part)
+    return " ".join(part for part in (f"{roteiro.get('titulo', '')} | Rocket League", first.get("mode", ""), rank, MARK)
+                    if part)
 
 
 def youtube_record(roteiro, marks, path):
@@ -387,7 +392,7 @@ def youtube_record(roteiro, marks, path):
     date = roteiro["data"]
     day = f"{date[8:10]}/{date[5:7]}"
     lines = [roteiro.get("descricao", ""), "",
-             f"Partidas inteiras da live de {day}. Todas as lives: https://muanlartins.com.br/canal/lives",
+             f"Corte da live de {day}, com as partidas inteiras. Todas as lives: https://muanlartins.com.br/canal/lives",
              "Minhas ranqueadas: https://muanlartins.com.br/conteudo/rocket-league/ranked",
              "Ao vivo na Twitch: https://www.twitch.tv/muanlartins", "A comunidade no Discord: https://discord.gg/q5qxT7Pw2E",
              "", *[f"{clock(t)} {name}" for t, name in marks],

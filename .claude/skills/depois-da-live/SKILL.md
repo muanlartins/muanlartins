@@ -166,8 +166,10 @@ schedule and policy; its editing advice was overruled by him.
    the PC off mid-match, "muito perto do Champion"). Three groups of three matches in order, no match in two videos,
    ~16–21 min each: the best stories, not just the wins. Leftovers stay in the VOD. A standalone hook for each title
    (never "Parte 1"), the roteiro's `titulo`; partidas.py adds the game, the mode and the rank going into the first
-   match, which Luan wants in every title (11-18): `Minha gata desligou o PC no meio da ranqueada | Rocket League 3v3
-   Diamante 3`. So the hook doesn't say the rank again.
+   match, which Luan wants in every title (11-18), and "(corte da live)" (11-19: what's cut from a live says so in the
+   title, the thumbnail's plate and the playlist, so the videos made for YouTube stand apart from the lives' replays):
+   `Minha gata desligou o PC no meio da ranqueada | Rocket League 3v3 Diamante 3 (corte da live)`. So the hook doesn't
+   say the rank again.
 2. **Plan, then render**: `partidas.py <roteiro>` prints each match's edges (with his mic's level there: all should be
    pauses, ≤ -60 dB; `!` lines say where none was found) and the chapters; then `--apply`: ~5 min per video (NVENC),
    ~4 GB, `Videos\Partidas\<date> <nome>.mp4`, and `content/videos/<date>-<nome>.json` for YouTube (id empty,
@@ -178,16 +180,16 @@ schedule and policy; its editing advice was overruled by him.
    the stinger (transicao.webm) covers every join, as on the stream. Check a frame on each side of each join and the
    loudness (-14 to -16 LUFS).
 3. **Thumbnails**, as in 2b but per video: `thumb.py <date> --folha <nome> --trecho <first match start>-<last
-   match end>` makes a sheet of that stretch; drafts with `--folha <nome> --quadro 7b --texto "…" --etiqueta "3V3
-   RANQUEADO" --saida "Videos\Lives\<date>\Thumb\rascunho <nome> A.jpg"` (a Live.mp4 second works as `--quadro` too,
-   and a frame from elsewhere in the live is fine when it tells the story better: 11-17's cat video uses the cat in
-   his lap from match 12); the pick goes to `brand/youtube/thumbnails/<date>-<nome>.jpg`. Picking is Luan's.
+   match end>` makes a sheet of that stretch; drafts with `--folha <nome> --quadro 7b --texto "…" --saida
+   "Videos\Lives\<date>\Thumb\rascunho <nome> A.jpg"` (the plate says CORTE DA LIVE · dd/mm by itself with
+   `--folha`; a Live.mp4 second works as `--quadro` too, and a frame from elsewhere in the live is fine when it
+   tells the story better: 11-17's cat video uses the cat in his lap from match 12); the pick goes to `brand/youtube/thumbnails/<date>-<nome>.jpg`. Picking is Luan's.
 4. **Publish**: Luan uploads the three files in Studio (private) and the ids go into the records; one a day from the
    day after the live, 12:00 BRT (until Studio has audience data), the VOD at least a day after the last
    (`youtube.publish_at` in `content/lives/<date>.json`: `youtube.py live` schedules it, and the site keeps that live
    off its pages until a build after that moment, so its page never embeds a private video). Then
    `youtube.py video content/videos/<date>-<nome>.json --dry-run`, show him, apply (it makes the playlist "Rocket
-   League: partidas da live" the first time, and uploads the captions as the lives' are). The end screen (last 10 s,
+   League: cortes da live" the first time, and uploads the captions as the lives' are). The end screen (last 10 s,
    over the outro) is set in Studio by hand: the API can't. A slot that passes before he uploads (11-18: the noon
    slot went by; he picked 21:00 the same day) is his call: change `publicar` and `publish_at`. Once a video is out,
    running `youtube.py` again leaves its status alone (a `publish_at` already past is skipped, since setting it
