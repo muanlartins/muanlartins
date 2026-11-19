@@ -9,7 +9,7 @@ const number = (n: number) => n.toLocaleString(LOCALE === "pt" ? "pt-BR" : "en")
 
 const ICONS: Record<Badge["id"], LucideIcon> = { horas: Clock, lives: Tv, seguidas: Flame, doado: HeartHandshake }
 /** One colour per level, warming up from bronze; the last is the channel's own Klein. */
-const LEVELS = ["#b8794b", "#8e9aa8", "#d9a520", "#2fb0bb", "#4d7cff", "#9b5cf6", "#e0457b", "#002fa7"]
+export const LEVELS = ["#b8794b", "#8e9aa8", "#d9a520", "#2fb0bb", "#4d7cff", "#9b5cf6", "#e0457b", "#002fa7"]
 
 const UNITS = localize({
   horas: { pt: "h", en: "h" },

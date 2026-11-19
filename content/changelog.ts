@@ -131,13 +131,6 @@ export const UPCOMING: Upcoming[] = [
     text: "Pra entender se estou sofrendo de overshooting, undershooting, flick, tremedeira e companhia.",
   },
   {
-    id: "comunidade-no-site",
-    status: "agora",
-    tag: "site",
-    title: "O site como casa da comunidade",
-    text: "Uma página pra cada viewer, com seu torcedor, seus Σ e medalhas, seus duelos, seus Pix, suas ideias no roadmap, as partidas que jogou comigo e os gols dedicados a você, num cartão que você personaliza como um perfil do Discord e que aparece igual em todo canto do site. Todo nome leva pra ela, o !perfil no chat manda o link, e perfil, mural, minijogos e comandos ganham uma cara só.",
-  },
-  {
     id: "corrida-de-bolinhas",
     status: "proximo",
     tag: "live",
@@ -149,6 +142,18 @@ export const UPCOMING: Upcoming[] = [
 
 /** Everything released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "casa-da-comunidade",
+    date: "2026-11-17",
+    tag: "site",
+    title: "Uma página pra cada viewer",
+    text: "Cada um da torcida tem a sua página no site: o torcedor, os Σ e as medalhas, os gols dedicados, os duelos com replay, os Pix no mural, as ideias no roadmap e as partidas que jogou comigo. Passe o mouse em qualquer nome do site e aparece o cartão da pessoa, que você monta no seu perfil como no Discord: banner, foto, cores, pronomes, um “sobre mim” e o seu jogo. No chat, o !perfil manda o link.",
+    href: "/torcedor/jpmartins_1",
+    media: [
+      media("casa-da-comunidade", "A página do jpmartins_1: o cartão com o torcedor de camisa do Fluminense, 721 Σ em Ouro III, as horas, as lives, a sequência e as medalhas"),
+      media("casa-da-comunidade-cartao", "No mural, o mouse no nome do tiago_dantty abre o cartão dele: o torcedor, 444 Σ, Ouro I, 6 horas e 5 lives, e o link pra página"),
+    ],
+  },
   {
     id: "duelo-compacto",
     date: "2026-11-17",

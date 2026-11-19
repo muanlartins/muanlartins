@@ -63,9 +63,10 @@
         },
         {
           "comando": "!perfil",
-          "texto": "Onde montar o seu torcedor.",
-          "dica": "monte o seu torcedor em muanlartins.com.br/perfil",
-          "resposta": "Monte o seu torcedor da arquibancada (cores, cabeça, roupa, time, comemoração e grito) e veja os seus Σ: https://muanlartins.com.br/perfil"
+          "uso": "!perfil ou !perfil @alguém",
+          "texto": "O link da sua página no site (ou da de alguém): o torcedor, os Σ, as medalhas, os duelos e os Pix. E onde montar o seu torcedor e o seu cartão.",
+          "dica": "!perfil: o link da sua página no site",
+          "resposta": "Página de ${user}: https://muanlartins.com.br/torcedor/${user.name} · monte o seu torcedor e o seu cartão em https://muanlartins.com.br/perfil"
         },
         {
           "comando": "!pix",

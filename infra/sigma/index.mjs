@@ -26,11 +26,15 @@
 // fight shown while the stream is on; GET /duelos is public, the ranking and the latest fights, and GET
 // /duelos?login=a someone's record and their latest fights; GET /duelo.txt?login=a&nome=A is the chat bot's !duelo,
 // like !sigma.
+// A viewer's page (/torcedor/<login>): POST /dedicatoria comes from the crowd overlay with the key, each goal (a win
+// in Valorant) the stand dedicates to someone (dedicatorias.mjs), and GET /pessoa?login=a is public: their Σ and
+// streak as /sigmas has them, their first live and the dedications.
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { BatchGetCommand, DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
 import { daLive, json, LOGIN, out } from "./comum/http.mjs"
 import { quem } from "./comum/twitch.mjs"
+import { anotarDedicatoria, dedicatoria } from "./dedicatorias.mjs"
 import { anotar, cedo, deViewer, doViewer, Duelo, GERAL, luta, repetida, resumo, textoDuelo } from "./duelo.mjs"
 import { textoSigma } from "./texto.mjs"
 
@@ -187,6 +191,18 @@ async function acertouVar(event) {
   return out(200, { creditados })
 }
 
+// A goal the stand dedicated: kept on their item, once (each stand sends only its own game's).
+async function dedicada(event) {
+  if (!daLive(event)) return out(401, {})
+  const d = dedicatoria(json(event))
+  if (!d || d.login === DONO) return out(400, {})
+  const i = (await ler([d.login]))[d.login]
+  const lista = anotarDedicatoria(i?.dedicatorias, d)
+  if (!lista) return out(200, { repetida: true })
+  await db.send(new UpdateCommand({ TableName: T, Key: { login: d.login }, UpdateExpression: "SET dedicatorias = :d", ExpressionAttributeValues: { ":d": lista } }))
+  return out(200, { guardadas: lista.length })
+}
+
 async function presentes(event) {
   if (!daLive(event)) return out(401, {})
   const desde = Math.floor(Date.now() / 60000) - PRESENTE
@@ -263,6 +279,20 @@ export async function handler(event) {
     const itens = await ler([login, CANAL])
     return texto(textoSigma(exibido.toLowerCase() === login ? exibido : login, itens[login] && publico(itens[login], itens[CANAL] || {}, hoje)))
   }
+  if (metodo === "GET" && caminho === "/pessoa") {
+    const login = String(event.queryStringParameters?.login || "").trim().replace(/^@/, "").toLowerCase()
+    if (!LOGIN.test(login)) return out(400, {})
+    if (login === DONO) return out(200, { login, stats: null, primeira: null, dedicatorias: [] })
+    const itens = await ler([login, CANAL])
+    const i = itens[login]
+    const r = out(200, {
+      login,
+      stats: i ? publico(i, itens[CANAL] || {}, hoje) : null,
+      primeira: i?.primeira ?? null,
+      dedicatorias: i?.dedicatorias ?? [],
+    })
+    return { ...r, headers: { ...r.headers, "cache-control": "public, max-age=15" } }
+  }
   if (metodo === "GET" && caminho === "/audiencia") {
     const canal = (await ler([CANAL]))[CANAL] || {}
     return out(200, { pessoas: await audiencia(canal, hoje) })
@@ -298,5 +328,6 @@ export async function handler(event) {
   if (metodo === "POST" && caminho === "/presenca") return presenca(event)
   if (metodo === "GET" && caminho === "/presentes") return presentes(event)
   if (metodo === "POST" && caminho === "/var") return acertouVar(event)
+  if (metodo === "POST" && caminho === "/dedicatoria") return dedicada(event)
   return out(404, {})
 }

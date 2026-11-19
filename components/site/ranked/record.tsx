@@ -26,6 +26,7 @@ import { dayOf } from "@/lib/ranked"
 import type { Breakdown, Day, Player, RecordView, Result, Stat, ViewMatch } from "@/lib/ranked-view"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
+import { ViewerName } from "@/components/site/viewer/viewer-name"
 
 const T = localize({
   W: { pt: "V", en: "W" },
@@ -390,14 +391,18 @@ function Players({ players, unit }: { players: Player[]; unit: string }) {
             <FanSpot T={torcedor} fans={fans} login={player.login} name={player.login} size={player.me ? "md" : "sm"} />
             <div className="min-w-0 space-y-1 text-[14px] tabular-nums">
               <p className="flex items-center gap-2">
-                <a
-                  href={`https://www.twitch.tv/${player.login}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={cn("truncate font-medium text-ink transition-colors hover:text-klein", player.me ? "text-[18px]" : "text-[16px]")}
-                >
-                  {player.login}
-                </a>
+                {player.login === ME ? (
+                  <a
+                    href={`https://www.twitch.tv/${player.login}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={cn("truncate font-medium text-ink transition-colors hover:text-klein", player.me ? "text-[18px]" : "text-[16px]")}
+                  >
+                    {player.login}
+                  </a>
+                ) : (
+                  <ViewerName login={player.login} className={cn("block truncate font-medium text-ink transition-colors hover:text-klein", player.me ? "text-[18px]" : "text-[16px]")} />
+                )}
                 {player.login === ME && <span className="rounded-sm bg-klein px-1.5 py-px text-[11px] font-semibold text-paper">{T.me}</span>}
               </p>
               <p className="flex flex-wrap items-center gap-x-2 text-ink">

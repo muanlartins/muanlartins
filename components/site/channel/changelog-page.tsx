@@ -28,6 +28,8 @@ import { channelPath } from "@/lib/channel"
 import { loadFans, type Choice, type Torcedor } from "@/lib/profile"
 import { HTML_LANG, LOCALE, localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
+import { ViewerName } from "@/components/site/viewer/viewer-name"
+import { viewerPath } from "@/lib/viewer"
 
 const T = localize(channel)
 const R = T.roadmap
@@ -228,16 +230,25 @@ function Community({ look }: { look: Fans }) {
           const p = person(id)
           return (
             <li key={id} className="rounded-md border border-line bg-paper/70 px-4 py-3 backdrop-blur-sm">
-              <a
-                href={p.url}
-                target="_blank"
-                rel="noreferrer"
-                className="group inline-flex items-center gap-1.5 text-[15px] font-medium text-ink hover:text-klein"
-              >
-                <PlatformIcon where={p.where} className="h-3.5 w-3.5 text-klein" />
-                {p.name}
-                <ArrowUpRight aria-hidden className="h-3.5 w-3.5 text-muted group-hover:text-klein" />
-              </a>
+              {p.login ? (
+                <span className="inline-flex items-center gap-1.5 text-[15px] font-medium text-ink">
+                  <PlatformIcon where={p.where} className="h-3.5 w-3.5 text-klein" />
+                  <ViewerName login={p.login} className="hover:text-klein">
+                    {p.name}
+                  </ViewerName>
+                </span>
+              ) : (
+                <a
+                  href={p.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group inline-flex items-center gap-1.5 text-[15px] font-medium text-ink hover:text-klein"
+                >
+                  <PlatformIcon where={p.where} className="h-3.5 w-3.5 text-klein" />
+                  {p.name}
+                  <ArrowUpRight aria-hidden className="h-3.5 w-3.5 text-muted group-hover:text-klein" />
+                </a>
+              )}
               {p.note && <span className="ml-1.5 text-[13px] text-muted">{p.note}</span>}
               {[
                 { label: R.community.suggested, list: items.filter((item) => item.credit?.as !== "report") },
@@ -354,10 +365,10 @@ function CreditLine({ credit, look, inverted }: { credit: Credit; look: Fans; in
     <div className={cn("mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px]", inverted ? "text-paper/85" : "text-muted")}>
       <Lightbulb aria-hidden className={cn("h-4 w-4", inverted ? "text-paper" : "text-klein")} />
       {credit.as === "report" ? R.shipped.reported : R.shipped.idea}
+      {/* A viewer's name leads to their page on the site; a YouTube commenter's to their channel. */}
       <a
-        href={p.url}
-        target="_blank"
-        rel="noreferrer"
+        href={p.login ? viewerPath(p.login) : p.url}
+        {...(p.login ? {} : { target: "_blank", rel: "noreferrer" })}
         className={cn("inline-flex items-center gap-1.5 font-medium", inverted ? "text-paper hover:underline" : "text-ink hover:text-klein")}
       >
         {look.T && (

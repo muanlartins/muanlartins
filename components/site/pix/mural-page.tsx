@@ -6,6 +6,7 @@ import { PageIntro } from "@/components/site/page-intro"
 import { Audience } from "@/components/site/pix/audience"
 import { GiftSubs, PresentView, TreeView } from "@/components/site/pix/christmas"
 import { FanSpot } from "@/components/site/pix/fan-spot"
+import { ViewerName } from "@/components/site/viewer/viewer-name"
 import { GoalBar, timeLeft } from "@/components/site/pix/goal-bar"
 import { BadgeChips } from "@/components/site/profile/badges"
 import { mural as muralCopy, STYLES } from "@/content/pix"
@@ -40,7 +41,9 @@ function Supporters({ list, look: { T, fans, S, sigmas, P }, tree }: { list: Mur
           <FanSpot T={T} fans={fans} login={p.login} name={p.nome} size={!p.nome && !p.mensagem && !p.login ? "sm" : "md"} />
           <div className="min-w-0 flex-1 space-y-2 py-1 pr-1">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-              <strong className="text-[16px] font-medium break-words text-ink">{p.nome || text.anonymous}</strong>
+              <strong className="text-[16px] font-medium break-words text-ink">
+                {p.login ? <ViewerName login={p.login}>{p.nome || p.login}</ViewerName> : p.nome || text.anonymous}
+              </strong>
               <span className="flex items-center gap-2 text-[17px] font-medium text-klein tabular-nums">
                 {tree && P && <PresentView kit={P} present={P.normalizar(p.presente, p.em)} className="h-6 w-6" />}R$ {reais(p.centavos)}
               </span>

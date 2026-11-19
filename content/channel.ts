@@ -292,6 +292,81 @@ export const channel = {
     },
   },
 
+  /** /torcedor/<login>: a viewer's page and card (lib/viewer.ts), everything of theirs in one place. Copy is a draft for Luan. */
+  viewer: {
+    title: { pt: "Torcedor", en: "Fan" },
+    /** "{login}" is theirs. */
+    description: {
+      pt: "{login} na torcida do muanlartins: o torcedor, os Σ, as medalhas, os duelos, os Pix e as partidas com o canal.",
+      en: "{login} in muanlartins' crowd: their fan, Σ, badges, duels, Pix and matches with the channel.",
+    },
+    since: { pt: "Na torcida desde {date}", en: "In the crowd since {date}" },
+    sinceStart: { pt: "Na torcida desde o começo", en: "In the crowd from the start" },
+    never: { pt: "Ainda sem Σ", en: "No Σ yet" },
+    open: { pt: "Ver perfil", en: "See profile" },
+    mine: { pt: "Esta é a sua página.", en: "This is your page." },
+    edit: { pt: "Editar perfil", en: "Edit profile" },
+    about: { pt: "Sobre mim", en: "About me" },
+    next: { pt: "Próximo:", en: "Next:" },
+    /** "{n}" lives in a row now. */
+    streakChip: { pt: "{n} lives seguidas", en: "{n} lives in a row" },
+    takeDown: { pt: "Tirar {what}", en: "Take down {what}" },
+    banner: { pt: "banner", en: "banner" },
+    photo: { pt: "foto", en: "photo" },
+    twitch: { pt: "Na Twitch", en: "On Twitch" },
+    loading: { pt: "Carregando…", en: "Loading…" },
+    stats: {
+      title: { pt: "Σ e medalhas", en: "Σ and badges" },
+      sigma: { pt: "Σ", en: "Σ" },
+      hours: { pt: "horas assistidas", en: "hours watched" },
+      lives: { pt: "lives", en: "lives" },
+      streak: { pt: "seguidas agora", en: "in a row now" },
+      record: { pt: "recorde {n}", en: "best {n}" },
+      none: { pt: "Os Σ vêm assistindo às lives: 1 por minuto, e mais por live e por sequência.", en: "Σ come from watching the lives: 1 a minute, and more per live and per run." },
+    },
+    dedications: {
+      title: { pt: "Gols dedicados", en: "Goals dedicated" },
+      goal: { pt: "Gol", en: "Goal" },
+      win: { pt: "Vitória", en: "Win" },
+      none: {
+        pt: "A cada gol (no Valorant, a cada vitória), a arquibancada sorteia alguém pra dedicar. Os dedicados aparecem aqui.",
+        en: "Each goal (in Valorant, each win) the stand draws someone to dedicate it to. Those show here.",
+      },
+    },
+    duel: {
+      title: { pt: "Duelo de bolinhas", en: "Ball duel" },
+      record: { pt: "{w} vitórias em {n} duelos", en: "{w} wins in {n} duels" },
+      position: { pt: "{p}º no ranking", en: "#{p} in the ranking" },
+      won: { pt: "Venceu", en: "Won" },
+      lost: { pt: "Perdeu", en: "Lost" },
+      against: { pt: "contra", en: "against" },
+      replay: { pt: "Replay", en: "Replay" },
+      close: { pt: "Fechar o replay", en: "Close the replay" },
+      none: { pt: "Ainda não foi sorteado pra um duelo.", en: "Not drawn for a duel yet." },
+      pick: { pt: "Escolher a minha bolinha", en: "Pick my ball" },
+    },
+    pix: {
+      title: { pt: "Pix no mural", en: "Pix on the mural" },
+      sub: { pt: "Ganhou um sub de presente na meta {goal}", en: "Won a gift sub in the goal {goal}" },
+      outside: { pt: "Fora de meta", en: "Outside any goal" },
+    },
+    ideas: {
+      title: { pt: "Ideias no roadmap", en: "Ideas on the roadmap" },
+      idea: { pt: "Ideia", en: "Idea" },
+      report: { pt: "Avisou", en: "Reported" },
+      soon: { pt: "Vem aí", en: "Coming" },
+    },
+    matches: {
+      title: { pt: "Partidas comigo", en: "Matches with me" },
+      summary: { pt: "{n} partidas · {w} vitórias", en: "{n} matches · {w} wins" },
+      win: { pt: "Vitória", en: "Win" },
+      loss: { pt: "Derrota", en: "Loss" },
+      draw: { pt: "Empate", en: "Draw" },
+      watch: { pt: "na live", en: "in the live" },
+    },
+    notFound: { pt: "Esse nome não parece um login da Twitch.", en: "That doesn't look like a Twitch login." },
+  },
+
   /** /canal/roadmap: what comes next and everything released, with credits. Its entries are in content/changelog.ts. */
   roadmap: {
     title: { pt: "Roadmap", en: "Roadmap" },
