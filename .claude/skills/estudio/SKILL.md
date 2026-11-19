@@ -386,6 +386,25 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
   cut one second off an ending and retention went 83% → 88%) and at most 3 designed transitions; he asked for the
   outro back and for animated transitions. Its references (Tixinha, Cortes do Gaules, tarik, Lethamyr, ckeyz…)
   were read from titles, never watched: measure one with the `steal` skill before copying it.
+- **One play, made intense (11-18, "4K de Sage", `2026-11-18-4k.json`):** Luan asked for a 4K "com os efeitos
+  sonoros e visuais adequados pra dar uma intensidade pra jogada", the outro, and research on good reels:
+  `pesquisa-reel-jogada.md` beside this file (an addendum to `pesquisa-cortes.md`). What it changed: Valorant already
+  builds a multi-kill (the kill sound climbs a note per kill, the top bar counts who's alive), so kills 1-3 get
+  nothing added (no counter, no stamps, no SFX, no shake) and the last kill is the one designed moment: a punch on the
+  game's half only (`"soco"`: 1.10 at the crosshair, in over 5 frames, held 0.4 s, out over 15), a white flash on
+  that half for two frames (`"flash_tau": 0.03`, `"onde": "jogo"`) and an impact in layers that a phone can play
+  (`impact-boom` + `hit` + `click` on the kill's frame). The hook opens 1-1.5 s before the first kill with one hit and
+  2-4 words (count + the unusual fact: a healer with four kills) on the camera's foot (`"y": 770`), above the game's
+  top bar; never a teaser of the last kill (the count would restart). Riot's own 4K Shorts run 11-26 s: about 20-30 s
+  of play, at most two internal cuts (hard, `"entrada": "seco"`, right after a kill), never cutting the wait before
+  the last kill under 3 s. Kill frames from the kill banner's first frame (white skull under the crosshair at
+  ~(960, 850) in the game), not from the killfeed scan (~0.1 s late). He was silent and stone-faced through it, so no
+  captions (`sem_legenda`).
+- **A live not filed yet (11-18):** `"arquivos"` names the loose recordings in Videos (OBS's names), so a short needn't
+  wait for `videos.py`. That day two game recordings ran at once (the Diversos scene's, black once he left it, and
+  Valorant's): `videos.py` would join them end to end, wrongly. Câmera.mkv came at 854×480 (taken at 1280×720 by
+  `hd_camera` and `camera_lag`). No camera filter that day: `"filtro": false` (Câmera.mkv alone on top) and
+  `"camera_recorte"` frames his head.
 - **Still open:** music (none yet); the outro's effect on retention once a few shorts have their numbers.
 
 **The effects-heavy edit (`scripts/cortes.py`, rejected 11-11):** five picks chopped into 14 stretches in 34 s,

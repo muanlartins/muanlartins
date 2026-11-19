@@ -82,6 +82,32 @@ def parts(folder):
     return table
 
 
+LOOSE_START = re.compile(r" (\d{2})-(\d{2})-(\d{2})")  # OBS's own name: "2026-11-18 20-24-35 jogo.mkv"
+
+
+def material(roteiro):
+    from windows import VIDEOS
+    """(Live.mp4, the game's recording, the camera's, their parts table) for a roteiro: the live's folder
+    (Videos\\Lives\\<date>, filed by videos.py), or the roteiro's "arquivos" ({"live", "jogo", "camera"}: paths under
+    Videos) for a live not filed yet, each one piece started at the time in its name. On 11-18 two game recordings ran
+    at once (the Diversos scene's, black once it was left, and Valorant's): "arquivos" names the right one."""
+    files = roteiro.get("arquivos")
+    if not files:
+        folder = VIDEOS / "Lives" / roteiro["live"]
+        return (next(folder.glob("* Live.mp4")), next(folder.glob("* Jogo.mp4")), next(folder.glob("* Câmera.mkv")),
+                parts(folder))
+    paths, table = [], {}
+    for key, kind in (("live", "Live"), ("jogo", "Jogo"), ("camera", "Câmera")):
+        path = VIDEOS / files[key]
+        h, m, s = LOOSE_START.search(path.name).groups()
+        seconds = float(subprocess.run([str(Path.home() / ".local" / "bin" / "ffprobe"), "-v", "error",
+                                        "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
+                                       capture_output=True, text=True, check=True).stdout)
+        table[kind] = [{"inicio": f"{roteiro['live']}T{h}:{m}:{s}", "em": 0.0, "segundos": seconds}]
+        paths.append(path)
+    return (*paths, table)
+
+
 def wall(table, kind, t):
     from datetime import datetime
     for p in reversed(table[kind]):
@@ -150,10 +176,11 @@ CAM_PLACES = ((44, 44, 0.375), (44, 740, 0.375), (64, 64, 1.0), (1344, 136, 0.4)
 CAM_HEAD = (560, 200, 400, 420)
 
 
-def heads(path, start, length, x, y, w, h):
-    """His head, 48×48 grey, 60 frames a second, each frame normalised (so brightness doesn't count)."""
+def heads(path, start, length, x, y, w, h, scale=""):
+    """His head, 48×48 grey, 60 frames a second, each frame normalised (so brightness doesn't count). `scale` first
+    (Câmera.mkv to the 1280×720 the places are measured in: it came at 854×480 on 11-18)."""
     raw = ffmpeg("-ss", f"{start:.3f}", "-i", str(path), "-t", f"{length:.3f}", "-an", "-vf",
-                 f"fps=60,crop={round(w)}:{round(h)}:{round(x)}:{round(y)},scale=48:48,format=gray",
+                 (f"scale={scale}," if scale else "") + f"fps=60,crop={round(w)}:{round(h)}:{round(x)}:{round(y)},scale=48:48,format=gray",
                  "-f", "rawvideo", "-", capture_output=True).stdout
     f = np.frombuffer(raw, np.uint8).reshape(-1, 48, 48).astype(np.float32)
     f = f - f.mean(axis=(1, 2), keepdims=True)
@@ -191,7 +218,7 @@ def camera_lag(live, camera, table, t, length=15.0):
         return None, 0.0
     lo, hi = -0.3, 1.6
     x, y, w, h = CAM_HEAD
-    ref = heads(camera, t + sound - hi, length + hi - lo, x, y, w, h)
+    ref = heads(camera, t + sound - hi, length + hi - lo, x, y, w, h, scale="1280:720")
     best = (None, 0.0)
     for ox, oy, s in CAM_PLACES:
         got = heads(live, t, length, ox + x * s, oy + y * s, w * s, h * s)

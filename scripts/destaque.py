@@ -23,16 +23,21 @@ The roteiro is JSON and every time in it is a Live.mp4 second:
 - "camera_lag": Câmera.mkv's picture ahead of its sound, used where his face can't be matched in the live (a car or a
   costume over it): 0.017 s measured on 11-11 in the VAR scene; Source Record is in step since OBS's buffering fix.
 - "trocas" (whisper's words fixed), "destaques" (key words: fire-coloured, bigger), "sem_legenda" ([[a, b]]).
-- "titulo": {"linhas": [...], "de", "ate"}: the hook's title, slammed in over the game's half.
+- "titulo": {"linhas": [...], "de", "ate", "y", "tamanho"}: the hook's title, slammed in over the game's half (or
+  centred on "y": 770 sits it on the camera's foot, above the game's top bar; 11-18), 118 px unless "tamanho".
 - "rotulos": [{"linhas": [...], "de", "ate"}]: more titles the same way (an ability's name, the punchline).
-- "impactos": [{"em", "flash": "quente" | "branco", "forca": 0-1, "tremor": px, "chute": zoom kick, "onde":
-  "camera" | "jogo" | "tudo"}].
+- "impactos": [{"em", "flash": "quente" | "branco", "forca": 0-1, "flash_tau": its decay in s (0.16), "tremor": px,
+  "chute": zoom kick, "soco": {"z", "entra" (frames), "segura" (s), "sai" (frames)}: a punch-in that holds, "onde":
+  "camera" | "jogo" | "tudo" (where the kick, the punch and the flash go)}].
 - "zoom": [{"de", "ate", "onde", "z", "centro": [x, y]}]: a slow push from 1 to z over the range, back at its end.
 - "sons": [[t, name, dB] or [t, name, dB, "fim"] (ending at t)]: short-editing's files (impact-boom, riser, zhhh,
   pop-back, glass-shatter) or edicao.sfx's (hit, pop, ding, whoosh…, and the stream's palmas, uuuh, boing…).
 - "capa": the cover's second (a frame of the short), or the cover drawn in the lives' thumbnail style, as
   capa.py takes it ({"quadro", "origem", "fundo", "texto", "emblema"}).
 
+- "arquivos": {"live", "jogo", "camera"} (paths under Videos) for a live not filed yet; "filtro": false for a live
+  without the camera filters (the top is Câmera.mkv alone); "camera_recorte": [x, y, w, h], the camera's part (in
+  1280×720, 1080:840 in shape) that fills the top (default clipe.CAM_CROP).
 - "outro": false leaves out the shorts' outro (the site's call, Partes\\outro-editado.mp4), joined after it by default.
 
 The sound is the live's mix (what the VOD plays) at -20 dBFS with the effects over it, then -14 LUFS.
@@ -53,7 +58,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import clipe  # noqa: E402
 from clipe import BOX, CAM_CROP, CAM_H, CONVERSA, GAME_H, H, W, ffmpeg, hd_camera, part_of  # noqa: E402
-from cortes import camera_lag, camera_sound, offset, parts, picture_lag  # noqa: E402
+from cortes import camera_lag, camera_sound, material, offset, picture_lag  # noqa: E402
 from edicao import FPS, SR, WORK, animate, ass_time, ease, pauses, place, plain, snap  # noqa: E402
 from edicao import sfx as synth  # noqa: E402
 from windows import VIDEOS  # noqa: E402
@@ -247,7 +252,7 @@ def palco():
     return out
 
 
-def piece(live, game, camera, t, jogo_at, cam_at, box):
+def piece(live, game, camera, t, jogo_at, cam_at, box, filtro=True, recorte=CAM_CROP):
     """ffmpeg's arguments (but the output) for one stretch's clean picture, 1080×1920 at 60 fps, no effects."""
     a, kind, below = t["de"], t["camera"], lower(t)
     n = frames(t) / FPS + 0.25  # read a little more, keep exactly frames(t)
@@ -299,7 +304,8 @@ def piece(live, game, camera, t, jogo_at, cam_at, box):
             if use is not None:
                 graph.append(f"[{label}]{use}")
     if kind != "lance":
-        graph.append(hd_camera(boxes[kind], live="live0", camera="cam0", start=t.get("filtro_de", 0.0)).rstrip(";"))
+        graph.append(hd_camera(boxes[kind], live="live0", camera="cam0", start=t.get("filtro_de", 0.0),
+                                filtro=filtro, recorte=recorte).rstrip(";"))
     graph.append("[cam][game]vstack,fps=60,format=yuv420p[v]")
     return [*inputs, "-filter_complex", ";".join(graph), "-map", "[v]", "-frames:v", str(frames(t)), "-an",
             "-c:v", "libx264", "-preset", "medium", "-crf", "16"]
@@ -478,7 +484,8 @@ class Effects:
         self.cuts = transitions(trechos, clock) if trechos else []
         self.impacts = [dict(i, em=o(i["em"])) for i in roteiro.get("impactos", [])]
         self.zooms = [dict(z, de=o(z["de"]), ate=o(z["ate"])) for z in roteiro.get("zoom", [])]
-        self.titles = [{"de": o(t["de"]), "ate": o(t["ate"]), "anim": "slam", "sprite": title_sprite(t["linhas"])}
+        self.titles = [{"de": o(t["de"]), "ate": o(t["ate"]), "anim": "slam", "y": t.get("y", TITLE_Y),
+                        "sprite": title_sprite(t["linhas"], t.get("tamanho", 118))}
                        for t in ([roteiro["titulo"]] if roteiro.get("titulo") else []) + roteiro.get("rotulos", [])]
 
     def zoom(self, o, where):
@@ -490,6 +497,13 @@ class Effects:
         for i in self.impacts:
             if i.get("chute") and i.get("onde", "tudo") in (where, "tudo") and o >= i["em"]:
                 z *= 1 + i["chute"] * math.exp(-(o - i["em"]) / 0.09)
+            punch = i.get("soco")
+            if punch and i.get("onde", "tudo") in (where, "tudo"):
+                x = o - i["em"]
+                up, hold, down = punch.get("entra", 5) / FPS, punch.get("segura", 0.4), punch.get("sai", 15) / FPS
+                k = (ease(x / up) if 0 <= x < up else 1.0 if up <= x < up + hold
+                     else 1 - ease((x - up - hold) / down) if up + hold <= x < up + hold + down else 0.0)
+                z *= 1 + (punch["z"] - 1) * k
         return z, center
 
     def shake(self, o):
@@ -502,12 +516,12 @@ class Effects:
                 dy += a * math.cos(2 * math.pi * 23 * x)
         return dx, dy
 
-    def flash(self, o):
+    def flash(self, o, where):
         color, alpha = (255, 255, 255), 0.0
         for i in self.impacts:
             x = o - i["em"]
-            if i.get("flash") and 0 <= x < 0.9:
-                a = i.get("forca", 0.5) * min(1, x / 0.03 + 0.4) * math.exp(-x / 0.16)
+            if i.get("flash") and 0 <= x < 0.9 and i.get("onde", "tudo") in (where, "tudo"):
+                a = i.get("forca", 0.5) * min(1, x / 0.03 + 0.4) * math.exp(-x / i.get("flash_tau", 0.16))
                 if a > alpha:
                     color = (255, 236, 205) if i["flash"] == "quente" else (255, 255, 255)
                     alpha = a
@@ -550,13 +564,14 @@ class Effects:
                 m = np.float32([[z, 0, (1 - z) * cx + dx], [0, z, (1 - z) * cy + dy]])
                 f[y0:y1] = cv2.warpAffine(f[y0:y1], m, (W, y1 - y0), flags=cv2.INTER_LINEAR,
                                           borderMode=cv2.BORDER_REFLECT101)
-        color, a = self.flash(o)
-        if a > 0.004:
-            f[:] = (f.astype(np.float32) * (1 - a) + np.array(color, np.float32) * a).astype(np.uint8)
+        for y0, y1, where in ((0, CAM_H, "camera"), (CAM_H, H, "jogo")):
+            color, a = self.flash(o, where)
+            if a > 0.004:
+                f[y0:y1] = (f[y0:y1].astype(np.float32) * (1 - a) + np.array(color, np.float32) * a).astype(np.uint8)
         for title in self.titles:
             if title["de"] - 0.1 <= o <= title["ate"] + 0.5:
                 scale, alpha, lift = animate(title, o)
-                place(f, title["sprite"], W / 2, TITLE_Y + lift, scale, alpha)
+                place(f, title["sprite"], W / 2, title["y"] + lift, scale, alpha)
         return f
 
 
@@ -617,11 +632,7 @@ def main():
     ap.add_argument("--palavras", action="store_true")
     args = ap.parse_args()
     roteiro = json.loads(Path(args.roteiro).read_text(encoding="utf-8"))
-    folder = VIDEOS / "Lives" / roteiro["live"]
-    live = next(folder.glob("* Live.mp4"))
-    game = next(folder.glob("* Jogo.mp4"))
-    camera = next(folder.glob("* Câmera.mkv"))
-    table = parts(folder)
+    live, game, camera, table = material(roteiro)
     work = WORK / f"destaque-{Path(args.roteiro).stem}"
     work.mkdir(parents=True, exist_ok=True)
     trechos = bordas(live, roteiro["trechos"])
@@ -638,7 +649,8 @@ def main():
     box = BOXES[roteiro.get("jogo", "valorant")]
     pieces = []
     for t, (j, c) in zip(trechos, at):
-        args = piece(live, game, camera, t, j, c, box)
+        args = piece(live, game, camera, t, j, c, box, roteiro.get("filtro", True),
+                     tuple(roteiro.get("camera_recorte", CAM_CROP)))
         # named by its recipe: a changed stretch, sync or filter is a new file, so nothing needs deleting
         out = work / f"{t['camera']}-{t['de']:.2f}-{hashlib.sha1(repr(args).encode()).hexdigest()[:8]}.mp4"
         if not out.exists():  # written aside and renamed, so a failed render never leaves a broken piece

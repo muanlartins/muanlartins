@@ -29,7 +29,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from cortes import camera_lag, camera_sound, offset, parts, picture_lag  # noqa: E402
+from cortes import camera_lag, camera_sound, material, offset, picture_lag  # noqa: E402
 from edicao import BRANCO, WORK, font  # noqa: E402
 from windows import VIDEOS  # noqa: E402
 
@@ -106,17 +106,23 @@ def caption(text, out, y):
     img.save(out)
 
 
-def hd_camera(box, live="0:v", camera="2:v", start=0.0):
+def hd_camera(box, live="0:v", camera="2:v", start=0.0, filtro=True, recorte=CAM_CROP):
     """The filter from the live (its camera in `box`, at a small size, with the filter's costume and flashes) and
     Câmera.mkv (1280×720, sharp, without them) to [cam], 1080×840: the box blown up to the camera's size; where it
     differs from Câmera.mkv (the costume, the flash, the fire) it goes over the sharp picture, elsewhere his face
     stays sharp. The costume's dark hair over his own differs little from it: a low threshold and a wide blur keep
-    it whole (2026-11-12; 38 and 5 left holes). `start`: seconds before the box is in place (a scene sliding in): until then, only Câmera.mkv."""
+    it whole (2026-11-12; 38 and 5 left holes). `start`: seconds before the box is in place (a scene sliding in): until then, only Câmera.mkv.
+    Câmera.mkv is taken at 1280×720 whatever it came at (854×480 on 11-18). `filtro=False` (a live without the camera
+    filters, 11-18): Câmera.mkv alone, the live's box left out (the overlay's edges and compression would show through
+    the mask). `recorte`: the part of the camera (in 1280×720) that fills the top, 1080:840 in shape."""
     bx, by, bw, bh = box
-    x, y, w, h = CAM_CROP
+    x, y, w, h = recorte
+    hd = f"[{camera}]scale=1280:720:flags=lanczos,format=yuv420p"
+    if not filtro:
+        return f"[{live}]nullsink;{hd},crop={w}:{h}:{x}:{y},scale={W}:{CAM_H}:flags=lanczos[cam];"
     enable = f":enable='gte(t\\,{start})'" if start else ""
     return (f"[{live}]crop={bw}:{bh}:{bx}:{by},scale=1280:720,format=yuv420p,split[box1][box2];"
-            f"[{camera}]format=yuv420p,split[hd1][hd2];"
+            f"{hd},split[hd1][hd2];"
             f"[box1][hd1]blend=all_mode=difference,format=gray,lut=y='if(gt(val\\,22)\\,255\\,0)',"
             f"drawbox=x=0:y=0:w=1280:h={PLATE}:color=black:t=fill,gblur=sigma=12,"
             f"lut=y='if(lt(val\\,12)\\,0\\,min(255\\,val*5))',"  # drawbox's black is 16, not 0
@@ -155,11 +161,7 @@ def piece(live, game, camera, out, t, jogo_at, cam_at):
 
 def main():
     roteiro = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-    folder = VIDEOS / "Lives" / roteiro["live"]
-    live = next(folder.glob("* Live.mp4"))
-    game = next(folder.glob("* Jogo.mp4"))
-    camera = next(folder.glob("* Câmera.mkv"))
-    table = parts(folder)
+    live, game, camera, table = material(roteiro)
     work = WORK / f"clipe-{roteiro['live']}-{Path(sys.argv[1]).stem}"
     work.mkdir(parents=True, exist_ok=True)
     trechos = roteiro["trechos"]

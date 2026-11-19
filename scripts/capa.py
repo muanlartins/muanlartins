@@ -31,7 +31,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from cortes import camera_sound, offset, parts  # noqa: E402
+from cortes import camera_sound, material, offset  # noqa: E402
 from windows import VIDEOS  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -66,21 +66,17 @@ def backdrop(picture):
 def compose(roteiro, out=None):
     spec = roteiro["capa"]
     date = roteiro["live"]
-    folder = VIDEOS / "Lives" / date
-    live = next(folder.glob("* Live.mp4"))
-    table = parts(folder)
+    live, game, camera, table = material(roteiro)
     t = spec["quadro"]
     if spec.get("origem", "camera") == "conversa":
         face = grab(live, t, CONVERSA)
     else:
-        camera = next(folder.glob("* Câmera.mkv"))
         sound = camera_sound(live, camera, table, t)  # Câmera.mkv's picture is in step with its sound since 11-11
         face = grab(camera, t + (sound or 0.0))
     fundo = spec.get("fundo", t)
     if fundo == "live":
         back = grab(live, t)
     else:
-        game = next(folder.glob("* Jogo.mp4"))
         shift, corr = offset(live, game, table, max(0.0, fundo - 10), 40)
         back = grab(game, fundo + shift) if corr >= 0.3 else grab(live, fundo)
 

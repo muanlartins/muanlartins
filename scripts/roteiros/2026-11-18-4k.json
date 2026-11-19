@@ -1,0 +1,33 @@
+{
+  "live": "2026-11-18",
+  "nome": "4K de Sage",
+  "jogo": "valorant",
+  "post": "4K de Sage no pós-plant 💚 #valorant",
+  "arquivos": {
+    "live": "2026-11-18 19-53-17.mp4",
+    "jogo": "2026-11-18 20-24-35 jogo.mkv",
+    "camera": "2026-11-18 19-53-18 câmera.mkv"
+  },
+  "filtro": false,
+  "camera_recorte": [352, 44, 870, 676],
+  "sem_legenda": [[3400.0, 3450.0]],
+  "trechos": [
+    {"de": 3408.0, "ate": 3419.0, "camera": "jogo", "seco": true},
+    {"de": 3425.0, "ate": 3430.8, "camera": "jogo", "seco": true, "entrada": "seco"},
+    {"de": 3438.8, "ate": 3442.3, "camera": "jogo", "seco": true, "entrada": "seco"}
+  ],
+  "titulo": {"linhas": ["4K DE SAGE"], "de": 3408.0, "ate": 3410.5, "y": 770, "tamanho": 112},
+  "impactos": [
+    {"em": 3408.0, "flash": "branco", "forca": 0.35, "flash_tau": 0.06, "onde": "jogo"},
+    {"em": 3428.70, "flash": "branco", "forca": 0.45, "flash_tau": 0.03, "onde": "jogo",
+     "soco": {"z": 1.10, "entra": 5, "segura": 0.4, "sai": 15}}
+  ],
+  "sons": [
+    [3408.0, "impact-boom", -10],
+    [3408.0, "click", -18],
+    [3428.70, "impact-boom", -8],
+    [3428.70, "hit", -11],
+    [3428.70, "click", -16]
+  ],
+  "capa": {"quadro": 3416.6, "origem": "camera", "fundo": 3428.9, "texto": "4K|DE SAGE"}
+}
