@@ -1,5 +1,5 @@
 {
-  "_": "Twitch's Alerts Box (\"Alerts Box 1\"): every variant runs alerta.html with {rotulo} and {nome} replaced as below, and alerta.css; 7 s, celebrations off, text-to-speech off. Sounds are sons/<som>.mp3 from the box's asset library at 70%; null is none. The {…} left inside are Twitch's own variables. See brand/README.md.",
+  "_": "Twitch's Alerts Box (\"Alerts Box 1\"): every variant runs alerta.html with {rotulo} and {nome} replaced as below (and, where there's a mensagem, <p class=\"mensagem\">…</p> after the nome line), and alerta.css; 7 s, celebrations off, text-to-speech off. Sounds are sons/<som>.mp3 from the box's asset library at 70%; null is none. The {…} left inside are Twitch's own variables. See brand/README.md.",
   "variantes": [
     { "tipo": "Seguidores", "variante": "New Follow", "rotulo": "Novo seguidor", "nome": "{username}", "som": "seguidor" },
     { "tipo": "Inscrições", "variante": "Prime Subscription", "rotulo": "Inscrito com Prime", "nome": "{username}", "som": "inscrito" },
@@ -7,7 +7,7 @@
     { "tipo": "Inscrições", "variante": "New Subscriber", "rotulo": "Novo inscrito", "nome": "{username}", "som": "inscrito" },
     { "tipo": "Inscrições de presente", "variante": "Community Gifts", "rotulo": "{amount} subs de presente", "nome": "{sender}", "som": "inscrito" },
     { "tipo": "Inscrições de presente", "variante": "Gifted Subscription", "rotulo": "Sub de presente de {sender}", "nome": "{username}", "som": "inscrito" },
-    { "tipo": "Bits", "variante": "Cheering of Any Amount", "rotulo": "{amount} bits", "nome": "{username}", "som": "inscrito" },
+    { "tipo": "Bits", "variante": "Cheering of Any Amount", "rotulo": "{amount} bits", "nome": "{username}", "mensagem": "{cheer_message}", "som": "inscrito" },
     { "tipo": "Raids", "variante": "Raid of Any Amount", "rotulo": "Raid · {amount} chegando", "nome": "{username}", "som": "palmas" },
     { "tipo": "Pontos do Canal", "variante": "Bebe água! (só essa recompensa, acima da outra)", "rotulo": "{username} mandou", "nome": "Bebe água!", "som": "agua" },
     { "tipo": "Pontos do Canal", "variante": "Custom Point Redemption (qualquer uma)", "rotulo": "{reward_title}", "nome": "{username}", "som": null },
