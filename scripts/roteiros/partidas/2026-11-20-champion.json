@@ -1,0 +1,21 @@
+{
+  "data": "2026-11-20",
+  "nome": "champion",
+  "titulo": "Finalmente cheguei no Champion!",
+  "descricao": "3v3 ranqueado com o JK e o Exponja, a uma vitória do Champion: um hat-trick meu, um 1 a 0 sofrido e o jogo da promoção pro Campeão I, a primeira vez que eu chego nesse elo.",
+  "partidas": [
+    3,
+    4,
+    5
+  ],
+  "capitulos": {
+    "3": "Hoje eu acordei diferente",
+    "4": "Um 1 a 0 com gosto amargo",
+    "5": "O jogo da promoção"
+  },
+  "fim": {
+    "4": "34:51",
+    "5": "42:23"
+  },
+  "publicar": "2026-11-22T12:00:00-03:00"
+}

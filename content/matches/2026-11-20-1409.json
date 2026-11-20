@@ -341,7 +341,7 @@
         "mmr": 1076
       },
       "mmr": 1067,
-      "points": -6
+      "points": -9
     },
     {
       "id": "C74759D411F1E50DBB623BA1327FF865",
@@ -918,8 +918,8 @@
         }
       ],
       "rank": {
-        "tier": "diamond-3",
-        "division": 4,
+        "tier": "champion-1",
+        "division": 1,
         "mmr": 1076
       },
       "points": -9,
@@ -1157,8 +1157,8 @@
     {
       "at": "2026-11-20T19:31:16.306Z",
       "mode": "3v3",
-      "tier": "diamond-3",
-      "division": 4,
+      "tier": "champion-1",
+      "division": 1,
       "mmr": 1076
     },
     {
