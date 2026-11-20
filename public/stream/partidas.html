@@ -13,9 +13,14 @@
       jogo.html draws them on the camera frame. "Publicar" writes each session
       to content/matches/ in the repository, which the site reads.
 
-      The game can't tell the rank or the points (MMR), so they're set here, per
-      mode. After a ranked match the points field lights up: typing the total,
-      or the gain (+9), gives the difference to that match. Nothing asks.
+      The game's Stats API doesn't send the rank or the points (MMR), but its
+      end-of-match scoreboard shows them: scripts/rocket_league.py (on this PC)
+      reads them off the screen and the dock fills each ranked match's points,
+      rank and division as they come (connectPoints). They can still be set
+      here, per mode: after a ranked match the points field lights up, and
+      typing the total, or the gain (+9), gives the difference to that match.
+      What's typed first stays. Off the stream, the same script records and
+      publishes the ranked matches by itself.
 
       Behind the screen it keeps the clock of everything a live is edited from:
       when the stream and the recording start and stop (so a VOD second is
@@ -573,6 +578,30 @@
         return li
       }
 
+      // Rocket League's points, read off the end-of-match scoreboard by scripts/rocket_league.py (on this PC, ?rl= its
+      // address): each ranked match's total, gain, rank and division, as if typed, unless they were typed first.
+      const RL = params.get("rl") ?? "http://127.0.0.1:8795"
+      function connectPoints() {
+        const source = new EventSource(`${RL}/eventos`)
+        source.onmessage = ({ data }) => {
+          const event = JSON.parse(data)
+          if (event.tipo !== "pontos") return
+          const session = state.sessions.find((s) => s.matches.some((m) => m.id === event.partida))
+          const m = session?.matches.find((m) => m.id === event.partida)
+          if (!m || m.points != null) return
+          const rank = { tier: event.tier, division: event.divisao, mmr: event.mmr }
+          state.ranks[event.modo] = rank
+          m.mmr = event.mmr
+          if (event.pontos != null) {
+            m.points = event.pontos
+            if (state.awaiting === m.id) state.awaiting = null
+          }
+          session.ranks.push({ at: new Date().toISOString(), mode: event.modo, ...rank })
+          edit(session, () => {})
+          broadcast()
+        }
+      }
+
       function connectValorant() {
         const source = new EventSource(`${VALORANT}/eventos`)
         source.onopen = () => {
@@ -1123,7 +1152,7 @@
         }, 4000)
       } else connectGame()
       connectObs()
-      if (!params.has("demo")) connectValorant()
+      if (!params.has("demo")) connectValorant(), connectPoints()
     </script>
   </body>
 </html>
