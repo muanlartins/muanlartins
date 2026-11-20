@@ -13,7 +13,9 @@
       The dock sends "muanlartins-filtro" through obs-browser's emit_event: { filtro: "<id>" } is the filter that
       should be on ("nenhum" for none; the dock repeats it every few seconds, so a reloaded page catches up), with
       its switches in opcoes ({ patrulha: true }: Sova's drone flying behind him), and { acao: "flash" } fires a
-      one-off. One filter at a time. A new filter: its id in MODES here, what it draws,
+      one-off. The Efeitos dock sends { visita: { filtro, acao } } for a viewer's channel points: that filter comes on
+      (over another or none), takes the ability once his face is found, and the dock's choice comes back when it's
+      over. One filter at a time. A new filter: its id in MODES here, what it draws,
       and a line in the dock's FILTROS.
 
       On the dock:
@@ -3442,10 +3444,47 @@
         if (mode === "sage") ({ barreira: startBarrier, lentidao: startSlow, cura: startHeal, ult: startRes })[a]?.(now)
         if (CARS[mode]) ({ demo, flip: flipCar })[a]?.(now)
       }
+      // A viewer's channel points (the Efeitos dock's { visita: { filtro, acao } }): that filter comes on for the
+      // ability even over another one or none, and once the ability is over the dock's own choice comes back. Meanwhile
+      // the Filtros dock's repeats only change what to come back to. One visit at a time (the Efeitos dock refunds the
+      // rest).
+      let dockFiltro = mode
+      // The visit on the page's clock, moved on by tick(): waiting for him, the ability playing, leaving.
+      const visita = { filtro: null, acao: null, fase: null, desde: 0 }
+      /** The visiting filter can take the ability: the camera open, his face found, the model loaded. */
+      const prontoPara = (f) => camState === "aberta" && headSeen && !!(AGENTS[f] ?? CARS[f] ?? { ready: true }).ready
+      /** An ability of the filter on is still playing. */
+      function ocupado() {
+        if (mode === "phoenix") return bang.t0 >= 0 || !!(phx.held || phx.trail || phx.e || phx.c || phx.x)
+        if (mode === "sova") return sova.bow.state !== "idle" || !!(sova.arrow || sova.dart || sova.ult || sova.drone)
+        if (mode === "sage") return !!(sage.c || sage.q || sage.e || sage.x)
+        if (CARS[mode]) return CARS[mode].boom >= 0 || CARS[mode].flip >= 0
+        return false
+      }
+      function visitar({ filtro, acao: a }) {
+        if (!MODES.includes(filtro) || visita.filtro) return
+        Object.assign(visita, { filtro, acao: a, fase: "esperando", desde: performance.now() })
+        if (mode !== filtro) setMode(filtro)
+      }
+      function visitaTick(now) {
+        if (!visita.filtro) return
+        const t = now - visita.desde
+        if (visita.fase === "esperando" && (prontoPara(visita.filtro) || t > 8000)) {
+          acao(visita.acao)
+          Object.assign(visita, { fase: "soltou", desde: now })
+        } else if (visita.fase === "soltou" && t > 4000 && (!ocupado() || t > 30000)) {
+          Object.assign(visita, { fase: "saindo", desde: now })
+        } else if (visita.fase === "saindo" && t > 1500) {
+          visita.filtro = null
+          if (mode !== dockFiltro) setMode(dockFiltro)
+        }
+      }
       // The dock's word (obs-browser's emit_event): the filter that should be on with its options (Sova's drone
       // flying behind him), or a one-off.
       addEventListener("muanlartins-filtro", ({ detail }) => {
-        if (detail?.filtro && detail.filtro !== mode) setMode(detail.filtro)
+        if (detail?.filtro) dockFiltro = detail.filtro
+        if (detail?.filtro && detail.filtro !== mode && !visita.filtro) setMode(detail.filtro)
+        if (detail?.visita) visitar(detail.visita)
         if (detail?.opcoes) {
           sova.patrol.want = !!detail.opcoes.patrulha
           // The dock's "Sons" switch (on unless it says mudo).
@@ -3481,7 +3520,7 @@
       })
       setMode(mode)
       const DEBUG = q.has("debug")
-      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, gorro, setMode, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, armsCrossed, armsOpen, get mode() { return mode }, get trackers() { return trackersReady() } }
+      if (DEBUG) window.filtros = { visita, get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, gorro, setMode, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, armsCrossed, armsOpen, get mode() { return mode }, get trackers() { return trackersReady() } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -3922,6 +3961,7 @@
         lastDraw = now
         const dt = Math.min(0.05, (now - last) / 1000)
         last = now
+        visitaTick(now)
         camera(now)
         const camReady = camState === "aberta" && video.readyState >= 2 && video.videoWidth > 0
         if (!showing || !camReady) {

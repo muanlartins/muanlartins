@@ -69,9 +69,11 @@
       Channel points: signed in to Twitch with the channel's account (device flow, the site's Twitch app, scope
       channel:manage:redemptions; the tokens stay in the dock's storage), the dock creates the rewards in REWARDS
       that are missing (by title; a reward made in the dashboard can't be read back by an app, so it never touches
-      those), keeps them paused while OBS isn't streaming, and hears redemptions over EventSub: each plays its
-      sound and is marked done, or is refunded when it can't play (a scene without the sounds). Only the sounds: the
-      scenes stay Luan's. Redemptions left over from a closed dock are refunded when it opens. The
+      those) and changes the cost, text or cooldown of its own when REWARDS has others, keeps them paused while OBS
+      isn't streaming, and hears redemptions over EventSub: each plays its sound (or a camera filter's ability, through
+      filtros.html's visita, one at a time) and is marked done, or is refunded when it can't play (a scene without
+      the sounds, another ability still on the camera). The scenes stay Luan's. Redemptions left over from a closed
+      dock are refunded when it opens. The
       points don't give Σ: Twitch already pays them for watching, which Σ counts on its own.
 
       Credits: with the same sign-in (and the scopes moderator:read:followers, channel:read:subscriptions and
@@ -1376,16 +1378,35 @@
       const SCOPES_CREDITOS = ["moderator:read:followers", "channel:read:subscriptions", "bits:read"]
       const HELIX = "https://api.twitch.tv/helix"
       const KLEIN = "#002FA7"
-      // The rewards this dock makes and plays: the sounds only (the scenes stay Luan's). Open to everyone; a viewer
-      // earns about 300 points an hour, and each sound's cooldown keeps it from being spammed.
+      // The rewards this dock makes and plays (the scenes stay Luan's). Open to everyone and cheap (Luan, 2026-11-19:
+      // "bem baratinho" while the channel is small; a viewer earns about 220 points an hour), each with its own
+      // cooldown so nobody spams it. Their cost, text and cooldown are kept as written here: the dock changes them on
+      // Twitch when they differ. play() says whether it happened (false refunds the points). Twitch's Alerts Box draws
+      // each redemption in the band (brand/README.md); "Bebe água!" is only that alert, with its own sound.
       const REWARDS = [
-        { title: "Palmas", cost: 300, prompt: "Palmas na live.", cooldown: 60, play: () => sound("palmas") },
-        { title: "Uuuh", cost: 300, prompt: "O uuuh da torcida.", cooldown: 60, play: () => sound("uuuh") },
-        { title: "Tambor", cost: 300, prompt: "Rufem os tambores.", cooldown: 60, play: () => sound("tambor") },
+        { title: "Palmas", cost: 50, prompt: "Palmas na live.", cooldown: 60, play: () => sound("palmas") },
+        { title: "Uuuh", cost: 50, prompt: "O uuuh da torcida.", cooldown: 60, play: () => sound("uuuh") },
+        { title: "Tambor", cost: 50, prompt: "Rufem os tambores.", cooldown: 60, play: () => sound("tambor") },
+        { title: "Bebe água!", cost: 50, prompt: "O Luan para e bebe água. Saúde!", cooldown: 600, play: () => ready && !BREAKS.includes(current) },
+        { title: "Phoenix na câmera", cost: 100, prompt: "Uma habilidade da Phoenix, ao acaso, na câmera do Luan.", cooldown: 120, play: () => camera("phoenix", ["blaze", "flash", "molotov", "ult"]) },
+        { title: "Sova na câmera", cost: 100, prompt: "Uma habilidade do Sova, ao acaso, na câmera do Luan.", cooldown: 120, play: () => camera("sova", ["drone", "choque", "recon", "ult"]) },
+        { title: "Sage na câmera", cost: 100, prompt: "Uma habilidade da Sage, ao acaso, na câmera do Luan.", cooldown: 120, play: () => camera("sage", ["barreira", "lentidao", "cura", "ult"]) },
+        { title: "Octane na câmera", cost: 100, prompt: "O Octane na cabeça do Luan: um flip ou uma demolição.", cooldown: 120, play: () => camera("octane", ["demo", "flip"]) },
       ]
       function sound(som) {
         if (!ready || BREAKS.includes(current)) return false
         play(som)
+        return true
+      }
+      // A camera filter's ability (filtros.html's visita): the agent comes on for one of its abilities, drawn at
+      // random, and the Filtros dock's choice comes back after it. One at a time: another within CAMERA_MS is refunded.
+      const CAMERA_MS = 30000
+      let cameraLivre = 0
+      function camera(filtro, acoes) {
+        if (!ready || BREAKS.includes(current) || Date.now() < cameraLivre) return false
+        cameraLivre = Date.now() + CAMERA_MS
+        const acao = acoes[Math.floor(Math.random() * acoes.length)]
+        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-filtro", event_data: { visita: { filtro, acao } } } })
         return true
       }
 
@@ -1491,18 +1512,27 @@
         if (!mine) return
         rewardIds.clear()
         for (const reward of REWARDS) {
+          const want = {
+            cost: reward.cost,
+            prompt: reward.prompt,
+            background_color: KLEIN,
+            is_global_cooldown_enabled: true,
+            global_cooldown_seconds: reward.cooldown,
+          }
           let found = mine.data.find((r) => r.title === reward.title)
           if (!found) {
-            const made = await helix("POST", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}`, {
-              title: reward.title,
-              cost: reward.cost,
-              prompt: reward.prompt,
-              background_color: KLEIN,
-              is_global_cooldown_enabled: true,
-              global_cooldown_seconds: reward.cooldown,
-            })
+            const made = await helix("POST", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}`, { title: reward.title, ...want })
             found = made?.data?.[0]
             if (!found) logLine(`Não deu para criar "${reward.title}" (já existe uma recompensa com esse nome?)`, true)
+          } else if (
+            found.cost !== reward.cost ||
+            found.prompt !== reward.prompt ||
+            !found.global_cooldown_setting?.is_enabled ||
+            found.global_cooldown_setting?.global_cooldown_seconds !== reward.cooldown
+          ) {
+            const changed = await helix("PATCH", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}&id=${found.id}`, want)
+            if (changed?.data?.[0]) logLine(`"${reward.title}" agora custa ${reward.cost} pontos (espera de ${reward.cooldown} s)`)
+            else logLine(`Não deu para atualizar "${reward.title}"`, true)
           }
           if (found) rewardIds.set(found.id, reward)
         }

@@ -92,4 +92,7 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 - Scenes: Começando, RL + chat, Valorant + chat, Diversos + chat (any other game: its capture takes whatever game is
   fullscreen or borderless in front), Conversa, Já volto, Fim (and the effects' own). `brand/twitch/obs.py` generates the scene
   collection; anything added by hand in OBS (like the Spotify source) should also go there.
+- The sources Luan must hear (Alertas, Sons, Pix, Filtros) are on "Monitorar e enviar" (`monitoring_type` 2):
+  Alertas was found off on 11-10 and again on 11-19, so he missed the follows' and subs' sounds. Check it
+  (`scripts/obs.mjs`) before a live.
 - See the `obs` skill for talking to OBS from WSL.
