@@ -129,7 +129,7 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   on 2026-11-11.
 - Twitch's alerts ("Alertas", the Alerts Box) are on tracks 1 and 5 and on "Monitorar e enviar", like Pix and
   Sons, so Luan hears them too: the installed source had monitoring off until 2026-11-10 (the stream heard the subs,
-  he didn't). The page's "AlertsFeatureLaunchFlags: unauthenticated" GraphQL error on load is in every log since
+  he didn't), and was found off again on 2026-11-19 (set back with OBS closed): check it with the rest. The page's "AlertsFeatureLaunchFlags: unauthenticated" GraphQL error on load is in every log since
   11-08 and harmless.
 - Don't change Câmera's settings or its filters while OBS records: on 11-09 at 21:29, during the live, websocket
   clients from WSL changed the camera twice in 4 s (the second time its device settings); Source Record stopped the

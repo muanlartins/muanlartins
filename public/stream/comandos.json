@@ -109,11 +109,16 @@
   ],
   "recompensas": {
     "titulo": "Com os pontos do canal",
-    "texto": "Os pontos do canal da Twitch (o ícone ao lado do chat) viram sons na live.",
+    "texto": "Os pontos do canal da Twitch (o ícone ao lado do chat) viram sons e efeitos na live.",
     "itens": [
-      { "nome": "Palmas", "custo": 300, "texto": "Palmas na live." },
-      { "nome": "Uuuh", "custo": 300, "texto": "O uuuh da torcida." },
-      { "nome": "Tambor", "custo": 300, "texto": "Rufem os tambores." }
+      { "nome": "Palmas", "custo": 50, "texto": "Palmas na live." },
+      { "nome": "Uuuh", "custo": 50, "texto": "O uuuh da torcida." },
+      { "nome": "Tambor", "custo": 50, "texto": "Rufem os tambores." },
+      { "nome": "Bebe água!", "custo": 50, "texto": "O Luan para e bebe água." },
+      { "nome": "Phoenix na câmera", "custo": 100, "texto": "Uma habilidade da Phoenix, ao acaso, na câmera do Luan." },
+      { "nome": "Sova na câmera", "custo": 100, "texto": "Uma habilidade do Sova, ao acaso, na câmera do Luan." },
+      { "nome": "Sage na câmera", "custo": 100, "texto": "Uma habilidade da Sage, ao acaso, na câmera do Luan." },
+      { "nome": "Octane na câmera", "custo": 100, "texto": "O Octane na cabeça do Luan: um flip ou uma demolição." }
     ]
   },
   "sigma": {
