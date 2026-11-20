@@ -1,0 +1,1193 @@
+{
+  "id": "2026-11-20-1409",
+  "start": "2026-11-20T17:09:50.723Z",
+  "end": "2026-11-20T19:48:32.302Z",
+  "startRanks": {
+    "3v3": {
+      "tier": "diamond-3",
+      "division": 3,
+      "mmr": 1047
+    },
+    "2v2": {
+      "tier": "diamond-3",
+      "division": 1,
+      "mmr": 996
+    }
+  },
+  "outputs": [
+    {
+      "kind": "record",
+      "start": "2026-11-20T17:18:28.310Z",
+      "end": "2026-11-20T21:12:16.540Z",
+      "file": "2026-11-20 14-18-28.mp4"
+    },
+    {
+      "kind": "stream",
+      "start": "2026-11-20T17:18:28.902Z",
+      "end": "2026-11-20T21:12:16.561Z"
+    }
+  ],
+  "matches": [
+    {
+      "id": "7339EE1611F1E5075E0A98A5C907051E",
+      "start": "2026-11-20T17:26:14.505Z",
+      "at": "2026-11-20T17:30:53.643Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        3,
+        1
+      ],
+      "overtime": false,
+      "me": {
+        "score": 84,
+        "goals": 0,
+        "assists": 0,
+        "saves": 0,
+        "shots": 0,
+        "touches": 17,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 513,
+          "goals": 3,
+          "assists": 0,
+          "saves": 0,
+          "shots": 3,
+          "touches": 27,
+          "demos": 1,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 156,
+          "goals": 0,
+          "assists": 1,
+          "saves": 0,
+          "shots": 3,
+          "touches": 21,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 3,
+        "mmr": 1047
+      },
+      "mmr": 1057,
+      "points": 10
+    },
+    {
+      "id": "5BD1687011F1E5086084A2AAF3DD5B3A",
+      "start": "2026-11-20T17:32:44.948Z",
+      "at": "2026-11-20T17:37:28.774Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        0,
+        5
+      ],
+      "overtime": false,
+      "me": {
+        "score": 117,
+        "goals": 0,
+        "assists": 0,
+        "saves": 1,
+        "shots": 0,
+        "touches": 7,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 138,
+          "goals": 0,
+          "assists": 0,
+          "saves": 1,
+          "shots": 0,
+          "touches": 22,
+          "demos": 2,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 160,
+          "goals": 0,
+          "assists": 0,
+          "saves": 1,
+          "shots": 1,
+          "touches": 22,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1057
+      },
+      "points": -9,
+      "mmr": 1048
+    },
+    {
+      "id": "44BE0A8E11F1E5092B0073AAC160D466",
+      "start": "2026-11-20T17:39:20.488Z",
+      "at": "2026-11-20T17:46:12.402Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        7,
+        2
+      ],
+      "overtime": false,
+      "me": {
+        "score": 443,
+        "goals": 3,
+        "assists": 0,
+        "saves": 0,
+        "shots": 5,
+        "touches": 28,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 406,
+          "goals": 2,
+          "assists": 1,
+          "saves": 0,
+          "shots": 7,
+          "touches": 35,
+          "demos": 1,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 531,
+          "goals": 2,
+          "assists": 3,
+          "saves": 0,
+          "shots": 5,
+          "touches": 31,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 3,
+        "mmr": 1048
+      },
+      "points": 9,
+      "mmr": 1057
+    },
+    {
+      "id": "65DD49EA11F1E50A7ABA97B0E3DA7507",
+      "start": "2026-11-20T17:47:19.186Z",
+      "at": "2026-11-20T17:52:50.447Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        1,
+        0
+      ],
+      "overtime": false,
+      "me": {
+        "score": 152,
+        "goals": 0,
+        "assists": 0,
+        "saves": 0,
+        "shots": 1,
+        "touches": 18,
+        "demos": 2
+      },
+      "mates": [
+        {
+          "score": 478,
+          "goals": 1,
+          "assists": 0,
+          "saves": 2,
+          "shots": 3,
+          "touches": 58,
+          "demos": 1,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 60,
+          "goals": 0,
+          "assists": 0,
+          "saves": 0,
+          "shots": 2,
+          "touches": 17,
+          "demos": 0,
+          "login": "exp0nja"
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1057
+      },
+      "points": 10,
+      "mmr": 1067
+    },
+    {
+      "id": "4E6C0B7411F1E50B73BBF4AE48F85957",
+      "start": "2026-11-20T17:53:48.817Z",
+      "at": "2026-11-20T17:59:58.065Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        2,
+        1
+      ],
+      "overtime": false,
+      "me": {
+        "score": 154,
+        "goals": 0,
+        "assists": 0,
+        "saves": 2,
+        "shots": 0,
+        "touches": 15,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 463,
+          "goals": 2,
+          "assists": 0,
+          "saves": 1,
+          "shots": 3,
+          "touches": 51,
+          "demos": 4,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 148,
+          "goals": 0,
+          "assists": 0,
+          "saves": 1,
+          "shots": 0,
+          "touches": 20,
+          "demos": 0,
+          "login": "exp0nja"
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1067
+      },
+      "mmr": 1076,
+      "points": 9
+    },
+    {
+      "id": "84B7383811F1E50C9D2E49BA805781BF",
+      "start": "2026-11-20T18:02:28.814Z",
+      "at": "2026-11-20T18:09:58.914Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        1,
+        6
+      ],
+      "overtime": false,
+      "me": {
+        "score": 229,
+        "goals": 0,
+        "assists": 0,
+        "saves": 2,
+        "shots": 1,
+        "touches": 16,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 436,
+          "goals": 1,
+          "assists": 0,
+          "saves": 1,
+          "shots": 1,
+          "touches": 47,
+          "demos": 2,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 186,
+          "goals": 0,
+          "assists": 1,
+          "saves": 1,
+          "shots": 1,
+          "touches": 18,
+          "demos": 0,
+          "login": "exp0nja"
+        }
+      ],
+      "rank": {
+        "tier": "champion-1",
+        "division": 1,
+        "mmr": 1076
+      },
+      "mmr": 1067,
+      "points": -6
+    },
+    {
+      "id": "C74759D411F1E50DBB623BA1327FF865",
+      "start": "2026-11-20T18:11:32.867Z",
+      "at": "2026-11-20T18:17:32.277Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        1,
+        2
+      ],
+      "overtime": false,
+      "me": {
+        "score": 203,
+        "goals": 0,
+        "assists": 0,
+        "saves": 1,
+        "shots": 0,
+        "touches": 26,
+        "demos": 1
+      },
+      "mates": [
+        {
+          "score": 393,
+          "goals": 1,
+          "assists": 0,
+          "saves": 1,
+          "shots": 5,
+          "touches": 58,
+          "demos": 3,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 151,
+          "goals": 0,
+          "assists": 0,
+          "saves": 1,
+          "shots": 1,
+          "touches": 17,
+          "demos": 0,
+          "login": "exp0nja"
+        }
+      ],
+      "rank": {
+        "tier": "champion-1",
+        "division": 1,
+        "mmr": 1067
+      },
+      "mmr": 1058,
+      "points": -9
+    },
+    {
+      "id": "CB576E6E11F1E50E396DB88568244BC6",
+      "start": "2026-11-20T18:18:45.920Z",
+      "at": "2026-11-20T18:26:44.443Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        2,
+        7
+      ],
+      "overtime": false,
+      "me": {
+        "score": 222,
+        "goals": 1,
+        "assists": 0,
+        "saves": 0,
+        "shots": 3,
+        "touches": 26,
+        "demos": 3
+      },
+      "mates": [
+        {
+          "score": 583,
+          "goals": 1,
+          "assists": 1,
+          "saves": 3,
+          "shots": 4,
+          "touches": 57,
+          "demos": 1,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 62,
+          "goals": 0,
+          "assists": 1,
+          "saves": 0,
+          "shots": 0,
+          "touches": 10,
+          "demos": 0,
+          "login": "exp0nja"
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1058
+      },
+      "points": -9,
+      "mmr": 1049
+    },
+    {
+      "id": "185BB20011F1E5103B915CAED0FA03FE",
+      "start": "2026-11-20T18:28:04.764Z",
+      "at": "2026-11-20T18:33:05.347Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        5,
+        2
+      ],
+      "overtime": false,
+      "me": {
+        "score": 256,
+        "goals": 1,
+        "assists": 2,
+        "saves": 0,
+        "shots": 1,
+        "touches": 12,
+        "demos": 2
+      },
+      "mates": [
+        {
+          "score": 196,
+          "goals": 1,
+          "assists": 0,
+          "saves": 0,
+          "shots": 2,
+          "touches": 12,
+          "demos": 1
+        },
+        {
+          "score": 602,
+          "goals": 3,
+          "assists": 1,
+          "saves": 1,
+          "shots": 4,
+          "touches": 36,
+          "demos": 0,
+          "login": "o_jkxss"
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 3,
+        "mmr": 1049
+      },
+      "points": 9,
+      "mmr": 1058
+    },
+    {
+      "id": "EC240D9E11F1E510BEA3E4B76452EB4A",
+      "start": "2026-11-20T18:34:00.306Z",
+      "at": "2026-11-20T18:39:47.086Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        5,
+        1
+      ],
+      "overtime": false,
+      "me": {
+        "score": 271,
+        "goals": 0,
+        "assists": 1,
+        "saves": 2,
+        "shots": 0,
+        "touches": 21,
+        "demos": 1
+      },
+      "mates": [
+        {
+          "score": 384,
+          "goals": 2,
+          "assists": 0,
+          "saves": 2,
+          "shots": 2,
+          "touches": 14,
+          "demos": 0
+        },
+        {
+          "score": 630,
+          "goals": 3,
+          "assists": 0,
+          "saves": 1,
+          "shots": 3,
+          "touches": 30,
+          "demos": 3,
+          "login": "o_jkxss"
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1058
+      },
+      "points": 8,
+      "mmr": 1066
+    },
+    {
+      "id": "E2B3D95011F1E5119BD85B8BB6670E51",
+      "start": "2026-11-20T18:40:53.946Z",
+      "at": "2026-11-20T18:47:11.689Z",
+      "mode": "1v1",
+      "playlist": 10,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        2,
+        6
+      ],
+      "overtime": false,
+      "me": {
+        "score": 518,
+        "goals": 2,
+        "assists": 0,
+        "saves": 0,
+        "shots": 6,
+        "touches": 104,
+        "demos": 0
+      },
+      "mates": [],
+      "rank": null,
+      "mmr": 629,
+      "points": -14
+    },
+    {
+      "id": "E94C462011F1E5123FBDC2BD3AC558AA",
+      "start": "2026-11-20T18:48:15.610Z",
+      "at": "2026-11-20T18:54:42.129Z",
+      "mode": "1v1",
+      "playlist": 10,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        5,
+        2
+      ],
+      "overtime": false,
+      "me": {
+        "score": 941,
+        "goals": 5,
+        "assists": 0,
+        "saves": 1,
+        "shots": 6,
+        "touches": 90,
+        "demos": 1
+      },
+      "mates": [],
+      "rank": {
+        "tier": "unranked",
+        "division": 1,
+        "mmr": 629
+      },
+      "points": 13,
+      "mmr": 642
+    },
+    {
+      "id": "FE2E956A11F1E513CC418D9C6B37926C",
+      "start": "2026-11-20T18:56:00.837Z",
+      "at": "2026-11-20T19:03:18.776Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        3,
+        4
+      ],
+      "overtime": false,
+      "me": {
+        "score": 134,
+        "goals": 0,
+        "assists": 0,
+        "saves": 1,
+        "shots": 1,
+        "touches": 23,
+        "demos": 2
+      },
+      "mates": [
+        {
+          "score": 572,
+          "goals": 2,
+          "assists": 1,
+          "saves": 2,
+          "shots": 5,
+          "touches": 43,
+          "demos": 2,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 332,
+          "goals": 1,
+          "assists": 1,
+          "saves": 1,
+          "shots": 3,
+          "touches": 32,
+          "demos": 1
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1066
+      },
+      "points": -10,
+      "mmr": 1056
+    },
+    {
+      "id": "1F2BE3B611F1E5150E5D6EB60C2A6737",
+      "start": "2026-11-20T19:04:08.924Z",
+      "at": "2026-11-20T19:11:04.988Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        3,
+        2
+      ],
+      "overtime": false,
+      "me": {
+        "score": 138,
+        "goals": 0,
+        "assists": 1,
+        "saves": 0,
+        "shots": 1,
+        "touches": 21,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 343,
+          "goals": 1,
+          "assists": 0,
+          "saves": 1,
+          "shots": 4,
+          "touches": 48,
+          "demos": 2,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 396,
+          "goals": 2,
+          "assists": 0,
+          "saves": 0,
+          "shots": 3,
+          "touches": 30,
+          "demos": 1
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1056
+      },
+      "points": 10,
+      "mmr": 1066
+    },
+    {
+      "id": "3D676C3211F1E5164B9A04B73EC41588",
+      "start": "2026-11-20T19:12:03.961Z",
+      "at": "2026-11-20T19:18:35.088Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        1,
+        6
+      ],
+      "overtime": false,
+      "me": {
+        "score": 42,
+        "goals": 0,
+        "assists": 0,
+        "saves": 0,
+        "shots": 1,
+        "touches": 20,
+        "demos": 1
+      },
+      "mates": [
+        {
+          "score": 149,
+          "goals": 0,
+          "assists": 0,
+          "saves": 1,
+          "shots": 0,
+          "touches": 17,
+          "demos": 0
+        },
+        {
+          "score": 319,
+          "goals": 1,
+          "assists": 0,
+          "saves": 1,
+          "shots": 5,
+          "touches": 57,
+          "demos": 1,
+          "login": "o_jkxss"
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1066
+      },
+      "points": -10,
+      "mmr": 1056
+    },
+    {
+      "id": "B16974C611F1E51748C7EB93F804EB1A",
+      "start": "2026-11-20T19:22:33.183Z",
+      "at": "2026-11-20T19:26:46.165Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        4,
+        0
+      ],
+      "overtime": false,
+      "me": {
+        "score": 312,
+        "goals": 2,
+        "assists": 0,
+        "saves": 0,
+        "shots": 1,
+        "touches": 38,
+        "demos": 1
+      },
+      "mates": [
+        {
+          "score": 270,
+          "goals": 1,
+          "assists": 1,
+          "saves": 0,
+          "shots": 2,
+          "touches": 32,
+          "demos": 0,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 254,
+          "goals": 1,
+          "assists": 1,
+          "saves": 0,
+          "shots": 2,
+          "touches": 11,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1056
+      },
+      "points": 10,
+      "mmr": 1066
+    },
+    {
+      "id": "645C8B3611F1E518FB645AA4C8AFB668",
+      "start": "2026-11-20T19:27:35.689Z",
+      "at": "2026-11-20T19:30:52.386Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        4,
+        0
+      ],
+      "overtime": false,
+      "me": {
+        "score": 202,
+        "goals": 1,
+        "assists": 1,
+        "saves": 0,
+        "shots": 0,
+        "touches": 10,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 392,
+          "goals": 2,
+          "assists": 1,
+          "saves": 1,
+          "shots": 3,
+          "touches": 29,
+          "demos": 0,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 300,
+          "goals": 1,
+          "assists": 2,
+          "saves": 0,
+          "shots": 5,
+          "touches": 20,
+          "demos": 1
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1066
+      },
+      "points": 10,
+      "mmr": 1076
+    },
+    {
+      "id": "2F1D3EF611F1E519C23C60BACFA9171F",
+      "start": "2026-11-20T19:33:08.136Z",
+      "at": "2026-11-20T19:39:25.439Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        1,
+        5
+      ],
+      "overtime": false,
+      "me": {
+        "score": 184,
+        "goals": 0,
+        "assists": 1,
+        "saves": 1,
+        "shots": 2,
+        "touches": 22,
+        "demos": 1
+      },
+      "mates": [
+        {
+          "score": 245,
+          "goals": 1,
+          "assists": 0,
+          "saves": 1,
+          "shots": 2,
+          "touches": 27,
+          "demos": 5,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 202,
+          "goals": 0,
+          "assists": 0,
+          "saves": 1,
+          "shots": 3,
+          "touches": 26,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 4,
+        "mmr": 1076
+      },
+      "points": -9,
+      "mmr": 1067
+    },
+    {
+      "id": "5D2BC5A011F1E51A32A292B07A38ECB7",
+      "start": "2026-11-20T19:41:41.294Z",
+      "at": "2026-11-20T19:48:32.302Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "win",
+      "left": false,
+      "score": [
+        3,
+        2
+      ],
+      "overtime": true,
+      "me": {
+        "score": 317,
+        "goals": 1,
+        "assists": 0,
+        "saves": 0,
+        "shots": 2,
+        "touches": 27,
+        "demos": 2
+      },
+      "mates": [
+        {
+          "score": 325,
+          "goals": 1,
+          "assists": 0,
+          "saves": 1,
+          "shots": 4,
+          "touches": 34,
+          "demos": 1,
+          "login": "o_jkxss"
+        },
+        {
+          "score": 363,
+          "goals": 1,
+          "assists": 1,
+          "saves": 1,
+          "shots": 2,
+          "touches": 40,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "champion-1",
+        "division": 1,
+        "mmr": 1067
+      },
+      "points": 9,
+      "mmr": 1076
+    }
+  ],
+  "ranks": [
+    {
+      "at": "2026-11-20T17:31:38.613Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1057
+    },
+    {
+      "at": "2026-11-20T17:38:40.948Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1048
+    },
+    {
+      "at": "2026-11-20T17:38:42.430Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 3,
+      "mmr": 1048
+    },
+    {
+      "at": "2026-11-20T17:46:44.510Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 3,
+      "mmr": 1057
+    },
+    {
+      "at": "2026-11-20T17:46:45.225Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1057
+    },
+    {
+      "at": "2026-11-20T17:53:10.203Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1067
+    },
+    {
+      "at": "2026-11-20T18:00:44.066Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 1,
+      "mmr": 1076
+    },
+    {
+      "at": "2026-11-20T18:10:35.709Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 1,
+      "mmr": 1067
+    },
+    {
+      "at": "2026-11-20T18:17:54.802Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 1,
+      "mmr": 1067
+    },
+    {
+      "at": "2026-11-20T18:17:55.981Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1067
+    },
+    {
+      "at": "2026-11-20T18:18:11.222Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1058
+    },
+    {
+      "at": "2026-11-20T18:18:16.060Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1058
+    },
+    {
+      "at": "2026-11-20T18:27:21.667Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1049
+    },
+    {
+      "at": "2026-11-20T18:27:24.265Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 3,
+      "mmr": 1049
+    },
+    {
+      "at": "2026-11-20T18:33:25.324Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1049
+    },
+    {
+      "at": "2026-11-20T18:33:27.698Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1058
+    },
+    {
+      "at": "2026-11-20T18:40:13.313Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1066
+    },
+    {
+      "at": "2026-11-20T18:47:32.783Z",
+      "mode": "1v1",
+      "tier": "unranked",
+      "division": 1,
+      "mmr": 629
+    },
+    {
+      "at": "2026-11-20T18:47:39.417Z",
+      "mode": "1v1",
+      "tier": "unranked",
+      "division": 1,
+      "mmr": 629
+    },
+    {
+      "at": "2026-11-20T18:47:43.535Z",
+      "mode": "1v1",
+      "tier": "unranked",
+      "division": 1,
+      "mmr": 629
+    },
+    {
+      "at": "2026-11-20T18:55:00.972Z",
+      "mode": "1v1",
+      "tier": "unranked",
+      "division": 1,
+      "mmr": 642
+    },
+    {
+      "at": "2026-11-20T19:03:38.789Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1056
+    },
+    {
+      "at": "2026-11-20T19:11:20.229Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1066
+    },
+    {
+      "at": "2026-11-20T19:19:02.197Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1056
+    },
+    {
+      "at": "2026-11-20T19:27:03.876Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1066
+    },
+    {
+      "at": "2026-11-20T19:31:16.306Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1076
+    },
+    {
+      "at": "2026-11-20T19:39:46.611Z",
+      "mode": "3v3",
+      "tier": "diamond-3",
+      "division": 4,
+      "mmr": 1067
+    },
+    {
+      "at": "2026-11-20T19:39:49.252Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 4,
+      "mmr": 1067
+    },
+    {
+      "at": "2026-11-20T19:39:51.056Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 1,
+      "mmr": 1067
+    },
+    {
+      "at": "2026-11-20T19:48:49.756Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 1,
+      "mmr": 1076
+    }
+  ]
+}
