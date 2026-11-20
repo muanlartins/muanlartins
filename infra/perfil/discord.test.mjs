@@ -70,7 +70,8 @@ function montar({ sigmas = {}, membros = {}, eventos = [], agora = "2026-11-19T1
   const quem = async (token) => ({ "tok-ana-123456": { id: "u-ana", nome: "Ana" }, "tok-bia-123456": { id: "u-bia", nome: "Bia" } })[token] ?? null
   const discord = automacoes({ pedir, ids: IDS, banco, sigmas: async (ls) => Object.fromEntries(ls.filter((l) => sigmas[l] !== undefined).map((l) => [l, { sigma: sigmas[l] }])), quem, agora: () => new Date(agora) })
   const usuario = async (h) => ({ "Bearer fulano": { login: "fulano", id: "42" }, "Bearer outro": { login: "outro", id: "43" }, "Bearer canal": { login: CANAL, id: "1" } })[h.authorization] ?? null
-  const handler = rotas({ banco, usuario, chave: "k", discord })
+  // The routes on the same clock as the automations, so the agenda's past days are the test's, not today's.
+  const handler = rotas({ banco, usuario, chave: "k", discord, agora: () => new Date(agora) })
   const chamar = async (metodo, caminho, { token, corpo } = {}) => {
     const r = await handler({ requestContext: { http: { method: metodo } }, rawPath: caminho, headers: token ? { authorization: `Bearer ${token}` } : {}, body: corpo === undefined ? undefined : JSON.stringify(corpo) })
     return { status: r.statusCode, body: r.body ? JSON.parse(r.body) : undefined }

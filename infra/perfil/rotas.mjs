@@ -167,7 +167,7 @@ export function jogo(j) {
  *   banco.remover(login, nomes) removes fields; usuario(headers) → { login, id } or null; chave is the stream's key;
  *   discord: discord.mjs's automacoes, or null while the bot has no token.
  */
-export function rotas({ banco, usuario, chave, discord = null }) {
+export function rotas({ banco, usuario, chave, discord = null, agora = () => new Date() }) {
   const doCanal = async (event) => (await usuario(event.headers || {}))?.login === CANAL
 
   // Takes someone's banner or photo down: the picture's item emptied, and the card back to its colours / Twitch photo.
@@ -218,18 +218,18 @@ export function rotas({ banco, usuario, chave, discord = null }) {
           body: ics(i?.agenda ?? { dates: {}, games: {} }, { nome: CALENDARIO, url: PAGINA_AGENDA }),
         }
       }
-      const r = out(200, { agenda: i?.agenda ?? null, em: i?.em ?? null, proximas: i?.agenda ? ocorrencias(i.agenda, new Date(), 14) : [] })
+      const r = out(200, { agenda: i?.agenda ?? null, em: i?.em ?? null, proximas: i?.agenda ? ocorrencias(i.agenda, agora(), 14) : [] })
       return { ...r, headers: { ...r.headers, "cache-control": "public, max-age=30" } }
     }
     if (metodo !== "PUT" || caminho !== "/agenda") return out(405, {})
     if (!(await doCanal(event))) return out(403, { erro: "Só a conta do canal muda a agenda." })
-    const a = limpar(json(event), dataEm(new Date(), FUSO))
+    const a = limpar(json(event), dataEm(agora(), FUSO))
     if (!a) return out(400, {})
     const em = new Date().toISOString()
     await banco.definir(AGENDA, { agenda: a, em })
     // Discord's events follow; trouble there never fails the save (the hourly run tries again).
     if (discord) await discord.eventos(a).catch((e) => console.error("Discord, eventos:", e.message))
-    return out(200, { agenda: a, em, proximas: ocorrencias(a, new Date(), 14) })
+    return out(200, { agenda: a, em, proximas: ocorrencias(a, agora(), 14) })
   }
 
   /** The ranks and the events, now: the hourly run and the channel's button. */
