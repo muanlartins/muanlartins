@@ -127,7 +127,10 @@ def stamp(t: float) -> str:
 
 def session(date):
     files = sorted((ROOT / "content" / "matches").glob(f"{date}-*.json"))
-    days = [f for f in files if not f.name.endswith(".events.json")]
+    # Matches played off the stream (since 2026-11-20) are sessions of their own, without outputs: the live's is the
+    # one with OBS's recording.
+    days = [f for f in files if not f.name.endswith(".events.json")
+            and any(o["kind"] == "record" for o in json.loads(f.read_text()).get("outputs", []))]
     if len(days) != 1:
         sys.exit(f"Esperava uma sessão de {date} em content/matches/, achei {len(days)}.")
     record = json.loads(days[0].read_text())

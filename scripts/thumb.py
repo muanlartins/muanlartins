@@ -72,9 +72,10 @@ def folder(date):
 def pieces(date, kind):
     """[(wall clock start, second in the file, length)] of a recording kind ("Live", "Câmera", "Jogo")."""
     listing = folder(date) / "partes.json"
-    if listing.exists():
-        return [(datetime.fromisoformat(p["inicio"]), p["em"], p["segundos"])
-                for p in json.loads(listing.read_text())[kind]]
+    # It lists only the kinds that came in pieces (11-20: the game's, not the stream's).
+    listed = json.loads(listing.read_text()) if listing.exists() else {}
+    if kind in listed:
+        return [(datetime.fromisoformat(p["inicio"]), p["em"], p["segundos"]) for p in listed[kind]]
     file = next(folder(date).glob(f"* {kind}.*"))
     return [(datetime.fromisoformat(f"{date}T{file.name[:8].replace('-', ':')}"), 0.0, 1e9)]
 

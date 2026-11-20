@@ -21,6 +21,9 @@ the routine. Talk to Luan in pt-BR. `<date>` is the live's day, `YYYY-MM-DD`.
   second's files. A recording restarted just before the stream lands in the first session with no `end`: give it its
   start plus its piece's length. The dock still holds the second session: Luan shouldn't edit those matches there
   (it would publish it again).
+- Matches played off the stream (since 11-20) publish sessions of their own on the same day, without `outputs`
+  (`rocket_league.py`, `valorant.py`): `live.py` and `partidas.py` take the live's session as the one with OBS's
+  recording and leave them out (11-20 had an off-stream 1v1 session at 00:40 beside the live's).
 - Replays are saved: `ls "/mnt/c/Users/muanl/OneDrive/Documents/My Games/Rocket League/TAGame/DemosEpic"`
   (`Demos` holds only old ones). One per match is the goal.
 
