@@ -13,12 +13,16 @@ found by whom the camera follows, the playlists, a ranked match left early count
 
 The points: the game doesn't send them, but its end-of-match scoreboard shows each player's total and what it moved
 ("+9 1033" left of the name) and the rank under it ("Diamante III", "Divisão II"). When a ranked match ends,
-scripts/tela.ps1 takes those two parts of the screen (PNG on stdout, never written to disk) every couple of seconds
-while the scoreboard is up, and RapidOCR (PaddleOCR's models, local, on the CPU) reads them. Only Luan's own total,
-gain, rank and division are kept; the other players' names and numbers live in memory for that second and nowhere
-else. The total is what counts: two readings must agree, and one that's over 60 points from the last total in that
-mode (kept here from every match, live or not) is left out rather than guessed. The gain is the one read (its sign is
-the result's: a win always gains, and the minus often doesn't read), or the difference to the last total.
+scripts/tela.ps1 (kept open, so a capture costs no PowerShell start) takes those two parts of the screen (PNG on
+stdout, never written to disk) as fast as they're read while the scoreboard is up, and RapidOCR (PaddleOCR's models,
+local, on the CPU) reads them. Only Luan's own total, gain, rank and division are kept; the other players' names and
+numbers live in memory for that second and nowhere else. The total is what counts: one reading that moves the last
+total in that mode (kept here from every match, live or not) the way the result says is enough; otherwise two
+readings must agree, and one over 60 points away is left out rather than guessed. The points are the difference to
+the last total when it's near the gain read (the OCR takes 9 for 6), else the gain read with the result's sign (a win
+always gains, and the minus often doesn't read). The scoreboard is up for about a minute ("Saindo em 60") and Luan
+often queues again sooner: a match whose scoreboard wasn't read gets its points from the next one's (its total minus
+the gain), and the dock is told then.
 
 On the stream the Partidas dock keeps the session as it always did and fills each match's points from here (server-
 sent events on 127.0.0.1:8795), so nothing is typed. Off the stream (OBS not streaming, asked through scripts/obs.mjs)
@@ -65,13 +69,14 @@ PLAYLISTS = {1: "Casual 1v1", 2: "Casual 2v2", 3: "Casual 3v3", 4: "Casual 4v4",
 RANKED = {10, 11, 13, 61, 27, 28, 29, 30}
 # The scoreboard's left half (each player's gain and total beside their name) and the rank under it, as fractions of
 # the screen (Rocket League fills it, 16:9).
-REGIONS = [(0.156, 0.139, 0.417, 0.463), (0.40, 0.79, 0.28, 0.1)]
+REGIONS = [(0.156, 0.139, 0.417, 0.56), (0.40, 0.79, 0.28, 0.1)]
 TIERS = [("SEM CLASSIFIC", "unranked"), ("GRANDE CAMPEAO", "grand-champion"), ("LENDA SUPERSONICA", "supersonic-legend"), ("CAMPEAO", "champion"),
          ("DIAMANTE", "diamond"), ("PLATINA", "platinum"), ("OURO", "gold"), ("PRATA", "silver"), ("BRONZE", "bronze")]
 ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4}
-SCOREBOARD_AFTER = 8  # seconds from the match's end to the scoreboard (the podium comes first)
-SCOREBOARD_FOR = 50
+SCOREBOARD_AFTER = 6  # seconds from the match's end to the first capture (the scoreboard comes ~10 s after the end)
+SCOREBOARD_FOR = 60  # it leaves by itself a minute after it shows
 TOO_FAR = 60  # points from the last total: a misreading
+GAIN_MAX = 25  # more than one match ever moves (a difference past it spans a match not read)
 IDLE_PUBLISH = 45 * 60
 CLOSED_PUBLISH = 120
 
@@ -133,18 +138,37 @@ def ocr():
     return _ocr
 
 
+_screen = None
+_screen_lock = threading.Lock()
+
+
 def capture() -> list:
-    """The REGIONS of the screen as images (numpy, BGR), through tela.ps1."""
+    """The REGIONS of the screen as images (numpy, BGR), from tela.ps1, started once and kept open."""
+    global _screen
+    import select
     import cv2
     import numpy as np
-    script = (Path(__file__).resolve().parent / "tela.ps1").read_text(encoding="utf-8")
-    regions = ";".join(",".join(f"{v:.4f}" for v in r) for r in REGIONS)
-    script = script.replace("param([string]$regioes)", f"$regioes = '{regions}'")
-    command = base64.b64encode(script.encode("utf-16-le")).decode()
-    r = subprocess.run([POWERSHELL, "-NoProfile", "-NonInteractive", "-EncodedCommand", command],
-                       capture_output=True, timeout=30, cwd="/mnt/c")
-    lines = [line.strip() for line in r.stdout.decode("ascii", "ignore").splitlines() if line.strip()]
-    return [cv2.imdecode(np.frombuffer(base64.b64decode(line), np.uint8), cv2.IMREAD_COLOR) for line in lines]
+    with _screen_lock:
+        if _screen is None or _screen.poll() is not None:
+            script = (Path(__file__).resolve().parent / "tela.ps1").read_text(encoding="utf-8")
+            regions = ";".join(",".join(f"{v:.4f}" for v in r) for r in REGIONS)
+            script = script.replace("param([string]$regioes)", f"$regioes = '{regions}'")
+            command = base64.b64encode(script.encode("utf-16-le")).decode()
+            _screen = subprocess.Popen([POWERSHELL, "-NoProfile", "-NonInteractive", "-EncodedCommand", command],
+                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, cwd="/mnt/c")
+        try:
+            _screen.stdin.write(b"\n")
+            _screen.stdin.flush()
+            ready = select.select([_screen.stdout], [], [], 20)[0]
+            line = _screen.stdout.readline() if ready else b""
+        except OSError:
+            line = b""
+        if not line.strip():
+            _screen.kill()
+            _screen = None
+            raise OSError("tela.ps1 não respondeu")
+    parts = line.decode("ascii", "ignore").strip().split(",")
+    return [cv2.imdecode(np.frombuffer(base64.b64decode(part), np.uint8), cv2.IMREAD_COLOR) for part in parts]
 
 
 def plain(text: str) -> str:
@@ -152,7 +176,19 @@ def plain(text: str) -> str:
 
 
 def read_points(board, name: str) -> dict | None:
-    """Luan's gain and total from the scoreboard's left half: the text on his row, left of his name."""
+    """Luan's gain and total from the scoreboard's left half: the text on his row, left of his name. The gain is in a
+    small, dim font: when it reads 6 or 9 (the OCR takes one for the other) or doesn't read, the board is read again at
+    twice the size, which gets those right and is worse at the rest."""
+    first = row_points(board, name)
+    if first and first["ganho"] in (None, 6, 9):
+        import cv2
+        again = row_points(cv2.resize(board, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC), name)
+        if again and again["mmr"] == first["mmr"] and again["ganho"] is not None:
+            return again
+    return first
+
+
+def row_points(board, name: str) -> dict | None:
     found = ocr()(board)[0] or []
     target = name.lower()
     mine = [b for b in found if target in b[1].lower()]
@@ -163,13 +199,25 @@ def read_points(board, name: str) -> dict | None:
     middle, height = (top + bottom) / 2, bottom - top
     row = sorted((b for b in found if b[0][1][0] < left and abs((b[0][0][1] + b[0][2][1]) / 2 - middle) < height * 0.8),
                  key=lambda b: b[0][0][0])
-    text = " ".join(b[1] for b in row)
-    groups = [(m.start(), m.group()) for m in re.finditer(r"\d+", text)]
-    total = next(((i, g) for i, g in groups if 3 <= len(g) <= 4 and 100 <= int(g) <= 3000), None)
-    if not total:
-        return None
-    gains = [g for i, g in groups if i < total[0] and len(g) <= 2 and 0 < int(g) <= 40]
-    return {"mmr": int(total[1]), "ganho": int(gains[-1]) if gains else None}
+    found = split_points(" ".join(b[1] for b in row))
+    return {"mmr": found[1], "ganho": found[0]} if found else None
+
+
+def split_points(text: str) -> tuple[int | None, int] | None:
+    """(gain, total) from the text left of his name: "+10 1067", or the two run together as the OCR often reads them
+    ("+101067", "+13642"): the total is the last four digits when they make one, else the last three."""
+    groups = re.findall(r"\d+", text)
+    total_ok = lambda g: not g.startswith("0") and 100 <= int(g) <= 3000  # noqa: E731
+    gain_ok = lambda g: 1 <= len(g) <= 2 and 0 < int(g) <= 40  # noqa: E731
+    for i, g in enumerate(groups):
+        if 3 <= len(g) <= 4 and total_ok(g):
+            gains = [x for x in groups[:i] if gain_ok(x)]
+            return (int(gains[-1]) if gains else None, int(g))
+        if 4 <= len(g) <= 6:
+            for n in (4, 3):
+                if total_ok(g[-n:]) and gain_ok(g[:-n]):
+                    return (int(g[:-n]), int(g[-n:]))
+    return None
 
 
 def read_rank(strip) -> dict:
@@ -200,10 +248,19 @@ def read_rank(strip) -> dict:
     return out
 
 
-def read_scoreboard(name: str, frames=None) -> dict | None:
-    """Reads the scoreboard until two readings of the total agree (or it's gone): {mmr, ganho, tier, divisao}."""
+def fits(total: int, result: str | None, before: int | None) -> bool:
+    """Whether a total moves the last one in its mode the way the match's result says, and not too far."""
+    if before is None or result is None:
+        return False
+    diff = total - before
+    return 0 < abs(diff) <= TOO_FAR and (diff > 0) == (result == "win")
+
+
+def read_scoreboard(name: str, frames=None, result: str | None = None, before: int | None = None) -> dict | None:
+    """Reads the scoreboard until a reading fits the last total, or two agree, or it's gone: {mmr, ganho, tier,
+    divisao, leituras}."""
     readings = []
-    deadline = time.time() + SCOREBOARD_FOR
+    deadline = time.time() + SCOREBOARD_AFTER + SCOREBOARD_FOR
     if frames is None:
         time.sleep(SCOREBOARD_AFTER)
     while frames or (frames is None and time.time() < deadline):
@@ -223,14 +280,17 @@ def read_scoreboard(name: str, frames=None) -> dict | None:
         if points:
             readings.append({**points, **(read_rank(strip) if strip is not None else {})})
             same = [r for r in readings if r["mmr"] == points["mmr"]]
-            if len(same) >= 2:
+            if len(same) >= 2 or fits(points["mmr"], result, before):
                 gains = [r["ganho"] for r in same if r["ganho"] is not None]
                 rank = next((r for r in reversed(same) if r.get("tier")), None) or next((r for r in reversed(same) if r.get("familia")), {})
                 division = next((r["divisao"] for r in reversed(same) if r.get("divisao")), None)
-                return {"mmr": points["mmr"], "ganho": max(set(gains), key=gains.count) if gains else None,
-                        "tier": rank.get("tier"), "familia": rank.get("familia"), "divisao": division, "leituras": len(same)}
+                # Readings that saw both a 6 and a 9 don't know which: the gain is left to the totals.
+                gain = None if not gains or {6, 9} <= set(gains) else max(set(gains), key=gains.count)
+                return {"mmr": points["mmr"], "ganho": gain,
+                        "tier": rank.get("tier"), "familia": rank.get("familia"), "divisao": division,
+                        "leituras": max(len(same), 2 if fits(points["mmr"], result, before) else 1)}
         if frames is None:
-            time.sleep(2)
+            time.sleep(0.5)
     if readings:
         last = readings[-1]
         return {**last, "leituras": 1}
@@ -240,11 +300,29 @@ def read_scoreboard(name: str, frames=None) -> dict | None:
 FAMILIES = ["bronze", "silver", "gold", "platinum", "diamond", "champion", "grand-champion", "supersonic-legend"]
 
 
-def tier_after(got: dict, old: str | None) -> str:
+def ladder(tier: str | None) -> int | None:
+    """A tier's place on the ladder (bronze-1 is 0), or None for unranked and the unknown."""
+    if not tier or tier == "unranked":
+        return None
+    if tier == "supersonic-legend":
+        return FAMILIES.index(tier) * 3
+    family, _, n = tier.rpartition("-")
+    return FAMILIES.index(family) * 3 + int(n) - 1 if family in FAMILIES and n.isdigit() else None
+
+
+def tier_after(got: dict, old: str | None, result: str | None = None) -> str:
     """The tier after a match: the one read, or, when only its family read, the known one if it's the same family, else
-    where a single match lands (one tier at a time: up into the family's I, down into its III)."""
-    if got.get("tier"):
-        return got["tier"]
+    where a single match lands (one tier at a time: up into the family's I, down into its III). A tier read more than
+    one away, or against the result (down after a win, up after a loss), is a misreading (11-20: DIAMANTE III read as
+    II after a win): only its family counts."""
+    tier = got.get("tier")
+    if tier and result and ladder(tier) is not None and ladder(old) is not None:
+        step = ladder(tier) - ladder(old)
+        if abs(step) > 1 or (step < 0 and result == "win") or (step > 0 and result == "loss"):
+            got = {"familia": tier.rpartition("-")[0]}
+            tier = None
+    if tier:
+        return tier
     family = got.get("familia")
     if not family or not old or old == "unranked":
         return old or "unranked"
@@ -267,7 +345,14 @@ def settle(reading: dict | None, result: str, before: int | None) -> dict:
         return {}
     if before is not None and abs(diff) > TOO_FAR and reading.get("leituras", 1) < 2:
         return {}
-    points = sign * gain if gain is not None else (diff if plausible else None)
+    if gain is not None and plausible and abs(abs(diff) - gain) <= 3:
+        points = diff  # the totals agree with the gain read, give or take the OCR's 9 for 6
+    elif gain is not None and gain not in (6, 9):
+        points = sign * gain  # the last total may be from before a match not read
+    elif gain is None and plausible and abs(diff) <= GAIN_MAX:
+        points = diff
+    else:
+        points = None  # a 6 or a 9 that the totals can't confirm: no number rather than a wrong one
     return {"points": points, "mmr": total, "tier": reading.get("tier"), "familia": reading.get("familia"),
             "division": reading.get("divisao")}
 
@@ -282,6 +367,7 @@ class Game:
         self.match = None
         self.finished: set[str] = set()
         self.closed_at: float | None = None
+        self.unread: dict[str, dict | None] = {}  # each mode's last match, while its points are unknown
 
     def player_key(self, p):
         return p.get("PrimaryId") or p.get("Name")
@@ -396,9 +482,11 @@ class Game:
         mode = entry["mode"]
         before = (entry["rank"] or {}).get("mmr")
         # A match left early shows no scoreboard.
-        got = {} if entry["left"] else settle(read_scoreboard(name), entry["result"], before)
+        got = {} if entry["left"] else settle(read_scoreboard(name, result=entry["result"], before=before), entry["result"], before)
         entry["points"], entry["mmr"] = got.get("points"), got.get("mmr")
         log("pontos", mode, got.get("points"), got.get("mmr"), got.get("tier") or "", got.get("division") or "")
+        # A match left early (no scoreboard) still moved the total: the next one tells by how much.
+        missed, self.unread[mode] = self.unread.get(mode), None if got.get("mmr") is not None else entry
         with state_lock:
             session = self.state.get("sessao")
             if not live and not session:
@@ -406,9 +494,11 @@ class Game:
                 start = {**self.state["ranks"], **({mode: entry["rank"]} if entry["rank"] else {})}
                 session = self.state["sessao"] = {"id": session_id(time.time()), "start": entry["start"] or entry["at"],
                                                   "startRanks": start, "matches": [], "ranks": []}
+            if got.get("mmr") is not None and got.get("points") is not None and missed:
+                self.fill_missed(missed, got["mmr"] - got["points"], live)
             if got.get("mmr") is not None:
                 old = self.state["ranks"].get(mode) or {}
-                rank = {"tier": tier_after(got, old.get("tier")),
+                rank = {"tier": tier_after(got, old.get("tier"), entry["result"]),
                         "division": got.get("division") or old.get("division") or 1, "mmr": got["mmr"]}
                 self.state["ranks"][mode] = rank
                 send({"tipo": "pontos", "partida": entry["id"], "modo": mode, "mmr": rank["mmr"], "pontos": got.get("points"),
@@ -418,6 +508,22 @@ class Game:
                 if got.get("mmr") is not None:
                     session["ranks"].append({"at": iso(), "mode": mode, **self.state["ranks"][mode]})
             save_state(self.state)
+
+    def fill_missed(self, entry: dict, total: int, live: bool):
+        """A match whose scoreboard wasn't read, from the next one's: its total is the next one's before that match's
+        gain. Only when it moves the total before it the way its result says."""
+        before = (entry["rank"] or {}).get("mmr")
+        if not fits(total, entry["result"], before):
+            return
+        entry["points"], entry["mmr"] = total - before, total
+        log("pontos (pela seguinte)", entry["mode"], entry["points"], total)
+        old = self.state["ranks"].get(entry["mode"]) or {}
+        send({"tipo": "pontos", "partida": entry["id"], "modo": entry["mode"], "mmr": total, "pontos": entry["points"],
+              "tier": old.get("tier"), "divisao": old.get("division")})
+        if not live and self.state.get("sessao"):
+            for m in self.state["sessao"]["matches"]:
+                if m["id"] == entry["id"]:
+                    m["points"], m["mmr"] = entry["points"], total
 
     def refresh_ranks(self):
         """The last rank in each mode from the latest published session, for the modes this hasn't seen yet."""
@@ -605,6 +711,14 @@ def main():
     server.daemon_threads = True
     game = Game(publish=not args.ver)
     ocr()
+
+    def warm():
+        try:
+            capture()  # tela.ps1 started now, so the first scoreboard doesn't wait for PowerShell
+        except Exception as error:
+            log("tela.ps1:", type(error).__name__, error)
+
+    threading.Thread(target=warm, daemon=True).start()
     threading.Thread(target=relay, args=(game, args.ver), daemon=True).start()
 
     def ticking():
