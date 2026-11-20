@@ -64,17 +64,21 @@ jobs:
 
       # The APIs' functions (infra/<name>, each with infra/comum linked in as ./comum): each is deployed once the
       # repository variable naming it (the stack's output) is set. cp -L turns the link into the files themselves;
-      # tests and local/ (the Pix API's stand-ins for running it on a laptop) stay out of the zip.
+      # tests and local/ (the Pix API's stand-ins for running it on a laptop) stay out of the zip. The profile API's
+      # zip also gets the Discord bot's token from the secret DISCORD_BOT (infra/perfil/index.mjs reads it), as this
+      # role may change a function's code but not its settings.
       - name: Publish the functions
         if: env.PUBLISH == 'true'
         env:
           PERFIL: ${{ vars.PERFIL_FUNCTION }}
           SIGMA: ${{ vars.SIGMA_FUNCTION }}
           PIX: ${{ vars.PIX_FUNCTION }}
+          DISCORD_BOT: ${{ secrets.DISCORD_BOT }}
         run: |
           publish() {
             if [ -z "$2" ]; then echo "$1: no function named yet, skipped"; return; fi
             rm -rf "build/$1" && mkdir -p build && cp -rL "infra/$1" "build/$1"
+            if [ "$1" = perfil ] && [ -n "$DISCORD_BOT" ]; then printf %s "$DISCORD_BOT" > build/perfil/discord-bot.txt; fi
             (cd "build/$1" && zip -q -r "../$1.zip" . -x '*.test.*' 'local/*')
             aws lambda update-function-code --function-name "$2" --zip-file "fileb://build/$1.zip" > /dev/null
             echo "$1: published"

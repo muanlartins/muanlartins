@@ -49,8 +49,9 @@ const banco = {
   },
 }
 
-// The Discord server's automations, once the stack gives the bot's token (DISCORD_BOT) and the setup script has written
-// the server's ids (comum/discord.json).
+// The Discord server's automations, once there's the bot's token and the setup script has written the server's ids
+// (comum/discord.json). The token is the stack's DISCORD_BOT, or else discord-bot.txt, which CI writes into the
+// function's zip from the repository's secret DISCORD_BOT (so turning the bot on needs no visit to AWS's console).
 const SIGMA_API = process.env.SIGMA_API || "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
 const ids = (() => {
   try {
@@ -59,6 +60,14 @@ const ids = (() => {
     return null
   }
 })()
-const discord = process.env.DISCORD_BOT && ids?.servidor ? automacoes({ pedir: cliente(process.env.DISCORD_BOT), ids, banco, sigmas: sigmasDe(SIGMA_API) }) : null
+const token = (() => {
+  if (process.env.DISCORD_BOT) return process.env.DISCORD_BOT
+  try {
+    return readFileSync(new URL("./discord-bot.txt", import.meta.url), "utf8").trim()
+  } catch {
+    return ""
+  }
+})()
+const discord = token && ids?.servidor ? automacoes({ pedir: cliente(token), ids, banco, sigmas: sigmasDe(SIGMA_API) }) : null
 
 export const handler = rotas({ banco, usuario, chave: process.env.CHAVE, discord })
