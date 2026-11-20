@@ -67,12 +67,12 @@ DUCK_DB = -10
 def parts(folder):
     """Where each piece of the day's Live, Câmera and Jogo starts: videos.py's partes.json when OBS was restarted and
     the pieces were joined, else one piece per file, started at the time in its name ("21-04-55 Live.mp4")."""
-    if (folder / "partes.json").exists():
-        return json.loads((folder / "partes.json").read_text())
-    table = {}
+    listing = folder / "partes.json"
+    # It lists only the kinds that came in pieces (11-20: the game's, not the stream's); the rest are one piece each.
+    table = json.loads(listing.read_text()) if listing.exists() else {}
     for kind in ("Live", "Câmera", "Jogo"):
         found = sorted(folder.glob(f"??-??-?? {kind}.*"))
-        if not found:
+        if kind in table or not found:
             continue
         seconds = float(subprocess.run([str(Path.home() / ".local" / "bin" / "ffprobe"), "-v", "error",
                                         "-show_entries", "format=duration", "-of", "csv=p=0", str(found[0])],
