@@ -63,8 +63,8 @@ PLAYLISTS = {1: "Casual 1v1", 2: "Casual 2v2", 3: "Casual 3v3", 4: "Casual 4v4",
 RANKED = {10, 11, 13, 61, 27, 28, 29, 30}
 # The scoreboard's left half (each player's gain and total beside their name) and the rank under it, as fractions of
 # the screen (Rocket League fills it, 16:9).
-REGIONS = [(0.156, 0.139, 0.417, 0.463), (0.43, 0.79, 0.2, 0.1)]
-TIERS = [("GRANDE CAMPEAO", "grand-champion"), ("LENDA SUPERSONICA", "supersonic-legend"), ("CAMPEAO", "champion"),
+REGIONS = [(0.156, 0.139, 0.417, 0.463), (0.40, 0.79, 0.28, 0.1)]
+TIERS = [("SEM CLASSIFIC", "unranked"), ("GRANDE CAMPEAO", "grand-champion"), ("LENDA SUPERSONICA", "supersonic-legend"), ("CAMPEAO", "champion"),
          ("DIAMANTE", "diamond"), ("PLATINA", "platinum"), ("OURO", "gold"), ("PRATA", "silver"), ("BRONZE", "bronze")]
 ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4}
 SCOREBOARD_AFTER = 8  # seconds from the match's end to the scoreboard (the podium comes first)
@@ -77,6 +77,7 @@ listeners: set[queue.Queue] = set()
 listeners_lock = threading.Lock()
 state_lock = threading.RLock()
 _ocr = None
+DEBUG: Path | None = None  # --depurar: each capture saved there, for checking the reading (never on the service)
 
 
 def log(*parts):
@@ -174,12 +175,17 @@ def read_rank(strip) -> dict:
     Chinese too and sometimes takes III for 三: those are put back. A tier whose number didn't read comes as its family
     alone ("familia": "diamond"), never a guessed number."""
     found = " ".join(b[1] for b in (ocr()(strip)[0] or []))
-    text = plain(found.translate(str.maketrans({"三": "III", "二": "II", "ニ": "II", "一": "I", "|": "I", "l": "I"})))
+    text = plain(found.translate(str.maketrans({"三": "III", "川": "III", "Ⅲ": "III", "二": "II", "ニ": "II", "Ⅱ": "II",
+                                               "一": "I", "|": "I", "l": "I"})))
+    # A 1 next to an I is one too ("DIVISAO1I").
+    text = re.sub(r"(?<=[I\s])1|1(?=I)", "I", text)
     out = {}
     for words, tier in TIERS:
-        m = re.search(words.replace(" ", r"\s*") + r"(?:\s*(III|II|I)(?![A-Z]))?", text)
+        m = re.search(words.replace(" ", r"\s*") + r"\w*(?:\s*(III|II|I)(?![A-Z]))?", text) if tier == "unranked" else \
+            re.search(words.replace(" ", r"\s*") + r"(?:\s*(III|II|I)(?![A-Z]))?", text)
         if m:
-            if tier == "supersonic-legend":
+            if tier in ("supersonic-legend", "unranked"):
+                # No divisions (the placement matches show "Sem classificação · 5 de 10 partidas jogadas").
                 out.update(tier=tier, divisao=1)
             elif m.group(1):
                 out["tier"] = f"{tier}-{ROMAN[m.group(1)]}"
@@ -202,6 +208,12 @@ def read_scoreboard(name: str, frames=None) -> dict | None:
         try:
             board, strip = frames.pop(0) if frames else capture()
             points = read_points(board, name)
+            if DEBUG:
+                import cv2
+                n = len(list(DEBUG.glob("placar-*.png")))
+                cv2.imwrite(str(DEBUG / f"placar-{n:02d}.png"), board)
+                cv2.imwrite(str(DEBUG / f"ranque-{n:02d}.png"), strip)
+                log("leitura", n, points, read_rank(strip))
         except (OSError, ValueError, subprocess.SubprocessError, IndexError) as error:
             log("leitura do placar falhou:", type(error).__name__)
             points = None
@@ -572,7 +584,12 @@ def main():
     parser.add_argument("--placar", nargs="+", metavar="PNG", help="read the points off saved full-screen pictures and stop")
     parser.add_argument("--nome", default="muanlartins", help="the in-game name to look for (--placar)")
     parser.add_argument("--ver", action="store_true", help="print the game's messages, and don't publish")
+    parser.add_argument("--depurar", metavar="PASTA", help="save each scoreboard capture there and log each reading")
     args = parser.parse_args()
+    global DEBUG
+    if args.depurar:
+        DEBUG = Path(args.depurar)
+        DEBUG.mkdir(parents=True, exist_ok=True)
     if args.placar:
         import cv2
         for path in args.placar:
