@@ -16,9 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def ao_vivo() -> bool:
     """Whether OBS is streaming (scripts/obs.mjs status). OBS closed, or not answering, is not live."""
-    node = shutil.which("node")
-    if not node:
-        return False
+    node = shutil.which("node") or str(Path.home() / ".local" / "bin" / "node")
     try:
         out = subprocess.run([node, str(ROOT / "scripts" / "obs.mjs"), "status"], capture_output=True, text=True, timeout=20).stdout
     except (OSError, subprocess.SubprocessError):

@@ -51,6 +51,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publicar  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
+# By its full path: started by Windows at login, WSL's PATH has no Windows folders.
+POWERSHELL = "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
 PORT = 8795
 STATE = Path.home() / ".cache" / "muanlartins" / "rocket-league.json"
 ALIADOS = ROOT / "public" / "stream" / "aliados.json"
@@ -139,7 +141,7 @@ def capture() -> list:
     regions = ";".join(",".join(f"{v:.4f}" for v in r) for r in REGIONS)
     script = script.replace("param([string]$regioes)", f"$regioes = '{regions}'")
     command = base64.b64encode(script.encode("utf-16-le")).decode()
-    r = subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-EncodedCommand", command],
+    r = subprocess.run([POWERSHELL, "-NoProfile", "-NonInteractive", "-EncodedCommand", command],
                        capture_output=True, timeout=30, cwd="/mnt/c")
     lines = [line.strip() for line in r.stdout.decode("ascii", "ignore").splitlines() if line.strip()]
     return [cv2.imdecode(np.frombuffer(base64.b64decode(line), np.uint8), cv2.IMREAD_COLOR) for line in lines]
@@ -510,7 +512,7 @@ def relay(game: Game, show=False):
     script = (Path(__file__).resolve().parent / "statsapi.ps1").read_text(encoding="utf-8")
     command = base64.b64encode(script.encode("utf-16-le")).decode()
     while True:
-        proc = subprocess.Popen(["powershell.exe", "-NoProfile", "-NonInteractive", "-EncodedCommand", command],
+        proc = subprocess.Popen([POWERSHELL, "-NoProfile", "-NonInteractive", "-EncodedCommand", command],
                                 stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, cwd="/mnt/c")
         decode = codecs.getincrementaldecoder("utf-8")("replace")
         buffer = ""
