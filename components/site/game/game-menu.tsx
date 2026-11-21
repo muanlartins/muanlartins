@@ -4,6 +4,7 @@ import { ArrowUpRight, CalendarDays, Clapperboard, Gamepad2, Heart, House, Messa
 import { motion } from "motion/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useRef } from "react"
 import { Ball } from "@/components/site/game/game-icon"
 import { Crosshair } from "@/components/site/game/crosshair"
 import { cn } from "@/lib/utils"
@@ -45,7 +46,8 @@ export interface OtherGame {
 /**
  * A game's pages. Wide screens get a column in the left margin that follows
  * the page down, with a ball (Valorant: a crosshair) moving to the page being
- * read; narrower ones a row of tabs above it. A page under another counts as
+ * read; narrower ones a single row above it that scrolls sideways, the page being read kept in view (ten pages
+ * wrapping into four rows of chips buried the title on phones). A page under another counts as
  * that one's (a live as the lives'), and topic pages as the roadmap's.
  * With `games`, the games are one click apart, landing on the same page in
  * the other game when it has one (Fundamentals → Fundamentals).
@@ -76,6 +78,12 @@ export function GameMenu({
     (home !== "/" && pathname.startsWith(`${home}/`) ? own.find((item) => item.href.endsWith("/fundamentals")) : undefined)
   const page = active ? active.href.slice(home.length) : ""
   const switchTo = (game: OtherGame) => (game.pages.includes(`${game.home}${page}`) ? `${game.home}${page}` : game.home)
+  const strip = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const row = strip.current
+    const here = row?.querySelector<HTMLElement>('[aria-current="page"]')
+    if (row && here) row.scrollLeft = here.offsetLeft - (row.clientWidth - here.offsetWidth) / 2
+  }, [active])
 
   return (
     <>
@@ -112,6 +120,7 @@ export function GameMenu({
                   )}
                   <MenuLink
                     item={item}
+                    current={current}
                     className={cn(
                       "flex items-center gap-2 py-1.5 pl-5 text-[15px] transition-colors",
                       current ? "font-medium text-klein" : "text-muted hover:text-ink",
@@ -134,14 +143,22 @@ export function GameMenu({
           ))}
         </p>
       )}
-      <nav className={cn("mb-12 flex flex-wrap gap-2 xl:hidden", games.length === 0 && "-mt-10")}>
+      <nav
+        ref={strip}
+        className={cn(
+          "relative -mx-6 mb-12 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none] xl:hidden [&::-webkit-scrollbar]:hidden",
+          "[mask-image:linear-gradient(to_right,transparent,black_24px,black_calc(100%-24px),transparent)]",
+          games.length === 0 && "-mt-10",
+        )}
+      >
         {items.map((item) => (
           <MenuLink
             key={item.href}
             item={item}
+            current={item === active}
             className={cn(
-              "flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[14px] transition-colors",
-              item === active ? "border-klein bg-klein text-paper" : "border-line text-ink hover:border-klein",
+              "cut-sm cut-edge relative flex shrink-0 items-center gap-1.5 whitespace-nowrap border px-3 py-1.5 text-[14px] transition-colors",
+              item === active ? "border-klein bg-klein text-paper" : "border-line-strong text-ink hover:border-klein",
             )}
           />
         ))}
@@ -150,7 +167,7 @@ export function GameMenu({
   )
 }
 
-function MenuLink({ item, className }: { item: MenuItem; className: string }) {
+function MenuLink({ item, className, current = false }: { item: MenuItem; className: string; current?: boolean }) {
   const Icon = item.icon && ICONS[item.icon]
   const icon = Icon && <Icon aria-hidden className="h-4 w-4 shrink-0 opacity-75" />
   if (item.away) {
@@ -162,7 +179,7 @@ function MenuLink({ item, className }: { item: MenuItem; className: string }) {
     )
   }
   return (
-    <Link href={item.href} className={className}>
+    <Link href={item.href} className={className} aria-current={current ? "page" : undefined}>
       {icon}
       {item.label}
     </Link>

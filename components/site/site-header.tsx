@@ -1,10 +1,10 @@
 "use client"
 
-import { BriefcaseBusiness, Gamepad2, Radio, User, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { SantaHat, useDecember } from "@/components/site/december"
+import { ChristmasLights, SantaHat, useDecember } from "@/components/site/december"
 import { LiveBadge } from "@/components/site/lives/live-badge"
+import { SECTION_ICONS } from "@/components/site/section-icons"
 import { cn } from "@/lib/utils"
 import { VIEWER_SLUG } from "@/lib/viewer"
 import {
@@ -25,8 +25,6 @@ import {
   sectionUrl,
   type Section,
 } from "@/lib/site"
-
-const ICONS: Record<Section, LucideIcon> = { channel: Radio, content: Gamepad2, personal: User, professional: BriefcaseBusiness }
 
 /** The section a page is in; the home page is the site's home section's. */
 function currentSection(page: string): Section | undefined {
@@ -63,7 +61,7 @@ export function SiteHeader({ lives }: { lives?: string }) {
         <Link href="/" aria-label="muanlartins" className="flex items-center gap-3 transition-opacity hover:opacity-80">
           <span className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/mark-small.svg" alt="" className="h-8 w-8 rounded-[7px]" />
+            <img src="/brand/mark-small.svg" alt="" className="h-8 w-8" />
             {/* December: the stand's Santa hat on the mark. */}
             {december && <SantaHat className="absolute -top-[13px] -left-[7px] w-[34px] -rotate-[14deg]" />}
           </span>
@@ -74,7 +72,7 @@ export function SiteHeader({ lives }: { lives?: string }) {
         <div className="flex items-center gap-3 text-[13px] sm:gap-6 sm:text-[14px]">
           {lives && hasSection("channel") && <LiveBadge href={lives} />}
           {SECTIONS.map((section) => {
-            const Icon = ICONS[section]
+            const Icon = SECTION_ICONS[section]
             return (
               <Link
                 key={section}
@@ -97,13 +95,14 @@ export function SiteHeader({ lives }: { lives?: string }) {
               hrefLang={OTHER_LOCALE}
               aria-label={UI.switchLanguage}
               title={UI.switchLanguage}
-              className="rounded-sm border border-line px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted transition-colors hover:border-klein hover:text-klein"
+              className="border border-line-strong px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted transition-colors hover:border-klein hover:text-klein"
             >
               {LANGUAGE_LABEL[OTHER_LOCALE]}
             </a>
           )}
         </div>
       </nav>
+      <ChristmasLights />
     </header>
   )
 }

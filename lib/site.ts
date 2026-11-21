@@ -102,15 +102,15 @@ export function muralUrl(locale: Locale = LOCALE) {
 }
 
 /**
- * Your profiles elsewhere. They show in the footer and tell Google that
- * these accounts and this site are the same person.
+ * Your profiles elsewhere, in the order Luan wants them (2026-11-21: the channel first). They show in the footer and
+ * tell Google that these accounts and this site are the same person.
  */
 export const LINKS = [
-  { label: "YouTube", href: "https://www.youtube.com/@muanlartins" },
   { label: "Twitch", href: "https://www.twitch.tv/muanlartins" },
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/muanlartins" },
+  { label: "YouTube", href: "https://www.youtube.com/@muanlartins" },
   { label: "Instagram", href: "https://www.instagram.com/muanlartins" },
   { label: "GitHub", href: "https://github.com/muanlartins" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/muanlartins" },
 ]
 
 /**
@@ -173,8 +173,8 @@ export const UI = localize({
   notFound: {
     title: { pt: "Nada por aqui", en: "Nothing here" },
     text: {
-      pt: "Este endereço não existe ou mudou de lugar. Escolha uma seção lá em cima para continuar.",
-      en: "This address doesn't exist or has moved. Pick a section up top to keep going.",
+      pt: "Esse endereço não existe ou mudou de lugar. Escolhe uma seção pra continuar:",
+      en: "This address doesn't exist or has moved. Pick a section to keep going:",
     },
   },
   playVideo: { pt: "Assistir ao vídeo", en: "Play video" },

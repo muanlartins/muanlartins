@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { SECTION_ICONS } from "@/components/site/section-icons"
 import { ViewerFallback } from "@/components/site/viewer/viewer-fallback"
 import { SECTIONS, UI, sectionHref } from "@/lib/site"
 
@@ -49,7 +50,7 @@ export default function NotFound() {
   return (
     <ViewerFallback>
       <section className="space-y-10">
-        <div className="overflow-hidden rounded-md bg-klein">
+        <div className="cut overflow-hidden bg-klein">
           <svg viewBox={`0 0 ${WIDTH * U} ${HEIGHT * U}`} className="block w-full" role="img" aria-label="404">
             <defs>
               <pattern id="lattice" width={U} height={U} patternUnits="userSpaceOnUse">
@@ -73,16 +74,17 @@ export default function NotFound() {
         <div className="space-y-6">
           <h1 className="text-4xl font-medium text-klein tracking-[-0.03em] sm:text-5xl">{UI.notFound.title}</h1>
           <p className="max-w-[38rem] text-[17px] leading-[1.6] text-ink">{UI.notFound.text}</p>
-          <nav className="flex flex-wrap gap-3 pt-2">
-            {SECTIONS.map((section) => (
-              <Link
-                key={section}
-                href={sectionHref(section)}
-                className="rounded-md border border-line px-4 py-2 text-[15px] text-klein transition-colors hover:border-klein hover:bg-klein hover:text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-klein"
-              >
-                {UI.sections[section]}
-              </Link>
-            ))}
+          {/* The sections as the header has them: their icons and names. */}
+          <nav className="flex flex-wrap gap-x-8 gap-y-3 pt-2 text-[17px]">
+            {SECTIONS.map((section) => {
+              const Icon = SECTION_ICONS[section]
+              return (
+                <Link key={section} href={sectionHref(section)} className="inline-flex items-center gap-2 text-muted transition-colors hover:text-klein">
+                  <Icon aria-hidden className="h-5 w-5" />
+                  {UI.sections[section]}
+                </Link>
+              )
+            })}
           </nav>
         </div>
       </section>

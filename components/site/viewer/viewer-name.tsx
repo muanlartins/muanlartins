@@ -34,8 +34,13 @@ export function ViewerName({ login, children, className }: { login: string; chil
   useEffect(() => {
     if (!open) return
     const close = () => setOpen(false)
+    const escape = (e: KeyboardEvent) => e.key === "Escape" && close()
     addEventListener("scroll", close, { passive: true, once: true })
-    return () => removeEventListener("scroll", close)
+    addEventListener("keydown", escape)
+    return () => {
+      removeEventListener("scroll", close)
+      removeEventListener("keydown", escape)
+    }
   }, [open])
   useEffect(() => {
     if (!open) return
@@ -81,7 +86,8 @@ export function ViewerName({ login, children, className }: { login: string; chil
           <div
             role="dialog"
             aria-label={key}
-            className={cn("fixed z-50", place.top !== undefined ? "pt-2" : "pb-2")}
+            // The card is cut at 45°, which would clip a box shadow: the shadow follows its shape from out here.
+            className={cn("fixed z-50 drop-shadow-[0_14px_22px_rgba(0,20,71,0.38)]", place.top !== undefined ? "pt-2" : "pb-2")}
             style={{ left: place.left, top: place.top, bottom: place.bottom, width: CARD_WIDTH }}
             onPointerEnter={() => clearTimeout(timer.current)}
             onPointerLeave={hide}
@@ -91,7 +97,7 @@ export function ViewerName({ login, children, className }: { login: string; chil
             <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
             {!T && <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />}
             {!S && <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />}
-            <ViewerCard login={key} look={look} stats={person?.stats} primeira={person?.primeira} T={T} S={S} size="pop" className="shadow-[0_18px_44px_-14px_rgba(0,20,71,0.6)] ring-1 ring-navy/20" />
+            <ViewerCard login={key} look={look} stats={person?.stats} primeira={person?.primeira} T={T} S={S} size="pop" />
           </div>,
           document.body,
         )}
