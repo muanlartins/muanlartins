@@ -37,13 +37,13 @@ const texto = (s, max) =>
 
 /** What the form sent, cleaned: { estilo, sobre } or { estilo, letra }; or { erro } for the viewer. */
 export function pedidoDe(p) {
-  if (!p || typeof p !== "object") return { erro: "Escolha o estilo e diga sobre o que é a música." }
-  if (!Object.hasOwn(ESTILOS, p.estilo)) return { erro: "Escolha um dos estilos." }
+  if (!p || typeof p !== "object") return { erro: "Escolhe o estilo e diz sobre o que é a música." }
+  if (!Object.hasOwn(ESTILOS, p.estilo)) return { erro: "Escolhe um dos estilos." }
   const letra = texto(p.letra, LETRA_MAX + 1)
   const sobre = linha(p.sobre, SOBRE_MAX + 1)
   if (letra) return letra.length > LETRA_MAX ? { erro: `A letra vai até ${LETRA_MAX} caracteres.` } : { estilo: p.estilo, letra }
   if (sobre) return sobre.length > SOBRE_MAX ? { erro: `O tema vai até ${SOBRE_MAX} caracteres.` } : { estilo: p.estilo, sobre }
-  return { erro: "Diga sobre o que é a música, ou escreva a letra." }
+  return { erro: "Diz sobre o que é a música, ou escreve a letra." }
 }
 
 /** What Lyria is asked: our direction for the style, then the viewer's theme or lyrics, kept apart as Google advises. */
@@ -117,7 +117,7 @@ export async function revisar(pedido, { chave, fetch: buscar = fetch, prazo = 80
     const j = await r.json()
     const t = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? ""
     const v = JSON.parse(t)
-    if (v.ok === false) return { ok: false, motivo: linha(v.motivo, 200) || "Esse pedido não dá. Mude o texto e tente de novo." }
+    if (v.ok === false) return { ok: false, motivo: linha(v.motivo, 200) || "Esse pedido não dá. Muda o texto e tenta de novo." }
     return { ok: true }
   } catch (e) {
     return { ok: true, sem: e.name === "TimeoutError" ? "demorou" : String(e.message ?? e).slice(0, 100) }
@@ -125,7 +125,7 @@ export async function revisar(pedido, { chave, fetch: buscar = fetch, prazo = 80
 }
 
 export const RECUSA =
-  "O gerador de música recusou esse pedido. Costuma ser nome de artista ou letra de música que já existe: mude o texto e tente de novo."
+  "O gerador de música recusou esse pedido. Costuma ser nome de artista ou letra de música que já existe: muda o texto e tenta de novo."
 
 /**
  * The song: { ok: true, audio (Buffer), mime, letra } or { ok: false, recusada, motivo }. `recusada` is Google

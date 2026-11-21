@@ -312,6 +312,62 @@ test("a plain Pix is as it was: no song, no Google", async () => {
   assert.equal(google.chamadasLyria, 0)
 })
 
+const sigmaDe = (login) => local.itens.get(`sigmas|${JSON.stringify([["login", login]])}`)
+
+test("the dock attributes a Pix: its name and login on the mural, and the Σ it would have given, moved if the login changes", async () => {
+  // A Pix sent with no name and without signing in: on the mural as Anônimo, nobody's Σ.
+  const { body: r } = await chamar("POST", "/reservar", { corpo: { centavos: 500, nome: "", mensagem: "Oi!", voz: "antonio", quando: "agora" } })
+  await pagar(r.centavos)
+  const sk = (await canal()).body.pix[0].sk
+  let { body: m } = await chamar("GET", "/mural")
+  assert.deepEqual([m.pix[0].nome, m.pix[0].login], ["", undefined])
+
+  assert.equal((await canal({ acao: "atribuir", pix: "nada", nome: "Ana" })).status, 404)
+  assert.equal((await canal({ acao: "atribuir", pix: sk, nome: "Mamuska", login: "leila m" })).status, 400, "not a login")
+  assert.equal((await canal({ acao: "atribuir", pix: sk, nome: "  " })).status, 400, "nothing to set")
+  assert.equal((await chamar("POST", "/canal", { corpo: { acao: "atribuir", pix: sk, nome: "Mamuska" } })).status, 401, "the dock's key")
+
+  const a = await canal({ acao: "atribuir", pix: sk, nome: "Mamuska", login: "@Leila_M_30" })
+  assert.equal(a.status, 200)
+  ;({ body: m } = await chamar("GET", "/mural"))
+  assert.deepEqual([m.pix[0].nome, m.pix[0].login, m.pix[0].mensagem], ["Mamuska", "leila_m_30", "Oi!"])
+  assert.deepEqual([sigmaDe("leila_m_30").sigma, sigmaDe("leila_m_30").doado], [50, 500])
+
+  // Again with the same login: the name changes, the Σ don't come twice.
+  await canal({ acao: "atribuir", pix: sk, nome: "Mãe", login: "leila_m_30" })
+  assert.equal(sigmaDe("leila_m_30").sigma, 50)
+  // A wrong login fixed: the Σ go with it. No login sent keeps the one it has.
+  await canal({ acao: "atribuir", pix: sk, nome: "Mamuska", login: "outra" })
+  assert.deepEqual([sigmaDe("leila_m_30").sigma, sigmaDe("leila_m_30").doado, sigmaDe("outra").sigma], [0, 0, 50])
+  await canal({ acao: "atribuir", pix: sk, nome: "Mamuska", login: "leila_m_30" })
+  await canal({ acao: "atribuir", pix: sk, nome: "Mamuska" })
+  ;({ body: m } = await chamar("GET", "/mural"))
+  assert.equal(m.pix[0].login, "leila_m_30")
+  assert.deepEqual([sigmaDe("leila_m_30").sigma, sigmaDe("outra").sigma], [50, 0])
+
+  // One the dock took off the mural, or placed as Anônimo outside the form, comes back with its name.
+  await canal({ acao: "ocultar", pix: sk })
+  assert.equal((await chamar("GET", "/mural")).body.pix.length, 0)
+  await canal({ acao: "atribuir", pix: sk, nome: "Mamuska" })
+  assert.equal((await chamar("GET", "/mural")).body.pix[0].nome, "Mamuska")
+  await pixDe(1000, "")
+  const solto = (await canal()).body.pix[0].sk
+  await canal({ acao: "atribuir", pix: solto, nome: "Mamuska", login: "leila_m_30" })
+  ;({ body: m } = await chamar("GET", "/mural"))
+  assert.deepEqual(m.pix.map((p) => [p.centavos, p.nome]), [[1000, "Mamuska"], [500, "Mamuska"]])
+  assert.equal(sigmaDe("leila_m_30").sigma, 150)
+})
+
+test("a recording up to a minute: about 270 KB of base64 goes in, more is turned down", async () => {
+  const audio = (n) => ({ tipo: "audio/webm;codecs=opus", dados: "A".repeat(n) })
+  const ok = await chamar("POST", "/reservar", { corpo: { centavos: 200, nome: "Ana", mensagem: "", voz: "galvao", quando: "agora", audio: audio(330_000) } })
+  assert.equal(ok.status, 200, "a minute at 32 kb/s")
+  const grande = await chamar("POST", "/reservar", { corpo: { centavos: 200, nome: "Ana", mensagem: "", voz: "galvao", quando: "agora", audio: audio(360_004) } })
+  assert.equal(grande.status, 400)
+  const { body: t } = await canal({ acao: "transcricao", reserva: ok.body.id, texto: "palavra ".repeat(150) })
+  assert.ok(t.texto.length > 900 && t.texto.length <= 1000, "a minute's words are kept for the mural")
+})
+
 // --- Goals: an end date, one set ahead of time, the calendar moving on by itself ---------------------------
 
 const relogio = Date.now

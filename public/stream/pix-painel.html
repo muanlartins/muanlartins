@@ -17,7 +17,10 @@
       - Registrar Pix: when the phone missed one. The value pays its
         reservation, like a notification would; with none, it shows with the
         name typed here.
-      - Últimos Pix: repeat an alert; take one's name and message off the site's mural (its value stays, as anonymous).
+      - Últimos Pix (the last 12; "Ver os 30 últimos" for more): repeat an alert; take one's name and message off the
+        site's mural (its value stays, as anonymous); Atribuir sets who sent it by hand (a Pix sent with no name, or
+        before its sender signed in): the name the mural shows and, optionally, their Twitch login, which draws their
+        fan there and gives them the Pix's Σ (moved from the old login if it changes).
         A song shows its state (being made, ready, refused and waiting for its sender's new text, couldn't be made,
         with why): Ouvir plays it here only (the dock's sound isn't on the stream), Pular música cuts it on the live
         (or leaves only the announcement), Gerar de novo makes it again (US$ 0,08) and plays it again once ready.
@@ -147,9 +150,13 @@
         font-size: 12px;
       }
       .msg {
-        display: block;
+        display: -webkit-box;
+        overflow: hidden;
         color: rgb(244 245 247 / 0.8);
         font-size: 13px;
+        /* A minute's recording is ~900 characters: three lines here, the whole on hover. */
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
       }
       .musica {
         display: block;
@@ -192,6 +199,16 @@
       input.nome-in {
         width: 140px;
       }
+      .login {
+        color: rgb(244 245 247 / 0.5);
+        font-size: 12px;
+      }
+      .atribuir {
+        margin-top: 6px;
+      }
+      .mais {
+        margin-top: 6px;
+      }
     </style>
   </head>
   <body>
@@ -209,6 +226,7 @@
 
     <h2>Últimos Pix <small id="n-reservas"></small></h2>
     <ul id="pix"></ul>
+    <button type="button" class="mais" id="mais" hidden>Ver os 30 últimos</button>
 
     <h2>Meta</h2>
     <p class="vazio" id="meta-agora"></p>
@@ -307,11 +325,52 @@
 
       let ultimo = ""
       let metaAgora = null
-      function desenhar({ pix, pendentes, reservas, meta, proxima, subs }) {
+      let estado = null
+      // The list's state between redraws: all 30 or the last 12, and the Pix being attributed with what's typed so far.
+      let todos = false
+      let atribuindo = null // { sk, nome, login }
+      const redesenhar = () => {
+        ultimo = ""
+        if (estado) desenhar(estado)
+      }
+
+      // Atribuir: who sent it, typed here; the redraws every 3 s keep what's typed and where the cursor was.
+      function formAtribuir(p) {
+        const campo = (k, props) => {
+          const i = el("input", { value: atribuindo[k], ...props })
+          i.dataset.campo = k
+          i.oninput = () => (atribuindo[k] = i.value)
+          return i
+        }
+        const f = el(
+          "form",
+          { className: "row atribuir" },
+          campo("nome", { className: "nome-in", maxLength: 25, placeholder: "Nome no mural" }),
+          campo("login", { className: "nome-in", maxLength: 26, placeholder: "Login da Twitch (opcional)" }),
+          el("button", { textContent: "Salvar" }),
+          botao("Cancelar", () => {
+            atribuindo = null
+            redesenhar()
+          }),
+          el("p", { className: "dica", textContent: "Com o login, o torcedor da pessoa aparece no mural e ela ganha os Σ desse Pix." }),
+        )
+        f.onsubmit = (e) => {
+          e.preventDefault()
+          const { nome, login } = atribuindo
+          atribuindo = null
+          agir({ acao: "atribuir", pix: p.sk, nome, login })
+        }
+        return f
+      }
+
+      function desenhar(dados) {
+        estado = dados
+        const { pix, pendentes, reservas, meta, proxima, subs } = dados
         metaAgora = meta
-        const chave = JSON.stringify([pix, pendentes, reservas.map((r) => r.id), meta, proxima, subs])
+        const chave = JSON.stringify([pix, pendentes, reservas.map((r) => r.id), meta, proxima, subs, todos, atribuindo?.sk])
         if (chave === ultimo) return
         ultimo = chave
+        const foco = document.activeElement?.dataset?.campo
 
         $("n-pendentes").textContent = pendentes.length ? `${pendentes.length}` : ""
         $("pendentes").replaceChildren(
@@ -330,9 +389,11 @@
         )
 
         $("n-reservas").textContent = reservas.length ? `${reservas.length} esperando pagamento` : ""
+        $("mais").hidden = pix.length <= 12
+        $("mais").textContent = todos ? "Ver só os 12 últimos" : `Ver os ${pix.length} últimos`
         $("pix").replaceChildren(
           ...(pix.length
-            ? pix.slice(0, 12).map((p) =>
+            ? pix.slice(0, todos ? pix.length : 12).map((p) =>
                 el(
                   "li",
                   {},
@@ -341,8 +402,9 @@
                     {},
                     el("span", { className: "valor", textContent: `R$ ${reais(p.centavos)}` }),
                     ` · ${p.nome || "Anônimo"} `,
+                    p.login && p.login !== p.nome?.toLowerCase() ? el("span", { className: "login", textContent: `@${p.login} ` }) : "",
                     el("span", { className: "quando", textContent: `${dia(p.sk)} ${hora(p.sk)}${p.exibido ? "" : " · na fila"}${p.quando === "entre" ? " · entre partidas" : ""}${p.origem === "manual" ? " · registrado" : ""}` }),
-                    el("span", { className: "msg", textContent: p.mensagem || p.transcricao || (p.audio ? "(áudio)" : "") }),
+                    el("span", { className: "msg", textContent: p.mensagem || p.transcricao || (p.audio ? "(áudio)" : ""), title: p.mensagem || p.transcricao || "" }),
                     p.musica ? musica(p.musica) : "",
                   ),
                   el(
@@ -355,11 +417,25 @@
                     p.musica && p.musica.estado !== "gerando" ? botao("Gerar de novo", () => confirm("Gerar a música de novo? Custa uns R$ 0,45, e ela toca de novo quando ficar pronta.") && agir({ acao: "musica", pix: p.sk })) : "",
                     // Every Pix with a name or words shows them on the mural (an old one too, ticked or not); taking it off leaves its value, as anonymous.
                     p.nome || p.mensagem || p.transcricao ? botao(p.oculto ? "Voltar ao mural" : "Tirar do mural", () => agir({ acao: "ocultar", pix: p.sk, oculto: !p.oculto })) : "",
+                    atribuindo?.sk === p.sk
+                      ? ""
+                      : botao("Atribuir", () => {
+                          atribuindo = { sk: p.sk, nome: p.nome || "", login: p.login || "" }
+                          redesenhar()
+                          document.querySelector('[data-campo="nome"]')?.focus()
+                        }),
                   ),
+                  atribuindo?.sk === p.sk ? formAtribuir(p) : "",
                 ),
               )
             : [el("li", { className: "vazio", textContent: "Nenhum ainda." })]),
         )
+
+        if (foco) {
+          const i = document.querySelector(`[data-campo="${foco}"]`)
+          i?.focus()
+          i?.setSelectionRange(i.value.length, i.value.length)
+        }
 
         $("meta-agora").textContent = meta
           ? `${meta.tema === "natal" ? "🎄 " : ""}${meta.titulo || "Meta"}: R$ ${reais(meta.arrecadado)} de R$ ${reais(meta.alvo)}${meta.prazo ? ` · até ${ultimoDia(meta.prazo)}` : " · sem data pra acabar"}`
@@ -426,6 +502,10 @@
         }
       }
 
+      $("mais").onclick = () => {
+        todos = !todos
+        redesenhar()
+      }
       $("registrar").onsubmit = (e) => {
         e.preventDefault()
         const centavos = centavosDe($("r-valor").value)

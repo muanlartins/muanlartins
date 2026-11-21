@@ -1,13 +1,16 @@
 "use client"
 
+import { ArrowRight, Copy, MessageSquare, Mic, Music, PenLine, Square } from "lucide-react"
 import Script from "next/script"
 import qrcode from "qrcode-generator"
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState } from "react"
+import { TwitchIcon } from "@/components/site/brand-icons"
 import { PageIntro } from "@/components/site/page-intro"
 import { PresentPicker, PresentView } from "@/components/site/pix/christmas"
 import { GoalBar } from "@/components/site/pix/goal-bar"
 import { VoicePicker } from "@/components/site/pix/voice-picker"
 import { FanView } from "@/components/site/profile/fan-view"
+import { Button, Card, CardLink, Choice, Choices, ErrorLine, Field, Input, Skeleton, Textarea, buttonClass } from "@/components/site/ui"
 import { mural as muralCopy, pix, STYLES, VOICES } from "@/content/pix"
 import {
   centavosDe,
@@ -29,7 +32,7 @@ import {
   type Reservation,
   type SongStatus,
 } from "@/lib/pix"
-import { canSave, keptToken, loadMine, signIn, signOut, SignedOut, type Choice, type Torcedor } from "@/lib/profile"
+import { canSave, keptToken, loadMine, signIn, signOut, SignedOut, type Choice as Look, type Torcedor } from "@/lib/profile"
 import { localize, MURAL_SLUG, PIX_SLUG } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
@@ -38,7 +41,11 @@ const text = localize(pix)
 const of = localize(muralCopy.of)
 const PRESETS = [100, 500, 1000, 2000]
 const SONG_PRESETS = [500, 1000, 2000]
-const MAX_SECONDS = 15
+// A recording: up to a minute, in Opus at 32 kb/s (~240 KB). The API takes ~270 KB (MAX_AUDIO in infra/pix): a browser
+// whose codec runs fatter stops at MAX_BYTES, checked every half second, before it gets there.
+const MAX_SECONDS = 60
+const BITRATE = 32_000
+const MAX_BYTES = 250_000
 const DRAFT_KEY = "pix:rascunho"
 
 type Step = "form" | "pay" | "done" | "late"
@@ -63,22 +70,26 @@ interface Recording {
   blob: Blob
   url: string
   seconds: number
+  /** Stopped at MAX_BYTES rather than by the viewer or the minute. */
+  full: boolean
 }
 
-const field = "w-full rounded-sm border border-line bg-paper px-3 py-2 text-[16px] text-ink"
-const choice = (on: boolean) =>
-  cn(
-    "rounded-sm border px-3 py-2 text-[15px] transition-colors",
-    on ? "border-klein bg-klein text-paper" : "border-line text-ink hover:border-klein/60",
-  )
-
-function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+/** A counter under a field: "12/200". */
+function Count({ n, max }: { n: number; max: number }) {
   return (
-    <div className="space-y-2">
-      <p className="text-[13px] font-medium uppercase tracking-[0.12em] text-klein">{label}</p>
+    <p className="text-right text-[13px] tabular-nums text-muted">
+      {n}/{max}
+    </p>
+  )
+}
+
+/** Something on its way (the Pix, the song): a dot that breathes while it waits, then the line. */
+function Waiting({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="flex items-center gap-2.5 text-[15px] text-ink">
+      <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full bg-klein motion-safe:animate-pulse" />
       {children}
-      {hint && <p className="text-[13px] text-muted">{hint}</p>}
-    </div>
+    </p>
   )
 }
 
@@ -98,7 +109,11 @@ const blank: Draft = {
   presente: null,
 }
 
-const hour = (t: number) => new Date(t).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+/** "21h30", "21h": times as brand/voz.md writes them. */
+const hour = (t: number) => {
+  const d = new Date(t)
+  return `${d.getHours()}h${d.getMinutes() ? String(d.getMinutes()).padStart(2, "0") : ""}`
+}
 
 /** A song's new state; on its way into a refusal, the text the viewer wrote comes back to the field to change. */
 function nextSong(next: SongStatus, before: { current: SongStatus | null }, setSong: (s: SongStatus) => void, setRetry: (t: string) => void) {
@@ -145,8 +160,10 @@ export function PixPage() {
   const [now, setNow] = useState(0)
   const [copied, setCopied] = useState(false)
   const [goal, setGoal] = useState<Goal | null>(null)
+  // The goal on /pix is a nicety: a skeleton while it loads, nothing if it can't (the form is what the page is for).
+  const [goalLoaded, setGoalLoaded] = useState(false)
   const [T, setT] = useState<Torcedor | null>(null)
-  const [look, setLook] = useState<Choice | null>(null)
+  const [look, setLook] = useState<Look | null>(null)
   const [P, setP] = useState<PresentKit | null>(null)
   const recorder = useRef<MediaRecorder | null>(null)
   // The song of the Pix being paid (null for a message): its state on the way, and a refused one's new text.
@@ -183,7 +200,10 @@ export function PixPage() {
   }, [])
 
   useEffect(() => {
-    if (PIX_API) loadMural().then((m) => setGoal(m.meta), () => {})
+    if (!PIX_API) return
+    loadMural()
+      .then((m) => setGoal(m.meta), () => setGoal(null))
+      .finally(() => setGoalLoaded(true))
   }, [step])
 
   // While paying: the countdown, and the reservation's status every 2 s until it's paid or past its grace.
@@ -252,29 +272,38 @@ export function PixPage() {
       return
     }
     const mimeType = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/mp4"].find((t) => MediaRecorder.isTypeSupported(t))
-    const r = new MediaRecorder(stream, { mimeType, audioBitsPerSecond: 48000 })
+    const r = new MediaRecorder(stream, { mimeType, audioBitsPerSecond: BITRATE })
     const chunks: Blob[] = []
+    let bytes = 0
+    let full = false
     const started = Date.now()
     const timer = setInterval(() => {
       const s = (Date.now() - started) / 1000
       setRecordingNow(s)
-      if (s >= MAX_SECONDS) r.stop()
+      if (s >= MAX_SECONDS && r.state === "recording") r.stop()
     }, 200)
-    r.ondataavailable = (e) => chunks.push(e.data)
+    r.ondataavailable = (e) => {
+      chunks.push(e.data)
+      bytes += e.data.size
+      if (bytes >= MAX_BYTES && r.state === "recording") {
+        full = true
+        r.stop()
+      }
+    }
     r.onstop = () => {
       clearInterval(timer)
       stream.getTracks().forEach((t) => t.stop())
       const blob = new Blob(chunks, { type: r.mimeType })
       setRecording((old) => {
         if (old) URL.revokeObjectURL(old.url)
-        return { blob, url: URL.createObjectURL(blob), seconds: Math.min(MAX_SECONDS, (Date.now() - started) / 1000) }
+        return { blob, url: URL.createObjectURL(blob), seconds: Math.min(MAX_SECONDS, (Date.now() - started) / 1000), full }
       })
       recorder.current = null
       setRecordingNow(0)
     }
     recorder.current = r
     setRecordingNow(0.01)
-    r.start()
+    r.start(500)
   }
 
   async function submit(e: React.FormEvent) {
@@ -340,8 +369,14 @@ export function PixPage() {
     return q.createSvgTag({ cellSize: 8, margin: 2, scalable: true })
   })()
 
+  const amount = Number.isInteger(centavos) && centavos > 0 ? ` · R$ ${reais(centavos)}` : ""
+  const ready = !busy && (isSong ? Boolean(songText) : !recordingNow && (draft.modo === "texto" || Boolean(recording)))
+  const voice = voices.some((v) => v.id === draft.voz) ? draft.voz : voices[0].id
+  const icon = "h-4 w-4"
+  const h2 = "text-2xl font-medium tracking-[-0.02em] text-klein"
+
   return (
-    <div className="space-y-10">
+    <div>
       {/* The fan from the stream's crowd, for the mural's preview; React hoists the stylesheet into the head. */}
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
@@ -359,307 +394,332 @@ export function PixPage() {
       )}
       <PageIntro title={text.title} description={text.description} />
 
-      {PIX_API && goal && step === "form" && (
-        <a href={`/${MURAL_SLUG}`} className="block max-w-[34rem] space-y-2 rounded-md border border-line bg-paper/70 px-4 py-3 transition-colors hover:border-klein/60">
-          <p className="text-[13px] font-medium uppercase tracking-[0.12em] text-klein">
-            {text.goal}: {goal.titulo}
-          </p>
-          <GoalBar goal={goal} of={of} when />
-        </a>
-      )}
-
-      {!PIX_API ? (
-        <p className="text-[15px] text-muted">{text.soon}</p>
-      ) : step === "form" ? (
-        <form onSubmit={submit} className="max-w-[34rem] space-y-7">
-          <Field label={text.kind}>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" aria-pressed={!isSong} onClick={() => change({ tipo: "mensagem" })} className={choice(!isSong)}>
-                {text.kindMessage}
-              </button>
-              <button
-                type="button"
-                aria-pressed={isSong}
-                onClick={() => change({ tipo: "musica", quando: "entre", preset: draft.preset !== null && draft.preset < MINIMO_MUSICA ? MINIMO_MUSICA : draft.preset })}
-                className={choice(isSong)}
-              >
-                ♪ {text.kindSong} <span className={isSong ? "text-paper/75" : "text-muted"}>· {text.kindSongPrice}</span>
-              </button>
-            </div>
-          </Field>
-
-          <Field label={text.name}>
-            <input value={draft.nome} maxLength={25} autoComplete="nickname" placeholder={text.namePlaceholder} onChange={(e) => change({ nome: e.target.value })} className={field} />
-          </Field>
-
-          {isSong ? (
-            <>
-              <Field label={text.style}>
-                <div className="flex flex-wrap gap-2">
-                  {STYLES.map((s) => (
-                    <button key={s.id} type="button" aria-pressed={draft.estilo === s.id} onClick={() => change({ estilo: s.id })} className={choice(draft.estilo === s.id)}>
-                      {s.name}
-                    </button>
-                  ))}
-                </div>
-              </Field>
-
-              <Field label={text.lyrics} hint={text.songHint}>
-                <div className="flex flex-wrap gap-2">
-                  {(["sobre", "letra"] as const).map((modoLetra) => (
-                    <button key={modoLetra} type="button" aria-pressed={draft.modoLetra === modoLetra} onClick={() => change({ modoLetra })} className={choice(draft.modoLetra === modoLetra)}>
-                      {modoLetra === "sobre" ? text.about : text.writeLyrics}
-                    </button>
-                  ))}
-                </div>
-                {draft.modoLetra === "sobre" ? (
-                  <>
-                    <input value={draft.sobre} maxLength={SOBRE_MAX} placeholder={text.aboutPlaceholder} onChange={(e) => change({ sobre: e.target.value })} className={field} />
-                    <p className="text-right text-[13px] tabular-nums text-muted">
-                      {draft.sobre.length}/{SOBRE_MAX}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <textarea value={draft.letra} maxLength={LETRA_MAX} rows={7} placeholder={text.lyricsPlaceholder} onChange={(e) => change({ letra: e.target.value })} className={cn(field, "resize-y")} />
-                    <p className="text-right text-[13px] tabular-nums text-muted">
-                      {draft.letra.length}/{LETRA_MAX}
-                    </p>
-                  </>
-                )}
-                {songError && <p className="text-[15px] text-[#c0392b]">{songError}</p>}
-              </Field>
-            </>
-          ) : (
-            <>
-              <Field label={text.message}>
-                <div className="flex gap-2">
-                  {(["texto", "audio"] as const).map((modo) => (
-                    <button
-                      key={modo}
-                      type="button"
-                      aria-pressed={draft.modo === modo}
-                      onClick={() => change({ modo, voz: VOICES.find((v) => (modo === "texto" ? v.text : v.recording))!.id })}
-                      className={choice(draft.modo === modo)}
-                    >
-                      {modo === "texto" ? text.write : text.record}
-                    </button>
-                  ))}
-                </div>
-                {draft.modo === "texto" ? (
-                  <>
-                    <textarea value={draft.mensagem} maxLength={200} rows={3} placeholder={text.messagePlaceholder} onChange={(e) => change({ mensagem: e.target.value })} className={cn(field, "resize-y")} />
-                    <p className="text-right text-[13px] tabular-nums text-muted">{draft.mensagem.length}/200</p>
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-3">
-                      {recordingNow ? (
-                        <button type="button" onClick={() => recorder.current?.stop()} className={choice(true)}>
-                          ■ {text.recordStop} · {Math.floor(recordingNow)}s / {MAX_SECONDS}s
-                        </button>
-                      ) : (
-                        <button type="button" onClick={startRecording} className={choice(false)}>
-                          ● {recording ? text.recordAgain : text.recordStart}
-                        </button>
-                      )}
-                      {recording && !recordingNow && (
-                        <audio src={recording.url} controls className="h-9 max-w-full" />
-                      )}
-                    </div>
-                    <p className="text-[13px] text-muted">{recordError ? text.recordDenied : text.recordLimit}</p>
-                  </div>
-                )}
-              </Field>
-
-              <Field label={text.voice} hint={draft.modo === "texto" ? text.voiceHint : text.voiceRecordingHint}>
-                <VoicePicker voices={voices} value={voices.some((v) => v.id === draft.voz) ? draft.voz : voices[0].id} onChange={(voz) => change({ voz })} />
-              </Field>
-            </>
-          )}
-
-          {natal && P && draft.presente && (
-            <Field label={text.present} hint={text.presentHint}>
-              <PresentPicker kit={P} value={draft.presente} onChange={(presente) => change({ presente })} />
-            </Field>
-          )}
-
-          <Field label={text.amount}>
-            <div className="flex flex-wrap gap-2">
-              {(isSong ? SONG_PRESETS : PRESETS).map((c) => (
-                <button key={c} type="button" aria-pressed={draft.preset === c} onClick={() => change({ preset: c })} className={cn(choice(draft.preset === c), "min-w-16")}>
-                  R$ {c / 100}
-                </button>
-              ))}
-              <input
-                aria-label={text.other}
-                inputMode="decimal"
-                placeholder={`${text.other}: ${text.otherPlaceholder}`}
-                value={draft.outro}
-                onFocus={() => change({ preset: null })}
-                onChange={(e) => change({ outro: e.target.value, preset: null })}
-                className={cn(field, "w-40 flex-1", draft.preset === null && "border-klein")}
-              />
-            </div>
-          </Field>
-
-          <Field label={text.when} hint={draft.quando === "entre" ? text.betweenHint : undefined}>
-            <div className="flex gap-2">
-              {(["agora", "entre"] as const).map((quando) => (
-                <button key={quando} type="button" aria-pressed={draft.quando === quando} onClick={() => change({ quando })} className={choice(draft.quando === quando)}>
-                  {quando === "agora" ? text.now : text.between}
-                </button>
-              ))}
-            </div>
-          </Field>
-
-          {/* Every Pix goes on the mural by the name and message above; Twitch adds the sender's fan and their Σ. */}
-          <div className="space-y-2">
-            <div className="flex items-start gap-4 rounded-md border-2 border-klein/40 bg-klein/[0.04] px-4 py-4">
-              <span className="flex w-[76px] shrink-0 justify-start pl-1">
-                {T && login ? (
-                  <FanView T={T} fan={T.normalizar(look, login)} className="h-[72px] w-12" />
-                ) : (
-                  <span className="mt-1 grid h-12 w-12 place-items-center rounded-full bg-klein/10 text-[20px] font-medium text-klein">
-                    {(draft.nome || "?").trim().charAt(0).toUpperCase() || "?"}
+      <div className="mt-12 max-w-[34rem] space-y-10">
+        {!PIX_API ? (
+          <p className="text-[15px] text-muted">{text.soon}</p>
+        ) : step === "form" ? (
+          <>
+            {!goalLoaded ? (
+              <Skeleton className="cut h-[116px]" />
+            ) : (
+              goal && (
+                <CardLink href={`/${MURAL_SLUG}`} className="space-y-3">
+                  <span className="flex items-baseline justify-between gap-3">
+                    <span className="eyebrow text-klein">{text.goal}</span>
+                    <span className="inline-flex items-center gap-1 text-[13px] text-muted">
+                      {text.muralSee}
+                      <ArrowRight aria-hidden className="h-3.5 w-3.5" />
+                    </span>
                   </span>
-                )}
-              </span>
-              <div className="min-w-0 flex-1 space-y-2">
-                <p className="text-[18px] font-medium text-klein">{text.muralTitle}</p>
-                <p className="text-[14px] leading-[1.5] text-ink">
-                  {text.muralNote} {!login && canSave && text.muralFan}
-                </p>
-                {canSave &&
-                  (token && login ? (
-                    <p className="text-[15px] text-ink">
-                      {text.sigmaSignedIn} <strong className="font-medium text-klein">{login}</strong>
-                      {Number.isInteger(centavos) && centavos > 0 && login !== CHANNEL && (
-                        <>
-                          {" · "}
-                          {text.sigmaGain} <strong className="font-medium text-klein tabular-nums">{Math.floor(centavos / 10).toLocaleString("pt-BR")} Σ</strong>
-                        </>
-                      )}{" "}
-                      <button type="button" onClick={leave} className="text-muted underline underline-offset-2 hover:text-klein">
-                        {text.signOut}
-                      </button>
-                    </p>
-                  ) : (
-                    <button type="button" onClick={goSignIn} className="rounded-sm bg-[#9146ff] px-4 py-2 text-[15px] font-medium text-white transition-opacity hover:opacity-90">
-                      {text.sigmaSignIn}
-                    </button>
-                  ))}
-                {canSave && <p className="text-[13px] text-muted">{text.sigmaNote}</p>}
-              </div>
-            </div>
-            <a href={`/${MURAL_SLUG}`} target="_blank" className="inline-block text-[14px] text-muted underline underline-offset-2 hover:text-klein">
-              {text.muralSee} →
-            </a>
-          </div>
+                  <span className="block text-xl font-medium tracking-[-0.02em] text-ink">{goal.titulo}</span>
+                  <GoalBar goal={goal} of={of} when />
+                </CardLink>
+              )
+            )}
 
-          <div className="space-y-3">
-            <button
-              disabled={busy || (isSong ? !songText : Boolean(recordingNow) || (draft.modo === "audio" && !recording))}
-              className="w-full rounded-sm bg-klein px-5 py-3 text-[17px] font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-40"
-            >
-              {busy ? text.generating : `${text.generate}${Number.isInteger(centavos) && centavos > 0 ? ` · R$ ${reais(centavos)}` : ""}`}
-            </button>
-            {error && <p className="text-[15px] text-[#c0392b]">{error}</p>}
-          </div>
-        </form>
-      ) : step === "done" ? (
-        <section className="max-w-[34rem] space-y-3 rounded-md border border-line bg-paper/70 px-5 py-5">
-          {song?.estado === "recusada" ? (
-            <form onSubmit={resend} className="space-y-3">
-              <h2 className="text-2xl font-medium text-klein">{text.songRefused}</h2>
-              {song.motivo && <p className="text-[15px] text-ink">{song.motivo}</p>}
-              {song.letra ? (
-                <textarea value={retry} maxLength={LETRA_MAX} rows={7} onChange={(e) => setRetry(e.target.value)} className={cn(field, "resize-y")} />
-              ) : (
-                <input value={retry} maxLength={SOBRE_MAX} onChange={(e) => setRetry(e.target.value)} className={field} />
-              )}
-              {songError && <p className="text-[15px] text-[#c0392b]">{songError}</p>}
-              <button disabled={retrying || !retry.trim()} className="w-full rounded-sm bg-klein px-5 py-3 text-[17px] font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-40">
-                {retrying ? text.songRetrying : text.songRetry}
-              </button>
-              {song.edicoes !== undefined && song.ate && (
-                <p className="text-[13px] text-muted">{text.songTries.replace("{n}", String(song.edicoes)).replace("{hora}", hour(song.ate))}</p>
-              )}
-            </form>
-          ) : (
-            <>
-              <h2 className="text-2xl font-medium text-klein">{text.doneTitle}</h2>
-              {natal && P && draft.presente && (
-                <div className="flex items-center gap-4 rounded-md bg-[#001447] px-4 py-3">
-                  <PresentView kit={P} present={draft.presente} className="h-14 w-14 shrink-0" />
-                  <p className="text-[15px] text-paper">
-                    {text.presentDone}{" "}
-                    <a href={`/${MURAL_SLUG}`} className="text-[#85a7ff] underline underline-offset-2">
-                      {text.presentSee} →
-                    </a>
-                  </p>
+            <form onSubmit={submit} className="space-y-8">
+              <Choices label={text.kind}>
+                <div className="grid gap-2 sm:flex sm:flex-wrap">
+                  <Choice on={!isSong} onClick={() => change({ tipo: "mensagem" })} icon={<MessageSquare aria-hidden className={icon} />}>
+                    {text.kindMessage}
+                  </Choice>
+                  <Choice
+                    on={isSong}
+                    onClick={() => change({ tipo: "musica", quando: "entre", preset: draft.preset !== null && draft.preset < MINIMO_MUSICA ? MINIMO_MUSICA : draft.preset })}
+                    icon={<Music aria-hidden className={icon} />}
+                  >
+                    {text.kindSong} <span className={cn("font-normal", isSong ? "text-paper/80" : "text-muted")}>· {text.kindSongPrice}</span>
+                  </Choice>
                 </div>
-              )}
-              {!song ? (
-                <p className="text-[15px] text-ink">{text.doneNote}</p>
-              ) : song.estado === "pronta" ? (
+              </Choices>
+
+              <Field label={text.name}>
+                <Input value={draft.nome} maxLength={25} autoComplete="nickname" placeholder={text.namePlaceholder} onChange={(e) => change({ nome: e.target.value })} />
+              </Field>
+
+              {isSong ? (
                 <>
-                  <p className="text-[15px] text-ink">{text.songReady}</p>
-                  <p className="text-[15px] text-ink">{text.songReadyNote}</p>
-                  <a href={`/${MURAL_SLUG}`} className="inline-block text-[14px] text-muted underline underline-offset-2 hover:text-klein">
-                    {text.muralSee} →
-                  </a>
+                  <Choices label={text.style}>
+                    <div className="flex flex-wrap gap-2">
+                      {STYLES.map((s) => (
+                        <Choice key={s.id} on={draft.estilo === s.id} onClick={() => change({ estilo: s.id })}>
+                          {s.name}
+                        </Choice>
+                      ))}
+                    </div>
+                  </Choices>
+
+                  <Choices label={text.lyrics} hint={text.songHint} error={songError || undefined}>
+                    <div className="flex flex-wrap gap-2">
+                      {(["sobre", "letra"] as const).map((modoLetra) => (
+                        <Choice key={modoLetra} on={draft.modoLetra === modoLetra} onClick={() => change({ modoLetra })}>
+                          {modoLetra === "sobre" ? text.about : text.writeLyrics}
+                        </Choice>
+                      ))}
+                    </div>
+                    {draft.modoLetra === "sobre" ? (
+                      <>
+                        <Input aria-label={text.about} value={draft.sobre} maxLength={SOBRE_MAX} placeholder={text.aboutPlaceholder} onChange={(e) => change({ sobre: e.target.value })} />
+                        <Count n={draft.sobre.length} max={SOBRE_MAX} />
+                      </>
+                    ) : (
+                      <>
+                        <Textarea aria-label={text.writeLyrics} value={draft.letra} maxLength={LETRA_MAX} rows={7} placeholder={text.lyricsPlaceholder} onChange={(e) => change({ letra: e.target.value })} />
+                        <Count n={draft.letra.length} max={LETRA_MAX} />
+                      </>
+                    )}
+                  </Choices>
                 </>
-              ) : song.estado === "falhou" ? (
-                <p className="text-[15px] text-ink">{text.songFailed}</p>
               ) : (
                 <>
-                  <p className="flex items-center gap-2 text-[15px] text-ink">
-                    <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-klein" />
-                    {text.songMaking}
-                  </p>
-                  <p className="text-[13px] text-muted">{text.songMakingNote}</p>
+                  <Choices
+                    label={text.message}
+                    hint={draft.modo === "audio" ? (recording?.full ? text.recordFull : text.recordLimit) : undefined}
+                    error={draft.modo === "audio" && recordError ? text.recordDenied : undefined}
+                  >
+                    <div className="flex flex-wrap gap-2">
+                      {(["texto", "audio"] as const).map((modo) => (
+                        <Choice
+                          key={modo}
+                          on={draft.modo === modo}
+                          onClick={() => change({ modo, voz: VOICES.find((v) => (modo === "texto" ? v.text : v.recording))!.id })}
+                          icon={modo === "texto" ? <PenLine aria-hidden className={icon} /> : <Mic aria-hidden className={icon} />}
+                        >
+                          {modo === "texto" ? text.write : text.record}
+                        </Choice>
+                      ))}
+                    </div>
+                    {draft.modo === "texto" ? (
+                      <>
+                        <Textarea aria-label={text.message} value={draft.mensagem} maxLength={200} rows={3} placeholder={text.messagePlaceholder} onChange={(e) => change({ mensagem: e.target.value })} />
+                        <Count n={draft.mensagem.length} max={200} />
+                      </>
+                    ) : (
+                      <div className="cut cut-edge relative space-y-3 border border-line bg-paper/70 p-4">
+                        {recordingNow ? (
+                          <>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                              <Button onClick={() => recorder.current?.stop()} icon={<Square aria-hidden className="h-3.5 w-3.5 fill-current" />}>
+                                {text.recordStop}
+                              </Button>
+                              <span className="flex items-center gap-2 text-[15px] tabular-nums text-ink" aria-live="polite">
+                                <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-loss motion-safe:animate-pulse" />
+                                {text.recording} · {clock(Math.floor(recordingNow) * 1000)} / {clock(MAX_SECONDS * 1000)}
+                              </span>
+                            </div>
+                            <div aria-hidden className="h-1.5 bg-klein/12">
+                              <div className="h-full bg-klein" style={{ width: `${Math.min(100, (recordingNow / MAX_SECONDS) * 100)}%` }} />
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-3">
+                            <Button variant={recording ? "secondary" : "primary"} onClick={startRecording} icon={<Mic aria-hidden className={icon} />}>
+                              {recording ? text.recordAgain : text.recordStart}
+                            </Button>
+                            {recording && <audio src={recording.url} controls className="h-10 w-full sm:w-auto sm:min-w-0 sm:flex-1" />}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </Choices>
+
+                  <Choices label={text.voice} hint={draft.modo === "texto" ? text.voiceHint : text.voiceRecordingHint}>
+                    <VoicePicker label={text.voice} voices={voices} value={voice} onChange={(voz) => change({ voz })} />
+                  </Choices>
                 </>
               )}
-            </>
-          )}
-          <button onClick={again} className={choice(false)}>
-            {text.again}
-          </button>
-        </section>
-      ) : (
-        reservation && (
-          <section className="max-w-[34rem] space-y-5">
-            <h2 className="text-2xl font-medium text-klein">{step === "late" ? text.lateTitle : text.payTitle}</h2>
-            {step === "late" ? (
-              <p className="text-[15px] text-ink">{text.lateNote}</p>
+
+              {natal && P && draft.presente && (
+                <Choices label={text.present} hint={text.presentHint}>
+                  <PresentPicker kit={P} value={draft.presente} onChange={(presente) => change({ presente })} />
+                </Choices>
+              )}
+
+              <Choices label={text.amount}>
+                <div className="flex flex-wrap gap-2">
+                  {(isSong ? SONG_PRESETS : PRESETS).map((c) => (
+                    <Choice key={c} on={draft.preset === c} onClick={() => change({ preset: c })} className="min-w-16 tabular-nums">
+                      R$ {c / 100}
+                    </Choice>
+                  ))}
+                  <Input
+                    aria-label={text.other}
+                    inputMode="decimal"
+                    placeholder={`${text.other}: ${text.otherPlaceholder}`}
+                    value={draft.outro}
+                    onFocus={() => change({ preset: null })}
+                    onChange={(e) => change({ outro: e.target.value, preset: null })}
+                    boxClassName={cn("min-w-40 flex-1", draft.preset === null && "border-klein")}
+                  />
+                </div>
+              </Choices>
+
+              <Choices label={text.when} hint={draft.quando === "entre" ? text.betweenHint : undefined}>
+                <div className="flex flex-wrap gap-2">
+                  {(["agora", "entre"] as const).map((quando) => (
+                    <Choice key={quando} on={draft.quando === quando} onClick={() => change({ quando })}>
+                      {quando === "agora" ? text.now : text.between}
+                    </Choice>
+                  ))}
+                </div>
+              </Choices>
+
+              {/* Every Pix goes on the mural by the name and message above; Twitch adds the sender's fan and their Σ. */}
+              <div className="space-y-3">
+                <Card className="flex items-start gap-4">
+                  <span className="flex w-12 shrink-0 justify-center">
+                    {T && login ? (
+                      <FanView T={T} fan={T.normalizar(look, login)} className="h-[72px] w-12" />
+                    ) : (
+                      <span aria-hidden className="mt-0.5 grid h-12 w-12 place-items-center rounded-full bg-klein/10 text-xl font-medium text-klein">
+                        {(draft.nome || "?").trim().charAt(0).toUpperCase() || "?"}
+                      </span>
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="space-y-1">
+                      <p className="text-[17px] font-medium text-klein">{text.muralTitle}</p>
+                      <p className="text-[15px] leading-[1.6] text-ink">
+                        {text.muralNote} {!login && canSave && text.muralFan}
+                      </p>
+                    </div>
+                    {canSave &&
+                      (token && login ? (
+                        <p className="text-[15px] text-ink">
+                          {text.sigmaSignedIn} <strong className="font-medium text-klein">{login}</strong>
+                          {Number.isInteger(centavos) && centavos > 0 && login !== CHANNEL && (
+                            <>
+                              {" · "}
+                              {text.sigmaGain} <strong className="font-medium text-klein tabular-nums">{Math.floor(centavos / 10).toLocaleString("pt-BR")} Σ</strong>
+                            </>
+                          )}{" "}
+                          <button type="button" onClick={leave} className={cn(buttonClass({ variant: "quiet", size: "sm" }), "ml-1 text-muted")}>
+                            {text.signOut}
+                          </button>
+                        </p>
+                      ) : (
+                        <div className="space-y-2">
+                          <Button size="sm" onClick={goSignIn} icon={<TwitchIcon className={icon} />}>
+                            {text.sigmaSignIn}
+                          </Button>
+                          <p className="text-[13px] text-muted">{text.sigmaNote}</p>
+                        </div>
+                      ))}
+                  </div>
+                </Card>
+                <a href={`/${MURAL_SLUG}`} target="_blank" className={buttonClass({ variant: "quiet", size: "sm" })}>
+                  {text.muralSee}
+                  <ArrowRight aria-hidden className={icon} />
+                </a>
+              </div>
+
+              <div className="space-y-3">
+                <Button type="submit" disabled={!ready} className="min-h-11 w-full sm:w-auto sm:px-6">
+                  {busy ? text.generating : `${text.generate}${amount}`}
+                </Button>
+                {error && <ErrorLine>{error}</ErrorLine>}
+              </div>
+            </form>
+          </>
+        ) : step === "done" ? (
+          <Card className="space-y-4">
+            {song?.estado === "recusada" ? (
+              <form onSubmit={resend} className="space-y-4">
+                <h2 className={h2}>{text.songRefused}</h2>
+                {song.motivo && <p className="text-[15px] leading-[1.6] text-ink">{song.motivo}</p>}
+                <Field
+                  label={song.letra ? text.writeLyrics : text.about}
+                  hint={song.edicoes !== undefined && song.ate ? text.songTries.replace("{n}", String(song.edicoes)).replace("{hora}", hour(song.ate)) : undefined}
+                  error={songError || undefined}
+                >
+                  {song.letra ? (
+                    <Textarea value={retry} maxLength={LETRA_MAX} rows={7} onChange={(e) => setRetry(e.target.value)} />
+                  ) : (
+                    <Input value={retry} maxLength={SOBRE_MAX} onChange={(e) => setRetry(e.target.value)} />
+                  )}
+                </Field>
+                <Button type="submit" disabled={retrying || !retry.trim()} className="min-h-11 w-full sm:w-auto sm:px-6">
+                  {retrying ? text.songRetrying : text.songRetry}
+                </Button>
+              </form>
             ) : (
               <>
-                <div className="mx-auto max-w-72 rounded-md bg-white p-3 [&_svg]:h-auto [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: qr }} />
-                <p className="text-center text-4xl font-medium tracking-[-0.03em] text-ink tabular-nums">R$ {reais(reservation.centavos)}</p>
-                <p className="text-[15px] leading-[1.6] text-ink">{text.payNote}</p>
-                <p className="text-[14px] text-muted tabular-nums">
-                  {text.validFor} {clock(reservation.expira - now)}
-                </p>
-                <textarea readOnly value={reservation.brcode} rows={3} onFocus={(e) => e.target.select()} className={cn(field, "break-all font-mono text-[12px]")} />
-                <button onClick={copy} className="w-full rounded-sm bg-klein px-5 py-3 text-[17px] font-medium text-paper transition-opacity hover:opacity-90">
-                  {copied ? text.copied : text.copy}
-                </button>
+                <h2 className={h2}>{text.doneTitle}</h2>
+                {natal && P && draft.presente && (
+                  <div className="cut flex items-center gap-4 bg-navy px-4 py-3">
+                    <PresentView kit={P} present={draft.presente} className="h-14 w-14 shrink-0" />
+                    <p className="text-[15px] text-paper">
+                      {text.presentDone}{" "}
+                      <a href={`/${MURAL_SLUG}`} className="font-medium text-klein-claro underline underline-offset-4">
+                        {text.presentSee}
+                      </a>
+                    </p>
+                  </div>
+                )}
+                {!song ? (
+                  <p className="text-[15px] text-ink">{text.doneNote}</p>
+                ) : song.estado === "pronta" ? (
+                  <div className="space-y-2">
+                    <p className="text-[15px] text-ink">{text.songReady}</p>
+                    <p className="text-[15px] text-ink">{text.songReadyNote}</p>
+                    <a href={`/${MURAL_SLUG}`} className={buttonClass({ variant: "quiet", size: "sm" })}>
+                      {text.muralSee}
+                      <ArrowRight aria-hidden className={icon} />
+                    </a>
+                  </div>
+                ) : song.estado === "falhou" ? (
+                  <p className="text-[15px] leading-[1.6] text-ink">{text.songFailed}</p>
+                ) : (
+                  <div className="space-y-1">
+                    <Waiting>{text.songMaking}</Waiting>
+                    <p className="pl-5 text-[13px] text-muted">{text.songMakingNote}</p>
+                  </div>
+                )}
               </>
             )}
-            <p className="flex items-center gap-2 text-[15px] text-muted">
-              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-klein" />
-              {text.waiting}
-            </p>
-            {step === "late" && (
-              <button onClick={again} className={choice(false)}>
-                {text.again}
-              </button>
-            )}
-          </section>
-        )
-      )}
-
+            <Button variant="secondary" onClick={again}>
+              {text.again}
+            </Button>
+          </Card>
+        ) : (
+          reservation && (
+            <section className="space-y-6">
+              <h2 className={h2}>{step === "late" ? text.lateTitle : text.payTitle}</h2>
+              {step === "late" ? (
+                <p className="text-[15px] leading-[1.6] text-ink">{text.lateNote}</p>
+              ) : (
+                <Card className="space-y-5">
+                  <div className="mx-auto w-full max-w-64 bg-paper [&_svg]:h-auto [&_svg]:w-full" role="img" aria-label={text.qr} dangerouslySetInnerHTML={{ __html: qr }} />
+                  <div className="text-center">
+                    <p className="text-4xl font-medium tracking-[-0.03em] text-ink tabular-nums">R$ {reais(reservation.centavos)}</p>
+                    <p className="mt-1 text-[13px] text-muted tabular-nums">
+                      {text.validFor} {clock(reservation.expira - now)}
+                    </p>
+                  </div>
+                  <p className="text-[15px] leading-[1.6] text-ink">{text.payNote}</p>
+                  <Button full onClick={copy} icon={<Copy aria-hidden className={icon} />} className="min-h-11">
+                    {copied ? text.copied : text.copy}
+                  </Button>
+                  <Textarea
+                    readOnly
+                    aria-label={text.code}
+                    value={reservation.brcode}
+                    rows={3}
+                    onFocus={(e) => e.target.select()}
+                    className="resize-none break-all font-mono text-[13px] sm:text-[13px]"
+                  />
+                </Card>
+              )}
+              <Waiting>{text.waiting}</Waiting>
+              {step === "late" && (
+                <Button variant="secondary" onClick={again}>
+                  {text.again}
+                </Button>
+              )}
+            </section>
+          )
+        )}
+      </div>
     </div>
   )
 }

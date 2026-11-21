@@ -1,16 +1,16 @@
 /**
- * /pix: a Pix to the live, with a message on screen read by a voice; /mural: every Pix whose sender agreed. The voices' ids are the narrator's (scripts/narrador.py); their samples are in public/pix/vozes/.
+ * /pix: a Pix to the live, with a message on screen read by a voice (or a recording, or a song); /mural: every Pix, goal by goal, and the audience. The voices' ids are the narrator's (scripts/narrador.py); their samples are in public/pix/vozes/.
  */
 import type { L10n } from "@/lib/site"
 
 export const pix = {
   title: { pt: "Pix na live", en: "Pix on the live" },
   description: {
-    pt: "Mande um Pix e sua mensagem aparece na live, lida pela voz que você escolher.",
+    pt: "Manda um Pix e a sua mensagem aparece na live, lida pela voz que você escolher.",
     en: "Send a Pix and your message shows up on the live, read by the voice you pick. Pix works with Brazilian banks only.",
   },
   soon: {
-    pt: "O Pix na live está quase pronto. Volte daqui a pouco.",
+    pt: "O Pix na live está quase pronto. Volta daqui a pouco.",
     en: "Pix on the live is almost ready. Come back soon.",
   },
   name: { pt: "Seu nome na tela", en: "Your name on screen" },
@@ -23,11 +23,12 @@ export const pix = {
   recordStart: { pt: "Gravar", en: "Record" },
   recordStop: { pt: "Parar", en: "Stop" },
   recordAgain: { pt: "Gravar de novo", en: "Record again" },
-  recordListen: { pt: "Ouvir", en: "Listen" },
-  recordLimit: { pt: "Até 15 segundos. Na live, o texto do que você falou aparece na tela.", en: "Up to 15 seconds. On the live, what you said shows on screen as text." },
+  recordLimit: { pt: "Até 1 minuto. Na live, o que você falou aparece escrito na tela.", en: "Up to a minute. On the live, what you said shows on screen as text." },
+  recordFull: { pt: "A gravação parou no limite de tamanho. Ouve se ficou tudo.", en: "The recording stopped at its size limit. Listen to check it's all there." },
+  recording: { pt: "Gravando", en: "Recording" },
   recordDenied: { pt: "O navegador não deixou usar o microfone.", en: "The browser didn't allow the microphone." },
   voice: { pt: "Voz", en: "Voice" },
-  voiceHint: { pt: "Toque numa voz para ouvir como ela fala.", en: "Tap a voice to hear how it sounds." },
+  voiceHint: { pt: "Escolhe uma voz pra ouvir como ela fala.", en: "Pick a voice to hear how it sounds." },
   voiceRecordingHint: { pt: "Sua gravação sai na voz que você escolher.", en: "Your recording comes out in the voice you pick." },
   amount: { pt: "Valor", en: "Amount" },
   other: { pt: "Outro", en: "Other" },
@@ -35,41 +36,43 @@ export const pix = {
   when: { pt: "Quando aparece", en: "When it shows" },
   now: { pt: "Na hora", en: "Right away" },
   between: { pt: "Entre partidas", en: "Between matches" },
-  betweenHint: { pt: "Espera a partida acabar, para não atrapalhar o jogo.", en: "Waits for the match to end, so it doesn't get in the way." },
+  betweenHint: { pt: "Espera a partida acabar, pra não atrapalhar.", en: "Waits for the match to end, so it doesn't get in the way." },
   muralTitle: { pt: "Seu Pix no mural", en: "Your Pix on the mural" },
   muralNote: {
-    pt: "Seu nome e sua mensagem ficam no mural do canal, junto da meta que você ajudou a bater.",
+    pt: "O seu nome e a sua mensagem ficam no mural do canal, junto da meta que você ajudou a bater.",
     en: "Your name and message stay on the channel's mural, next to the goal you helped reach.",
   },
-  muralFan: { pt: "Com a Twitch conectada, seu torcedor aparece junto.", en: "With Twitch connected, your fan shows up too." },
+  muralFan: { pt: "Entrando com a Twitch, o seu torcedor aparece junto.", en: "Signed in with Twitch, your fan shows up too." },
   muralSee: { pt: "Ver o mural", en: "See the mural" },
   sigmaSignedIn: { pt: "Entrou como", en: "Signed in as" },
   sigmaGain: { pt: "Este Pix te dá", en: "This Pix gives you" },
-  sigmaSignIn: { pt: "Entrar com a Twitch para ganhar Σ", en: "Sign in with Twitch to earn Σ" },
-  sigmaNote: { pt: "10 Σ por real, somados aos da live. Sem entrar, o Pix sai do mesmo jeito.", en: "10 Σ per real, on top of the live's. Without signing in, the Pix goes through all the same." },
+  sigmaSignIn: { pt: "Entrar com a Twitch", en: "Sign in with Twitch" },
+  sigmaNote: { pt: "Pra ganhar Σ, os pontos do site: 10 por real, somados aos da live. Sem entrar, o Pix sai do mesmo jeito.", en: "To earn Σ, the site's points: 10 per real, on top of the live's. Without signing in, the Pix goes through all the same." },
   signOut: { pt: "Sair", en: "Sign out" },
-  generate: { pt: "Gerar Pix", en: "Make the Pix" },
-  generating: { pt: "Gerando…", en: "Making it…" },
-  error: { pt: "Não deu para gerar o Pix. Tente de novo.", en: "Couldn't make the Pix. Try again." },
+  generate: { pt: "Pagar com Pix", en: "Pay with Pix" },
+  generating: { pt: "Preparando o Pix…", en: "Getting the Pix ready…" },
+  error: { pt: "Não deu pra preparar o Pix. Tenta de novo.", en: "Couldn't get the Pix ready. Try again." },
   minimum: { pt: "O valor mínimo é R$ 1.", en: "The minimum is R$ 1." },
-  payTitle: { pt: "Pague este valor exato", en: "Pay this exact amount" },
+  payTitle: { pt: "Paga este valor exato", en: "Pay this exact amount" },
   payNote: {
-    pt: "Leia o QR no app do seu banco ou copie o código e use Pix copia e cola. O valor já vem preenchido; se tiver centavos, são eles que identificam o seu Pix.",
+    pt: "Lê o QR no app do seu banco, ou copia o código e usa o Pix copia e cola. O valor já vem preenchido: se tiver centavos, são eles que identificam o seu Pix.",
     en: "Scan the QR in your bank's app, or copy the code and use Pix copia e cola. The amount is filled in; any cents are what identify your Pix.",
   },
   validFor: { pt: "Válido por", en: "Valid for" },
-  copy: { pt: "Copiar código Pix", en: "Copy the Pix code" },
+  copy: { pt: "Copiar o código Pix", en: "Copy the Pix code" },
+  code: { pt: "Código Pix copia e cola", en: "Pix copia e cola code" },
+  qr: { pt: "QR code do Pix", en: "The Pix QR code" },
   copied: { pt: "Código copiado", en: "Code copied" },
   waiting: { pt: "Esperando o Pix chegar…", en: "Waiting for the Pix…" },
   doneTitle: { pt: "Recebido!", en: "Received!" },
-  doneNote: { pt: "Sua mensagem já está na fila da live. Valeu demais!", en: "Your message is in the live's queue. Thanks a lot!" },
+  doneNote: { pt: "A sua mensagem já está na fila da live. Valeu demais!", en: "Your message is in the live's queue. Thanks a lot!" },
   lateTitle: { pt: "O tempo acabou", en: "Time's up" },
   lateNote: {
-    pt: "Se você já pagou, espere uns minutos aqui: ele ainda pode chegar. Se não chegar, o Luan vê o Pix e coloca na live, só que talvez sem a mensagem.",
-    en: "If you already paid, wait a few minutes here: it may still arrive. If it doesn't, Luan sees the Pix and puts it on the live, maybe without the message.",
+    pt: "Se você já pagou, espera uns minutos aqui: ele ainda pode chegar. Se não chegar, eu vejo o Pix e coloco na live, talvez sem a mensagem.",
+    en: "If you already paid, wait a few minutes here: it may still arrive. If it doesn't, I see the Pix and put it on the live, maybe without the message.",
   },
   again: { pt: "Mandar outro Pix", en: "Send another Pix" },
-  goal: { pt: "Meta", en: "Goal" },
+  goal: { pt: "Meta atual", en: "Current goal" },
   // Christmas (a goal with tema "natal"): drafts for Luan.
   present: { pt: "Seu presente na árvore", en: "Your present on the tree" },
   presentHint: {
@@ -95,8 +98,8 @@ export const pix = {
   aboutPlaceholder: { pt: "Ex.: o Luan perdendo gol feito no Rocket League", en: "E.g. Luan missing an open goal in Rocket League" },
   lyricsPlaceholder: { pt: "[Refrão]\nÔ Luan, chuta essa bola…", en: "[Chorus]\nÔ Luan, chuta essa bola…" },
   songHint: {
-    pt: "A IA escreve (ou canta a sua letra) em português. Sem nome de cantor nem letra de música que já existe. Na live, toca até 1 minuto; depois, fica no mural pra você ouvir e baixar.",
-    en: "The AI writes it (or sings your lyrics) in Portuguese. No singers' names, no lyrics from existing songs. On the live it plays up to a minute; then it stays on the mural for you to listen to and download.",
+    pt: "A IA escreve (ou canta a sua letra) em português. Sem nome de cantor nem letra de música que já existe. Na live, toca até 1 minuto. Depois fica no mural pra você ouvir e baixar.",
+    en: "The AI writes it (or sings your lyrics) in Portuguese. No singers' names, no lyrics from existing songs. On the live it plays up to a minute. Then it stays on the mural for you to listen to and download.",
   },
   songMinimum: { pt: "A música é a partir de R$ 5.", en: "Songs start at R$ 5." },
   songMaking: { pt: "Fazendo sua música…", en: "Making your song…" },
@@ -107,12 +110,12 @@ export const pix = {
   songRetry: { pt: "Tentar de novo", en: "Try again" },
   songRetrying: { pt: "Conferindo…", en: "Checking…" },
   songTries: {
-    pt: "Pode mudar até {n}× até as {hora}; depois disso, seu Pix toca na live só com o seu nome.",
-    en: "You can change it up to {n}× until {hora}; after that, your Pix plays on the live with just your name.",
+    pt: "Dá pra mudar até {n}× até as {hora}. Depois disso, o seu Pix toca na live só com o seu nome.",
+    en: "You can change it up to {n}× until {hora}. After that, your Pix plays on the live with just your name.",
   },
   songFailed: {
-    pt: "Não deu pra fazer a sua música. Seu Pix toca na live com o seu nome, e o Luan vê no painel o que aconteceu.",
-    en: "Your song couldn't be made. Your Pix plays on the live with your name, and Luan sees what happened in his panel.",
+    pt: "Não deu pra fazer a sua música. O seu Pix toca na live com o seu nome, e eu vejo no painel o que aconteceu.",
+    en: "Your song couldn't be made. Your Pix plays on the live with your name, and I see what happened in my panel.",
   },
 } as const
 
@@ -144,7 +147,7 @@ export const STYLES: { id: string; name: string }[] = [
 export const mural = {
   title: { pt: "Mural", en: "Mural" },
   description: {
-    pt: "Quem faz o canal acontecer: quem manda Pix na live e quem aparece para assistir. Valeu a cada um!",
+    pt: "Quem faz o canal acontecer: quem manda Pix na live e quem aparece pra assistir. Valeu a cada um!",
     en: "The people who make the channel happen: the ones who send a Pix on the live and the ones who show up to watch. Thanks, each of you!",
   },
   soon: { pt: "O mural abre junto com o Pix na live.", en: "The mural opens along with Pix on the live." },
@@ -154,7 +157,7 @@ export const mural = {
   /** The audience tab's address: /mural#audiencia. */
   audienceHash: { pt: "audiencia", en: "audience" },
   goalNow: { pt: "Meta atual", en: "Current goal" },
-  noGoal: { pt: "Nenhuma meta agora.", en: "No goal right now." },
+  noGoal: { pt: "Nenhuma meta agora. A próxima aparece aqui.", en: "No goal right now. The next one shows up here." },
   goalsBefore: { pt: "Metas anteriores", en: "Earlier goals" },
   reached: { pt: "Meta batida", en: "Goal reached" },
   missed: { pt: "Não bateu", en: "Not reached" },
@@ -183,13 +186,18 @@ export const mural = {
   subsNext: { pt: "O próximo vem com mais R$ {x}.", en: "The next comes with R$ {x} more." },
   subsWaiting: { pt: "{n} esperando o sorteio na live.", en: "{n} waiting to be drawn on the live." },
   noneYet: { pt: "Nenhum Pix nesta meta ainda. O primeiro pode ser você.", en: "No Pix for this goal yet. The first could be you." },
+  empty: { pt: "Nenhum Pix ainda. O primeiro pode ser você.", en: "No Pix yet. The first could be you." },
+  loadError: { pt: "Não deu pra carregar o mural.", en: "Couldn't load the mural." },
+  pixCount: { pt: "{n} Pix", en: "{n} Pix" },
+  messageMore: { pt: "Ver tudo", en: "Show all" },
+  messageLess: { pt: "Ver menos", en: "Show less" },
   outside: { pt: "Fora das metas", en: "Outside the goals" },
   anonymous: { pt: "Anônimo", en: "Anonymous" },
   songDownload: { pt: "Baixar a música", en: "Download the song" },
   songLyrics: { pt: "Ver a letra", en: "Show the lyrics" },
   privacy: {
-    pt: "O nome do banco de quem paga nunca aparece, nem na live nem aqui: só o nome que a pessoa escreveu no site. Para tirar um Pix seu do mural, fale com o Luan; o valor continua, como anônimo.",
-    en: "The payer's name at the bank never shows, not on the live and not here: only the name its sender wrote on the site. To take a Pix of yours off the mural, ask Luan; the amount stays, as anonymous.",
+    pt: "O nome do banco de quem paga nunca aparece, nem na live nem aqui: só o nome que a pessoa escreveu no site. Pra tirar um Pix seu do mural, fala comigo no chat. O valor continua, como anônimo.",
+    en: "The payer's name at the bank never shows, not on the live and not here: only the name its sender wrote on the site. To take a Pix of yours off the mural, tell me in the chat. The amount stays, as anonymous.",
   },
   // The audience tab.
   audienceLead: {
