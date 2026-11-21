@@ -53,18 +53,29 @@ The roteiro is JSON and every time in it is a Live.mp4 second:
   later stretch's seconds takes everything there (11-20: the laser sticker meant for the end stayed on the whole short).
 - A stretch's own "filtro": false (11-20) takes Câmera.mkv alone on top there: after the filter was switched off,
   or where the live's camera box is covered (a stinger as the scene switches) and would be read as a costume.
-- "outro": false leaves out the shorts' outro (the site's call, Partes\\outro-editado.mp4), joined after it by default.
+- "outro": true joins the shorts' outro (the site's call, Partes\\outro-editado.mp4) after it. Off by default since
+  2026-11-20 (Luan: "pode tirar a outro dos shorts, não sei se faz muito sentido mais").
+- "extra": "scripts/efeitos/<file>.py" (11-20): a short's own effects in Python, beside the roteiro, so a gag needs no
+  change here. The module may define `setup(ctx)` (once: load pictures, render a 3D sequence…), `antes(f, o, ctx)`
+  (each frame, after the transitions, zooms, flashes, shocks and blurs, before stickers and titles), `depois(f, o,
+  ctx)` (each frame, last; the captions are burnt over it afterwards) and `sons(ctx)` → [(short second, name or a
+  mono float32 array at ctx.SR, dB)], mixed like the transitions' sounds. `f` is the 1080×1920 RGB frame (numpy,
+  edit it in place or return a new one), `o` the short's second; `ctx` has roteiro, clock (`clock.out(live_s, k)`
+  maps a live second into stretch k), W, H, CAM_H (the camera's half ends there), GAME_H, FPS, SR, VIDEOS, ROOT, work
+  (the cache folder) and the helpers place, animate, ease, title_sprite and sound.
 
 The sound is the live's mix (what the VOD plays) at -20 dBFS with the effects over it, then -14 LUFS.
 """
 import argparse
 import hashlib
+import importlib.util
 import json
 import math
 import re
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import cv2
 import numpy as np
@@ -588,6 +599,15 @@ class Effects:
                 f[:] = (f.astype(np.float32) * (1 - a) + 255 * a).astype(np.uint8)
         return f
 
+    extra = None  # (module, ctx) of the roteiro's "extra"
+
+    def hook(self, name, f, o):
+        if self.extra and hasattr(self.extra[0], name):
+            out = getattr(self.extra[0], name)(f, o, self.extra[1])
+            if out is not None:
+                f[:] = out
+        return f
+
     def frame(self, f, o):
         self.transition(f, o)
         dx, dy = self.shake(o)
@@ -618,6 +638,7 @@ class Effects:
                 else:
                     part = np.clip(part * 1.25 + np.array((10, 40, 90), np.float32), 0, 255)
                 f[y0:y1] = part.astype(np.uint8)
+        self.hook("antes", f, o)
         for st in self.stickers:
             if st["de"] - 0.1 <= o <= st["ate"] + 0.5:
                 scale, alpha, lift = animate(st, o)
@@ -631,6 +652,7 @@ class Effects:
             if title["de"] - 0.1 <= o <= title["ate"] + 0.5:
                 scale, alpha, lift = animate(title, o)
                 place(f, title["sprite"], W / 2, title["y"] + lift, scale, alpha)
+        self.hook("depois", f, o)
         return f
 
 
@@ -649,6 +671,8 @@ def peak1(x):
 
 
 def sound(name):
+    if isinstance(name, np.ndarray):  # an "extra" module's own sound
+        return name.astype(np.float32)
     if name == "bloop":  # a bubble: a short sine gliding up, for a fish's mouth (11-19)
         t = np.arange(int(0.11 * SR)) / SR
         x = np.sin(2 * np.pi * np.cumsum(260 * (1100 / 260) ** np.minimum(1, t / 0.07)) / SR)
@@ -773,6 +797,19 @@ def main():
     (work / "legendas.ass").write_text(captions(said, {plain(k) for k in roteiro.get("destaques", [])}, clock),
                                        encoding="utf-8")
     fx = Effects(roteiro, clock, trechos)
+    extra_sounds = []
+    if roteiro.get("extra"):
+        path = ROOT / roteiro["extra"]
+        spec = importlib.util.spec_from_file_location(f"extra_{path.stem.replace('-', '_')}", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        ctx = SimpleNamespace(roteiro=roteiro, clock=clock, W=W, H=H, CAM_H=CAM_H, GAME_H=GAME_H, FPS=FPS, SR=SR,
+                              VIDEOS=VIDEOS, ROOT=ROOT, work=work, place=place, animate=animate, ease=ease,
+                              title_sprite=title_sprite, sound=sound)
+        if hasattr(module, "setup"):
+            module.setup(ctx)
+        fx.extra = (module, ctx)
+        extra_sounds = [(o, name, gain) for o, name, gain in module.sons(ctx)] if hasattr(module, "sons") else []
     frames = int(round(clock.length * FPS))
     dec = subprocess.Popen(["ffmpeg", "-v", "error", "-i", "limpo.mp4", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
                            stdout=subprocess.PIPE, cwd=work)
@@ -789,7 +826,7 @@ def main():
     dec.kill()
     print(f"  {n} quadros, {n / FPS:.2f} s")
 
-    mix = mixdown(live, trechos, clock, roteiro.get("sons", []), transition_sounds(fx.cuts))
+    mix = mixdown(live, trechos, clock, roteiro.get("sons", []), transition_sounds(fx.cuts) + extra_sounds)
     (work / "som-cru.f32").write_bytes(mix.astype(np.float32).tobytes())
     raw = ["-f", "f32le", "-ar", str(SR), "-ac", "2", "-i", "som-cru.f32"]
     probe = subprocess.run(["ffmpeg", "-hide_banner", *raw, "-af", "loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json",
@@ -799,7 +836,7 @@ def main():
             f"measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}:"
             f"linear=true,aresample=192000,alimiter=limit=0.7:attack=1:release=80:level=false,aresample=48000")
     out = VIDEOS / "Shorts" / "prontos" / f"{roteiro['live']} destaque - {roteiro['nome']}.mp4"
-    if roteiro.get("outro", True):  # the site's call after it (Luan, 2026-11-12: "trazer de volta a outro")
+    if roteiro.get("outro", False):  # the site's call after it (11-12 to 11-20 by default; Luan dropped it 11-20)
         # the levelled sound written whole first: loudnorm holds ~3 s back, and muxing it with the video under
         # -shortest dropped them (11-12: the Diamante's and the ace's last 3 s before the outro came out silent)
         ffmpeg("-y", *raw, "-af", norm, "-c:a", "pcm_s16le", "som.wav", cwd=work)

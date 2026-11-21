@@ -434,11 +434,15 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
     broom, with laser eyes, an owl in its style), so they match; on flat green, keyed (green minus max(r, b), despill)
     into `Videos\Shorts\Partes\figurinhas\`. The electrocution swaps the two pictures every 0.12 s with `"choque"`
     flickering the camera's half and a `zap`.
-  - **Names on screen** (none but ours and the allies' may show): after a match the scoreboard's opponents' rows
-    (blurred, the promotion's rank text kept), the Tab scoreboard he sometimes opens (end the stretch before it),
-    after every goal the "MARCADO POR" card with the assist's name and the red notices line at the bottom (a band
-    `x 180, y 1680, w 900, h 240` over the replay), the end screen's player banners. The nameplates over the cars in
-    play are still there, as in the earlier shorts: asked Luan (11-20).
+  - **Names on screen:** I blurred the opponents' rows, the goal cards and the notices; Luan, 11-20: "não precisa
+    omitir os jogadores do outro time igual você fez não! Esquece isso." The game's own screens stay as they are in
+    shorts (`borrar` is still there for something that really must go).
+  - **His verdict (11-20):** the drawn stickers of him ("esses diagramas meus cabeludos… ficou horrível", "odiei o meu
+    desenho") are out; the ideas around them were right (the shock's sound, flicker and swapping picture:
+    "excelente"). He wants current memes, the stickers and formats people use on Reels/TikTok (deal-with-it glasses,
+    the square-jawed sigma, a cat for everything), effects that tell the moment (the Champion emblem shattering into
+    Diamond and evolving back), and each short worked on with full attention: one agent per short, in parallel.
+    The gata's cuts were "excelentes"; the hat-trick's edit "tá bem boa". The outro is gone from shorts.
   - **Captions read whole before showing:** whisper on a short window heard "Alegria de pau de Turafogo" for "alegria
     de pobre dura pouco", and a half-applied fix made it "pau dura". `corrigir` keys are the snapped starts *before*
     `spread` (the raw cache in the work folder shows them); a word that appears once is safer fixed in `trocas`.
