@@ -369,10 +369,10 @@ export const SHIPPED: Shipped[] = [
     id: "audiencia",
     date: "2026-11-07",
     tag: "site",
-    title: "Audiência no mural",
+    title: "A torcida no mural",
     text: "Todo mundo que já assistiu, num ranking por Σ com pódio.",
-    href: "/mural#audiencia",
-    media: [media("mural-ranking", "O pódio dos três com mais Σ e o ranking da audiência no mural")],
+    href: "/mural#torcida",
+    media: [media("mural-ranking", "O pódio dos três com mais Σ e o ranking da torcida no mural")],
   },
   {
     id: "legendas",

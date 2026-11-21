@@ -53,7 +53,7 @@ export async function ChannelHome({ lives }: { /** Newest first. */ lives: Live[
           {PIX_API && <Tile href={`/${PIX_SLUG}`} title={T.pix.title} line={T.more.pix} art={<PixCode />} artClass="grid place-items-center bg-klein/[0.06]" />}
           <Tile href={channelPath("minijogos")} title={T.minijogos.title} line={T.more.minigames} art={<Duel />} artClass="bg-navy" />
           <Tile wide href={channelPath("agenda")} title={T.agenda.title} line={T.more.agenda} art={<AgendaDays />} />
-          {PIX_API && <Tile wide href={`/${MURAL_SLUG}`} title={T.mural.title} line={T.more.mural} art={<><Lattice /><Podium top={top} /></>} artClass="bg-klein" />}
+          {PIX_API && <Tile href={`/${MURAL_SLUG}`} title={T.mural.title} line={T.more.mural} art={<><Lattice /><Podium top={top} /></>} artClass="bg-klein" />}
           <Tile
             href={channelPath("lives")}
             title={T.lives.title}
@@ -62,6 +62,7 @@ export async function ChannelHome({ lives }: { /** Newest first. */ lives: Live[
             artClass="bg-klein"
           />
           <Tile href={channelPath("comandos")} title={T.comandos.title} line={T.more.commands} art={<Chat />} artClass="bg-klein/[0.06]" />
+          <Tile href={channelPath("sigma")} title={T.sigma.title} line={T.more.sigma} art={<Points />} artClass="bg-klein" />
           <Tile
             href={channelPath("roadmap")}
             title={T.roadmap.title}
@@ -217,6 +218,23 @@ function Feature({ src, date }: { src: string; date: string }) {
 }
 
 /** The mark on its lattice, with the three colours beside it. */
+/** Σ, the site's points: the symbol and the ways they come, as chips. */
+function Points() {
+  return (
+    <>
+      <Lattice />
+      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[64px] font-medium leading-none text-paper">Σ</span>
+      <ul className="absolute inset-y-0 right-4 flex flex-col items-end justify-center gap-1.5 text-[12px] font-medium">
+        {["+1 por minuto", "+10 por live", "+3 no VAR"].map((chip) => (
+          <li key={chip} className="bg-paper px-1.5 py-0.5 text-klein">
+            {chip}
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+
 function Mark() {
   return (
     <>

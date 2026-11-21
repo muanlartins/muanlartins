@@ -138,7 +138,7 @@ export function SigmaPage() {
             {
               key: "mural",
               term: (
-                <Link href={`/${MURAL_SLUG}#audiencia`} className="text-[15px] font-medium text-klein underline decoration-line underline-offset-4 hover:decoration-klein">
+                <Link href={`/${MURAL_SLUG}#torcida`} className="text-[15px] font-medium text-klein underline decoration-line underline-offset-4 hover:decoration-klein">
                   {S.where.mural.term}
                 </Link>
               ),

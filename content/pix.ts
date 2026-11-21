@@ -153,9 +153,11 @@ export const mural = {
   soon: { pt: "O mural abre junto com o Pix na live.", en: "The mural opens along with Pix on the live." },
   send: { pt: "Mandar um Pix", en: "Send a Pix" },
   tabPix: { pt: "Pix", en: "Pix" },
-  tabAudience: { pt: "Audiência", en: "Audience" },
-  /** The audience tab's address: /mural#audiencia. */
-  audienceHash: { pt: "audiencia", en: "audience" },
+  tabAudience: { pt: "Torcida", en: "Crowd" },
+  /** The crowd tab's address: /mural#torcida (Luan, 2026-11-21: "Audiência" became "Torcida", as voz.md says). */
+  audienceHash: { pt: "torcida", en: "crowd" },
+  /** Its old address, still opened by links already out (YouTube descriptions): /mural#audiencia. */
+  audienceHashOld: { pt: "audiencia", en: "audience" },
   goalNow: { pt: "Meta atual", en: "Current goal" },
   noGoal: { pt: "Nenhuma meta agora. A próxima aparece aqui.", en: "No goal right now. The next one shows up here." },
   goalsBefore: { pt: "Metas anteriores", en: "Earlier goals" },

@@ -340,7 +340,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "audience", label: text.tabAudience },
 ]
 
-/** /mural: the Pix, goal by goal, and the audience, each in its tab (the audience's is /mural#audiencia). */
+/** /mural: the Pix, goal by goal, and the audience, each in its tab (the crowd's is /mural#torcida, the old #audiencia still opens it). */
 export function MuralPage() {
   const [tab, setTab] = useState<Tab>("pix")
   const [mural, setMural] = useState<Mural | null>(null)
@@ -354,7 +354,7 @@ export function MuralPage() {
   const christmas = !!mural && [mural.meta, ...mural.metas].some((g) => g?.tema === "natal")
 
   useEffect(() => {
-    const fromHash = () => setTab(location.hash.slice(1) === text.audienceHash ? "audience" : "pix")
+    const fromHash = () => setTab([text.audienceHash, text.audienceHashOld].includes(location.hash.slice(1)) ? "audience" : "pix")
     fromHash()
     addEventListener("hashchange", fromHash)
     return () => removeEventListener("hashchange", fromHash)

@@ -1,10 +1,10 @@
 "use client"
 
-import { ArrowUpRight, CalendarDays, Clapperboard, Gamepad2, Heart, House, MessagesSquare, Milestone, QrCode, Route, Swords, Target, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
-import { motion } from "motion/react"
+import { ArrowUpRight, CalendarDays, Clapperboard, Gamepad2, Heart, House, MessagesSquare, Milestone, QrCode, Route, Sigma, Swords, Target, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
+import { animate, motion, useMotionValue } from "motion/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef } from "react"
 import { GameIcon } from "@/components/site/game/game-icon"
 import { cn } from "@/lib/utils"
 
@@ -16,6 +16,9 @@ export interface MenuItem {
   /** Its icon, by name (the menu is drawn in the browser, so it gets a name, not the icon). */
   icon?: keyof typeof ICONS
 }
+
+/** Where each menu's ball last stood: the menu is drawn again on every page, and the ball moves on from there. */
+const lastBall = new Map<string, number>()
 
 /** The menus' icons. */
 const ICONS = {
@@ -32,6 +35,7 @@ const ICONS = {
   pix: QrCode,
   mural: Heart,
   profile: UserRound,
+  sigma: Sigma,
   backstage: Wrench,
   roadmap: Milestone,
 } satisfies Record<string, LucideIcon>
@@ -78,6 +82,26 @@ export function GameMenu({
     (home !== "/" && pathname.startsWith(`${home}/`) ? own.find((item) => item.href.endsWith("/fundamentals")) : undefined)
   const page = active ? active.href.slice(home.length) : ""
   const switchTo = (game: OtherGame) => (game.pages.includes(`${game.home}${page}`) ? `${game.home}${page}` : game.home)
+  // The ball moves to the page being read, measured inside the list: a page-wide measure broke on long pages, where
+  // the new page opens at its top while the old was scrolled down, and the ball flew in from below the fold.
+  const list = useRef<HTMLUListElement>(null)
+  const ball = useRef<HTMLSpanElement>(null)
+  const ballY = useMotionValue(0)
+  useLayoutEffect(() => {
+    const here = list.current?.querySelector<HTMLElement>("[data-current]")
+    if (!here || !ball.current) return
+    const to = here.offsetTop + here.offsetHeight / 2 - 6
+    const from = lastBall.get(home)
+    lastBall.set(home, to)
+    ball.current.style.visibility = "visible"
+    if (from === undefined || from === to || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      ballY.set(to)
+      return
+    }
+    ballY.set(from)
+    const moving = animate(ballY, to, { type: "spring", stiffness: 260, damping: 24 })
+    return () => moving.stop()
+  }, [active, home, ballY])
   const strip = useRef<HTMLElement>(null)
   useEffect(() => {
     const row = strip.current
@@ -104,20 +128,16 @@ export function GameMenu({
               ))}
             </ul>
           )}
-          <ul className="space-y-1 border-l border-line">
+          <ul ref={list} className="relative space-y-1 border-l border-line">
+            {active && (
+              <motion.span ref={ball} style={{ y: ballY, visibility: "hidden" }} className="pointer-events-none absolute -left-[7px] top-0 block">
+                <GameIcon game={look ?? "rocket-league"} />
+              </motion.span>
+            )}
             {items.map((item) => {
               const current = item === active
               return (
-                <li key={item.href} className="relative">
-                  {current && (
-                    <motion.span
-                      layoutId="game-menu-ball"
-                      transition={{ type: "spring", stiffness: 260, damping: 24 }}
-                      className="absolute -left-[7px] top-1/2 -mt-[6px] block"
-                    >
-                      <GameIcon game={look ?? "rocket-league"} />
-                    </motion.span>
-                  )}
+                <li key={item.href} data-current={current || undefined} className="relative">
                   <MenuLink
                     item={item}
                     current={current}

@@ -306,16 +306,17 @@ export function MinigamesPage() {
                     <div className="min-w-0 space-y-1.5">
                       <p className="eyebrow text-ouro">{shown ? text.yours.tags[shown] : text.yours.classTitle}</p>
                       <p className="text-2xl font-medium tracking-[-0.02em]">{shown ? className(shown) : text.yours.random}</p>
-                      <p className="text-[15px] leading-snug text-paper/75">{shown ? text.yours.classes[shown].text : text.yours.randomText}</p>
+                      {/* Room for three lines whatever the class, so the sheet never changes height (see below). */}
+                      <p className="min-h-[4.2em] text-[15px] leading-snug text-paper/75">{shown ? text.yours.classes[shown].text : text.yours.randomText}</p>
                     </div>
                   </div>
-                  {shown && (
-                    <div className="space-y-2">
-                      {(["dano", "alcance", "velocidade", "cresce"] as const).map((k) => (
-                        <StatBar key={k} label={text.yours.stats[k]} value={CLASS_STATS[shown][k]} />
-                      ))}
-                    </div>
-                  )}
+                  {/* Always there, empty for Aleatória: the sheet growing when a class showed pushed the roster below it
+                      out from under the pointer, which hid the stats again, which brought the roster back: it flickered. */}
+                  <div className="space-y-2">
+                    {(["dano", "alcance", "velocidade", "cresce"] as const).map((k) => (
+                      <StatBar key={k} label={text.yours.stats[k]} value={shown ? CLASS_STATS[shown][k] : 0} />
+                    ))}
+                  </div>
 
                   <div className="space-y-2">
                     <p className="eyebrow text-paper/65">{text.yours.materialTitle}</p>

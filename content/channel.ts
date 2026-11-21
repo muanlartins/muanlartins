@@ -43,6 +43,7 @@ export const channel = {
     livesNone: { pt: "As lives inteiras, com capítulos.", en: "Every stream in full, with chapters." },
     mural: { pt: "Quem manda Pix e quem mais assiste.", en: "Who sends a Pix and who watches the most." },
     commands: { pt: "O que dá pra fazer pelo chat.", en: "What you can do from the chat." },
+    sigma: { pt: "Os pontos de quem assiste: como ganhar e o que eles liberam.", en: "The points of whoever watches: how to earn them and what they unlock." },
     backstage: { pt: "Como a marca, a live e o site são feitos.", en: "How the brand, the stream and the site are made." },
     /** "Novo: Estatísticas da partida na tela". */
     roadmap: { pt: "Novo: {t}", en: "New: {t}" },
@@ -288,7 +289,7 @@ export const channel = {
       },
       mural: {
         term: { pt: "Mural", en: "Mural" },
-        text: { pt: "O ranking de quem mais assiste, na aba Audiência.", en: "The ranking of who watches most, in the Audiência tab." },
+        text: { pt: "O ranking de quem mais assiste, na aba Torcida.", en: "The ranking of who watches most, in the Torcida tab." },
       },
       medals: {
         pt: "As medalhas contam outra coisa: horas e lives assistidas, lives seguidas e reais em Pix, em oito níveis cada.",

@@ -7,11 +7,12 @@ const LABELS = localize({
   home: { pt: "Início", en: "Home" },
   mural: { pt: "Mural", en: "Mural" },
   profile: { pt: "Perfil", en: "Profile" },
+  sigma: { pt: "Σ", en: "Σ" },
 })
 
 /**
  * The channel's pages, in the margin like a game's: its home (the site's), the lives, the agenda, the chat's commands, the minigames, Pix, the mural, the viewer's profile,
- * the backstage and the roadmap. Pix, the mural and the profile live at the site's root (short to say on stream, and /perfil is
+ * Σ (Luan, 2026-11-21), the backstage and the roadmap. Pix, the mural and the profile live at the site's root (short to say on stream, and /perfil is
  * where Twitch sends sign-ins back), but they're the channel's.
  */
 export function ChannelMenu() {
@@ -30,6 +31,7 @@ export function ChannelMenu() {
         { label: T.pix.title, href: `/${PIX_SLUG}`, icon: "pix" },
         { label: LABELS.mural, href: `/${MURAL_SLUG}`, icon: "mural" },
         { label: LABELS.profile, href: `/${profileSlug()}`, icon: "profile" },
+        { label: LABELS.sigma, href: channelPath("sigma"), icon: "sigma" },
         { label: T.backstage.title, href: channelPath("backstage"), icon: "backstage" },
         { label: T.roadmap.title, href: channelPath("roadmap"), icon: "roadmap" },
       ]}

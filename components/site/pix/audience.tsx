@@ -216,7 +216,7 @@ function Timeline({ people, onStand }: { people: Viewer[]; onStand: (() => void)
                     {m.dedication && onStand && (
                       <a
                         href="#afiliacao"
-                        // The tab lives in the address (#audiencia): scroll to the stand without trading it for #afiliacao.
+                        // The tab lives in the address (#torcida): scroll to the stand without trading it for #afiliacao.
                         onClick={(e) => {
                           e.preventDefault()
                           onStand()
