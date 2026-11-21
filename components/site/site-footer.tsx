@@ -11,11 +11,13 @@ const CHANNEL_ONLY = ["Twitch", "YouTube"]
  * below, small, where a legal page belongs rather than beside the name.
  */
 export function SiteFooter() {
-  // The community's Discord after the channel's links: an invite, not a profile of Luan's, so no rel="me".
-  const links = [
-    ...LINKS.filter((link) => hasSection("channel") || !CHANNEL_ONLY.includes(link.label)).map((link) => ({ ...link, me: true })),
-    ...(hasSection("channel") ? [{ label: "Discord", href: DISCORD_INVITE, me: false }] : []),
-  ]
+  // The community's Discord right after the channel's links (Twitch, YouTube, Instagram), before GitHub and LinkedIn:
+  // an invite, not a profile of Luan's, so no rel="me".
+  const profiles = LINKS.filter((link) => hasSection("channel") || !CHANNEL_ONLY.includes(link.label)).map((link) => ({ ...link, me: true }))
+  const at = profiles.findIndex((link) => link.label === "Instagram") + 1
+  const links = hasSection("channel")
+    ? [...profiles.slice(0, at), { label: "Discord", href: DISCORD_INVITE, me: false }, ...profiles.slice(at)]
+    : profiles
   return (
     <footer className="border-t border-line">
       <div className="mx-auto w-full max-w-3xl space-y-5 px-6 py-8">
@@ -32,7 +34,7 @@ export function SiteFooter() {
                     href={link.href}
                     rel={link.me ? "me" : undefined}
                     title={link.label}
-                    className="inline-flex items-center gap-2 rounded-md border border-line px-2.5 py-1.5 text-[13px] text-ink transition-colors hover:border-klein hover:text-klein"
+                    className="cut-sm cut-edge relative inline-flex items-center gap-2 border border-line-strong px-2.5 py-1.5 text-[13px] text-ink transition-colors hover:border-klein hover:text-klein"
                   >
                     {Icon && <Icon className="h-4 w-4" />}
                     <span className="hidden sm:inline">{link.label}</span>

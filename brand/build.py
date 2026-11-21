@@ -173,11 +173,12 @@ def circle_png(src, out, width):
 
 
 def og(width=1200, height=630, mark_height=150):
-    """Social preview card: the lockup centred on Klein."""
-    inner = lockup(height=mark_height, background=None)
-    w, h = (float(v) for v in inner.split('viewBox="0 0 ')[1].split('"')[0].split())
-    inner = inner.replace(f'width="{w:.0f}" height="{h:.0f}"', f'x="{(width - w) / 2:.1f}" y="{(height - h) / 2:.1f}" width="{w:.1f}" height="{h:.1f}"')
-    return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{inner}', width, height)
+    """Social preview card: the lockup centred on Klein, on the lattice, which fades out around it (every Klein
+    surface stands on the lattice, brand/interface.md)."""
+    w, h = lockup_size(mark_height)
+    x0, y0 = (width - w) / 2, (height - h) / 2
+    grid = lattice(width, height, mark_height, x0, y0, [(width / 2, height / 2, w * 0.62, h * 1.1)])
+    return svg(f'<rect width="{width}" height="{height}" fill="{KLEIN}"/>{grid}{placed(lockup(height=mark_height, background=None), x0, y0)}', width, height)
 
 
 def placed(inner, x, y):

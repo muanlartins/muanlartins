@@ -2,6 +2,10 @@
 
 ![Brand board](brand-board.png)
 
+The brand guide is three files: this one (the mark, the colours, the type, the files and the live's layout),
+[voz.md](voz.md) (how the channel writes: voice, words, formats, patterns) and [interface.md](interface.md) (how
+screens are built on the site and the live: tokens, type scale, layout, components, motion, states).
+
 ## The mark
 
 The mark is my signature. "Luan" is written in one continuous stroke — L, U, A, N — and redrawn on a 45° lattice so every segment is either diagonal or vertical. Turned 90°, that stroke reads as a **Σ**: the sum, the first symbol you meet in statistics, which is what this project is about — measuring how you get better.

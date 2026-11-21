@@ -3,13 +3,13 @@ import rocketLeague from "@/content/rocket-league"
 import { rlr } from "@/content/rlr"
 import { game } from "@/lib/game"
 
-/** The commented 2v2 ranked series: a YouTube playlist, not a page here. */
-const commented2v2 = {
-  id: "2v2-comentado",
-  name: { pt: "2v2 Comentado", en: "2v2, commented" },
+/** The commented matches (2v2 and 3v3): the YouTube playlist "Rocket League Comentado", not a page here. */
+const commented = {
+  id: "partidas-comentadas",
+  name: { pt: "Partidas comentadas", en: "Commented matches" },
   summary: {
-    pt: "Partidas ranqueadas de 2v2, rumo ao Champion, comentando o que eu estou pensando em cada jogada.",
-    en: "Ranked 2v2 matches on the way to Champion, saying what I'm thinking on every play.",
+    pt: "Partidas ranqueadas em que eu comento o que estava pensando em cada jogada.",
+    en: "Ranked matches where I say what I was thinking on every play.",
   },
   href: "https://www.youtube.com/playlist?list=PLf2PbBfB1o0A",
   language: "pt",
@@ -41,7 +41,7 @@ export default game({
       en: "My rank, my points and every ranked match from the streams, in 1v1, 2v2 and 3v3.",
     },
   },
-  links: [rlr, commented2v2],
+  links: [rlr, commented],
   credits: {
     pt: "Rocket League e os emblemas de rank são da Psyonix/Epic Games; este site não é oficial nem afiliado. Modelos 3D do Octane e da bola por Jako (CC BY 4.0).",
     en: "Rocket League and its rank emblems belong to Psyonix/Epic Games; this site is unofficial and not affiliated. Octane and ball 3D models by Jako (CC BY 4.0).",
