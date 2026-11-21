@@ -7,12 +7,16 @@ interface State {
   agenda: Agenda | null
   /** The browser has the API's answer (or gave up asking). */
   fresh: boolean
+  /** The last ask failed (the build's agenda, if any, is still there). */
+  failed: boolean
   /** The editor's, after saving. */
   replace: (agenda: Agenda) => void
   want: () => void
+  /** Asks the API again, after a failure. */
+  retry: () => void
 }
 
-const Context = createContext<State>({ agenda: null, fresh: false, replace: () => {}, want: () => {} })
+const Context = createContext<State>({ agenda: null, fresh: false, failed: false, replace: () => {}, want: () => {}, retry: () => {} })
 
 /**
  * The agenda for every page: the build's (`lib/agenda-build.ts`) at first, then the API's, asked in the browser once
@@ -21,8 +25,15 @@ const Context = createContext<State>({ agenda: null, fresh: false, replace: () =
 export function AgendaProvider({ initial, children }: { initial: Agenda | null; children: ReactNode }) {
   const [agenda, setAgenda] = useState(initial)
   const [fresh, setFresh] = useState(false)
+  const [failed, setFailed] = useState(false)
   const [wanted, setWanted] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const want = useCallback(() => setWanted(true), [])
+  const retry = useCallback(() => {
+    setFresh(false)
+    setFailed(false)
+    setAttempt((n) => n + 1)
+  }, [])
 
   useEffect(() => {
     if (!wanted) return
@@ -30,14 +41,14 @@ export function AgendaProvider({ initial, children }: { initial: Agenda | null; 
     fetch(AGENDA_URL)
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((body) => live && setAgenda((body.agenda as Agenda) ?? null))
-      .catch(() => {})
+      .catch(() => live && setFailed(true))
       .finally(() => live && setFresh(true))
     return () => {
       live = false
     }
-  }, [wanted])
+  }, [wanted, attempt])
 
-  return <Context.Provider value={{ agenda, fresh, replace: setAgenda, want }}>{children}</Context.Provider>
+  return <Context.Provider value={{ agenda, fresh, failed, replace: setAgenda, want, retry }}>{children}</Context.Provider>
 }
 
 /** The agenda (null while unknown or when there's none) and whether it's the API's answer yet. */
