@@ -15,6 +15,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 import webbrowser
 from io import BytesIO
@@ -74,6 +75,12 @@ def processed(video_id):
     return ((d * 24 + h) * 60 + m) * 60 + s
 
 
+def ahead(iso):
+    """Whether a publish_at (ISO with offset) is still to come. Once it's past, YouTube has published the video, and
+    setting it again would make the video private: publishAt only works on a video that was never public."""
+    return datetime.fromisoformat(iso) > datetime.now(timezone.utc)
+
+
 def auth(_):
     credentials(interactive=True)
     channel = youtube().channels().list(part="snippet", mine=True).execute()["items"][0]
@@ -91,6 +98,8 @@ def playlists(_):
 SITE = "https://muanlartins.com.br"
 THIS_LIVE = ("Esta live no site, com cada partida e a transcrição", f"{SITE}/canal/lives/{{date}}")
 TWITCH = ("Ao vivo na Twitch", "https://www.twitch.tv/muanlartins")
+# The community's Discord server (its permanent invite, lib/site.ts's DISCORD_INVITE), right after Twitch.
+DISCORD = ("A comunidade no Discord", "https://discord.gg/q5qxT7Pw2E")
 # Each game's lives (content/lives/<date>.json's "game"): the name in the title, the line that says what the channel
 # is, the links (Twitch first: the VOD is there to bring people to the next live), the playlist (made when it's
 # missing), its privacy, the tags (YouTube weighs them little; they catch spellings and searches like "rocket league
@@ -101,6 +110,7 @@ GAMES = {
         "pitch": "Rocket League ranqueado ao vivo, em português, subindo de rank com método: cada partida medida e "
                  "explicada no site.",
         "links": [TWITCH,
+                  DISCORD,
                   THIS_LIVE,
                   ("Minhas ranqueadas", f"{SITE}/conteudo/rocket-league/ranked"),
                   ("Os fundamentos, organizados por rank", f"{SITE}/conteudo/rocket-league/fundamentals"),
@@ -115,6 +125,7 @@ GAMES = {
         "pitch": "Valorant ao vivo, em português, aprendendo do Prata com método: cada partida medida no site, mira "
                  "treinada todo dia.",
         "links": [TWITCH,
+                  DISCORD,
                   THIS_LIVE,
                   ("Minhas competitivas", f"{SITE}/conteudo/valorant/ranked"),
                   ("Meu treino de mira", f"{SITE}/conteudo/valorant/aim")],
@@ -220,7 +231,8 @@ def describe(date):
 
 
 def srt(lines):
-    """The transcript as SRT: each line lasts until the next, at most 6 s."""
+    """The transcript as SRT: each line lasts until the next, at most 6 s, or until its own end when it has one
+    ([start, text, end]: partidas.py's, which stop where a piece of the live does)."""
     def stamp(t):
         ms = round(t * 1000)
         h, ms = divmod(ms, 3_600_000)
@@ -228,8 +240,8 @@ def srt(lines):
         s, ms = divmod(ms, 1000)
         return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
     blocks = []
-    for i, (start, text) in enumerate(lines):
-        end = min(lines[i + 1][0] if i + 1 < len(lines) else start + 4, start + 6)
+    for i, (start, text, *until) in enumerate(lines):
+        end = min(lines[i + 1][0] if i + 1 < len(lines) else start + 4, start + 6, *until)
         blocks.append(f"{i + 1}\n{stamp(start)} --> {stamp(max(end, start + 0.5))}\n{text}\n")
     return "\n".join(blocks)
 
@@ -245,7 +257,11 @@ def live(args):
     thumbnail = next((f for f in (folder / f"live-{args.date}.jpg", folder / f"live-{args.date}.png") if f.exists()),
                      folder / f"live-{args.date}.png")
     transcript = LIVES / f"{args.date}.transcript.json"
-    print(f"Vídeo {video_id}  ({PRIVACY})\n\n{title}  ({len(title)} caracteres)\n\n{description}\n\n"
+    # Held back (since 11-17 the videos of its matches go out first, partidas.py): private until then, and YouTube
+    # publishes it by itself. publishAt only works on a video that was never public.
+    publish_at = record.get("youtube", {}).get("publish_at")
+    publish_at = publish_at if publish_at and ahead(publish_at) else None
+    print(f"Vídeo {video_id}  ({f'agendado para {publish_at}' if publish_at else PRIVACY})\n\n{title}  ({len(title)} caracteres)\n\n{description}\n\n"
           f"Tags: {', '.join(tags)}\nThumbnail: {thumbnail.relative_to(ROOT)}\n"
           f"Playlist: {GAMES[record.get('game', 'rocket-league')]['playlist']} ({PRIVACY}, criada se faltar)\n")
     if args.dry_run:
@@ -264,6 +280,8 @@ def live(args):
     status = {key: value for key, value in video["status"].items()
               if key in ("embeddable", "license", "publicStatsViewable", "publishAt")}
     status.update(privacyStatus=PRIVACY, selfDeclaredMadeForKids=False, containsSyntheticMedia=False)
+    if publish_at:
+        status.update(privacyStatus="private", publishAt=publish_at)
     api.videos().update(part="snippet,status", body={"id": video_id, "snippet": snippet, "status": status}).execute()
     print("Título, descrição, tags e status: ok")
 
@@ -318,7 +336,8 @@ def video(args):
     as it is unless the record says otherwise."""
     record = json.loads(Path(args.record).read_text())
     video_id, tags = record["id"], record["tags"]
-    when = f"agendado para {record['publish_at']}" if record.get("publish_at") else record.get("privacy", "privacidade como está")
+    publish_at = record["publish_at"] if record.get("publish_at") and ahead(record["publish_at"]) else None
+    when = f"agendado para {publish_at}" if publish_at else record.get("privacy", "privacidade como está")
     print(f"Vídeo {video_id}  ({when})\n\n{record['title']}\n\n"
           f"{record['description']}\n\nTags: {', '.join(tags)}\n")
     thumbnail = ROOT / record["thumbnail"] if record.get("thumbnail") else None
@@ -341,9 +360,10 @@ def video(args):
     status.update(selfDeclaredMadeForKids=False, containsSyntheticMedia=False)
     if record.get("privacy"):
         status["privacyStatus"] = record["privacy"]
-    # Scheduled: private until publish_at (ISO with offset, e.g. "2026-11-07T18:00:00-03:00"), then YouTube publishes it.
-    if record.get("publish_at"):
-        status.update(privacyStatus="private", publishAt=record["publish_at"])
+    # Scheduled: private until publish_at (ISO with offset, e.g. "2026-11-07T18:00:00-03:00"), then YouTube publishes it;
+    # past it, the status stays as YouTube left it.
+    if publish_at:
+        status.update(privacyStatus="private", publishAt=publish_at)
     api.videos().update(part="snippet,status", body={"id": video_id, "snippet": snippet, "status": status}).execute()
     print("Título, descrição, tags e status: ok")
     if thumbnail:
@@ -353,7 +373,14 @@ def video(args):
     if record.get("playlist"):
         playlist = next((p for p in all_playlists(api) if p["snippet"]["title"] == record["playlist"]), None)
         if not playlist:
-            print(f"Playlist: não achei “{record['playlist']}”")
+            # The first video of a new series (partidas.py's "Rocket League: cortes da live", 11-17): public, as
+            # the videos will be. Just made, it's empty: listing it right away answers 404.
+            playlist = api.playlists().insert(part="snippet,status", body={
+                "snippet": {"title": record["playlist"], "defaultLanguage": "pt-BR"},
+                "status": {"privacyStatus": "public"}}).execute()
+            api.playlistItems().insert(part="snippet", body={"snippet": {
+                "playlistId": playlist["id"], "resourceId": {"kind": "youtube#video", "videoId": video_id}}}).execute()
+            print(f"Playlist “{record['playlist']}”: criada (pública), com o vídeo")
         else:
             inside = api.playlistItems().list(part="id", playlistId=playlist["id"], videoId=video_id).execute()["items"]
             if not inside:

@@ -318,7 +318,8 @@ def main():
 
     # The day's game: the one whose dock published a session that day (Rocket League's Partidas, or its Valorant tab).
     game = next((g for g in SESSIONS if sessions(args.date, g)), "rocket-league")
-    day = sessions(args.date, game)
+    # Matches played off the stream (since 2026-11-20) are sessions without outputs: not the live's.
+    day = [s for s in sessions(args.date, game) if s.get("outputs")] or sessions(args.date, game)
     file, start = recording(args.date, day)
     length = duration(file)
     print(f"Gravação: {file.name}, {clock(length)}.")

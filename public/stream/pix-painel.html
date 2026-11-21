@@ -21,9 +21,20 @@
         A song shows its state (being made, ready, refused and waiting for its sender's new text, couldn't be made,
         with why): Ouvir plays it here only (the dock's sound isn't on the stream), Pular música cuts it on the live
         (or leaves only the announcement), Gerar de novo makes it again (US$ 0,08) and plays it again once ready.
+        A ready song says whether its lyrics are in time (the overlay shows them only then); Sincronizar letra asks
+        Gemini again (a fraction of a cent, ~15 s), for a song made before it existed or one it missed.
       - Meta: the goal bar on the overlay, /pix and /mural; it counts from when it's set. A new one (or
         Encerrar) sends the one before to /mural's history; Ajustar changes the one on screen and keeps its count.
         Ticking "fora de meta", a new one (or Ajustar) counts from the first Pix since the last goal ended.
+        "até" is its last day: it ends by itself at that day's midnight (Brasília), into the history as reached
+        or not, and whatever comes past the target before then counts as extra. "de" a day ahead schedules it
+        (Agendada, with Cancelar): it takes the screen at that day's midnight, ending the one before.
+        "Meta de Natal" (tema "natal") gives it the tree, a present from each Pix, and a gift sub every R$ 10; Ajustar
+        with it ticked turns the goal on screen into one, unticked keeps what it is.
+      - Subs de presente, while there's a Christmas goal (or one ended less than a month ago with subs still to draw):
+        how many its Pix earned and who won. "Sortear sub" draws the next one, there, from who's in the chat right now
+        (the stream has to be on: the crowd overlay says who's there), and the overlay plays the draw; "Mostrar de
+        novo" plays it again. Luan gives the sub on Twitch himself, then ticks it as given.
     -->
     <style>
       html,
@@ -75,6 +86,33 @@
         flex-wrap: wrap;
         align-items: center;
         gap: 6px;
+      }
+      .data {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+      }
+      .data input {
+        color-scheme: dark;
+      }
+      .dica {
+        flex-basis: 100%;
+        margin: 0;
+        font-size: 12px;
+        opacity: 0.6;
+      }
+      .sorteio {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+      }
+      .sorteio .quem {
+        font-weight: 500;
+      }
+      .sorteio.dado .quem {
+        opacity: 0.6;
       }
       .avulsos {
         display: flex;
@@ -174,14 +212,24 @@
 
     <h2>Meta</h2>
     <p class="vazio" id="meta-agora"></p>
+    <p class="row vazio" id="meta-proxima" hidden></p>
     <form class="row" id="meta">
       <input class="nome-in" id="m-titulo" maxlength="60" placeholder="Microfone novo" />
       <input class="valor-in" id="m-alvo" inputmode="decimal" placeholder="R$ 500" />
+      <label class="data">de <input type="date" id="m-de" /></label>
+      <label class="data">até <input type="date" id="m-ate" /></label>
+      <p class="dica">"de" vazio ou hoje: começa agora; um dia adiante: fica agendada. "até": o último dia, fecha sozinha à meia-noite. No Ajustar, "até" vazio mantém a data.</p>
       <button>Nova meta</button>
       <button type="button" id="m-ajustar">Ajustar</button>
       <button type="button" id="m-tirar">Encerrar</button>
       <label class="avulsos"><input type="checkbox" id="m-avulsos" /> Contar os Pix que vieram fora de meta</label>
+      <label class="avulsos"><input type="checkbox" id="m-natal" /> Meta de Natal: árvore com um presente de cada Pix e 1 sub de presente a cada R$ 10</label>
     </form>
+    <section id="natal" hidden>
+      <h2>Subs de presente <small id="n-subs"></small></h2>
+      <p class="row vazio" id="subs-conta"></p>
+      <ul id="subs"></ul>
+    </section>
 
     <script>
       const params = new URLSearchParams(location.search)
@@ -197,6 +245,11 @@
       // sk is "<ISO time>#<id>".
       const hora = (sk) => new Date(sk.slice(0, 24)).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
       const dia = (sk) => new Date(sk.slice(0, 24)).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+      // A goal's dates are Brasília's days: `desde` is its first midnight, `prazo` the midnight after its last day.
+      const BR = { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit" }
+      const primeiroDia = (desde) => new Date(desde).toLocaleDateString("pt-BR", BR)
+      const ultimoDia = (prazo) => new Date(Date.parse(prazo) - 1).toLocaleDateString("pt-BR", BR)
+      const hoje = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" })
       function el(tag, props = {}, ...filhos) {
         const e = Object.assign(document.createElement(tag), props)
         e.append(...filhos)
@@ -205,10 +258,12 @@
       const botao = (texto, acao) => el("button", { type: "button", textContent: texto, onclick: acao })
       const ESTILOS = { funk: "Funk", sertanejo: "Sertanejo", pagode: "Pagode", forro: "Forró", rock: "Rock", rap: "Rap", eletronica: "Eletrônica", pop: "Pop" }
       const ESTADOS = { gerando: "fazendo…", pronta: "pronta", recusada: "recusada, esperando o texto novo de quem mandou", falhou: "não saiu: toca só o anúncio" }
-      // A song's line: style, theme (or "letra própria"), state and, when it went wrong, why.
+      // A song's line: style, theme (or "letra própria"), state and, when it went wrong, why; ready, whether its lyrics are in time.
+      const sincronizada = (m) => Array.isArray(m.tempos) && m.tempos.some(Boolean)
       function musica(m) {
         const ruim = m.estado === "recusada" || m.estado === "falhou"
-        return el("span", { className: `musica${ruim ? " ruim" : ""}`, textContent: `♪ ${ESTILOS[m.estilo] ?? "Música"} · ${m.sobre || "letra própria"} · ${ESTADOS[m.estado] ?? m.estado}${ruim && m.motivo ? ` (${m.motivo})` : ""}` })
+        const letra = m.estado === "pronta" && m.letraCantada ? (sincronizada(m) ? " · letra sincronizada" : " · letra sem sincronia") : ""
+        return el("span", { className: `musica${ruim ? " ruim" : ""}`, textContent: `♪ ${ESTILOS[m.estilo] ?? "Música"} · ${m.sobre || "letra própria"} · ${ESTADOS[m.estado] ?? m.estado}${letra}${ruim && m.motivo ? ` (${m.motivo})` : ""}` })
       }
       let ouvindo = null
       function ouvir(url) {
@@ -237,11 +292,24 @@
         ler()
       }
 
+      // The lyrics' timing again: Gemini hears the song (~15 s), so the button says it's working meanwhile.
+      async function sincronizar(b, sk) {
+        b.disabled = true
+        b.textContent = "Sincronizando…"
+        try {
+          const r = await pedir("/canal", { acao: "letra", pix: sk })
+          b.textContent = `Letra sincronizada (${r.linhas} de ${r.de} linhas)`
+        } catch (e) {
+          alert(`Não deu: ${e.message}`)
+        }
+        ler()
+      }
+
       let ultimo = ""
       let metaAgora = null
-      function desenhar({ pix, pendentes, reservas, meta }) {
+      function desenhar({ pix, pendentes, reservas, meta, proxima, subs }) {
         metaAgora = meta
-        const chave = JSON.stringify([pix, pendentes, reservas.map((r) => r.id), meta])
+        const chave = JSON.stringify([pix, pendentes, reservas.map((r) => r.id), meta, proxima, subs])
         if (chave === ultimo) return
         ultimo = chave
 
@@ -283,6 +351,7 @@
                     botao("Repetir", () => agir({ acao: "repetir", pix: p.sk })),
                     p.musica?.url ? botao("Ouvir", () => ouvir(p.musica.url)) : "",
                     p.musica?.estado === "pronta" && !p.exibido && !p.pular ? botao("Pular música", () => agir({ acao: "pular", pix: p.sk })) : "",
+                    p.musica?.estado === "pronta" && p.musica.letraCantada ? botao("Sincronizar letra", (e) => sincronizar(e.currentTarget, p.sk)) : "",
                     p.musica && p.musica.estado !== "gerando" ? botao("Gerar de novo", () => confirm("Gerar a música de novo? Custa uns R$ 0,45, e ela toca de novo quando ficar pronta.") && agir({ acao: "musica", pix: p.sk })) : "",
                     // Every Pix with a name or words shows them on the mural (an old one too, ticked or not); taking it off leaves its value, as anonymous.
                     p.nome || p.mensagem || p.transcricao ? botao(p.oculto ? "Voltar ao mural" : "Tirar do mural", () => agir({ acao: "ocultar", pix: p.sk, oculto: !p.oculto })) : "",
@@ -292,7 +361,54 @@
             : [el("li", { className: "vazio", textContent: "Nenhum ainda." })]),
         )
 
-        $("meta-agora").textContent = meta ? `${meta.titulo || "Meta"}: R$ ${reais(meta.arrecadado)} de R$ ${reais(meta.alvo)}` : "Sem meta na tela."
+        $("meta-agora").textContent = meta
+          ? `${meta.tema === "natal" ? "🎄 " : ""}${meta.titulo || "Meta"}: R$ ${reais(meta.arrecadado)} de R$ ${reais(meta.alvo)}${meta.prazo ? ` · até ${ultimoDia(meta.prazo)}` : " · sem data pra acabar"}`
+          : "Sem meta na tela."
+        $("meta-proxima").hidden = !proxima
+        $("meta-proxima").replaceChildren(
+          ...(proxima
+            ? [
+                `Agendada: ${proxima.tema === "natal" ? "🎄 " : ""}${proxima.titulo || "Meta"}, R$ ${reais(proxima.alvo)}, de ${primeiroDia(proxima.desde)}${proxima.prazo ? ` a ${ultimoDia(proxima.prazo)}` : ""} `,
+                botao("Cancelar", () => confirm(`Cancelar a meta agendada "${proxima.titulo || "Meta"}"?`) && agir({ acao: "meta", proxima: true, alvo: 0 })),
+              ]
+            : []),
+        )
+
+        // The gift subs: one per R$ 10 of the Christmas goal, drawn here on air, given on Twitch by hand.
+        $("natal").hidden = !subs
+        if (!subs) return
+        const faltam = subs.devidos - subs.sorteios.length
+        $("n-subs").textContent = `${subs.sorteios.length} de ${subs.devidos} sorteados`
+        const sortear = botao(faltam > 0 ? `Sortear sub (${subs.sorteios.length + 1} de ${subs.devidos})` : "Nenhum sub esperando", (e) => sortearSub(e.currentTarget, subs))
+        sortear.disabled = faltam <= 0
+        $("subs-conta").replaceChildren(`${subs.titulo || "Meta de Natal"}: 1 a cada R$ ${reais(subs.cada)}. `, sortear)
+        $("subs").replaceChildren(
+          ...(subs.sorteios.length
+            ? subs.sorteios.map((s, i) =>
+                el(
+                  "li",
+                  { className: `sorteio${s.dado ? " dado" : ""}` },
+                  el("span", { className: "quem", textContent: `${i + 1}. ${s.login}` }),
+                  el("span", { className: "quando", textContent: `${s.sigma ?? 0} Σ · ${dia(s.em)} ${hora(s.em)}${s.exibido ? "" : " · na fila da live"}` }),
+                  botao(s.dado ? "Dado ✓" : "Marcar como dado", () => agir({ acao: "sorteio", sk: s.sk, dado: !s.dado })),
+                  s.exibido ? botao("Mostrar de novo", () => agir({ acao: "sorteio", sk: s.sk, exibido: false })) : "",
+                ),
+              )
+            : [el("li", { className: "vazio", textContent: "Nenhum sorteado ainda. O sorteio é com a live no ar: concorre quem está no chat." })]),
+        )
+      }
+
+      async function sortearSub(b, subs) {
+        if (!confirm(`Sortear o sub ${subs.sorteios.length + 1} de ${subs.devidos} agora? O sorteio aparece na live.`)) return
+        b.disabled = true
+        b.textContent = "Sorteando…"
+        try {
+          const { sorteio } = await pedir("/canal", { acao: "sortear" })
+          b.textContent = `Saiu: ${sorteio.login}`
+        } catch (e) {
+          alert(`Não deu: ${e.message}`)
+        }
+        ler()
       }
 
       async function ler() {
@@ -321,8 +437,15 @@
         e.preventDefault()
         const alvo = centavosDe($("m-alvo").value)
         if (!(alvo >= 1)) return alert("Valor da meta inválido.")
-        if (metaAgora && !confirm(`Começar uma meta nova? "${metaAgora.titulo || "Meta"}" vai para o histórico do mural.`)) return
-        agir({ acao: "meta", titulo: $("m-titulo").value, alvo, avulsos: $("m-avulsos").checked })
+        const de = $("m-de").value
+        const ate = $("m-ate").value || undefined
+        const tema = $("m-natal").checked ? "natal" : undefined
+        if (de && de > hoje()) {
+          agir({ acao: "meta", proxima: true, titulo: $("m-titulo").value, alvo, de, ate, tema })
+        } else {
+          if (metaAgora && !confirm(`Começar uma meta nova? "${metaAgora.titulo || "Meta"}" vai para o histórico do mural.`)) return
+          agir({ acao: "meta", titulo: $("m-titulo").value, alvo, ate, avulsos: $("m-avulsos").checked, tema })
+        }
         $("meta").reset()
       }
       // Ajustar: what's typed replaces the title or the target; the count goes on.
@@ -330,7 +453,7 @@
         if (!metaAgora) return alert("Não há meta para ajustar.")
         const alvo = $("m-alvo").value ? centavosDe($("m-alvo").value) : metaAgora.alvo
         if (!(alvo >= 1)) return alert("Valor da meta inválido.")
-        agir({ acao: "meta", ajustar: true, titulo: $("m-titulo").value || metaAgora.titulo, alvo, avulsos: $("m-avulsos").checked })
+        agir({ acao: "meta", ajustar: true, titulo: $("m-titulo").value || metaAgora.titulo, alvo, ate: $("m-ate").value || undefined, avulsos: $("m-avulsos").checked, tema: $("m-natal").checked ? "natal" : undefined })
         $("meta").reset()
       }
       $("m-tirar").onclick = () => metaAgora && confirm("Encerrar a meta? Ela sai da tela e vai para o histórico do mural.") && agir({ acao: "meta", alvo: 0 })

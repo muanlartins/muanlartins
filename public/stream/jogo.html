@@ -12,9 +12,20 @@
       (the positions are in brand/README.md). ?chat=1 adds the Twitch chat on
       the other side, above the boost meter, on a translucent pane while it has
       messages (?canal= and ?demo as in conversa.html); with ?jogo=valorant it
-      starts at y 340, under Valorant's killfeed. The rank and the day's record sit on the frame's top edge
+      starts at y 340, under Valorant's killfeed; with ?duelo=1 it starts at y 472, under the ball duel
+      (duelo.html), 420×264, and in Valorant (where the duel sits under the killfeed) it goes to the left instead, under
+      the Pix call and goal, 420×296 at (44, 740). The rank and the day's record sit on the frame's top edge
       while the "Partidas" dock (partidas.html) sends them; ?placar=0 leaves them out (the commented videos, recorded
       after the live: the frame and the site, not the day's record).
+      ?teclas=1 adds the keyboard and the mouse (teclas.js, from scripts/teclas.ps1; ErikMD's idea, 2026-11-20) in the
+      camera's column, flush with its frame's left edge: above the camera when it's at the bottom, clear of the record plate on its
+      top edge; under the Pix call and goal when it's at the top (Valorant's). The keys are the game's: Valorant's with
+      ?jogo=valorant, any game's with ?jogo=diversos, else Rocket League's; ?teclas=valorant (or rocket-league, outro)
+      picks them. ?demo presses them on their own.
+      In Rocket League's scene (no ?jogo), Luan's numbers in the match run in a column beside the camera frame
+      (numeros.js: score, goals, assists, saves, shots, touches, aerials, demos, a +1 lighting its line) while the
+      Partidas dock sends them, from the first countdown to a minute and a half after the end; the dock's "Estatísticas
+      da partida na live" turns them off, and so does ?numeros=0 (and ?placar=0). ?demo plays a match.
     -->
     <style>
       .hole {
@@ -42,6 +53,20 @@
         top: 340px;
         height: 420px;
       }
+      /* Under the ball duel (duelo.html, ?duelo=1), which takes the VAR's mini player's corner, 640×360 at (1236, 92). */
+      .game-chat.duelo {
+        top: 472px;
+        height: 264px;
+      }
+      /* In Valorant the duel takes the right, under the killfeed (OBS sets its source 238 px lower there), so the chat
+         goes to the left, under pix.html's call and goal (from y 380: to 657 with a goal's end date, 724 with the Christmas
+         tree). */
+      .game-chat.valorant.duelo {
+        top: 740px;
+        height: 296px;
+        right: auto;
+        left: 44px;
+      }
       .game-chat.left {
         right: auto;
         left: 44px;
@@ -63,6 +88,11 @@
       .chat-pane.valorant {
         bottom: 308px;
       }
+      .chat-pane.valorant.duelo {
+        bottom: 32px;
+        right: auto;
+        left: 32px;
+      }
       .chat-pane.left {
         right: auto;
         left: 32px;
@@ -70,12 +100,12 @@
       .chat-pane.empty {
         opacity: 0;
       }
-      /* While the VAR's mini player is up (var.html, top right), its vote takes the chat's place. */
+      /* While the VAR's mini player is up (var.html, top right), its vote takes the chat's place (not the left one's). */
       .game-chat {
         transition: opacity 0.5s var(--ease);
       }
-      .var-mini .game-chat,
-      .var-mini .chat-pane {
+      .var-mini .game-chat:not(.valorant.duelo),
+      .var-mini .chat-pane:not(.valorant.duelo) {
         opacity: 0;
       }
       /* Over the game the cards need more ground to read on any arena. */
@@ -91,8 +121,12 @@
       <div id="record"></div>
       <div class="chat-pane empty" id="chat-pane" hidden></div>
       <div class="game-chat" id="chat" hidden></div>
+      <div id="teclas" hidden></div>
+      <div id="numeros"></div>
     </main>
     <script src="stream.js"></script>
+    <script src="teclas.js"></script>
+    <script src="numeros.js"></script>
     <script>
       const BAND = 12
       const hole = document.querySelector(".hole")
@@ -116,6 +150,25 @@
         else recordPlate(document.getElementById("record"), hole, BAND)
       }
 
+      // Rocket League's numbers in the match, beside the camera frame.
+      if (!params.get("jogo") && params.get("placar") !== "0" && params.get("numeros") !== "0") {
+        placarDaPartida(document.getElementById("numeros"), hole, BAND)
+        if (params.has("demo")) demoDosNumeros()
+      }
+
+      // The keyboard and the mouse, in the camera's column (?teclas=1).
+      const qualTeclado = params.get("teclas")
+      if (qualTeclado) {
+        const box = document.getElementById("teclas")
+        box.hidden = false
+        const jogo = qualTeclado !== "1" ? qualTeclado : { valorant: "valorant", diversos: "outro" }[params.get("jogo")] ?? "rocket-league"
+        teclas(box, { jogo, demo: params.has("demo") })
+        box.style.left = `${hole.offsetLeft - BAND}px`
+        // At the top (Valorant), under pix.html's call and goal, which reach y 724 with the Christmas tree.
+        if (hole.classList.contains("top")) box.style.top = "748px"
+        else box.style.top = `${hole.offsetTop - BAND - 26 - 16 - box.offsetHeight}px`
+      }
+
       // Opposite the camera; messages leave after 45 s so a quiet chat leaves the game clear.
       if (params.get("chat") === "1") {
         const box = document.getElementById("chat")
@@ -124,9 +177,11 @@
         const pane = document.getElementById("chat-pane")
         pane.hidden = false
         pane.classList.toggle("left", params.get("lado") === "direita")
-        // In Valorant, under its killfeed.
-        box.classList.toggle("valorant", params.get("jogo") === "valorant")
-        pane.classList.toggle("valorant", params.get("jogo") === "valorant")
+        // In Valorant, under its killfeed; under the duel, or with it in Valorant on the left.
+        for (const el of [box, pane]) {
+          el.classList.toggle("valorant", params.get("jogo") === "valorant")
+          el.classList.toggle("duelo", params.has("duelo"))
+        }
         // From the oldest message still there (or the column's faded top) down. Messages fading out still count.
         const fit = () => {
           pane.classList.toggle("empty", !box.children.length)

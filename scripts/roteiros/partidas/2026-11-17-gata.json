@@ -1,0 +1,26 @@
+{
+  "data": "2026-11-17",
+  "nome": "gata",
+  "titulo": "Minha gata desligou o PC no meio da ranqueada",
+  "descricao": "3v3 ranqueado no Diamante 3 com o JK e o Edu, até as minhas gatas pularem na mesa e desligarem o PC no meio da partida.",
+  "partidas": [
+    8,
+    9,
+    10
+  ],
+  "capitulos": {
+    "8": "Os caras chatos",
+    "9": "A gata desligou o PC",
+    "10": "A virada"
+  },
+  "inicio": {
+    "9": "1:08:52"
+  },
+  "fim": {
+    "10": "1:21:18"
+  },
+  "saltos": [
+    "1:10:24.512"
+  ],
+  "publicar": "2026-11-18T21:00:00-03:00"
+}

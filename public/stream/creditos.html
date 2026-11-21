@@ -14,18 +14,22 @@
 
       The credits, each section only when it has someone:
         Estrelando · O placar de hoje (Rocket League from the Partidas dock's "muanlartins-partidas", Valorant from
-        jogo.html's day kept in this site's storage) · Gols/Vitórias dedicados (torcida.html keeps the day's
-        dedications in the same storage) · Raid · Seguiram hoje · Inscritos · Presentearam subs · Bits (the Efeitos
-        dock signed in to Twitch, "muanlartins-creditos") · Pix (the mural's, only who chose to be on it) · Primeira
+        jogo.html's day kept in this site's storage) · Os números de hoje (the Partidas dock's "muanlartins-numeros":
+        each game's totals since the stream began, Rocket League's goals, saves, touches, aerials…, Valorant's K/D/A,
+        ACS, headshots…; in the place of the goals and wins the stand dedicated, Luan's call, 2026-11-20) · Raid ·
+        Seguiram hoje · Inscritos · Presentearam subs · Bits (the Efeitos dock signed in to Twitch,
+        "muanlartins-creditos") · Pix (the mural's, only who chose to be on it) · Primeira
         vez aqui · Na arquibancada (the Σ API's GET /live: who was in today's live, most minutes first) · Próxima live
-        (/agenda.json) · and the closing card, which stays.
-      OBS's browser sources share this site's storage, so the stand's dedications and Valorant's day reach this page;
+        (the agenda, the profile API's GET /agenda: the next live after today's) · and the closing
+        card, which stays.
+      OBS's browser sources share this site's storage, so Valorant's day reaches this page;
       the docks' storage is their own, so the Efeitos dock sends its part as an event (every 5 s, and right as Fim
       goes on air). The page waits ?espera= seconds (default 4) on its title for all of it, then rolls at
       ?velocidade= px/s (default 55).
 
-      The chat still talks: what a viewer says shows in a balloon over their fan, and whoever comes into the chat
-      joins the stand. ?api=, ?sigma=, ?pix= point at stand-ins for the profile, Σ and Pix APIs; ?canal= as in the
+      The chat still talks: what a viewer says shows in a balloon over their fan, whoever comes into the chat
+      joins the stand, and the stand's commands move their fan as in the live (!pula, !danca, !comemora, !grito,
+      !ola: comandos.js). With ?demo, keys p, n, k, h, o send them from someone at random. ?api=, ?sigma=, ?pix= point at stand-ins for the profile, Σ and Pix APIs; ?canal= as in the
       overlays; ?demo fills everything with sample people.
     -->
     <style>
@@ -167,6 +171,44 @@
         color: var(--klein-claro);
         font-size: 22px;
         font-weight: 500;
+      }
+      /* The live's numbers: three to a row, the last row centred. */
+      .numeros-dia {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        row-gap: 20px;
+        margin-top: 4px;
+      }
+      .numeros-dia .num {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 33.33%;
+      }
+      .numeros-dia .v {
+        font-size: 44px;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+      .numeros-dia .r {
+        margin-top: 2px;
+        color: var(--klein-claro);
+        font-size: 17px;
+        font-weight: 500;
+      }
+      .linha.jogo-n {
+        margin: 30px 0 14px;
+        color: var(--paper);
+        font-size: 24px;
+      }
+      .bloco > .linha.jogo-n:nth-child(2) {
+        margin-top: 0;
+      }
+      .numeros-dia + .linha {
+        margin-top: 22px;
       }
       .ranque {
         display: inline-flex;
@@ -419,12 +461,14 @@
     <script src="stream.js"></script>
     <script src="torcedor.js"></script>
     <script src="sigma.js"></script>
+    <script src="comandos.js"></script>
     <script>
       const $ = (id) => document.getElementById(id)
       const DEMO = params.has("demo")
       const API = params.get("api") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
       const SIGMA_API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
       const PIX_API = params.get("pix") ?? "https://g2x6kdnhr0.execute-api.us-east-1.amazonaws.com"
+      const PERFIL_API = params.get("perfil") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
       const VELOCIDADE = Number(params.get("velocidade")) || 55
       const ESPERA_MS = (Number(params.get("espera")) || 4) * 1000
       // The name the channel goes by in the credits (copy: Luan's to change).
@@ -445,7 +489,9 @@
       let JOGO = "rocket-league"
       const aparencia = (login) => {
         const a = Torcedor.normalizar(escolhas.get(login), login)
-        return login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+        const propria = login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+        // December: Santa's hat, as in the stand (torcedor.js).
+        return Torcedor.natal() || params.has("natal") ? { ...propria, touca: true } : propria
       }
 
       /** Someone to the stand (once): `dados` adds what's known about them. */
@@ -503,7 +549,15 @@
         el.className = "fa torcedor" + (chegando ? " chegando" : "")
         el.innerHTML = `<span class="nome"></span><div class="pose"><div class="vivo"></div></div>`
         el.querySelector(".vivo").style.setProperty("--atraso", `${-Math.random() * 3}s`)
-        el.addEventListener("animationend", (e) => e.target === el && el.classList.remove("chegando"))
+        el.addEventListener("animationend", (e) => {
+          if (e.target === el) el.classList.remove("chegando")
+          // A move ended (a command, or their celebration as their name rolled by): standing again, the name unlit
+          // unless they're talking.
+          else if (e.target.classList.contains("pose")) {
+            Comandos.fim(el)
+            if (!falas.some((f) => f.p.el === el)) el.classList.remove("foco")
+          }
+        })
         torcida.append(el)
         p.el = el
         vestir(p)
@@ -634,21 +688,30 @@
         } else if (nome) vestir(p)
         return p
       }
+      // The stand's commands, as in the live (comandos.js).
+      const comando = Comandos.criar({
+        pessoa: (login) => gente.get(login.toLowerCase()),
+        todos: () => gente.values(),
+        falar: (p, texto) => falar(p, texto),
+        frase: (p) => aparencia(p.login).frase,
+      })
       function aplicar(line) {
         const { tags, prefix, command, trailing } = parseIrc(line)
         const login = prefix.split("!")[0]
         if (command === "JOIN") chegar(login)
         else if (command === "PRIVMSG") {
           const p = chegar(login, tags["display-name"] || login)
-          if (!trailing.startsWith("!")) falar(p, trailing.replace(/^\u0001ACTION (.*)\u0001$/, "$1"))
+          if (trailing.startsWith("!")) comando(login, trailing)
+          else falar(p, trailing.replace(/^\u0001ACTION (.*)\u0001$/, "$1"))
         } else if (command === "353") trailing.split(" ").forEach((name) => name && chegar(name))
       }
 
       // --- What the day was, from everywhere ---------------------------------------------------------------
-      const dia = { live: null, twitch: null, partidas: null, valorant: null, dedicatorias: [], pix: [], agenda: null }
+      const dia = { live: null, twitch: null, partidas: null, numeros: null, valorant: null, pix: [], agenda: null }
 
       // The Partidas dock's Rocket League record and the Efeitos dock's Twitch day, every few seconds.
       addEventListener("muanlartins-partidas", ({ detail }) => (dia.partidas = detail))
+      addEventListener("muanlartins-numeros", ({ detail }) => detail && (dia.numeros = detail))
       addEventListener("muanlartins-creditos", ({ detail }) => {
         if (detail?.dia !== HOJE) return
         dia.twitch = detail
@@ -656,13 +719,11 @@
         if (montada) acrescentar()
       })
 
-      // What jogo.html and torcida.html kept today in this site's storage (shared by OBS's browser sources).
+      // What jogo.html kept today in this site's storage (shared by OBS's browser sources).
       function guardados() {
         try {
           const v = JSON.parse(localStorage.getItem("valorant:dia") || "null")
           if (v?.date === new Date().toLocaleDateString("en-CA") && v.wins + v.losses > 0) dia.valorant = v
-          const d = JSON.parse(localStorage.getItem("torcida:dedicatorias") || "null")
-          if (d?.dia === HOJE) dia.dedicatorias = d.lista ?? []
         } catch {
           // No storage: those sections stay out.
         }
@@ -673,7 +734,7 @@
         const [live, mural, agenda] = await Promise.all([
           SIGMA_API ? json(`${SIGMA_API}/live`) : null,
           PIX_API ? json(`${PIX_API}/mural`) : null,
-          json("/agenda.json"),
+          PERFIL_API ? json(`${PERFIL_API}/agenda`) : null,
         ])
         dia.agenda = agenda
         if (live?.pessoas) {
@@ -686,34 +747,26 @@
         }
       }
 
-      // --- The next live, from the agenda (weekly slots in Brasília time) --------------------------------
+      // --- The next live, from the agenda (its lives of the next two weeks, with dates) -------------------------
       const DIAS = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
+      const dataEm = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(d)
+      /** The first live starting after now (today's, on air, is behind it). */
       function proximaLive(agenda) {
-        if (!agenda?.slots?.length) return null
-        const parts = Object.fromEntries(
-          new Intl.DateTimeFormat("en-US", { timeZone: agenda.timeZone || TZ, hourCycle: "h23", weekday: "short", hour: "numeric", minute: "numeric" })
-            .formatToParts(new Date())
-            .map((x) => [x.type, x.value]),
-        )
-        const hoje = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(parts.weekday) + 1
-        const agora = +parts.hour * 60 + +parts.minute
-        const min = (hhmm) => hhmm.split(":").reduce((h, m) => +h * 60 + +m)
-        for (let mais = 0; mais < 8; mais++) {
-          const wd = ((hoje - 1 + mais) % 7) + 1
-          const slot = agenda.slots
-            .filter((s) => s.days.includes(wd) && (mais > 0 || min(s.start) > agora))
-            .sort((a, b) => min(a.start) - min(b.start))[0]
-          if (slot) {
-            const quando = mais === 0 ? "hoje" : mais === 1 ? "amanhã" : DIAS[wd - 1]
-            return { quando, hora: slot.start.replace(":", "h").replace(/h00$/, "h"), jogo: slot.name ?? slot.game }
-          }
-        }
-        return null
+        const agora = Date.now()
+        const p = agenda?.proximas?.find((o) => Date.parse(o.inicio) > agora)
+        if (!p) return null
+        const hoje = dataEm(new Date())
+        const dias = Math.round((Date.parse(`${p.data}T12:00:00Z`) - Date.parse(`${hoje}T12:00:00Z`)) / 86_400_000)
+        const wd = ((new Date(`${p.data}T12:00:00Z`).getUTCDay() + 6) % 7) + 1
+        const quando = dias === 0 ? "hoje" : dias === 1 ? "amanhã" : dias < 7 ? DIAS[wd - 1] : `${p.data.slice(8)}/${p.data.slice(5, 7)}`
+        return { quando, hora: p.start.replace(":", "h").replace(/h00$/, "h"), jogo: p.nome, titulo: p.titulo }
       }
-      /** Today's game by the agenda (the slot today), for the title and the ranks' emblems. */
+      /** Today's live by the agenda (on air, or the day's latest that started), for the title and the ranks' emblems. */
       function jogoDeHoje(agenda) {
-        const wd = ((new Date(new Date().toLocaleString("en-US", { timeZone: TZ })).getDay() + 6) % 7) + 1
-        return agenda?.slots?.find((s) => s.days.includes(wd)) ?? null
+        const hoje = dataEm(new Date())
+        const doDia = (agenda?.proximas ?? []).filter((o) => o.data === hoje && Date.parse(o.inicio) - 3600e3 <= Date.now())
+        const o = doDia.at(-1)
+        return o ? { game: o.jogo, name: o.nome } : null
       }
 
       // --- The credits -------------------------------------------------------------------------------------
@@ -757,7 +810,6 @@
         row.append(quem)
         return row
       }
-      const comNome = (x) => ({ login: x.login ?? null, nome: x.login ? nomeDe(x.login) : x.nome })
 
       function abertura() {
         const b = el("section", "bloco abertura")
@@ -795,13 +847,35 @@
         return tem ? b : null
       }
 
-      function dedicatorias() {
-        const blocos = []
-        const gols = dia.dedicatorias.filter((d) => d.tipo === "gol")
-        const vitorias = dia.dedicatorias.filter((d) => d.tipo === "vitoria")
-        blocos.push(bloco(gols.length === 1 ? "Gol dedicado a" : "Gols dedicados a", gols.map((d, i) => ({ ...comNome(d), det: [`${i + 1}º gol`, d.detalhe ? `${d.detalhe} km/h` : null].filter(Boolean).join(" · ") }))))
-        blocos.push(bloco(vitorias.length === 1 ? "Vitória dedicada a" : "Vitórias dedicadas a", vitorias.map((d) => ({ ...comNome(d), det: d.detalhe ?? null }))))
-        return blocos
+      /** The live's numbers, each game's, as a grid: big number, its name under it. */
+      function numeros() {
+        const rl = dia.numeros?.rocketLeague
+        const val = dia.numeros?.valorant
+        if (!rl && !val) return null
+        const b = el("section", "bloco")
+        b.append(el("p", "papel", "Os números de hoje"))
+        const grade = (titulo, itens) => {
+          if (titulo) b.append(el("p", "linha jogo-n", titulo))
+          const g = el("div", "numeros-dia")
+          for (const [valor, nome] of itens) if (valor != null) g.append(el("div", "num", `<span class="v">${valor}</span><span class="r">${nome}</span>`))
+          b.append(g)
+        }
+        const n = (v, um, varios) => [v, v === 1 ? um : varios]
+        if (rl) {
+          grade(val && "Rocket League", [
+            n(rl.gols, "gol", "gols"), n(rl.assistencias, "assistência", "assistências"), n(rl.defesas, "defesa", "defesas"),
+            n(rl.chutes, "chute", "chutes"), n(rl.toques, "toque", "toques"), n(rl.aereos, "aéreo", "aéreos"),
+            n(rl.demolicoes, "demolição", "demolições"), n(rl.mvps || null, "MVP", "MVPs"), [rl.score, "score por partida"],
+          ])
+          if (rl.golMaisForte) b.append(el("p", "linha", `Gol mais forte <span class="accent">·</span> ${rl.golMaisForte} km/h`))
+        }
+        if (val)
+          grade(rl && "Valorant", [
+            n(val.abates, "abate", "abates"), n(val.mortes, "morte", "mortes"), n(val.assistencias, "assistência", "assistências"),
+            [val.acs, "ACS"], [val.cabeca != null ? `${val.cabeca}%` : null, "na cabeça"], [val.dano, "dano por rodada"],
+            n(val.primeiros, "primeiro abate", "primeiros abates"), [val.mortes ? (val.abates / val.mortes).toFixed(2).replace(".", ",") : null, "K/D"],
+          ])
+        return b
       }
 
       function twitch() {
@@ -852,7 +926,7 @@
         const g = el("p", "grande")
         g.innerHTML = `${n.quando}, <span class="accent">${n.hora}</span>`
         b.append(g)
-        b.append(el("p", "linha", n.jogo))
+        b.append(el("p", "linha", n.titulo && n.titulo !== n.jogo ? `${n.jogo} · ${n.titulo}` : n.jogo))
         return b
       }
 
@@ -915,14 +989,13 @@
         // The stand: the channel, today's viewers, and everyone the credits name.
         pessoa(CHANNEL, { nome: "muanlartins" })
         for (const k of ["seguidores", "inscritos", "presentes", "bits", "raids"]) for (const x of dia.twitch?.[k] ?? []) pessoa(x.login, { nome: x.nome })
-        for (const d of dia.dedicatorias) pessoa(d.login, { nome: d.nome })
         for (const p of dia.pix) pessoa(p.login)
         gente.forEach(vestir)
         arrumar()
         pedirEscolhas()
 
         const estrela = bloco("Estrelando", [{ login: CHANNEL, nome: ESTRELA.nome, det: ESTRELA.det }])
-        const blocos = [estrela, placar(), ...dedicatorias(), ...twitch(), pix(), estreantes(), arquibancada(), proxima()].filter(Boolean)
+        const blocos = [estrela, placar(), numeros(), ...twitch(), pix(), estreantes(), arquibancada(), proxima()].filter(Boolean)
         fim = final()
         for (const b of [...blocos, fim]) {
           b.classList.add("chega")
@@ -996,15 +1069,14 @@
         const um = (l) => l[Math.floor(Math.random() * l.length)]
         nomesDemo.forEach((n, i) => {
           const login = n.toLowerCase()
-          if (i % 2) escolhas.set(login, { cabeca: um(Torcedor.CABECAS), roupa: um(Torcedor.ROUPAS), acessorio: um(Torcedor.ACESSORIOS), comemoracao: um(Torcedor.COMEMORACOES) })
+          if (i % 2) escolhas.set(login, { cabeca: um(Torcedor.CABECAS), roupa: um(Torcedor.ROUPAS), acessorio: um(Torcedor.ACESSORIOS), comemoracao: um(Torcedor.COMEMORACOES), frase: um(["bora Luan!", "chegueeei", "hoje sobe!"]) })
           pessoa(login, { nome: n, minutos: Math.max(4, Math.round(150 * Math.random() ** 0.7)), sigma: Math.round(20000 * Math.random() ** 3), sequencia: i % 4 === 0 ? 2 + (i % 5) : 0, primeira: i === 6 || i === 15 ? HOJE : undefined })
         })
         dia.partidas = { mode: "2v2", tier: "diamond-2", division: 3, wins: 6, losses: 3, streak: 3, points: 41 }
-        dia.dedicatorias = [
-          { login: "rafa", nome: "rafa", tipo: "gol", detalhe: 87 },
-          { login: "giovana_gc", nome: "Giovana_GC", tipo: "gol", detalhe: 104 },
-          { login: "ceci", nome: "ceci", tipo: "gol", detalhe: null },
-        ]
+        dia.numeros = {
+          rocketLeague: { partidas: 9, gols: 11, assistencias: 6, defesas: 14, chutes: 27, toques: 236, aereos: 41, demolicoes: 5, mvps: 3, score: 412, golMaisForte: 118 },
+          valorant: null,
+        }
         dia.twitch = {
           dia: HOJE,
           seguidores: [{ login: "luiza.f", nome: "luiza.f" }, { login: "caio_br", nome: "caio_br" }, { login: "nandinha", nome: "nandinha" }],
@@ -1014,13 +1086,25 @@
           raids: [{ login: "manomenezes", nome: "manomenezes", viewers: 12 }],
         }
         dia.pix = [{ login: "bia.lima", nome: "Bia", centavos: 1000 }, { nome: "Anônimo de Floripa", centavos: 500 }]
-        dia.agenda = { timeZone: TZ, slots: [{ days: [2, 4, 5], start: "14:30", end: "16:30", game: "rocket-league", name: "Rocket League" }, { days: [1, 3], start: "21:00", end: "23:00", game: "valorant", name: "Valorant" }] }
+        const amanha = new Date(Date.now() + 86_400e3)
+        dia.agenda = {
+          proximas: [
+            { data: dataEm(new Date()), inicio: new Date(Date.now() - 2 * 3600e3).toISOString(), start: "14:30", jogo: "rocket-league", nome: "Rocket League", titulo: "Ranqueadas de Rocket League" },
+            { data: dataEm(amanha), inicio: amanha.toISOString(), start: "21:00", jogo: "valorant", nome: "Valorant", titulo: "Aprendendo Valorant" },
+          ],
+        }
         setTimeout(montar, ESPERA_MS)
         const FRASES = ["gg!!", "valeu pela live", "tchau Luan", "até quinta!", "que live", "boa noite pessoal", "ganhamos hoje 🔥"]
         setInterval(() => {
           const p = um([...gente.values()].filter((x) => x.el && x.login !== CHANNEL))
           if (p) falar(p, um(FRASES))
         }, 2600)
+        // The stand's commands, from someone at random.
+        const COMANDO_DE = { p: "!pula", n: "!dança", k: "!comemora", h: "!grito", o: "!ola" }
+        addEventListener("keydown", (e) => {
+          const p = um([...gente.values()].filter((x) => x.el && x.login !== CHANNEL))
+          if (p && COMANDO_DE[e.key]) comando(p.login, COMANDO_DE[e.key])
+        })
       }
     </script>
   </body>

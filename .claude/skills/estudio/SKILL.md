@@ -511,7 +511,8 @@ shears frames when the crop width is odd.
   replay" Thu 12:00, before the 14:30 Rocket League live, at lunch). Times in Brasília.
 - **YouTube:** the upload is Luan's, in Studio, as private (an unverified app's uploads stay locked private). He
   gives the ids; each short has `content/videos/<date>-<slug>.json` (id, title ending in the game's hashtag,
-  description with the site page of the subject, Twitch and the site, tags, `publish_at` ISO with -03:00), then
+  description with the site page of the subject, Twitch, the Discord (`https://discord.gg/q5qxT7Pw2E`, as "A comunidade
+  no Discord") and the site, tags, `publish_at` ISO with -03:00), then
   `scripts/.venv/bin/python scripts/youtube.py video content/videos/<file>.json --dry-run`, then without
   `--dry-run`: it sets the metadata and schedules; YouTube publishes by itself.
 - **Instagram:** scheduled in Meta Business Suite in Luan's own browser (Brave, signed in). Since 11-12 that needs

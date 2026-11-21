@@ -1,0 +1,149 @@
+{
+ "date": "2026-11-18",
+ "plays": [
+  {
+   "at": "2026-11-18T22:56:33Z",
+   "task": "CsLevel.Lowgravity56.VT Wrist.RX1H45",
+   "name": "VT Wrist Smoothness Entry",
+   "score": 3177,
+   "accuracy": 53.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T22:57:49Z",
+   "task": "CsLevel.Lowgravity56.VT Cente.RX1HFO",
+   "name": "VT Centering II 180 Entry",
+   "score": 2935,
+   "accuracy": 48.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:00:07Z",
+   "task": "CsLevel.Lowgravity56.VT Side .RX1MFG",
+   "name": "VT Side to Side Tracking Entry",
+   "score": 3710,
+   "accuracy": 68.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:01:26Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RX52TZ",
+   "name": "VT Regenspheres Entry",
+   "score": 63,
+   "accuracy": 24.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:02:38Z",
+   "task": "CsLevel.Lowgravity56.VT Smoot.RX1M4I",
+   "name": "VT Smoothsphere LG56 Entry",
+   "score": 2355,
+   "accuracy": 39.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:03:51Z",
+   "task": "CsLevel.Lowgravity56.VT Suave.RX1PWL",
+   "name": "VT Suavetrack Glider Entry",
+   "score": 1841,
+   "accuracy": 30.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:05:04Z",
+   "task": "CsLevel.Lowgravity56.VT Suave.RX1RU5",
+   "name": "VT Suavetrack Entry Close",
+   "score": 3317,
+   "accuracy": 55.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:06:19Z",
+   "task": "CsLevel.Lowgravity56.VT Suave.RX6YG1",
+   "name": "VT Suavetrack Novice Small",
+   "score": 1774,
+   "accuracy": 29.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:07:33Z",
+   "task": "CsLevel.canner.VT Suave.R8I6UD",
+   "name": "VT Suavetrack Novice",
+   "score": 2708,
+   "accuracy": 45.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:09:07Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RVRH8Z",
+   "name": "VT Angletrack Entry",
+   "score": 5313,
+   "accuracy": 88.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:10:20Z",
+   "task": "CsLevel.Lowgravity56.VT Air A.RX55JE",
+   "name": "VT Air Angelic Entry",
+   "score": 3886,
+   "accuracy": 64.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:11:34Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RX54BD",
+   "name": "VT Regenspheres Control Entry",
+   "score": 51,
+   "accuracy": 22.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:13:14Z",
+   "task": "CsLevel.Lowgravity56.VT Kontr.RX3DJD",
+   "name": "VT Kontrolsphere Entry",
+   "score": 3503,
+   "accuracy": 58.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:14:47Z",
+   "task": "CsLevel.Lowgravity56.VT Contr.RX3PRJ",
+   "name": "VT Controltrack Far Entry",
+   "score": 2260,
+   "accuracy": 37.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:16:15Z",
+   "task": "CsLevel.Lowgravity56.VT Contr.RX3QQ4",
+   "name": "VT Controltrack Blink Entry",
+   "score": 3685,
+   "accuracy": 61.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:17:38Z",
+   "task": "CsLevel.Lowgravity56.VT Preci.RX3O07",
+   "name": "VT Precisionsphere Entry",
+   "score": 2644,
+   "accuracy": 44.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:18:51Z",
+   "task": "CsLevel.Lowgravity56.VT Stead.RX700L",
+   "name": "VT Steadytrack Novice Small",
+   "score": 1239,
+   "accuracy": 20.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-18T23:20:05Z",
+   "task": "CsLevel.VT Empyrean.VT Stead.RB67MZ",
+   "name": "VT Steadytrack Novice",
+   "score": 2123,
+   "accuracy": 35.5,
+   "seconds": 60
+  }
+ ]
+}

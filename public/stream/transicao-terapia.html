@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Transição da Terapia · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      The Terapia's stinger, "Água", into and out of the Terapia scene (the Efeitos dock sets it as Terapia's override
+      and uses it for F4 from there), in place of the fade it had until 2026-11-14. The source of transicao-terapia.webm:
+      `node brand/twitch/transicao.mjs 1920 transicao-terapia` renders it frame by frame through render(t). Opened
+      on its own, it loops.
+
+      A breath in: the Terapia's water rises from the bottom in its five blues, lightest first, each layer's crest
+      a wave, until the deep blue covers the screen (from 0.42 s to 0.6 s: OBS transition point 500 ms) with the
+      breathing ring opening in the middle and bubbles going up; then the layers go on up and off the top, deepest
+      first, and the scene shows from the bottom up. 1.1 s.
+    -->
+    <style>
+      canvas {
+        position: absolute;
+        inset: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage"><canvas id="c" width="1920" height="1080"></canvas></main>
+    <script src="stream.js"></script>
+    <script>
+      const DURATION = 1.1
+      const W = 1920
+      const H = 1080
+      const g = document.getElementById("c").getContext("2d")
+      // The Terapia's water, lightest (it leads) to deepest (it covers last and leaves first).
+      const LAYERS = [
+        { color: "#85a7ff", amp: 34, len: 760, phase: 0.3 },
+        { color: "#5a80dd", amp: 30, len: 900, phase: 1.7 },
+        { color: "#3a63cc", amp: 26, len: 640, phase: 2.9 },
+        { color: "#1a45b8", amp: 22, len: 1100, phase: 4.1 },
+        { color: "#002fa7", amp: 20, len: 820, phase: 5.3 },
+      ]
+      const STAGGER = 0.045
+      const clamp = (x) => Math.min(1, Math.max(0, x))
+      const easeOut = (x) => 1 - (1 - x) ** 3
+      const easeIn = (x) => x ** 3
+      // Off the bottom to off the top, the crest's height included.
+      const LOW = H + 60
+      const SPAN = H + 140
+
+      /** A crest across the screen at height y (a wave), as points from left to right. */
+      function crest(y, l, t, dir) {
+        const pts = []
+        for (let x = 0; x <= W; x += 24) {
+          const p = (x / l.len) * Math.PI * 2 + l.phase + t * 7 * dir
+          pts.push([x, y + Math.sin(p) * l.amp + Math.sin(p * 0.43 + 1.3) * l.amp * 0.5])
+        }
+        return pts
+      }
+
+      // Bubbles: where each starts across, how big, how fast.
+      const BUBBLES = Array.from({ length: 26 }, (_, i) => {
+        const r = (n) => (Math.sin(i * 12.9898 + n * 78.233) * 43758.5453) % 1
+        const f = (n) => Math.abs(r(n))
+        return { x: 120 + f(1) * 1680, size: 6 + f(2) * 16, speed: 700 + f(3) * 900, delay: f(4) * 0.25, wobble: f(5) * 6 }
+      })
+
+      function render(t) {
+        g.clearRect(0, 0, W, H)
+        for (const [i, l] of LAYERS.entries()) {
+          // The top comes up on the way in (lightest first); the bottom follows on the way out (deepest first).
+          const top = LOW - SPAN * easeOut(clamp((t - i * STAGGER) / 0.38))
+          const bottom = LOW - SPAN * easeIn(clamp((t - 0.6 - (LAYERS.length - 1 - i) * STAGGER) / 0.36))
+          if (top >= LOW || bottom <= top - 80) continue
+          const upper = crest(top, l, t, 1)
+          const lower = crest(bottom, l, t, -1).reverse()
+          g.beginPath()
+          upper.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y)))
+          if (bottom >= LOW) {
+            g.lineTo(W, H + 200)
+            g.lineTo(0, H + 200)
+          } else lower.forEach(([x, y]) => g.lineTo(x, y))
+          g.closePath()
+          g.fillStyle = l.color
+          g.fill()
+          // A bright line on the leading crest, like foam.
+          if (i === 0 && t < 0.6) {
+            g.beginPath()
+            upper.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y)))
+            g.strokeStyle = "rgba(244, 245, 247, 0.85)"
+            g.lineWidth = 6
+            g.stroke()
+          }
+        }
+        // Under water (once the deep blue is up, until it leaves): the ring opening and bubbles going up.
+        const under = clamp((t - 0.3) / 0.12) * (1 - clamp((t - 0.66) / 0.12))
+        if (under > 0) {
+          const k = easeOut(clamp((t - 0.3) / 0.45))
+          const r = 60 + 190 * k
+          g.save()
+          g.globalAlpha = under
+          g.shadowColor = "rgba(133, 167, 255, 0.7)"
+          g.shadowBlur = 40
+          g.strokeStyle = "#85a7ff"
+          g.lineWidth = 10
+          g.beginPath()
+          g.arc(W / 2, H / 2, r, 0, Math.PI * 2)
+          g.stroke()
+          g.shadowBlur = 0
+          g.globalAlpha = under * (1 - k) * 0.8
+          g.lineWidth = 3
+          g.beginPath()
+          g.arc(W / 2, H / 2, r * 1.5, 0, Math.PI * 2)
+          g.stroke()
+          g.restore()
+          g.save()
+          for (const b of BUBBLES) {
+            const s = t - 0.28 - b.delay
+            if (s <= 0) continue
+            const y = H + 20 - s * b.speed
+            const x = b.x + Math.sin(s * 9 + b.wobble) * 10
+            g.globalAlpha = under * 0.75
+            g.strokeStyle = "#f4f5f7"
+            g.lineWidth = 2.5
+            g.beginPath()
+            g.arc(x, y, b.size, 0, Math.PI * 2)
+            g.stroke()
+          }
+          g.restore()
+        }
+      }
+
+      window.ready = Promise.resolve()
+      window.render = render
+      window.DURATION = DURATION
+      render(0)
+
+      // On its own (not rendering), loop with a pause between plays.
+      if (!params.has("render")) {
+        const start = performance.now()
+        const loop = (now) => {
+          render(Math.min(DURATION, ((now - start) / 1000) % (DURATION + 1)))
+          requestAnimationFrame(loop)
+        }
+        requestAnimationFrame(loop)
+      }
+    </script>
+  </body>
+</html>

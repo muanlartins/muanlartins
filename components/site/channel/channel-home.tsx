@@ -1,4 +1,4 @@
-import { ArrowRight, Clapperboard, Heart, MessagesSquare, Milestone, PartyPopper, QrCode, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
+import { ArrowRight, Clapperboard, Gamepad2, Heart, MessagesSquare, Milestone, PartyPopper, QrCode, Swords, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import type { ReactNode } from "react"
 import { FanStand } from "@/components/site/channel/fan-stand"
@@ -8,8 +8,8 @@ import { PageIntro } from "@/components/site/page-intro"
 import { longDate } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
-import { slotsOf, slotText } from "@/lib/agenda"
-import { channelPath } from "@/lib/channel"
+import { GameNext } from "@/components/site/agenda/game-next"
+import { channelPath, type ChannelPage } from "@/lib/channel"
 import { gamePath } from "@/lib/game"
 import type { Live } from "@/lib/lives"
 import { PIX_API } from "@/lib/pix"
@@ -18,7 +18,7 @@ import { localize, MURAL_SLUG, PIX_SLUG, profileSlug } from "@/lib/site"
 const T = localize(channel)
 const L = localize({ latest: { pt: "Última", en: "Latest" } })
 
-const MOMENT_ICONS: Record<string, LucideIcon> = { party: PartyPopper, chat: MessagesSquare, ranked: Trophy }
+const MOMENT_ICONS: Record<string, LucideIcon> = { party: PartyPopper, chat: MessagesSquare, duel: Swords, ranked: Trophy }
 
 /**
  * The channel's home, which is the site's: little to read, a lot to click. The next live (or the one on air) with
@@ -46,11 +46,7 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-xl font-medium tracking-[-0.02em] text-klein">{localize(game.title)}</span>
-                {slotsOf(game.id).map((slot) => (
-                  <span key={slot.start} className="block text-[13px] text-muted">
-                    {slotText(slot)}
-                  </span>
-                ))}
+                <GameNext game={game.id} className="block text-[13px] text-muted" prefix={`${localize(channel.games.next)}: `} />
               </span>
               <ArrowRight aria-hidden className="h-4 w-4 shrink-0 text-muted transition-colors group-hover:text-klein" />
             </Link>
@@ -73,18 +69,32 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
             </Link>
           </div>
         </div>
-        <ul className="mt-8 grid gap-4 sm:grid-cols-3">
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2">
           {T.inside.moments.map((moment) => {
             const Icon = MOMENT_ICONS[moment.icon]
-            return (
-              <li key={moment.title} className="flex gap-3">
+            const inner = (
+              <>
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-klein text-paper">
                   <Icon aria-hidden className="h-[18px] w-[18px]" />
                 </span>
                 <span>
-                  <span className="block text-[15px] font-medium text-ink">{moment.title}</span>
+                  <span className="flex items-center gap-1 text-[15px] font-medium text-ink group-hover:text-klein">
+                    {moment.title}
+                    {"page" in moment && <ArrowRight aria-hidden className="h-3.5 w-3.5 text-muted transition-colors group-hover:text-klein" />}
+                  </span>
                   <span className="block text-[13px] leading-[1.5] text-muted">{moment.text}</span>
                 </span>
+              </>
+            )
+            return (
+              <li key={moment.title}>
+                {"page" in moment ? (
+                  <Link href={channelPath(moment.page as ChannelPage)} className="group flex gap-3">
+                    {inner}
+                  </Link>
+                ) : (
+                  <div className="flex gap-3">{inner}</div>
+                )}
               </li>
             )
           })}
@@ -97,6 +107,7 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
           <Tile href={channelPath("lives")} icon={Clapperboard} title={T.lives.title} summary={lives[0] ? `${L.latest}: ${longDate(lives[0].date)}` : T.lives.description} />
           {PIX_API && <Tile href={`/${PIX_SLUG}`} icon={QrCode} title={T.pix.title} summary={T.pix.description} />}
           {PIX_API && <Tile href={`/${MURAL_SLUG}`} icon={Heart} title={T.mural.title} summary={T.mural.description} />}
+          <Tile href={channelPath("minijogos")} icon={Gamepad2} title={T.minijogos.title} summary={T.minijogos.tile} />
           <Tile href={`/${profileSlug()}`} icon={UserRound} title={T.profile.title} summary={T.profile.description} />
           <Tile href={channelPath("backstage")} icon={Wrench} title={T.backstage.title} summary={T.backstage.description} />
           <Tile href={channelPath("roadmap")} icon={Milestone} title={T.roadmap.title} summary={T.roadmap.tile} />

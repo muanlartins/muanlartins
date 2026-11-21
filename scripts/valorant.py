@@ -2,6 +2,7 @@
 
     python3 scripts/valorant.py           # the service (Windows starts it at login, like legenda.py)
     python3 scripts/valorant.py --ver     # prints what it reads, to try it with the game open
+    python3 scripts/valorant.py --recuperar [N]   # publishes the latest N competitive matches the site lacks (Valorant open)
 
 Every 2 s it asks the Riot Client's local API (the port and password in its lockfile, %LOCALAPPDATA%\\Riot Games\\
 Riot Client\\Config\\lockfile, never printed) for Luan's own presence, the same one his friends list shows: whether he
@@ -11,9 +12,16 @@ end. When a match ends it asks Valorant's own match history (with the tokens the
 only) for its summary: result, score, map, agent, Luan's kills, deaths, assists, combat score, shots by body part,
 damage and first kills, the RR it won or lost and the rank after, and his teammates' numbers without their names
 (but for the viewers in public/stream/aliados.json who agreed to be named, by their Riot ID). The "Partidas" dock
-keeps those as the Valorant session and publishes it to content/valorant/, which the site reads. When Valorant opens,
+keeps those as the Valorant session and publishes it to content/valorant/, which the site reads. Off the stream
+(OBS not streaming, asked through scripts/obs.mjs, publicar.py) the competitive matches' summaries are kept in
+~/.cache/muanlartins/valorant-fora.json and published here as a session of their own (with no outputs, so no "na live"
+link) when Valorant closes or 45 minutes after the last match, leaving out any a session on the site already has;
+`--recuperar` does the same for the latest competitive matches in Valorant's history that the site lacks (a day the
+service was off). When Valorant opens,
 after each match and every 15 minutes in the menus, it sends his inventory to the site when it changed
-(valorant_inventory.py: the skin on each weapon and what he owns, for the inventory page). Nothing touches the
+(valorant_inventory.py: the skin on each weapon and what he owns, for the inventory page). After each match with a
+replay it queues it, and every minute off the air mira_auto.py downloads the queued replays (as the game's own
+"Download") and publishes the aim page's training and matches (mira.py, voltaic.py, mira_ranked.py). Nothing touches the
 game itself; the Riot Client's local API and Valorant's are unofficial, so a patch can change them. The Riot Client
 only answers most of this while Valorant is open.
 
@@ -45,6 +53,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from windows import home  # noqa: E402
+import publicar  # noqa: E402
+import mira_auto  # noqa: E402
+from zoneinfo import ZoneInfo  # noqa: E402
 
 PORT = 8792
 CURL = "/mnt/c/Windows/System32/curl.exe"
@@ -59,6 +70,10 @@ PHASES = {"MENUS": "menu", "PREGAME": "selecao", "INGAME": "partida"}
 SHARDS = {"br": "na", "latam": "na", "na": "na", "pbe": "pbe", "eu": "eu", "ap": "ap", "kr": "kr"}
 ALIADOS = Path(__file__).resolve().parent.parent / "public" / "stream" / "aliados.json"
 summaries: list[dict] = []
+OFF_STREAM = Path.home() / ".cache" / "muanlartins" / "valorant-fora.json"
+OFF_STREAM_IDLE = 45 * 60
+TZ = ZoneInfo("America/Sao_Paulo")
+off_stream_lock = threading.Lock()
 
 listeners: set[queue.Queue] = set()
 listeners_lock = threading.Lock()
@@ -181,6 +196,8 @@ def watch():
         if phase != now["fase"] or open_ != now["aberto"]:
             send({"tipo": "fase", "fase": phase, "mapa": map_name, "fila": queue_id, "aberto": open_})
         opened = open_ and not now["aberto"]
+        if now["aberto"] and not open_:
+            threading.Thread(target=publish_off_stream, args=("o Valorant fechou",), daemon=True).start()
         if tier and tier != now["tier"]:
             # A new tier's RR isn't the old one's: unknown until the match's summary (or the history) says.
             now.update(tier=tier, rr=None)
@@ -315,9 +332,12 @@ def summarize_latest(tries=12, wait=15, newer_than_h=2):
             if details["matchInfo"].get("queueID") == "competitive":
                 updates = get(f"/mmr/v1/players/{puuid}/competitiveupdates?startIndex=0&endIndex=3&queue=competitive")["Matches"]
             match = summary(details, puuid, updates)
+            mira_auto.enfileirar(match["id"], match["queue"])  # its replay, for the aim page (mira_auto.py)
             summaries.append(match)
             del summaries[:-30]
             send({"tipo": "resumo", "partida": match}, show=False)
+            if match["queue"] == "competitive" and not publicar.ao_vivo():
+                keep_off_stream([match])
             if match.get("rank"):
                 set_rr(match["rank"]["tier"], match["rank"]["rr"])
             print(time.strftime("%H:%M:%S"), "resumo", match["map"], match["agent"], match["result"],
@@ -325,6 +345,131 @@ def summarize_latest(tries=12, wait=15, newer_than_h=2):
             return
         except (OSError, ValueError, KeyError, StopIteration, subprocess.SubprocessError) as error:
             print(time.strftime("%H:%M:%S"), "resumo ainda não:", type(error).__name__, flush=True)
+
+
+# --- Off the stream: the competitive matches published by this script -----------------------------------------------
+
+def load_off_stream() -> list[dict]:
+    try:
+        return json.loads(OFF_STREAM.read_text())["partidas"]
+    except (OSError, ValueError, KeyError):
+        return []
+
+
+def save_off_stream(matches: list[dict]):
+    OFF_STREAM.parent.mkdir(parents=True, exist_ok=True)
+    tmp = OFF_STREAM.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"partidas": matches}, ensure_ascii=False, indent=1))
+    tmp.replace(OFF_STREAM)
+
+
+def keep_off_stream(matches: list[dict]):
+    with off_stream_lock:
+        kept = load_off_stream()
+        ids = {m["id"] for m in kept}
+        kept += [m for m in matches if m["id"] not in ids]
+        save_off_stream(kept)
+    for m in matches:
+        print(time.strftime("%H:%M:%S"), "fora da live:", m["map"], m["result"], "-".join(map(str, m["score"])), flush=True)
+
+
+def published_ids(since: str) -> set[str]:
+    """The ids of the matches in the site's Valorant sessions from the day before `since` (ISO) on."""
+    day = (datetime.fromisoformat(since.replace("Z", "+00:00")).astimezone(TZ).date()).toordinal() - 1
+    ids = set()
+    for name in publicar.listar("content/valorant"):
+        try:
+            if not name.endswith(".json") or datetime.strptime(name[:10], "%Y-%m-%d").date().toordinal() < day:
+                continue
+        except ValueError:
+            continue
+        session = json.loads(publicar.ler(f"content/valorant/{name}") or "{}")
+        ids |= {m["id"] for m in session.get("matches", [])}
+    return ids
+
+
+def publish_off_stream(why: str):
+    """The kept matches as one session on the site, leaving out those a session there already has."""
+    with off_stream_lock:
+        kept = sorted(load_off_stream(), key=lambda m: m["start"])
+        if not kept:
+            return
+        try:
+            fresh = [m for m in kept if m["id"] not in published_ids(kept[0]["start"])]
+            if fresh:
+                start = datetime.fromisoformat(fresh[0]["start"].replace("Z", "+00:00")).astimezone(TZ)
+                sid = start.strftime("%Y-%m-%d-%H%M")
+                body = {"id": sid, "game": "valorant", "start": fresh[0]["start"], "end": fresh[-1]["at"], "outputs": [],
+                        "matches": fresh}
+                publicar.por(f"content/valorant/{sid}.json", body, f"Record the Valorant session of {sid[:10]} (off stream)")
+                print(time.strftime("%H:%M:%S"), "publicada", sid, len(fresh), "partidas fora da live,", why, flush=True)
+        except (OSError, ValueError) as error:
+            print(time.strftime("%H:%M:%S"), "não deu para publicar:", error, flush=True)
+            return
+        save_off_stream([m for m in load_off_stream() if m["id"] not in {k["id"] for k in kept}])
+
+
+def off_stream_ticker():
+    """Publishes the kept matches 45 minutes after the last one, if Valorant is still open."""
+    while True:
+        time.sleep(60)
+        kept = load_off_stream()
+        if kept:
+            last = max(datetime.fromisoformat(m["at"].replace("Z", "+00:00")).timestamp() for m in kept)
+            if time.time() - last > OFF_STREAM_IDLE:
+                publish_off_stream("45 minutos sem partida")
+
+
+def riot_account():
+    """(puuid, headers, shard) for Valorant's match history on Riot's service gateway, with the Riot Client's tokens
+    (in memory only); None while it hands out none (closed, or signed out)."""
+    found = client()
+    if not found:
+        return None
+    try:
+        tokens = ask(found, "/entitlements/v1/token")
+        region = ask(found, "/riotclient/region-locale").get("region", "br").lower()
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+    if "accessToken" not in tokens:
+        return None
+    headers = {"Authorization": f"Bearer {tokens['accessToken']}", "X-Riot-Entitlements-JWT": tokens["token"],
+               "User-Agent": "ShooterGame/13 Windows/10.0.19043.1.256.64bit"}
+    return tokens["subject"], headers, SHARDS.get(region, "na")
+
+
+def aim_ticker():
+    """Every minute, off the air: the queued matches' replays, then the aim page's training and matches (mira_auto.py)."""
+    puuid = None
+    while True:
+        time.sleep(60)
+        try:
+            account = riot_account()
+            puuid = account[0] if account else puuid
+            mira_auto.ciclo(riot=lambda: account, puuid=puuid,
+                            diz=lambda text: print(time.strftime("%H:%M:%S"), text, flush=True))
+        except Exception as error:  # a cycle that fails tries again in a minute; the service stays up
+            print(time.strftime("%H:%M:%S"), "mira:", type(error).__name__, str(error)[:200], flush=True)
+
+
+def recover(count: int):
+    """The latest `count` competitive matches in Valorant's history that the site lacks, published as off the stream."""
+    found = client()
+    if not found:
+        sys.exit("O Riot Client não respondeu: abra o Valorant.")
+    puuid, get = valorant_api(found)
+    history = get(f"/match-history/v1/history/{puuid}?startIndex=0&endIndex={count}&queue=competitive")["History"]
+    if not history:
+        return print("Nenhuma partida competitiva no histórico.")
+    updates = get(f"/mmr/v1/players/{puuid}/competitiveupdates?startIndex=0&endIndex={count}&queue=competitive")["Matches"]
+    oldest = iso(min(h["GameStartTime"] for h in history))
+    have = published_ids(oldest) | {m["id"] for m in load_off_stream()}
+    missing = [h for h in history if h["MatchID"] not in have]
+    print(f"{len(history)} no histórico, {len(missing)} faltando no site")
+    matches = [summary(get(f"/match-details/v1/matches/{h['MatchID']}"), puuid, updates) for h in missing]
+    if matches:
+        keep_off_stream(matches)
+        publish_off_stream("recuperadas do histórico")
 
 
 class Request(BaseHTTPRequestHandler):
@@ -385,7 +530,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--ver", action="store_true", help="only print what it reads, without serving")
     parser.add_argument("--resumo", action="store_true", help="print the last match's summary (Valorant open) and stop")
+    parser.add_argument("--recuperar", nargs="?", type=int, const=10, metavar="N",
+                        help="publish the latest N competitive matches (10) the site lacks, as off the stream, and stop")
     args = parser.parse_args()
+    if args.recuperar:
+        recover(args.recuperar)
+        return
     if args.resumo:
         summaries.clear()
         send_original = globals()["send"]
@@ -400,6 +550,8 @@ def main():
     server = ThreadingHTTPServer(("127.0.0.1", PORT), Request)
     server.daemon_threads = True
     threading.Thread(target=watch, daemon=True).start()
+    threading.Thread(target=off_stream_ticker, daemon=True).start()
+    threading.Thread(target=aim_ticker, daemon=True).start()
     print(f"Valorant em http://127.0.0.1:{PORT}/eventos", flush=True)
     server.serve_forever()
 

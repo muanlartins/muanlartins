@@ -121,6 +121,9 @@ def day_matches(date):
         if file.name.endswith(".events.json"):
             continue
         loaded[file] = json.loads(file.read_text())
+        # Off-stream sessions (no outputs, since 2026-11-20) have no replays filed: videos.py leaves them out too.
+        if not loaded[file].get("outputs"):
+            continue
         for match in loaded[file]["matches"]:
             start = datetime.fromisoformat((match.get("start") or match["at"]).replace("Z", "+00:00"))
             if start.astimezone(TIME_ZONE).date().isoformat() == date:

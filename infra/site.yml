@@ -59,6 +59,11 @@ Parameters:
     NoEcho: true
     Default: ""
     Description: The Gemini API key (Google AI Studio, project muanlartins) that checks and makes the Pix songs; empty turns songs off
+  DiscordBot:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: The token of the Discord bot "muanlartins" (Developer Portal, the app's Bot tab) for the community server's automations; empty turns them off
 
 Conditions:
   CreateOidcProvider: !Equals [!Ref CreateGitHubOidcProvider, "true"]
@@ -369,13 +374,16 @@ Resources:
       Handler: index.handler
       Role: !GetAtt PerfilRole.Arn
       MemorySize: 256
-      Timeout: 10
+      # The Discord server's hourly run (its events and every member's rank) takes a few seconds.
+      Timeout: 30
       Environment:
         Variables:
           TABLE: !Ref Torcedores
           TWITCH_CLIENT_ID: !Ref TwitchClientId
           # The stream's key: scripts/valorant.py sends the channel's inventory with it (POST /canal/jogo).
           CHAVE: !Ref SigmaChave
+          # The Discord bot's token (infra/perfil/discord.mjs); empty, the Discord routes answer 503.
+          DISCORD_BOT: !Ref DiscordBot
       Code:
         ZipFile: |
           const { DynamoDBClient } = require("@aws-sdk/client-dynamodb")
@@ -470,6 +478,26 @@ Resources:
       FunctionName: !Ref Perfil
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${PerfilApi}/*
+
+  # Every hour the Discord server catches up with the site: the agenda's events of the next seven days and each
+  # linked member's Σ rank (infra/perfil/discord.mjs).
+  PerfilDiscordHora:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: The Discord server's events and ranks, from the agenda and the Σ
+      ScheduleExpression: rate(1 hour)
+      Targets:
+        - Id: perfil
+          Arn: !GetAtt Perfil.Arn
+          Input: '{"discord":"sincronizar"}'
+
+  PerfilDiscordHoraPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref Perfil
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt PerfilDiscordHora.Arn
 
   # Each API is public, so each caps its requests: past the limit API Gateway answers 429 without calling
   # (or billing) the function.

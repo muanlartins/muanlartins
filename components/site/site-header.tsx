@@ -3,8 +3,10 @@
 import { BriefcaseBusiness, Gamepad2, Radio, User, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { SantaHat, useDecember } from "@/components/site/december"
 import { LiveBadge } from "@/components/site/lives/live-badge"
 import { cn } from "@/lib/utils"
+import { VIEWER_SLUG } from "@/lib/viewer"
 import {
   hasSection,
   HOME_SECTION,
@@ -41,9 +43,10 @@ export function SiteHeader({ lives }: { lives?: string }) {
   const page = usePathname().replace(/\/$/, "")
   const current = currentSection(page)
   const onPrivacy = page === `/${privacySlug()}`
-  // The profile, Pix and the mural sit beside the sections, but they're the channel's: its menu has them.
-  const ofChannel = page === `/${profileSlug()}` || page === `/${PIX_SLUG}` || page === `/${MURAL_SLUG}`
+  // The profile, Pix, the mural and the viewers' pages sit beside the sections, but they're the channel's: its menu has them.
+  const ofChannel = page === `/${profileSlug()}` || page === `/${PIX_SLUG}` || page === `/${MURAL_SLUG}` || page.startsWith(`/${VIEWER_SLUG}/`)
   const shown = onPrivacy ? null : ofChannel ? "channel" : current
+  const december = useDecember()
   // Pages under a section keep the same path in both languages.
   const subpath = current && page.startsWith(sectionPath(current)) ? page.slice(sectionPath(current).length) : ""
   const otherLanguage = onPrivacy
@@ -58,8 +61,12 @@ export function SiteHeader({ lives }: { lives?: string }) {
     <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-xl">
       <nav className="mx-auto flex h-16 w-full max-w-3xl items-center justify-between gap-3 px-6 sm:gap-6">
         <Link href="/" aria-label="muanlartins" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/mark-small.svg" alt="" className="h-8 w-8 rounded-[7px]" />
+          <span className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/mark-small.svg" alt="" className="h-8 w-8 rounded-[7px]" />
+            {/* December: the stand's Santa hat on the mark. */}
+            {december && <SantaHat className="absolute -top-[13px] -left-[7px] w-[34px] -rotate-[14deg]" />}
+          </span>
           <span className="hidden text-[17px] font-medium tracking-[-0.01em] sm:inline">muanlartins</span>
         </Link>
 

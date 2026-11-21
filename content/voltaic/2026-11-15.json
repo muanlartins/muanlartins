@@ -1,0 +1,230 @@
+{
+ "date": "2026-11-15",
+ "plays": [
+  {
+   "at": "2026-11-16T01:02:11Z",
+   "task": "CsLevel.VT Lowgravity56.VT Angle.SGAB0P",
+   "name": "VT Angleshot Novice S3",
+   "score": 643,
+   "accuracy": 66.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:04:05Z",
+   "task": "CsLevel.VT Lowgravity56.VT Popsh.SEXRD5",
+   "name": "VT Popshot Novice S3",
+   "score": 107,
+   "accuracy": 23.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:06:14Z",
+   "task": "CsLevel.VT Lowgravity56.VT Popsh.SEXRD5",
+   "name": "VT Popshot Novice S3",
+   "score": 173,
+   "accuracy": 35.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:07:28Z",
+   "task": "CsLevel.VT Lowgravity56.VT Quads.SEY63N",
+   "name": "VT Quadshot Novice S3",
+   "score": 979,
+   "accuracy": 90.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:12:25Z",
+   "task": "CsLevel.VT Lowgravity56.VT Wides.SEY6L3",
+   "name": "VT Wideshot Novice S3",
+   "score": 989,
+   "accuracy": 90.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:13:42Z",
+   "task": "CsLevel.VT Lowgravity56.VT Frogs.SEY57B",
+   "name": "VT Frogshot Novice S3",
+   "score": 446,
+   "accuracy": 53.5,
+   "seconds": 63,
+   "pause": 2.6
+  },
+  {
+   "at": "2026-11-16T01:15:04Z",
+   "task": "CsLevel.VT Lowgravity56.VT Frogs.SEY57B",
+   "name": "VT Frogshot Novice S3",
+   "score": 427,
+   "accuracy": 50.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:16:27Z",
+   "task": "CsLevel.VT Lowgravity56.VT Float.SEY5O0",
+   "name": "VT Floatshot Novice S3",
+   "score": 506,
+   "accuracy": 62.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:18:39Z",
+   "task": "CsLevel.VT Lowgravity56.VT Vertt.SEY6XZ",
+   "name": "VT Verttrack Novice S3",
+   "score": 1635,
+   "accuracy": 27.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:21:05Z",
+   "task": "CsLevel.VT Lowgravity56.VT Shift.SEY7DQ",
+   "name": "VT Shifttrack Novice S3",
+   "score": 1921,
+   "accuracy": 32.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:22:30Z",
+   "task": "CsLevel.VT Lowgravity56.VT Jettr.SEZZJ9",
+   "name": "VT Jettrack Novice S3",
+   "score": 2444,
+   "accuracy": 40.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:23:47Z",
+   "task": "CsLevel.VT Lowgravity56.VT Quake.SEZZWD",
+   "name": "VT Quaketrack Novice S3",
+   "score": 2218,
+   "accuracy": 37.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:25:04Z",
+   "task": "CsLevel.VT Lowgravity56.VT Contr.SEY7RT",
+   "name": "VT Controltrack Novice S3",
+   "score": 1329,
+   "accuracy": 22.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:26:19Z",
+   "task": "CsLevel.VT Lowgravity56.VT Stead.SEZZ3K",
+   "name": "VT Steadytrack Novice S3",
+   "score": 1457,
+   "accuracy": 24.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:27:30Z",
+   "task": "CsLevel.VT Lowgravity56.VT Pokes.SF00IK",
+   "name": "VT Pokeswitch Novice S3",
+   "score": 2361,
+   "accuracy": 23.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:28:49Z",
+   "task": "CsLevel.VT Lowgravity56.VT Tempo.SF04A4",
+   "name": "VT Temposwitch Novice S3",
+   "score": 2175,
+   "accuracy": 21.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:30:06Z",
+   "task": "CsLevel.VT Lowgravity56.VT Bolts.SF04OM",
+   "name": "VT Boltswitch Novice S3",
+   "score": 2309,
+   "accuracy": 30.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:31:23Z",
+   "task": "CsLevel.VT Lowgravity56.VT Darts.SF0531",
+   "name": "VT Dartswitch Novice S3",
+   "score": 2356,
+   "accuracy": 31.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:32:54Z",
+   "task": "CsLevel.VT Lowgravity56.VT Smoot.SF05GE",
+   "name": "VT Smoothswitch Novice S3",
+   "score": 1845,
+   "accuracy": 29.0,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:34:07Z",
+   "task": "CsLevel.VT Lowgravity56.VT Smoot.SF05GE",
+   "name": "VT Smoothswitch Novice S3",
+   "score": 1910,
+   "accuracy": 30.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:35:18Z",
+   "task": "CsLevel.VT Lowgravity56.VT Leaps.SF05WI",
+   "name": "VT Leapswitch Novice S3",
+   "score": 1345,
+   "accuracy": 20.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:40:13Z",
+   "task": "CsLevel.VT Lowgravity56.VT Frogs.SEY57B",
+   "name": "VT Frogshot Novice S3",
+   "score": 419,
+   "accuracy": 52.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:41:21Z",
+   "task": "CsLevel.VT Lowgravity56.VT Frogs.SEY57B",
+   "name": "VT Frogshot Novice S3",
+   "score": 434,
+   "accuracy": 54.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:42:28Z",
+   "task": "CsLevel.VT Lowgravity56.VT Frogs.SEY57B",
+   "name": "VT Frogshot Novice S3",
+   "score": 417,
+   "accuracy": 48.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:43:43Z",
+   "task": "CsLevel.VT Lowgravity56.VT Frogs.SEY57B",
+   "name": "VT Frogshot Novice S3",
+   "score": 433,
+   "accuracy": 50.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:46:36Z",
+   "task": "CsLevel.VT Lowgravity56.VT Frogs.SEY57B",
+   "name": "VT Frogshot Novice S3",
+   "score": 410,
+   "accuracy": 48.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:47:46Z",
+   "task": "CsLevel.VT Lowgravity56.VT Frogs.SEY57B",
+   "name": "VT Frogshot Novice S3",
+   "score": 382,
+   "accuracy": 48.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-16T01:48:54Z",
+   "task": "CsLevel.VT Lowgravity56.VT Frogs.SEY57B",
+   "name": "VT Frogshot Novice S3",
+   "score": 376,
+   "accuracy": 50.5,
+   "seconds": 60
+  }
+ ]
+}

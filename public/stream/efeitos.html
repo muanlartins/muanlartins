@@ -8,12 +8,13 @@
       OBS: Custom browser dock (Docks → Custom Browser Docks), off stream; keep it docked where it stays visible,
       since a hidden dock's timers slow down. It drives the stream's effects through obs-websocket, like Partidas:
 
-      - Lance ruim (F2): this dock cuts to the game's "Lance ruim" scene ("Lance ruim · Valorant" from a Valorant
-        scene: the game's, with the camera on top, its sting and lance.html's speed lines), zooms the camera from its frame
-        to the whole screen, shakes it a little, holds 4 s, shrinks it back and cuts to the scene it came from.
+      - Lance ruim (F2): this dock cuts to the game's "Lance ruim" scene ("Lance ruim · RL" from Rocket League, "Lance ruim · Valorant" from a Valorant
+        scene, "Lance ruim · Diversos" from Diversos + chat, the scene for any other game: the game's, with the camera
+        on top, its sting and lance.html's speed lines), zooms the camera from its frame to the whole screen, shakes it a little, holds 4 s, shrinks it back and cuts to the scene it came from.
         Only by hand (Luan's choice, 2026-11-08): nothing fires it on its own.
-      - Terapia (F3): the calm scene (terapia.html), faded in.
-      - Voltar (F4): back to the scene before, faded: from an effect (Terapia, Lance ruim, the VAR) the scene it came
+      - Terapia (F3): the calm scene (terapia.html), on its own stinger, "Água" (transicao-terapia.webm; a fade until
+        2026-11-14, and still if OBS lacks it).
+      - Voltar (F4): back to the scene before, faded (from Terapia, on "Água"): from an effect (Terapia, Lance ruim, the VAR) the scene it came
         from; from Conversa, Já volto and the like the last scene before it, skipping effects and the breaks
         (Começando, Já volto, Fim); in a game scene already, nothing. Never a fixed scene (Luan, 2026-11-10). The
         dock shows where it would go, under the buttons.
@@ -42,10 +43,11 @@
         speed, a timeline to scrub): touching it drops the script and the clip follows the controls. Two layouts, each game's
         default kept here: "mini", the clip in the top right corner over the game scene, which stays on (Rocket
         League's: the match goes on; jogo.html fades its chat meanwhile), and "cabine", the game's VAR scene ("VAR ·
-        Rocket League" or "VAR · Valorant": var.html's booth, the live camera, the stand in referee kit) on the "VAR"
+        Rocket League", "VAR · Valorant" or "VAR · Diversos": var.html's booth, the live camera, the stand in referee kit) on the "VAR"
         stinger (Valorant's: Luan is dead, there's time). Away from a game scene it's always the booth. Opening it
         has the stand whistle (tocador.html). The chat votes with !1, !2, !3 (one vote per login, the last counts;
-        read here, anonymously) for the time set here per game (60 s Rocket League, 40 s Valorant by default: Luan
+        read here, anonymously) for the time set here per game (60 s Rocket League, 40 s Valorant, Diversos starting as
+        Rocket League's, by default: Luan
         doubled them on 2026-11-12, for the replay's two passes), or
         "Encerrar" sooner. The chat's verdict is final; a tie (nobody voting too) is drawn among the tied 2.5 s later, unless Luan picks here first. The verdict holds 7 s and the
         dock goes back to the scene before; F4 closes the VAR at any moment. A line dragged on the preview crosses the
@@ -55,8 +57,8 @@
         replay's clock is `t` at epoch ms `em`, which the pages carry forward (replayPosicao() in stream.js), so a dock
         out of sight never puts them out of step.
 
-      The two scenes' transitions are OBS's own cut and fade, found here by kind (OBS names them in its language) and
-      set as the scenes' transition overrides each time the dock connects. Leaving them (the return from Lance ruim,
+      Lance ruim's transition is OBS's own cut, found here by kind (OBS names it in its language), and Terapia's the
+      "Água" stinger, by name; both set as the scenes' transition overrides each time the dock connects. Leaving them (the return from Lance ruim,
       F4), the dock never touches OBS's current transition: it sets the destination's override, switches, and takes
       the override back as OBS starts the transition (an event, not a timer, which a dock out of sight delays). A
       switch asked for during a transition, which OBS would ignore, waits for it to end.
@@ -67,9 +69,11 @@
       Channel points: signed in to Twitch with the channel's account (device flow, the site's Twitch app, scope
       channel:manage:redemptions; the tokens stay in the dock's storage), the dock creates the rewards in REWARDS
       that are missing (by title; a reward made in the dashboard can't be read back by an app, so it never touches
-      those), keeps them paused while OBS isn't streaming, and hears redemptions over EventSub: each plays its
-      sound and is marked done, or is refunded when it can't play (a scene without the sounds). Only the sounds: the
-      scenes stay Luan's. Redemptions left over from a closed dock are refunded when it opens. The
+      those) and changes the cost, text or cooldown of its own when REWARDS has others, keeps them paused while OBS
+      isn't streaming, and hears redemptions over EventSub: each plays its sound (or a camera filter's ability, through
+      filtros.html's visita, one at a time) and is marked done, or is refunded when it can't play (a scene without
+      the sounds, another ability still on the camera). The scenes stay Luan's. Redemptions left over from a closed
+      dock are refunded when it opens. The
       points don't give Σ: Twitch already pays them for watching, which Σ counts on its own.
 
       Credits: with the same sign-in (and the scopes moderator:read:followers, channel:read:subscriptions and
@@ -418,6 +422,9 @@
       <span>Valorant</span>
       <div class="segmentos" data-jogo="val" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
       <div class="segmentos" data-jogo="val" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
+      <span>Diversos</span>
+      <div class="segmentos" data-jogo="div" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
+      <div class="segmentos" data-jogo="div" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
     </div>
     <p class="note">Mini: o replay no canto, o jogo segue. Cabine: a cena do VAR. Depois, o tempo da votação: o replay passa uma vez normal, outra em 50%, e os últimos 8 s são de últimos votos.</p>
     <label class="campo">Pergunta <input id="var-pergunta" maxlength="60" autocomplete="off" /></label>
@@ -497,9 +504,11 @@
       const $ = (id) => document.getElementById(id)
       const TERAPIA = "Terapia"
       // Each game's scenes (brand/twitch/obs.py): its main one (the only one since 2026-11-10: the chat is always on), and its Lance ruim.
+      // "div" is any other game (2026-11-14): one scene for them all, with nothing of a game's own.
       const GAMES = {
-        rl: { main: "RL + chat", scenes: ["RL + chat"], lance: "Lance ruim", var: "VAR · Rocket League" },
+        rl: { main: "RL + chat", scenes: ["RL + chat"], lance: "Lance ruim · RL", var: "VAR · Rocket League" },
         val: { main: "Valorant + chat", scenes: ["Valorant + chat"], lance: "Lance ruim · Valorant", var: "VAR · Valorant" },
+        div: { main: "Diversos + chat", scenes: ["Diversos + chat"], lance: "Lance ruim · Diversos", var: "VAR · Diversos" },
       }
       const LANCES = Object.values(GAMES).map((g) => g.lance)
       const VARS = Object.values(GAMES).map((g) => g.var)
@@ -508,7 +517,7 @@
       // A scene's game, by the tables above, else by its name (a scene renamed in OBS still finds its game).
       const gameOf = (scene) =>
         Object.keys(GAMES).find((g) => GAMES[g].scenes.includes(scene) || GAMES[g].lance === scene || GAMES[g].var === scene) ??
-        (/valorant/i.test(scene ?? "") ? "val" : /^RL\b|rocket league/i.test(scene ?? "") ? "rl" : undefined)
+        (/valorant/i.test(scene ?? "") ? "val" : /^RL\b|rocket league/i.test(scene ?? "") ? "rl" : /diversos/i.test(scene ?? "") ? "div" : undefined)
       const isGameScene = (scene) => !!gameOf(scene) && !EFFECTS.includes(scene)
       // F2, F4 and F8: silent media sources, like the sounds', so the dock picks the game's scene.
       const GATILHOS = { "Gatilho · Lance ruim": () => lance(), "Gatilho · Voltar ao jogo": () => voltar(), "Gatilho · VAR": () => chamarVar() }
@@ -541,6 +550,7 @@
       // --- obs-websocket --------------------------------------------------------------------------------------
       let obs = null
       let ready = false
+      let conhecido = false // connected and the stream's and the recording's states read (gravarSoOJogo waits for it)
       let requests = 0
       const pending = new Map()
       const GENERAL = 1 << 0
@@ -571,6 +581,9 @@
             if (stream) onAir(stream.outputActive)
             const recording = await request("GetRecordStatus")
             gravando = !!recording?.outputActive
+            conhecido = true
+            gravarSoOJogo()
+            cameraSoNoAr()
             await bufferStatus()
             enviarVar()
           } else if (op === 5) {
@@ -582,6 +595,8 @@
             if (d.eventType === "RecordStateChanged" && !d.eventData.outputState.endsWith("ING")) {
               gravando = d.eventData.outputActive
               bufferPreciso()
+              gravarSoOJogo()
+              cameraSoNoAr()
             }
             if (d.eventType === "ReplayBufferStateChanged" && !d.eventData.outputState.endsWith("ING")) bufferStatus()
           } else if (op === 7) {
@@ -592,6 +607,7 @@
         ws.onerror = () => ws.close()
         ws.onclose = () => {
           ready = false
+          conhecido = false
           transitionEnded()
           onAir(false)
           bufferAtivo = false
@@ -629,6 +645,7 @@
         const isLance = LANCES.includes(scene)
         if (!EFFECTS.includes(scene)) before = scene
         cenaMudou(scene)
+        gravarSoOJogo()
         $("lance").classList.toggle("active", isLance)
         $("terapia").classList.toggle("active", scene === TERAPIA)
         if (isLance) play("lance")
@@ -656,7 +673,7 @@
       }
 
       // OBS's own cut and fade, by kind: their names are in OBS's language ("Cortar", "Esmaecer").
-      const transitions = { cut: null, fade: null, var: null }
+      const transitions = { cut: null, fade: null, var: null, agua: null }
       async function setup() {
         const list = await request("GetSceneTransitionList")
         for (const t of list?.transitions ?? []) {
@@ -664,12 +681,15 @@
           if (t.transitionKind === "fade_transition") transitions.fade = t.transitionName
           // The VAR's own stinger (transicao-var.webm), by the name brand/twitch/obs.py gives it.
           if (t.transitionName === "VAR") transitions.var = t.transitionName
+          // Terapia's (transicao-terapia.webm), by its name there too.
+          if (t.transitionName === "Água") transitions.agua = t.transitionName
         }
         for (const sceneName of VARS)
           if (transitions.var) request("SetSceneSceneTransitionOverride", { sceneName, transitionName: transitions.var, transitionDuration: 1300 })
         for (const sceneName of LANCES)
           if (transitions.cut) request("SetSceneSceneTransitionOverride", { sceneName, transitionName: transitions.cut, transitionDuration: 50 })
-        if (transitions.fade) request("SetSceneSceneTransitionOverride", { sceneName: TERAPIA, transitionName: transitions.fade, transitionDuration: 1500 })
+        if (transitions.agua) request("SetSceneSceneTransitionOverride", { sceneName: TERAPIA, transitionName: transitions.agua, transitionDuration: 1100 })
+        else if (transitions.fade) request("SetSceneSceneTransitionOverride", { sceneName: TERAPIA, transitionName: transitions.fade, transitionDuration: 1500 })
       }
 
       // OBS ignores a scene switch while a transition runs: one asked for then waits for its end (the last one asked).
@@ -785,7 +805,9 @@
         if (varAtual || VARS.includes(current)) return fecharVar(true)
         whenFree(() => {
           const to = anterior()
-          if (to && to !== current) switchWith("fade", to, 1500)
+          if (!to || to === current) return
+          if (current === TERAPIA && transitions.agua) switchWith("agua", to, 1100)
+          else switchWith("fade", to, 1500)
         })
       }
 
@@ -798,7 +820,33 @@
       // and serves it to this dock's preview and to var.html. ?replays= points at another copy (a test).
       const REPLAYS = params.get("replays") ?? "http://127.0.0.1:8794"
       // Each game's capture, whose "Gravar jogo" filter (Source Record) keeps the game alone in a replay buffer.
-      const CAPTURAS = { rl: "Rocket League", val: "Captura · Valorant" }
+      const CAPTURAS = { rl: "Rocket League", val: "Captura · Valorant", div: "Captura · Diversos" }
+
+      // One game recording at a time. Each capture's "Gravar jogo" encodes the game alone (the day's Jogo file and
+      // the replay buffer above) from the first time its capture is on screen until OBS closes, even once the game is
+      // gone (black frames), and even with nothing on the air (the replay buffer). Each is about a quarter of the
+      // RTX 4070's only video encoder: on 2026-11-18 two of them, with the stream, the recording and the camera's,
+      // cost the live 26.7% of its frames ("encoding lag"). So a game scene keeps its capture's on and turns the
+      // others' off; the other scenes (Conversa, the breaks, the effects) leave them as they are, so the VAR and the
+      // Jogo file go on between matches; and with neither the stream nor the recording on, all go off.
+      const GRAVAR_JOGO = "Gravar jogo"
+      let ajustandoJogo = Promise.resolve()
+      function gravarSoOJogo() {
+        ajustandoJogo = ajustandoJogo.then(async () => {
+          if (!ready || !conhecido) return
+          const noAr = stateOnAir || gravando
+          if (noAr && !isGameScene(current)) return
+          const quer = noAr ? gameOf(current) : null
+          // The ones going off first, so two never encode at once.
+          const ordem = Object.keys(CAPTURAS).sort((a, b) => (a === quer) - (b === quer))
+          for (const jogo of ordem) {
+            const sourceName = CAPTURAS[jogo]
+            const filtro = await request("GetSourceFilter", { sourceName, filterName: GRAVAR_JOGO })
+            if (!filtro || filtro.filterEnabled === (jogo === quer)) continue
+            await request("SetSourceFilterEnabled", { sourceName, filterName: GRAVAR_JOGO, filterEnabled: jogo === quer })
+          }
+        })
+      }
       const SEGURA_MS = 7000 // the verdict on screen before going back
       const SORTEIO_MS = 2500 // a tie on screen before the draw settles it
       const DERIVA = 0.5 // the preview seeks when it's this far (s) from the clock, like var.html
@@ -819,6 +867,8 @@
         state.varTempoDobrado = true
         save()
       }
+      // Diversos (2026-11-14) starts as Rocket League's: the game goes on, the replay in the corner.
+      state.varJogo.div ??= { ...state.varJogo.rl }
 
       let gravando = false
       let bufferAtivo = false
@@ -1330,16 +1380,35 @@
       const SCOPES_CREDITOS = ["moderator:read:followers", "channel:read:subscriptions", "bits:read"]
       const HELIX = "https://api.twitch.tv/helix"
       const KLEIN = "#002FA7"
-      // The rewards this dock makes and plays: the sounds only (the scenes stay Luan's). Open to everyone; a viewer
-      // earns about 300 points an hour, and each sound's cooldown keeps it from being spammed.
+      // The rewards this dock makes and plays (the scenes stay Luan's). Open to everyone and cheap (Luan, 2026-11-19:
+      // "bem baratinho" while the channel is small; a viewer earns about 220 points an hour), each with its own
+      // cooldown so nobody spams it. Their cost, text and cooldown are kept as written here: the dock changes them on
+      // Twitch when they differ. play() says whether it happened (false refunds the points). Twitch's Alerts Box draws
+      // each redemption in the band (brand/README.md); "Bebe água!" is only that alert, with its own sound.
       const REWARDS = [
-        { title: "Palmas", cost: 300, prompt: "Palmas na live.", cooldown: 60, play: () => sound("palmas") },
-        { title: "Uuuh", cost: 300, prompt: "O uuuh da torcida.", cooldown: 60, play: () => sound("uuuh") },
-        { title: "Tambor", cost: 300, prompt: "Rufem os tambores.", cooldown: 60, play: () => sound("tambor") },
+        { title: "Palmas", cost: 50, prompt: "Palmas na live.", cooldown: 60, play: () => sound("palmas") },
+        { title: "Uuuh", cost: 50, prompt: "O uuuh da torcida.", cooldown: 60, play: () => sound("uuuh") },
+        { title: "Tambor", cost: 50, prompt: "Rufem os tambores.", cooldown: 60, play: () => sound("tambor") },
+        { title: "Bebe água!", cost: 50, prompt: "O Luan para e bebe água. Saúde!", cooldown: 600, play: () => ready && !BREAKS.includes(current) },
+        { title: "Phoenix na câmera", cost: 100, prompt: "Uma habilidade da Phoenix, ao acaso, na câmera do Luan.", cooldown: 120, play: () => camera("phoenix", ["blaze", "flash", "molotov", "ult"]) },
+        { title: "Sova na câmera", cost: 100, prompt: "Uma habilidade do Sova, ao acaso, na câmera do Luan.", cooldown: 120, play: () => camera("sova", ["drone", "choque", "recon", "ult"]) },
+        { title: "Sage na câmera", cost: 100, prompt: "Uma habilidade da Sage, ao acaso, na câmera do Luan.", cooldown: 120, play: () => camera("sage", ["barreira", "lentidao", "cura", "ult"]) },
+        { title: "Octane na câmera", cost: 100, prompt: "O Octane na cabeça do Luan: um flip ou uma demolição.", cooldown: 120, play: () => camera("octane", ["demo", "flip"]) },
       ]
       function sound(som) {
         if (!ready || BREAKS.includes(current)) return false
         play(som)
+        return true
+      }
+      // A camera filter's ability (filtros.html's visita): the agent comes on for one of its abilities, drawn at
+      // random, and the Filtros dock's choice comes back after it. One at a time: another within CAMERA_MS is refunded.
+      const CAMERA_MS = 30000
+      let cameraLivre = 0
+      function camera(filtro, acoes) {
+        if (!ready || BREAKS.includes(current) || Date.now() < cameraLivre) return false
+        cameraLivre = Date.now() + CAMERA_MS
+        const acao = acoes[Math.floor(Math.random() * acoes.length)]
+        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-filtro", event_data: { visita: { filtro, acao } } } })
         return true
       }
 
@@ -1445,18 +1514,27 @@
         if (!mine) return
         rewardIds.clear()
         for (const reward of REWARDS) {
+          const want = {
+            cost: reward.cost,
+            prompt: reward.prompt,
+            background_color: KLEIN,
+            is_global_cooldown_enabled: true,
+            global_cooldown_seconds: reward.cooldown,
+          }
           let found = mine.data.find((r) => r.title === reward.title)
           if (!found) {
-            const made = await helix("POST", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}`, {
-              title: reward.title,
-              cost: reward.cost,
-              prompt: reward.prompt,
-              background_color: KLEIN,
-              is_global_cooldown_enabled: true,
-              global_cooldown_seconds: reward.cooldown,
-            })
+            const made = await helix("POST", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}`, { title: reward.title, ...want })
             found = made?.data?.[0]
             if (!found) logLine(`Não deu para criar "${reward.title}" (já existe uma recompensa com esse nome?)`, true)
+          } else if (
+            found.cost !== reward.cost ||
+            found.prompt !== reward.prompt ||
+            !found.global_cooldown_setting?.is_enabled ||
+            found.global_cooldown_setting?.global_cooldown_seconds !== reward.cooldown
+          ) {
+            const changed = await helix("PATCH", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}&id=${found.id}`, want)
+            if (changed?.data?.[0]) logLine(`"${reward.title}" agora custa ${reward.cost} pontos (espera de ${reward.cooldown} s)`)
+            else logLine(`Não deu para atualizar "${reward.title}"`, true)
           }
           if (found) rewardIds.set(found.id, reward)
         }
@@ -1476,6 +1554,33 @@
         }
       }
 
+      // The camera only while it's needed (Luan, 2026-11-20: OBS left open shouldn't keep the webcam, and the lamp that
+      // follows it, on): every video capture device in OBS (the "Câmera", NVIDIA Broadcast's camera) is turned on when
+      // the stream or a recording starts and off once both have stopped, with its own Activate/Deactivate button
+      // (dshow's "activate"), which OBS remembers, so it opens off next time too. Opening takes a second or two, under
+      // Começando. That button in the source's properties turns it on by hand (to frame it before a live) until the
+      // next start or stop; the camera filters open the camera on their own only while a filter is on.
+      let cameraQuer = null
+      let cameraFila = Promise.resolve()
+      function cameraSoNoAr() {
+        if (!conhecido) return
+        const quer = stateOnAir || gravando
+        if (quer === cameraQuer) return
+        cameraQuer = quer
+        cameraFila = cameraFila.then(async () => {
+          const lista = await request("GetInputList", { inputKind: "dshow_input" })
+          for (const { inputName } of lista?.inputs ?? []) {
+            const s = await request("GetInputSettings", { inputName })
+            if (!s) continue
+            // "active" is only there once the button has been pressed: until then it's on.
+            const ativa = s.inputSettings?.active !== false
+            if (ativa === cameraQuer) continue
+            await request("PressInputPropertiesButton", { inputName, propertyName: "activate" })
+            logLine(`${inputName}: ${cameraQuer ? "ligada (no ar)" : "desligada (fora do ar)"}`)
+          }
+        })
+      }
+
       // Paused off the air, so nobody spends points on an effect nobody sees.
       // One change at a time, to the latest state, so a quick off and on can't land out of order.
       let stateOnAir = false
@@ -1483,6 +1588,8 @@
       function onAir(live) {
         stateOnAir = live
         bufferPreciso()
+        gravarSoOJogo()
+        cameraSoNoAr()
         syncing = syncing.then(async () => {
           const want = stateOnAir
           if (!tw.user || airing === want) return

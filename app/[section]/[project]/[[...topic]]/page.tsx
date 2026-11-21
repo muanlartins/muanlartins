@@ -1,11 +1,14 @@
 import { notFound } from "next/navigation"
 import { AimPage } from "@/components/site/aim/aim-page"
+import { AgendaPage } from "@/components/site/agenda/agenda-page"
 import { BackstagePage } from "@/components/site/channel/backstage-page"
 import { ChangelogPage } from "@/components/site/channel/changelog-page"
+import { CommandsPage } from "@/components/site/channel/commands-page"
 import { GameHome } from "@/components/site/game/game-home"
 import { InventoryPage } from "@/components/site/inventory/inventory-page"
 import { LivePage } from "@/components/site/lives/live-page"
 import { LivesPage } from "@/components/site/lives/lives-page"
+import { MinigamesPage } from "@/components/site/minigames/minigames-page"
 import { fullDate } from "@/components/site/ranked/format"
 import { RankedPage } from "@/components/site/ranked/ranked-page"
 import { ValorantRankedPage } from "@/components/site/ranked/valorant-ranked-page"
@@ -17,7 +20,7 @@ import { type ChannelPage } from "@/lib/channel"
 import { fundamentals, GAME_PAGES, type GamePage } from "@/lib/game"
 import { matchMoments } from "@/lib/lives"
 import { lives, transcript } from "@/lib/lives-files"
-import { sessions, valorantSessions, voltaicDays } from "@/lib/matches"
+import { miraDays, miraRankedDays, sessions, valorantSessions, voltaicDays } from "@/lib/matches"
 import { sectionMetadata } from "@/lib/metadata"
 import { editionSlug, entries, findTopic, type Roadmap } from "@/lib/roadmap"
 import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
@@ -27,7 +30,8 @@ import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
  * /conteudo/<project>: its home, its roadmap at /fundamentals (an older
  * edition at /fundamentals/v<n>), its ranked record at /ranked, its aim training at /aim, its weapon skins at /inventory, and each
  * topic, of any edition, at /<topic>. In the channel, its lives
- * at /canal/lives, each at /canal/lives/<date>, its backstage at
+ * at /canal/lives, each at /canal/lives/<date>, its agenda at /canal/agenda, the chat's commands at /canal/comandos, its
+ * minigames at /canal/minijogos, its backstage at
  * /canal/backstage and its roadmap at /canal/roadmap. One route for all, so a roadmap with no topics yet still
  * builds.
  */
@@ -57,6 +61,9 @@ export function generateStaticParams() {
   const inChannel = [
     { section, project: "lives", topic: [] },
     ...lives().map((live) => ({ section, project: "lives", topic: [live.date] })),
+    { section, project: "agenda", topic: [] },
+    { section, project: "comandos", topic: [] },
+    { section, project: "minijogos", topic: [] },
     { section, project: "backstage", topic: [] },
     { section, project: "roadmap", topic: [] },
   ]
@@ -72,7 +79,7 @@ type Found =
 async function find(params: Props["params"]): Promise<Found | undefined> {
   const { section, project, topic: [id, ...rest] = [] } = await params
   if (sectionFromSlug(section) === "channel") {
-    if ((project === "backstage" || project === "roadmap") && !id) return { channel: project }
+    if ((project === "agenda" || project === "comandos" || project === "minijogos" || project === "backstage" || project === "roadmap") && !id) return { channel: project }
     if (project !== "lives" || rest.length > 0) return undefined
     if (!id) return { channel: "lives" }
     const live = lives().find((live) => live.date === id)
@@ -143,13 +150,16 @@ export default async function SectionSubpage({ params }: Props) {
     if (found.live) return <LivePage live={found.live} lines={transcript(found.live.date)} sessions={sessions()} />
     if (found.channel === "lives") return <LivesPage lives={lives()} sessions={sessions()} />
     if (found.channel === "roadmap") return <ChangelogPage />
+    if (found.channel === "agenda") return <AgendaPage />
+    if (found.channel === "comandos") return <CommandsPage />
+    if (found.channel === "minijogos") return <MinigamesPage />
     return <BackstagePage />
   }
   const { game, page, roadmap, entry } = found
   if (entry && roadmap) return <TopicPage game={game} roadmap={roadmap} id={entry.topic.id} />
   if (page === "fundamentals" && roadmap) return <RoadmapPage game={game} roadmap={roadmap} />
   if (page === "aim" && game.aim) {
-    return <AimPage title={localize(game.aim.title)} description={localize(game.aim.description)} days={voltaicDays()} credits={localize(game.credits)} />
+    return <AimPage title={localize(game.aim.title)} description={localize(game.aim.description)} days={voltaicDays()} mira={miraDays()} ranked={miraRankedDays()} credits={localize(game.credits)} />
   }
   if (page === "inventory" && game.inventory) {
     return <InventoryPage title={localize(game.inventory.title)} description={localize(game.inventory.description)} credits={localize(game.credits)} />

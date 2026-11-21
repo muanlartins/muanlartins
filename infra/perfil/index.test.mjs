@@ -31,7 +31,7 @@ function montar() {
     })
     return { status: r.statusCode, body: r.body ? JSON.parse(r.body) : undefined }
   }
-  return { itens, chamar }
+  return { itens, chamar, handler }
 }
 
 test("saving the fan keeps the loadout, and the other way round", async () => {
@@ -92,4 +92,124 @@ test("without a valid token, nothing personal", async () => {
   assert.equal((await chamar("PUT", "/eu/loadout", { token: "ruim", corpo: { armas: {} } })).status, 401)
   assert.equal((await chamar("GET", "/outra")).status, 404)
   assert.equal((await chamar("OPTIONS", "/eu")).status, 204)
+})
+
+// Tomorrow in Brasília, so the next lives always have one.
+const AMANHA = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date(Date.now() + 86_400_000))
+const AGENDA = {
+  dates: {
+    [AMANHA]: { lives: [{ start: "21:00", end: "23:00", game: "valorant", title: "Aprendendo Valorant" }] },
+    "2099-01-03": { lives: [{ start: "15:00", end: "17:00", game: "valorant" }] },
+    "2000-01-03": { note: "passou", lives: [] },
+  },
+  games: { valorant: { name: "VALORANT", category: "516575", title: "Aprendendo Valorant" } },
+}
+
+test("the agenda: only the channel saves it, everyone reads it, with the next lives and as a calendar", async () => {
+  const { chamar, handler } = montar()
+  assert.deepEqual((await chamar("GET", "/agenda")).body, { agenda: null, em: null, proximas: [] })
+  assert.equal((await chamar("PUT", "/agenda", { token: "bom", corpo: AGENDA })).status, 403)
+  assert.equal((await chamar("PUT", "/agenda", { corpo: AGENDA })).status, 403)
+  assert.equal((await chamar("PUT", "/agenda", { token: "canal", corpo: [] })).status, 400)
+  const salvo = await chamar("PUT", "/agenda", { token: "canal", corpo: AGENDA })
+  assert.equal(salvo.status, 200)
+  // A day planned in the past goes.
+  assert.deepEqual(Object.keys(salvo.body.agenda.dates), [AMANHA, "2099-01-03"])
+  const lido = await chamar("GET", "/agenda")
+  assert.deepEqual(lido.body.agenda, salvo.body.agenda)
+  assert.ok(lido.body.em)
+  assert.deepEqual(lido.body.proximas.map((o) => [o.data, o.start, o.titulo]), [[AMANHA, "21:00", "Aprendendo Valorant"]])
+  const cal = await handler({ requestContext: { http: { method: "GET" } }, rawPath: "/agenda.ics", headers: {} })
+  assert.match(cal.headers["content-type"], /^text\/calendar/)
+  assert.match(cal.body, /DTSTART;TZID=America\/Sao_Paulo:\d{8}T210000\r\n/)
+  assert.match(cal.body, /SUMMARY:Live do muanlartins: VALORANT/)
+  const chat = await handler({ requestContext: { http: { method: "GET" } }, rawPath: "/agenda.txt", headers: {} })
+  assert.match(chat.headers["content-type"], /^text\/plain/)
+  // 2099's is past the two weeks the chat looks at.
+  assert.equal(chat.body, "Próxima live amanhã às 21h (horário de Brasília): VALORANT, Aprendendo Valorant.")
+})
+
+test("the ball in the duel: saved on its own, public by login for the overlay, junk dropped", async () => {
+  const { chamar } = montar()
+  await chamar("PUT", "/eu", { token: "bom", corpo: { cabeca: "bone" } })
+  assert.equal((await chamar("PUT", "/eu/duelo", { corpo: { classe: "machado" } })).status, 401)
+  const salvo = await chamar("PUT", "/eu/duelo", { token: "bom", corpo: { classe: "machado", material: "Gold!", extra: 1 } })
+  assert.deepEqual(salvo.body, { login: "fulano", duelo: { classe: "machado" } })
+  const eu = await chamar("GET", "/eu", { token: "bom" })
+  assert.deepEqual(eu.body.duelo, { classe: "machado" })
+  assert.deepEqual(eu.body.aparencia, { cabeca: "bone" })
+  assert.deepEqual((await chamar("GET", "/duelistas", { query: { logins: "FULANO,outro,a b" } })).body, { fulano: { classe: "machado" } })
+  // Saving the fan keeps the ball.
+  await chamar("PUT", "/eu", { token: "bom", corpo: { cabeca: "coroa" } })
+  assert.deepEqual((await chamar("GET", "/eu", { token: "bom" })).body.duelo, { classe: "machado" })
+  // Everything back to the default: nobody's ball in the list.
+  await chamar("PUT", "/eu/duelo", { token: "bom", corpo: {} })
+  assert.deepEqual((await chamar("GET", "/duelistas", { query: { logins: "fulano" } })).body, {})
+  await chamar("PUT", "/eu/duelo", { token: "bom", corpo: { material: "diamond" } })
+  await chamar("DELETE", "/eu/duelo", { token: "bom" })
+  assert.equal((await chamar("GET", "/eu", { token: "bom" })).body.duelo, null)
+})
+
+test("the card: its theme, free colours, a filtered text, pronouns and the game; public with the fan and the ball", async () => {
+  const { chamar } = montar()
+  const r = await chamar("PUT", "/eu/cartao", {
+    token: "bom",
+    corpo: { tema: "por-do-sol", cores: ["#FF0000", "#00ff00", "#0000ff"], sobre: `  jogo   desde 2016,\n\n\n\nx ${"x".repeat(400)}`, jogo: "rocket-league", extra: 1 },
+  })
+  assert.equal(r.status, 200)
+  // Three colours aren't two: dropped. The text keeps a blank line at most and is cut at 300 characters.
+  assert.deepEqual(Object.keys(r.body.cartao).sort(), ["jogo", "sobre", "tema"])
+  assert.equal([...r.body.cartao.sobre].length, 300)
+  assert.ok(r.body.cartao.sobre.startsWith("jogo desde 2016,\n\nx x"))
+  await chamar("PUT", "/eu/cartao", { token: "bom", corpo: { tema: "livre", cores: ["#FF0000", "#00ff00"], sobre: "sou viado mesmo", pronomes: "  ele / dele  " } })
+  await chamar("PUT", "/eu", { token: "bom", corpo: { cor: "#00ff00" } })
+  const eu = await chamar("GET", "/eu", { token: "bom" })
+  assert.deepEqual(eu.body.cartao, { tema: "livre", cores: ["#ff0000", "#00ff00"], sobre: "sou ••• mesmo", pronomes: "ele / dele" })
+  const pub = await chamar("GET", "/cartoes", { query: { logins: "FULANO,ninguem,Bad Login" } })
+  assert.deepEqual(pub.body, { fulano: { aparencia: { cor: "#00ff00" }, cartao: eu.body.cartao, duelo: null, imagens: null } })
+  await chamar("DELETE", "/eu/cartao", { token: "bom" })
+  assert.equal((await chamar("GET", "/eu", { token: "bom" })).body.cartao, null)
+  assert.equal((await chamar("PUT", "/eu/cartao", { corpo: {} })).status, 401)
+})
+
+// A tiny WebP: "RIFF", its size, "WEBP" and padding past the 200 bytes the API asks for at least.
+const webp = (n = 400) => Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBP"), Buffer.alloc(n)])
+
+test("the banner and the photo: saved apart, public by an id that never changes, taken down by them or the channel", async () => {
+  const { itens, chamar, handler } = montar()
+  const enviar = (caminho, bytes, token = "bom") =>
+    handler({
+      requestContext: { http: { method: "PUT" } },
+      rawPath: caminho,
+      headers: { authorization: `Bearer ${token}`, "content-type": "image/webp" },
+      body: bytes.toString("base64"),
+      isBase64Encoded: true,
+    }).then((r) => ({ status: r.statusCode, body: JSON.parse(r.body) }))
+  assert.equal((await enviar("/eu/imagem/banner", Buffer.from("not a picture at all".repeat(20)))).status, 400)
+  assert.equal((await enviar("/eu/imagem/foto", webp(100_000))).status, 400)
+  assert.equal((await enviar("/eu/imagem/banner", webp(), "ruim")).status, 401)
+  const b = await enviar("/eu/imagem/banner", webp())
+  assert.equal(b.status, 200)
+  assert.match(b.body.imagens.banner, /^[a-z0-9]+\.webp$/)
+  const f = await enviar("/eu/imagem/foto", webp(500))
+  assert.deepEqual(Object.keys(f.body.imagens).sort(), ["banner", "foto"])
+  // The cards say which; the pictures don't ride along in the batch.
+  const pub = await chamar("GET", "/cartoes", { query: { logins: "fulano" } })
+  assert.deepEqual(pub.body.fulano.imagens, f.body.imagens)
+  assert.equal(itens.get("fulano").imagem, undefined)
+  const r = await handler({ requestContext: { http: { method: "GET" } }, rawPath: `/imagem/fulano/banner/${b.body.imagens.banner}`, headers: {} })
+  assert.equal(r.statusCode, 200)
+  assert.equal(r.headers["content-type"], "image/webp")
+  assert.match(r.headers["cache-control"], /immutable/)
+  assert.ok(Buffer.from(r.body, "base64").equals(webp()))
+  // An old id is gone with a new picture.
+  const b2 = await enviar("/eu/imagem/banner", webp(300))
+  assert.equal((await chamar("GET", `/imagem/fulano/banner/${b.body.imagens.banner}`)).status, 404)
+  assert.notEqual(b2.body.imagens.banner, b.body.imagens.banner)
+  // They take their banner down; only the channel takes down someone else's photo.
+  assert.deepEqual((await chamar("DELETE", "/eu/imagem/banner", { token: "bom" })).body.imagens, { foto: f.body.imagens.foto })
+  assert.equal((await chamar("GET", `/imagem/fulano/banner/${b2.body.imagens.banner}`)).status, 404)
+  assert.equal((await chamar("DELETE", "/canal/imagem/fulano/foto", { token: "bom" })).status, 403)
+  assert.equal((await chamar("DELETE", "/canal/imagem/fulano/foto", { token: "canal" })).status, 200)
+  assert.equal((await chamar("GET", "/eu", { token: "bom" })).body.imagens, null)
 })

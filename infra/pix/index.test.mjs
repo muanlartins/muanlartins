@@ -19,12 +19,32 @@ Object.assign(process.env, {
   AWS_LAMBDA_FUNCTION_NAME: "pix",
 })
 
-// Google, played by the test: the reviewer's verdict, and Lyria's answers in order (then "ok" for every call after).
-const google = { revisor: { ok: true, motivo: "" }, fora: false, lyria: [], chamadasLyria: 0 }
+// Google, played by the test: the reviewer's verdict, Lyria's answers in order (then "ok" for every call after), and
+// the lyrics' timing (null: that call fails).
+const TEMPOS = [{ i: 0, inicio: 0.2, fim: 1.1 }, { i: 1, inicio: 1, fim: 1.9 }]
+const google = { revisor: { ok: true, motivo: "" }, fora: false, lyria: [], chamadasLyria: 0, sincronia: TEMPOS, chamadasSincronia: 0 }
 const MP3 = Buffer.alloc(48_000, 7) // 2 s at 192 kb/s
-globalThis.fetch = async (url, { body }) => {
+// Who's in the chat, as the Σ API answers it (null: it can't be reached).
+const chat = { pessoas: [], chave: null }
+globalThis.fetch = async (url, { body, headers } = {}) => {
   const resposta = (status, corpo) => new Response(JSON.stringify(corpo), { status, headers: { "content-type": "application/json" } })
+  if (String(url).endsWith("/presentes")) {
+    chat.chave = headers?.["x-chave"]
+    return chat.pessoas ? resposta(200, { pessoas: chat.pessoas }) : resposta(503, {})
+  }
   if (google.fora) throw new TypeError("fetch failed")
+  // The site serving a song: what the function put in the bucket.
+  const site = String(url).match(/^https:\/\/muanlartins\.com\.br\/(musicas\/.+)$/)
+  if (site) {
+    const a = local.arquivos.get(`pt/${site[1]}`)
+    return a ? new Response(a.corpo, { status: 200 }) : new Response("", { status: 404 })
+  }
+  if (String(url).endsWith(":generateContent") && body.includes('"inline_data"')) {
+    google.chamadasSincronia++
+    google.ultimaSincronia = JSON.parse(body).contents[0].parts[1].text
+    if (!google.sincronia) return resposta(503, { error: { code: 503, message: "The model is overloaded." } })
+    return resposta(200, { candidates: [{ content: { parts: [{ text: JSON.stringify(google.sincronia) }] } }] })
+  }
   if (String(url).endsWith(":generateContent")) return resposta(200, { candidates: [{ content: { parts: [{ text: JSON.stringify(google.revisor) }] } }] })
   if (String(url).endsWith("/interactions")) {
     google.chamadasLyria++
@@ -42,7 +62,8 @@ globalThis.fetch = async (url, { body }) => {
   throw new Error(`fetch inesperado: ${url}`)
 }
 
-const { handler } = await import("./index.mjs")
+const { handler, sortear } = await import("./index.mjs")
+const { temposDe } = await import("./musica.mjs")
 local.invocar = handler
 
 async function chamar(metodo, caminho, { corpo, headers = {}, query } = {}) {
@@ -70,7 +91,7 @@ const status = async (id) => (await chamar("GET", "/reserva", { query: { id } })
 beforeEach(() => {
   local.itens.clear()
   local.arquivos.clear()
-  Object.assign(google, { revisor: { ok: true, motivo: "" }, fora: false, lyria: [], chamadasLyria: 0 })
+  Object.assign(google, { revisor: { ok: true, motivo: "" }, fora: false, lyria: [], chamadasLyria: 0, sincronia: TEMPOS, chamadasSincronia: 0 })
 })
 
 test("a song's order: R$ 5 and up, a style, a theme or lyrics, clean words, and the reviewer's yes", async () => {
@@ -126,6 +147,9 @@ test("paid, the song is made, waits for the live, and reaches the mural only aft
   assert.match(p.musica.url, /^\/musicas\/[\w-]+\.mp3$/)
   assert.equal(p.musica.letraCantada, "Ô Luan, chuta essa bola\n\nQue a torcida tá aqui")
   assert.equal(p.musica.segundos, 2)
+  assert.deepEqual(p.musica.tempos, [[0.2, 1], [1, 1.9]], "a line ends when the next starts")
+  assert.match(google.ultimaSincronia, /com 2 segundos/)
+  assert.match(google.ultimaSincronia, /0: Ô Luan, chuta essa bola\n1: Que a torcida tá aqui$/)
   assert.equal(p.mensagem, "")
   const arquivo = local.arquivos.get(`pt/musicas/${p.musica.arquivo}`)
   assert.equal(arquivo.tipo, "audio/mpeg")
@@ -136,8 +160,44 @@ test("paid, the song is made, waits for the live, and reaches the mural only aft
 
   assert.equal((await canal({ acao: "exibido", pix: p.sk, reserva: p.reserva })).status, 200)
   const depois = (await chamar("GET", "/mural")).body.pix[0]
-  assert.deepEqual(depois.musica, { url: p.musica.url, estilo: "sertanejo", sobre: "a torcida que nunca abandona", letra: "Ô Luan, chuta essa bola\n\nQue a torcida tá aqui", segundos: 2 })
+  assert.deepEqual(depois.musica, { url: p.musica.url, estilo: "sertanejo", sobre: "a torcida que nunca abandona", letra: "Ô Luan, chuta essa bola\n\nQue a torcida tá aqui", tempos: [[0.2, 1], [1, 1.9]], segundos: 2 })
   assert.equal(depois.nome, "Ana")
+})
+
+test("the lyrics' timing is checked: in order, inside the song, at least half the lines", () => {
+  assert.deepEqual(temposDe([{ i: 0, inicio: 1.04, fim: 3 }, { i: 1, inicio: 3.5, fim: 5 }], 2, 60), [[1, 3], [3.5, 5]])
+  // Past the song's end, or out of order: that line goes without a time.
+  assert.deepEqual(temposDe([{ i: 0, inicio: 1, fim: 3 }, { i: 1, inicio: 110, fim: 112 }, { i: 2, inicio: 5, fim: 7 }], 3, 82), [[1, 3], null, [5, 7]])
+  assert.deepEqual(temposDe([{ i: 0, inicio: 10, fim: 12 }, { i: 1, inicio: 4, fim: 6 }, { i: 2, inicio: 13, fim: 15 }], 3, 60), [[10, 12], null, [13, 15]])
+  // Nonsense, a line not sung (-1), a repeated index: ignored.
+  assert.deepEqual(temposDe([{ i: 0, inicio: -1, fim: -1 }, { i: 1, inicio: 2, fim: 4 }, { i: 1, inicio: 9, fim: 9.5 }, { i: 7, inicio: 1, fim: 2 }, { i: 2, inicio: 5, fim: 4 }, { i: 3, inicio: 6, fim: 8 }], 4, 60), [null, [2, 4], null, [6, 8]])
+  // Fewer than half placed, or nothing to place: no timing at all.
+  assert.equal(temposDe([{ i: 0, inicio: 1, fim: 2 }], 3, 60), null)
+  assert.equal(temposDe("não é uma lista", 2, 60), null)
+  assert.equal(temposDe([], 0, 60), null)
+})
+
+test("without the timing (Google out of reach), the song is ready all the same, and the dock asks again", async () => {
+  google.sincronia = null
+  const { body: r } = await chamar("POST", "/reservar", { corpo: pedido({ estilo: "pagode", sobre: "o churrasco da live" }) })
+  await pagar(r.centavos)
+  const p = (await canal()).body.pix[0]
+  assert.deepEqual([p.musica.estado, p.musica.tempos], ["pronta", undefined])
+  assert.equal(google.chamadasSincronia, 1, "a song isn't made again for its timing")
+  assert.equal(google.chamadasLyria, 1)
+
+  assert.equal((await canal({ acao: "letra", pix: p.sk })).status, 502)
+  google.sincronia = TEMPOS
+  assert.deepEqual((await canal({ acao: "letra", pix: p.sk })).body, { linhas: 2, de: 2 })
+  assert.deepEqual((await canal()).body.pix[0].musica.tempos, [[0.2, 1], [1, 1.9]])
+  assert.equal((await canal({ acao: "letra", pix: "pix/nada" })).status, 404)
+
+  // Made again, a song whose new timing fails loses the old one, which was for the old song.
+  google.sincronia = null
+  await canal({ acao: "musica", pix: p.sk })
+  await esperar()
+  const nova = (await canal()).body.pix[0]
+  assert.deepEqual([nova.musica.estado, nova.musica.tempos], ["pronta", undefined])
 })
 
 test("lyrics written by the viewer are sung as written", async () => {
@@ -250,4 +310,195 @@ test("a plain Pix is as it was: no song, no Google", async () => {
   await canal({ acao: "exibido", pix: p.sk, reserva: r.id })
   assert.equal((await chamar("GET", "/mural")).body.pix[0].mensagem, "Que gol!")
   assert.equal(google.chamadasLyria, 0)
+})
+
+// --- Goals: an end date, one set ahead of time, the calendar moving on by itself ---------------------------
+
+const relogio = Date.now
+const em = (instante) => (Date.now = () => Date.parse(instante))
+const pixDe = (centavos, nome) => canal({ acao: "registrar", centavos, nome })
+
+test("a goal with a last day ends at that day's Brasília midnight by itself, into the history, reached or not", async (t) => {
+  t.after(() => (Date.now = relogio))
+  em("2026-11-20T12:00:00Z")
+  assert.equal((await canal({ acao: "meta", titulo: "Os três primeiros dígitos", alvo: 10000, ate: "2026-11-30" })).status, 200)
+  await pixDe(6000, "Ana")
+  em("2026-11-30T23:59:00-03:00")
+  await pixDe(5000, "Bia")
+  let { body: c } = await canal()
+  assert.deepEqual(c.meta, { titulo: "Os três primeiros dígitos", alvo: 10000, arrecadado: 11000, desde: "2026-11-20T12:00:00.000Z", prazo: "2026-12-01T03:00:00.000Z", tema: null })
+
+  // Past the goal, it keeps counting as extra; at midnight it's over, and a Pix after it counts for no goal.
+  em("2026-12-01T00:00:01-03:00")
+  await pixDe(700, "Caio")
+  ;({ body: c } = await canal())
+  assert.equal(c.meta, null)
+  const { body: m } = await chamar("GET", "/metas")
+  assert.equal(m.meta, null)
+  assert.deepEqual(m.metas, [{ titulo: "Os três primeiros dígitos", alvo: 10000, desde: "2026-11-20T12:00:00.000Z", prazo: "2026-12-01T03:00:00.000Z", tema: null, ate: "2026-12-01T03:00:00.000Z", arrecadado: 11000 }])
+  const { body: mural } = await chamar("GET", "/mural")
+  assert.deepEqual(mural.metas[0].apoiadores.map((p) => p.nome), ["Bia", "Ana"])
+})
+
+test("a goal set ahead takes the screen on its first day, ending the one before right then", async (t) => {
+  t.after(() => (Date.now = relogio))
+  em("2026-11-14T20:00:00Z")
+  await canal({ acao: "meta", titulo: "Os três primeiros dígitos", alvo: 10000 })
+  await pixDe(1000, "Ana")
+  // Its day has to be ahead, and its end after its start.
+  assert.equal((await canal({ acao: "meta", proxima: true, titulo: "Natal", alvo: 10000, de: "2026-11-14", ate: "2026-12-31" })).status, 400)
+  assert.equal((await canal({ acao: "meta", proxima: true, titulo: "Natal", alvo: 10000, de: "2026-12-01", ate: "2026-11-30" })).status, 400)
+  const r = await canal({ acao: "meta", proxima: true, titulo: "Natal", alvo: 10000, de: "2026-12-01", ate: "2026-12-31" })
+  assert.deepEqual(r.body.proxima, { titulo: "Natal", alvo: 10000, desde: "2026-12-01T03:00:00.000Z", prazo: "2027-01-01T03:00:00.000Z", tema: null })
+  assert.deepEqual((await canal()).body.proxima, r.body.proxima)
+  assert.equal((await chamar("GET", "/mural")).body.proxima.titulo, "Natal")
+
+  em("2026-12-01T03:00:00Z")
+  await pixDe(500, "Bia")
+  const { body: c } = await canal()
+  assert.deepEqual([c.meta.titulo, c.meta.arrecadado, c.proxima], ["Natal", 500, null])
+  const { body: m } = await chamar("GET", "/metas")
+  assert.deepEqual(
+    m.metas.map((g) => [g.titulo, g.ate, g.prazo, g.arrecadado]),
+    [["Os três primeiros dígitos", "2026-12-01T03:00:00.000Z", null, 1000]],
+  )
+
+  // And it ends on its own day too.
+  em("2027-01-01T03:00:00Z")
+  assert.equal((await canal()).body.meta, null)
+  assert.deepEqual((await chamar("GET", "/metas")).body.metas.map((g) => g.titulo), ["Natal", "Os três primeiros dígitos"])
+})
+
+test("Ajustar keeps the count and sets or clears the last day; the dock can take a scheduled goal off", async (t) => {
+  t.after(() => (Date.now = relogio))
+  em("2026-11-14T20:00:00Z")
+  await canal({ acao: "meta", titulo: "Os três primeiros dígitos", alvo: 10000 })
+  await pixDe(6767, "Ana")
+  assert.equal((await canal({ acao: "meta", ajustar: true, titulo: "Os três primeiros dígitos", alvo: 10000, ate: "2026-11-13" })).status, 400, "a day gone")
+  assert.equal((await canal({ acao: "meta", ajustar: true, titulo: "Os três primeiros dígitos", alvo: 10000, ate: "2026-02-30" })).status, 400, "no such day")
+  let { body } = await canal({ acao: "meta", ajustar: true, titulo: "Os três primeiros dígitos", alvo: 10000, ate: "2026-11-30" })
+  assert.deepEqual([body.meta.arrecadado, body.meta.prazo], [6767, "2026-12-01T03:00:00.000Z"])
+  ;({ body } = await canal({ acao: "meta", ajustar: true, titulo: "Três dígitos", alvo: 10000 }))
+  assert.deepEqual([body.meta.titulo, body.meta.prazo], ["Três dígitos", "2026-12-01T03:00:00.000Z"], "no date sent keeps it")
+  ;({ body } = await canal({ acao: "meta", ajustar: true, titulo: "Três dígitos", alvo: 10000, ate: "" }))
+  assert.equal(body.meta.prazo, null, "an empty date clears it")
+
+  await canal({ acao: "meta", proxima: true, titulo: "Natal", alvo: 10000, de: "2026-12-01" })
+  await canal({ acao: "meta", proxima: true, alvo: 0 })
+  assert.equal((await canal()).body.proxima, null)
+  em("2026-12-02T12:00:00Z")
+  assert.equal((await canal()).body.meta.titulo, "Três dígitos", "nothing took its place")
+})
+
+// --- Christmas -----------------------------------------------------------------------------------------------------
+
+const PRESENTE = { formato: "sino", cor: "#e03131", detalhe: "#ffd23f", padrao: "listras" }
+
+test("a Christmas goal: each Pix's present for the tree, as chosen on /pix, and the theme kept from schedule to history", async (t) => {
+  t.after(() => (Date.now = relogio))
+  em("2026-11-20T12:00:00Z")
+  await canal({ acao: "meta", titulo: "Três dígitos", alvo: 10000, ate: "2026-11-30" })
+  const r = await canal({ acao: "meta", proxima: true, titulo: "Natal na live", alvo: 10000, de: "2026-12-01", ate: "2026-12-31", tema: "natal" })
+  assert.equal(r.body.proxima.tema, "natal")
+  assert.equal((await canal({ acao: "meta", proxima: true, titulo: "Outra", alvo: 100, de: "2026-12-01", tema: "pascoa" })).body.proxima.tema, null, "only known themes")
+  await canal({ acao: "meta", proxima: true, titulo: "Natal na live", alvo: 10000, de: "2026-12-01", ate: "2026-12-31", tema: "natal" })
+  assert.equal((await canal()).body.arvore, null, "no tree before it")
+
+  em("2026-12-03T22:00:00Z")
+  const reserva = await chamar("POST", "/reservar", { corpo: { centavos: 500, nome: "Ana", mensagem: "Feliz Natal!", presente: PRESENTE } })
+  // Only its shape and colours are kept, and only in that form.
+  const torta = await chamar("POST", "/reservar", { corpo: { centavos: 100, nome: "Bia", presente: { formato: "<script>", cor: "red", detalhe: "#fff", padrao: "x" } } })
+  await pagar(reserva.body.centavos)
+  em("2026-12-03T22:01:00Z")
+  await pagar(torta.body.centavos)
+  em("2026-12-03T22:02:00Z")
+  await pixDe(1234, "")
+  const { body: c } = await canal()
+  assert.deepEqual([c.meta.titulo, c.meta.tema], ["Natal na live", "natal"])
+  assert.deepEqual(
+    c.arvore.map((p) => [p.centavos, p.presente ?? null]),
+    [[500, PRESENTE], [100, null], [1234, null]],
+  )
+  assert.deepEqual(c.arvore.map((p) => p.em), ["2026-12-03T22:00:00.000Z", "2026-12-03T22:01:00.000Z", "2026-12-03T22:02:00.000Z"], "the moment each came: an unchosen present's seed")
+  const { body: mural } = await chamar("GET", "/mural")
+  assert.equal(mural.meta.tema, "natal")
+  assert.deepEqual(mural.meta.apoiadores.map((p) => p.presente ?? null), [null, null, PRESENTE])
+  assert.deepEqual(mural.meta.sorteios, [])
+
+  // Ajustar keeps it unless told; it goes to the history with it.
+  assert.equal((await canal({ acao: "meta", ajustar: true, titulo: "Natal", alvo: 10000 })).body.meta.tema, "natal")
+  em("2027-01-01T03:00:00Z")
+  const { body: m } = await chamar("GET", "/metas")
+  assert.deepEqual([m.metas[0].titulo, m.metas[0].tema], ["Natal", "natal"])
+})
+
+test("the gift subs: one per R$ 10, drawn from who's in the chat by Σ, never the channel nor twice the same, each only once", async (t) => {
+  t.after(() => (Date.now = relogio))
+  em("2026-12-05T21:00:00Z")
+  await canal({ acao: "meta", titulo: "Natal na live", alvo: 10000, ate: "2026-12-31", tema: "natal" })
+  chat.pessoas = [{ login: "muanlartins", sigma: 0 }, { login: "ana", sigma: 20000 }, { login: "bia", sigma: 0 }]
+  let r = await canal({ acao: "sortear" })
+  assert.equal(r.status, 409)
+  assert.match(r.body.erro, /R\$ 10,00/)
+
+  await pixDe(2550, "Ana")
+  let { body: c } = await canal()
+  assert.deepEqual([c.subs.devidos, c.subs.sorteios.length, c.subs.cada], [2, 0, 1000])
+  r = await canal({ acao: "sortear" })
+  assert.equal(r.status, 200)
+  assert.equal(chat.chave, "chave-da-live", "the Σ API is asked with the key")
+  const primeiro = r.body.sorteio.login
+  assert.ok(["ana", "bia"].includes(primeiro))
+  assert.ok(r.body.sorteio.candidatos.includes(primeiro) && !r.body.sorteio.candidatos.includes("muanlartins"))
+  r = await canal({ acao: "sortear" })
+  assert.equal(r.status, 200)
+  assert.notEqual(r.body.sorteio.login, primeiro, "one sub each")
+  r = await canal({ acao: "sortear" })
+  assert.equal(r.status, 409, "only two earned")
+  assert.match(r.body.erro, /R\$ 4,50/)
+
+  // More Pix, but everyone in the chat already won; then someone new comes.
+  await pixDe(1000, "Caio")
+  assert.match((await canal({ acao: "sortear" })).body.erro, /já ganhou/)
+  chat.pessoas = [{ login: "muanlartins", sigma: 0 }]
+  assert.match((await canal({ acao: "sortear" })).body.erro, /Ninguém na arquibancada/)
+  chat.pessoas = null
+  assert.equal((await canal({ acao: "sortear" })).status, 502)
+  chat.pessoas = [{ login: "caio", sigma: 15 }]
+  assert.equal((await canal({ acao: "sortear" })).body.sorteio.login, "caio")
+
+  // The overlay plays each once, the dock marks it given, and the mural lists who won.
+  ;({ body: c } = await canal())
+  assert.deepEqual(c.subs.sorteios.map((s) => [s.exibido, s.dado]), [[false, false], [false, false], [false, false]])
+  const sk = c.subs.sorteios[0].sk
+  assert.equal((await canal({ acao: "sorteio", sk, exibido: true })).status, 200)
+  assert.equal((await canal({ acao: "sorteio", sk, dado: true })).status, 200)
+  assert.equal((await canal({ acao: "sorteio", sk: "nada", dado: true })).status, 404)
+  ;({ body: c } = await canal())
+  assert.deepEqual([c.subs.sorteios[0].exibido, c.subs.sorteios[0].dado], [true, true])
+  const { body: mural } = await chamar("GET", "/mural")
+  assert.deepEqual(mural.meta.sorteios.map((s) => s.login), [primeiro, primeiro === "ana" ? "bia" : "ana", "caio"])
+  assert.equal(mural.meta.sorteios[0].candidatos, undefined, "who else was there stays off the site")
+
+  // A sub its last Pix earned after the last live is drawn in January, from the goal that ended.
+  em("2026-12-31T23:30:00-03:00")
+  await pixDe(1000, "Duda")
+  em("2027-01-04T21:00:00Z")
+  chat.pessoas = [{ login: "duda", sigma: 3 }]
+  ;({ body: c } = await canal())
+  assert.deepEqual([c.meta, c.arvore, c.subs.titulo, c.subs.devidos, c.subs.sorteios.length], [null, null, "Natal na live", 4, 3])
+  assert.equal((await canal({ acao: "sortear" })).body.sorteio.login, "duda")
+  chat.pessoas = []
+})
+
+test("the draw's odds: 1 + ln(1 + Σ), so a top rank has about twice a newcomer's, and someone with none still has theirs", () => {
+  const gente = [{ login: "ssl", sigma: 20000 }, { login: "prata", sigma: 300 }, { login: "novo", sigma: 11 }, { login: "zero", sigma: 0 }]
+  const vezes = Object.fromEntries(gente.map((g) => [g.login, 0]))
+  const N = 20000
+  for (let i = 0; i < N; i++) vezes[sortear(gente, () => i / N).login]++
+  const peso = (s) => 1 + Math.log(1 + s)
+  const total = gente.reduce((t, g) => t + peso(g.sigma), 0)
+  for (const g of gente) assert.ok(Math.abs(vezes[g.login] / N - peso(g.sigma) / total) < 0.001, g.login)
+  assert.ok(vezes.ssl / vezes.novo > 2.5 && vezes.ssl / vezes.novo < 3.5)
+  assert.ok(vezes.zero > 0)
 })

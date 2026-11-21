@@ -1,0 +1,149 @@
+{
+ "date": "2026-11-10",
+ "plays": [
+  {
+   "at": "2026-11-11T01:34:24Z",
+   "task": "CsLevel.Lowgravity56.Amare Mi.RVGFMT",
+   "name": "Amare Microshot Entry",
+   "score": 738,
+   "accuracy": 81.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:35:40Z",
+   "task": "CsLevel.Lowgravity56.VT Hyper.RVGHQP",
+   "name": "VT Hypershot Entry",
+   "score": 562,
+   "accuracy": 79.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:36:57Z",
+   "task": "CsLevel.Lowgravity56.VT Float.RVGHZC",
+   "name": "VT Floating Dots Depth Easy",
+   "score": 675,
+   "accuracy": 95.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:38:10Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RVRH8Z",
+   "name": "VT Angletrack Entry",
+   "score": 5243,
+   "accuracy": 87.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:39:35Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RVRHNI",
+   "name": "VT Angleswitch Entry Speed",
+   "score": 80,
+   "accuracy": 34.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:40:46Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RVI5K0",
+   "name": "VT Angleshot Multi Entry",
+   "score": 350,
+   "accuracy": 80.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:42:00Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RVRHY8",
+   "name": "VT Angleshot Entry Speed Focus",
+   "score": 898,
+   "accuracy": 69.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:43:13Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RVRH3H",
+   "name": "VT Angleshot Novice Small",
+   "score": 521,
+   "accuracy": 68.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:44:28Z",
+   "task": "CsLevel.VT Empyrean.VT Angle.RB668Z",
+   "name": "VT Angleshot Novice",
+   "score": 588,
+   "accuracy": 63.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:45:42Z",
+   "task": "CsLevel.Lowgravity56.VT Straf.RVHIIC",
+   "name": "VT Strafeshot Entry",
+   "score": 62,
+   "accuracy": 65.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:46:54Z",
+   "task": "CsLevel.Lowgravity56.VT Flows.RVHG21",
+   "name": "VT Flowshot Entry",
+   "score": 623,
+   "accuracy": 63.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:48:08Z",
+   "task": "CsLevel.Lowgravity56.VT Dashs.RVHFIC",
+   "name": "VT Dashshot Entry",
+   "score": 55,
+   "accuracy": 63.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:49:24Z",
+   "task": "CsLevel.Lowgravity56.VT Orb C.RVI7D4",
+   "name": "VT Orb Click Entry",
+   "score": 339,
+   "accuracy": 52.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:50:36Z",
+   "task": "CsLevel.Lowgravity56.VT Waves.RVRK8Z",
+   "name": "VT Waveswitch Entry",
+   "score": 55,
+   "accuracy": 44.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:51:50Z",
+   "task": "CsLevel.Lowgravity56.VT Waves.RVRJYQ",
+   "name": "VT Waveshot Novice Multi",
+   "score": 258,
+   "accuracy": 65.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:53:05Z",
+   "task": "CsLevel.Lowgravity56.VT Waves.RVRKYS",
+   "name": "VT Waveshot Entry Speed Focus",
+   "score": 941,
+   "accuracy": 76.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:54:18Z",
+   "task": "CsLevel.Lowgravity56.VT Waves.RVRK0S",
+   "name": "VT Waveshot Novice Small",
+   "score": 392,
+   "accuracy": 52.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-11T01:55:31Z",
+   "task": "CsLevel.VT Empyrean.VT Waves.R8TGLS",
+   "name": "VT Waveshot Novice",
+   "score": 291,
+   "accuracy": 35.5,
+   "seconds": 60
+  }
+ ]
+}

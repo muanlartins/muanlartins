@@ -1,0 +1,20 @@
+{
+  "_": "Twitch's Alerts Box (\"Alerts Box 1\"): every variant runs alerta.html with {rotulo} and {nome} replaced as below (and, where there's a mensagem, <p class=\"mensagem\">…</p> after the nome line), and alerta.css; 7 s, celebrations off, text-to-speech off. Sounds are sons/<som>.mp3 from the box's asset library at 70%; null is none. The {…} left inside are Twitch's own variables. See brand/README.md.",
+  "variantes": [
+    { "tipo": "Seguidores", "variante": "New Follow", "rotulo": "Novo seguidor", "nome": "{username}", "som": "seguidor" },
+    { "tipo": "Inscrições", "variante": "Prime Subscription", "rotulo": "Inscrito com Prime", "nome": "{username}", "som": "inscrito" },
+    { "tipo": "Inscrições", "variante": "Resubscription", "rotulo": "Inscrito há {tenure} meses", "nome": "{username}", "som": "inscrito" },
+    { "tipo": "Inscrições", "variante": "New Subscriber", "rotulo": "Novo inscrito", "nome": "{username}", "som": "inscrito" },
+    { "tipo": "Inscrições de presente", "variante": "Community Gifts", "rotulo": "{amount} subs de presente", "nome": "{sender}", "som": "inscrito" },
+    { "tipo": "Inscrições de presente", "variante": "Gifted Subscription", "rotulo": "Sub de presente de {sender}", "nome": "{username}", "som": "inscrito" },
+    { "tipo": "Bits", "variante": "Cheering of Any Amount", "rotulo": "{amount} bits", "nome": "{username}", "mensagem": "{cheer_message}", "som": "inscrito" },
+    { "tipo": "Raids", "variante": "Raid of Any Amount", "rotulo": "Raid · {amount} chegando", "nome": "{username}", "som": "palmas" },
+    { "tipo": "Pontos do Canal", "variante": "Bebe água! (só essa recompensa, acima da outra)", "rotulo": "{username} mandou", "nome": "Bebe água!", "som": "agua" },
+    { "tipo": "Pontos do Canal", "variante": "Custom Point Redemption (qualquer uma)", "rotulo": "{reward_title}", "nome": "{username}", "som": null },
+    { "tipo": "Hype Train", "variante": "Hype Train Started", "rotulo": "Hype Train", "nome": "Começou!", "som": "inscrito" },
+    { "tipo": "Hype Train", "variante": "Hype Train New All Time High", "rotulo": "Hype Train · recorde", "nome": "Nível {all_time_high_level}", "som": "inscrito" },
+    { "tipo": "Metas", "variante": "Goal Started", "rotulo": "Meta nova", "nome": "{current_amount} de {target_amount}", "som": "inscrito" },
+    { "tipo": "Metas", "variante": "Goal Reached", "rotulo": "Meta batida!", "nome": "{current_amount} de {target_amount}", "som": "inscrito" },
+    { "tipo": "Caridade", "variante": "Charity Donation", "rotulo": "Doou {currency} para {charity_name}", "nome": "{username}", "som": "inscrito" }
+  ]
+}

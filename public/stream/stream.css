@@ -97,6 +97,32 @@ body {
   inset: 0;
   overflow: visible;
 }
+/* December's lights on the frame (acender() in stream.js), twinkling in three groups out of step. */
+.frame .luzes {
+  animation: piscar 2.7s ease-in-out infinite;
+}
+.frame .luzes-1 {
+  animation-delay: -0.9s;
+}
+.frame .luzes-2 {
+  animation-delay: -1.8s;
+}
+@keyframes piscar {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+/* December's snow on the ground (neve() in stream.js), over the lattice. */
+.ground .neve {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
 .frame .streak {
   animation: lap var(--lap, 9s) linear infinite;
 }
@@ -277,6 +303,89 @@ body {
   text-transform: uppercase;
 }
 
+/* The keyboard and the mouse (teclas.js): the game's keys and the mouse's buttons on a navy pane cut at 45° like the
+   camera frame, each lit in Branco while it's held. The pane comes while a game is in front and goes when it isn't. */
+.teclas {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  background: rgb(0 20 71 / 0.55);
+  clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease);
+}
+.teclas.visivel {
+  opacity: 1;
+}
+.teclas svg {
+  overflow: visible;
+}
+.teclas .tecla polygon,
+.teclas .tecla rect {
+  fill: rgb(0 20 71 / 0.85);
+  stroke: rgb(133 167 255 / 0.45);
+  stroke-width: 1.5;
+  transition:
+    fill 0.15s ease-out,
+    stroke 0.15s ease-out;
+}
+.teclas .tecla text {
+  fill: var(--klein-claro);
+  font-size: 16px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+  transition: fill 0.15s ease-out;
+}
+.teclas .tecla line {
+  stroke: var(--klein-claro);
+  stroke-width: 2;
+  transition: stroke 0.15s ease-out;
+}
+/* Held: lit at once, and let go a touch slower, so a tap still shows. */
+.teclas .tecla.apertada polygon,
+.teclas .tecla.apertada rect {
+  fill: var(--paper);
+  stroke: var(--paper);
+  transition: none;
+}
+.teclas .tecla.apertada text {
+  fill: var(--klein);
+  transition: none;
+}
+.teclas .tecla.apertada line {
+  stroke: var(--klein);
+  transition: none;
+}
+.teclas .corpo {
+  fill: rgb(0 20 71 / 0.85);
+  stroke: rgb(133 167 255 / 0.45);
+  stroke-width: 1.5;
+}
+.teclas .roda rect {
+  fill: var(--navy);
+}
+/* Each tick of the wheel: a chevron that flashes above or below it. */
+.teclas .seta {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+}
+.teclas .seta.girou {
+  animation: girou 0.35s ease-out;
+}
+@keyframes girou {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 /* The Pix call: a QR code to the site's /pix (pix-qr.svg, from scripts/pix-qr.mjs), in pix.html and conversa.html. */
 .chamada {
   display: flex;
@@ -321,5 +430,203 @@ body {
   margin-top: 8px;
   font-size: 16px;
   font-weight: 500;
+  color: var(--klein-claro);
+}
+
+/* --- The match's numbers (numeros.js) --------------------------------------------------------------------------- */
+
+/* In the game scene: a column beside the camera frame, as tall as it, on a navy pane cut at 45° like the frame. */
+.numeros {
+  position: absolute;
+  width: 196px;
+  padding: 16px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: rgb(0 20 71 / 0.62);
+  clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+  opacity: 0;
+  transform: translateX(-12px);
+  transition:
+    opacity 0.6s var(--ease),
+    transform 0.6s var(--ease);
+}
+.numeros.visivel {
+  opacity: 1;
+  transform: none;
+}
+.numeros .titulo {
+  margin: 0 0 2px;
+  color: var(--klein-claro);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.numeros.mvp .titulo::after {
+  content: " · MVP";
+  color: var(--paper);
+}
+.numeros .linha {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 -8px;
+  padding: 0 8px;
+}
+.numeros .rotulo {
+  color: var(--klein-claro);
+  font-size: 17px;
+  font-weight: 500;
+}
+.numeros .valor {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+/* A number that went up: its line lights in Branco and a +1 rises beside it. */
+.numeros .linha::after {
+  content: attr(data-mais);
+  position: absolute;
+  right: 58px;
+  top: 4px;
+  color: var(--paper);
+  font-size: 16px;
+  font-weight: 700;
+  opacity: 0;
+}
+.numeros .linha.subiu {
+  animation: subiu 1.8s var(--ease);
+}
+.numeros .linha.subiu .rotulo,
+.numeros .linha.subiu .valor {
+  animation: subiu-tinta 1.8s var(--ease);
+}
+.numeros .linha.subiu::after {
+  animation: mais-um 1.8s var(--ease);
+}
+@keyframes subiu {
+  0%,
+  35% {
+    background: var(--paper);
+  }
+  100% {
+    background: transparent;
+  }
+}
+@keyframes subiu-tinta {
+  0%,
+  35% {
+    color: var(--klein);
+  }
+}
+@keyframes mais-um {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  20%,
+  60% {
+    opacity: 1;
+    color: var(--klein);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
+
+/* In Conversa: the match that just ended, in the topic's place under the camera. */
+.fim-de-partida {
+  position: absolute;
+  left: 64px;
+  top: 712px;
+  width: 700px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.6s var(--ease),
+    transform 0.6s var(--ease);
+}
+.fim-de-partida.visivel {
+  opacity: 1;
+  transform: none;
+}
+.fim-de-partida p {
+  margin: 0;
+}
+.fim-de-partida .eyebrow {
+  font-size: 18px;
+}
+.fim-de-partida .resultado {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 10px 0 18px;
+  font-size: 48px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+/* The result on its colour, the site's ranked records' pair (brand/README.md). */
+.fim-de-partida .resultado .palavra {
+  padding: 4px 16px 8px;
+  background: var(--navy);
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+.fim-de-partida .resultado.win .palavra {
+  background: #007645;
+}
+.fim-de-partida .resultado.loss .palavra {
+  background: #b53031;
+}
+.fim-de-partida .resultado .placar {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.fim-de-partida .resultado .selo {
+  padding: 6px 12px 7px;
+  background: var(--paper);
+  color: var(--klein);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.fim-de-partida .tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+/* Valorant's five: K/D/A wide, then ACS and headshots; first kills and damage per round half a row each. */
+.fim-de-partida.valorant .tile:first-child,
+.fim-de-partida.valorant .tile:nth-child(n + 4) {
+  grid-column: span 2;
+}
+.fim-de-partida .tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px 12px;
+  background: rgb(0 20 71 / 0.62);
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+.fim-de-partida .tile .valor {
+  font-size: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.fim-de-partida .tile .rotulo {
+  color: var(--klein-claro);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.fim-de-partida .accent {
   color: var(--klein-claro);
 }

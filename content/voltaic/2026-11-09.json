@@ -1,0 +1,149 @@
+{
+ "date": "2026-11-09",
+ "plays": [
+  {
+   "at": "2026-11-09T22:36:00Z",
+   "task": "CsLevel.Lowgravity56.VT Micro.RUKS4O",
+   "name": "VT Micro 3 Sphere Entry",
+   "score": 1843,
+   "accuracy": 93.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:38:10Z",
+   "task": "CsLevel.Lowgravity56.VT Phase.RMAGR9",
+   "name": "VT Phaseshot Easy",
+   "score": 344,
+   "accuracy": 91.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:39:29Z",
+   "task": "CsLevel.Lowgravity56.VT Onesh.RUKSS8",
+   "name": "VT Oneshot Reflex Entry",
+   "score": 244,
+   "accuracy": 66.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:40:42Z",
+   "task": "CsLevel.Lowgravity56.VT Twosh.RUKTI8",
+   "name": "VT Twoshot Horizontal Entry",
+   "score": 683,
+   "accuracy": 90.0,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:41:53Z",
+   "task": "CsLevel.Lowgravity56.VT Twosh.RUKTDF",
+   "name": "VT Twoshot Vertical Entry",
+   "score": 736,
+   "accuracy": 93.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:43:10Z",
+   "task": "CsLevel.Lowgravity56.VT Pulse.RUKVC9",
+   "name": "VT Pulseshot Six",
+   "score": 1025,
+   "accuracy": 85.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:44:20Z",
+   "task": "CsLevel.Lowgravity56.VT Sixsh.RUM889",
+   "name": "VT Sixshot Novice Pokeball",
+   "score": 58,
+   "accuracy": 67.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:46:52Z",
+   "task": "CsLevel.Lowgravity56.VT Sixsh.RUM926",
+   "name": "VT Sixshot Small",
+   "score": 671,
+   "accuracy": 92.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:48:09Z",
+   "task": "CsLevel.VT Empyrean.VT Sixsh.R8TGD3",
+   "name": "VT Sixshot Novice",
+   "score": 822,
+   "accuracy": 91.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:49:30Z",
+   "task": "CsLevel.Lowgravity56.VT 6T Wi.RTA61L",
+   "name": "VT 6T Wide",
+   "score": 906,
+   "accuracy": 93.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:50:51Z",
+   "task": "CsLevel.Lowgravity56.VT Twosh.RUMAX6",
+   "name": "VT Twoshot Horizontal Wide TE",
+   "score": 666,
+   "accuracy": 93.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:52:42Z",
+   "task": "CsLevel.Lowgravity56.VT Micro.RUMV0M",
+   "name": "VT Microshot Speed Wide Entry",
+   "score": 975,
+   "accuracy": 99.0,
+   "seconds": 67
+  },
+  {
+   "at": "2026-11-09T22:54:31Z",
+   "task": "CsLevel.Lowgravity56.VT Berry.RUPVB5",
+   "name": "VT BerryTS Static Entry",
+   "score": 971,
+   "accuracy": 94.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:55:56Z",
+   "task": "CsLevel.Lowgravity56.VT Multi.RURZ4N",
+   "name": "VT Multishot 90 Novice Pokeball",
+   "score": 76,
+   "accuracy": 70.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:58:09Z",
+   "task": "CsLevel.Lowgravity56.VT Multi.RURYRP",
+   "name": "VT Multishot 90 Novice Cluster Focus",
+   "score": 1071,
+   "accuracy": 94.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T22:59:35Z",
+   "task": "CsLevel.Lowgravity56.VT Multi.RURYNH",
+   "name": "VT Multishot 90 Novice Speed Focus Entry",
+   "score": 1011,
+   "accuracy": 94.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T23:00:54Z",
+   "task": "CsLevel.Lowgravity56.VT Multi.RURY1R",
+   "name": "VT Multishot 90 Novice Hard",
+   "score": 915,
+   "accuracy": 94.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-09T23:02:13Z",
+   "task": "CsLevel.VT Empyrean.VT Multi.RB6AAB",
+   "name": "VT Multishot 90 Novice",
+   "score": 1042,
+   "accuracy": 93.1,
+   "seconds": 60
+  }
+ ]
+}

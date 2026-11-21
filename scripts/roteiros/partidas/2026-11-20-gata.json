@@ -1,0 +1,21 @@
+{
+  "data": "2026-11-20",
+  "nome": "gata",
+  "titulo": "Dessa vez a minha gata me deu sorte",
+  "descricao": "As últimas partidas da live, com o JK: de volta ao Champion, uma derrota que quase tirou ele da gente e, na última, um gol meu na prorrogação com a minha gata na mesa.",
+  "partidas": [
+    17,
+    18,
+    19
+  ],
+  "capitulos": {
+    "17": "De volta ao Champion",
+    "18": "Alegria de pobre dura pouco",
+    "19": "Gol de ouro com a gata"
+  },
+  "fim": {
+    "17": "2:13:02",
+    "19": "2:32:28.5"
+  },
+  "publicar": "2026-11-22T12:00:00-03:00"
+}

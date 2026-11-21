@@ -13,9 +13,14 @@
       jogo.html draws them on the camera frame. "Publicar" writes each session
       to content/matches/ in the repository, which the site reads.
 
-      The game can't tell the rank or the points (MMR), so they're set here, per
-      mode. After a ranked match the points field lights up: typing the total,
-      or the gain (+9), gives the difference to that match. Nothing asks.
+      The game's Stats API doesn't send the rank or the points (MMR), but its
+      end-of-match scoreboard shows them: scripts/rocket_league.py (on this PC)
+      reads them off the screen and the dock fills each ranked match's points,
+      rank and division as they come (connectPoints). They can still be set
+      here, per mode: after a ranked match the points field lights up, and
+      typing the total, or the gain (+9), gives the difference to that match.
+      What's typed first stays. Off the stream, the same script records and
+      publishes the ranked matches by itself.
 
       Behind the screen it keeps the clock of everything a live is edited from:
       when the stream and the recording start and stop (so a VOD second is
@@ -30,6 +35,16 @@
       whether the narrator speaks on goals (off until switched on: it tires).
       When a match ends it cuts to Conversa, and back to the game scene when the
       next one loads ("Trocar de cena sozinho").
+
+      The match's numbers on screen (Luan, 2026-11-20; "Estatísticas da partida
+      na live"): Luan's score, goals, assists, saves, shots, touches, aerials
+      and demos go to jogo.html as they change, the match that ended to
+      conversa.html (Valorant's from its summary), and the live's totals of
+      each game to the end credits ("muanlartins-estatisticas" and
+      "muanlartins-numeros", numeros.js). The Stats API has no aerials: one is
+      a touch of his with the ball's centre AEREO_Z up and his car off the
+      ground and the walls (counted here, kept in the match's numbers as
+      `aerials`, with `mvp`).
 
       Valorant has its own tab: scripts/valorant.py (on this PC, ?valorant= its
       address) reads the Riot Client, so nothing is typed. The rank and RR come
@@ -326,6 +341,7 @@
       </div>
       <p class="note">Para uma partida que o jogo não mandou, no modo selecionado.</p>
       <label class="check"><input type="checkbox" id="show" /> Mostrar ranque e placar na live</label>
+      <label class="check"><input type="checkbox" id="estatisticas" /> Estatísticas da partida na live (ao lado da câmera e na Conversa no fim)</label>
       <label class="check"><input type="checkbox" id="auto-scene" /> Trocar de cena sozinho (Conversa no fim da partida, o jogo na próxima; no Valorant, na seleção de agentes)</label>
       <label for="obs-password">Senha do servidor WebSocket do OBS</label>
       <input type="password" id="obs-password" autocomplete="off" />
@@ -355,6 +371,12 @@
       const MODES = ["1v1", "2v2", "3v3"]
       // After this long without a match, the next one starts a new session (a new stream).
       const SESSION_GAP_MS = 6 * 3600 * 1000
+      // A stream back on within this long of the last one's end continues its session (videos.py's RESTART).
+      const RESTART_MS = 15 * 60 * 1000
+      // No stream lasts this long: an output still open after it lost its stop, and its session isn't on air.
+      // (11-18: a stream start left open on 11-12's Valorant session kept it "on air", and 11-18's match went into it.)
+      const STALE_MS = 12 * 3600 * 1000
+      const onAir = (session) => session?.outputs?.some((o) => !o.end && Date.now() - Date.parse(o.start) < STALE_MS)
       // OBS scenes: where a match is played (Rocket League's, Valorant's), and where the talk between matches happens.
       const GAME_SCENES = ["RL + chat", "Valorant + chat"]
       const TALK_SCENE = "Conversa"
@@ -367,12 +389,23 @@
       // ?demo plays fake matches into its own storage, so the real sessions stay untouched.
       const KEY = params.has("demo") ? "partidas:demo" : "partidas:v1"
       const state = Object.assign(
-        { mode: "3v3", ranks: {}, sessions: [], jogo: "rocket-league", val: { sessions: [], tier: null, rr: null }, show: true, autoScene: true, narrador: false, legenda: true, legendaFala: "pt", legendaEm: "pt", me: null, obsPassword: "", token: "" },
+        { mode: "3v3", ranks: {}, sessions: [], jogo: "rocket-league", val: { sessions: [], tier: null, rr: null }, show: true, estatisticas: true, autoScene: true, narrador: false, legenda: true, legendaFala: "pt", legendaEm: "pt", me: null, obsPassword: "", token: "" },
         JSON.parse(localStorage.getItem(KEY) || "{}"),
       )
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
       const hash = new URLSearchParams(location.hash.slice(1))
       if (hash.get("obs")) state.obsPassword = hash.get("obs")
+      // 11-18's Valorant match was published in 11-12's session (see STALE_MS); its file was moved by hand to
+      // content/valorant/2026-11-18-1950.json. The dock's copy follows, so publishing doesn't write the old one back;
+      // and that day's Rocket League session, with no match, goes. Remove once the dock has loaded this (late 11-2026).
+      for (const s of state.val.sessions)
+        if (s.id === "2026-11-12-1437" && s.matches.some((m) => m.id === "81c0514d-e653-44e2-80fd-7d62e334839f"))
+          Object.assign(s, {
+            id: "2026-11-18-1950", start: "2026-11-18T22:50:24.886Z", dirty: false, outputs: [
+              { kind: "record", start: "2026-11-18T22:53:17.785Z", end: "2026-11-19T00:39:57.035Z", file: "2026-11-18 19-53-17.mp4" },
+              { kind: "stream", start: "2026-11-18T22:53:18.700Z", end: "2026-11-19T00:39:57.035Z" }],
+          })
+      state.sessions = state.sessions.filter((s) => !(s.id === "2026-11-18-1950" && !s.matches.length && !s.ranks.length))
       save()
 
       const pad = (n) => String(n).padStart(2, "0")
@@ -392,7 +425,7 @@
         const lastAt = last && (last.matches.length ? last.matches[last.matches.length - 1].at : last.start)
         // Sessions from before the dock followed OBS's outputs.
         if (last) last.outputs ??= []
-        const airing = last?.outputs.some((o) => !o.end)
+        const airing = onAir(last)
         if (!last || (!airing && Date.now() - Date.parse(lastAt) > SESSION_GAP_MS)) newSession()
         return state.sessions[state.sessions.length - 1]
       }
@@ -450,6 +483,7 @@
         $("today").innerHTML = `${wins}V <span class="accent">·</span> ${losses}D${streak >= 2 ? `<small>${streak} seguidas</small>` : ""}${points ? `<small>${points > 0 ? "+" : ""}${points} pts</small>` : ""}`
         $("session-date").textContent = new Date(session.start).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
         $("show").checked = state.show
+        $("estatisticas").checked = state.estatisticas
         $("auto-scene").checked = state.autoScene
         $("narrador").checked = state.narrador
         $("legenda").checked = state.legenda
@@ -496,7 +530,7 @@
         const sessions = state.val.sessions
         const last = sessions[sessions.length - 1]
         const lastAt = last && (last.matches.length ? last.matches[last.matches.length - 1].at : last.start)
-        const airing = last?.outputs.some((o) => !o.end)
+        const airing = onAir(last)
         if (!last || (!airing && Date.now() - Date.parse(lastAt) > SESSION_GAP_MS)) {
           const month = Date.now() - 30 * 86400 * 1000
           state.val.sessions = sessions.filter((s) => (s.matches.length || s.outputs.length) && (s.dirty || Date.parse(s.start) > month))
@@ -516,6 +550,11 @@
         if (Date.parse(match.at) < Date.parse(session.start) - SESSION_GAP_MS) return
         session.matches.push({ ...match, counted: match.queue === "competitive" })
         if (match.rank?.tier) Object.assign(state.val, { tier: match.rank.tier, rr: match.rank.rr })
+        // A match that just ended goes to Conversa's end card, as Valorant's own end screen.
+        if (Date.now() - Date.parse(match.at) < 10 * 60_000) {
+          naTela = { jogo: "valorant", partida: match.id, modo: QUEUES[match.queue] ?? null, mapa: match.map, agente: match.agent, rodadas: match.rounds, me: match.me, fim: { result: match.result, score: match.score, em: Date.now() } }
+          emit("muanlartins-estatisticas", { ...naTela, mostrar: state.estatisticas })
+        }
         session.dirty = true
         save()
         render()
@@ -556,6 +595,30 @@
         return li
       }
 
+      // Rocket League's points, read off the end-of-match scoreboard by scripts/rocket_league.py (on this PC, ?rl= its
+      // address): each ranked match's total, gain, rank and division, as if typed, unless they were typed first.
+      const RL = params.get("rl") ?? "http://127.0.0.1:8795"
+      function connectPoints() {
+        const source = new EventSource(`${RL}/eventos`)
+        source.onmessage = ({ data }) => {
+          const event = JSON.parse(data)
+          if (event.tipo !== "pontos") return
+          const session = state.sessions.find((s) => s.matches.some((m) => m.id === event.partida))
+          const m = session?.matches.find((m) => m.id === event.partida)
+          if (!m || m.points != null) return
+          const rank = { tier: event.tier, division: event.divisao, mmr: event.mmr }
+          state.ranks[event.modo] = rank
+          m.mmr = event.mmr
+          if (event.pontos != null) {
+            m.points = event.pontos
+            if (state.awaiting === m.id) state.awaiting = null
+          }
+          session.ranks.push({ at: new Date().toISOString(), mode: event.modo, ...rank })
+          edit(session, () => {})
+          broadcast()
+        }
+      }
+
       function connectValorant() {
         const source = new EventSource(`${VALORANT}/eventos`)
         source.onopen = () => {
@@ -571,7 +634,7 @@
             const was = valorant.fase
             Object.assign(valorant, { fase: event.fase, aberto: !!event.aberto })
             // The tab follows the game that's open.
-            if (event.aberto && !gameConnected && state.jogo !== "valorant") (state.jogo = "valorant"), save()
+            if (event.aberto && !gameConnected && state.jogo !== "valorant") (state.jogo = "valorant"), save(), catchUp()
             if (was && was !== event.fase && event.fase === "selecao") backToGame()
           }
           if (event.tipo === "partida") cutToTalk()
@@ -622,6 +685,7 @@
         if (event.key === "Escape") $("mmr").blur(), render()
       }
       $("show").onchange = () => ((state.show = $("show").checked), save(), render())
+      $("estatisticas").onchange = () => ((state.estatisticas = $("estatisticas").checked), save(), render())
       $("auto-scene").onchange = () => ((state.autoScene = $("auto-scene").checked), save())
       $("narrador").onchange = () => ((state.narrador = $("narrador").checked), save(), broadcast())
       $("legenda").onchange = () => ((state.legenda = $("legenda").checked), ($("idiomas").hidden = !state.legenda), save(), broadcast())
@@ -632,7 +696,7 @@
       $("obs-password").onchange = () => ((state.obsPassword = $("obs-password").value), save(), obs.close())
       $("token").onchange = () => ((state.token = $("token").value.trim()), save())
       $("new-session").onclick = () => (state.jogo === "valorant" ? ((valCurrent(), state.val.sessions.push({ id: sessionId(new Date()), start: new Date().toISOString(), outputs: [], matches: [], dirty: false })), save()) : newSession(), render())
-      $("games").querySelectorAll("button").forEach((b) => (b.onclick = () => ((state.jogo = b.dataset.jogo), save(), render())))
+      $("games").querySelectorAll("button").forEach((b) => (b.onclick = () => ((state.jogo = b.dataset.jogo), save(), render(), catchUp())))
       const manual = (result) => () => {
         const session = current()
         edit(session, () =>
@@ -684,6 +748,7 @@
             save()
             render()
           }
+          if (match.started) mostrarPartida()
         } else if (event === "RoundStarted" || event === "CountdownBegin") {
           if (match) {
             match.started = true
@@ -697,15 +762,111 @@
         } else if (event === "MatchEnded" && match) {
           note("end")
           finish(data.WinnerTeamNum)
+          fimDaPartida()
           cutToTalk()
           broadcast()
         } else if (event === "MatchDestroyed" && match) {
           // Leaving a ranked match before it ends counts as a loss in the game, so it does here too.
           if (match.started && RANKED.has(match.playlist)) finish(null)
+          // A match left before its end leaves the screen; one that ended stays, for Conversa.
+          if (naTela?.partida === match.guid && !naTela.fim) naTela = null
           match = null
         } else if (match?.start) {
           logEvent(event, data)
           cheer(event, data)
+          if (event === "BallHit") aereo(data)
+          if (event === "StatfeedEvent" && data.EventName === "MVP" && ehEu(data.MainTarget)) (match.mvp = true), mostrarPartida()
+        }
+      }
+
+      // --- The match on screen (numeros.js) -------------------------------------------------------------
+      // His numbers as they change; jogo.html shows them beside the camera, conversa.html the match that ended.
+      let naTela = null
+      const ehEu = (p) => {
+        const self = match && me()
+        return Boolean(self && p && p.Name === self.Name && p.TeamNum === self.TeamNum)
+      }
+      function mostrarPartida(fim = null) {
+        const self = me()
+        if (!self) return
+        const antes = JSON.stringify(naTela)
+        naTela = {
+          jogo: "rocket-league",
+          partida: match.guid,
+          modo: PLAYLISTS[match.playlist] ?? null,
+          me: { score: self.Score ?? 0, goals: self.Goals ?? 0, assists: self.Assists ?? 0, saves: self.Saves ?? 0, shots: self.Shots ?? 0, touches: self.Touches ?? 0, aerials: match.aerials ?? 0, demos: self.Demos ?? 0 },
+          mvp: Boolean(match.mvp),
+          fim: fim ?? (naTela?.partida === match.guid ? naTela.fim : null),
+        }
+        if (JSON.stringify(naTela) !== antes) emit("muanlartins-estatisticas", { ...naTela, mostrar: state.estatisticas })
+      }
+      function fimDaPartida() {
+        const m = current().matches.find((x) => x.id === match.guid)
+        if (m && !m.left) mostrarPartida({ result: m.result, score: m.score, em: Date.now() })
+      }
+      // The Stats API counts touches but not aerials. An aerial is a touch of his with the ball's centre at least
+      // AEREO_Z up (a jump from the ground reaches about there) and his car neither on the ground nor on a wall in the
+      // last update (a tenth of a second old); BallHit comes a few times for one touch, so touches of his less than
+      // 0.25 s apart are one. Without the car's flags (they're only sent for your own team), touches by the walls are left out.
+      const AEREO_Z = 300
+      function aereo(data) {
+        const self = me()
+        const by = data.Players?.[0]
+        if (!ehEu(by)) return
+        const agora = Date.now()
+        if (agora - (match.ultimoToque ?? 0) < 250) return
+        match.ultimoToque = agora
+        const bola = data.Ball?.Location
+        if (!bola || !(bola.Z >= AEREO_Z)) return
+        if ("bOnGround" in self ? self.bOnGround || self.bOnWall : Math.abs(bola.X) > 3800 || Math.abs(bola.Y) > 4900) return
+        match.aerials = (match.aerials ?? 0) + 1
+        mostrarPartida()
+      }
+
+      /** The live's numbers for the end credits: each game's matches since the stream on air began. */
+      function numerosDaLive() {
+        // The latest of each game as they are (current() would open a new one after a long pause: broadcast runs every 5 s).
+        const sessoes = [state.sessions.at(-1), state.val.sessions.at(-1)]
+        if (!sessoes[0] && !sessoes[1]) return null
+        const noAr = sessoes.find((s) => s && onAir(s))
+        const inicios = noAr?.outputs.filter((o) => o.kind === "stream").map((o) => Date.parse(o.start)) ?? []
+        if (!inicios.length) return null
+        const desde = Math.min(...inicios)
+        const daLive = (s) => (s?.matches ?? []).filter((m) => m.me && Date.parse(m.at) >= desde)
+        const soma = (lista, f) => lista.reduce((t, m) => t + (f(m) ?? 0), 0)
+        const rl = daLive(sessoes[0])
+        const val = daLive(sessoes[1])
+        const gols = rl.flatMap((m) => (m.log ?? []).filter((e) => e.type === "goal" && e.by === "me" && e.kmh).map((e) => e.kmh))
+        const tiros = soma(val, (m) => m.me.headshots + m.me.bodyshots + m.me.legshots)
+        const rodadas = soma(val, (m) => m.rounds)
+        return {
+          rocketLeague: rl.length
+            ? {
+                partidas: rl.length,
+                gols: soma(rl, (m) => m.me.goals),
+                assistencias: soma(rl, (m) => m.me.assists),
+                defesas: soma(rl, (m) => m.me.saves),
+                chutes: soma(rl, (m) => m.me.shots),
+                toques: soma(rl, (m) => m.me.touches),
+                aereos: rl.some((m) => m.me.aerials != null) ? soma(rl, (m) => m.me.aerials) : null,
+                demolicoes: soma(rl, (m) => m.me.demos),
+                mvps: rl.filter((m) => m.me.mvp).length,
+                score: Math.round(soma(rl, (m) => m.me.score) / rl.length),
+                golMaisForte: gols.length ? Math.max(...gols) : null,
+              }
+            : null,
+          valorant: val.length
+            ? {
+                partidas: val.length,
+                abates: soma(val, (m) => m.me.kills),
+                mortes: soma(val, (m) => m.me.deaths),
+                assistencias: soma(val, (m) => m.me.assists),
+                acs: rodadas ? Math.round(soma(val, (m) => m.me.score) / rodadas) : null,
+                cabeca: tiros ? Math.round((100 * soma(val, (m) => m.me.headshots)) / tiros) : null,
+                primeiros: soma(val, (m) => m.me.firstKills),
+                dano: rodadas ? Math.round(soma(val, (m) => m.me.damage) / rodadas) : null,
+              }
+            : null,
         }
       }
 
@@ -808,7 +969,7 @@
           left,
           score: [goals(team), goals(1 - team)],
           overtime: match.overtime,
-          me: stats(self),
+          me: { ...stats(self), aerials: match.aerials ?? 0, ...(match.mvp ? { mvp: true } : {}) },
           // Teammates by their numbers only (the site is public), but for the viewers who agreed to be named.
           mates: everyone
             .filter((p) => p.TeamNum === team && playerKey(p) !== playerKey(self))
@@ -835,7 +996,7 @@
         ws.onopen = () => {
           gameConnected = true
           // The tab follows the game that's open.
-          if (state.jogo !== "rocket-league") (state.jogo = "rocket-league"), save(), render()
+          if (state.jogo !== "rocket-league") (state.jogo = "rocket-league"), save(), render(), catchUp()
           status()
         }
         ws.onmessage = ({ data }) => onGame(data)
@@ -853,8 +1014,10 @@
       let obsReady = false
       let requests = 0
       const pending = new Map()
-      // Event subscriptions: Outputs (stream and recording starting and stopping).
+      // Event subscriptions: Outputs (stream and recording starting and stopping), and Scenes: a scene going on air
+      // gets the state at once (the end credits wait only a few seconds for the live's numbers).
       const GENERAL = 1 << 0
+      const SCENES = 1 << 2
       const OUTPUTS = 1 << 6
       const DOCK = crypto.randomUUID()
       let otherDock = 0
@@ -865,7 +1028,7 @@
         ws.onmessage = async ({ data }) => {
           const { op, d } = JSON.parse(data)
           if (op === 0) {
-            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | OUTPUTS }
+            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES | OUTPUTS }
             if (d.authentication) {
               const { challenge, salt } = d.authentication
               identify.authentication = await sha256((await sha256(state.obsPassword + salt)) + challenge)
@@ -881,6 +1044,8 @@
               otherDock = Date.now()
               status()
             }
+            // A source that starts over when shown (the credits) needs a moment to load.
+            if (d.eventType === "CurrentProgramSceneChanged") [1500, 3000].forEach((ms) => setTimeout(broadcast, ms))
             const kind = { StreamStateChanged: "stream", RecordStateChanged: "record" }[d.eventType]
             if (kind) output(kind, d.eventData)
           } else if (op === 7) {
@@ -914,6 +1079,8 @@
         const emPartida = Boolean(match?.started && !finished.has(match.guid)) || valorant.fase === "partida"
         const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, emPartida, ...record(current(), state.mode) }
         emit("muanlartins-partidas", detail)
+        if (naTela) emit("muanlartins-estatisticas", { ...naTela, mostrar: state.estatisticas })
+        emit("muanlartins-numeros", numerosDaLive())
         emit("muanlartins-torcida", { tipo: "narrador", ligado: state.narrador })
         emit("muanlartins-torcida", { tipo: "legenda", ligado: state.legenda, fala: state.legendaFala, em: state.legendaEm })
         // The stand credits Σ only while the stream is on.
@@ -936,21 +1103,31 @@
         const stopped = outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED"
         if (!started && !stopped) return
         let session = airSession()
-        // A new stream after one that ended is a new session.
-        if (started && kind === "stream" && session.outputs.some((o) => o.kind === "stream" && o.end)) {
+        // A new stream after one that ended is a new session, unless it's back within RESTART_MS: the stream fell
+        // mid-live (11-17: the cat at the PC, back 3 min later) and it's the same live, as videos.py joins its recordings.
+        const lastStream = session.outputs.findLast((o) => o.kind === "stream")
+        if (started && kind === "stream" && lastStream?.end && Date.now() - Date.parse(lastStream.end) > RESTART_MS) {
           if (state.jogo === "valorant") state.val.sessions.push({ id: sessionId(new Date()), start: new Date().toISOString(), outputs: [], matches: [], dirty: false })
           else newSession()
           session = airSession()
         }
         const open = session.outputs.findLast((o) => o.kind === kind && !o.end)
         if (started && !open) session.outputs.push({ kind, start: new Date().toISOString() })
-        if (stopped && open) {
-          open.end = new Date().toISOString()
-          if (outputPath) open.file = outputPath.split(/[\\/]/).pop()
-        }
         session.dirty = true
+        if (stopped) close(kind, outputPath)
         save()
         status()
+      }
+      // A stop closes the output wherever it's open: the game open, and so its session, may have changed since it
+      // started (11-18: Diversos, then Valorant).
+      function close(kind, outputPath) {
+        for (const session of [...state.sessions, ...state.val.sessions]) {
+          const open = session.outputs?.findLast((o) => o.kind === kind && !o.end)
+          if (!open || Date.now() - Date.parse(open.start) > STALE_MS) continue
+          open.end = new Date().toISOString()
+          if (outputPath) open.file = outputPath.split(/[\\/]/).pop()
+          session.dirty = true
+        }
       }
       // The dock may open after the stream started: the start is now minus how long it's been on.
       async function catchUp() {
@@ -962,10 +1139,7 @@
           if (status.outputActive && !open) {
             session.outputs.push({ kind, start: new Date(Date.now() - status.outputDuration).toISOString() })
             session.dirty = true
-          } else if (!status.outputActive && open) {
-            open.end = new Date().toISOString()
-            session.dirty = true
-          }
+          } else if (!status.outputActive) close(kind)
         }
         save()
         status()
@@ -1005,6 +1179,8 @@
       // --- Publishing: one JSON file per session, in the repository the site is built from -----------
       // The session goes to <id>.json; its matches' logs, which only editing needs, to <id>.events.json.
       $("publish").onclick = async () => {
+        // A session with no match or rank (a live of another game: 11-18) isn't published.
+        for (const s of state.sessions) if (s.dirty && !s.matches.length && !s.ranks.length) s.dirty = false
         const dirty = state.sessions.filter((s) => s.dirty)
         const valDirty = state.val.sessions.filter((s) => s.dirty && s.matches.some((m) => m.counted))
         if (!state.token) return ($("publish-note").textContent = "Falta o token do GitHub, em Mais.")
@@ -1097,7 +1273,7 @@
         }, 4000)
       } else connectGame()
       connectObs()
-      if (!params.has("demo")) connectValorant()
+      if (!params.has("demo")) connectValorant(), connectPoints()
     </script>
   </body>
 </html>

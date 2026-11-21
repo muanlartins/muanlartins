@@ -14,6 +14,11 @@ const T = localize({
   rest: { pt: "Sem treino", en: "No training" },
   benchmark: { pt: "Benchmark", en: "Benchmark" },
   best: { pt: "melhor", en: "best" },
+  paused: { pt: "com pausa", en: "paused" },
+  pausedHint: {
+    pt: "Tentativas pausadas não contam para o recorde nem para o benchmark, como na Voltaic.",
+    en: "Paused attempts count neither for the best nor for the benchmark, as in Voltaic's.",
+  },
   less: { pt: "menos", en: "less" },
   more: { pt: "mais", en: "more" },
 })
@@ -140,9 +145,14 @@ export function TrainingCalendar({ days, today }: { days: TrainingDay[]; today: 
                 <span className="truncate text-ink">
                   {task.name.replace(/^VT /, "")}
                   {task.plays > 1 && <span className="ml-1.5 text-muted">×{task.plays}</span>}
+                  {task.paused > 0 && (
+                    <span className="ml-1.5 text-muted" title={T.pausedHint}>
+                      · {task.paused} {T.paused}
+                    </span>
+                  )}
                 </span>
-                <span className="shrink-0 tabular-nums text-muted">
-                  {T.best} <span className="font-medium text-ink">{task.best}</span>
+                <span className="shrink-0 tabular-nums text-muted" title={task.allPaused ? T.pausedHint : undefined}>
+                  {T.best} <span className={task.allPaused ? "line-through" : "font-medium text-ink"}>{task.best}</span>
                 </span>
               </li>
             ))}

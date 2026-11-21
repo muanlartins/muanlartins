@@ -1,0 +1,142 @@
+{
+ "date": "2026-11-13",
+ "plays": [
+  {
+   "at": "2026-11-13T21:55:31Z",
+   "task": "CsLevel.Lowgravity56.VT Speed.RYOQBG",
+   "name": "VT Speedswitch 90 Entry",
+   "score": 3053,
+   "accuracy": 58.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T21:56:51Z",
+   "task": "CsLevel.Lowgravity56.VT Speed.RYOYAR",
+   "name": "VT Speedswitch 180 Entry",
+   "score": 2560,
+   "accuracy": 48.0,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T21:58:11Z",
+   "task": "CsLevel.Lowgravity56.VT DotTS.RYP2G3",
+   "name": "VT DotTS Static Entry",
+   "score": 2411,
+   "accuracy": 56.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T21:59:23Z",
+   "task": "CsLevel.Lowgravity56.VT DotTS.RYQXWR",
+   "name": "VT DotTS Entry",
+   "score": 2625,
+   "accuracy": 49.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:00:41Z",
+   "task": "CsLevel.Lowgravity56.VT DotTS.RYSBKV",
+   "name": "VT DotTS 360 Entry",
+   "score": 2325,
+   "accuracy": 46.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:02:03Z",
+   "task": "CsLevel.Lowgravity56.VT Spher.RYVXG5",
+   "name": "VT Sphereswitch Speed Focus Entry",
+   "score": 1403,
+   "accuracy": 23.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:03:18Z",
+   "task": "CsLevel.Lowgravity56.VT Spher.RYVXW5",
+   "name": "Sphereswitch Smooth Entry",
+   "score": 48,
+   "accuracy": 42.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:04:43Z",
+   "task": "CsLevel.Lowgravity56.VT Spher.RYUM7K",
+   "name": "VT Sphereswitch Novice Small",
+   "score": 1475,
+   "accuracy": 27.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:06:03Z",
+   "task": "CsLevel.VT Empyrean.VT Spher.RB69A4",
+   "name": "VT Sphereswitch Novice",
+   "score": 1775,
+   "accuracy": 30.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:07:43Z",
+   "task": "CsLevel.Lowgravity56.VT Skysw.RYWKPQ",
+   "name": "VT Skyswitch Jumbo Entry",
+   "score": 3230,
+   "accuracy": 43.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:08:57Z",
+   "task": "CsLevel.Lowgravity56.VT Skysh.RYWMJS",
+   "name": "VT Skyshot Pokeball Entry",
+   "score": 85,
+   "accuracy": 37.0,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:10:16Z",
+   "task": "CsLevel.Lowgravity56.VT Skysw.RZ3ABU",
+   "name": "VT Skyswitch Static Entry",
+   "score": 2125,
+   "accuracy": 35.6,
+   "seconds": 67,
+   "pause": 7.5
+  },
+  {
+   "at": "2026-11-13T22:11:51Z",
+   "task": "CsLevel.Lowgravity56.VT Skysw.RZ1XPF",
+   "name": "VT Skyswitch Evo Viscose",
+   "score": 2223,
+   "accuracy": 37.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:13:02Z",
+   "task": "CsLevel.Lowgravity56.VT Skysw.RYXRQI",
+   "name": "VT Skyswitch Speed Focus Entry",
+   "score": 1865,
+   "accuracy": 24.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:14:16Z",
+   "task": "CsLevel.Lowgravity56.VT Skysw.RYYC6E",
+   "name": "Skyswitch Smooth Entry",
+   "score": 63,
+   "accuracy": 32.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:15:27Z",
+   "task": "CsLevel.Lowgravity56.VT Skysw.RYXQRV",
+   "name": "VT Skyswitch Novice Small",
+   "score": 2018,
+   "accuracy": 33.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-13T22:16:38Z",
+   "task": "CsLevel.VT Empyrean.VT Skysw.R8TH9B",
+   "name": "VT Skyswitch Novice",
+   "score": 1955,
+   "accuracy": 32.6,
+   "seconds": 60
+  }
+ ]
+}

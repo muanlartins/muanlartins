@@ -1,0 +1,21 @@
+{
+  "data": "2026-11-20",
+  "nome": "terapia",
+  "titulo": "Caí do Champion e precisei de terapia",
+  "descricao": "Logo depois de subir pro Champion: caímos de volta pro Diamante 3, o Exponja ficou sem luz no meio da partida e eu precisei de um momento terapia antes de voltar a ganhar.",
+  "partidas": [
+    7,
+    8,
+    9
+  ],
+  "capitulos": {
+    "7": "Caímos do Champion",
+    "8": "Sem luz na casa do Exponja",
+    "9": "Depois da terapia"
+  },
+  "fim": {
+    "7": "59:30",
+    "8": "1:09:36.5"
+  },
+  "publicar": "2026-11-21T19:00:00-03:00"
+}

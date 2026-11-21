@@ -88,6 +88,19 @@ html {
   text-overflow: ellipsis;
 }
 
+/* A viewer's message under the name, on the variants that have one (bits: {cheer_message}). */
+.mensagem {
+  max-width: 760px;
+  margin: 8px 0 0;
+  overflow: hidden;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #dbe4ff;
+}
+
 @keyframes wipe {
   from {
     clip-path: polygon(0 0, 0 0, -200px 100%, -200px 100%);

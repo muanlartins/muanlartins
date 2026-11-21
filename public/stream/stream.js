@@ -13,6 +13,15 @@ if (stage) {
   addEventListener("resize", fit)
 }
 
+/**
+ * December's Christmas on the overlays (2026-11-15, with the Christmas goal): lights twinkling round every camera
+ * frame and snow falling on the Klein ground of the screens that have it (Começando, Já volto, Fim, Conversa,
+ * Anúncios, Terapia, the credits; not the VAR's). By São Paulo's calendar; ?natal shows it any day, ?natal=0 hides it.
+ */
+const NATAL =
+  params.get("natal") === "0" ? false
+  : params.has("natal") || new Date().toLocaleDateString("en-US", { timeZone: "America/Sao_Paulo", month: "numeric" }) === "12"
+
 /** Twitch channel whose chat the overlays show (?canal=). */
 const CHANNEL = (params.get("canal") || "muanlartins").toLowerCase()
 
@@ -85,6 +94,7 @@ function frame(hole, { band = 12, fill = "#002fa7" } = {}) {
     <path d="${inner}" fill="none" stroke="#85a7ff" stroke-opacity="0.7" stroke-width="1.5"/>
   </svg>`
   hole.after(el)
+  if (NATAL) acender(el, middle, t)
 
   // The sheen spans x + y = SHEEN ± SHEEN, moved by 2 × the translation. The band runs from the top-left
   // cut, x + y = 0, to the bottom-right one, x + y = w + h: start wholly before it and end wholly past it.
@@ -100,6 +110,86 @@ function frame(hole, { band = 12, fill = "#002fa7" } = {}) {
     })
   return el
 }
+
+/**
+ * Christmas lights along a frame's band (`d`, its middle line; `t`, its width): a string of bulbs hanging a little in
+ * and out in turn, each with its glow, in three groups that twinkle out of step.
+ */
+function acender(el, d, t) {
+  const svg = el.querySelector("svg")
+  const uid = `l${Math.random().toString(36).slice(2, 8)}`
+  const CORES = ["#ff4d4d", "#ffd23f", "#3ddc97", "#85a7ff", "#ff9f43"]
+  const fio = document.createElementNS(SVG, "path")
+  fio.setAttribute("d", d)
+  fio.setAttribute("fill", "none")
+  fio.setAttribute("stroke", "#0b1f4d")
+  fio.setAttribute("stroke-width", Math.max(1.2, t * 0.12))
+  svg.append(fio)
+  const total = fio.getTotalLength()
+  const n = Math.max(8, Math.round(total / Math.max(26, t * 2.4)))
+  const defs = CORES.map(
+    (c, i) => `<radialGradient id="${uid}${i}"><stop offset="0" stop-color="${c}" stop-opacity="0.75"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>`,
+  )
+  const grupos = [[], [], []]
+  for (let i = 0; i < n; i++) {
+    const s = (i * total) / n
+    const p = fio.getPointAtLength(s)
+    const q = fio.getPointAtLength((s + 1) % total)
+    const len = Math.hypot(q.x - p.x, q.y - p.y) || 1
+    // Outwards: the band runs clockwise on screen, so out is the tangent turned a quarter to the left.
+    const nx = (q.y - p.y) / len, ny = -(q.x - p.x) / len
+    const out = (i % 2 ? 0.28 : -0.12) * t
+    const x = p.x + nx * out, y = p.y + ny * out
+    const ang = (Math.atan2(ny, nx) * 180) / Math.PI + (i % 2 ? 0 : 180)
+    const cor = i % CORES.length
+    grupos[i % 3].push(
+      `<circle cx="${x}" cy="${y}" r="${t * 0.95}" fill="url(#${uid}${cor})"/>` +
+        `<g transform="translate(${x} ${y}) rotate(${ang})"><rect x="${-t * 0.2}" y="${-t * 0.12}" width="${t * 0.14}" height="${t * 0.24}" fill="#0b1f4d"/>` +
+        `<ellipse cx="${t * 0.22}" cy="0" rx="${t * 0.28}" ry="${t * 0.19}" fill="${CORES[cor]}"/>` +
+        `<ellipse cx="${t * 0.26}" cy="${-t * 0.06}" rx="${t * 0.09}" ry="${t * 0.05}" fill="#fff" fill-opacity="0.7"/></g>`,
+    )
+  }
+  svg.insertAdjacentHTML("beforeend", `<defs>${defs.join("")}</defs>` + grupos.map((g, i) => `<g class="luzes luzes-${i}">${g.join("")}</g>`).join(""))
+}
+
+/**
+ * Snow falling on `el` (a Klein ground, inside its clip): flakes near and far, swaying as they fall, at 30 a
+ * second, only while the page is shown.
+ */
+function neve(el, { flocos = 140 } = {}) {
+  const c = document.createElement("canvas")
+  c.className = "neve"
+  el.append(c)
+  const ctx = c.getContext("2d")
+  const W = (c.width = el.offsetWidth || 1920)
+  const H = (c.height = el.offsetHeight || 1080)
+  const floco = (emQualquerLugar) => {
+    const z = Math.random() ** 1.6
+    return { x: Math.random() * W, y: emQualquerLugar ? Math.random() * H : -8, z, r: 1.8 + z * 4.4, v: 24 + z * 66, f: Math.random() * 6.3, a: 0.4 + z * 0.5, s: 10 + Math.random() * 26 }
+  }
+  const todos = Array.from({ length: flocos }, () => floco(true))
+  ctx.fillStyle = "#f4f5f7"
+  let antes = performance.now()
+  function cair(agora) {
+    requestAnimationFrame(cair)
+    const dt = Math.min(0.1, (agora - antes) / 1000)
+    if (dt < 1 / 31) return
+    antes = agora
+    ctx.clearRect(0, 0, W, H)
+    for (const p of todos) {
+      p.y += p.v * dt
+      p.f += dt * (0.5 + p.z)
+      p.x += Math.sin(p.f) * p.s * dt
+      if (p.y > H + 8) Object.assign(p, floco(false))
+      ctx.globalAlpha = p.a
+      ctx.beginPath()
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+  requestAnimationFrame(cair)
+}
+if (NATAL) for (const g of document.querySelectorAll(".ground:not([data-sem-neve])")) neve(g)
 
 /**
  * The name plate: the small mark and a line of text, on the frame's bottom

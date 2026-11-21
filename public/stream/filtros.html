@@ -6,13 +6,16 @@
     <!--
       The stream's camera filters, switched from the "Filtros" dock in OBS (filtros-painel.html), not by gestures.
       It opens the camera itself (NVIDIA Broadcast by default, ?cam=<part of the name> for another), tracks hands,
-      body and face with MediaPipe in the browser and draws the camera with the filter on top at 1920×1080
-      (browser sources need OBS started with --enable-media-stream to open a camera).
+      body and face with MediaPipe in the browser and draws the camera with the filter on top at 1280×720, the
+      camera's own size; in OBS each scene scales the source into its camera box (browser sources need OBS started
+      with --enable-media-stream to open a camera).
 
       The dock sends "muanlartins-filtro" through obs-browser's emit_event: { filtro: "<id>" } is the filter that
       should be on ("nenhum" for none; the dock repeats it every few seconds, so a reloaded page catches up), with
       its switches in opcoes ({ patrulha: true }: Sova's drone flying behind him), and { acao: "flash" } fires a
-      one-off. One filter at a time. A new filter: its id in MODES here, what it draws,
+      one-off. The Efeitos dock sends { visita: { filtro, acao } } for a viewer's channel points: that filter comes on
+      (over another or none), takes the ability once his face is found, and the dock's choice comes back when it's
+      over. One filter at a time. A new filter: its id in MODES here, what it draws,
       and a line in the dock's FILTROS.
 
       On the dock:
@@ -69,7 +72,10 @@
         Octane (key 8) and Fennec (key 9): his face as Rocket League's car, Pixar-style: the car sits on the head
               seen a little from above, turning with it, his own eyes on its windshield and his mouth on its
               bumper (cut from the camera, so it blinks and talks). The dock's Demolição blows it up as in a
-              demo and it respawns 2 s later (key D); Flip front-flips it (key F). Models by Jako (CC BY 4.0),
+              demo and it respawns 2 s later (key D); Flip front-flips it (key F). The dock paints both
+              (opcoes.cor: laranja by default, rosa, verde, branco, preto, dourado, roxo, azul) and puts an
+              animated decal on them (opcoes.decalque: chamas, neon, arcoiris, listras, nenhum); ?cor= and
+              ?decalque= in a browser. Models by Jako (CC BY 4.0),
               public/models/. ?carro=<cm across> (30), ?inclinacao=<degrees from above> (24),
               ?comprimento=<length kept, 0..1> (0.8), ?posicao=x,y,z (cm on the face) to tune.
       Kept here but off the dock (Luan, 2026-11-10: only Phoenix and the ball for now):
@@ -90,6 +96,10 @@
       scripts/filtros_sons.py from the games' files (privado/sons/, out of git; without them it's silent).
       OBS hears them only with the source's "Control audio via OBS" on. The dock's "Sons dos filtros" switch
       (opcoes.mudo), key M, ?mudo and ?som=<volume>.
+
+      The Santa hat (gorro.js, 2026-11-15, December's): over any filter or none, on whatever his head is (his hair,
+      an agent's hair, the ball, a car's roof), its top swinging as he moves, thrown up by a demolition. The dock's
+      "Gorro de Natal" (opcoes.gorro, off until Luan turns it on), key G, ?gorro (=y,z,tilt,size on his own head).
 
       ?debug shows fps, how long each model takes and the hands seen; ?cpu runs the models on the CPU;
       ?modo=pop|bola|phoenix|sova|octane|fennec|lente starts with a filter on; ?texto=A|B the title's two lines in Pop; it frames the camera as OBS's
@@ -202,10 +212,12 @@
       import * as SOVA from "./vfx-sova.js"
       import * as SAGE from "./vfx-sage.js"
       import { createSfx } from "./sfx.js"
+      import { createHat } from "./gorro.js"
 
       const q = new URLSearchParams(location.search)
-      const W = 1920
-      const H = 1080
+      // The page's size: the camera's own (1280×720 at 60). In OBS each scene scales it into its camera box.
+      const W = 1280
+      const H = 720
       const MODELS = "https://storage.googleapis.com/mediapipe-models/"
       const hud = document.getElementById("hud")
       const titulo = document.getElementById("titulo")
@@ -215,38 +227,21 @@
         titulo.querySelectorAll("b")[0].textContent = a || ""
         titulo.querySelectorAll("b")[1].textContent = b || ""
       }
-      // In OBS the page is one full-screen source in every scene with the camera, just above it: it draws the camera
-      // with the filter exactly in that scene's camera box (positions from brand/twitch/obs.py) and stays clear
-      // while no filter is on; everything, the flash's glare too, stays in that box. Opened in a browser it fills the window
-      // with the camera. ?caixa=x,y,w,h forces a box (1920×1080 pixels).
+      // The page is the camera's box: the camera with the filter fills it, clear while no filter is on, and everything,
+      // the flash's glare too, stays in it. In OBS one source sits just above the camera in every scene that has it,
+      // placed and scaled over that scene's camera by the scene itself (brand/twitch/obs.py), so during a transition
+      // each scene shows it in its own place. (Until 2026-11-13 the page was full screen and moved its box when OBS
+      // said the scene changed, which OBS says only once the transition has ended: for a moment after the stinger the
+      // game scene showed the filter where the talk scene's camera is.) ?caixa=x,y,w,h draws it in a part of the page,
+      // in a 1920×1080 page's pixels (the Shorts collection's source has ?caixa=0,0,1920,1080: the whole page).
       const IN_OBS = !!window.obsstudio
-      const BOXES = {
-        "RL + chat": [44, 740, 480, 270],
-        "Valorant + chat": [44, 44, 480, 270],
-        Conversa: [64, 64, 1280, 720],
-        Fim: [64, 64, 1280, 720],
-        Terapia: [64, 64, 560, 315],
-      }
-      let box = q.get("caixa") ? q.get("caixa").split(",").map(Number) : IN_OBS ? null : [0, 0, 1920, 1080]
+      let box = q.get("caixa") ? q.get("caixa").split(",").map((v) => (Number(v) * W) / 1920) : [0, 0, W, H]
       let showing = true
-      let sceneName = ""
       if (!IN_OBS) document.body.classList.add("solo")
-      function setBox(b) {
-        box = b
+      {
         const c = document.getElementById("caixa")
-        c.style.display = b ? "block" : "none"
-        if (b) Object.assign(c.style, { left: `${(b[0] / 1920) * 100}%`, top: `${(b[1] / 1080) * 100}%`, width: `${(b[2] / 1920) * 100}%`, height: `${(b[3] / 1080) * 100}%` })
-      }
-      setBox(box)
-      if (IN_OBS && !q.get("caixa")) {
-        window.obsstudio.getCurrentScene?.((scene) => {
-          sceneName = scene?.name
-          setBox(BOXES[scene?.name] || null)
-        })
-        addEventListener("obsSceneChanged", (e) => {
-          sceneName = e.detail?.name
-          setBox(BOXES[e.detail?.name] || null)
-        })
+        const [bx, by, bw, bh] = box
+        Object.assign(c.style, { display: "block", left: `${(bx / W) * 100}%`, top: `${(by / H) * 100}%`, width: `${(bw / W) * 100}%`, height: `${(bh / H) * 100}%` })
       }
       // Off screen (a scene without it), it stops tracking and drawing.
       addEventListener("obsSourceActiveChanged", (e) => (showing = !!e.detail?.active))
@@ -271,13 +266,29 @@
         // until then each camera is tried in turn.
         let cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput")
         let stream = null
+        let failed = null
+        // In a browser that hasn't let the site use the camera yet (any but OBS, which allows it by itself), the
+        // cameras come without ids, and one asked for by an empty id fails without ever showing the permission prompt
+        // (2026-11-15, Brave on localhost). So any camera first, which shows it; once allowed, the names come.
+        if (!cams.some((d) => d.deviceId)) {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: size, audio: false })
+          } catch (e) {
+            // Blocked for the site: said as such. Anything else (the webcam NVIDIA Broadcast holds) still unlocked the names.
+            if (e.name === "NotAllowedError") throw new Error("o navegador bloqueou a câmera para este site (o cadeado na barra de endereço libera)")
+            failed = e
+          }
+          cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput")
+        }
         let pick = cams.find((d) => d.label.toLowerCase().includes(want))
-        if (!pick) {
+        if (!pick && !stream) {
           for (const c of cams) {
             try {
               stream = await open(c.deviceId)
               break
-            } catch {}
+            } catch (e) {
+              failed = e
+            }
           }
           cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "videoinput")
           pick = cams.find((d) => d.label.toLowerCase().includes(want))
@@ -286,7 +297,7 @@
           stream?.getTracks().forEach((t) => t.stop())
           stream = await open(pick.deviceId)
         }
-        if (!stream) throw new Error(`nenhuma câmera abriu (${cams.map((c) => c.label || "?").join(", ")})`)
+        if (!stream) throw new Error(`nenhuma câmera abriu (${cams.map((c) => c.label || "?").join(", ")}${failed ? `: ${failed.name}` : ""})`)
         video.srcObject = stream
         await video.play()
         await new Promise((r) => (video.videoWidth ? r() : video.addEventListener("loadedmetadata", r, { once: true })))
@@ -1040,7 +1051,8 @@
       // over the clothes. Sova's torso also takes the folded bow on his back (its own materials, `extra`), and his
       // long locks hang beside the face, so his face and hands are drawn back over his hair too (`behind`).
       const AGENTS = {
-        phoenix: { url: q.get("phoenix") || "privado/phoenix.glb" },
+        // (`gorro`: where the Santa hat sits on the agent's hair, [up, size] from its place on Luan's own head.)
+        phoenix: { url: q.get("phoenix") || "privado/phoenix.glb", gorro: [2.2, 1.02] },
         // Sova's forehead comes down to the brows (`forehead`: how far above them his skin starts, in metres) and
         // Luan's face stops a little above them (`trim`: of the brows-to-chin height), since Luan's curls fall
         // over his forehead and would show under Sova's hair.
@@ -1049,7 +1061,7 @@
         // numbered by the export, Neck_12, and its body's material without "Body" in the name; her orb left out).
         // Her locks fall beside the face, like Sova's; her braid, down to her waist, is cut at the chin (`hairDown`:
         // how far below the eyes her hair is kept, in metres), or it hangs over his whole body.
-        sage: { url: q.get("sage") || "privado/sage.glb", body: /CS_Thorne_S0_MI/, behind: true, hairDown: 0.12 },
+        sage: { url: q.get("sage") || "privado/sage.glb", body: /CS_Thorne_S0_MI/, behind: true, hairDown: 0.12, gorro: [1.2, 1] },
       }
       // Luan's own hair around the agent's, painted over with what the camera shows behind him: NVIDIA Broadcast's
       // virtual background (brand/webcam/webcam-enquadrado, at 1920×1080: camera-fundo.png, from brand/build.py;
@@ -1221,6 +1233,14 @@
         }
         headPiece.add(piece(body, (i, p, g) => g === "head" && scalp(p)))
         a.hair.add(headPiece)
+        // The hair's box in the face's centimetres, for the Santa hat on top of it (gorro.js).
+        a.hatBox = new THREE.Box3()
+        headPiece.updateMatrix()
+        const hp = new THREE.Vector3()
+        for (const m of headPiece.children) {
+          const pos = m.geometry.getAttribute("position")
+          for (const i of m.geometry.index.array) a.hatBox.expandByPoint(hp.fromBufferAttribute(pos, i).applyMatrix4(headPiece.matrix))
+        }
 
         // Torso piece, in metres with the shoulders' midpoint at the origin; placed each frame.
         const mid = bone.L_Shoulder.clone().add(bone.R_Shoulder).multiplyScalar(0.5)
@@ -2856,6 +2876,129 @@
         new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(c.url, (gltf) => buildCar(c, gltf.scene), undefined, (e) => fail(id, e))
       }
       const carList = Object.values(CARS)
+      // The paint (2026-11-13, ccamara's idea in the chat): the models come in the blue team's blue, which melts into
+      // the blue behind Luan, so they're painted orange by default, the other team's colour. The dock picks another
+      // (opcoes.cor, both cars) and an animated decal over it (opcoes.decalque), like the game's: ?cor= and
+      // ?decalque= in a browser. Colours are as the page draws them (no colour management here).
+      const CAR_PAINTS = {
+        laranja: [1, 0.26, 0.02, 0.35, 0.3],
+        rosa: [1, 0.2, 0.62, 0.3, 0.32],
+        verde: [0.42, 1, 0.12, 0.3, 0.32],
+        branco: [0.92, 0.94, 0.97, 0.2, 0.25],
+        preto: [0.035, 0.035, 0.045, 0.6, 0.22],
+        dourado: [1, 0.72, 0.18, 0.95, 0.22],
+        roxo: [0.5, 0.12, 1, 0.35, 0.3],
+        azul: [0.048, 0.131, 1, 0.3, 0.29],
+      }
+      // The decals, drawn by the paint's shader over the car's length (no UVs on the body to put a picture on).
+      const CAR_DECALS = { nenhum: 0, chamas: 1, neon: 2, arcoiris: 3, listras: 4 }
+      const carLook = { cor: CAR_PAINTS[q.get("cor")] ? q.get("cor") : "laranja", decalque: CAR_DECALS[q.get("decalque")] !== undefined ? q.get("decalque") : "nenhum" }
+      // The body's material with the decal in it: positions in the model's own space (x its length, nose at +x; y up),
+      // as 0..1 of its box, and the clock.
+      function paintable(c, o, box) {
+        const mat = o.material
+        const size = box.getSize(new THREE.Vector3())
+        const u = (c.paint = {
+          mat,
+          uDecal: { value: 0 },
+          uDecalT: { value: 0 },
+          uToModel: { value: o.matrixWorld.clone() },
+          uBoxMin: { value: box.min.clone() },
+          uBoxSize: { value: size },
+          // Fades a decal in and out when it changes.
+          uDecalAmt: { value: 0 },
+          want: 0,
+        })
+        mat.onBeforeCompile = (sh) => {
+          for (const k of ["uDecal", "uDecalT", "uToModel", "uBoxMin", "uBoxSize", "uDecalAmt"]) sh.uniforms[k] = u[k]
+          sh.vertexShader = sh.vertexShader
+            .replace("#include <common>", "#include <common>\nuniform mat4 uToModel;\nvarying vec3 vCar;")
+            .replace("#include <begin_vertex>", "#include <begin_vertex>\nvCar = (uToModel * vec4(position, 1.0)).xyz;")
+          sh.fragmentShader = sh.fragmentShader
+            .replace("#include <common>", "#include <common>\n" + DECAL_GLSL)
+            .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\ndecal(diffuseColor.rgb, totalEmissiveRadiance);")
+        }
+        mat.customProgramCacheKey = () => "carro-decalque"
+        mat.needsUpdate = true
+      }
+      const DECAL_GLSL = /* glsl */ `
+        uniform int uDecal;
+        uniform float uDecalT;
+        uniform float uDecalAmt;
+        uniform vec3 uBoxMin;
+        uniform vec3 uBoxSize;
+        varying vec3 vCar;
+        float dHash(float n) { return fract(sin(n) * 43758.5453); }
+        float dNoise(vec2 p) {
+          vec2 i = floor(p), f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          float n = i.x + i.y * 57.0;
+          return mix(mix(dHash(n), dHash(n + 1.0), f.x), mix(dHash(n + 57.0), dHash(n + 58.0), f.x), f.y);
+        }
+        vec3 dHue(float h) { return clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0); }
+        void decal(inout vec3 col, inout vec3 glow) {
+          if (uDecal == 0 || uDecalAmt <= 0.0) return;
+          vec3 p = (vCar - uBoxMin) / uBoxSize;
+          // From the nose back (0 at the nose), height, and across from the middle.
+          float back = 1.0 - p.x, up = p.y, side = abs(p.z - 0.5) * 2.0;
+          float t = uDecalT;
+          vec3 c = col, g = vec3(0.0);
+          if (uDecal == 1) {
+            // Hot rod flames from the nose, their tongues licking back and flickering, gold to red with a dark rim.
+            float y = up * 7.0 + side * 1.5;
+            float tongue = pow(abs(sin(y + dNoise(vec2(y * 0.7, t * 2.2)) * 2.0)), 2.5);
+            float len = 0.22 + 0.45 * tongue + 0.08 * sin(t * 9.0 + y * 3.0);
+            float k = back / len;
+            float fill = 1.0 - smoothstep(0.96, 1.0, k);
+            float rim = smoothstep(0.86, 0.92, k) * fill;
+            vec3 fire = mix(vec3(1.0, 0.78, 0.12), vec3(0.85, 0.08, 0.01), smoothstep(0.1, 0.8, k));
+            c = mix(c, mix(fire, vec3(0.06, 0.02, 0.02), rim), fill);
+            g = fire * fill * (1.0 - rim) * 0.1;
+          } else if (uDecal == 2) {
+            // Neon: two racing stripes over the top and a line along the sides, a pulse running nose to tail.
+            float stripes = smoothstep(0.075, 0.055, abs(side - 0.24)) * step(0.45, up);
+            float line = smoothstep(0.045, 0.025, abs(up - 0.38)) * step(0.7, side);
+            float lit = max(stripes, line);
+            float pulse = 0.55 + 0.45 * sin((back * 6.0 - t * 3.0) * 3.14159);
+            vec3 neon = vec3(0.2, 0.95, 1.0);
+            c = mix(c, neon, lit);
+            g = neon * lit * (0.6 + 1.6 * pulse * pulse);
+          } else if (uDecal == 3) {
+            // Rainbow: the colours flowing from the nose to the tail.
+            vec3 rb = dHue(fract(back * 1.1 + up * 0.35 - t * 0.35));
+            c = mix(c, rb, 0.85);
+            g = rb * 0.18;
+          } else if (uDecal == 4) {
+            // Diagonal stripes sliding back, the paint's own colour against white.
+            float s = fract((back * 9.0 + up * 4.0) - t * 1.2);
+            float band = smoothstep(0.45, 0.5, s) - smoothstep(0.95, 1.0, s);
+            c = mix(c, vec3(0.95), band * 0.9);
+          }
+          col = mix(col, c, uDecalAmt);
+          glow += g * uDecalAmt;
+        }
+      `
+      // The paint and decal now: eased towards what the dock wants.
+      function paintCars(dt) {
+        const [r, g, b, metal, rough] = CAR_PAINTS[carLook.cor]
+        const want = CAR_DECALS[carLook.decalque]
+        const k = 1 - Math.exp(-dt * 8)
+        for (const c of carList) {
+          const u = c.paint
+          if (!u) continue
+          u.mat.color.r += (r - u.mat.color.r) * k
+          u.mat.color.g += (g - u.mat.color.g) * k
+          u.mat.color.b += (b - u.mat.color.b) * k
+          u.mat.metalness += (metal - u.mat.metalness) * k
+          u.mat.roughness += (rough - u.mat.roughness) * k
+          // A new decal: the old one fades out, then the new one in.
+          if (u.uDecal.value !== want) {
+            u.uDecalAmt.value = Math.max(0, u.uDecalAmt.value - dt / 0.2)
+            if (u.uDecalAmt.value === 0) u.uDecal.value = want
+          } else u.uDecalAmt.value = Math.min(1, u.uDecalAmt.value + dt / 0.3)
+          u.uDecalT.value = performance.now() / 1000
+        }
+      }
       function buildCar(c, m) {
         roomEnv()
         m.updateMatrixWorld(true)
@@ -2869,6 +3012,9 @@
           if (/Window/.test(o.material.name)) Object.assign(o.material, { envMapIntensity: 0.25, roughness: 0.6, color: new THREE.Color(0x0b1020) })
         })
         const box = new THREE.Box3().setFromObject(m)
+        // The paint: the body's material (Octane_Body, Fennec_-_Body), its decal across the whole car's box.
+        const body = meshes.find((o) => /Body/.test(o.material.name))
+        if (body) paintable(c, body, box)
         const size = box.getSize(new THREE.Vector3())
         const center = box.getCenter(new THREE.Vector3())
         const inner = new THREE.Group()
@@ -2906,6 +3052,16 @@
         const mouthY = box.min.y + size.y * 0.27
         const hit = new THREE.Raycaster(new THREE.Vector3(box.max.x + 100, mouthY, center.z), new THREE.Vector3(-1, 0, 0)).intersectObjects(meshes, false)[0]
         const mouthAt = hit ? hit.point.clone() : new THREE.Vector3(box.max.x, mouthY, center.z)
+        // The top of the roof along the car's middle, for the Santa hat (gorro.js), from its centre in the model's
+        // units, and the car's size.
+        let roof = null
+        for (let i = 0; i <= 32; i++) {
+          const from = new THREE.Vector3(box.min.x + (size.x * i) / 32, box.max.y + 100, center.z)
+          const top = new THREE.Raycaster(from, new THREE.Vector3(0, -1, 0)).intersectObjects(meshes, false)[0]
+          if (top && (!roof || top.point.y > roof.y)) roof = top.point.clone()
+        }
+        c.roof = (roof || new THREE.Vector3(center.x, box.max.y, center.z)).sub(center)
+        c.size = size.clone()
         // Screen right once the car faces the camera is the model's −z.
         const right = new THREE.Vector3(0, 0, -1)
         const along = (n) => right.clone().addScaledVector(n, -right.dot(n)).normalize()
@@ -2976,7 +3132,8 @@
         cut(mc[0], mc[1], mw, mw * 0.46, 0, 128, 512, 128)
         partsTex.needsUpdate = true
       }
-      function updateCars(now) {
+      function updateCars(now, dt) {
+        paintCars(dt)
         for (const c of carList) {
           c.group.visible = c.amt > 0 && c.ready
           if (!c.group.visible) continue
@@ -3031,6 +3188,7 @@
         if (!c || c.boom >= 0) return
         c.boom = now
         sfx.play("carro-demo", { pan: panAt(faceBox().c.x) })
+        gorro.launch(now)
       }
       function flipCar(now) {
         const c = CARS[mode]
@@ -3039,6 +3197,87 @@
         const pan = panAt(faceBox().c.x)
         sfx.play("carro-pulo", { pan, gain: 0.7 })
         sfx.play("carro-flip", { pan, delay: 0.08 })
+      }
+
+      // ---------- the Santa hat (gorro.js) ----------
+      // Luan's idea for December (2026-11-15): a Santa hat on his head over any filter, with the dock's "Gorro de
+      // Natal" (opcoes.gorro; ?gorro in a browser, G there too). It sits on what's on his head: his own curls, an
+      // agent's hair (on top of its box), the ball, a car's roof. Switching filters it slides from one to the next,
+      // with each one's weight as it comes on; a demolition throws it up, and it lands back where his head is.
+      const gorro = createHat(THREE)
+      gorro.want = q.has("gorro")
+      // On his own head, in the face's centimetres: the brim's centre (up, forward), how far it leans back (°) and
+      // its size; ?gorro=9,-3.5,-10,0.96 to tune (all four, or it's just "on").
+      const HAT_AT = (q.get("gorro") || "").split(",").map(Number)
+      const [HAT_Y, HAT_Z, HAT_TILT, HAT_K] = HAT_AT.length === 4 && HAT_AT.every(Number.isFinite) ? HAT_AT : [9, -3.5, -10, 0.96]
+      // On an agent's hair: this far below its top (cm), as wide as the hair around it.
+      const HAT_IN_HAIR = Number(q.get("gorro-cabelo") || 7)
+      // On the ball and on a car's roof: its size there.
+      const HAT_BALL = Number(q.get("gorro-bola") || 0.8)
+      const HAT_CAR = Number(q.get("gorro-carro") || 0.6)
+      const hatTilt = (deg) => new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(deg))
+      const hatPlace = () => ({ p: new THREE.Vector3(), q: new THREE.Quaternion(), s: new THREE.Vector3(), collider: null })
+      const hatNow = hatPlace(), hatOther = hatPlace()
+      // A place on the head: a point in the face's centimetres, leaning back so much, this size (x, y, z).
+      function onHead(out, x, y, z, tilt, sx, sy, sz) {
+        out.p.set(x, y, z).applyMatrix4(head.matrix)
+        out.q.copy(headQuat).multiply(hatTilt(tilt))
+        out.s.set(sx, sy, sz).multiply(headScale)
+      }
+      function hatAnchor() {
+        if (!headSeen) return null
+        // His own head, with what's under the brim (an ellipsoid in the hat's centimetres) to keep the pompom out of.
+        onHead(hatNow, 0, HAT_Y, HAT_Z, HAT_TILT, HAT_K, HAT_K, HAT_K)
+        hatNow.collider = { c: new THREE.Vector3(0, -9, 0), r: new THREE.Vector3(9.5, 11, 10.5) }
+        let most = 0
+        const toward = (o, k) => {
+          if (k <= 0) return
+          hatNow.p.lerp(o.p, k)
+          hatNow.q.slerp(o.q, k)
+          hatNow.s.lerp(o.s, k)
+          if (k >= most) {
+            most = k
+            hatNow.collider = o.collider
+          }
+        }
+        // An agent's hair: by default the brim a little under its top, round it; an agent's `gorro` ([up, size] from
+        // where it sits on Luan's own head; ?gorro-<agent>=up,size) where its hair asks for another place.
+        for (const a of agentList) {
+          if (!(a.amt > 0 && a.ready && a.hatBox)) continue
+          const b = a.hatBox
+          const own = q.get(`gorro-${a.id}`)?.split(",").map(Number) || a.gorro
+          const k = own ? own[1] : Math.max(HAT_K, ((b.max.x - b.min.x) / 2 / gorro.A) * 0.86)
+          const y = own ? HAT_Y + own[0] : Math.max(HAT_Y, b.max.y - HAT_IN_HAIR)
+          onHead(hatOther, (b.min.x + b.max.x) / 2, y, Math.min(HAT_Z, (b.min.z + b.max.z) / 2), HAT_TILT, k, k, k)
+          hatOther.collider = { c: new THREE.Vector3(0, -9, 0), r: new THREE.Vector3(9.5, 11, 10.5) }
+          toward(hatOther, Math.min(1, a.amt))
+        }
+        // The ball: the brim round it a little above its middle, a circle.
+        if (ballIn > 0) {
+          const kb = easeOutBack(ballIn)
+          const r = gorro.A * HAT_BALL
+          const up = Math.sqrt(Math.max(0, BALL_R * BALL_R - r * r)) * kb
+          onHead(hatOther, BALL_AT[0], BALL_AT[1] + up, BALL_AT[2], -6, kb * HAT_BALL, kb * HAT_BALL, kb * HAT_BALL * (gorro.A / gorro.B))
+          hatOther.collider = { c: new THREE.Vector3(0, -up / kb / HAT_BALL, 0), r: new THREE.Vector3(1, 1, gorro.B / gorro.A).multiplyScalar(BALL_R / HAT_BALL) }
+          toward(hatOther, Math.min(1, ballIn))
+        }
+        // A car: on its roof, small, turning and flipping with it.
+        for (const c of carList) {
+          if (!(c.group.visible && c.ready && c.shown > 0 && c.roof)) continue
+          c.group.updateWorldMatrix(true, false)
+          // The roof in the car group's space (the body is turned a quarter round, and longer as he turns).
+          const roofG = new THREE.Vector3(-c.roof.z * c.s, c.roof.y * c.s, c.roof.x * c.s * c.len)
+          const hs = HAT_CAR
+          hatOther.p.copy(roofG).add(new THREE.Vector3(0, -0.4, 0)).applyMatrix4(c.group.matrixWorld)
+          c.group.getWorldQuaternion(hatOther.q).multiply(hatTilt(-THREE.MathUtils.radToDeg(CAR_PITCH)))
+          hatOther.s.setScalar(hs * Math.max(c.group.scale.x, 1e-3)).multiply(headScale)
+          hatOther.collider = {
+            c: roofG.clone().multiplyScalar(-1 / hs),
+            r: new THREE.Vector3(CAR_W / 2, (c.size.y * c.s) / 2, (c.size.x * c.s * c.len) / 2).multiplyScalar(0.92 / hs),
+          }
+          toward(hatOther, Math.min(1, c.shown))
+        }
+        return hatNow
       }
 
       // ---------- trackers ----------
@@ -3205,14 +3444,56 @@
         if (mode === "sage") ({ barreira: startBarrier, lentidao: startSlow, cura: startHeal, ult: startRes })[a]?.(now)
         if (CARS[mode]) ({ demo, flip: flipCar })[a]?.(now)
       }
+      // A viewer's channel points (the Efeitos dock's { visita: { filtro, acao } }): that filter comes on for the
+      // ability even over another one or none, and once the ability is over the dock's own choice comes back. Meanwhile
+      // the Filtros dock's repeats only change what to come back to. One visit at a time (the Efeitos dock refunds the
+      // rest).
+      let dockFiltro = mode
+      // The visit on the page's clock, moved on by tick(): waiting for him, the ability playing, leaving.
+      const visita = { filtro: null, acao: null, fase: null, desde: 0 }
+      /** The visiting filter can take the ability: the camera open, his face found, the model loaded. */
+      const prontoPara = (f) => camState === "aberta" && headSeen && !!(AGENTS[f] ?? CARS[f] ?? { ready: true }).ready
+      /** An ability of the filter on is still playing. */
+      function ocupado() {
+        if (mode === "phoenix") return bang.t0 >= 0 || !!(phx.held || phx.trail || phx.e || phx.c || phx.x)
+        if (mode === "sova") return sova.bow.state !== "idle" || !!(sova.arrow || sova.dart || sova.ult || sova.drone)
+        if (mode === "sage") return !!(sage.c || sage.q || sage.e || sage.x)
+        if (CARS[mode]) return CARS[mode].boom >= 0 || CARS[mode].flip >= 0
+        return false
+      }
+      function visitar({ filtro, acao: a }) {
+        if (!MODES.includes(filtro) || visita.filtro) return
+        Object.assign(visita, { filtro, acao: a, fase: "esperando", desde: performance.now() })
+        if (mode !== filtro) setMode(filtro)
+      }
+      function visitaTick(now) {
+        if (!visita.filtro) return
+        const t = now - visita.desde
+        if (visita.fase === "esperando" && (prontoPara(visita.filtro) || t > 8000)) {
+          acao(visita.acao)
+          Object.assign(visita, { fase: "soltou", desde: now })
+        } else if (visita.fase === "soltou" && t > 4000 && (!ocupado() || t > 30000)) {
+          Object.assign(visita, { fase: "saindo", desde: now })
+        } else if (visita.fase === "saindo" && t > 1500) {
+          visita.filtro = null
+          if (mode !== dockFiltro) setMode(dockFiltro)
+        }
+      }
       // The dock's word (obs-browser's emit_event): the filter that should be on with its options (Sova's drone
       // flying behind him), or a one-off.
       addEventListener("muanlartins-filtro", ({ detail }) => {
-        if (detail?.filtro && detail.filtro !== mode) setMode(detail.filtro)
+        if (detail?.filtro) dockFiltro = detail.filtro
+        if (detail?.filtro && detail.filtro !== mode && !visita.filtro) setMode(detail.filtro)
+        if (detail?.visita) visitar(detail.visita)
         if (detail?.opcoes) {
           sova.patrol.want = !!detail.opcoes.patrulha
           // The dock's "Sons" switch (on unless it says mudo).
           sfx.on = !detail.opcoes.mudo
+          // The cars' paint and decal.
+          if (CAR_PAINTS[detail.opcoes.cor]) carLook.cor = detail.opcoes.cor
+          if (CAR_DECALS[detail.opcoes.decalque] !== undefined) carLook.decalque = detail.opcoes.decalque
+          // The Santa hat, over any filter or none.
+          if (detail.opcoes.gorro !== undefined) gorro.want = !!detail.opcoes.gorro
         }
         if (detail?.acao) acao(detail.acao)
       })
@@ -3234,11 +3515,12 @@
         if (keys[k]) acao(keys[k])
         if (k === "p") sova.patrol.want = !sova.patrol.want
         if (k === "m") sfx.on = !sfx.on
+        if (k === "g") gorro.want = !gorro.want
         if (e.key === "0") setMode("nenhum")
       })
       setMode(mode)
       const DEBUG = q.has("debug")
-      if (DEBUG) window.filtros = { get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, armsCrossed, armsOpen, get mode() { return mode }, get trackers() { return trackersReady() } }
+      if (DEBUG) window.filtros = { visita, get faceLm() { return faceLm }, toScreen, sova, AGENTS, CARS, uniforms, acao, vfx, sfx, phx, gorro, setMode, isOwl, handShape, bow3, drone3, SOVA, at3, sage, sg3, armsCrossed, armsOpen, get mode() { return mode }, get trackers() { return trackersReady() } }
 
       const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
       // Thumb and index out, the other fingers in: half of the lens's frame.
@@ -3671,6 +3953,7 @@
       // ?fps=60 draws at most that many frames a second (a browser at 144 Hz drawing like OBS's 60 fps source).
       const FPS_CAP = Number(q.get("fps")) || 0
       let lastDraw = 0
+      let limpo = false
       function tick() {
         requestAnimationFrame(tick)
         const now = performance.now()
@@ -3678,14 +3961,22 @@
         lastDraw = now
         const dt = Math.min(0.05, (now - last) / 1000)
         last = now
-        const camReady = video.readyState >= 2 && video.videoWidth > 0
-        if (!showing || !box || !camReady) {
-          renderer.setScissorTest(false)
-          renderer.setViewport(0, 0, W, H)
-          renderer.clear()
-          hud.textContent = `parado: ${!showing ? "fonte fora da tela" : !box ? `sem caixa de câmera na cena "${sceneName}"` : "sem câmera"}` + (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
+        visitaTick(now)
+        camera(now)
+        const camReady = camState === "aberta" && video.readyState >= 2 && video.videoWidth > 0
+        if (!showing || !camReady) {
+          // Cleared once: a frame with nothing drawn gives OBS nothing new to take.
+          if (!limpo) {
+            renderer.setScissorTest(false)
+            renderer.setViewport(0, 0, W, H)
+            renderer.clear()
+            limpo = true
+          }
+          const porque = !showing ? "fonte fora da tela" : camState === "fechada" && mode === "nenhum" && !gorro.want ? "nenhum filtro, câmera fechada" : "abrindo a câmera"
+          hud.textContent = `parado: ${porque}` + (errors.length ? "\n" + errors.slice(-3).join("\n") : "")
           return
         }
+        limpo = false
         const phoenix = AGENTS.phoenix.amt
         const agentOn = agentList.some((a) => a.amt > 0) || !!AGENTS[mode]
         const carOn = carList.some((c) => c.amt > 0) || !!CARS[mode]
@@ -3717,7 +4008,7 @@
             const bodyEvery = handsOn && mode !== "pop" ? 80 : 0
             if ((mode === "pop" || pop > 0 || sovaMask || ((agentOn || carOn) && ERASE)) && now - bodySentAt >= bodyEvery) want.corpo = true
             if ((agentOn || carOn) && ERASE && (plate.off === undefined || now - plate.at > 250)) want.fundo = true
-            if (mode === "bola" || ballIn > 0 || agentOn || carOn || mode === "sage") want.rosto = true
+            if (mode === "bola" || ballIn > 0 || agentOn || carOn || mode === "sage" || gorro.want || gorro.visible) want.rosto = true
             // The shoulders ride the head between answers, so ~15 a second is plenty; Sage's barrier gesture reads the
             // arms, so as often as it can there.
             if ((agentOn || mode === "sage") && now - pose.sentAt > (mode === "sage" ? 0 : 60)) want.ombros = true
@@ -3757,7 +4048,8 @@
         if (mode === "phoenix" || vfx.active()) updatePhoenix(now, dt)
         if (sovaOn) updateSova(now, dt)
         if (mode === "sage") updateSage(now, dt)
-        updateCars(now)
+        updateCars(now, dt)
+        gorro.update(now, dt, hatAnchor())
         // Erasing his hair: around an agent's, or his whole head under a car (back while it's demolished).
         const carShown = Math.max(0, ...carList.map((c) => (c.group.visible ? c.shown : 0)))
         uniforms.uErase.value = headSeen && ERASE ? Math.max(agentAmt, carShown) : 0
@@ -3804,7 +4096,7 @@
         renderer.setViewport(bx + sx, H - by - bh + sy, bw, bh)
         renderer.setScissor(bx, H - by - bh, bw, bh)
         renderer.setScissorTest(true)
-        if (!IN_OBS || mode !== "nenhum" || pop > 0 || ballIn > 0 || agentAmt > 0 || carAmt > 0) renderer.render(baseScene, ortho)
+        if (!IN_OBS || mode !== "nenhum" || pop > 0 || ballIn > 0 || agentAmt > 0 || carAmt > 0 || gorro.visible) renderer.render(baseScene, ortho)
         if (pop > 0) {
           updateShapes(dt, pop, pushes)
           renderer.clearDepth()
@@ -3858,6 +4150,11 @@
           renderer.render(sv3.held, headCam)
           renderer.render(keepHandsScene, ortho)
         }
+        // The Santa hat, over whatever is on his head (the abilities' effects still pass in front of it).
+        if (gorro.visible) {
+          renderer.clearDepth()
+          renderer.render(gorro.scene, headCam)
+        }
         if (sovaOn) {
           renderer.render(sovaScene, ortho)
           const droneFront = drone3.root.visible && !drone3.behind
@@ -3901,7 +4198,7 @@
             `${fps.toFixed(0)} fps · ${delegate || "…"} · ${camLabel}\n` +
             `gesto ${ms.gesto.toFixed(1)} ms · corpo ${ms.corpo.toFixed(1)} ms · rosto ${ms.rosto.toFixed(1)} ms · ombros ${ms.ombros.toFixed(1)} ms\n` +
             `respostas/s: ${Object.entries(trackers).map(([k, t]) => `${k} ${t.rate.toFixed(0)}`).join(" · ")}\n` +
-            `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}` +
+            `${handInfo} · filtro: ${mode}${lens.on ? " · lente" : ""}${gorro.want ? ` · gorro ${gorro.visible ? "na cabeça" : "sem rosto"}` : ""}` +
             (ag ? `\n${mode}: modelo ${ag.ready ? "ok" : "carregando"} · rosto ${headSeen ? "sim" : "não"}${AGENTS[mode] ? ` · ombros ${pose.seen ? "sim" : "não"} · fundo ${!ERASE ? "desligado" : plate.off === undefined ? "…" : `${plate.ok ? "ok" : "não bate"} (${plate.off.toFixed(1)})`}` : ""}` : "") +
             (mode === "sova" ? `\nsova: peças ${bow3.model ? "ok" : "…"} · arco ${sova.bow.state} ${sova.bow.amt.toFixed(2)}${sova.arrow ? ` · flecha (${sova.arrow.kind})` : ""}${sova.dart ? " · reconhecimento" : ""}${sova.drone ? " · coruja" : ""}${sova.patrol.amt > 0 ? " · coruja sobrevoando" : ""}${sova.ult ? " · ultimate" : ""}` : "") +
             (mode === "sage" ? `\nsage: peças ${sg3.ok}/2${sage.c ? " · barreira" : ""}${sage.q ? " · lentidão" : ""}${sage.e ? " · cura" : ""}${sage.x ? " · ressurreição" : ""}${sage.pray ? " · prece" : ""}` : "") +
@@ -3909,15 +4206,54 @@
         }
       }
 
-      // Opens the camera, and again every 5 s while it fails (busy, Broadcast restarting).
+      // The camera only while something on the page needs it (a filter, the hat), and let go SOLTA_MS after
+      // (fade-outs, the hat's fall) or off screen. Held with nothing on, NVIDIA Broadcast served two apps at once:
+      // measured 2026-11-18, ~1 CPU core and +9 points of GPU with no filter on. Opening takes a fraction of a
+      // second, under the filter's fade-in; OBS's own Câmera shows meanwhile. A camera that stops sending frames
+      // (Broadcast restarting it; on 11-18 the page stayed dark the rest of the live) is let go and opened again.
+      const SOLTA_MS = 3000
+      const MUDA_MS = 3000 // no new frame for this long: the camera is gone
+      let camState = "fechada" // "abrindo", "aberta"
+      let camStream = null
+      let camRetryAt = 0
+      let neededAt = -Infinity
+      let frameSeen = -1
+      let frameAt = 0
       async function startCamera() {
+        camState = "abrindo"
         try {
           camLabel = await openCamera()
+          camStream = video.srcObject
+          const s = camStream
+          s.getVideoTracks()[0].addEventListener("ended", () => camStream === s && stopCamera())
           setupCamera()
+          camState = "aberta"
+          frameAt = performance.now()
         } catch (e) {
           fail("câmera", e)
-          setTimeout(startCamera, 5000)
+          stopCamera()
+          camRetryAt = performance.now() + 5000
         }
+      }
+      function stopCamera() {
+        ;(camStream ?? video.srcObject)?.getTracks().forEach((t) => t.stop())
+        camStream = null
+        video.srcObject = null
+        camState = "fechada"
+      }
+      /** Opens or lets go of the camera for this frame. */
+      function camera(now) {
+        if (showing && (mode !== "nenhum" || gorro.want)) neededAt = now
+        const want = now - neededAt < SOLTA_MS
+        if (video.currentTime !== frameSeen) {
+          frameSeen = video.currentTime
+          frameAt = now
+        }
+        if (camState === "aberta" && (!want || now - frameAt > MUDA_MS)) {
+          if (want) fail("câmera", "parou de mandar imagem; abrindo de novo")
+          stopCamera()
+        }
+        if (want && camState === "fechada" && now >= camRetryAt) startCamera()
       }
       function setupCamera() {
         fitCover()
@@ -3927,7 +4263,6 @@
         maskTex = makeMaskTex()
         uniforms.uMask.value = maskTex
       }
-      startCamera()
       tick()
       loadModels()
     </script>

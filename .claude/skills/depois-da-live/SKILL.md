@@ -1,6 +1,6 @@
 ---
 name: depois-da-live
-description: The routine after one of Luan's Twitch lives - file the recordings and replays, write the live's page and transcript, set the YouTube VOD, release. Use when he says the live ended or asks to process a live's VOD.
+description: The routine after one of Luan's Twitch lives - file the recordings and replays, write the live's page and transcript, cut three videos of its matches, schedule the YouTube VOD after them, release. Use when he says the live ended or asks to process a live's VOD.
 ---
 
 # After a live
@@ -13,6 +13,17 @@ the routine. Talk to Luan in pt-BR. `<date>` is the live's day, `YYYY-MM-DD`.
 - `node scripts/obs.mjs` says `live: no` (or OBS is closed). Until then, nothing heavy (see `antes-da-live`).
 - The session is published: `git pull` and look for `content/matches/<date>-*.json` and `.events.json`. If
   it's missing, ask Luan to press "Publicar sessões" in the Partidas dock (he forgot once).
+- One session per live. Since 11-17 a stream back on within 15 min of its end (OBS or the PC down mid-live)
+  continues the dock's session, as `videos.py` joins its recordings; before that each restart opened a new one
+  (11-09 Valorant, 11-17 Rocket League: the cat at the PC). Two sessions of one live, published: join them into the
+  first (outputs, matches and ranks end to end, its `end` the second's, the events' matches too; keep the dock's
+  formats: `JSON.stringify(v, null, 2)` for the session, one event per line for `.events.json`) and delete the
+  second's files. A recording restarted just before the stream lands in the first session with no `end`: give it its
+  start plus its piece's length. The dock still holds the second session: Luan shouldn't edit those matches there
+  (it would publish it again).
+- Matches played off the stream (since 11-20) publish sessions of their own on the same day, without `outputs`
+  (`rocket_league.py`, `valorant.py`): `live.py` and `partidas.py` take the live's session as the one with OBS's
+  recording and leave them out (11-20 had an off-stream 1v1 session at 00:40 beside the live's).
 - Replays are saved: `ls "/mnt/c/Users/muanl/OneDrive/Documents/My Games/Rocket League/TAGame/DemosEpic"`
   (`Demos` holds only old ones). One per match is the goal.
 
@@ -138,6 +149,70 @@ vitórias em 14 jogos | Rocket League ao vivo`; on a day without a climb, the ho
 (`Esses caras vão humilhar a gente… | Valorant ao vivo`). The template only covers a climb or the record: write one
 for him to approve when the day has a better story.
 
+## 2c. The videos of the matches (since 11-17)
+
+Luan's plan from 11-17 (he'd said it on stream that day too: "só vídeos normais de 20 minutos"): the full VOD is held
+back and three videos of about 20 minutes go out first, each with three **whole** matches of the live, the intro and
+the outro, and the live's own transition between them. `scripts/partidas.py` does the edit; what takes judgment is a
+small roteiro per video in `scripts/roteiros/partidas/<date>-<nome>.json` (its docstring has the format).
+
+**No editing beyond that.** The first version (11-17) had a cold open of three best moments, only the intro's first
+sentence, hard cuts and a card where the PC went down. Luan, 11-18: "os cortes ficaram HORRÍVEIS hahaha é
+impressionante como você não é bom nisso. Até a intro sofreu e ficou cortada coitada." What he asked for instead:
+the matches, the whole intro and the outro, "uma transição como a da live entre as partidas". He pointed to
+ApparentlyJack and Retals on YouTube as styles to learn from someday; until he says otherwise, don't add montages,
+zooms, cards or effects. The research of 11-17 (`pesquisa-videos-longos.md` beside this file) still holds for titles,
+schedule and policy; its editing advice was overruled by him.
+
+1. **Pick (Claude), approve (Luan).** `partidas.py <date>` lists the matches (where in Live.mp4, score, goals).
+   Read the transcript with the matches and goals marked in (it's what tells the story: on 11-17 the cats turning
+   the PC off mid-match, "muito perto do Champion"). Three groups of three matches in order, no match in two videos,
+   ~16–21 min each: the best stories, not just the wins. Leftovers stay in the VOD. A standalone hook for each title
+   (never "Parte 1"), the roteiro's `titulo`; partidas.py adds the game, the mode and the rank going into the first
+   match, which Luan wants in every title (11-18), and "(corte da live)" (11-19: what's cut from a live says so in the
+   title, the thumbnail's plate and the playlist, so the videos made for YouTube stand apart from the lives' replays):
+   `Minha gata desligou o PC no meio da ranqueada | Rocket League 3v3 Diamante 3 (corte da live)`. So the hook doesn't
+   say the rank again.
+2. **Plan, then render**: `partidas.py <roteiro>` prints each match's edges (with his mic's level there: all should be
+   pauses, ≤ -60 dB; `!` lines say where none was found) and the chapters; then `--apply`: ~5 min per video (NVENC),
+   ~4 GB, `Videos\Partidas\<date> <nome>.mp4`, and `content/videos/<date>-<nome>.json` for YouTube (id empty,
+   description with the chapters, Epic's disclaimer and links, `publish_at` from the roteiro's `publicar`), and its
+   captions beside the video (`<date> <nome>.srt`: the live's transcript in each match's piece, the intro's and
+   outro's words; `--legendas` writes only them for a video already made). Each match
+   starts just after the recording's own stinger into the game and ends at his first pause after the cut to Conversa;
+   the stinger (transicao.webm) covers every join, as on the stream. Check a frame on each side of each join and the
+   loudness (-14 to -16 LUFS).
+3. **Thumbnails**, as in 2b but per video: `thumb.py <date> --folha <nome> --trecho <first match start>-<last
+   match end>` makes a sheet of that stretch; drafts with `--folha <nome> --quadro 7b --texto "…" --saida
+   "Videos\Lives\<date>\Thumb\rascunho <nome> A.jpg"` (the plate says CORTE DA LIVE · dd/mm by itself with
+   `--folha`; a Live.mp4 second works as `--quadro` too, and a frame from elsewhere in the live is fine when it
+   tells the story better: 11-17's cat video uses the cat in his lap from match 12); the pick goes to `brand/youtube/thumbnails/<date>-<nome>.jpg`. Picking is Luan's.
+4. **Publish**: Luan uploads the three files in Studio (private) and the ids go into the records; since 11-20 two or
+   three a day at different hours, from the day after the live (Luan: "dado o ritmo de produção… 2 ou 3 vídeos por
+   dia dos cortes, em horários diferentes", with more shorts too and his produced videos, the analyses, starting;
+   11-20's: Sat 15:00 and 19:00, Sun 12:00; before that one a day at 12:00), the VOD at least a day after the last
+   (`youtube.publish_at` in `content/lives/<date>.json`: `youtube.py live` schedules it, and the site keeps that live
+   off its pages until a build after that moment, so its page never embeds a private video). Then
+   `youtube.py video content/videos/<date>-<nome>.json --dry-run`, show him, apply (it makes the playlist "Rocket
+   League: cortes da live" the first time, and uploads the captions as the lives' are). The end screen (last 10 s,
+   over the outro) is set in Studio by hand: the API can't. A slot that passes before he uploads (11-18: the noon
+   slot went by; he picked 21:00 the same day) is his call: change `publicar` and `publish_at`. Once a video is out,
+   running `youtube.py` again leaves its status alone (a `publish_at` already past is skipped, since setting it
+   would make the video private).
+5. Mark the day `--done` (step 4) only once the three are uploaded; the files in `Videos\Partidas` go by themselves
+   with `videos.py --clean` once YouTube has each whole.
+
+What 11-17 taught: the recording's track 1 is quiet (-41 LUFS, peaks at -17 dBFS), so each part is levelled by
+loudnorm, not one gain; a jump in the recording (the PC went down) is listed in `"saltos"` (the piece before ends at
+its last real frame, a second before the join, and the stinger covers it); a match the dock caught late needs its
+start (`"inicio"`); the talk after a match ends at his first pause past the scoreboard unless `"fim"` keeps a line
+worth it ("estamos muito perto do Champion"). The dock's switch to the game comes 4–10 s before its recorded start,
+with a stinger; to Conversa 5.5 s after the end. Rocket League's **Streamer Safe Music** is on (Luan, 11-20): a
+claimed song in the VOD would come back in every video cut from it. When the stream stayed on Conversa while a match
+was played (11-20, match 3: the dock didn't switch and he switched by hand 68 s in), `"jogo"` lays the game recording
+over that stretch, ending where the live's own stinger into the game covers the screen (OBS's log has the switch;
+plus 0.6 s); Luan picked that over leaving it or starting the match late.
+
 ## 3. YouTube
 
 1. Luan uploads `Videos\Lives\<date>\<hh-mm-ss> Live.mp4` in YouTube Studio (the API can't: unverified apps'
@@ -146,9 +221,9 @@ for him to approve when the day has a better story.
 2. `scripts/.venv/bin/python scripts/live.py <date> --video <id>`
 3. Wait until YouTube has processed it (a 50 GB upload takes a while after the upload ends), then
    `scripts/.venv/bin/python scripts/youtube.py live <date> --dry-run`, show Luan, then without `--dry-run`:
-   title, description (his summary, the game's line, Twitch first among the links, chapters, the date, three
+   title, description (his summary, the game's line, Twitch first among the links and the Discord right after, chapters, the date, three
    hashtags), tags (the game's, plus mode, rank, agents and maps played), thumbnail (thumb.py's `.jpg` over
-   build.py's `.png`), **public** (`PRIVACY`), the game's playlist ("Rocket League ao vivo", "Valorant ao vivo":
+   build.py's `.png`), **public** (`PRIVACY`; scheduled instead when `youtube.publish_at` holds it back, 2c), the game's playlist ("Rocket League ao vivo", "Valorant ao vivo":
    made the first time it's missing, kept as public as the videos), captions. Per game in `GAMES` in `youtube.py`.
    `--no-captions` when only the metadata changed (captions cost 400+ of the 10,000 daily quota units).
 
@@ -167,7 +242,7 @@ utilizarmos".
 ```sh
 scripts/.venv/bin/python scripts/videos.py --clean            # lists what goes, and why
 scripts/.venv/bin/python scripts/videos.py --clean --apply    # deletes it, for good
-python3 scripts/videos.py --done <date>                        # after that day's thumbnail, shorts and commented videos
+python3 scripts/videos.py --done <date>                        # after that day's thumbnail, match videos and shorts
 ```
 
 - A day's `Live.mp4`, `Jogo`, `Câmera` and `VAR` clips go together when the day is marked `--done`; otherwise they
@@ -178,7 +253,8 @@ python3 scripts/videos.py --done <date>                        # after that day'
   skill), and before 11-06 it's the studio's only copy of the matches. It never goes before its YouTube video is
   processed and as long as the file (checked through the API), not even for space.
 - Replays stay (a few MB). Show Luan the list before `--apply`: nothing comes back.
-- Free space under ~150 GB before a live: tell him.
+- Free space under ~150 GB before a live: tell him. The rest of the Videos folder (shorts' candidates, OBS's
+  stubs, the match videos) is in the `faxina` skill.
 
 ## 4b. Valorant's skins (Valorant days)
 

@@ -12,7 +12,8 @@ abilities, all in one block of filtros.html ("Sage's abilities"), `public/stream
 
 Never while Luan is live (the extraction and the test load the CPU for minutes), and the game's files never leave
 `public/stream/privado/` (gitignored, never committed or published): the pages read them from the working copy that
-serves localhost:8126, the shared checkout `~/repos/muanlartins`.
+serves localhost:8126, the shared checkout `~/repos/muanlartins` (`scripts/servidor_filtros.py`, with `Cache-Control:
+no-cache` since 2026-11-18: plain http.server let OBS run a cached, older filtros.html after a restart).
 
 ## 1. The game's files
 
@@ -80,6 +81,9 @@ All in one block after the other agents' (search "Sage's abilities"), with these
   (the body's material, when it isn't named Body), `extra` (more pieces on the torso), `behind` (locks beside the
   face), `forehead`, `trim`. Bone names may come numbered by an export (Neck_12) and a finer face rig has
   L_Brow_Mid_01 in place of L_Brows: `buildAgent` reads both. Check it on his face with `--video=` (step 6).
+- The Santa hat (`gorro.js`, December's) goes over every look: `hatAnchor()` places its brim on what his head is
+  (his hair, an agent's hair by its box `a.hatBox`, the ball, a car's roof `c.roof`). A new look on the head needs its
+  place there, or the hat sits on his own head inside it.
 
 ## 4. Its sounds
 
@@ -104,7 +108,9 @@ Nobody has heard or seen it live until Luan tries it in OBS: say so.
 
 ## 7. Release
 
-The roadmap entry (`content/changelog.ts`, in the same commit, with a clip if there's a picture to show; credit only
-if a viewer suggested it), the dock's list in the obs skill, and AGENTS.md's credits line (the game's files used).
+The roadmap: a new agent or filter isn't an entry of its own. It goes into the camera filters' entry
+(`filtros-na-camera` in `content/changelog.ts`, same commit): its name in the line if it fits, a picture or clip of it,
+and the viewer who suggested it in `credits` with `about`, if one did. Then the dock's list in the obs skill, and
+AGENTS.md's credits line (the game's files used).
 OBS reads the pages from the shared checkout: after the release they reach it with a pull there (other sessions keep
 uncommitted work in it, so look before touching it).

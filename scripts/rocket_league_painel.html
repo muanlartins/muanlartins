@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Partidas · Rocket League</title>
+    <!--
+      The off-stream matches as scripts/rocket_league.py sees them (Luan, 2026-11-20: "queria conseguir ver o histórico
+      de partidas tipo o painel do OBS"), served by it at http://localhost:8795/ and read from its GET /estado every few
+      seconds: whether the game is open and a match is on, the rank in each mode, the session not yet published with
+      each match's points and total, the last session it published, and the latest lines of its log. Only reads; the
+      session still publishes by itself (two minutes after the game closes, or 45 after the last match).
+    -->
+    <style>
+      @font-face {
+        font-family: "Space Grotesk";
+        src: url("/space-grotesk.ttf") format("truetype");
+        font-weight: 300 700;
+      }
+      :root {
+        --klein: #002fa7;
+        --klein-claro: #85a7ff;
+        --paper: #f4f5f7;
+        --navy: #001447;
+        --win: #4ade80;
+        --loss: #f87171;
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 20px;
+        background: var(--navy);
+        color: var(--paper);
+        font: 15px/1.4 "Space Grotesk", system-ui, sans-serif;
+      }
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+      }
+      h2 {
+        margin: 26px 0 10px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--klein-claro);
+      }
+      .estado {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        margin-top: 6px;
+        color: var(--klein-claro);
+      }
+      .estado b {
+        color: var(--paper);
+        font-weight: 600;
+      }
+      .ponto {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background: #667;
+      }
+      .ponto.on {
+        background: var(--win);
+      }
+      .ranks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .rank {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 200px;
+        padding: 10px 14px 10px 10px;
+        background: rgb(0 47 167 / 0.35);
+        clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+      }
+      .rank img {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+      }
+      .rank small {
+        display: block;
+        color: var(--klein-claro);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+      }
+      th,
+      td {
+        padding: 7px 10px;
+        text-align: left;
+        border-bottom: 1px solid rgb(133 167 255 / 0.18);
+        white-space: nowrap;
+      }
+      th {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--klein-claro);
+      }
+      td.num,
+      th.num {
+        text-align: right;
+      }
+      .win {
+        color: var(--win);
+      }
+      .loss {
+        color: var(--loss);
+      }
+      .falta {
+        color: #fbbf24;
+      }
+      .vazio {
+        color: var(--klein-claro);
+      }
+      a {
+        color: var(--klein-claro);
+      }
+      pre {
+        margin: 0;
+        padding: 12px 14px;
+        max-height: 340px;
+        overflow: auto;
+        background: rgb(0 0 0 / 0.25);
+        font: 13px/1.5 ui-monospace, Consolas, monospace;
+        white-space: pre-wrap;
+      }
+      .erro {
+        margin-top: 10px;
+        color: var(--loss);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Rocket League · partidas</h1>
+    <div class="estado" id="estado">…</div>
+    <div class="erro" id="erro" hidden>O serviço não respondeu (scripts/rocket_league.py). Tentando de novo…</div>
+
+    <h2>Rank agora</h2>
+    <div class="ranks" id="ranks"></div>
+
+    <h2 id="titulo-sessao">Fora da live, ainda não publicadas</h2>
+    <table>
+      <thead>
+        <tr><th>Hora</th><th>Modo</th><th>Resultado</th><th class="num">Placar</th><th class="num">Pontos</th><th class="num">Total</th><th>Rank</th><th class="num">G · A · D</th></tr>
+      </thead>
+      <tbody id="partidas"></tbody>
+    </table>
+    <p class="vazio" id="publica"></p>
+
+    <h2>Última publicada</h2>
+    <p id="publicada" class="vazio">Nenhuma desde que o serviço guardou isso.</p>
+
+    <h2>O que o serviço viu</h2>
+    <pre id="log"></pre>
+
+    <script>
+      const TIERS = { bronze: "Bronze", silver: "Prata", gold: "Ouro", platinum: "Platina", diamond: "Diamante", champion: "Campeão", "grand-champion": "Grande Campeão" }
+      const ROMANOS = ["I", "II", "III", "IV"]
+      const nomeRank = (tier) => {
+        if (!tier) return "?"
+        if (tier === "unranked") return "Sem ranque"
+        if (tier === "supersonic-legend") return "Lenda Supersônica"
+        const [, base, n] = tier.match(/^(.*)-(\d)$/) ?? []
+        return base ? `${TIERS[base] ?? base} ${ROMANOS[n - 1]}` : tier
+      }
+      const comDivisao = (r) => (r?.tier && r.tier !== "unranked" && r.tier !== "supersonic-legend" && r.division ? ` · div ${ROMANOS[r.division - 1]}` : "")
+      const hora = (iso) => (iso ? new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "")
+      const el = (id) => document.getElementById(id)
+      const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c])
+
+      function desenhar(e) {
+        el("erro").hidden = true
+        const partes = [`<span><span class="ponto${e.aberto ? " on" : ""}"></span><b>${e.aberto ? "Jogo aberto" : "Jogo fechado"}</b></span>`]
+        if (e.partida) partes.push(`<span>partida de <b>${esc(e.partida.modo)}</b> rolando${e.partida.ranqueada ? "" : " (não ranqueada)"}${e.partida.desde ? ` desde ${hora(e.partida.desde)}` : ""}</span>`)
+        partes.push(`<span>atualizado às ${new Date().toLocaleTimeString("pt-BR")}</span>`)
+        el("estado").innerHTML = partes.join("")
+
+        el("ranks").innerHTML = ["3v3", "2v2", "1v1"]
+          .concat(Object.keys(e.ranks ?? {}).filter((m) => !["3v3", "2v2", "1v1"].includes(m)))
+          .filter((m) => e.ranks?.[m])
+          .map((m) => {
+            const r = e.ranks[m]
+            return `<div class="rank"><img src="https://muanlartins.com.br/ranks/${esc(r.tier)}.webp" alt="" onerror="this.style.visibility='hidden'"><div><b>${esc(m)}</b> · ${esc(nomeRank(r.tier))}${comDivisao(r)}<small>${r.mmr ?? "?"} pontos</small></div></div>`
+          })
+          .join("")
+
+        const s = e.sessao
+        const lista = s?.matches ?? []
+        el("titulo-sessao").textContent = s ? `Fora da live, ainda não publicadas · ${s.id}` : "Fora da live, ainda não publicadas"
+        el("partidas").innerHTML = lista.length
+          ? lista
+              .slice()
+              .reverse()
+              .map((m) => {
+                const pontos = m.points == null ? `<span class="falta">sem leitura</span>` : `${m.points > 0 ? "+" : ""}${m.points}`
+                const res = m.result === "win" ? `<span class="win">Vitória</span>` : `<span class="loss">Derrota${m.left ? " (saiu)" : ""}</span>`
+                const eu = m.me ?? {}
+                return `<tr><td>${hora(m.at)}</td><td>${esc(m.mode)}</td><td>${res}${m.overtime ? " · prorrogação" : ""}</td><td class="num">${m.score?.[0] ?? "?"}–${m.score?.[1] ?? "?"}</td><td class="num">${pontos}</td><td class="num">${m.mmr ?? "?"}</td><td>${esc(nomeRank(m.rank?.tier))}</td><td class="num">${eu.goals ?? 0} · ${eu.assists ?? 0} · ${eu.saves ?? 0}</td></tr>`
+              })
+              .join("")
+          : `<tr><td colspan="8" class="vazio">Nenhuma partida ranqueada fora da live esperando publicação.</td></tr>`
+        el("publica").textContent = lista.length
+          ? e.aberto
+            ? "Publica sozinha 2 minutos depois de fechar o jogo, ou 45 minutos depois da última partida."
+            : "O jogo fechou: publica em até 2 minutos."
+          : ""
+
+        const p = e.publicada
+        el("publicada").innerHTML = p
+          ? `${esc(p.id)} · ${p.partidas} partida${p.partidas === 1 ? "" : "s"} · publicada às ${hora(p.em)} (${esc(p.por)}) · <a href="https://muanlartins.com.br/conteudo/rocket-league/ranked" target="_blank">ver no site</a> (aparece depois do build, uns minutos)`
+          : "Nenhuma desde que o serviço passou a guardar isso."
+
+        const pre = el("log")
+        const noFim = pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 8
+        pre.textContent = (e.log ?? []).join("\n")
+        if (noFim) pre.scrollTop = pre.scrollHeight
+      }
+
+      async function atualizar() {
+        try {
+          const r = await fetch("/estado", { cache: "no-store" })
+          desenhar(await r.json())
+        } catch {
+          el("erro").hidden = false
+        }
+      }
+      atualizar()
+      setInterval(atualizar, 3000)
+    </script>
+  </body>
+</html>

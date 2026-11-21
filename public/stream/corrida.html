@@ -1,0 +1,944 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Corrida · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <link rel="stylesheet" href="torcedor.css" />
+    <!--
+      OBS: since 2026-11-20 inside the "Conversa" scene's overlay: conversa.html holds this page in an iframe (?vez)
+      and has it take turns with the ball duel in one box under the camera; a race starts when its turn comes, stops
+      where it is while the scene is off the air and carries on when it's back. Until then it was the browser source
+      "Corrida" there, starting a race each time the scene came on and dropping it when the scene left. Silent.
+
+      The marble race (Lucca's idea, lucca_3098; Luan's rules, 2026-11-17), in 3D since 2026-11-17 (Luan: the point of
+      Marbles is the 3D and the mess the maps make): when the scene goes on air, a race starts by itself with everyone in
+      the chat, nobody joining or doing anything, one marble each made from their fan (bolinha.js: the shirt's colours and
+      pattern, the finish their Σ unlocks). The race is corrida-motor.js (deterministic: a seed and how many run, a course
+      of obstacles built from the seed); this page draws it with three.js in a box where the scene's topic is (the box
+      takes its place while a race runs), with a camera following the leaders, the top five on the left, everyone's
+      place on a strip at the bottom and the podium at the end. One race each time the scene comes on; off the air (the
+      scene left before the end) the race is dropped.
+
+      The record: OBS's source URL holds the Σ key (#chave=…, as the stand's), and with it every race that ends while
+      the stream is on (the Partidas dock says so) goes to the Σ API (POST /corrida), which runs it again from its seed
+      and keeps the wins, podiums and the latest races for the site (/canal/minijogos and each viewer's page). Worth
+      nothing else: no Σ, no crown (Luan's call).
+
+      Who runs: the viewers logged in with the chat open (Twitch's membership events, as torcida.html and duelo.html),
+      up to 40, drawn by the seed when there are more. Alone, the one viewer races the channel's marble; nobody, no race.
+
+      The box is 696×216 at (64, 836), clear of the Pix call on its right; ?x= ?y= move it, ?w= ?h= size it (any shape:
+      the camera frames the leaders for it). ?api= the profile API, ?sigma= the Σ API, ?canal= the channel.
+      ?demo fills the chat with sample people and races at once (keys: r a new race, n how many: 2, 8, 20, 40);
+      ?semente= fixes the seed. ?fundo=<image> puts a screenshot behind.
+      ?site is the site's player: the box alone, scaled to the frame; with &semente=…&lutadores=a,b,c (in the order the
+      race had them; &nomes= their names) it replays that race over and over.
+      Copy is a draft for Luan.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js"
+        }
+      }
+    </script>
+    <style>
+      :root {
+        --caixa-x: 64px;
+        --caixa-y: 836px;
+        --w: 696px;
+        --h: 216px;
+        --lista: 150px;
+      }
+      body.site {
+        background: var(--navy);
+      }
+      .fundo-demo {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .caixa {
+        position: absolute;
+        left: var(--caixa-x);
+        top: var(--caixa-y);
+        width: var(--w);
+        height: var(--h);
+        transition:
+          opacity 0.5s var(--ease),
+          transform 0.5s var(--ease);
+      }
+      .caixa.escondida {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      .recorte {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+        /* The sky behind the course: the night of the stream's ground, lighter towards the horizon. */
+        background: radial-gradient(120% 90% at 70% 110%, #1f4fd1 0%, #0a2a8c 38%, var(--navy) 80%);
+      }
+      .recorte canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .borda {
+        position: absolute;
+        inset: 0;
+        overflow: visible;
+      }
+      .faixa-titulo {
+        position: absolute;
+        left: -10px;
+        top: -24px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        max-width: calc(var(--w) - 40px);
+        padding: 0 36px 0 0;
+        background: var(--paper);
+        color: var(--klein);
+        clip-path: polygon(0 0, 100% 0, calc(100% - 30px) 100%, 0 100%);
+        font-size: 15px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .faixa-titulo b {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        padding: 0 12px;
+        background: var(--klein);
+        color: var(--paper);
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      .faixa-titulo span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      /* The top five over the left of the picture (the camera keeps the action right of it). */
+      .lideres {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 20px;
+        width: var(--lista);
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        margin: 0;
+        padding: 8px 8px 0 12px;
+        background: linear-gradient(90deg, rgb(0 8 36 / 0.78), rgb(0 8 36 / 0.55) 75%, rgb(0 8 36 / 0));
+        list-style: none;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--paper);
+      }
+      .lideres li {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+      .lideres li i {
+        flex: none;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background-size: cover;
+        box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.5);
+      }
+      .lideres li span {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .lideres li b {
+        width: 16px;
+        color: var(--klein-claro);
+        text-align: right;
+      }
+      .lideres li.chegou b {
+        color: #f2c14e;
+      }
+      .lideres li.caiu span {
+        color: #ff9a8a;
+      }
+      /* Names over the leading marbles. */
+      .rotulos {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+        clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+      }
+      .rotulos div {
+        position: absolute;
+        left: 0;
+        top: 0;
+        padding: 0 5px;
+        background: rgb(0 20 71 / 0.82);
+        color: var(--paper);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 15px;
+        white-space: nowrap;
+        transform: translate(-50%, -100%);
+        will-change: transform;
+      }
+      .rotulos div.lider {
+        background: #f2c14e;
+        color: var(--navy);
+      }
+      /* Everyone's place along the whole course, at the bottom. */
+      .trilha {
+        position: absolute;
+        left: 12px;
+        bottom: 0;
+        width: calc(var(--w) - 46px);
+        height: 20px;
+      }
+      /* The countdown, each crossing and each fall called out. */
+      .aviso {
+        position: absolute;
+        right: 24px;
+        top: 12px;
+        padding: 2px 12px;
+        background: var(--paper);
+        color: var(--klein);
+        font-size: 20px;
+        font-weight: 700;
+        transition: opacity 0.3s var(--ease);
+      }
+      .aviso:empty {
+        opacity: 0;
+      }
+      /* The podium at the end: the first three's fans on steps. */
+      .podio {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 18px;
+        padding: 0 24px 14px;
+        background: rgb(0 20 71 / 0.92);
+        clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+        opacity: 0;
+        transition: opacity 0.5s var(--ease);
+      }
+      .podio.visivel {
+        opacity: 1;
+      }
+      .degrau {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 150px;
+      }
+      .degrau .nome {
+        max-width: 150px;
+        margin-bottom: 6px;
+        padding: 1px 8px;
+        overflow: hidden;
+        background: rgb(0 20 71 / 0.8);
+        color: var(--paper);
+        font-size: 15px;
+        font-weight: 600;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      /* Room for the winner's celebration: a jump or a handstand lifts them up to 18px. */
+      .degrau.p1 .nome {
+        margin-bottom: 24px;
+      }
+      .degrau .fa {
+        position: relative;
+        width: 46px;
+        height: 70px;
+      }
+      /* Sized, or the winner's celebration (a transform on .pose) shrinks the drawing to nothing. */
+      .degrau .pose {
+        position: absolute;
+        inset: 0;
+      }
+      .degrau .base {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        background: var(--paper);
+        color: var(--klein);
+        font-size: 26px;
+        font-weight: 700;
+      }
+      .degrau.p1 .base {
+        height: 58px;
+      }
+      .degrau.p2 .base {
+        height: 40px;
+      }
+      .degrau.p3 .base {
+        height: 28px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="caixa escondida">
+        <div class="recorte"><canvas class="cena"></canvas></div>
+        <div class="rotulos"></div>
+        <svg class="borda" aria-hidden="true"><path fill="none" stroke="rgb(133 167 255 / 0.5)" stroke-width="1.5" /></svg>
+        <div class="faixa-titulo"><b>CORRIDA</b><span class="mapa">todo mundo do chat</span></div>
+        <ol class="lideres"></ol>
+        <canvas class="trilha"></canvas>
+        <div class="aviso"></div>
+        <div class="podio"></div>
+      </div>
+    </div>
+    <script src="stream.js"></script>
+    <script src="torcedor.js"></script>
+    <script src="sigma.js"></script>
+    <script src="corrida-motor.js"></script>
+    <script src="bolinha.js"></script>
+    <script type="module">
+      import * as THREE from "three"
+
+      const caixa = document.querySelector(".caixa")
+      const cena = document.querySelector(".cena")
+      const rotulos = document.querySelector(".rotulos")
+      const lideres = document.querySelector(".lideres")
+      const trilha = document.querySelector(".trilha")
+      const aviso = document.querySelector(".aviso")
+      const podio = document.querySelector(".podio")
+      const mapa = document.querySelector(".mapa")
+      const SITE = params.has("site")
+      const W = Math.max(320, Number(params.get("w")) || 696)
+      const H = Math.max(160, Number(params.get("h")) || 216)
+      // The leaders' column, narrower in a narrow box.
+      const LISTA = W >= 560 ? 150 : 118
+      caixa.style.setProperty("--w", `${W}px`)
+      caixa.style.setProperty("--h", `${H}px`)
+      caixa.style.setProperty("--lista", `${LISTA}px`)
+      document.querySelector(".borda").setAttribute("viewBox", `0 0 ${W} ${H}`)
+      document.querySelector(".borda").setAttribute("width", W)
+      document.querySelector(".borda").setAttribute("height", H)
+      document.querySelector(".borda path").setAttribute("d", `M24 0.75H${W - 0.75}V${H - 24}L${W - 24} ${H - 0.75}H0.75V24Z`)
+      if (params.has("x")) caixa.style.setProperty("--caixa-x", `${Number(params.get("x"))}px`)
+      if (params.has("y")) caixa.style.setProperty("--caixa-y", `${Number(params.get("y"))}px`)
+      if (SITE) {
+        // The site's player: the box alone with room for its band, scaled to the frame's width.
+        document.body.classList.add("site")
+        const stage = document.querySelector(".stage")
+        stage.style.width = `${W + 20}px`
+        stage.style.height = `${H + 30}px`
+        caixa.style.setProperty("--caixa-x", "10px")
+        caixa.style.setProperty("--caixa-y", "26px")
+        const fit = () => (stage.style.transform = `scale(${innerWidth / (W + 20)})`)
+        fit()
+        addEventListener("resize", fit)
+      }
+      if (params.get("fundo")) {
+        const img = document.createElement("img")
+        img.className = "fundo-demo"
+        img.src = params.get("fundo")
+        document.querySelector(".stage").prepend(img)
+      }
+      const DEMO = params.has("demo")
+      const API = params.get("api") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
+      const SIGMA_API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
+      const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
+      const MAX = 40
+      const LOGIN = /^[a-z0-9_]{1,25}$/
+      // A race to replay on the site: its seed and who ran, in the order it had them.
+      const REPLAY = SITE && params.has("semente") ? (params.get("lutadores") ?? "").toLowerCase().split(",").filter((l) => LOGIN.test(l)).slice(0, MAX) : null
+
+      // --- Who's in the chat --------------------------------------------------------------------------------------
+      const presentes = new Map() // login → display name
+      const escolhas = new Map() // login → their fan, from the profile API
+      const sigmas = new Map() // login → Σ
+      function chegar(login, nome = login) {
+        if (BOTS.has(login) || login.startsWith("justinfan")) return
+        if (!presentes.has(login) || nome !== login) presentes.set(login, nome)
+      }
+      function apply(line) {
+        const { tags, prefix, command, trailing } = parseIrc(line)
+        const login = prefix.split("!")[0]
+        if (command === "JOIN") chegar(login)
+        else if (command === "PART") presentes.delete(login)
+        else if (command === "PRIVMSG") chegar(login, tags["display-name"] || login)
+        else if (command === "353") trailing.split(" ").forEach((name) => name && chegar(name))
+      }
+      async function pedir(logins) {
+        if (DEMO || !logins.length) return
+        const pedido = (url) => fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+        for (let i = 0; i < logins.length; i += 100) {
+          const lote = logins.slice(i, i + 100).join(",")
+          const [fas, pontos] = await Promise.all([pedido(`${API}/torcedores?logins=${lote}`), pedido(`${SIGMA_API}/sigmas?logins=${lote}`)])
+          for (const login of logins.slice(i, i + 100)) {
+            if (fas?.[login]) escolhas.set(login, fas[login])
+            if (pontos?.[login]) sigmas.set(login, pontos[login].sigma ?? 0)
+          }
+        }
+      }
+      const sigma = (login) => (login === CHANNEL ? Sigma.RL.at(-1)[0] : sigmas.get(login) ?? 0)
+      // Their fan, as the stand draws it (free colours only once their Σ unlocks them).
+      function aparencia(login) {
+        const a = Torcedor.normalizar(escolhas.get(login), login)
+        return login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
+      }
+
+      // --- The 3D scene ---------------------------------------------------------------------------------------------
+      const renderer = new THREE.WebGLRenderer({ canvas: cena, antialias: true, alpha: true })
+      renderer.setPixelRatio(2)
+      renderer.setSize(W, H, false)
+      renderer.shadowMap.enabled = true
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap
+      renderer.outputColorSpace = THREE.SRGBColorSpace
+      const scene = new THREE.Scene()
+      scene.fog = new THREE.Fog(0x001447, 30, 80)
+      const camera = new THREE.PerspectiveCamera(W / H > 2.4 ? 30 : 42, W / H, 0.1, 200)
+      // The action right of the leaders' column: the picture's centre moved right by half of it.
+      camera.setViewOffset(W, H, -LISTA / 2, 0, W, H)
+      scene.add(new THREE.HemisphereLight(0xdbe6ff, 0x0a1a5c, 1.25))
+      const sol = new THREE.DirectionalLight(0xffffff, 1.7)
+      sol.castShadow = true
+      sol.shadow.mapSize.set(1024, 1024)
+      Object.assign(sol.shadow.camera, { left: -16, right: 16, top: 16, bottom: -16, near: 1, far: 60 })
+      sol.shadow.bias = -0.0005
+      scene.add(sol, sol.target)
+
+      const MATERIAIS = {
+        piso: new THREE.MeshStandardMaterial({ color: 0x3d6bff, roughness: 0.55, metalness: 0.05, emissive: 0x0a1d66, emissiveIntensity: 0.6 }),
+        parede: new THREE.MeshStandardMaterial({ color: 0xc8d8ff, roughness: 0.3, transparent: true, opacity: 0.16, depthWrite: false }),
+        portao: new THREE.MeshStandardMaterial({ color: 0xff4d5e, roughness: 0.4 }),
+        braco: new THREE.MeshStandardMaterial({ color: 0xffb547, roughness: 0.35, emissive: 0x6a3a00, emissiveIntensity: 0.5 }),
+        empurrador: new THREE.MeshStandardMaterial({ color: 0xff6b3d, roughness: 0.35, emissive: 0x5a1a00, emissiveIntensity: 0.5 }),
+        pino: new THREE.MeshStandardMaterial({ color: 0xf4f5f7, roughness: 0.3, metalness: 0.3 }),
+        "para-choque": new THREE.MeshStandardMaterial({ color: 0xffd166, roughness: 0.25, emissive: 0x7a5200, emissiveIntensity: 0.6 }),
+      }
+      const borda = new THREE.LineBasicMaterial({ color: 0xbcd0ff, transparent: true, opacity: 0.7 })
+      const bordaParede = new THREE.LineBasicMaterial({ color: 0xdbe6ff, transparent: true, opacity: 0.35 })
+      const esfera = new THREE.SphereGeometry(Corrida.RAIO, 32, 20)
+      let mundo = null // the course's group
+      let moveis = [] // [piece, mesh] that move
+      let bolas3d = [] // per marble: { mesh, rastro, rot }
+
+      // A chequered texture for the line.
+      function xadrez() {
+        const c = document.createElement("canvas")
+        c.width = 64
+        c.height = 16
+        const g = c.getContext("2d")
+        for (let i = 0; i < 16; i++) for (let j = 0; j < 4; j++) {
+          g.fillStyle = (i + j) % 2 ? "#f4f5f7" : "#001447"
+          g.fillRect(i * 4, j * 4, 4, 4)
+        }
+        const t = new THREE.CanvasTexture(c)
+        t.magFilter = THREE.NearestFilter
+        t.colorSpace = THREE.SRGBColorSpace
+        return t
+      }
+
+      const base = new THREE.Matrix4()
+      function poseCaixa(mesh, p) {
+        base.makeBasis(new THREE.Vector3(p.ux, p.uy, p.uz), new THREE.Vector3(p.vx, p.vy, p.vz), new THREE.Vector3(p.wx, p.wy, p.wz))
+        base.setPosition(p.cx, p.cy, p.cz)
+        mesh.matrix.copy(base)
+        mesh.matrixWorldNeedsUpdate = true
+      }
+
+      function montarPista(p) {
+        if (mundo) scene.remove(mundo)
+        mundo = new THREE.Group()
+        moveis = []
+        for (const peca of p.pecas) {
+          let mesh
+          if (peca.t === "caixa") {
+            const geo = new THREE.BoxGeometry(peca.hx * 2, peca.hy * 2, peca.hz * 2)
+            mesh = new THREE.Mesh(geo, MATERIAIS[peca.papel] ?? MATERIAIS.piso)
+            mesh.matrixAutoUpdate = false
+            poseCaixa(mesh, peca)
+            if (peca.papel === "piso") {
+              mesh.receiveShadow = true
+              const linhas = new THREE.LineSegments(new THREE.EdgesGeometry(geo), borda)
+              mesh.add(linhas)
+            } else if (peca.papel === "parede") mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), bordaParede))
+            else mesh.castShadow = true
+            if (peca.gira || peca.move || peca.ate !== undefined) moveis.push([peca, mesh])
+          } else {
+            const altura = Math.hypot(peca.bx - peca.ax, peca.by - peca.ay, peca.bz - peca.az)
+            mesh = new THREE.Mesh(new THREE.CylinderGeometry(peca.r, peca.r, altura, 18), MATERIAIS[peca.papel] ?? MATERIAIS.pino)
+            mesh.position.set((peca.ax + peca.bx) / 2, (peca.ay + peca.by) / 2, (peca.az + peca.bz) / 2)
+            mesh.castShadow = true
+          }
+          mundo.add(mesh)
+        }
+        // The line: a chequered strip on the floor and a banner over it.
+        const m = p.modulos.at(-1)
+        const yLinha = m.y0 - (p.chegada - m.x0) * 0.16
+        const tex = xadrez()
+        const faixa = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 8), new THREE.MeshBasicMaterial({ map: tex }))
+        faixa.rotation.x = -Math.PI / 2
+        faixa.rotation.z = Math.PI / 2
+        faixa.position.set(p.chegada, yLinha + 0.02, 0)
+        mundo.add(faixa)
+        const arco = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 9), new THREE.MeshBasicMaterial({ map: tex }))
+        arco.position.set(p.chegada, yLinha + 3.4, 0)
+        mundo.add(arco)
+        for (const z of [-4.5, 4.5]) {
+          const poste = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3.4, 0.3), MATERIAIS.pino)
+          poste.position.set(p.chegada, yLinha + 1.7, z)
+          mundo.add(poste)
+        }
+        scene.add(mundo)
+      }
+
+      function montarBolas(corredores) {
+        for (const b of bolas3d) {
+          scene.remove(b.mesh)
+          b.rastro.forEach((r) => scene.remove(r))
+          b.mesh.material.map?.dispose()
+          b.mesh.material.dispose()
+        }
+        bolas3d = corredores.map((c) => {
+          const tela = document.createElement("canvas")
+          tela.width = 256
+          tela.height = 128
+          Bolinha.textura(tela, c.aparencia)
+          c.miniatura = tela.toDataURL()
+          const map = new THREE.CanvasTexture(tela)
+          map.colorSpace = THREE.SRGBColorSpace
+          const fim = Bolinha.acabamento(Sigma.ranque(sigma(c.login)).id)
+          const material = new THREE.MeshPhysicalMaterial({ map, roughness: 0.22, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.15 })
+          if (fim.brilho) {
+            material.emissive = new THREE.Color(c.aparencia.cor)
+            material.emissiveIntensity = 0.35
+          }
+          const mesh = new THREE.Mesh(esfera, material)
+          mesh.castShadow = true
+          scene.add(mesh)
+          // The trail, from Diamante up: ghosts of where it just was.
+          const rastro = fim.rastro
+            ? Array.from({ length: 6 }, (_, k) => {
+                const g = new THREE.Mesh(esfera, new THREE.MeshBasicMaterial({ color: c.aparencia.cor, transparent: true, opacity: 0.32 * (1 - k / 6), depthWrite: false }))
+                g.scale.setScalar(0.85 - k * 0.1)
+                scene.add(g)
+                return g
+              })
+            : []
+          return { mesh, rastro, fim, passado: [] }
+        })
+      }
+
+      // --- A race ---------------------------------------------------------------------------------------------------
+      let corrida = null // the engine's state
+      let corredores = [] // marble i → { login, nome, aparencia }
+      let fase = "parada" // parada · correndo · chegada · podio
+      let acumulado = 0
+      let ultimo = 0
+      let chamadas = 0
+      const foco = new THREE.Vector3()
+      const olhar = new THREE.Vector3()
+
+      function sementeNova() {
+        return params.has("semente") ? Number(params.get("semente")) >>> 0 : (Date.now() ^ (Math.random() * 0xffffffff)) >>> 0
+      }
+
+      // The course's name, from what it has most of.
+      const NOMES = { pinos: "Chuva de Pinos", moinho: "Moinhos", funil: "Funil", ponte: "Ponte Sem Grade", vale: "Vale dos Para-choques", salto: "Salto", degraus: "Escadaria" }
+      function nomeDaPista(p) {
+        const conta = {}
+        for (const m of p.modulos) if (NOMES[m.tipo]) conta[m.tipo] = (conta[m.tipo] ?? 0) + 1
+        const top = Object.entries(conta)
+          .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+          .slice(0, 2)
+          .map(([t]) => NOMES[t])
+        return top.join(" e ")
+      }
+
+      // Taking turns with the duel in the "Conversa" scene (conversa.html holds this page in an iframe, ?vez): it says
+      // when this page's turn comes and when to stop where it is (the race waits, frozen, and carries on); this one
+      // says when its race is over ("fim") or that there's nobody to race ("vazio").
+      const VEZ = params.has("vez") && parent !== window
+      let pausada = false
+      const avisar = (minijogo) => VEZ && parent.postMessage({ minijogo }, location.origin)
+
+      async function largar() {
+        if (fase !== "parada") return
+        let logins
+        let semente = sementeNova()
+        if (REPLAY) {
+          logins = REPLAY
+        } else {
+          logins = [...presentes.keys()].filter((l) => l !== CHANNEL)
+          if (!logins.length) return avisar("vazio")
+          // More than fit: drawn by the seed (the same draw the API can check).
+          if (logins.length > MAX) {
+            let a = semente
+            const sorte = () => ((a = (a * 1103515245 + 12345) >>> 0) / 4294967296)
+            logins = logins
+              .map((l) => [sorte(), l])
+              .sort((x, y) => x[0] - y[0])
+              .slice(0, MAX)
+              .map(([, l]) => l)
+          }
+          if (logins.length === 1) logins.push(CHANNEL)
+          logins.sort()
+        }
+        if (logins.length < 2) return avisar("vazio")
+        await pedir(logins.filter((l) => l !== CHANNEL))
+        const nomes = (params.get("nomes") ?? "").split(",")
+        corredores = logins.map((login, i) => ({ login, nome: (REPLAY && nomes[i]?.trim()) || presentes.get(login) || login, aparencia: aparencia(login) }))
+        corrida = Corrida.criar(semente, corredores.length)
+        montarPista(corrida.pista)
+        montarBolas(corredores)
+        mapa.textContent = nomeDaPista(corrida.pista)
+        const v = corrida.pista.vagas[0]
+        foco.set(v.x + 2, v.y, 0)
+        olhar.copy(foco)
+        chamadas = 0
+        quedasAntes = corrida.bolas.map(() => 0)
+        fase = "correndo"
+        acumulado = 0
+        lideresAntes = ""
+        podio.classList.remove("visivel")
+        caixa.classList.remove("escondida")
+      }
+
+      function encerrar() {
+        fase = "parada"
+        corrida = null
+        aviso.textContent = ""
+        caixa.classList.add("escondida")
+        rotulos.replaceChildren()
+        setTimeout(() => podio.classList.remove("visivel"), 500)
+        // The site's replay plays again.
+        if (REPLAY) setTimeout(largar, 1200)
+        avisar("fim")
+      }
+
+      function mostrarPodio() {
+        fase = "podio"
+        const top = corrida.ordem.slice(0, 3).map((i) => corredores[i])
+        // Second, first, third, as podiums stand.
+        const lugares = [
+          [top[1], 2],
+          [top[0], 1],
+          [top[2], 3],
+        ].filter(([c]) => c)
+        podio.innerHTML = lugares
+          .map(
+            ([c, n]) => `<div class="degrau p${n}">
+              <div class="nome"></div>
+              <div class="fa torcedor${n === 1 ? " comemora" : ""}" data-comemoracao="${c.aparencia.comemoracao}"><div class="pose">${Torcedor.figura(c.aparencia)}</div></div>
+              <div class="base">${n}º</div>
+            </div>`,
+          )
+          .join("")
+        podio.querySelectorAll(".degrau .nome").forEach((el, k) => (el.textContent = lugares[k][0].nome))
+        podio.classList.add("visivel")
+        aviso.textContent = ""
+        rotulos.replaceChildren()
+        registrar()
+        setTimeout(encerrar, REPLAY ? 6000 : 9000)
+      }
+
+      // The places now: who crossed, in order, then the rest by how far they are.
+      function lugares() {
+        const c = corrida
+        const resto = c.bolas
+          .filter((b) => b.chegou === null)
+          .sort((a, b) => Corrida.progresso(c, b) - Corrida.progresso(c, a) || a.i - b.i)
+          .map((b) => b.i)
+        return [...c.ordem, ...resto.filter((i) => !c.ordem.includes(i))]
+      }
+
+      let lideresAntes = ""
+      function desenharLideres(ordem) {
+        const top = ordem.slice(0, 5)
+        const chave = top.map((i) => `${i}${corrida.bolas[i].espera ? "c" : ""}`).join(",") + "|" + corrida.ordem.length
+        if (chave === lideresAntes) return
+        lideresAntes = chave
+        lideres.replaceChildren(
+          ...top.map((i, k) => {
+            const li = document.createElement("li")
+            if (corrida.ordem.includes(i)) li.className = "chegou"
+            else if (corrida.bolas[i].espera) li.className = "caiu"
+            const n = document.createElement("b")
+            n.textContent = String(k + 1)
+            const bola = document.createElement("i")
+            bola.style.backgroundImage = `url(${corredores[i].miniatura})`
+            const nome = document.createElement("span")
+            nome.textContent = corredores[i].nome
+            li.append(n, bola, nome)
+            return li
+          }),
+        )
+      }
+
+      // The strip: everyone's place along the whole course, the line at its end.
+      const tctx = trilha.getContext("2d")
+      function desenharTrilha() {
+        const w = trilha.clientWidth
+        const h = trilha.clientHeight
+        if (trilha.width !== w * 2) {
+          trilha.width = w * 2
+          trilha.height = h * 2
+        }
+        tctx.setTransform(2, 0, 0, 2, 0, 0)
+        tctx.clearRect(0, 0, w, h)
+        const x0 = LISTA + 4
+        const x1 = w - 4
+        const y = h / 2 + 1
+        tctx.fillStyle = "rgb(133 167 255 / 0.3)"
+        tctx.fillRect(x0, y - 1.5, x1 - x0, 3)
+        tctx.fillStyle = "#f4f5f7"
+        tctx.fillRect(x1 - 1.5, y - 6, 3, 12)
+        const p = corrida.pista
+        const ini = p.vagas.reduce((m, v) => Math.min(m, v.x), Infinity)
+        for (const b of corrida.bolas) {
+          const t = Math.max(0, Math.min(1, (Corrida.progresso(corrida, b) - ini) / (p.chegada - ini)))
+          tctx.beginPath()
+          tctx.arc(x0 + (x1 - x0) * t, y, 4, 0, Math.PI * 2)
+          tctx.fillStyle = corredores[b.i].aparencia.cor
+          tctx.globalAlpha = b.espera ? 0.35 : 1
+          tctx.fill()
+          tctx.globalAlpha = 1
+        }
+      }
+
+      // Names over the leading marbles still running: a name that would cover one already there goes up a line.
+      const v3 = new THREE.Vector3()
+      const etiquetas = []
+      function desenharRotulos(ordem) {
+        const correndo = ordem.filter((i) => corrida.bolas[i].chegou === null && !corrida.bolas[i].espera).slice(0, 5)
+        while (etiquetas.length < correndo.length) {
+          const el = document.createElement("div")
+          rotulos.append(el)
+          etiquetas.push(el)
+        }
+        const postos = []
+        etiquetas.forEach((el, k) => {
+          const i = correndo[k]
+          if (i === undefined) return (el.style.display = "none")
+          const b = corrida.bolas[i]
+          v3.set(b.x, b.y + Corrida.RAIO + 0.35, b.z).project(camera)
+          if (v3.z > 1) return (el.style.display = "none")
+          let x = ((v3.x + 1) / 2) * W
+          let y = ((1 - v3.y) / 2) * H
+          if (x < LISTA + 10 || x > W - 10 || y < 14 || y > H - 18) return (el.style.display = "none")
+          el.style.display = ""
+          if (el.textContent !== corredores[i].nome) el.textContent = corredores[i].nome
+          el.classList.toggle("lider", k === 0 && corrida.ordem.length === 0)
+          const largura = el.offsetWidth || 60
+          while (postos.some((r) => Math.abs(r.x - x) < (r.w + largura) / 2 + 2 && Math.abs(r.y - y) < 15)) y -= 15
+          postos.push({ x, y, w: largura })
+          el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -100%)`
+        })
+      }
+
+      // The camera: behind and above the leading marble still running, a little ahead of it, eased.
+      const OFFSET = W / H > 2.4 ? new THREE.Vector3(-9, 10, 14) : new THREE.Vector3(-9, 11, 11)
+      function moverCamera(ordem, dt) {
+        const c = corrida
+        const correndo = ordem.map((i) => c.bolas[i]).filter((b) => b.chegou === null && !b.espera && !b.fora)
+        const alvo = correndo[0] ?? c.bolas[ordem[0]]
+        let tx = alvo.x + 2.5
+        let ty = alvo.y
+        let tz = alvo.z * 0.4
+        // Everyone in: the line.
+        if (!correndo.length) {
+          tx = c.pista.chegada + 2
+        }
+        const k = 1 - Math.exp(-dt * 2.6)
+        foco.x += (tx - foco.x) * k
+        foco.y += (ty - foco.y) * k
+        foco.z += (tz - foco.z) * k
+        camera.position.set(foco.x + OFFSET.x, foco.y + OFFSET.y, foco.z + OFFSET.z)
+        olhar.set(foco.x + 2, foco.y - 1.2, foco.z)
+        camera.lookAt(olhar)
+        sol.position.set(foco.x - 6, foco.y + 16, foco.z + 7)
+        sol.target.position.copy(foco)
+      }
+
+      const eixo = new THREE.Vector3()
+      const giro = new THREE.Quaternion()
+      function moverBolas(dt, agora) {
+        const c = corrida
+        for (const b of c.bolas) {
+          const m = bolas3d[b.i]
+          const longe = b.fora || b.espera
+          m.mesh.visible = !longe
+          if (longe) {
+            m.passado.length = 0
+            m.rastro.forEach((r) => (r.visible = false))
+            continue
+          }
+          m.mesh.position.set(b.x, b.y, b.z)
+          // Rolling: about up × velocity, as far as it went.
+          const vh = Math.hypot(b.vx, b.vz)
+          if (vh > 0.01) {
+            eixo.set(b.vz / vh, 0, -b.vx / vh)
+            giro.setFromAxisAngle(eixo, (vh * dt) / Corrida.RAIO)
+            m.mesh.quaternion.premultiply(giro)
+          }
+          if (m.fim.arco) m.mesh.material.emissive.setHSL(((agora / 3000) % 1 + b.i * 0.07) % 1, 0.9, 0.5)
+          if (m.rastro.length) {
+            m.passado.unshift([b.x, b.y, b.z])
+            m.passado.length = Math.min(m.passado.length, m.rastro.length * 3)
+            m.rastro.forEach((r, k) => {
+              const p = m.passado[(k + 1) * 3 - 1]
+              r.visible = Boolean(p)
+              if (p) r.position.set(p[0], p[1], p[2])
+            })
+          }
+        }
+        for (const [peca, mesh] of moveis) {
+          if (peca.ate !== undefined) {
+            // The gate sinks out of the way.
+            const t = Math.min(1, Math.max(0, (c.tique - peca.ate) / (0.4 * Corrida.HZ)))
+            mesh.visible = t < 1
+            poseCaixa(mesh, { ...peca, cy: peca.cy - t * 1.6 })
+          } else poseCaixa(mesh, peca)
+        }
+      }
+
+      let quedasAntes = []
+      function quadro(agora) {
+        requestAnimationFrame(quadro)
+        if (!corrida) return
+        const dt = Math.min(0.1, (agora - (ultimo || agora)) / 1000)
+        ultimo = agora
+        if (fase === "correndo" && !pausada) {
+          acumulado += dt
+          while (acumulado >= Corrida.DT && !corrida.fim) {
+            Corrida.passo(corrida)
+            acumulado -= Corrida.DT
+          }
+          // The countdown while the gate holds them.
+          const falta = Math.ceil((Corrida.PORTAO - corrida.tique) / Corrida.HZ)
+          if (falta > 0) aviso.textContent = String(falta)
+          else if (corrida.tique < Corrida.PORTAO + 0.8 * Corrida.HZ) aviso.textContent = "Já!"
+          else if (chamadas === 0 && aviso.textContent === "Já!") aviso.textContent = ""
+          // A fall among the leaders called out.
+          for (const b of corrida.bolas) {
+            if (b.quedas > quedasAntes[b.i]) {
+              quedasAntes[b.i] = b.quedas
+              if (!chamadas && lugares().indexOf(b.i) < 5) aviso.textContent = `${corredores[b.i].nome} caiu!`
+            }
+          }
+          // Each of the first three called out as they cross.
+          while (chamadas < Math.min(3, corrida.ordem.length) && corrida.bolas[corrida.ordem[chamadas]].chegou !== null) {
+            aviso.textContent = `${chamadas + 1}º ${corredores[corrida.ordem[chamadas]].nome}`
+            chamadas++
+          }
+          // Everyone in (or the time's up): a moment on the line, then the podium.
+          if (corrida.fim) {
+            fase = "chegada"
+            setTimeout(() => fase === "chegada" && mostrarPodio(), 1500)
+          }
+        }
+        if (!corrida) return
+        const ordem = lugares()
+        moverCamera(ordem, dt)
+        moverBolas(dt, agora)
+        renderer.render(scene, camera)
+        if (fase !== "podio") {
+          desenharRotulos(ordem)
+          desenharLideres(ordem)
+          desenharTrilha()
+        }
+      }
+      requestAnimationFrame(quadro)
+      // For headless checks and clips: where the race is.
+      window.estadoCorrida = () => ({ fase, tique: corrida?.tique ?? -1, chegaram: corrida?.ordem.length ?? 0, quedas: corrida ? corrida.bolas.reduce((s, b) => s + b.quedas, 0) : 0, lider: corrida ? corrida.pista.modulos[corrida.bolas[lugares()[0]].modulo].tipo : null })
+
+      // --- The record: each race that ends while the stream is on, to the Σ API ---------------------------------
+      let noArAte = 0
+      function registrar() {
+        if (DEMO || REPLAY || !CHAVE || !SIGMA_API || Date.now() > noArAte) return
+        const corpo = {
+          versao: Corrida.VERSAO,
+          semente: corrida.semente,
+          logins: corredores.map((c) => c.login),
+          nomes: corredores.map((c) => c.nome),
+          ordem: corrida.ordem,
+        }
+        fetch(`${SIGMA_API}/corrida`, { method: "POST", headers: { "content-type": "application/json", "x-chave": CHAVE }, body: JSON.stringify(corpo) }).catch(() => {
+          // The API down: this race isn't counted.
+        })
+      }
+      addEventListener("muanlartins-torcida", ({ detail }) => {
+        if (detail?.tipo === "noar") noArAte = detail.ligado ? Date.now() + 15000 : 0
+      })
+
+      // --- On air: the scene coming on starts a race; leaving it drops one still running -----------------------
+      let largada
+      addEventListener("obsSourceActiveChanged", ({ detail }) => {
+        if (VEZ) return
+        clearTimeout(largada)
+        if (detail?.active) largada = setTimeout(largar, 2500)
+        else if (fase !== "parada") encerrar()
+      })
+
+      // --- The chat, or the demo's, or the site's replay -----------------------------------------------------------
+      if (REPLAY) {
+        setTimeout(largar, 200)
+      } else if (!DEMO) {
+        irc(apply, { membership: true })
+        setInterval(() => pedir([...presentes.keys()].slice(0, 100)), 120000)
+      } else {
+        const nomes = ["rafa", "Giovana_GC", "tiago.mendes", "marinamarina", "lucas_s", "bia.lima", "DuduSantos", "ceci", "otto", "jujuba"]
+        const um_ = (lista) => lista[Math.floor(Math.random() * lista.length)]
+        function povoar(n) {
+          presentes.clear()
+          for (let k = 0; k < n; k++) {
+            const nome = k < nomes.length ? nomes[k] : `pessoa${k}`
+            const login = nome.toLowerCase().replace(/[^a-z0-9_]/g, "_")
+            presentes.set(login, nome)
+            escolhas.set(login, { cor: um_(Torcedor.CORES), detalhe: um_(Torcedor.CORES), terceira: um_(Torcedor.CORES), roupa: um_(Torcedor.ROUPAS), numero: k, cabeca: um_(Torcedor.CABECAS), comemoracao: um_(Torcedor.COMEMORACOES) })
+            // A few with a finish, to see them.
+            sigmas.set(login, [0, 0, 0, 900, 2600, 6000, 9000, 20000][k % 8])
+          }
+        }
+        let quantos = Number(params.get("demo")) || 20
+        povoar(quantos)
+        const keys = {
+          r: () => {
+            fase = "parada"
+            largar()
+          },
+          n: () => {
+            quantos = { 2: 8, 8: 20, 20: 40, 40: 2 }[quantos] ?? 20
+            povoar(quantos)
+          },
+        }
+        addEventListener("keydown", (e) => keys[e.key]?.())
+        if (!VEZ) setTimeout(largar, 300)
+      }
+      if (VEZ) {
+        addEventListener("message", ({ data, origin, source }) => {
+          if (origin !== location.origin || source !== parent) return
+          if (data?.minijogo === "vez") {
+            pausada = false
+            if (fase === "parada") largar()
+          }
+          if (data?.minijogo === "pausa") pausada = true
+        })
+        avisar("pronto")
+      }
+    </script>
+  </body>
+</html>

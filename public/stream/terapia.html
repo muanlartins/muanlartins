@@ -7,81 +7,153 @@
     <!--
       OBS: Browser source, 1920×1080, over the camera, "Control audio via OBS" on (its music goes to the stream,
       the recording and Luan's headphones: it's made here, so there are no rights to clear). The "Terapia" scene,
-      for a breather after a bad run: water in the channel's blues, a breathing guide (in for 4 s, hold for 4,
-      out for 6), the camera small in its frame at (64, 64), 560×315, and the chat down the right.
+      for a breather after a bad run. Laid out around the middle (2026-11-14), so a vertical short's centre cut keeps
+      it whole: the title on top, the camera in the middle seen through a circle that breathes with the guide (in for
+      4 s, hold for 4, out for 6: it opens as the lungs fill and closes as they empty, a ring around it with the step's
+      progress and a ripple at each step), the step under it, the site's plate at the bottom; the guide's three steps
+      down the left and the chat down the right; water in the channel's blues behind. The camera sits under the page
+      at (336, 76), 1248×702 (brand/twitch/obs.py), so his face is on the circle's centre (960, 500). Comes in and goes out on the
+      "Água" stinger (transicao-terapia.html), not a fade.
 
       The music is generated as it plays, never the same twice: long chords on D, a few bells from its pentatonic
       scale and a soft breath that follows the guide. ?mudo silences it; ?canal= the chat's channel; ?demo fills
       the chat.
     -->
     <style>
+      /* The circle, round his face in the camera under the page; its radius breathes between R_MIN and R_MAX. */
+      :root {
+        --cx: 960px;
+        --cy: 500px;
+        --r: 205px;
+      }
       .ground {
-        /* Everything but the camera's hole. */
-        clip-path: path(evenodd, "M0 0H1920V1080H0Z M64 64H624V379H64Z");
         position: absolute;
         inset: 0;
+        /* Everything but the circle, which shows the camera under the page. */
+        mask-image: radial-gradient(circle at var(--cx) var(--cy), transparent calc(var(--r) - 0.5px), #000 calc(var(--r) + 0.5px));
       }
       #agua {
         position: absolute;
         inset: 0;
       }
-      .hole {
+      #anel {
         position: absolute;
-        left: 64px;
-        top: 64px;
-        width: 560px;
-        height: 315px;
+        inset: 0;
+        overflow: visible;
       }
-      #plate {
-        left: 48px;
-        top: 369px;
+      #anel .borda {
+        fill: none;
+        stroke: var(--klein-claro);
+        stroke-width: 10;
+        filter: drop-shadow(0 0 22px rgb(133 167 255 / 0.55));
       }
-      .breath {
-        position: absolute;
-        left: 120px;
-        top: 440px;
-        width: 1200px;
-        height: 600px;
-        display: grid;
-        place-items: center;
+      #anel .trilho {
+        fill: none;
+        stroke: rgb(244 245 247 / 0.16);
+        stroke-width: 4;
       }
-      .ring {
-        position: absolute;
-        top: 30px;
-        width: 420px;
-        height: 420px;
-        border-radius: 50%;
-        border: 6px solid var(--klein-claro);
-        background: radial-gradient(circle, rgb(133 167 255 / 0.28), rgb(133 167 255 / 0.06) 70%);
-        box-shadow: 0 0 80px rgb(133 167 255 / 0.35);
-        transform: scale(0.55);
+      #anel .passo {
+        fill: none;
+        stroke: var(--paper);
+        stroke-width: 4;
+        stroke-linecap: round;
       }
-      .cue {
-        position: absolute;
-        top: 470px;
-        margin: 0;
-        font-size: 64px;
-        font-weight: 500;
-        letter-spacing: -0.03em;
-        transition: opacity 0.6s var(--ease);
+      #anel .brilho {
+        fill: none;
+        stroke: var(--paper);
+        stroke-width: 10;
+        stroke-linecap: round;
+        opacity: 0;
+      }
+      #anel .onda {
+        fill: none;
+        stroke: var(--klein-claro);
+        stroke-width: 3;
       }
       .title {
         position: absolute;
-        left: 688px;
-        top: 64px;
+        left: 0;
+        right: 0;
+        top: 56px;
+        text-align: center;
       }
       .title h1 {
-        margin: 10px 0 0;
+        margin: 8px 0 0;
         font-size: 72px;
         font-weight: 500;
         letter-spacing: -0.04em;
         line-height: 1;
       }
+      .cue {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 808px;
+        margin: 0;
+        text-align: center;
+        font-size: 64px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+      }
+      .cue span {
+        display: inline-block;
+      }
+      #plate {
+        top: 964px;
+      }
+      /* The guide's steps, down the left: the one now lit, filling as it goes. */
+      .guia {
+        position: absolute;
+        left: 64px;
+        top: 64px;
+        width: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .guia .eyebrow {
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgb(133 167 255 / 0.4);
+      }
+      .etapa {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 16px 20px;
+        background: rgb(0 20 71 / 0.55);
+        border-left: 4px solid rgb(133 167 255 / 0.35);
+        font-size: 30px;
+        font-weight: 500;
+        color: rgb(244 245 247 / 0.55);
+        overflow: hidden;
+        transition:
+          color 0.4s var(--ease),
+          border-color 0.4s var(--ease);
+      }
+      .etapa small {
+        font-size: 22px;
+      }
+      .etapa .cheio {
+        position: absolute;
+        inset: 0;
+        background: rgb(133 167 255 / 0.22);
+        transform-origin: left;
+        transform: scaleX(0);
+      }
+      .etapa.agora {
+        color: var(--paper);
+        border-color: var(--paper);
+      }
+      .etapa > span,
+      .etapa > small {
+        position: relative;
+      }
       .side {
         position: absolute;
-        left: 1392px;
+        left: 1456px;
         top: 64px;
-        width: 464px;
+        width: 400px;
         height: 952px;
         display: flex;
         flex-direction: column;
@@ -100,15 +172,21 @@
   <body>
     <main class="stage">
       <div class="ground"><canvas id="agua" width="1920" height="1080"></canvas></div>
-      <div class="hole"></div>
-      <div id="plate"></div>
+      <svg id="anel" viewBox="0 0 1920 1080" width="1920" height="1080">
+        <g id="ondas"></g>
+        <circle class="trilho" id="trilho" cx="960" cy="500" r="235" />
+        <circle class="passo" id="passo" cx="960" cy="500" r="235" pathLength="1000" transform="rotate(-90 960 500)" />
+        <circle class="borda" id="borda" cx="960" cy="500" r="210" />
+        <circle class="brilho" id="brilho" cx="960" cy="500" r="210" pathLength="1000" transform="rotate(-90 960 500)" />
+      </svg>
       <div class="title">
         <p class="eyebrow">Momento terapia</p>
         <h1>Respira.</h1>
       </div>
-      <div class="breath">
-        <div class="ring" id="ring"></div>
-        <p class="cue" id="cue">Inspira…</p>
+      <p class="cue"><span id="cue">Inspira…</span></p>
+      <div id="plate"></div>
+      <div class="guia" id="guia">
+        <p class="eyebrow">Respiração</p>
       </div>
       <aside class="side">
         <p class="eyebrow">Chat</p>
@@ -118,51 +196,120 @@
     <script src="stream.js"></script>
     <script src="sons.js"></script>
     <script>
-      const border = frame(document.querySelector(".hole"), { band: 12, fill: "#001447" })
-      const attention = plate(document.getElementById("plate"), `muanlartins<span class="accent">.com.br</span>`)
-      alternate(6, attention, border.glint)
-      chat(document.getElementById("chat"))
+      const SVGNS = "http://www.w3.org/2000/svg"
+      const $ = (id) => document.getElementById(id)
+      const plateEl = $("plate")
+      const attention = plate(plateEl, `muanlartins<span class="accent">.com.br</span>`)
+      // Centred under the circle (the plate's slanted end makes it look a little left of centre otherwise).
+      requestAnimationFrame(() => (plateEl.style.left = `${960 - plateEl.offsetWidth / 2 + 13}px`))
+      chat($("chat"))
 
-      // --- The breath: in 4 s, hold 4 s, out 6 s --------------------------------------------------------------
+      // --- The breath: in 4 s, hold 4 s, out 6 s; the circle's radius from R_MIN (empty) to R_MAX (full) ----------
+      const R_MIN = 205
+      const R_MAX = 265
       const STEPS = [
-        ["Inspira…", 4, 0.55, 1],
-        ["Segura…", 4, 1, 1],
-        ["Solta…", 6, 1, 0.55],
+        ["Inspira…", "Inspira", 4, 0, 1],
+        ["Segura…", "Segura", 4, 1, 1],
+        ["Solta…", "Solta", 6, 1, 0],
       ]
-      const CYCLE = STEPS.reduce((t, [, s]) => t + s, 0)
-      const ring = document.getElementById("ring")
-      const cue = document.getElementById("cue")
+      const CYCLE = STEPS.reduce((t, [, , s]) => t + s, 0)
       const ease = (x) => 0.5 - Math.cos(Math.PI * x) / 2
       const start = performance.now()
-      let shown = ""
-      /** Where the breath is: its step, the ring's scale and how full the lungs are (0..1). */
+      /** Where the breath is: its step, how far into it (0..1) and how full the lungs are (0..1). */
       function breath(now) {
         let t = ((now - start) / 1000) % CYCLE
-        for (const [text, seconds, from, to] of STEPS) {
-          if (t < seconds) {
-            const scale = from + (to - from) * ease(t / seconds)
-            return { text, scale, full: (scale - 0.55) / 0.45 }
-          }
+        for (const [i, [text, , seconds, from, to]] of STEPS.entries()) {
+          if (t < seconds) return { i, text, k: t / seconds, full: from + (to - from) * ease(t / seconds) }
           t -= seconds
         }
       }
+      // The guide's rows.
+      const rows = STEPS.map(([, name, seconds]) => {
+        const row = document.createElement("div")
+        row.className = "etapa"
+        row.innerHTML = `<i class="cheio"></i><span>${name}</span><small>${seconds} s</small>`
+        $("guia").append(row)
+        return row
+      })
+      // A ripple off the ring as each step begins, like a drop on the water: 170 px out over 2.6 s, fading.
+      // Moved by the page's own clock, like everything that follows the breath.
+      const ripples = []
+      function ripple(now, r) {
+        const c = document.createElementNS(SVGNS, "circle")
+        c.setAttribute("class", "onda")
+        c.setAttribute("cx", "960")
+        c.setAttribute("cy", "500")
+        $("ondas").append(c)
+        ripples.push({ c, t0: now, r })
+      }
+      function moveRipples(now) {
+        for (const w of [...ripples]) {
+          const k = (now - w.t0) / 2600
+          if (k >= 1) {
+            w.c.remove()
+            ripples.splice(ripples.indexOf(w), 1)
+            continue
+          }
+          const out = 1 - (1 - k) ** 3
+          w.c.setAttribute("r", (w.r + 170 * out).toFixed(1))
+          w.c.style.opacity = (0.7 * (1 - k)).toFixed(3)
+        }
+      }
+      // The step's word: the old one out upwards in 0.26 s, the new one in from below.
+      const cue = $("cue")
+      let cueAt = -1e9
+      let cueNext = ""
+      function moveCue(now) {
+        const k = (now - cueAt) / 260
+        if (k < 1) {
+          cue.style.opacity = (1 - k).toFixed(3)
+          cue.style.transform = `translateY(${(-14 * k).toFixed(1)}px)`
+        } else if (k < 2) {
+          if (cue.textContent !== cueNext) cue.textContent = cueNext
+          const e = 1 - (1 - (k - 1)) ** 3
+          cue.style.opacity = e.toFixed(3)
+          cue.style.transform = `translateY(${(14 * (1 - e)).toFixed(1)}px)`
+        } else if (cue.style.opacity !== "1") {
+          cue.textContent = cueNext
+          cue.style.opacity = "1"
+          cue.style.transform = "none"
+        }
+      }
+      // Now and then a sheen runs once round the ring, and the plate swaps.
+      function glint() {
+        $("brilho").animate(
+          [
+            { strokeDasharray: "0 1000", strokeDashoffset: "0", opacity: 0 },
+            { strokeDasharray: "120 880", strokeDashoffset: "-300", opacity: 0.9, offset: 0.3 },
+            { strokeDasharray: "0 1000", strokeDashoffset: "-1000", opacity: 0 },
+          ],
+          { duration: 1600, easing: "cubic-bezier(0.65, 0, 0.35, 1)" },
+        )
+      }
+      alternate(6, attention, glint)
 
       // --- The water: layers of slow waves, darker far away, with light drifting along the lattice's 45° ------
-      const canvas = document.getElementById("agua")
+      const canvas = $("agua")
       const g = canvas.getContext("2d")
       const LAYERS = [
-        { y: 560, amp: 10, len: 520, speed: 0.06, color: "#00287f" },
-        { y: 640, amp: 14, len: 640, speed: -0.08, color: "#002fa7" },
-        { y: 730, amp: 18, len: 760, speed: 0.1, color: "#1a45b8" },
-        { y: 830, amp: 22, len: 900, speed: -0.12, color: "#3a63cc" },
-        { y: 940, amp: 26, len: 1100, speed: 0.15, color: "#5a80dd" },
+        { y: 600, amp: 10, len: 520, speed: 0.06, color: "#00287f" },
+        { y: 680, amp: 14, len: 640, speed: -0.08, color: "#002fa7" },
+        { y: 770, amp: 18, len: 760, speed: 0.1, color: "#1a45b8" },
+        { y: 870, amp: 22, len: 900, speed: -0.12, color: "#3a63cc" },
+        { y: 970, amp: 26, len: 1100, speed: 0.15, color: "#5a80dd" },
       ]
-      function water(seconds) {
+      function water(seconds, full) {
         const sky = g.createLinearGradient(0, 0, 0, 1080)
         sky.addColorStop(0, "#001447")
         sky.addColorStop(0.55, "#002080")
         sky.addColorStop(1, "#002fa7")
         g.fillStyle = sky
+        g.fillRect(0, 0, 1920, 1080)
+        // A soft glow behind the circle, brighter as the lungs fill.
+        const glow = g.createRadialGradient(960, 500, 200, 960, 500, 620)
+        glow.addColorStop(0, `rgba(133, 167, 255, ${0.16 + full * 0.14})`)
+        glow.addColorStop(1, "rgba(133, 167, 255, 0)")
+        g.fillStyle = glow
         g.fillRect(0, 0, 1920, 1080)
         // Light at 45°, drifting.
         g.save()
@@ -177,12 +324,14 @@
           g.stroke()
         }
         g.restore()
+        // The water rises a little as the lungs fill.
+        const lift = full * 18
         for (const [i, l] of LAYERS.entries()) {
           g.beginPath()
           g.moveTo(0, 1080)
           for (let x = 0; x <= 1920; x += 16) {
             const phase = (x / l.len) * Math.PI * 2 + seconds * l.speed * Math.PI * 2
-            const y = l.y + Math.sin(phase) * l.amp + Math.sin(phase * 0.47 + i) * l.amp * 0.6
+            const y = l.y - lift + Math.sin(phase) * l.amp + Math.sin(phase * 0.47 + i) * l.amp * 0.6
             g.lineTo(x, y)
           }
           g.lineTo(1920, 1080)
@@ -194,20 +343,37 @@
         }
       }
 
+      const root = document.documentElement.style
       let last = 0
+      let step = -1
       function frameLoop(now) {
         requestAnimationFrame(frameLoop)
         const b = breath(now)
-        ring.style.transform = `scale(${b.scale.toFixed(4)})`
-        if (b.text !== shown) {
-          shown = b.text
-          cue.textContent = b.text
+        const r = R_MIN + (R_MAX - R_MIN) * b.full
+        root.setProperty("--r", `${r.toFixed(2)}px`)
+        $("borda").setAttribute("r", (r + 5).toFixed(2))
+        $("brilho").setAttribute("r", (r + 5).toFixed(2))
+        $("trilho").setAttribute("r", (r + 30).toFixed(2))
+        $("passo").setAttribute("r", (r + 30).toFixed(2))
+        $("passo").style.strokeDasharray = `${(b.k * 1000).toFixed(1)} 1000`
+        rows[b.i].querySelector(".cheio").style.transform = `scaleX(${b.k.toFixed(4)})`
+        if (b.i !== step) {
+          step = b.i
+          rows.forEach((row, i) => {
+            row.classList.toggle("agora", i === b.i)
+            if (i !== b.i) row.querySelector(".cheio").style.transform = "scaleX(0)"
+          })
+          cueAt = step === 0 && cueNext === "" ? -1e9 : now
+          cueNext = b.text
+          ripple(now, r + 5)
         }
+        moveCue(now)
+        moveRipples(now)
         breathSound(b.full)
         // The water at 30 fps is plenty, and lighter on the stream PC.
         if (now - last < 33) return
         last = now
-        water(now / 1000)
+        water(now / 1000, b.full)
       }
       requestAnimationFrame(frameLoop)
 

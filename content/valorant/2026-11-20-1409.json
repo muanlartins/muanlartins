@@ -1,0 +1,81 @@
+{
+  "id": "2026-11-20-1409",
+  "game": "valorant",
+  "start": "2026-11-20T17:09:50.785Z",
+  "end": "2026-11-20T21:08:40Z",
+  "outputs": [
+    {
+      "kind": "stream",
+      "start": "2026-11-20T17:18:29.320Z",
+      "end": "2026-11-20T21:12:16.561Z"
+    },
+    {
+      "kind": "record",
+      "start": "2026-11-20T17:18:28.671Z",
+      "end": "2026-11-20T21:12:16.540Z",
+      "file": "2026-11-20 14-18-28.mp4"
+    }
+  ],
+  "matches": [
+    {
+      "id": "7add19d0-7624-497c-ab96-ae6d8be1c0f4",
+      "start": "2026-11-20T20:41:42Z",
+      "at": "2026-11-20T21:08:40Z",
+      "queue": "competitive",
+      "map": "Haven",
+      "agent": "Sova",
+      "result": "loss",
+      "score": [
+        3,
+        13
+      ],
+      "rounds": 16,
+      "me": {
+        "kills": 17,
+        "deaths": 11,
+        "assists": 3,
+        "score": 5275,
+        "headshots": 12,
+        "bodyshots": 35,
+        "legshots": 0,
+        "damage": 3432,
+        "firstKills": 3
+      },
+      "mates": [
+        {
+          "agent": "Sage",
+          "kills": 6,
+          "deaths": 14,
+          "assists": 3,
+          "score": 1905
+        },
+        {
+          "agent": "Phoenix",
+          "kills": 16,
+          "deaths": 13,
+          "assists": 1,
+          "score": 4745
+        },
+        {
+          "agent": "Hush",
+          "kills": 9,
+          "deaths": 14,
+          "assists": 4,
+          "score": 2938
+        },
+        {
+          "agent": "Clove",
+          "kills": 5,
+          "deaths": 17,
+          "assists": 2,
+          "score": 1478
+        }
+      ],
+      "rr": -10,
+      "rank": {
+        "tier": 9,
+        "rr": 74
+      }
+    }
+  ]
+}

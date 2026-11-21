@@ -25,10 +25,12 @@ export interface Live {
   summary: L10n
   chapters: Chapter[]
   /** Only for YouTube (scripts/youtube.py, scripts/thumb.py); the site doesn't show it: the video's title when
-   * Luan wrote one, and the frame and hook picked for its thumbnail. */
+   * Luan wrote one, the frame and hook picked for its thumbnail, and when it goes public when held back (ISO with
+   * offset; the live stays off the site until then: lib/lives-files.ts). */
   youtube?: {
     title?: string
     thumb?: { quadro: string; segundo: number; texto: string; emblema: boolean; fundo?: string }
+    publish_at?: string
   }
 }
 

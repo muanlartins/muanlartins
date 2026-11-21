@@ -1,0 +1,17 @@
+{
+  "data": "2026-11-17",
+  "nome": "virada",
+  "titulo": "Viramos com raça! 3 vitórias seguidas",
+  "descricao": "As três primeiras partidas da live: 3v3 ranqueado no Diamante 3 com o JK e o Exponja, começando com uma virada.",
+  "partidas": [
+    1,
+    2,
+    3
+  ],
+  "capitulos": {
+    "1": "A virada",
+    "2": "O tirambaço",
+    "3": "Marcação bluetooth"
+  },
+  "publicar": "2026-11-20T12:00:00-03:00"
+}

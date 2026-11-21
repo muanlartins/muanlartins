@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-20",
+  "game": "rocket-league",
+  "video": "5pWTOu95mvg",
+  "summary": {
+    "pt": "3v3 ranqueado com o JK, e com o Exponja até a luz cair na casa dele: 10 vitórias e 7 derrotas, de Diamante 3 III (1047) a Campeão 1 I (1076). Subi pro Champion pela primeira vez, caí duas partidas depois e voltei no fim, com um gol meu na prorrogação e a minha gata na mesa. No meio, dois 1v1; depois, treino de mira no Aimlabs e uma competitiva de Valorant de Sova.",
+    "en": "Ranked 3v3 with JK, and with Exponja until his power went out: 10 wins and 7 losses, from Diamond 3 III (1047) to Champion 1 I (1076). I reached Champion for the first time, dropped two matches later and got back at the end, with my overtime goal and my cat on the desk. In between, two 1v1s; afterwards, aim training in Aimlabs and a competitive Valorant match as Sova."
+  },
+  "youtube": {
+    "title": "Subi pro Champion! 10 vitórias em 17 jogos | Rocket League ao vivo",
+    "publish_at": "2026-11-23T12:00:00-03:00",
+    "thumb": {
+      "quadro": "8992",
+      "segundo": 8992.0,
+      "texto": "SUBI PRO|CHAMPION",
+      "emblema": true
+    }
+  },
+  "chapters": [
+    { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
+    { "at": "7:46", "match": "7339EE1611F1E5075E0A98A5C907051E" },
+    { "at": "14:16", "match": "5BD1687011F1E5086084A2AAF3DD5B3A" },
+    { "at": "20:52", "match": "44BE0A8E11F1E5092B0073AAC160D466" },
+    { "at": "28:50", "match": "65DD49EA11F1E50A7ABA97B0E3DA7507" },
+    { "at": "35:20", "match": "4E6C0B7411F1E50B73BBF4AE48F85957" },
+    { "at": "44:00", "match": "84B7383811F1E50C9D2E49BA805781BF" },
+    { "at": "53:04", "match": "C74759D411F1E50DBB623BA1327FF865" },
+    { "at": "1:00:17", "match": "CB576E6E11F1E50E396DB88568244BC6" },
+    { "at": "1:09:36", "match": "185BB20011F1E5103B915CAED0FA03FE" },
+    { "at": "1:15:31", "match": "EC240D9E11F1E510BEA3E4B76452EB4A" },
+    { "at": "1:22:25", "match": "E2B3D95011F1E5119BD85B8BB6670E51" },
+    { "at": "1:29:47", "match": "E94C462011F1E5123FBDC2BD3AC558AA" },
+    { "at": "1:37:32", "match": "FE2E956A11F1E513CC418D9C6B37926C" },
+    { "at": "1:45:40", "match": "1F2BE3B611F1E5150E5D6EB60C2A6737" },
+    { "at": "1:53:35", "match": "3D676C3211F1E5164B9A04B73EC41588" },
+    { "at": "2:04:04", "match": "B16974C611F1E51748C7EB93F804EB1A" },
+    { "at": "2:09:07", "match": "645C8B3611F1E518FB645AA4C8AFB668" },
+    { "at": "2:14:39", "match": "2F1D3EF611F1E519C23C60BACFA9171F" },
+    { "at": "2:23:12", "match": "5D2BC5A011F1E51A32A292B07A38ECB7" },
+    { "at": "2:30:08", "title": { "pt": "Fim do Rocket League", "en": "The end of Rocket League" } },
+    { "at": "2:34:52", "title": { "pt": "Treino de mira no Aimlabs", "en": "Aim training in Aimlabs" } },
+    { "at": "3:03:40", "title": { "pt": "Valorant: aquecimento", "en": "Valorant: warm-up" } },
+    { "at": "3:23:14", "title": { "pt": "Valorant: competitiva de Sova em Haven", "en": "Valorant: competitive, Sova on Haven" } }
+  ]
+}

@@ -135,6 +135,27 @@
   }
 }
 
+/* From the chat (comandos.js), in the stand and the end credits. !pula: three jumps. !danca: a sway, arms
+   taking turns. !ola: a wave out from whoever started it (--atraso-ola). !comemora is .comemora, above. */
+.torcedor:is(.pula, .ola) .bracos {
+  opacity: 1;
+  transform: none;
+}
+.torcedor.pula .pose {
+  animation: t-pula 0.35s cubic-bezier(0.65, 0, 0.35, 1) 6 alternate;
+}
+.torcedor.danca .pose {
+  animation: t-danca 0.9s ease-in-out 4;
+}
+.torcedor.danca .bracos {
+  opacity: 1;
+  transform: none;
+  animation: t-bracos 0.9s steps(1) 4;
+}
+.torcedor.ola .pose {
+  animation: t-pula 0.32s cubic-bezier(0.65, 0, 0.35, 1) var(--atraso-ola, 0ms) 2 alternate both;
+}
+
 /* Stickers: the emojis a fan throws on a goal, rising from them and fading. */
 .sticker {
   position: absolute;

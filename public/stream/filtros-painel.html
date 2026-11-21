@@ -11,7 +11,8 @@
       Octane, Fennec and ball), and beside it the power button. Picking one turns it on; the power button turns the
       picked one off and on again. Under them, for the one that's on, its one-offs (each agent's abilities with their
       keys, the cars' Demolição and Flip), its switches (Sova's "Coruja sobrevoando": his drone flying behind Luan
-      all the while) and its gestures. "Sons dos filtros" is for all of them.
+      all the while), the cars' paint and animated decal (both cars, opcoes.cor and opcoes.decalque; orange by
+      default, against the blue behind Luan) and its gestures. "Sons dos filtros" is for all of them.
 
       It's served like filtros.html, from this working copy on localhost:8126 ("Filtros muanlartins.vbs" in Startup),
       so a new filter needs no release: an entry in FILTROS here and its drawing there.
@@ -19,7 +20,10 @@
       It tells the page through obs-websocket, like the Efeitos dock: obs-browser's emit_event "muanlartins-filtro"
       with { filtro: "<id>", opcoes: { <switch>: true|false } } ("nenhum" for none), sent on each click and again
       every 4 s, so the page catches up after a reload; { acao: "<id>" } is a one-off. "Sons dos filtros" turns the
-      abilities' sounds on and off for every filter (opcoes.mudo, on by default). The dock is where the choice
+      abilities' sounds on and off for every filter (opcoes.mudo, on by default). "Gorro de Natal" puts the Santa hat
+      (gorro.js) on his head over any filter or none (opcoes.gorro): off until he turns it on, and kept as he left it
+      (until 2026-11-18 it came on by itself through December, which kept the camera and the face tracker running
+      every live of the month). The dock is where the choice
       lives and the filter isn't kept on: opening OBS always starts with none, with the last one picked ready in
       the dropdown (the switches are kept too). The OBS websocket password is kept in the dock's storage;
       #obs=<password> in the URL fills it.
@@ -269,6 +273,41 @@
       .opcoes button.active::before {
         background: var(--klein-claro) radial-gradient(circle at 19px 50%, var(--paper) 5px, transparent 5.5px);
       }
+      /* The cars' paint: colour swatches, then the decals. */
+      .pintura {
+        margin-top: 12px;
+      }
+      .pintura h3 {
+        margin: 10px 0 6px;
+        color: rgb(244 245 247 / 0.6);
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .cores {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .cores button {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border-radius: 50%;
+        border: 2px solid rgb(244 245 247 / 0.35);
+      }
+      .cores button.active {
+        border-color: var(--paper);
+        box-shadow: 0 0 0 3px var(--klein-claro);
+      }
+      .decalques {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .decalques button {
+        padding: 7px 10px;
+        font-size: 13px;
+      }
       button.disparou {
         border-color: var(--paper);
         background: rgb(133 167 255 / 0.35);
@@ -325,11 +364,17 @@
       <h2 id="titulo"></h2>
       <div class="grid" id="acoes"></div>
       <div class="opcoes" id="opcoes"></div>
+      <div class="pintura" id="pintura" hidden>
+        <h3>Pintura · nos dois carros</h3>
+        <div class="cores" id="cores"></div>
+        <h3>Decalque animado</h3>
+        <div class="decalques" id="decalques"></div>
+      </div>
       <div id="dicas"></div>
     </section>
 
     <div class="geral">
-      <div class="opcoes"><button id="sons">Sons dos filtros</button></div>
+      <div class="opcoes"><button id="sons">Sons dos filtros</button><button id="gorro">Gorro de Natal</button></div>
       <details>
         <summary>Conexão com o OBS</summary>
         <input id="password" type="password" placeholder="Senha do obs-websocket" autocomplete="off" />
@@ -384,9 +429,27 @@
             ["Drone Coruja", "mostre as duas palmas abertas para a câmera, lado a lado."],
           ],
         },
-        { id: "octane", nome: "Octane", jogo: "Rocket League", desenho: "carro", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]] },
-        { id: "fennec", nome: "Fennec", jogo: "Rocket League", desenho: "carro", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]] },
+        { id: "octane", nome: "Octane", jogo: "Rocket League", desenho: "carro", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]], pintura: true },
+        { id: "fennec", nome: "Fennec", jogo: "Rocket League", desenho: "carro", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]], pintura: true },
         { id: "bola", nome: "Bola", jogo: "Rocket League", desenho: "bola" },
+      ]
+      // The cars' paints ([id, name, swatch]; the page has the colours it draws) and decals ([id, name]).
+      const CORES = [
+        ["laranja", "Laranja", "#ff4205"],
+        ["rosa", "Rosa", "#ff339e"],
+        ["verde", "Verde-limão", "#6bff1f"],
+        ["branco", "Branco", "#eef0f4"],
+        ["preto", "Preto", "#141418"],
+        ["dourado", "Dourado", "#ffb82e"],
+        ["roxo", "Roxo", "#801fff"],
+        ["azul", "Azul", "#0c22ff"],
+      ]
+      const DECALQUES = [
+        ["nenhum", "Nenhum"],
+        ["chamas", "Chamas"],
+        ["neon", "Neon"],
+        ["arcoiris", "Arco-íris"],
+        ["listras", "Listras"],
       ]
       // Rocket League's pictures: a car from the side and a ball, drawn here.
       const DESENHOS = {
@@ -401,6 +464,11 @@
       const state = { obsPassword: "", ultimo: FILTROS[0].id, opcoes: {}, ...JSON.parse(localStorage.getItem(KEY) || "{}") }
       if (!FILTROS.some((f) => f.id === state.ultimo)) state.ultimo = FILTROS[0].id
       const save = () => localStorage.setItem(KEY, JSON.stringify(state))
+      // The Santa hat: off unless Luan turns it on, and kept as he left it (2026-11-18: on by itself through December,
+      // it kept the camera and the face tracker running every live of the month, ~1 CPU core and GPU besides).
+      const gorroLigado = () => !!state.opcoes.gorro
+      // What the page gets: the switches, with the hat as it is now.
+      const opcoes = () => ({ ...state.opcoes, gorro: gorroLigado() })
       const fromHash = new URLSearchParams(location.hash.slice(1)).get("obs")
       if (fromHash) {
         state.obsPassword = fromHash
@@ -434,7 +502,7 @@
           } else if (op === 2) {
             ready = true
             status()
-            send({ filtro: atual, opcoes: state.opcoes })
+            send({ filtro: atual, opcoes: opcoes() })
           }
         }
         ws.onerror = () => ws.close()
@@ -466,7 +534,7 @@
           state.ultimo = id
           save()
         }
-        send({ filtro: atual, opcoes: state.opcoes })
+        send({ filtro: atual, opcoes: opcoes() })
         desenhar()
       }
       const botao = (html, onclick) => {
@@ -577,13 +645,41 @@
             const b = botao(texto(nome), () => {
               state.opcoes[id] = !state.opcoes[id]
               save()
-              send({ filtro: atual, opcoes: state.opcoes })
+              send({ filtro: atual, opcoes: opcoes() })
               b.classList.toggle("active", !!state.opcoes[id])
             })
             b.classList.toggle("active", !!state.opcoes[id])
             return b
           }),
         )
+        $("pintura").hidden = !ativo.pintura
+        if (ativo.pintura) {
+          const pintar = (chave, valor) => {
+            state.opcoes[chave] = valor
+            save()
+            send({ filtro: atual, opcoes: opcoes() })
+            desenhar()
+          }
+          const cor = state.opcoes.cor || "laranja"
+          $("cores").replaceChildren(
+            ...CORES.map(([id, nome, amostra]) => {
+              const b = botao("", () => pintar("cor", id))
+              b.style.background = amostra
+              b.title = nome
+              b.setAttribute("aria-label", nome)
+              b.classList.toggle("active", id === cor)
+              return b
+            }),
+          )
+          const decalque = state.opcoes.decalque || "nenhum"
+          $("decalques").replaceChildren(
+            ...DECALQUES.map(([id, nome]) => {
+              const b = botao(texto(nome), () => pintar("decalque", id))
+              b.classList.toggle("active", id === decalque)
+              return b
+            }),
+          )
+        }
         $("dicas").replaceChildren(
           ...(ativo.gestos || []).map(([nome, como]) => {
             const p = document.createElement("p")
@@ -598,11 +694,22 @@
       $("sons").onclick = () => {
         state.opcoes.mudo = !state.opcoes.mudo
         save()
-        send({ filtro: atual, opcoes: state.opcoes })
+        send({ filtro: atual, opcoes: opcoes() })
         sons()
       }
       sons()
-      setInterval(() => send({ filtro: atual, opcoes: state.opcoes }), 4000)
+      const gorro = () => $("gorro").classList.toggle("active", gorroLigado())
+      $("gorro").onclick = () => {
+        state.opcoes.gorro = !gorroLigado()
+        save()
+        send({ filtro: atual, opcoes: opcoes() })
+        gorro()
+      }
+      gorro()
+      setInterval(() => {
+        send({ filtro: atual, opcoes: opcoes() })
+        gorro()
+      }, 4000)
       desenhar()
       status()
       connect()

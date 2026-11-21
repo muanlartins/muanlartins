@@ -5,8 +5,14 @@ description: Before and during one of Luan's Twitch lives on the stream PC: what
 
 # Before and during a live
 
-Luan streams Rocket League ranked on Twitch from this PC (Windows + WSL), on the schedule in
-`content/agenda.json` (weekdays 14:30–16:30, Brasília). Talk to him in pt-BR.
+Luan streams on Twitch from this PC (Windows + WSL), on the agenda he edits at `/canal/agenda` (the profile API's
+`GET /agenda`, the `agenda` skill; Rocket League in the afternoons, Valorant at night). Talk to him in pt-BR.
+
+The opening runs itself from the Anúncios dock (`abertura.js`): up to 90 min before a scheduled live it sets the
+channel's Twitch title and category from the agenda, and 30 s after the stream of a scheduled live opens it has the
+Discord server's bot post "Ao vivo agora" in #lives, pinging "Avisos de live" (once per stream; an unscheduled
+stream, like an OBS test, pings nobody). Its section "Abertura" says what it did ("Aviso no Discord"). The Instagram
+story Luan posts by hand (the automatic one was dropped on 2026-11-19).
 
 ## While he's live, Claude stays light
 
@@ -31,6 +37,19 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
 - Valorant (`scripts/valorant.py`, started at login too, log `~/.cache/muanlartins/valorant.log`): reads Luan's
   own presence from the Riot Client every 2 s (two `curl.exe` calls, negligible) for the Valorant scene's stand and
   rank plate. `http://127.0.0.1:8792/` shows what it knows; if the plate or the rounds stop, check that first.
+- After WSL restarts (`uptime` of minutes; on 2026-11-14 it had, and nothing said so), the five helpers that Windows'
+  Startup launches are all down: filters (:8126), narrator (:8788), captions (:8790), Valorant (:8792), replays
+  (:8794). Check them with `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:<port>/` (200 each) and relaunch
+  the missing ones with `wscript.exe "C:\Users\muanl\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\<Filtros|Narrador|Legendas|Replay|Valorant> muanlartins.vbs"`.
+- The keyboard and the mouse beside the camera (`scripts/teclas.ps1`, "Teclas muanlartins.vbs" in Startup) run on
+  Windows itself, on its loopback, which WSL can't reach: check with `curl.exe -sN --max-time 3 http://127.0.0.1:8796/`
+  (one `data:` line; `"foco":false` while the terminal is in front, as it should). Its box shows only while a game is
+  the window in front, so an empty corner while he's on the desktop is right.
+  An OBS that opened meanwhile has the "Filtros" source and dock on an error page: refresh the source
+  (`PressInputPropertiesButton` `refreshnocache` on "Filtros") and have Luan reload the dock (or reopen OBS).
+- The camera is off while OBS is neither streaming nor recording (the Efeitos dock turns it on when the stream starts,
+  in a second or two, under Começando). A black camera on the air means the dock isn't connected: check it says "OBS
+  conectado", or press "Ativar" in the Câmera source's properties.
 - Never restart or close OBS, or change scenes/inputs, while he's live unless he asks for that change.
 - The same goes, more mildly, whenever OBS is open: a 9-minute ffmpeg encode on 11-05 left OBS with 35% of its
   render frames skipped while it sat idle.
@@ -57,7 +76,10 @@ sound (`gatilho.webm`, see the `obs` skill). It only ever goes up within a sessi
   on early VODs.
 - The "Partidas" dock (OBS custom dock, `public/stream/partidas.html` from the site) open: it logs each match and
   its events. At the end, **"Publicar sessões"**: that writes `content/matches/<id>.json` and `.events.json`,
-  which the after-live routine and RLR's studio need.
+  which the after-live routine and RLR's studio need. Rocket League's points fill themselves in from
+  `scripts/rocket_league.py` (started at login, log `~/.cache/muanlartins/rocket-league.log`), which reads them off
+  the end-of-match scoreboard; a match left without points can still be typed. Off the stream nothing is opened:
+  that script and `valorant.py` publish the ranked matches by themselves.
 - **Rocket League's Stats API is on** before the game starts: `PacketSendRate=10` in
   `C:\Program Files\Epic Games\rocketleague\TAGame\Config\DefaultStatsAPI.ini`. Game updates reset it to 0
   (11-05), and then the dock sees no match. `node scripts/obs.mjs` warns when it's off; fix it, then restart the
@@ -86,6 +108,10 @@ sound (`gatilho.webm`, see the `obs` skill). It only ever goes up within a sessi
 - OBS 33, profile "Live" ("Untitled" until 11-06), Advanced output. Recording: Hybrid MP4 (survives a crash, takes chapter marks),
   NVENC, tracks 1–4 (1 Tudo, 2 Microfone, 3 Jogo, 4 Discord); track 5 "Live" is the stream's. The camera also
   records to its own `… câmera.mkv` (Source Record filter "Gravar câmera").
-- Scenes: Começando, RL + chat, Valorant + chat, Conversa, Já volto, Fim (and the effects' own). `brand/twitch/obs.py` generates the scene
+- Scenes: Começando, RL + chat, Valorant + chat, Diversos + chat (any other game: its capture takes whatever game is
+  fullscreen or borderless in front), Conversa, Já volto, Fim (and the effects' own). `brand/twitch/obs.py` generates the scene
   collection; anything added by hand in OBS (like the Spotify source) should also go there.
+- The sources Luan must hear (Alertas, Sons, Pix, Filtros) are on "Monitorar e enviar" (`monitoring_type` 2):
+  Alertas was found off on 11-10 and again on 11-19, so he missed the follows' and subs' sounds. Check it
+  (`scripts/obs.mjs`) before a live.
 - See the `obs` skill for talking to OBS from WSL.

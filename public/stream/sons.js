@@ -99,7 +99,78 @@
     }
   }
 
+  /** A struck bell: a few sine partials, the upper ones dying first. */
+  function bell(ctx, out, t, f, { seconds = 1.2, peak = 0.3 } = {}) {
+    for (const [ratio, gain, length] of [[1, 1, 1], [2, 0.3, 0.6], [3, 0.12, 0.4], [4.2, 0.08, 0.25]]) {
+      const osc = ctx.createOscillator()
+      osc.frequency.value = f * ratio
+      const g = envelope(ctx, t, { attack: 0.003, release: seconds * length, peak: peak * gain })
+      osc.connect(g).connect(out)
+      osc.start(t)
+      osc.stop(t + seconds * length + 0.05)
+    }
+  }
+
+  /** A whoosh from left to right: noise through a band-pass sweeping up (the alerts' band wiping in). */
+  function whoosh(ctx, out, t, { seconds = 0.6, from = 300, to = 3500, peak = 0.35 } = {}) {
+    const src = ctx.createBufferSource()
+    src.buffer = noise(ctx, seconds + 0.05)
+    const bp = ctx.createBiquadFilter()
+    bp.type = "bandpass"
+    bp.Q.value = 1.2
+    bp.frequency.setValueAtTime(from, t)
+    bp.frequency.exponentialRampToValueAtTime(to, t + seconds)
+    const g = ctx.createGain()
+    g.gain.setValueAtTime(0, t)
+    g.gain.linearRampToValueAtTime(peak, t + seconds * 0.6)
+    g.gain.linearRampToValueAtTime(0, t + seconds)
+    const pan = ctx.createStereoPanner()
+    pan.pan.setValueAtTime(-0.7, t)
+    pan.pan.linearRampToValueAtTime(0.7, t + seconds)
+    src.connect(bp).connect(g).connect(pan).connect(out)
+    src.start(t)
+    src.stop(t + seconds + 0.05)
+  }
+
+  /** A water drop: a sine whose pitch leaps up as it dies. */
+  function drop(ctx, out, t, f, { peak = 0.5 } = {}) {
+    const osc = ctx.createOscillator()
+    osc.frequency.setValueAtTime(f, t)
+    osc.frequency.exponentialRampToValueAtTime(f * 2.4, t + 0.05)
+    const g = envelope(ctx, t, { attack: 0.002, release: 0.09, peak })
+    osc.connect(g).connect(out)
+    osc.start(t)
+    osc.stop(t + 0.15)
+  }
+
   const RECIPES = {
+    // Twitch's alerts (uploaded to its Alerts Box, see brand/README.md): each opens with the band's whoosh and lands
+    // as its sheen crosses it. A follow: two bell notes, a fourth up.
+    seguidor: { seconds: 2.2, play(ctx, out) {
+      const r = room(ctx, out, { seconds: 1.6, wet: 0.3 })
+      whoosh(ctx, r, 0, { seconds: 0.55, peak: 0.25 })
+      bell(ctx, r, 0.5, 783.99, { seconds: 1.1, peak: 0.32 })
+      bell(ctx, r, 0.64, 1046.5, { seconds: 1.5, peak: 0.36 })
+    } },
+
+    // A sub (and a gift, bits, a raid): a major arpeggio up to a held chord, on a low hit.
+    inscrito: { seconds: 3.2, play(ctx, out) {
+      const r = room(ctx, out, { seconds: 2.2, wet: 0.32 })
+      whoosh(ctx, r, 0, { seconds: 0.6, peak: 0.3 })
+      ;[523.25, 659.25, 783.99].forEach((f, i) => bell(ctx, r, 0.45 + i * 0.09, f, { seconds: 0.8, peak: 0.26 }))
+      for (const f of [1046.5, 1318.5, 1567.98]) bell(ctx, r, 0.72, f, { seconds: 2.2, peak: 0.2 })
+      drum(ctx, r, 0.72, { from: 120, to: 50, seconds: 0.8, peak: 0.7, click: 0.12 })
+      burst(ctx, r, 0.72, { seconds: 1.4, type: "highpass", frequency: 6000, peak: 0.08, attack: 0.05 })
+    } },
+
+    // "Bebe água!": three drops and a gulp.
+    agua: { seconds: 1.9, play(ctx, out) {
+      const r = room(ctx, out, { seconds: 1.2, wet: 0.28 })
+      whoosh(ctx, r, 0, { seconds: 0.5, peak: 0.2 })
+      ;[[0.45, 820], [0.6, 1120], [0.72, 960]].forEach(([t, f]) => drop(ctx, r, t, f))
+      drop(ctx, r, 0.98, 340, { peak: 0.7 })
+    } },
+
     // The bad play: dun, dun, duuun (D, D, B♭, the last one held, over timpani).
     lance: { seconds: 3.2, play(ctx, out) {
       const r = room(ctx, out, { seconds: 2.2, wet: 0.35 })

@@ -63,7 +63,8 @@
    "name": "VT Shifttrack Novice S3",
    "score": 1710,
    "accuracy": 32.6,
-   "seconds": 114
+   "seconds": 114,
+   "pause": 54.0
   },
   {
    "at": "2026-11-08T15:22:33Z",

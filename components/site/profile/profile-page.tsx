@@ -2,11 +2,13 @@
 
 import Script from "next/script"
 import { useRef, useState, type ReactNode } from "react"
-import { ArrowRight, Swords } from "lucide-react"
+import { ArrowRight, Gamepad2, Swords } from "lucide-react"
 import Link from "next/link"
 import { PageIntro } from "@/components/site/page-intro"
 import { FanView } from "@/components/site/profile/fan-view"
 import { SigmaPanel } from "@/components/site/profile/sigma-panel"
+import { DiscordLink } from "@/components/site/profile/discord-link"
+import { CardEditor } from "@/components/site/viewer/card-editor"
 import { profile } from "@/content/profile"
 import {
   canSave,
@@ -25,9 +27,12 @@ import {
   type SigmaStats,
   type Torcedor,
 } from "@/lib/profile"
+import { channelPath } from "@/lib/channel"
 import { LOCALE, localize, sectionPath } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
+import { viewerPath, type Card, type Images } from "@/lib/viewer"
+import type { DiscordLink as Discord } from "@/lib/discord"
 
 const text = localize(profile)
 type Status = "idle" | "saving" | "saved" | "erased" | "error" | "expired"
@@ -140,6 +145,11 @@ export function ProfilePage() {
   const [token, setToken] = useState<string | null>(null)
   const [login, setLogin] = useState("")
   const [saved, setSaved] = useState<Fan | null>(null)
+  // Their card as saved (null: never), once their profile came back.
+  const [card, setCard] = useState<Card | null | undefined>(undefined)
+  const [images, setImages] = useState<Images | null>(null)
+  // Their Discord as linked (null: none), once their profile came back.
+  const [discord, setDiscord] = useState<Discord | null | undefined>(undefined)
   const [fan, setFan] = useState<Fan | null>(null)
   const [status, setStatus] = useState<Status>("idle")
   const [confirmErase, setConfirmErase] = useState(false)
@@ -168,8 +178,11 @@ export function ProfilePage() {
       return
     }
     loadMine(found)
-      .then(({ login, aparencia }) => {
+      .then(({ login, aparencia, cartao, imagens, discord }) => {
         setLogin(login)
+        setCard(cartao ?? null)
+        setImages(imagens ?? null)
+        setDiscord(discord ?? null)
         loadMySigma(found, login)
           .then(setStats)
           .catch(() => setStats(null))
@@ -251,6 +264,8 @@ export function ProfilePage() {
     signOut()
     setToken(null)
     setLogin("")
+    setCard(undefined)
+    setDiscord(undefined)
     setStats(undefined)
     setSaved(null)
     setFan(T!.padrao())
@@ -285,7 +300,10 @@ export function ProfilePage() {
         {token && login ? (
           <>
             <span className="text-ink">
-              {text.signedInAs} <strong className="font-medium text-klein">{login}</strong>
+              {text.signedInAs}{" "}
+              <Link href={viewerPath(login)} className="font-medium text-klein hover:underline">
+                {login}
+              </Link>
             </span>
             <button onClick={leave} className="text-muted underline underline-offset-2 hover:text-klein">
               {text.signOut}
@@ -306,21 +324,62 @@ export function ProfilePage() {
         )}
       </div>
 
+      {token && login === CHANNEL && (
+        <Link href={channelPath("agenda")} className="mt-6 inline-flex items-center gap-1.5 text-[15px] font-medium text-klein hover:underline">
+          {text.agenda}
+          <ArrowRight aria-hidden className="h-4 w-4" />
+        </Link>
+      )}
+
       {/* The channel earns no Σ of its own. */}
       {S && canSave && !(token && login === CHANNEL) && <SigmaPanel S={S} login={token ? login : ""} stats={stats} />}
 
-      {/* Their dream loadout is kept with the profile too; it's built on Valorant's inventory. */}
-      <Link
-        href={`${sectionPath("content")}/valorant/inventory#montar`}
-        className="group flex items-center gap-4 rounded-md border border-line bg-paper/60 p-4 transition-colors hover:border-klein"
-      >
-        <Swords aria-hidden className="h-6 w-6 shrink-0 text-klein" />
-        <span className="min-w-0 flex-1">
-          <span className="block font-medium text-klein">{text.loadout}</span>
-          <span className="block text-[14px] text-muted">{text.loadoutHint}</span>
-        </span>
-        <ArrowRight aria-hidden className="h-5 w-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-klein" />
-      </Link>
+      {/* Their Σ rank as a role in the community's Discord server. */}
+      {canSave && !(token && login === CHANNEL) && (
+        <DiscordLink
+          token={token && login ? token : null}
+          linked={discord}
+          onExpired={() => {
+            setToken(null)
+            setStatus("expired")
+          }}
+        />
+      )}
+
+      {/* Their card, the same on every name of theirs on the site and on top of their page. */}
+      {token && login && T && fan && card !== undefined && (
+        <CardEditor
+          token={token}
+          login={login}
+          saved={card}
+          images={images}
+          fan={fan}
+          stats={stats}
+          T={T}
+          S={S}
+          onExpired={() => {
+            setToken(null)
+            setStatus("expired")
+          }}
+        />
+      )}
+
+      {/* Their ball in the live's duel and their dream loadout are kept with the profile too, each on its own page. */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {[
+          { href: channelPath("minijogos"), Icon: Gamepad2, title: text.duel, hint: text.duelHint },
+          { href: `${sectionPath("content")}/valorant/inventory#montar`, Icon: Swords, title: text.loadout, hint: text.loadoutHint },
+        ].map(({ href, Icon, title, hint }) => (
+          <Link key={href} href={href} className="group flex items-center gap-4 rounded-md border border-line bg-paper/60 p-4 transition-colors hover:border-klein">
+            <Icon aria-hidden className="h-6 w-6 shrink-0 text-klein" />
+            <span className="min-w-0 flex-1">
+              <span className="block font-medium text-klein">{title}</span>
+              <span className="block text-[14px] text-muted">{hint}</span>
+            </span>
+            <ArrowRight aria-hidden className="h-5 w-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-klein" />
+          </Link>
+        ))}
+      </div>
 
       {T && fan && (
         <div className="grid gap-10 sm:grid-cols-[15rem_1fr]">

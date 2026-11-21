@@ -4,7 +4,10 @@
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { BatchGetCommand, DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
+import { readFileSync } from "node:fs"
+import { cliente } from "./comum/discord.mjs"
 import { usuario } from "./comum/twitch.mjs"
+import { automacoes, sigmasDe } from "./discord.mjs"
 import { rotas } from "./rotas.mjs"
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({}), { marshallOptions: { removeUndefinedValues: true } })
@@ -46,4 +49,25 @@ const banco = {
   },
 }
 
-export const handler = rotas({ banco, usuario, chave: process.env.CHAVE })
+// The Discord server's automations, once there's the bot's token and the setup script has written the server's ids
+// (comum/discord.json). The token is the stack's DISCORD_BOT, or else discord-bot.txt, which CI writes into the
+// function's zip from the repository's secret DISCORD_BOT (so turning the bot on needs no visit to AWS's console).
+const SIGMA_API = process.env.SIGMA_API || "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
+const ids = (() => {
+  try {
+    return JSON.parse(readFileSync(new URL("./comum/discord.json", import.meta.url), "utf8"))
+  } catch {
+    return null
+  }
+})()
+const token = (() => {
+  if (process.env.DISCORD_BOT) return process.env.DISCORD_BOT
+  try {
+    return readFileSync(new URL("./discord-bot.txt", import.meta.url), "utf8").trim()
+  } catch {
+    return ""
+  }
+})()
+const discord = token && ids?.servidor ? automacoes({ pedir: cliente(token), ids, banco, sigmas: sigmasDe(SIGMA_API) }) : null
+
+export const handler = rotas({ banco, usuario, chave: process.env.CHAVE, discord })
