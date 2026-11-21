@@ -292,6 +292,13 @@ def read_scoreboard(name: str, frames=None, result: str | None = None, before: i
                 division = next((r["divisao"] for r in reversed(same) if r.get("divisao")), None)
                 # Readings that saw both a 6 and a 9 don't know which: the gain is left to the totals.
                 gain = None if not gains or {6, 9} <= set(gains) else max(set(gains), key=gains.count)
+                # The rank can come after the points: the last placement match shows the new rank with an animation of
+                # its own (2026-11-20, the 1v1's "PLATINA I" never read, only "DIVISÃO II"). The strip alone, a little
+                # longer, before giving up on it.
+                if frames is None and not rank:
+                    late = rank_later()
+                    rank = late or rank
+                    division = late.get("divisao") or division
                 return {"mmr": points["mmr"], "ganho": gain,
                         "tier": rank.get("tier"), "familia": rank.get("familia"), "divisao": division,
                         "leituras": max(len(same), 2 if fits(points["mmr"], result, before) else 1)}
@@ -301,6 +308,23 @@ def read_scoreboard(name: str, frames=None, result: str | None = None, before: i
         last = readings[-1]
         return {**last, "leituras": 1}
     return None
+
+
+RANK_LATE = 8  # seconds more of the rank strip when it didn't read with the points
+
+
+def rank_later() -> dict:
+    """The rank strip read again for up to RANK_LATE seconds: the first reading with a tier (or its family), or {}."""
+    deadline = time.time() + RANK_LATE
+    while time.time() < deadline:
+        try:
+            got = read_rank(capture()[1])
+        except (OSError, ValueError, subprocess.SubprocessError, IndexError):
+            got = {}
+        if got.get("tier") or got.get("familia"):
+            return got
+        time.sleep(0.5)
+    return {}
 
 
 FAMILIES = ["bronze", "silver", "gold", "platinum", "diamond", "champion", "grand-champion", "supersonic-legend"]
