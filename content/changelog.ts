@@ -110,18 +110,22 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * What comes next, in order within each status. Every new feature Luan decides on and won't release the same day goes
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
-export const UPCOMING: Upcoming[] = [
-  {
-    id: "estatisticas-da-partida",
-    status: "ideia",
-    tag: "live",
-    title: "Estatísticas da partida na tela",
-    text: "Meus toques, gols, defesas, aéreos e score em cada partida, e os números da live inteira nos créditos do fim.",
-  },
-]
+export const UPCOMING: Upcoming[] = []
 
 /** Every feature released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "estatisticas-da-partida",
+    date: "2026-11-21",
+    tag: "live",
+    title: "Estatísticas da partida na tela",
+    text: "Meus números da partida ao lado da câmera, o resumo quando ela acaba e os da live inteira nos créditos.",
+    media: [
+      media("estatisticas-da-partida", "Ao lado da câmera, Nesta partida: score 443, 3 gols, 5 chutes, 28 toques e 3 aéreos numa partida de Rocket League"),
+      media("estatisticas-da-partida-fim", "Na Conversa, o fim de partida: vitória por 7 a 2 e os meus números em quadros, de score a demolições"),
+      media("estatisticas-da-partida-creditos", "Nos créditos do fim, os números de hoje: 16 gols, 11 defesas, 541 toques, 61 aéreos e o gol mais forte a 118 km/h"),
+    ],
+  },
   {
     id: "teclado-e-mouse",
     date: "2026-11-20",
