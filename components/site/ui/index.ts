@@ -1,8 +1,12 @@
 // The site's shared pieces (brand/interface.md, "Components"). Every page builds with these; a new shared piece goes here.
 export { Badge } from "./badge"
+export { BarList, type Bar } from "./bars"
 export { Button, ButtonLink, buttonClass } from "./button"
 export { Card, CardLink, cardClass } from "./card"
+export { Dialog } from "./dialog"
 export { Field, Input, Select, Textarea } from "./field"
+export { Fold } from "./fold"
+export { Ranking, type RankingEntry } from "./ranking"
 export { Section } from "./section"
 export { EmptyState, ErrorLine, Skeleton } from "./states"
 export { TabPanel, Tabs } from "./tabs"

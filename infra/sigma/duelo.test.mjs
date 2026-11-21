@@ -94,6 +94,20 @@ test("the ranking: wins, then the rate, then fewer fights; the channel's ball ap
   assert.deepEqual(resumo(undefined, "muanlartins"), { total: 0, duelistas: 0, ranking: [], canal: null, lutas: [] })
 })
 
+test("the channel's ball has a record too, from the ranking and the fights kept", () => {
+  const sozinho = luta(enviada({ semente: 9, classes: ["katana", "arco"], logins: ["muanlartins", "fulano"] }), EM)
+  const outra = luta(enviada({ semente: 10, classes: ["adaga", "lanca"], logins: ["beltrano", "fulano"] }), new Date(EM.getTime() + 60_000))
+  const geral = anotar(anotar(null, sozinho), outra)
+  const r = deViewer("muanlartins", undefined, geral, "muanlartins")
+  assert.equal(r.partidas, 1)
+  assert.equal(r.vitorias, sozinho.vencedor === 0 ? 1 : 0)
+  assert.equal(r.posicao, null)
+  assert.deepEqual(r.classes, { katana: { vitorias: r.vitorias, partidas: 1 } })
+  assert.deepEqual(r.lutas, [sozinho])
+  assert.equal(resumo(geral, "muanlartins").lutas.length, 2)
+  assert.deepEqual(deViewer("muanlartins", undefined, null, "muanlartins"), { login: "muanlartins", vitorias: 0, partidas: 0, posicao: null, classes: {}, lutas: [] })
+})
+
 test("!duelo says someone's record in a line", () => {
   const url = "muanlartins.com.br/canal/minijogos"
   assert.match(textoDuelo("Fulano", { vitorias: 0, partidas: 0, posicao: null }, url), /ainda não lutou/)

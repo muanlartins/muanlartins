@@ -1,15 +1,20 @@
 "use client"
 
 import Script from "next/script"
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
-import { Crown, Dices, Flag, Lock, MessageSquare, Play, Repeat, Scale, Shuffle, Sparkles, Swords } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { BarChart3, Flag, Lock, Play, Shuffle, Sparkles, Swords, Trophy, type LucideIcon } from "lucide-react"
 import { PageIntro } from "@/components/site/page-intro"
-import { FanSpot } from "@/components/site/pix/fan-spot"
-import { shortDate, time } from "@/components/site/ranked/format"
 import { ClassArt, duelKit, type DuelKit } from "@/components/site/minigames/class-art"
+import { className, DuelReplay, FightRow, FightsSection } from "@/components/site/minigames/fights"
+import { marbleKit, marbleSkin, type MarbleKit } from "@/components/site/minigames/marble"
 import { RaceSection } from "@/components/site/minigames/race-section"
+import { RankingSection } from "@/components/site/minigames/ranking-section"
+import { fill, number, percent } from "@/components/site/minigames/shared"
+import { StatsSection } from "@/components/site/minigames/stats"
+import { BarList, buttonClass, cardClass, ErrorLine, Fold, Section, Skeleton } from "@/components/site/ui"
 import { ViewerName } from "@/components/site/viewer/viewer-name"
 import { channel } from "@/content/channel"
+import { loadRaces, type Races } from "@/lib/corrida"
 import {
   CLASS_STATS,
   CLASSES,
@@ -20,7 +25,6 @@ import {
   MATERIALS,
   PLAYER_ASPECT,
   playerUrl,
-  replayUrl,
   saveMyBall,
   tierOf,
   type Ball,
@@ -31,31 +35,23 @@ import {
   type MaterialId,
 } from "@/lib/duelo"
 import { canSave, keptToken, loadFans, loadMySigma, signIn, signOut, SignedOut, type Choice, type Sigma, type Torcedor } from "@/lib/profile"
-import { HTML_LANG, LOCALE, localize } from "@/lib/site"
+import { LOCALE, localize } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
 
 const text = localize(channel.minijogos)
-const LANG = HTML_LANG[LOCALE]
-const number = (n: number) => n.toLocaleString(LANG)
-const percent = (v: number, p: number) => (p ? `${Math.round((v / p) * 100)}%` : "–")
 // The ball picked before going to Twitch, to find it again on the way back.
 const DRAFT_KEY = "duelo:rascunho"
 // Who signed in from here comes back here (lib/profile.ts's sign-in returns through /perfil).
 const BACK = "/canal/minijogos"
 // The one who first had the idea (content/changelog.ts credits the same).
 const IDEA_BY = "lucca_3098"
-// The preview's ball before signing in: a login Twitch can't have (they're 4 characters or more).
+// The preview's other ball: a login Twitch can't have (they're 4 characters or more), so it never names anyone.
 const NOBODY = "eu"
-// A fan's colours before torcedor.js loads.
+// A fan's colours before torcedor.js loads (Klein claro and Klein, as canvas colours).
 const PLAIN = { cor: "#85a7ff", detalhe: "#002fa7", roupa: "lisa" }
-// The two sides' rings, as the live draws them (duelo.html's --esquerda / --direita).
-const RINGS = ["#85a7ff", "#ffb547"]
 
 type Status = "idle" | "saving" | "saved" | "error" | "expired"
-
-const heading = "text-[13px] font-medium uppercase tracking-[0.12em] text-klein"
-const panel = "rounded-xl border border-line bg-paper/70"
 
 function readDraft(): Ball | null {
   try {
@@ -74,31 +70,38 @@ const same = (a: Ball | null, b: Ball | null) => JSON.stringify(clean(a ?? {})) 
 function StatBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="grid grid-cols-[6.5rem_1fr] items-center gap-3">
-      <span className="text-[12px] font-medium uppercase tracking-[0.08em] text-white/60">{label}</span>
-      <span className="flex gap-1" aria-label={`${label}: ${value}/5`}>
+      <span className="eyebrow text-paper/65">{label}</span>
+      <span className="flex gap-1" role="img" aria-label={`${label}: ${value}/5`}>
         {[1, 2, 3, 4, 5].map((i) => (
-          <span key={i} className={cn("h-2.5 flex-1 -skew-x-12 rounded-[2px]", i <= value ? "bg-[#ffd166]" : "bg-white/12")} />
+          <span key={i} className={cn("h-2.5 flex-1", i <= value ? "bg-ouro" : "bg-paper/12")} />
         ))}
       </span>
     </div>
   )
 }
 
-/** A rule of the game in a few words, with its icon. */
-function Rule({ icon, children }: { icon: ReactNode; children: ReactNode }) {
-  return (
-    <li className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper/70 px-3 py-1 text-[13px] text-ink">
-      <span className="text-klein">{icon}</span>
-      {children}
-    </li>
-  )
-}
+/** A square to pick on the select screen: a class in the roster, a material. Its edge turns gold when picked. */
+const pickClass = (on: boolean) =>
+  cn("cut-sm cut-edge relative border transition-colors", on ? "border-ouro bg-paper/15" : "border-paper/15 bg-paper/[0.04] hover:bg-paper/10")
 
-/** /canal/minijogos: the ball duel (pick your ball as in a game's select screen, the ranking, the latest fights) and the marble race. */
+/** The page's sections, one click away: its own index under the intro. */
+const INDEX: { id: string; label: keyof typeof text.index; Icon: LucideIcon }[] = [
+  { id: "duelo", label: "duel", Icon: Swords },
+  { id: "corrida", label: "race", Icon: Flag },
+  { id: "ranking", label: "ranking", Icon: Trophy },
+  { id: "lutas", label: "fights", Icon: Play },
+  { id: "estatisticas", label: "stats", Icon: BarChart3 },
+]
+
+/**
+ * /canal/minijogos: the ball duel (pick your ball as in a game's select screen, your record), the marble race, both
+ * rankings, the best and latest fights with their replays, and the duel's numbers by class.
+ */
 export function MinigamesPage() {
   const [T, setT] = useState<Torcedor | null>(null)
   const [S, setS] = useState<Sigma | null>(null)
   const [kit, setKit] = useState<DuelKit | null>(null)
+  const [marbles, setMarbles] = useState<MarbleKit | null>(null)
   const [versao, setVersao] = useState<number | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [login, setLogin] = useState("")
@@ -107,12 +110,25 @@ export function MinigamesPage() {
   const [ball, setBall] = useState<Ball>({})
   const [status, setStatus] = useState<Status>("idle")
   const [duels, setDuels] = useState<Duels | null | "error">(null)
-  const [me, setMe] = useState<Duelist | null>(null)
+  const [races, setRaces] = useState<Races | null | "error">(null)
+  const [me, setMe] = useState<Duelist | null | "error">(null)
   const [fans, setFans] = useState<Record<string, Choice> | null>(null)
-  const [replay, setReplay] = useState<Fight | null>(null)
   const [hovered, setHovered] = useState<ClassId | null>(null)
   const [myFan, setMyFan] = useState<Choice | null>(null)
-  const player = useRef<HTMLDivElement>(null)
+  const [replay, setReplay] = useState<Fight | null>(null)
+
+  const addFans = useCallback((logins: string[]) => {
+    if (!logins.length) return setFans((f) => f ?? {})
+    loadFans([...new Set(logins)]).then(
+      (more) => setFans((f) => ({ ...(f ?? {}), ...more })),
+      () => setFans((f) => f ?? {}),
+    )
+  }, [])
+
+  const loadMine = useCallback((who: string) => {
+    setMe(null)
+    loadDuelist(who).then(setMe, () => setMe("error"))
+  }, [])
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- sessionStorage and the kept sign-in only exist in the browser */
@@ -128,7 +144,7 @@ export function MinigamesPage() {
           setSaved(duelo)
           if (!draft) setBall(clean(duelo ?? {}))
           loadMySigma(found, login).then((s) => setSigma(s?.sigma ?? 0), () => {})
-          loadDuelist(login).then(setMe, () => {})
+          loadMine(login)
           loadFans([login]).then((f) => setMyFan(f[login] ?? null), () => {})
         })
         .catch((error) => {
@@ -141,17 +157,22 @@ export function MinigamesPage() {
     loadDuels().then(
       (d) => {
         setDuels(d)
-        const logins = [...d.ranking.map((r) => r.login), ...d.lutas.flatMap((f) => f.logins)]
-        if (logins.length) loadFans(logins).then(setFans, () => setFans({}))
-        else setFans({})
+        addFans([...d.ranking.map((r) => r.login), ...d.lutas.slice(0, 12).flatMap((f) => f.logins)])
       },
       () => setDuels("error"),
     )
-  }, [])
+    loadRaces().then(
+      (r) => {
+        setRaces(r)
+        addFans([...r.ranking.map((x) => x.login), ...r.ultimas.slice(0, 4).flatMap((x) => x.logins)])
+      },
+      () => setRaces("error"),
+    )
+  }, [addFans, loadMine])
 
   // Their own fan's colours and shirt on every ball they look at.
-  const fanOf = (who: string, choice: Choice | null | undefined) => (T ? T.normalizar(choice ?? null, who) : PLAIN)
-  const mine = fanOf(login || NOBODY, myFan)
+  const fanOf = useCallback((who: string, choice?: Choice | null) => (T ? T.normalizar(choice ?? fans?.[who] ?? null, who) : PLAIN), [T, fans])
+  const mine = T ? T.normalizar(myFan, login || NOBODY) : PLAIN
 
   // What their Σ has unlocked: the channel, everything.
   const unlocked = useMemo(() => {
@@ -161,12 +182,15 @@ export function MinigamesPage() {
   }, [S, sigma, login])
   const startsAt = (id: MaterialId) => S?.RL.find(([, rank]) => tierOf(rank) === id)?.[0] ?? 0
   const materialName = (id: MaterialId) => (S ? S.ranque(startsAt(id), LOCALE).nome.replace(/ (I|II|III)$/, "") : id)
+  const skinOf = useCallback(
+    (who: string) => marbleSkin(marbles, (T ? T.normalizar(fans?.[who] ?? null, who) : {}) as unknown as Record<string, unknown>),
+    [marbles, T, fans],
+  )
 
   const dirty = !same(ball, saved)
   const pick = (patch: Ball) => {
     setBall((b) => clean({ ...b, ...patch }))
     setStatus("idle")
-    setReplay(null)
   }
 
   async function save() {
@@ -197,30 +221,21 @@ export function MinigamesPage() {
     setMyFan(null)
   }
 
-  function watch(f: Fight) {
-    setReplay(f)
-    player.current?.scrollIntoView({ behavior: "smooth", block: "center" })
-  }
+  // The preview: their ball against the channel's; signed in as the channel, the channel's against a fan's (the
+  // player shows nothing given the same login twice).
+  const asChannel = login === CHANNEL
+  const src = asChannel
+    ? playerUrl({ logins: [CHANNEL, NOBODY], nomes: [CHANNEL, text.player.fan], classes: [ball.classe ?? "*", "*"], materiais: [ball.material ?? "*", "*"] })
+    : playerUrl({ logins: [login || NOBODY, CHANNEL], nomes: [login || text.player.you, CHANNEL], classes: [ball.classe ?? "*", ""], materiais: [ball.material ?? "*", ""] })
 
-  const you = localize({ pt: "você", en: "you" })
-  const src = replay
-    ? replayUrl(replay)
-    : playerUrl({
-        logins: [login || NOBODY, CHANNEL],
-        nomes: [login || you, CHANNEL],
-        classes: [ball.classe ?? "*", ""],
-        materiais: [ball.material ?? "*", ""],
-      })
-
-  const className = (id: string) => (text.yours.classes as Record<string, { name: string }>)[id]?.name ?? id
-  const ranking = duels && duels !== "error" ? duels : null
-  // The sheet shows the class under the mouse, else the one picked.
+  const list = duels && duels !== "error" ? duels : null
+  // The sheet shows the class under the pointer, else the one picked.
   const shown = hovered ?? (ball.classe as ClassId | undefined) ?? null
   const material = (MATERIALS.find((m) => m.id === ball.material) ?? MATERIALS[unlocked]).id
-  const name = (l: string, n: string) => (l === CHANNEL ? n : <ViewerName login={l}>{n}</ViewerName>)
+  const record = me && me !== "error" ? me : null
 
   return (
-    <div className="space-y-12">
+    <div>
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
       <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />
@@ -233,337 +248,252 @@ export function MinigamesPage() {
         }}
       />
       <Script src="/stream/duelo-arte.js" onReady={() => setKit(duelKit())} />
+      <Script src="/stream/bolinha.js" onReady={() => setMarbles(marbleKit())} />
       <PageIntro title={text.title} description={text.description} />
 
-      {/* The two games, one click away. */}
-      <nav className="grid gap-3 sm:grid-cols-2">
-        {[
-          { href: "#duelo", Icon: Swords, title: text.duel.title, line: text.duel.short, n: ranking?.total ? text.ranking.total.replace("{n}", number(ranking.total)) : null },
-          { href: "#corrida", Icon: Flag, title: text.race.title, line: text.race.short, n: null },
-        ].map(({ href, Icon, title, line, n }) => (
-          <a key={href} href={href} className="group flex items-start gap-3 rounded-xl border border-line bg-paper/70 p-4 transition-colors hover:border-klein">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-navy text-[#ffd166]">
-              <Icon aria-hidden className="h-5 w-5" />
-            </span>
-            <span className="min-w-0">
-              <span className="block text-[16px] font-medium text-ink group-hover:text-klein">{title}</span>
-              <span className="block text-[13px] leading-snug text-muted">{line}</span>
-              {n && <span className="mt-1 block text-[12px] text-klein tabular-nums">{n}</span>}
-            </span>
-          </a>
-        ))}
+      {/* The page's own index, one line that scrolls sideways on phones. */}
+      <nav aria-label={text.index.label} className="-mx-6 mt-8 overflow-x-auto px-6 [scrollbar-width:none]">
+        <ul className="flex w-max gap-2">
+          {INDEX.map(({ id, label, Icon }) => (
+            <li key={id}>
+              <a href={`#${id}`} className={buttonClass({ variant: "secondary", size: "sm" })}>
+                <Icon aria-hidden className="h-4 w-4" />
+                {text.index[label]}
+              </a>
+            </li>
+          ))}
+        </ul>
       </nav>
 
-      <section id="duelo" className="scroll-mt-24 space-y-6">
-        <div className="space-y-3">
-          <h2 className="text-2xl font-medium tracking-[-0.02em] text-ink sm:text-3xl">{text.duel.title}</h2>
-          <ul className="flex flex-wrap gap-2">
-            <Rule icon={<Dices aria-hidden className="h-3.5 w-3.5" />}>{text.duel.rules.drawn}</Rule>
-            <Rule icon={<Repeat aria-hidden className="h-3.5 w-3.5" />}>{text.duel.rules.loop}</Rule>
-            <Rule icon={<Scale aria-hidden className="h-3.5 w-3.5" />}>{text.duel.rules.fair}</Rule>
-            <Rule icon={<Sparkles aria-hidden className="h-3.5 w-3.5" />}>{text.duel.rules.looks}</Rule>
-            <Rule icon={<MessageSquare aria-hidden className="h-3.5 w-3.5" />}>{text.duel.rules.command}</Rule>
-          </ul>
-          <p className="text-[13px] text-muted">
-            {text.duel.idea}{" "}
-            <ViewerName login={IDEA_BY} className="font-medium text-klein">
-              {IDEA_BY}
-            </ViewerName>
-          </p>
-        </div>
+      <div className="mt-12 space-y-16">
+        <Section
+          id="duelo"
+          title={text.duel.title}
+          description={text.duel.short}
+          action={
+            <p className="text-[13px] text-muted">
+              {text.idea}{" "}
+              <ViewerName login={IDEA_BY} className="font-medium text-klein">
+                {IDEA_BY}
+              </ViewerName>
+            </p>
+          }
+        >
+          <div className="space-y-6">
+            <Fold summary={text.how}>
+              <ul className="list-disc space-y-1.5 pl-5">
+                {text.duel.how.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </Fold>
 
-        {/* The select screen: the live's own box on the left (the preview of their ball, or a replay), the sheet on the right, the roster below. */}
-        <div className="overflow-hidden rounded-xl bg-navy text-white">
-          <div className="grid sm:grid-cols-[minmax(0,17rem)_1fr]">
-            <div ref={player} className="scroll-mt-24 border-b border-white/10 p-3 sm:border-r sm:border-b-0">
-              <div className="mx-auto max-w-[17rem] overflow-hidden rounded-md" style={{ aspectRatio: PLAYER_ASPECT }}>
-                <iframe key={src} src={src} title={text.duel.title} className="h-full w-full border-0" />
-              </div>
-              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[12px] text-white/60">
-                <span>{replay ? text.player.replay.replace("{a}", replay.nomes[0]).replace("{b}", replay.nomes[1]) : text.player.preview}</span>
-                {replay && (
-                  <button type="button" onClick={() => setReplay(null)} className="font-medium text-[#ffd166] hover:underline">
-                    {text.player.back}
-                  </button>
-                )}
-              </div>
-            </div>
+            {/* The select screen: the live's own box on the left (the preview of their ball), the sheet on the right, the roster below. */}
+            <div className="cut bg-navy text-paper">
+              <div className="grid sm:grid-cols-[minmax(0,17rem)_1fr]">
+                <div className="border-b border-paper/10 p-3 sm:border-r sm:border-b-0">
+                  <div className="mx-auto max-w-[17rem]" style={{ aspectRatio: PLAYER_ASPECT }}>
+                    <iframe key={src} src={src} title={text.duel.title} className="h-full w-full border-0" />
+                  </div>
+                  <p className="mt-2 text-[13px] text-paper/70">{asChannel ? text.player.previewChannel : text.player.preview}</p>
+                </div>
 
-            <div className="space-y-5 p-5">
-              <div className="flex items-center gap-4">
-                <div className="grid h-[120px] w-[120px] shrink-0 place-items-center rounded-full bg-white/[0.04] ring-1 ring-white/10">
-                  {shown ? <ClassArt kit={kit} classe={shown} material={material} fan={mine} size={116} spin /> : <Shuffle aria-hidden className="h-10 w-10 text-white/70" />}
-                </div>
-                <div className="min-w-0 space-y-1.5">
-                  <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-[#ffd166]">{shown ? text.yours.tags[shown] : text.yours.classTitle}</p>
-                  <p className="text-2xl font-medium tracking-[-0.02em]">{shown ? className(shown) : text.yours.random}</p>
-                  <p className="text-[14px] leading-snug text-white/75">{shown ? text.yours.classes[shown].text : text.yours.randomText}</p>
+                <div className="space-y-5 p-5">
+                  <div className="flex items-center gap-4">
+                    <div className="grid h-[120px] w-[120px] shrink-0 place-items-center rounded-full bg-paper/[0.04] ring-1 ring-paper/10">
+                      {shown ? <ClassArt kit={kit} classe={shown} material={material} fan={mine} size={116} spin /> : <Shuffle aria-hidden className="h-10 w-10 text-paper/70" />}
+                    </div>
+                    <div className="min-w-0 space-y-1.5">
+                      <p className="eyebrow text-ouro">{shown ? text.yours.tags[shown] : text.yours.classTitle}</p>
+                      <p className="text-2xl font-medium tracking-[-0.02em]">{shown ? className(shown) : text.yours.random}</p>
+                      <p className="text-[15px] leading-snug text-paper/75">{shown ? text.yours.classes[shown].text : text.yours.randomText}</p>
+                    </div>
+                  </div>
+                  {shown && (
+                    <div className="space-y-2">
+                      {(["dano", "alcance", "velocidade", "cresce"] as const).map((k) => (
+                        <StatBar key={k} label={text.yours.stats[k]} value={CLASS_STATS[shown][k]} />
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <p className="eyebrow text-paper/65">{text.yours.materialTitle}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" onClick={() => pick({ material: undefined })} aria-pressed={!ball.material} title={text.yours.auto} aria-label={text.yours.auto} className={cn(pickClass(!ball.material), "grid h-14 w-14 place-items-center")}>
+                        <Sparkles aria-hidden className="h-5 w-5 text-paper/80" />
+                      </button>
+                      {MATERIALS.map((m, i) => {
+                        const locked = i > unlocked
+                        const label = locked ? `${materialName(m.id)} · ${fill(text.yours.locked, { n: number(startsAt(m.id)) })}` : materialName(m.id)
+                        return (
+                          <button
+                            key={m.id}
+                            type="button"
+                            disabled={locked}
+                            onClick={() => pick({ material: m.id })}
+                            aria-pressed={ball.material === m.id}
+                            title={label}
+                            aria-label={label}
+                            className={cn(pickClass(ball.material === m.id), "grid h-14 w-14 place-items-center", locked && "cursor-not-allowed")}
+                          >
+                            <span className={cn(locked && "opacity-25 grayscale")}>
+                              <ClassArt kit={kit} classe={ball.classe ?? "espada"} material={m.id} fan={mine} size={50} />
+                            </span>
+                            {locked && <Lock aria-hidden className="absolute h-4 w-4 text-paper/80" />}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p className="text-[13px] text-paper/70">
+                      {(() => {
+                        const m = MATERIALS.find((x) => x.id === material)!
+                        const effects = (["brilho", "rastro", "faiscas", "arco"] as const).filter((e) => e in m).map((e) => text.yours.effects[e])
+                        return `${materialName(m.id)}: ${effects.length ? effects.join(", ") : text.yours.metal}. `
+                      })()}
+                      {unlocked < MATERIALS.length - 1 &&
+                        fill(text.yours.next, { nome: materialName(MATERIALS[unlocked + 1].id), n: number(startsAt(MATERIALS[unlocked + 1].id)), s: number(sigma) })}
+                    </p>
+                  </div>
                 </div>
               </div>
-              {shown && (
-                <div className="space-y-2">
-                  {(["dano", "alcance", "velocidade", "cresce"] as const).map((k) => (
-                    <StatBar key={k} label={text.yours.stats[k]} value={CLASS_STATS[shown][k]} />
-                  ))}
-                </div>
-              )}
 
-              <div className="space-y-2">
-                <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-white/60">{text.yours.materialTitle}</p>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => pick({ material: undefined })}
-                    aria-pressed={!ball.material}
-                    title={text.yours.auto}
-                    className={cn("grid h-14 w-14 place-items-center rounded-lg ring-1 transition", !ball.material ? "bg-white/15 ring-[#ffd166]" : "bg-white/[0.04] ring-white/10 hover:bg-white/10")}
-                  >
-                    <Sparkles aria-hidden className="h-5 w-5 text-white/80" />
-                  </button>
-                  {MATERIALS.map((m, i) => {
-                    const locked = i > unlocked
-                    const on = ball.material === m.id
+              {/* The roster. */}
+              <div className="border-t border-paper/10 p-3 sm:p-4" onPointerLeave={() => setHovered(null)}>
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+                  {(["*", ...CLASSES] as const).map((id) => {
+                    const on = id === "*" ? !ball.classe : ball.classe === id
                     return (
                       <button
-                        key={m.id}
+                        key={id}
                         type="button"
-                        disabled={locked}
-                        onClick={() => pick({ material: m.id })}
+                        onClick={() => pick({ classe: id === "*" ? undefined : id })}
+                        onPointerEnter={() => setHovered(id === "*" ? null : id)}
+                        onFocus={() => setHovered(id === "*" ? null : id)}
+                        onBlur={() => setHovered(null)}
                         aria-pressed={on}
-                        title={locked ? `${materialName(m.id)} · ${text.yours.locked.replace("{n}", number(startsAt(m.id)))}` : materialName(m.id)}
-                        className={cn(
-                          "relative grid h-14 w-14 place-items-center rounded-lg ring-1 transition",
-                          on ? "bg-white/15 ring-[#ffd166]" : "bg-white/[0.04] ring-white/10 hover:bg-white/10",
-                          locked && "cursor-not-allowed",
-                        )}
+                        className={cn(pickClass(on), "flex flex-col items-center gap-1 px-1 pt-2 pb-1.5")}
                       >
-                        <span className={cn(locked && "opacity-25 grayscale")}>
-                          <ClassArt kit={kit} classe={ball.classe ?? "espada"} material={m.id} fan={mine} size={50} />
-                        </span>
-                        {locked && <Lock aria-hidden className="absolute h-4 w-4 text-white/80" />}
+                        {id === "*" ? (
+                          <span className="grid h-[56px] w-[56px] place-items-center">
+                            <Shuffle aria-hidden className="h-6 w-6 text-paper/70" />
+                          </span>
+                        ) : (
+                          <ClassArt kit={kit} classe={id} material={material} fan={mine} size={56} />
+                        )}
+                        <span className={cn("text-[13px]", on ? "text-paper" : "text-paper/75")}>{id === "*" ? text.yours.random : className(id)}</span>
                       </button>
                     )
                   })}
                 </div>
-                <p className="text-[12px] text-white/60">
-                  {(() => {
-                    const m = MATERIALS.find((x) => x.id === material)!
-                    const effects = (["brilho", "rastro", "faiscas", "arco"] as const).filter((e) => e in m).map((e) => text.yours.effects[e])
-                    return `${materialName(m.id)}: ${effects.length ? effects.join(", ") : text.yours.metal}. `
-                  })()}
-                  {unlocked < MATERIALS.length - 1 &&
-                    text.yours.next
-                      .replace("{nome}", materialName(MATERIALS[unlocked + 1].id))
-                      .replace("{n}", number(startsAt(MATERIALS[unlocked + 1].id)))
-                      .replace("{s}", number(sigma))}
-                </p>
               </div>
-            </div>
-          </div>
 
-          {/* The roster. */}
-          <div className="border-t border-white/10 p-3 sm:p-4" onPointerLeave={() => setHovered(null)}>
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-              {(["*", ...CLASSES] as const).map((id) => {
-                const on = id === "*" ? !ball.classe : ball.classe === id
-                return (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-paper/10 px-5 py-4">
+                {canSave && (
                   <button
-                    key={id}
                     type="button"
-                    onClick={() => pick({ classe: id === "*" ? undefined : id })}
-                    onPointerEnter={() => setHovered(id === "*" ? null : id)}
-                    aria-pressed={on}
-                    className={cn(
-                      "flex flex-col items-center gap-1 rounded-lg px-1 pb-1.5 pt-2 ring-1 transition",
-                      on ? "bg-white/15 ring-[#ffd166]" : "bg-white/[0.04] ring-white/10 hover:bg-white/10",
-                    )}
+                    onClick={() => save()}
+                    disabled={Boolean(token) && (!dirty || status === "saving")}
+                    // The primary button turned over for the navy island: Branco on navy.
+                    className={cn(buttonClass(), "bg-paper text-navy hover:bg-klein-claro")}
                   >
-                    {id === "*" ? (
-                      <span className="grid h-[56px] w-[56px] place-items-center">
-                        <Shuffle aria-hidden className="h-6 w-6 text-white/70" />
-                      </span>
-                    ) : (
-                      <ClassArt kit={kit} classe={id} material={material} fan={mine} size={56} />
-                    )}
-                    <span className={cn("text-[12px]", on ? "text-white" : "text-white/70")}>{id === "*" ? text.yours.random : className(id)}</span>
+                    {status === "saving" ? text.yours.saving : token ? text.yours.save : text.yours.signInToSave}
                   </button>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/10 px-5 py-4">
-            {canSave && (
-              <button
-                type="button"
-                onClick={() => save()}
-                disabled={Boolean(token) && (!dirty || status === "saving")}
-                className="rounded-md bg-[#ffd166] px-5 py-2.5 text-[15px] font-medium text-navy transition-opacity hover:opacity-90 disabled:opacity-40"
-              >
-                {status === "saving" ? text.yours.saving : token ? text.yours.save : text.yours.signInToSave}
-              </button>
-            )}
-            {token && saved && Object.keys(saved).length > 0 && (
-              <button type="button" onClick={() => pick({ classe: undefined, material: undefined })} className="text-[13px] text-white/60 underline underline-offset-2 hover:text-white">
-                {text.yours.reset}
-              </button>
-            )}
-            <span className="text-[13px] text-white/70" aria-live="polite">
-              {status === "saved" ? text.yours.saved : status === "error" ? text.yours.error : status === "expired" ? text.yours.expired : !token ? text.yours.signInNote : ""}
-            </span>
-            {token && login && (
-              <span className="ml-auto text-[13px] text-white/60">
-                {text.yours.signedInAs} <strong className="font-medium text-white">{login}</strong> ·{" "}
-                <button type="button" onClick={leave} className="underline underline-offset-2 hover:text-white">
-                  {text.yours.signOut}
-                </button>
-              </span>
-            )}
-          </div>
-        </div>
-
-        {token && me && (
-          <div className={cn(panel, "space-y-4 p-5")}>
-            <h3 className={heading}>{text.record.title}</h3>
-            {me.partidas ? (
-              <>
-                <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {[
-                    [number(me.vitorias), text.record.wins],
-                    [number(me.partidas), text.record.fights],
-                    [percent(me.vitorias, me.partidas), text.record.rate],
-                    [me.posicao ? `${me.posicao}º` : "–", text.record.place],
-                  ].map(([value, label]) => (
-                    <div key={label}>
-                      <dt className="sr-only">{label}</dt>
-                      <dd className="text-2xl font-medium text-klein tabular-nums">{value}</dd>
-                      <dd className="text-[13px] text-muted">{label}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <ul className="flex flex-wrap gap-2">
-                  {Object.entries(me.classes)
-                    .sort((a, b) => b[1].partidas - a[1].partidas)
-                    .map(([c, r]) => (
-                      <li key={c} className="flex items-center gap-2 rounded-lg bg-navy py-1 pl-1 pr-3 text-[13px] text-white">
-                        <ClassArt kit={kit} classe={c} material={material} fan={mine} size={34} />
-                        {className(c)}
-                        <span className="text-white/60 tabular-nums">
-                          {r.vitorias}/{r.partidas}
-                        </span>
-                      </li>
-                    ))}
-                </ul>
-              </>
-            ) : (
-              <p className="text-[14px] text-muted">{text.record.none}</p>
-            )}
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h3 className={heading}>{text.ranking.title}</h3>
-            {ranking && ranking.total > 0 && <p className="text-[13px] text-muted">{text.ranking.total.replace("{n}", number(ranking.total))}</p>}
-          </div>
-          {duels === "error" && <p className="text-[15px] text-muted">{text.ranking.unavailable}</p>}
-          {ranking && !ranking.ranking.length && <p className="text-[15px] text-muted">{text.ranking.empty}</p>}
-          {ranking && ranking.ranking.length > 0 && (
-            <div className={cn(panel, "overflow-hidden")}>
-              {/* The top three on a podium, the stand's way. */}
-              <div className="flex items-end justify-center gap-3 bg-klein/[0.05] px-4 pt-6 sm:gap-6">
-                {[1, 0, 2]
-                  .filter((i) => ranking.ranking[i])
-                  .map((i) => {
-                    const r = ranking.ranking[i]
-                    return (
-                      <div key={r.login} className="flex w-28 flex-col items-center text-center sm:w-36">
-                        {i === 0 && <Crown aria-hidden className="mb-1 h-5 w-5 text-[#d9a520]" />}
-                        <FanSpot T={T} fans={fans} login={r.login} name={r.nome} />
-                        <p className="mt-1 max-w-full truncate text-[14px] font-medium text-ink">{name(r.login, r.nome)}</p>
-                        <p className="text-[12px] text-muted tabular-nums">
-                          {number(r.vitorias)} {text.record.wins} · {percent(r.vitorias, r.partidas)}
-                        </p>
-                        <div className={cn("mt-2 grid w-full place-items-center rounded-t-md bg-klein text-xl font-medium text-paper", i === 0 ? "h-16" : i === 1 ? "h-11" : "h-8")}>{i + 1}</div>
-                      </div>
-                    )
-                  })}
+                )}
+                {token && saved && Object.keys(saved).length > 0 && (
+                  <button type="button" onClick={() => pick({ classe: undefined, material: undefined })} className="text-[13px] text-paper/70 underline underline-offset-4 hover:text-paper">
+                    {text.yours.reset}
+                  </button>
+                )}
+                <span className={cn("text-[13px]", status === "error" || status === "expired" ? "text-paper" : "text-paper/75")} role="status">
+                  {status === "saved" ? text.yours.saved : status === "error" ? text.yours.error : status === "expired" ? text.yours.expired : !token ? text.yours.signInNote : ""}
+                </span>
+                {token && login && (
+                  <span className="ml-auto text-[13px] text-paper/70">
+                    {text.yours.signedInAs} <strong className="font-medium text-paper">{login}</strong> ·{" "}
+                    <button type="button" onClick={leave} className="underline underline-offset-4 hover:text-paper">
+                      {text.yours.signOut}
+                    </button>
+                  </span>
+                )}
               </div>
-              {ranking.ranking.length > 3 && (
-                <ol className="divide-y divide-line">
-                  {ranking.ranking.slice(3).map((r, k) => (
-                    <li key={r.login} className={cn("flex items-center gap-3 px-4 py-2", r.login === login && "bg-klein/[0.06]")}>
-                      <span className="w-6 shrink-0 text-right text-[14px] font-medium text-muted tabular-nums">{k + 4}</span>
-                      <FanSpot T={T} fans={fans} login={r.login} name={r.nome} size="sm" />
-                      <p className="min-w-0 flex-1 truncate text-[15px] font-medium text-ink">
-                        {name(r.login, r.nome)}
-                        {r.login === login && <span className="ml-1.5 text-[12px] font-normal text-klein">({text.ranking.you})</span>}
-                      </p>
-                      <p className="shrink-0 text-right text-[13px] text-muted tabular-nums">
-                        <span className="text-[16px] font-medium text-klein">{number(r.vitorias)}</span> {text.record.wins} · {number(r.partidas)} {text.record.fights}
-                      </p>
-                    </li>
-                  ))}
-                </ol>
-              )}
             </div>
-          )}
-          {ranking?.canal && (
-            <p className="text-[13px] text-muted">
-              {text.ranking.channel.replace("{v}", `${number(ranking.canal.vitorias)} ${text.record.wins}`).replace("{p}", `${number(ranking.canal.partidas)} ${text.record.fights}`)}
-            </p>
-          )}
-        </div>
 
-        {ranking && ranking.lutas.length > 0 && (
-          <div className="space-y-4">
-            <h3 className={heading}>{text.latest.title}</h3>
-            <ul className="grid gap-3 sm:grid-cols-2">
-              {ranking.lutas.map((f) => {
-                const how = f.motivo === "nocaute" ? text.latest.knockout.replace("{s}", String(f.segundos)) : f.motivo === "tempo" ? text.latest.time : text.latest.draw
-                const playable = versao !== null && f.versao === versao
-                return (
-                  <li key={f.id} className={cn(panel, "overflow-hidden", replay?.id === f.id && "border-klein")}>
-                    <div className="flex items-center gap-2 bg-navy px-3 py-3 text-white">
-                      {([0, 1] as const).map((i) => (
-                        <div key={i} className={cn("flex min-w-0 flex-1 items-center gap-2", i === 1 && "order-3 flex-row-reverse text-right")}>
-                          <ClassArt kit={kit} classe={f.classes[i]} material={f.materiais[i] ?? "bronze"} fan={fanOf(f.logins[i], fans?.[f.logins[i]])} size={44} ring={RINGS[i]} />
-                          <div className="min-w-0">
-                            <p className={cn("truncate text-[14px] font-medium", f.vencedor === i ? "text-[#ffd166]" : "text-white/70")}>
-                              {f.vencedor === i && <Crown aria-hidden className="mr-1 inline h-3.5 w-3.5 -translate-y-px" />}
-                              {name(f.logins[i], f.nomes[i])}
-                            </p>
-                            <p className="truncate text-[11px] text-white/50">
-                              {className(f.classes[i])}
-                              {f.sorteadas[i] ? ` · ${text.latest.drawn}` : ""}
-                            </p>
-                          </div>
+            {token && login && (
+              <div className={cn(cardClass, "space-y-5 p-5")}>
+                <h3 className="text-xl font-medium tracking-[-0.02em] text-ink">{text.record.title}</h3>
+                {me === "error" ? (
+                  <ErrorLine onRetry={() => loadMine(login)}>{text.record.unavailable}</ErrorLine>
+                ) : !record ? (
+                  <div aria-hidden className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {[0, 1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-14" />
+                    ))}
+                  </div>
+                ) : record.partidas ? (
+                  <>
+                    <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      {[
+                        [number(record.vitorias), text.record.wins],
+                        [number(record.partidas), text.record.fights],
+                        [percent(record.vitorias, record.partidas), text.record.rate],
+                        [record.posicao ? `${record.posicao}º` : "–", record.posicao || !asChannel ? text.record.place : text.record.outside],
+                      ].map(([value, label]) => (
+                        <div key={label} className="flex flex-col-reverse">
+                          <dt className="text-[13px] text-muted">{label}</dt>
+                          <dd className="text-xl font-semibold text-klein">{value}</dd>
                         </div>
                       ))}
-                      <span className="order-2 shrink-0 text-[12px] font-semibold text-white/40">VS</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 px-3 py-2 text-[12px] text-muted">
-                      <span>
-                        {how} · {shortDate(f.em)} {time(f.em)}
-                      </span>
-                      {playable ? (
-                        <button type="button" onClick={() => watch(f)} className="inline-flex items-center gap-1 rounded-md bg-klein px-2.5 py-1 font-medium text-paper hover:opacity-90">
-                          <Play aria-hidden className="h-3.5 w-3.5" />
-                          {text.latest.watch}
-                        </button>
-                      ) : (
-                        versao !== null && <span>{text.latest.old}</span>
-                      )}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
+                    </dl>
+                    {Object.keys(record.classes).length > 0 && (
+                      <BarList
+                        max={1}
+                        track
+                        reference={0.5}
+                        bars={Object.entries(record.classes)
+                          .sort((a, b) => b[1].partidas - a[1].partidas)
+                          .map(([c, r]) => ({
+                            id: c,
+                            label: (
+                              <>
+                                <ClassArt kit={kit} classe={c} material={material} fan={mine} size={26} className="shrink-0" />
+                                <span className="truncate">{className(c)}</span>
+                              </>
+                            ),
+                            value: r.vitorias / r.partidas,
+                            display: `${percent(r.vitorias, r.partidas)} · ${fill(text.stats.of, { v: r.vitorias, p: r.partidas })}`,
+                          }))}
+                      />
+                    )}
+                    {record.lutas.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="eyebrow text-klein">{text.record.latest}</p>
+                        <ul className="-mx-5 -mb-5 divide-y divide-line border-t border-line">
+                          {record.lutas.slice(0, 5).map((f) => (
+                            <FightRow key={f.id} fight={f} login={login} playable={versao !== null && f.versao === versao} onWatch={setReplay} labels={{ won: text.record.won, lost: text.record.lost }} />
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-[15px] text-muted">{text.record.none}</p>
+                )}
+              </div>
+            )}
           </div>
-        )}
-      </section>
+        </Section>
 
-      <RaceSection T={T} S={S} login={login} fan={login ? (mine as unknown as Record<string, unknown>) : null} sigma={sigma} />
+        <RaceSection T={T} S={S} kit={marbles} races={races} login={login} fan={login ? (mine as unknown as Record<string, unknown>) : null} sigma={sigma} skinOf={skinOf} />
+
+        <RankingSection duels={duels} races={races} T={T} fans={fans} login={login} skinOf={skinOf} />
+
+        <FightsSection fights={list?.lutas ?? null} failed={duels === "error"} kit={kit} versao={versao} fanOf={fanOf} />
+
+        <StatsSection fights={list?.lutas ?? null} ranking={list?.ranking ?? null} kit={kit} fan={PLAIN} />
+      </div>
+
+      <DuelReplay fight={replay} onClose={() => setReplay(null)} />
     </div>
   )
 }

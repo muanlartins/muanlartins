@@ -199,19 +199,43 @@ export const mural = {
   // Singular|plural.
   people: { pt: "pessoa|pessoas", en: "person|people" },
   hours: { pt: "hora|horas", en: "hour|hours" },
-  nextMilestone: { pt: "Próximo marco", en: "Next milestone" },
-  countPeople: { pt: "{n} pessoas assistindo", en: "{n} people watching" },
+  countPeople: { pt: "{n} pessoas na torcida", en: "{n} people in the crowd" },
   countHours: { pt: "{n} horas assistidas", en: "{n} hours watched" },
-  milestones: { pt: "Marcos", en: "Milestones" },
-  reachedCounts: { pt: "Já batidos", en: "Already reached" },
   ranking: { pt: "Ranking", en: "Ranking" },
   rankingNote: {
-    pt: "Σ são os pontos do canal: 1 por minuto de live, mais um bônus a cada live e a cada live seguida.",
-    en: "Σ are the channel's points: 1 per minute of a live, plus a bonus for each live and each live in a row.",
+    pt: "Σ, os pontos do site: 1 por minuto de live, mais um bônus a cada live e a cada live seguida.",
+    en: "Σ, the site's points: 1 per minute of a live, plus a bonus for each live and each live in a row.",
   },
   showAll: { pt: "Ver todos", en: "Show everyone" },
   showLess: { pt: "Ver menos", en: "Show fewer" },
+  you: { pt: "você", en: "you" },
   livesUnit: { pt: "live|lives", en: "live|lives" },
+  /** The audience's numbers, computed from everyone who has watched. */
+  statsTitle: { pt: "Quem vem às lives", en: "Who comes to the lives" },
+  avgLive: { pt: "Tempo médio por live", en: "Average time per live" },
+  avgLiveHint: { pt: "de cada pessoa, nas lives que veio", en: "per person, in the lives they came to" },
+  back: { pt: "Voltaram", en: "Came back" },
+  /** "21 de 53 vieram a mais de uma live". */
+  backHint: { pt: "{n} de {t} vieram a mais de uma live", en: "{n} of {t} came to more than one live" },
+  lastLive: { pt: "Na última live", en: "In the latest live" },
+  /** "20/11 · 23 h somadas". */
+  lastLiveHint: { pt: "{d} · {h} somadas", en: "{d} · {h} altogether" },
+  streak: { pt: "Maior sequência", en: "Longest run" },
+  /** "6 lives seguidas". */
+  streakValue: { pt: "{n} lives seguidas", en: "{n} lives in a row" },
+  livesTitle: { pt: "Quantas lives cada pessoa viu", en: "How many lives each person watched" },
+  /** A bar's label: "1 live", "4 a 5 lives", "20 lives ou mais". */
+  livesBin: { pt: "{a} a {b} lives", en: "{a} to {b} lives" },
+  livesFrom: { pt: "{a} lives ou mais", en: "{a} lives or more" },
+  milestones: { pt: "Marcos", en: "Milestones" },
+  nextMilestone: { pt: "Próximo marco: {n}", en: "Next milestone: {n}" },
+  peopleLadder: { pt: "Pessoas na torcida", en: "People in the crowd" },
+  hoursLadder: { pt: "Horas assistidas", en: "Hours watched" },
+  /** On the timeline, a live's newcomers, singular|plural: "+10 pessoas novas". */
+  newcomers: { pt: "+{n} pessoa nova|+{n} pessoas novas", en: "+{n} new person|+{n} new people" },
+  /** Whoever came before the channel kept anyone's first live. */
+  before: { pt: "{n} pessoas na torcida até aqui", en: "{n} people in the crowd by then" },
+  seeLive: { pt: "Ver a live", en: "See the live" },
   dedicationTitle: { pt: "Afiliado à Twitch", en: "Twitch affiliate" },
   dedication: {
     pt: "No dia 7 de novembro de 2026, o canal virou afiliado da Twitch. Isso só acontece quando gente de verdade aparece nas lives, e cada uma destas pessoas apareceu. Esta conquista é de vocês.",
@@ -222,22 +246,27 @@ export const mural = {
     en: "It counts everyone in the chat since November 5, when the channel started keeping track of who watches.",
   },
   seeStand: { pt: "Ver a arquibancada", en: "See the stand" },
-  audienceSoon: { pt: "A audiência aparece aqui em breve.", en: "The audience shows up here soon." },
+  audienceEmpty: { pt: "Ninguém na arquibancada ainda. Quem estiver no chat na próxima live aparece aqui.", en: "Nobody in the stand yet. Whoever is in the chat in the next live shows up here." },
+  audienceError: { pt: "Não deu pra carregar a torcida agora.", en: "The crowd couldn't be loaded right now." },
+  retry: { pt: "Tentar de novo", en: "Try again" },
   audiencePrivacy: {
-    pt: "Aparece aqui quem estava logado no chat da Twitch durante uma live. Para sair da lista, fale com o Luan.",
-    en: "Everyone logged in to the Twitch chat during a live shows up here. To be left out, ask Luan.",
+    pt: "Aparece aqui quem estava logado no chat da Twitch durante uma live. Pra sair da lista, fala comigo no chat.",
+    en: "Everyone logged in to the Twitch chat during a live shows up here. To be left out, tell me in the chat.",
   },
 } as const
 
-/** The channel's dated milestones, oldest first; `dedication` draws the stand of everyone who had watched by that day. */
-export const MILESTONES: { date: string; title: { pt: string; en: string }; dedication?: boolean }[] = [
-  { date: "2026-10-28", title: { pt: "Primeira live", en: "First live" } },
-  { date: "2026-11-05", title: { pt: "A torcida ganha nomes e Σ", en: "The stand gets names and Σ" } },
-  { date: "2026-11-06", title: { pt: "Primeiro Pix na live", en: "First Pix on the live" } },
+/**
+ * The channel's dated milestones, oldest first, on the audience's timeline; `dedication` draws the stand of everyone
+ * who had watched by that day, `live` links that day's live page (/canal/lives/<date>).
+ */
+export const MILESTONES: { date: string; title: { pt: string; en: string }; dedication?: boolean; live?: boolean }[] = [
+  { date: "2026-10-28", title: { pt: "Primeira live", en: "First live" }, live: true },
+  { date: "2026-11-05", title: { pt: "A torcida ganha nomes e Σ", en: "The stand gets names and Σ" }, live: true },
+  { date: "2026-11-06", title: { pt: "Primeiro Pix na live", en: "First Pix on the live" }, live: true },
   { date: "2026-11-07", title: { pt: "Afiliado à Twitch", en: "Twitch affiliate" }, dedication: true },
 ]
 
-/** The audience's milestones by count: the next one shows as a bar, the ones reached as a list. */
+/** The audience's milestones by count: a ladder each, up to the next one; the people's are dated on the timeline. */
 export const COUNTS = {
   pessoas: [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
   horas: [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000],
