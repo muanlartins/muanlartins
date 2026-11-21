@@ -130,9 +130,12 @@ strip under the fans ends in a true 45° (its height equals its cut). The mark i
 
 ## Components
 
-One of each, shared. Today most are class strings copied between files (the Twitch sign-in button exists four ways,
-tabs four ways, the fans' stand strip six ways); each becomes one component in `components/site/ui/` (or one class in
-`stream.css`) and every page uses it.
+One of each, shared, in `components/site/ui/` (exported by its `index.ts`; on the live, one class in `stream.css`):
+`Button`/`ButtonLink`/`buttonClass`, `Card`/`CardLink`, `Section`, `Field`/`Input`/`Textarea`/`Select`, `Choice`/`Choices`
+(a choice among options), `Badge`, `Skeleton`/`EmptyState`/`ErrorLine`, `Tabs`/`TabPanel`, `Dialog`, `Fold` ("Como
+funciona"), `Ranking` (podium, top 10, see all), `BarList`, `Countdown`, `Lattice`, `StandStrip` (the fans' ground, a true
+45°), `SignInButton`; documentation pages use `components/site/docs/`. A page never rebuilds one of these by hand; a new
+shared piece goes there, generic. A showcase's h2 (it heads a card) is 20 px.
 
 - **Button.** Primary: Klein fill, Branco text. Secondary: `line-strong` border, ink text, Klein border and text on
   hover. Quiet: a text link. Two sizes: default (15 px, `px-4 py-2`) and small (14 px, `px-3 py-1.5`); full width only

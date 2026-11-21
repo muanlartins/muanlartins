@@ -1,0 +1,38 @@
+name: Lives agendadas
+
+# A live's page stays off the site until its VOD's youtube.publish_at (content/lives/<date>.json): the site is static,
+# so the page only appears with the first build after that moment. Every hour this checks whether a publish_at passed
+# in the last hour and, if one did, runs the Deploy workflow, so the page shows up on time without a push.
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: A live due this hour?
+        id: due
+        run: |
+          node -e '
+            const fs = require("fs")
+            const now = Date.now()
+            const due = fs.readdirSync("content/lives").filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).filter((f) => {
+              const at = JSON.parse(fs.readFileSync(`content/lives/${f}`, "utf8")).youtube?.publish_at
+              const t = at ? Date.parse(at) : NaN
+              return t <= now && now - t < 65 * 60 * 1000
+            })
+            console.log(due.length ? `Due: ${due.join(", ")}` : "Nothing due this hour.")
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `due=${due.length > 0}\n`)
+          '
+      - name: Rebuild the site
+        if: steps.due.outputs.due == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main

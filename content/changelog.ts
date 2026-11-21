@@ -115,6 +115,15 @@ export const UPCOMING: Upcoming[] = []
 /** Every feature released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "jogos-diversos",
+    date: "2026-11-21",
+    tag: "site",
+    title: "Jogos diversos",
+    text: "Tudo que eu jogo além de Rocket League e Valorant, com as lives, as horas e a meta de cada jogo.",
+    href: "/conteudo/diversos",
+    media: [media("jogos-diversos", "A página do Celeste: a capa, as lives e as horas, e a meta de 100% capítulo por capítulo, com morangos, corações e fitas")],
+  },
+  {
     id: "estatisticas-da-partida",
     date: "2026-11-21",
     tag: "live",

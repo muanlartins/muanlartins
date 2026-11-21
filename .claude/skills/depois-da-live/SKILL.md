@@ -224,7 +224,8 @@ schedule and policy; its editing advice was overruled by him.
    dia dos cortes, em horários diferentes", with more shorts too and his produced videos, the analyses, starting;
    11-20's: Sat 15:00 and 19:00, Sun 12:00; before that one a day at 12:00), the VOD at least a day after the last
    (`youtube.publish_at` in `content/lives/<date>.json`: `youtube.py live` schedules it, and the site keeps that live
-   off its pages until a build after that moment, so its page never embeds a private video). Then
+   off its pages until a build after that moment, so its page never embeds a private video; the hourly
+   `.github/workflows/lives-agendadas.yml` runs that build once the moment passes). Then
    `youtube.py video content/videos/<date>-<nome>.json --dry-run`, show him, apply (it makes the playlist "Rocket
    League: cortes da live" the first time, and uploads the captions as the lives' are). The end screen (last 10 s,
    over the outro) is set in Studio by hand: the API can't. A slot that passes before he uploads (11-18: the noon

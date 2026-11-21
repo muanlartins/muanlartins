@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight, Gamepad2 } from "lucide-react"
+import { ArrowUpRight, Gamepad2 } from "lucide-react"
 import Link from "next/link"
 import { DiversosNext } from "@/components/site/diversos/diversos-next"
 import { buttonClass, CardLink } from "@/components/site/ui"
