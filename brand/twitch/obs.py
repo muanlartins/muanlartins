@@ -146,10 +146,12 @@ camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_vide
 ])
 # One scene per game, always with the chat (Luan, 2026-11-10: the scenes without it, "Jogo" and "Valorant", are gone,
 # and Rocket League's is "RL + chat"). The overlays' sources keep the names they had.
-game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1&duelo=1")
+# Since 2026-11-20 the keyboard and the mouse sit in the camera's column (?teclas=1, from scripts/teclas.ps1; ErikMD's
+# idea), where the duel was until it went to Conversa; Diversos says so (?jogo=diversos) for its keys.
+game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1&teclas=1")
 chat_overlay = browser("Overlay · Conversa", "conversa.html")
-valorant_chat_overlay = browser("Overlay · Valorant + chat", "jogo.html?chat=1&jogo=valorant&altura=cima&duelo=1")
-various_chat_overlay = browser("Overlay · Diversos + chat", "jogo.html?chat=1&placar=0&duelo=1")
+valorant_chat_overlay = browser("Overlay · Valorant + chat", "jogo.html?chat=1&jogo=valorant&altura=cima&teclas=1")
+various_chat_overlay = browser("Overlay · Diversos + chat", "jogo.html?chat=1&placar=0&jogo=diversos&teclas=1")
 
 
 def stand(name, page):
@@ -166,7 +168,8 @@ valorant_crowd = stand("Torcida · Valorant", "torcida.html?jogo=valorant")
 various_crowd = stand("Torcida · Diversos", "torcida.html?jogo=diversos")
 # Live Pix: the band and the goal, over everything; its sound is the Pix voices, like the crowd's. One source in
 # every scene that has the game or the talk, so an alert never plays twice: in Conversa (where a Pix "entre partidas"
-# usually plays) it's cropped to the band and set on the camera's lower third. In Valorant's scenes the page moves its
+# usually plays) it's cropped to the band and set on the camera's lower third, shrunk to its width (1024 since
+# 2026-11-20). In Valorant's scenes the page moves its
 # call and goal under the camera by itself (it knows the scene's name).
 pix = browser("Pix", "pix.html")
 pix["settings"]["reroute_audio"] = True
@@ -174,7 +177,7 @@ pix.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
 # Where the talk scenes show pix.html: only its alert band (top: 132, centred), from x 410, where the call and the
 # goal at its top left have ended (from 320 their edge showed as a sliver).
 PIX_BAND = (410, 110, 410, 660)
-pix_in_talk = (pix, {"pos": (154, 548), "crop": PIX_BAND})
+pix_in_talk = (pix, {"pos": (64, 360), "crop": PIX_BAND, "bounds": (1024, 289)})
 # Restarts when shown, so its drawing starts over each time the scene goes live. No countdown (Luan, 2026-11-06).
 starting = browser("Tela · Começando", "intervalo.html?tela=comecando", restart=True)
 back = browser("Tela · Já volto", "intervalo.html?tela=volto")
@@ -187,9 +190,10 @@ alerts = ALERTS and source("browser_source", "Alertas", {"url": ALERTS, "width":
                                                          "fps_custom": True, "fps": 60, "restart_when_active": False,
                                                          "shutdown": False, "css": "", "reroute_audio": True},
                                                 monitoring_type=MONITOR_AND_OUTPUT)
-# In the game, centred under the scoreboard; in Conversa, under the camera.
+# In the game, centred under the scoreboard; in Conversa, on the camera's top third, shrunk to its width (under the
+# camera until 2026-11-20, where the topic and the minigames are now), clear of the Pix band on its lower third.
 alerts_in_game = [(alerts, {"pos": (410, 130), "bounds": ALERTS_SIZE})] if alerts else []
-alerts_in_talk = [(alerts, {"pos": (154, 800), "bounds": ALERTS_SIZE})] if alerts else []
+alerts_in_talk = [(alerts, {"pos": (64, 70), "bounds": (1024, 186)})] if alerts else []
 # In Terapia, centred at the bottom (over the step's word while one plays), like its Pix band.
 alerts_in_calm = [(alerts, {"pos": (410, 830), "bounds": ALERTS_SIZE})] if alerts else []
 PIX_IN_CALM = {"pos": (410, 740), "crop": PIX_BAND}
@@ -220,7 +224,10 @@ HOTKEYS = {"Terapia": "OBS_KEY_F3"}
 RETIRED = {("Lance ruim", "OBSBasic.SelectScene", "OBS_KEY_F2"), ("Jogo + chat", "OBSBasic.SelectScene", "OBS_KEY_F4")}
 # Sources taken out of a scene (and out of the collection, once no scene has them): the old end screen gave its place
 # to the credits on 2026-11-10; the VAR's media source to var.html's own player on 2026-11-12.
-RETIRED_ITEMS = {("Fim", "Tela · Fim"), ("VAR · Rocket League", "VAR · replay"), ("VAR · Valorant", "VAR · replay")}
+# On 2026-11-20 the duel left the game scenes and the race its own source: both play in Conversa's overlay, taking turns.
+RETIRED_ITEMS = {("Fim", "Tela · Fim"), ("VAR · Rocket League", "VAR · replay"), ("VAR · Valorant", "VAR · replay"),
+                 ("RL + chat", "Duelo"), ("Valorant + chat", "Duelo"), ("Diversos + chat", "Duelo"),
+                 ("Conversa", "Corrida")}
 # Settings `--apply` makes sure of on filters the collection already has (it only adds otherwise): the game's replay
 # buffer for the VAR, on each capture's "Gravar jogo", and the light encoder on every Source Record filter. Never change
 # them while OBS records (the obs skill). Which "Gravar jogo" is on is the Efeitos dock's: only the game on screen's.
@@ -228,7 +235,8 @@ FILTER_SETTINGS = {(name, "Gravar jogo"): {**ENCODER_LEVE, **REPLAY_JOGO}
                    for name in ("Rocket League", "Captura · Valorant", "Captura · Diversos")}
 FILTER_SETTINGS[("Câmera", "Gravar câmera")] = ENCODER_LEVE
 # And on sources it already has: the VAR's page plays the clip's sound since 2026-11-12, through OBS, in his headphones.
-# The game overlays' chat starts under the ball duel since 2026-11-15 (?duelo=1; these URLs carry no key).
+# The game overlays' URLs (no key in them): the keyboard and the mouse since 2026-11-20 (the chat under the ball duel,
+# ?duelo=1, from 2026-11-15 until then).
 SOURCE_SETTINGS = {"Efeito · VAR": ({"reroute_audio": True}, {"monitoring_type": MONITOR_AND_OUTPUT}),
                    "Overlay · Jogo + chat": ({"url": game_chat_overlay["settings"]["url"]}, {}),
                    "Overlay · Diversos + chat": ({"url": various_chat_overlay["settings"]["url"]}, {}),
@@ -267,20 +275,14 @@ calm.update(monitoring_type=MONITOR_AND_OUTPUT)
 # chat is; its sound on the stream and in Luan's headphones (tracks 1 and 5, not the game's own track). The stand in
 # referee kit is the game's own crowd source, so it keeps its people.
 booth = browser("Efeito · VAR", "var.html")
-# The ball duel (duelo.html, 2026-11-15): two viewers from the chat fighting in the mini player's corner, top right, the
-# chat under it (jogo.html?duelo=1); under the VAR, which takes the corner while it's open (the page hides itself).
-# Silent. One source, so a fight goes on across the game scenes: in Valorant's, where that corner is the killfeed's,
-# it sits 238 px lower (its box under the killfeed, at y 330) and the chat goes to the left, under the Pix goal.
-# Since 2026-11-15 it records each fight shown while the stream is on (the Σ API's POST /duelo), which takes the
-# stand's Σ key in its URL (#chave=…): NEEDS_KEY gives it the stand's.
-duel = browser("Duelo", "duelo.html")
-duel_in_valorant = {"pos": (0, 238)}
-# The marble race (corrida.html, 2026-11-17, Lucca's idea): in the talk scene, over everything, where the topic is
-# under the camera; it starts a race by itself each time the scene comes on, with everyone in the chat. Silent. It
-# records each race that ends while the stream is on (the Σ API's POST /corrida), with the stand's key too.
-race = browser("Corrida", "corrida.html")
+# The ball duel (duelo.html, 2026-11-15) and the marble race (corrida.html, 2026-11-17), Lucca's ideas: since
+# 2026-11-20 (Luan: the game scenes were getting crowded) both play in Conversa, taking turns in one box under the
+# camera, inside its overlay (conversa.html holds each in an iframe); until then the duel had a source of its own in the
+# game scenes' top right corner and the race one in Conversa ("Duelo", "Corrida", RETIRED_ITEMS). They record each
+# fight and race shown while the stream is on (the Σ API's POST /duelo and /corrida) with the stand's Σ key, which
+# Conversa's overlay now carries in its URL (#chave=…) and hands them.
 # Sources OBS got before they needed the stand's Σ key, and the stand's page they take it from (never printed).
-NEEDS_KEY = {"Duelo": "torcida.html", "Corrida": "torcida.html"}
+NEEDS_KEY = {"Overlay · Conversa": "torcida.html"}
 booth["settings"]["reroute_audio"] = True
 booth.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
@@ -303,22 +305,23 @@ filters["settings"]["reroute_audio"] = True
 filters.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_rocket_league = {"pos": (44, 740), "bounds": (480, 270)}
 in_valorant = {"pos": (44, 44), "bounds": (480, 270)}
-in_talk = {"pos": (64, 64), "bounds": (1280, 720)}
+in_talk = {"pos": (64, 64), "bounds": (1024, 576)}
+# The end credits keep Conversa's old camera, 1280×720 (creditos.html is laid out round it).
+in_end = {"pos": (64, 64), "bounds": (1280, 720)}
 in_calm = {"pos": (336, 76), "bounds": (1248, 702)}
 # The filters over the camera, shrunk with OBS's Area filter (made for scaling down: the 3D's edges stay smooth).
 filters_at = {name: {**box, "scale_filter": "area"} for name, box in
-              {"rl": in_rocket_league, "valorant": in_valorant, "talk": in_talk, "calm": in_calm}.items()}
+              {"rl": in_rocket_league, "valorant": in_valorant, "talk": in_talk, "end": in_end,
+               "calm": in_calm}.items()}
 scenes = [
     scene("Começando", (starting, {})),
     scene("RL + chat", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
-          (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}), (duel, {}), (booth, {})),
+          (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
     scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, filters_at["valorant"]),
-          (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {}), (duel, duel_in_valorant),
-          (booth, {})),
+          (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
     scene("Diversos + chat", (various, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
-          (various_chat_overlay, {}), (various_crowd, {}), *alerts_in_game, (pix, {}), (duel, {}), (booth, {})),
-    scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk,
-          (race, {})),
+          (various_chat_overlay, {}), (various_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
+    scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
     scene("Lance ruim · RL", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
           (camera, in_rocket_league), (bad_play, {})),
     scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
@@ -331,7 +334,7 @@ scenes = [
     scene("Terapia", (camera, in_calm), (filters, filters_at["calm"]), (calm, {}), *alerts_in_calm,
           (pix, PIX_IN_CALM)),
     scene("Já volto", (back, {})),
-    scene("Fim", (camera, in_talk), (filters, filters_at["talk"]), (end, {})),
+    scene("Fim", (camera, in_end), (filters, filters_at["end"]), (end, {})),
 ]
 # Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
@@ -379,7 +382,7 @@ collection = {
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
     "sources": scenes + [game, valorant, various, camera, filters, game_chat_overlay, valorant_chat_overlay,
-                         various_chat_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm, booth, duel, race] + apps + sounds
+                         various_chat_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm, booth] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
@@ -414,8 +417,9 @@ RETIRED_DOCKS = ["Ads"]
 SYNC = {"Filtros": {"settings": ["reroute_audio", "width", "height"], "fields": ["monitoring_type"]}}
 # Scene items OBS already has whose place `--apply` brings up to date: by name in every scene, or (scene, name) in
 # one. The camera filters over each scene's camera (2026-11-13; full screen before); Terapia laid out around the
-# middle (2026-11-14).
-PLACED = {"Filtros", ("Terapia", "Câmera"), ("Terapia", "Pix"), ("Terapia", "Alertas")}
+# middle (2026-11-14); Conversa's smaller camera with the minigames under it (2026-11-20).
+PLACED = {"Filtros", ("Terapia", "Câmera"), ("Terapia", "Pix"), ("Terapia", "Alertas"), ("Conversa", "Câmera"),
+          ("Conversa", "Pix"), ("Conversa", "Alertas")}
 PLACE_FIELDS = ["pos", "pos_rel", "scale", "scale_rel", "scale_ref", "align", "bounds_type", "bounds_align",
                 "bounds_crop", "bounds", "bounds_rel", "crop_left", "crop_top", "crop_right", "crop_bottom", "rot",
                 "scale_filter"]

@@ -41,6 +41,10 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
   Startup launches are all down: filters (:8126), narrator (:8788), captions (:8790), Valorant (:8792), replays
   (:8794). Check them with `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:<port>/` (200 each) and relaunch
   the missing ones with `wscript.exe "C:\Users\muanl\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\<Filtros|Narrador|Legendas|Replay|Valorant> muanlartins.vbs"`.
+- The keyboard and the mouse beside the camera (`scripts/teclas.ps1`, "Teclas muanlartins.vbs" in Startup) run on
+  Windows itself, on its loopback, which WSL can't reach: check with `curl.exe -sN --max-time 3 http://127.0.0.1:8796/`
+  (one `data:` line; `"foco":false` while the terminal is in front, as it should). Its box shows only while a game is
+  the window in front, so an empty corner while he's on the desktop is right.
   An OBS that opened meanwhile has the "Filtros" source and dock on an error page: refresh the source
   (`PressInputPropertiesButton` `refreshnocache` on "Filtros") and have Luan reload the dock (or reopen OBS).
 - Never restart or close OBS, or change scenes/inputs, while he's live unless he asks for that change.

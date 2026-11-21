@@ -6,41 +6,50 @@
     <link rel="stylesheet" href="stream.css" />
     <!--
       OBS: Browser source, 1920×1080, above the camera. The camera fills the
-      hole, 1280×720 at (64, 64); the Twitch chat runs down the right.
-      ?topico= sets the line under the camera and ?rotulo= the label above it
-      (default "Agora"); ?canal= the chat's channel
-      (default muanlartins); ?demo fills the chat with sample messages. Under
-      the camera on the right, the Pix call (?chamada=0 leaves it out).
+      hole, 1024×576 at (64, 64) (1280×720 until 2026-11-20, when the minigames
+      came here); the Twitch chat runs down the right, the Pix call stands
+      beside the camera, and under it are the topic (?topico= the line, ?rotulo=
+      the label above it, default "Agora") and the minigames' box.
+      ?canal= the chat's channel (default muanlartins); ?demo fills the chat
+      with sample messages and the minigames with sample people. ?chamada=0
+      leaves the Pix call out.
+
+      The minigames (Luan, 2026-11-20: off the game scenes, which were getting
+      crowded, and into this one, taking turns): the ball duel (duelo.html) and
+      the marble race (corrida.html) share the box under the camera on the
+      right, one after the other: a duel, then a race, then a duel. Each is its
+      own page in an iframe, told when its turn comes and when to stop where it
+      is (the scene leaving the air), and saying when its round is over or that
+      it has nobody to play with; leaving the scene and coming back carries on
+      where it was. OBS's events reach only this page, so it passes them on.
+      The Σ key in this source's URL (#chave=…, as the stand's) goes with them,
+      so their fights and races are recorded as before. ?minijogos=0 leaves
+      them out. The duel shows its columns (each fighter beside the arena);
+      ?duelo=compacto shows the arena alone, as the game scenes had it.
     -->
     <style>
       .ground {
         /* Everything but the camera's hole. */
-        clip-path: path(evenodd, "M0 0H1920V1080H0Z M64 64H1344V784H64Z");
+        clip-path: path(evenodd, "M0 0H1920V1080H0Z M64 64H1088V640H64Z");
       }
       .hole {
         position: absolute;
         left: 64px;
         top: 64px;
-        width: 1280px;
-        height: 720px;
+        width: 1024px;
+        height: 576px;
       }
       #plate {
         left: 48px;
-        top: 774px;
+        top: 630px;
       }
       .below {
         position: absolute;
         left: 64px;
-        top: 872px;
-        width: 1280px;
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 48px;
+        top: 728px;
+        width: 640px;
       }
       .topic {
-        /* Clear of the Pix call on the right. */
-        max-width: 600px;
         margin: 8px 0 0;
         font-size: 52px;
         font-weight: 500;
@@ -61,29 +70,70 @@
         padding-bottom: 14px;
         border-bottom: 1px solid rgb(133 167 255 / 0.4);
       }
-      /* Between matches is when a Pix is likeliest: the call is bigger here. */
+      /* Between matches is when a Pix is likeliest: the call is bigger here, standing beside the camera. */
       #chamada {
         position: absolute;
-        right: 576px;
-        top: 852px;
+        left: 1120px;
+        top: 48px;
+        width: 224px;
       }
       #chamada.chamada {
-        --qr: 148px;
-        gap: 22px;
-        padding-right: 28px;
+        --qr: 194px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+        padding: 15px 15px 22px;
       }
       #chamada .pix {
-        font-size: 18px;
+        font-size: 17px;
       }
       #chamada .convite {
-        font-size: 30px;
+        margin-top: 6px;
+        font-size: 27px;
       }
       #chamada .site {
-        font-size: 20px;
+        margin-top: 12px;
+        font-size: 17px;
       }
       #chat {
         position: relative;
         flex: 1;
+      }
+      /* The minigames: each page draws its own box (with its title band above it) inside this one. */
+      .jogo {
+        position: absolute;
+        border: 0;
+        background: transparent;
+        pointer-events: none;
+        transform-origin: 0 0;
+      }
+      /* Nobody in the chat to play: what the box is for. Copy is a draft for Luan. */
+      .minijogos-vazio {
+        position: absolute;
+        left: 778px;
+        top: 716px;
+        width: 566px;
+        height: 300px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 10px;
+        padding: 0 40px;
+        border: 1.5px dashed rgb(133 167 255 / 0.35);
+        opacity: 0;
+        transition: opacity 0.6s var(--ease);
+      }
+      .minijogos-vazio.visivel {
+        opacity: 1;
+      }
+      .minijogos-vazio p {
+        margin: 0;
+      }
+      .minijogos-vazio .convite {
+        font-size: 30px;
+        font-weight: 600;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
       }
     </style>
   </head>
@@ -93,12 +143,14 @@
       <div class="hole"></div>
       <div id="plate"></div>
       <div class="below">
-        <div>
-          <p class="eyebrow" id="label">Agora</p>
-          <p class="topic" id="topic">Rocket League</p>
-        </div>
+        <p class="eyebrow" id="label">Agora</p>
+        <p class="topic" id="topic">Rocket League</p>
       </div>
       <div id="chamada"></div>
+      <div class="minijogos-vazio" id="minijogos-vazio">
+        <p class="eyebrow">Minijogos</p>
+        <p class="convite">Duelo e corrida com quem está no chat</p>
+      </div>
       <aside class="side">
         <p class="eyebrow">Chat</p>
         <div id="chat"></div>
@@ -113,6 +165,87 @@
       if (params.get("rotulo")) document.getElementById("label").textContent = params.get("rotulo")
       chat(document.getElementById("chat"))
       if (params.get("chamada") !== "0") chamada(document.getElementById("chamada"))
+      if (params.get("minijogos") !== "0") minijogos()
+
+      /**
+       * The minigames' box, x 778 to 1344 and y 716 to 1016 (each page's title band rides 24 px above it). Each page
+       * is a whole 1920×1080 overlay in an iframe laid over this one, scaled by the iframe's width (stream.js scales a
+       * page to it), its box at the iframe's top left.
+       */
+      function minijogos() {
+        const CAIXA = { x: 778, y: 716, w: 566, h: 300 }
+        const vazio = document.getElementById("minijogos-vazio")
+        const repassar = ["demo", "canal", "natal", "api", "sigma"]
+          .filter((p) => params.has(p))
+          .map((p) => `&${p}=${encodeURIComponent(params.get(p))}`)
+          .join("")
+        const completo = params.get("duelo") !== "compacto"
+        // The duel: its compact box is the arena plus 12 px wide and 62 px tall; with its columns, 640×360 scaled down.
+        const arena = CAIXA.h - 62
+        const duelo = completo
+          ? { escala: CAIXA.h / 360, largura: 640, endereco: `duelo.html?vez&completo&x=10&y=24` }
+          : { escala: 1, largura: arena + 12, endereco: `duelo.html?vez&tamanho=${arena}&x=10&y=24` }
+        const corrida = { escala: 1, largura: CAIXA.w, endereco: `corrida.html?vez&w=${CAIXA.w}&h=${CAIXA.h}&x=10&y=24` }
+        const jogos = {}
+        for (const [nome, j] of Object.entries({ duelo, corrida })) {
+          const el = document.createElement("iframe")
+          el.className = "jogo"
+          el.src = `${j.endereco}${repassar}${location.hash}`
+          // The page's box at (10, 24) of its own 1920×1080, so the iframe sits 10 and 24 px (scaled) before the box.
+          const largura = j.largura * j.escala
+          el.style.left = `${CAIXA.x + (CAIXA.w - largura) / 2 - 10 * j.escala}px`
+          el.style.top = `${CAIXA.y - 24 * j.escala}px`
+          el.style.width = `${1920 * j.escala}px`
+          el.style.height = `${1080 * j.escala}px`
+          document.querySelector(".stage").append(el)
+          jogos[nome] = el
+        }
+
+        // Whose turn it is, whether the scene is on the air, and how many said in a row that nobody's there.
+        let vez = "duelo"
+        let noAr = !window.obsstudio
+        let vazios = 0
+        let espera
+        const mandar = (nome, minijogo) => jogos[nome].contentWindow?.postMessage({ minijogo }, location.origin)
+        const comecar = () => {
+          clearTimeout(espera)
+          if (noAr) mandar(vez, "vez")
+        }
+        addEventListener("message", ({ source, origin, data }) => {
+          if (origin !== location.origin || !data?.minijogo) return
+          const nome = Object.keys(jogos).find((n) => jogos[n].contentWindow === source)
+          if (nome !== vez) return
+          if (data.minijogo === "pronto") return comecar()
+          if (data.minijogo !== "fim" && data.minijogo !== "vazio") return
+          vazios = data.minijogo === "vazio" ? vazios + 1 : 0
+          vazio.classList.toggle("visivel", vazios >= 2)
+          vez = vez === "duelo" ? "corrida" : "duelo"
+          // Both empty: try again in a while, not at once, or they'd pass the turn back and forth forever.
+          clearTimeout(espera)
+          if (vazios >= 2) espera = setTimeout(comecar, 10000)
+          else comecar()
+        })
+        // On the air: its turn goes on where it was; off it, it stops there.
+        const noArAgora = (ativo) => {
+          noAr = ativo
+          if (ativo) comecar()
+          else mandar(vez, "pausa")
+        }
+        addEventListener("obsSourceActiveChanged", ({ detail }) => noArAgora(!!detail?.active))
+        // A reload while the scene is on: OBS says nothing until it changes, so ask which scene is on.
+        try {
+          window.obsstudio?.getCurrentScene?.((cena) => cena?.name === "Conversa" && noArAgora(true))
+        } catch {}
+        // OBS's events (the stream on, the VAR) reach only this page: pass them on to the games.
+        for (const tipo of ["muanlartins-torcida", "muanlartins-var"]) {
+          addEventListener(tipo, ({ detail }) => {
+            for (const el of Object.values(jogos)) {
+              const w = el.contentWindow
+              if (w) w.dispatchEvent(new w.CustomEvent(tipo, { detail }))
+            }
+          })
+        }
+      }
     </script>
   </body>
 </html>

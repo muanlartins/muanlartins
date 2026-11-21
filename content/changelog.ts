@@ -36,6 +36,7 @@ export const PEOPLE = {
   maxchadoz: { name: "maxchadoz", where: "twitch", login: "maxchadoz", url: "https://www.twitch.tv/maxchadoz" },
   ccamara: { name: "ccamara", where: "twitch", login: "ccamara", url: "https://www.twitch.tv/ccamara" },
   leila_m_30: { name: "leila_m_30", where: "twitch", login: "leila_m_30", url: "https://www.twitch.tv/leila_m_30" },
+  erikmd01: { name: "ErikMD01", where: "twitch", login: "erikmd01", url: "https://www.twitch.tv/erikmd01" },
 } satisfies Record<string, Person>
 
 export type PersonId = keyof typeof PEOPLE
@@ -110,6 +111,14 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
 export const UPCOMING: Upcoming[] = [
+  {
+    id: "teclado-e-mouse",
+    status: "agora",
+    tag: "live",
+    title: "Teclado e mouse na tela",
+    text: "As teclas e os cliques que eu aperto aparecem do lado da câmera, no Valorant, no Rocket League e nos outros jogos.",
+    credits: [{ by: "erikmd01" }],
+  },
 ]
 
 /** Every feature released, newest first. */

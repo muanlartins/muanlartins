@@ -6,8 +6,11 @@
     <link rel="stylesheet" href="stream.css" />
     <link rel="stylesheet" href="torcedor.css" />
     <!--
-      OBS: Browser source "Duelo", 1920×1080, in the game scenes ("RL + chat", "Valorant + chat", "Diversos + chat"),
-      over the overlays and under the VAR's mini player. Silent.
+      OBS: since 2026-11-20 in the "Conversa" scene, inside its overlay: conversa.html holds this page in an iframe
+      (?vez) and has it take turns with the marble race in one box under the camera, one duel each turn, stopping
+      where it is while the scene is off the air and passing the turn when its duel is over or nobody's there.
+      Until then it was the browser source "Duelo" in the game scenes, over the overlays and under the VAR's mini
+      player. Silent.
 
       The ball duel (Lucca's idea, lucca_3098; Luan's rules, 2026-11-15): in the corner of the VAR's mini player, two
       viewers in the chat drawn at random fight as balls with weapons, one duel after another, forever, with nobody
@@ -757,7 +760,13 @@
       let faseAte = 0
       let varAberto = false
       let noAr = true
-      const pausado = () => varAberto || !noAr
+      // Taking turns with the race in the "Conversa" scene (conversa.html holds this page in an iframe, ?vez): it says
+      // when this page's turn comes and when to stop where it is; this one says when its duel is over ("fim") or that
+      // there's nobody to fight ("vazio"), and waits, hidden, for its next turn.
+      const VEZ = params.has("vez") && parent !== window
+      let minhaVez = !VEZ
+      const avisar = (minijogo) => VEZ && parent.postMessage({ minijogo }, location.origin)
+      const pausado = () => varAberto || !noAr || !minhaVez
 
       let pedidos = false
       async function proximo() {
@@ -766,6 +775,11 @@
           fase = "vazio"
           caixa.classList.add("escondida")
           faseAte = performance.now() + 5000
+          if (VEZ) {
+            fase = "espera"
+            minhaVez = false
+            avisar("vazio")
+          }
           return
         }
         anteriores = par
@@ -1194,11 +1208,19 @@
             cartao.classList.remove("visivel")
             fase = "luta"
             sobra = 0
+          } else if (fase === "resultado" && agora >= faseAte && VEZ) {
+            // One duel a turn: the box goes and the race comes.
+            cartao.classList.remove("visivel")
+            caixa.classList.add("escondida")
+            fase = "espera"
+            faseAte = 0
+            minhaVez = false
+            avisar("fim")
           } else if (fase === "resultado" && agora >= faseAte) {
             cartao.classList.remove("visivel")
             fase = "pausa"
             faseAte = agora + PAUSA_MS
-          } else if ((fase === "pausa" || fase === "vazio") && agora >= faseAte) proximo()
+          } else if ((fase === "pausa" || fase === "vazio" || fase === "espera") && agora >= faseAte) proximo()
           else if (fase === "inicio") proximo()
         } else faseAte += dt * 1000
         desenhar(agora)
@@ -1234,9 +1256,20 @@
         const v = varDe(detail)
         if (!v) return
         varAberto = v.fase !== "fechado"
-        caixa.classList.toggle("escondida", varAberto || fase === "vazio")
+        caixa.classList.toggle("escondida", varAberto || fase === "vazio" || fase === "espera")
       })
       addEventListener("obsSourceActiveChanged", ({ detail }) => (noAr = !!detail?.active))
+      if (VEZ) {
+        addEventListener("message", ({ data, origin, source }) => {
+          if (origin !== location.origin || source !== parent) return
+          if (data?.minijogo === "vez") {
+            minhaVez = true
+            if (fase === "espera") faseAte = 0
+          }
+          if (data?.minijogo === "pausa") minhaVez = false
+        })
+        avisar("pronto")
+      }
 
       // --- The chat, or the demo's ------------------------------------------------------------------------------
       if (TREINO) {
