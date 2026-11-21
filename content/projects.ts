@@ -15,8 +15,8 @@ export interface Project {
 export const page = {
   title: { pt: "Conteúdo", en: "Content" },
   description: {
-    pt: "Os projetos de um cara engenhoso.",
-    en: "The projects of a resourceful guy.",
+    pt: "Os jogos das lives e o que estou aprendendo em cada um.",
+    en: "The games on my streams and what I'm learning in each.",
   },
 }
 

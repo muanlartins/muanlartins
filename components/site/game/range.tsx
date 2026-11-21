@@ -2,26 +2,29 @@
 
 import { AnimatePresence, MotionConfig, motion } from "motion/react"
 import { useEffect, useRef, useState, useSyncExternalStore } from "react"
-import { CROSSHAIR_CURSOR, Crosshair } from "@/components/site/game/crosshair"
+import { CROSSHAIR_CURSOR_PAPER, Crosshair } from "@/components/site/game/crosshair"
+import { Button, Input, Lattice } from "@/components/site/ui"
 import { LOCALE, localize } from "@/lib/site"
+import { cn } from "@/lib/utils"
 
 const T = localize({
-  start: { pt: "Atire no alvo para começar", en: "Shoot the target to start" },
+  start: { pt: "Atira no alvo pra começar", en: "Shoot the target to start" },
   hint: { pt: "Aquecimento: 10 alvos", en: "Warm-up: 10 targets" },
   target: { pt: "Alvo", en: "Target" },
+  hits: { pt: "alvos acertados", en: "targets hit" },
   perTarget: { pt: "por alvo", en: "per target" },
   of: { pt: "de", en: "of" },
   shots: { pt: "tiros acertados", en: "shots hit" },
   best: { pt: "Seu melhor neste navegador", en: "Your best in this browser" },
   record: { pt: "Novo recorde neste navegador", en: "New best in this browser" },
-  again: { pt: "De novo", en: "Again" },
+  again: { pt: "Tentar de novo", en: "Try again" },
   withSens: { pt: "com sensibilidade", en: "at sensitivity" },
   sens: { pt: "Sua sensibilidade no Valorant", en: "Your Valorant sensitivity" },
   sensOn: {
     pt: "O mouse fica preso no range e mira como no jogo, no DPI que o seu mouse já usa. Esc solta.",
     en: "The mouse is held in the range and aims as in the game, at your mouse's own DPI. Esc lets go.",
   },
-  sensOff: { pt: "Vazio, o alvo segue o cursor do sistema.", en: "Empty, the range follows the system cursor." },
+  sensOff: { pt: "Sem ela, a mira segue o cursor do sistema.", en: "Without it, the range follows the system cursor." },
 })
 
 const TARGETS = 10
@@ -195,24 +198,27 @@ export function Range() {
 
   return (
     <MotionConfig reducedMotion="user">
+      {/* The game kit's moment for Valorant: a Klein block on the lattice, the game's dark in the brand's colours. */}
       <div
         ref={area}
         onClick={shoot}
-        style={{ cursor: CROSSHAIR_CURSOR }}
-        className="relative h-72 select-none overflow-hidden border-y border-line bg-paper/60 sm:h-80 sm:rounded-md sm:border"
+        style={{ cursor: CROSSHAIR_CURSOR_PAPER }}
+        className="cut relative h-72 select-none overflow-hidden bg-klein text-paper sm:h-80"
       >
-        <svg aria-hidden className="absolute inset-0 h-full w-full text-klein opacity-[0.08]">
-          <defs>
-            <pattern id="range-lattice" width="32" height="32" patternUnits="userSpaceOnUse">
-              <path d="M16 0V32M0 0L32 32M32 0L0 32" stroke="currentColor" strokeWidth="1" fill="none" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#range-lattice)" />
-        </svg>
+        <Lattice />
 
+        {/* The round on top, as the game's bar: a diamond per target, filled as each falls. */}
         {round && (
-          <p className="pointer-events-none absolute left-4 top-3 text-[13px] font-medium tabular-nums text-klein">
-            {round.hits}/{TARGETS}
+          <p className="pointer-events-none absolute inset-x-0 top-3 flex justify-center">
+            <span className="cut-sm flex items-center gap-1.5 bg-navy/70 px-3 py-1.5">
+              {Array.from({ length: TARGETS }, (_, i) => (
+                <span key={i} aria-hidden className={cn("h-2 w-2 rotate-45", i < round.hits ? "bg-paper" : "border border-klein-claro/70")} />
+              ))}
+              <span className="ml-1.5 text-[13px] font-medium tabular-nums">
+                {round.hits}/{TARGETS}
+                <span className="sr-only"> {T.hits}</span>
+              </span>
+            </span>
           </p>
         )}
 
@@ -225,22 +231,22 @@ export function Range() {
               event.stopPropagation()
               hit()
             }}
-            initial={{ scale: 0.3, opacity: 0 }}
+            // The first target is there from the start (no pop-in before the page wakes up); each next one springs in.
+            initial={round ? { scale: 0.3, opacity: 0 } : false}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.12 }}
-            style={{ left: `${target.x}%`, top: `${target.y}%`, cursor: CROSSHAIR_CURSOR }}
-            className="absolute -ml-6 -mt-6 grid h-12 w-12 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-klein"
+            style={{ left: `${target.x}%`, top: `${target.y}%`, cursor: CROSSHAIR_CURSOR_PAPER }}
+            className="absolute -ml-6 -mt-6 grid h-12 w-12 place-items-center focus-visible:outline-paper"
           >
-            <span className="grid h-8 w-8 rotate-45 place-items-center rounded-[4px] border-2 border-paper bg-klein shadow-[0_4px_14px_color-mix(in_oklab,var(--color-klein)_40%,transparent)]">
-              <span className="h-2.5 w-2.5 rounded-[2px] bg-paper" />
+            {/* Valorant's sharp diamond: Branco with a Klein heart. */}
+            <span className="grid h-8 w-8 rotate-45 place-items-center bg-paper shadow-[0_4px_14px_color-mix(in_oklab,var(--color-navy)_55%,transparent)]">
+              <span className="h-2.5 w-2.5 bg-klein" />
             </span>
           </motion.button>
         )}
 
         {!round && !result && (
-          <p className="pointer-events-none absolute inset-x-0 top-[calc(50%+2.25rem)] text-center text-[14px] font-medium text-klein">
-            {T.start}
-          </p>
+          <p className="pointer-events-none absolute inset-x-0 top-[calc(50%+2.25rem)] text-center text-[15px] font-medium">{T.start}</p>
         )}
 
         <AnimatePresence>
@@ -254,8 +260,8 @@ export function Range() {
               style={{ left: `${mark.x}%`, top: `${mark.y}%` }}
               className={
                 mark.hit
-                  ? "pointer-events-none absolute -ml-5 -mt-5 h-10 w-10 rotate-45 rounded-[4px] border-2 border-klein-claro"
-                  : "pointer-events-none absolute -ml-1 -mt-1 h-2 w-2 rounded-full bg-muted"
+                  ? "pointer-events-none absolute -ml-5 -mt-5 h-10 w-10 rotate-45 border-2 border-klein-claro"
+                  : "pointer-events-none absolute -ml-1 -mt-1 h-2 w-2 rounded-full bg-klein-claro/80"
               }
             />
           ))}
@@ -263,48 +269,46 @@ export function Range() {
 
         {/* The crosshair the held mouse moves; the system's is hidden while it's held. */}
         <div ref={aim} aria-hidden className={locked ? "pointer-events-none absolute left-0 top-0" : "hidden"}>
-          <Crosshair size={28} className="-ml-3.5 -mt-3.5" />
+          <Crosshair size={28} tone="paper" className="-ml-3.5 -mt-3.5" />
         </div>
 
         {result && (
           <div
+            role="status"
             className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-6 text-center"
             onClick={(event) => event.stopPropagation()}
           >
-            <p className="text-5xl font-medium tabular-nums tracking-[-0.03em] text-klein sm:text-6xl">
-              {result.average} <span className="text-2xl sm:text-3xl">ms</span>
+            <p className="text-5xl font-semibold tabular-nums tracking-[-0.03em] sm:text-6xl">
+              {result.average} <span className="text-2xl font-medium sm:text-3xl">ms</span>
             </p>
-            <p className="text-[15px] text-ink">
+            <p className="text-[15px] text-paper/85">
               {T.perTarget} · {TARGETS} {T.of} {result.shots} {T.shots}
               {result.sens && ` · ${T.withSens} ${number(result.sens)}`}
             </p>
-            <p className="text-[13px] tabular-nums text-muted">{result.record ? T.record : `${T.best}: ${result.best} ms`}</p>
-            <button
-              type="button"
-              onClick={start}
-              className="mt-4 rounded-md bg-klein px-4 py-2 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
-            >
+            <p className="text-[13px] tabular-nums text-klein-claro">{result.record ? T.record : `${T.best}: ${result.best} ms`}</p>
+            <Button onClick={start} className="mt-4 bg-paper text-klein hover:bg-ground focus-visible:outline-paper">
               {T.again}
-            </button>
+            </Button>
           </div>
         )}
 
-        <p className="pointer-events-none absolute bottom-2 right-4 text-[12px] text-muted">{T.hint}</p>
+        <p className="pointer-events-none absolute bottom-2.5 right-4 text-[13px] text-klein-claro">{T.hint}</p>
       </div>
 
       {canLock && (
-        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px]">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 px-6 text-[13px] sm:px-0">
           <label htmlFor="range-sens" className="font-medium text-ink">
             {T.sens}
           </label>
-          <input
+          <Input
             id="range-sens"
             type="text"
             inputMode="decimal"
             placeholder={number(0.4)}
             value={sensText}
             onChange={(event) => sensStore.set(event.target.value)}
-            className="w-20 rounded-md border border-line bg-paper/70 px-2 py-1 tabular-nums text-ink outline-none focus-visible:border-klein"
+            boxClassName="w-20"
+            className="py-1 tabular-nums"
           />
           <span className="text-muted">{sens ? T.sensOn : T.sensOff}</span>
         </div>

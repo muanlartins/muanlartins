@@ -18,7 +18,7 @@ export default game({
     en: "How I'm learning Valorant, starting from Silver.",
   },
   intro: {
-    pt: "Sou Prata no Valorant. Aqui fica o que estou aprendendo, um conceito de cada vez: as melhores fontes que encontrei para cada um e as dicas que funcionaram para mim. Só o que o jogo não explica em lugar nenhum.",
+    pt: "Sou Prata no Valorant. Aqui fica o que estou aprendendo, um conceito de cada vez: as melhores fontes que encontrei pra cada um e as dicas que funcionaram pra mim. Só o que o jogo não explica em lugar nenhum.",
     en: "I'm Silver at Valorant. Here is what I'm learning, one concept at a time: the best sources I found for each and the tips that worked for me. Only what the game doesn't explain anywhere.",
   },
   roadmaps: [valorant],

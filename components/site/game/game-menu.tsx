@@ -5,7 +5,7 @@ import { animate, motion, useMotionValue } from "motion/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useLayoutEffect, useRef } from "react"
-import { GameIcon } from "@/components/site/game/game-icon"
+import { GameMarker } from "@/components/site/game/game-icon"
 import { cn } from "@/lib/utils"
 
 export interface MenuItem {
@@ -131,7 +131,7 @@ export function GameMenu({
           <ul ref={list} className="relative space-y-1 border-l border-line">
             {active && (
               <motion.span ref={ball} style={{ y: ballY, visibility: "hidden" }} className="pointer-events-none absolute -left-[7px] top-0 block">
-                <GameIcon game={look ?? "rocket-league"} />
+                <GameMarker game={look ?? "rocket-league"} />
               </motion.span>
             )}
             {items.map((item) => {

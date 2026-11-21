@@ -24,7 +24,7 @@ export default roadmap({
   ranks: [
     {
       id: "unranked",
-      name: { pt: "Unranked", en: "Unranked" },
+      name: { pt: "Sem rank", en: "Unranked" },
       color: "#5f6675",
       icons: ["/ranks/unranked.webp"],
       paint: { color: "#4e535c", metal: false },

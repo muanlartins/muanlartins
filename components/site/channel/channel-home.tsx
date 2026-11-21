@@ -1,12 +1,12 @@
 import { Play } from "lucide-react"
 import qrcode from "qrcode-generator"
 import type { ReactNode } from "react"
-import { GameNext } from "@/components/site/agenda/game-next"
 import { FanStand } from "@/components/site/channel/fan-stand"
 import { AgendaDays, Podium } from "@/components/site/channel/home-tiles"
 import { NextLive } from "@/components/site/channel/next-live"
 import { DiversosCard } from "@/components/site/diversos/entries"
-import { GameIcon } from "@/components/site/game/game-icon"
+import { GameTile } from "@/components/site/game/game-card"
+import { GameNextLine } from "@/components/site/game/game-next-line"
 import { PageIntro } from "@/components/site/page-intro"
 import { Badge, CardLink, Lattice, Section } from "@/components/site/ui"
 import { SHIPPED } from "@/content/changelog"
@@ -78,29 +78,20 @@ export async function ChannelHome({ lives }: { /** Newest first. */ lives: Live[
 }
 
 /**
- * The games, each with when it's next live. Up to three side by side, the icon above the name when there are three so
- * each fits its column; one under the other on phones.
+ * The games, each as its card from the game kit (components/site/game/game-card.tsx, the content page's art too) with
+ * when it's next live: three side by side, one under the other on phones.
  */
 function Games() {
   // Rocket League, Valorant and, third, every other game (Jogos diversos, components/site/diversos/entries.tsx).
-  const three = games.length + 1 >= 3
   return (
-    <ul className={cn("grid gap-3", three ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
+    <ul className={cn("grid gap-3", games.length + 1 >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
       {games.map((game) => (
         <li key={game.id}>
-          <CardLink href={gamePath(game)} className={cn("flex h-full items-center gap-4", three && "sm:flex-col sm:items-start sm:gap-3")}>
-            <GameIcon game={game.id} size={28} className="block shrink-0" />
-            <span className="min-w-0">
-              <h3 className="text-xl font-medium tracking-[-0.02em] text-klein">{localize(game.title)}</h3>
-              <span className="mt-0.5 block min-h-5 text-[13px] text-muted">
-                <GameNext game={game.id} prefix={`${T.games.next}: `} />
-              </span>
-            </span>
-          </CardLink>
+          <GameTile game={game.id} href={gamePath(game)} title={localize(game.title)} line={<GameNextLine game={game.id} />} />
         </li>
       ))}
       <li>
-        <DiversosCard className={cn("flex h-full items-center gap-4", three && "sm:flex-col sm:items-start sm:gap-3")} />
+        <DiversosCard />
       </li>
     </ul>
   )
