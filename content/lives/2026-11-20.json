@@ -8,7 +8,13 @@
   },
   "youtube": {
     "title": "Subi pro Champion! 10 vitórias em 17 jogos | Rocket League ao vivo",
-    "publish_at": "2026-11-25T12:00:00-03:00"
+    "publish_at": "2026-11-23T12:00:00-03:00",
+    "thumb": {
+      "quadro": "8992",
+      "segundo": 8992.0,
+      "texto": "SUBI PRO|CHAMPION",
+      "emblema": true
+    }
   },
   "chapters": [
     { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
