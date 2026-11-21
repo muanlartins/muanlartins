@@ -43,7 +43,9 @@ export function Snowfall() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
       const n = Math.ceil(w / COL) + 1
       const seed = Math.random() * 100
-      cap = Array.from({ length: n }, (_, i) => 26 + 9 * Math.sin(i * 0.045 + seed) + 5 * Math.sin(i * 0.13 + seed * 2))
+      // About a tenth of the screen's height, in drifts.
+      const tall = Math.min(130, Math.max(70, h * 0.11))
+      cap = Array.from({ length: n }, (_, i) => tall * (1 + 0.28 * Math.sin(i * 0.035 + seed) + 0.14 * Math.sin(i * 0.11 + seed * 2)))
       bank = Array.from({ length: n }, (_, i) => bank[i] ?? 4 + 3 * Math.sin(i * 0.09 + seed))
     }
     fit()
@@ -107,20 +109,20 @@ export function Snowfall() {
         const i = Math.round(p.x / COL)
         const ground = h - (bank[i] ?? 0)
         if (p.y >= ground) {
-          if (i >= 0 && i < bank.length) settle(p.x, 0.5 + p.r * 0.4)
+          if (i >= 0 && i < bank.length) settle(p.x, 4 + p.r * 2)
           Object.assign(p, flake(false))
         } else if (p.x < -10 || p.x > w + 10) Object.assign(p, flake(false))
         ctx.globalAlpha = p.a
         const dd = p.r * 2.2
         ctx.drawImage(sprite, p.x - dd, p.y - dd, dd * 2, dd * 2)
       }
-      if (pointer.y > h - 60) {
+      if (pointer.y > h - 200) {
         const c = Math.round(pointer.x / COL)
         for (let k = -6; k <= 6; k++) {
           const i = c + k
           if (i < 0 || i >= bank.length) continue
           const top = h - bank[i]
-          if (pointer.y > top - 14) bank[i] = Math.max(0, bank[i] - (1 - Math.abs(k) / 7) * 60 * dt)
+          if (pointer.y > top - 14) bank[i] = Math.max(0, bank[i] - (1 - Math.abs(k) / 7) * 180 * dt)
         }
       }
       // A little smoothing keeps the bank soft, as snow lies.
