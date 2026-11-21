@@ -1,0 +1,88 @@
+{
+ "date": "2026-11-21",
+ "matches": [
+  {
+   "id": "c9c4204a-965e-4f2c-987f-6dc5ce35e41f",
+   "at": "2026-11-21T19:09:46Z",
+   "map": "Summit",
+   "agent": "Sova",
+   "tiros": 312,
+   "acertos": 83,
+   "flicks": 75,
+   "ajustes": 5,
+   "amplitude": 6.4,
+   "alvo": 0.35,
+   "curto": 0.68,
+   "passou": 0.4,
+   "cobre": 0.743,
+   "correcoes": 2.55,
+   "reacao": 198,
+   "movimento": 602,
+   "em_movimento": 0.68,
+   "acerto_parado": 0.417,
+   "acerto_movendo": 0.471,
+   "tremor": 0.189,
+   "erros": {
+    "curto": 26,
+    "passou": 8,
+    "lado": 7
+   },
+   "curva": [
+    -1.0,
+    -0.809,
+    -0.52,
+    -0.373,
+    -0.342,
+    -0.367,
+    -0.417,
+    -0.332,
+    -0.281,
+    -0.206,
+    -0.187,
+    -0.217,
+    -0.183,
+    -0.107,
+    -0.121,
+    -0.099
+   ],
+   "primeiro": [
+    26,
+    1,
+    2,
+    2,
+    2,
+    5,
+    4,
+    5,
+    3,
+    3,
+    0,
+    3,
+    2,
+    4,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    0,
+    9
+   ],
+   "lutas": 80,
+   "andando": 0.225,
+   "acerto_parado_corpo": 0.403,
+   "acerto_andando": 0.556,
+   "altura": -0.3,
+   "altura_faixa": [
+    -1.31,
+    0.38
+   ],
+   "ossos": {
+    "cabeca": 11,
+    "corpo": 70,
+    "perna": 2
+   }
+  }
+ ]
+}
