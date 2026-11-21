@@ -111,6 +111,13 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
 export const UPCOMING: Upcoming[] = [
+  {
+    id: "estatisticas-da-partida",
+    status: "ideia",
+    tag: "live",
+    title: "Estatísticas da partida na tela",
+    text: "Meus toques, gols, defesas, aéreos e score em cada partida, e os números da live inteira nos créditos do fim.",
+  },
 ]
 
 /** Every feature released, newest first. */
@@ -146,9 +153,10 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-18",
     tag: "site",
     title: "Análise de mira",
-    text: "Flick por flick, lido dos replays do Aimlabs: onde a minha mira para, quanto passa do alvo e quanto treme antes do clique.",
+    text: "Flick por flick, dos replays do Aimlabs e das minhas partidas de Valorant: onde a mira para, quanto passa do alvo, e se o treino chega no jogo.",
     href: "/conteudo/valorant/aim",
     media: [
+      media("analise-de-mira-partidas", "No treino e nas partidas: cada medida em duas colunas, Aimlabs e Valorant, e o flick típico de cada um no mesmo gráfico"),
       media("analise-de-mira", "A seção nova: o primeiro movimento leva a mira a 88% do caminho, paro antes do alvo em 62% dos flicks e passo em 32%, e acerto 46% clicando em movimento contra 62% parado"),
       media("analise-de-mira-primeiro", "Onde o primeiro movimento termina: colunas por faixa do caminho até o alvo, a maioria um pouco antes da linha do alvo"),
     ],

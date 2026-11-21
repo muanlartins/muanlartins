@@ -173,7 +173,11 @@ def mark_pauses(found: list[dict]):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--apply", action="store_true", help="write the files (otherwise only list what changes)")
+    parser.add_argument("--pasta", help="write the day files here instead of content/ (scripts/mira_auto.py, which publishes them)")
     args = parser.parse_args()
+    global OUT
+    if args.pasta:
+        OUT = Path(args.pasta)
 
     names = known_names()
     found_plays = [play for folder in profiles() for play in plays(folder, names)]

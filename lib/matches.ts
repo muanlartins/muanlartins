@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import type { MiraDay } from "@/lib/mira"
+import type { MiraDay, MiraRankedDay } from "@/lib/mira"
 import type { Session } from "@/lib/ranked"
 import type { ValorantSession } from "@/lib/valorant"
 import type { VoltaicDay } from "@/lib/voltaic"
@@ -45,4 +45,14 @@ export function miraDays(): MiraDay[] {
     .filter((file) => /^\d{4}-\d{2}-\d{2}\.json$/.test(file))
     .sort()
     .map((file) => JSON.parse(readFileSync(join(folder, file), "utf8")) as MiraDay)
+}
+
+/** Every day of Valorant matches whose aim was measured (content/mira-ranked/<date>.json, from scripts/mira_ranked.py). */
+export function miraRankedDays(): MiraRankedDay[] {
+  const folder = join(process.cwd(), "content", "mira-ranked")
+  if (!existsSync(folder)) return []
+  return readdirSync(folder)
+    .filter((file) => /^\d{4}-\d{2}-\d{2}\.json$/.test(file))
+    .sort()
+    .map((file) => JSON.parse(readFileSync(join(folder, file), "utf8")) as MiraRankedDay)
 }

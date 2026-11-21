@@ -1,0 +1,86 @@
+{
+ "date": "2026-10-14",
+ "matches": [
+  {
+   "id": "75693746-c344-40c5-b58b-ede7df3b90b0",
+   "at": "2026-10-15T02:20:04Z",
+   "map": "Sunset",
+   "agent": "Sage",
+   "tiros": 171,
+   "acertos": 47,
+   "flicks": 31,
+   "ajustes": 5,
+   "amplitude": 12.4,
+   "alvo": 0.47,
+   "curto": 0.774,
+   "passou": 0.323,
+   "cobre": 0.725,
+   "correcoes": 1.84,
+   "reacao": 175,
+   "movimento": 625,
+   "em_movimento": 0.581,
+   "acerto_parado": 0.615,
+   "acerto_movendo": 0.333,
+   "tremor": 0.201,
+   "erros": {
+    "curto": 11,
+    "passou": 2,
+    "lado": 4
+   },
+   "curva": [
+    -1.0,
+    -0.881,
+    -0.704,
+    -0.531,
+    -0.405,
+    -0.289,
+    -0.242,
+    -0.178,
+    -0.15,
+    -0.122,
+    -0.123,
+    -0.058,
+    -0.075,
+    -0.021
+   ],
+   "primeiro": [
+    7,
+    2,
+    0,
+    3,
+    1,
+    4,
+    3,
+    1,
+    3,
+    0,
+    0,
+    0,
+    1,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2
+   ],
+   "lutas": 36,
+   "andando": 0.222,
+   "acerto_parado_corpo": 0.429,
+   "acerto_andando": 0.375,
+   "altura": -0.22,
+   "altura_faixa": [
+    -2.38,
+    0.19
+   ],
+   "ossos": {
+    "cabeca": 3,
+    "corpo": 44,
+    "perna": 0
+   }
+  }
+ ]
+}

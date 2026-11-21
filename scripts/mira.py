@@ -304,11 +304,6 @@ def analisar(b: bytes, cabecalho: dict):
     distancias = sorted(math.tan(math.radians(math.hypot(*erro(a, ts)[0]))) * erro(a, ts)[1] for ts, a in acertos if a)
     raio_w = distancias[int(0.9 * (len(distancias) - 1))] if distancias else 0.5
 
-    def velocidade(i):
-        if i <= 0 or i >= len(T) or T[i] <= T[i - 1]:
-            return 0.0
-        return math.hypot((A[i][1] - A[i - 1][1]) * math.cos(math.radians(A[i][0])), A[i][0] - A[i - 1][0]) / (T[i] - T[i - 1])
-
     tiros = []
     antes = 0.0
     for ts, a in acertos:
@@ -321,61 +316,78 @@ def analisar(b: bytes, cabecalho: dict):
             a = min(vivos, key=lambda x: math.hypot(*erro(x, ts)[0]))
         de = max(antes, a["nasce"])
         antes = ts
-        i0 = bisect.bisect_left(T, de)
-        i1 = bisect.bisect_right(T, ts) - 1
-        (fx, fy), dist_f = erro(a, ts)
-        raio = math.degrees(math.atan2(raio_w, dist_f))
-        tiro = {"acertou": acertou, "erro": math.hypot(fx, fy), "raio": raio}
-        tiros.append(tiro)
-        if i1 - i0 < 3:
-            tiro["tipo"] = "ajuste"
-            continue
-        vs = [velocidade(i) for i in range(i0, i1 + 1)]
-        ipico = max(range(len(vs)), key=lambda k: vs[k])
-        pico = vs[ipico]
-        k0 = ipico
-        while k0 > 0 and vs[k0 - 1] >= max(15.0, 0.1 * pico):
-            k0 -= 1
-        t0 = T[i0 + k0 - 1] if k0 > 0 else T[i0]
-        (ex, ey), dist0 = erro(a, t0)
-        amp = math.hypot(ex, ey)
-        tiro["amp"] = amp
-        if amp < 3 * math.degrees(math.atan2(raio_w, dist0)):
-            tiro["tipo"] = "ajuste"
-            continue
-        ux, uy = -ex / amp, -ey / amp
-
-        def ao_longo(x):
-            (gx, gy), _ = erro(a, x)
-            return gx * ux + gy * uy
-
-        trajeto = [(T[i], ao_longo(T[i])) for i in range(i0 + max(0, k0 - 1), i1 + 1)] + [(ts, fx * ux + fy * uy)]
-        k1 = ipico
-        while k1 < len(vs) - 1 and vs[k1] > 0.3 * pico:
-            k1 += 1
-        resta = -ao_longo(T[i0 + k1])
-        correcoes = sum(1 for k in range(k1 + 1, len(vs) - 1) if vs[k] > vs[k - 1] and vs[k] >= vs[k + 1] and vs[k] > max(20.0, 0.15 * pico))
-        # The crosshair against the target in the last frame before the click.
-        (px, py), _ = erro(a, T[max(i1 - 1, 0)])
-        dt = ts - T[max(i1 - 1, 0)]
-        rel = math.hypot(fx - px, fy - py) / dt if dt > 0.004 else None
-        final = [(T[i], *erro(a, T[i])[0]) for i in range(bisect.bisect_left(T, ts - 0.15), i1 + 1)]
-        tiro.update(
-            {
-                "tipo": "flick",
-                "reacao": t0 - de,
-                "movimento": ts - t0,
-                "cobre": max(0.0, min(1.5, 1 - resta / amp)),
-                "curto": resta > raio,
-                "passou": max(p for _, p in trajeto) > raio,
-                "correcoes": correcoes,
-                "vel_clique": rel,
-                "tremor": _tendencia(final),
-                "ao_longo": fx * ux + fy * uy,
-                "curva": [(t - t0, p / amp) for t, p in trajeto],
-            }
-        )
+        tiros.append(medir(T, A, ts, de, lambda x, a=a: erro(a, x), raio_w, acertou))
     return {"tiros": tiros, "acertos": n_acertos, "n_tiros": len(shots)}, None
+
+
+def _velocidade(T, A, i):
+    """The crosshair's speed on screen at key i, in degrees a second."""
+    if i <= 0 or i >= len(T) or T[i] <= T[i - 1]:
+        return 0.0
+    return math.hypot((A[i][1] - A[i - 1][1]) * math.cos(math.radians(A[i][0])), A[i][0] - A[i - 1][0]) / (T[i] - T[i - 1])
+
+
+def medir(T, A, ts, de, erro, raio_w, acertou):
+    """One shot at ts, aimed since de: whether it was a flick or an adjustment, and the flick's numbers.
+
+    T is the camera's times (s) and A its (pitch down positive, yaw) per key, continuous; erro(x) is the crosshair
+    minus the target's centre at time x, in degrees on screen (yaw scaled by the pitch's cosine), and its distance;
+    raio_w the target's radius in the world's units. Shared by Aimlabs' plays and Valorant's matches
+    (scripts/mira_ranked.py), so both are measured the same way."""
+    i0 = bisect.bisect_left(T, de)
+    i1 = bisect.bisect_right(T, ts) - 1
+    (fx, fy), dist_f = erro(ts)
+    raio = math.degrees(math.atan2(raio_w, dist_f))
+    tiro = {"acertou": acertou, "erro": math.hypot(fx, fy), "raio": raio}
+    if i1 - i0 < 3:
+        tiro["tipo"] = "ajuste"
+        return tiro
+    vs = [_velocidade(T, A, i) for i in range(i0, i1 + 1)]
+    ipico = max(range(len(vs)), key=lambda k: vs[k])
+    pico = vs[ipico]
+    k0 = ipico
+    while k0 > 0 and vs[k0 - 1] >= max(15.0, 0.1 * pico):
+        k0 -= 1
+    t0 = T[i0 + k0 - 1] if k0 > 0 else T[i0]
+    (ex, ey), dist0 = erro(t0)
+    amp = math.hypot(ex, ey)
+    tiro["amp"] = amp
+    if amp < 3 * math.degrees(math.atan2(raio_w, dist0)):
+        tiro["tipo"] = "ajuste"
+        return tiro
+    ux, uy = -ex / amp, -ey / amp
+
+    def ao_longo(x):
+        (gx, gy), _ = erro(x)
+        return gx * ux + gy * uy
+
+    trajeto = [(T[i], ao_longo(T[i])) for i in range(i0 + max(0, k0 - 1), i1 + 1)] + [(ts, fx * ux + fy * uy)]
+    k1 = ipico
+    while k1 < len(vs) - 1 and vs[k1] > 0.3 * pico:
+        k1 += 1
+    resta = -ao_longo(T[i0 + k1])
+    correcoes = sum(1 for k in range(k1 + 1, len(vs) - 1) if vs[k] > vs[k - 1] and vs[k] >= vs[k + 1] and vs[k] > max(20.0, 0.15 * pico))
+    # The crosshair against the target in the last frame before the click.
+    (px, py), _ = erro(T[max(i1 - 1, 0)])
+    dt = ts - T[max(i1 - 1, 0)]
+    rel = math.hypot(fx - px, fy - py) / dt if dt > 0.004 else None
+    final = [(T[i], *erro(T[i])[0]) for i in range(bisect.bisect_left(T, ts - 0.15), i1 + 1)]
+    tiro.update(
+        {
+            "tipo": "flick",
+            "reacao": t0 - de,
+            "movimento": ts - t0,
+            "cobre": max(0.0, min(1.5, 1 - resta / amp)),
+            "curto": resta > raio,
+            "passou": max(p for _, p in trajeto) > raio,
+            "correcoes": correcoes,
+            "vel_clique": rel,
+            "tremor": _tendencia(final),
+            "ao_longo": fx * ux + fy * uy,
+            "curva": [(t - t0, p / amp) for t, p in trajeto],
+        }
+    )
+    return tiro
 
 
 def _mediana(xs, casas=None):
@@ -482,8 +494,12 @@ def replays():
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--apply", action="store_true", help="write the files (otherwise only list what changes)")
+    parser.add_argument("--pasta", help="write the day files here instead of content/ (scripts/mira_auto.py, which publishes them)")
     parser.add_argument("--detalhe", help="one replay (.avro, its .json beside it): print each flick")
     args = parser.parse_args()
+    global OUT
+    if args.pasta:
+        OUT = Path(args.pasta)
 
     if args.detalhe:
         avro = Path(args.detalhe)

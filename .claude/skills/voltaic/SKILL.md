@@ -91,6 +91,13 @@ https://claude.ai/artifact/W58CiUvaUEi3wjBnfXhWYG (read it with the Artifact too
 
 ## After a training or a benchmark
 
+**Since 2026-11-21 this publishes itself** (`scripts/mira_auto.py`, every minute from `valorant.py`, never while
+live): once Aimlabs closes after new plays it runs `voltaic.py` and `mira.py` over a copy of main's files and pushes
+what changed in one commit (`valorant.py`'s log, `~/.cache/muanlartins/valorant.log`, says "mira publicada"). So the
+flicks are no longer lost to Aimlabs' 50-replay limit, and steps 2, 4 and 5 below are only for a day it failed (the
+log says why). The week's report (step 3) is still for when he asks. His Valorant matches go the same way into
+`content/mira-ranked/` (`mira_ranked.py`, "No treino e nas partidas" on the page).
+
 1. Check he isn't live (`node scripts/obs.mjs`); the script is light, the builds aren't.
 2. `git pull --ff-only`, then `python3 scripts/voltaic.py` shows the days that change, then
    `python3 scripts/voltaic.py --apply`. A Sunday should show about 18+ plays; if a benchmark day shows fewer than

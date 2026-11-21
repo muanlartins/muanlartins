@@ -11,8 +11,11 @@ const T = localize({
   way: { pt: "do caminho", en: "of the way" },
 })
 
-// The chart's one series: a lighter Klein, validated for the light surface (dataviz's validate_palette.js).
+// The chart's series: a lighter Klein, validated for the light surface (dataviz's validate_palette.js); a second one
+// (the matches beside the training) in navy and dashed, as the radar draws the Sunday before, so it never rests on
+// colour alone.
 const COLOR = "#1d4fd1"
+const COMPARE = "#001447"
 const HEIGHT = 240
 const PAD = { left: 48, right: 64, top: 16, bottom: 34 }
 const pct = (v: number) => `${Math.round(v * 100)}%`
@@ -21,7 +24,7 @@ const pct = (v: number) => `${Math.round(v * 100)}%`
  * The typical flick as a line: the share of the way to the target done (0% where it began, 100% on the target) against
  * the ms since it began, with the moment it reaches 90% marked. Hovering, a tap or the arrow keys read a moment.
  */
-export function FlickCurve({ values }: { values: number[] }) {
+export function FlickCurve({ values, compare, labels }: { values: number[]; compare?: number[]; labels?: [string, string] }) {
   const box = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const [active, setActive] = useState<number>()
@@ -32,8 +35,9 @@ export function FlickCurve({ values }: { values: number[] }) {
     return () => observer.disconnect()
   }, [])
 
-  const n = values.length
-  const hi = Math.max(1.1, Math.ceil(Math.max(...values) * 10) / 10)
+  const both = compare && compare.length > 1 ? compare : undefined
+  const n = Math.max(values.length, both?.length ?? 0)
+  const hi = Math.max(1.1, Math.ceil(Math.max(...values, ...(both ?? [])) * 10) / 10)
   const plot = width - PAD.left - PAD.right
   const x = (i: number) => PAD.left + (n > 1 ? (i / (n - 1)) * plot : 0)
   const y = (v: number) => PAD.top + (1 - v / hi) * (HEIGHT - PAD.top - PAD.bottom)
@@ -58,7 +62,9 @@ export function FlickCurve({ values }: { values: number[] }) {
       ref={box}
       tabIndex={0}
       role="img"
-      aria-label={`${T.label}: ${values.map((v, i) => `${i * CURVE_STEP} ms ${pct(v)}`).join(", ")}`}
+      aria-label={`${T.label}: ${labels && both ? `${labels[0]} ` : ""}${values.map((v, i) => `${i * CURVE_STEP} ms ${pct(v)}`).join(", ")}${
+        labels && both ? `; ${labels[1]} ${both.map((v, i) => `${i * CURVE_STEP} ms ${pct(v)}`).join(", ")}` : ""
+      }`}
       onKeyDown={step}
       onBlur={() => setActive(undefined)}
       className="relative w-full touch-pan-y rounded-md border border-line bg-paper/60 outline-none focus-visible:ring-2 focus-visible:ring-klein"
@@ -88,7 +94,7 @@ export function FlickCurve({ values }: { values: number[] }) {
             {T.ms}
           </text>
 
-          <polygon points={`${x(0)},${y(0)} ${values.map((v, i) => `${x(i)},${y(v)}`).join(" ")} ${x(n - 1)},${y(0)}`} fill={COLOR} opacity={0.1} />
+          <polygon points={`${x(0)},${y(0)} ${values.map((v, i) => `${x(i)},${y(v)}`).join(" ")} ${x(values.length - 1)},${y(0)}`} fill={COLOR} opacity={0.1} />
           {active !== undefined && <line x1={x(active)} x2={x(active)} y1={PAD.top} y2={bottom} className="stroke-navy/30" strokeWidth={1} />}
           <polyline points={values.map((v, i) => `${x(i)},${y(v)}`).join(" ")} fill="none" stroke={COLOR} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
           {ninety > 0 && (
@@ -99,7 +105,11 @@ export function FlickCurve({ values }: { values: number[] }) {
               </text>
             </g>
           )}
-          {active !== undefined && <circle cx={x(active)} cy={y(values[active])} r={4.5} fill={COLOR} className="stroke-paper" strokeWidth={2} />}
+          {both && (
+            <polyline points={both.map((v, i) => `${x(i)},${y(v)}`).join(" ")} fill="none" stroke={COMPARE} strokeWidth={2} strokeDasharray="6 4" strokeLinejoin="round" strokeLinecap="round" />
+          )}
+          {active !== undefined && active < values.length && <circle cx={x(active)} cy={y(values[active])} r={4.5} fill={COLOR} className="stroke-paper" strokeWidth={2} />}
+          {active !== undefined && both && active < both.length && <circle cx={x(active)} cy={y(both[active])} r={4.5} fill={COMPARE} className="stroke-paper" strokeWidth={2} />}
           <rect x={0} y={0} width={width} height={HEIGHT} fill="transparent" onPointerMove={pick} onPointerDown={pick} onPointerLeave={() => setActive(undefined)} />
         </svg>
       )}
@@ -109,9 +119,24 @@ export function FlickCurve({ values }: { values: number[] }) {
           className="pointer-events-none absolute top-2 z-10 w-max rounded-md border border-line bg-paper px-3 py-2 text-[12px] leading-[1.5] text-muted shadow-[0_8px_24px_rgb(0_20_71/0.16)]"
           style={{ left: Math.min(Math.max(x(active) - 60, 4), width - 140) }}
         >
-          <span className="block font-semibold tabular-nums text-ink">
-            {pct(values[active])} <span className="font-normal text-muted">{T.way}</span>
-          </span>
+          {both && labels ? (
+            <>
+              {active < values.length && (
+                <span className="block tabular-nums">
+                  <span className="font-semibold text-ink">{pct(values[active])}</span> {labels[0]}
+                </span>
+              )}
+              {active < both.length && (
+                <span className="block tabular-nums">
+                  <span className="font-semibold text-ink">{pct(both[active])}</span> {labels[1]}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="block font-semibold tabular-nums text-ink">
+              {pct(values[active])} <span className="font-normal text-muted">{T.way}</span>
+            </span>
+          )}
           <span className="block tabular-nums">{active * CURVE_STEP} ms</span>
         </div>
       )}
