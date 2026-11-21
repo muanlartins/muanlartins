@@ -18,6 +18,9 @@ Luan Martins' personal site and the home of the muanlartins channel: improving a
 - Luan writes the copy: timeline entries, rank summaries. Scaffold structure and leave `TODO` text for him rather than writing his voice.
   Topic texts are the exception: each is a written summary of the topic's video, drafted from its transcript (YouTube's automatic captions, readable in his browser even for drafts) in his terms, not new material.
 - `brand/` is the source of truth for the identity (see `brand/README.md`). Don't delete anything in it, explorations included.
+- **Before writing any text or building any screen**, read `brand/voz.md` (voice, words, formats) and
+  `brand/interface.md` (tokens, type, layout, components, states), and check the change against their last section.
+  When Luan settles something new about copy or UI, it goes into them in the same commit.
 - Small changes go straight to `main`; bigger features go through a branch and PR. A push to `main` is a release (below), so run `pnpm lint` first.
 - Commit messages are imperative and short, with no names.
 - **Every new feature goes on the roadmap page** (`/canal/roadmap`, `content/changelog.ts`), once: one entry per
