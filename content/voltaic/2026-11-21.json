@@ -1,0 +1,133 @@
+{
+ "date": "2026-11-21",
+ "plays": [
+  {
+   "at": "2026-11-21T15:45:20Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZI7OR",
+   "name": "VT Angleswitch Micro Entry",
+   "score": 84,
+   "accuracy": 49.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:46:39Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RX52TZ",
+   "name": "VT Regenspheres Entry",
+   "score": 63,
+   "accuracy": 24.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:47:55Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RX54BD",
+   "name": "VT Regenspheres Control Entry",
+   "score": 54,
+   "accuracy": 23.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:49:48Z",
+   "task": "CsLevel.Lowgravity56.VT Regen.RZLJM5",
+   "name": "VT Regenspheres Varied Entry",
+   "score": 39,
+   "accuracy": 30.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:51:07Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RVRH8Z",
+   "name": "VT Angletrack Entry",
+   "score": 5415,
+   "accuracy": 90.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:52:21Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVQG7",
+   "name": "VT Angleswitch Blink Entry",
+   "score": 1392,
+   "accuracy": 23.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:53:37Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVPRI",
+   "name": "Angleswitch Smooth Entry",
+   "score": 30,
+   "accuracy": 27.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:54:55Z",
+   "task": "CsLevel.Lowgravity56.VT Angle.RZVPBS",
+   "name": "VT Angleswitch Novice Small",
+   "score": 1470,
+   "accuracy": 24.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:56:08Z",
+   "task": "CsLevel.VT Empyrean.VT Angle.R8X0YY",
+   "name": "VT Angleswitch Novice",
+   "score": 1483,
+   "accuracy": 24.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:57:18Z",
+   "task": "CsLevel.Lowgravity56.VT Bounc.RZI9MH",
+   "name": "VT BouncesphereTS Entry",
+   "score": 29,
+   "accuracy": 24.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:58:35Z",
+   "task": "CsLevel.Lowgravity56.VT DropT.RZIBQV",
+   "name": "VT DropTS Entry",
+   "score": 32,
+   "accuracy": 18.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T15:59:47Z",
+   "task": "CsLevel.Lowgravity56.VT Leaps.RZLVCZ",
+   "name": "VT Leapswitch Entry",
+   "score": 1029,
+   "accuracy": 15.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T16:00:58Z",
+   "task": "CsLevel.Lowgravity56.VT Arctr.RZVF2O",
+   "name": "VT Arctrack Entry",
+   "score": 1606,
+   "accuracy": 26.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T16:02:12Z",
+   "task": "CsLevel.Lowgravity56.VT Arcsw.RZVEYQ",
+   "name": "Arcswitch Smooth Entry",
+   "score": 23,
+   "accuracy": 24.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T16:03:23Z",
+   "task": "CsLevel.Lowgravity56.VT Arcsw.RZVEUG",
+   "name": "VT Arcswitch Novice Small",
+   "score": 1148,
+   "accuracy": 19.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-21T16:04:32Z",
+   "task": "CsLevel.VT Empyrean.VT Arcsw.RB6A0U",
+   "name": "VT Arcswitch Novice",
+   "score": 1534,
+   "accuracy": 25.6,
+   "seconds": 60
+  }
+ ]
+}
