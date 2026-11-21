@@ -484,7 +484,7 @@ export const SHIPPED: Shipped[] = [
     date: "2026-10-28",
     tag: "site",
     title: "Ranqueadas",
-    text: "Cada partida registrada sozinha, com a evolução do ranque.",
+    text: "Cada partida registrada sozinha, com a evolução do rank e o replay pra ver no RLR.",
     href: "/conteudo/rocket-league/ranked",
     video: "5GMvMT8wvo4",
     media: [media("ranqueadas", "O gráfico de pontos da página de ranqueadas", { video: true })],
