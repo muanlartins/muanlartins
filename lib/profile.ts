@@ -225,6 +225,61 @@ export function keptToken(): string | null {
 
 export function signOut() {
   store.set(TOKEN_KEY, null)
+  rememberMe(null)
+}
+
+/**
+ * Who's signed in, as this browser last heard from the profile API: their login and their photo's file, so the header
+ * can link their page (/torcedor/<login>) without asking anyone. `avatar` is their Twitch photo, once looked up.
+ */
+export interface Me {
+  login: string
+  foto?: string
+  avatar?: string | null
+}
+const ME_KEY = "twitch:eu"
+const ME_EVENT = "twitch:eu"
+
+/** Keeps who's signed in (null forgets them); `imagens` left out keeps the photo already kept. */
+export function rememberMe(me: { login: string; imagens?: Images | null; avatar?: string | null } | null) {
+  const before = keptMe()
+  const next: Me | null = me
+    ? {
+        login: me.login,
+        ...(me.imagens !== undefined ? (me.imagens?.foto ? { foto: me.imagens.foto } : {}) : before?.login === me.login && before.foto ? { foto: before.foto } : {}),
+        ...(me.avatar !== undefined ? { avatar: me.avatar } : before?.login === me.login && before.avatar !== undefined ? { avatar: before.avatar } : {}),
+      }
+    : null
+  const value = next ? JSON.stringify(next) : null
+  if (value === store.get(ME_KEY)) return
+  store.set(ME_KEY, value)
+  try {
+    dispatchEvent(new Event(ME_EVENT))
+  } catch {}
+}
+
+/** The raw kept value, for useSyncExternalStore (a string compares by value). */
+export const keptMeRaw = () => store.get(ME_KEY)
+
+/** Who's signed in, from the kept value (read now when not given). */
+export function keptMe(raw = keptMeRaw()): Me | null {
+  try {
+    const me = raw ? (JSON.parse(raw) as Me) : null
+    return me && typeof me.login === "string" ? me : null
+  } catch {
+    return null
+  }
+}
+
+/** Calls back when who's signed in changes, here or in another tab. */
+export function onMeChange(callback: () => void) {
+  const storage = (e: StorageEvent) => e.key === ME_KEY && callback()
+  addEventListener(ME_EVENT, callback)
+  addEventListener("storage", storage)
+  return () => {
+    removeEventListener(ME_EVENT, callback)
+    removeEventListener("storage", storage)
+  }
 }
 
 /** The fan being built before going to Twitch, once. */
@@ -251,13 +306,19 @@ async function call(method: string, token: string, body?: unknown) {
     throw new SignedOut()
   }
   if (!response.ok) throw new Error(String(response.status))
-  return (await response.json()) as {
+  const mine = (await response.json()) as {
     login: string
     aparencia: Choice | null
     cartao?: Card | null
     imagens?: Images | null
     discord?: { id: string; nome: string; em: string } | null
+    /** Their ball in the duel (GET only). */
+    duelo?: { classe?: string; material?: string } | null
+    /** Whether they have a dream loadout (GET only). */
+    loadout?: { armas?: Record<string, unknown> } | null
   }
+  if (mine.login) rememberMe({ login: mine.login, imagens: mine.imagens })
+  return mine
 }
 
 /** The fans saved under these logins (the public side of the profile API); a login missing has none saved. */

@@ -154,7 +154,7 @@ export function RaceSection({
         </div>
       </div>
 
-      <Dialog open={!!replay} onClose={() => setReplay(null)} closeLabel={text.fights.close} title={replay ? fill(R.replayTitle, { d: shortDate(replay.em) }) : ""} className="w-[min(48rem,calc(100vw-2rem))]">
+      <Dialog open={!!replay} onClose={() => setReplay(null)} closeLabel={text.fights.close} title={replay ? fill(R.replayTitle, { d: shortDate(replay.em) }) : ""} width={48}>
         {replay && (
           <>
             <div className="cut bg-navy p-3">

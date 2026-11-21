@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useEffect, useState, type ReactNode } from "react"
 import { GameIcon } from "@/components/site/game/game-icon"
 import { FanView } from "@/components/site/profile/fan-view"
+import { StandStrip } from "@/components/site/ui"
 import { channel } from "@/content/channel"
 import type { Sigma, SigmaStats, Torcedor } from "@/lib/profile"
 import { LOCALE, localize } from "@/lib/site"
@@ -13,8 +14,9 @@ import { CARD_GAMES, cardColors, imageUrl, loadTwitchAvatar, viewerPath, type Ca
 
 const text = localize(channel.viewer)
 export const number = (n: number) => n.toLocaleString(LOCALE === "pt" ? "pt-BR" : "en")
-/** "2026-11-08" → "08/11/2026". */
-export const dateBR = (date: string) => date.slice(0, 10).split("-").reverse().join("/")
+const BRASILIA = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit" })
+/** "2026-11-08" → "08/11"; a moment ("2026-11-21T01:30:00Z") on Brasília's day: "20/11". */
+export const dateBR = (date: string) => (date.length > 10 && !Number.isNaN(Date.parse(date)) ? BRASILIA.format(new Date(date)) : date.slice(5, 10).split("-").reverse().join("/"))
 
 /** When they joined the stand: their first live, or "from the start" for those before 2026-11-07, when none was kept. */
 export function sinceLine(stats: SigmaStats | null | undefined, primeira: string | null | undefined) {
@@ -62,12 +64,12 @@ export function ViewerPhoto({ login, look, T, className, ring }: { login: string
 }
 
 /** Their fan standing on a strip of the stand, as the live's crowd draws them: on the card, by their name. */
-function StandingFan({ login, look, T, className }: { login: string; look: Look | null | undefined; T: Torcedor | null; className?: string }) {
+function StandingFan({ login, look, T, strip, className }: { login: string; look: Look | null | undefined; T: Torcedor | null; strip: number; className?: string }) {
   return (
     <div className={cn("pointer-events-none", className)} aria-hidden>
-      <div className="absolute inset-x-0 bottom-0 h-[14%] rounded-sm bg-klein" style={{ clipPath: "polygon(8% 0, 92% 0, 100% 100%, 0 100%)" }} />
+      <StandStrip height={strip} />
       {T && (
-        <div className="absolute inset-x-[12%] bottom-[10%] top-0">
+        <div className="absolute inset-x-[12%] top-0" style={{ bottom: strip * 0.7 }}>
           <FanView T={T} fan={T.normalizar(look?.aparencia ?? null, login)} className="h-full w-full" />
         </div>
       )}
@@ -84,7 +86,7 @@ function Banner({ login, look, palette, className, children }: { login: string; 
       style={{
         background: file
           ? palette.deep
-          : `radial-gradient(120% 140% at 85% 0%, ${palette.from}00 30%, ${palette.deep}aa 100%), radial-gradient(60% 90% at 20% 10%, #ffffff30, #ffffff00 70%), linear-gradient(135deg, ${palette.from}, ${palette.to})`,
+          : `radial-gradient(120% 140% at 85% 0%, ${palette.from}00 30%, ${palette.deep}aa 100%), radial-gradient(60% 90% at 20% 10%, color-mix(in oklab, var(--color-paper) 19%, transparent), transparent 70%), linear-gradient(135deg, ${palette.from}, ${palette.to})`,
       }}
     >
       {file ? (
@@ -95,7 +97,7 @@ function Banner({ login, look, palette, className, children }: { login: string; 
         <div
           aria-hidden
           className="absolute inset-0 opacity-[0.13]"
-          style={{ background: "repeating-linear-gradient(170deg, #fff 0 2px, transparent 2px 22px)", maskImage: "linear-gradient(to top, #000, transparent 85%)" }}
+          style={{ background: "repeating-linear-gradient(170deg, var(--color-paper) 0 2px, transparent 2px 22px)", maskImage: "linear-gradient(to top, black, transparent 85%)" }}
         />
       )}
       {children}
@@ -114,7 +116,7 @@ function RankChip({ S, sigma, game, size }: { S: Sigma; sigma: number; game?: st
       <img src={rank.emblema} alt="" className={page ? "h-10 w-10" : "h-7 w-7"} />
       <div className="min-w-0">
         <p className={cn("font-medium leading-tight text-paper", page ? "text-[15px]" : "text-[13px]")}>{rank.nome}</p>
-        <p className={cn("leading-tight text-paper/65 tabular-nums", page ? "text-[13px]" : "text-[11px]")}>{number(sigma)} Σ</p>
+        <p className={cn("leading-tight text-paper/70 tabular-nums", page ? "text-[13px]" : "text-[12px]")}>{number(sigma)} Σ</p>
         {page && (
           <div className="mt-1 h-1 w-28 overflow-hidden bg-paper/15">
             <div className="h-full bg-paper/80" style={{ width: `${Math.max(4, progress * 100)}%` }} />
@@ -140,6 +142,7 @@ export function ViewerCard({
   size = "page",
   preview,
   actions,
+  heading,
   className,
 }: {
   login: string
@@ -152,6 +155,8 @@ export function ViewerCard({
   /** The card being edited on /perfil, over what's saved. */
   preview?: Card
   actions?: ReactNode
+  /** Their name is the page's h1 (their own page). */
+  heading?: boolean
   className?: string
 }) {
   const card = preview ?? look?.cartao ?? null
@@ -164,7 +169,7 @@ export function ViewerCard({
   return (
     <div className={cn("cut relative overflow-hidden text-paper", className)} style={{ background: `linear-gradient(180deg, ${palette.body}, ${palette.deep})` }}>
       <Banner login={login} look={look} palette={palette} className={page ? "aspect-[3/1]" : "h-[92px]"}>
-        <StandingFan login={login} look={look} T={T} className={cn("absolute bottom-0", page ? "right-4 h-[96px] w-[68px] sm:right-7 sm:h-[150px] sm:w-[104px]" : "right-3 h-[78px] w-[54px]")} />
+        <StandingFan login={login} look={look} T={T} strip={page ? 18 : 11} className={cn("absolute bottom-0", page ? "right-4 h-[96px] w-[76px] sm:right-7 sm:h-[150px] sm:w-[112px]" : "right-3 h-[78px] w-[60px]")} />
       </Banner>
 
       <div className={cn("relative", page ? "px-5 pb-5 sm:px-7 sm:pb-6" : "px-3.5 pb-3.5")}>
@@ -178,7 +183,11 @@ export function ViewerCard({
         <div className={cn("flex min-h-0 flex-wrap items-start justify-end gap-2", page ? "min-h-14 pt-3 pl-32 sm:pl-40" : "min-h-9 pt-2 pl-20")}>{actions}</div>
 
         <div className={page ? "mt-3" : "mt-1.5"}>
-          <p className={cn("truncate font-medium tracking-[-0.02em]", page ? "text-3xl sm:text-4xl" : "text-[19px]")}>{login}</p>
+          {heading ? (
+            <h1 className="truncate text-4xl font-medium tracking-[-0.03em] sm:text-5xl">{login}</h1>
+          ) : (
+            <p className={cn("truncate font-medium tracking-[-0.02em]", page ? "text-3xl sm:text-4xl" : "text-xl")}>{login}</p>
+          )}
           <p className={cn("mt-0.5 flex flex-wrap items-center gap-x-2 text-paper/65", page ? "text-[14px]" : "text-[12px]")}>
             {card?.pronomes && <span className="text-paper/85">{card.pronomes}</span>}
             {card?.pronomes && <span aria-hidden>·</span>}
@@ -204,7 +213,7 @@ export function ViewerCard({
 
         {card?.sobre && (
           <div className={cn("border-t border-paper/10", page ? "mt-5 pt-4" : "mt-3 pt-2.5")}>
-            <p className={cn("font-medium uppercase tracking-[0.12em] text-paper/50", page ? "text-[12px]" : "text-[11px]")}>{text.about}</p>
+            <p className="eyebrow text-paper/65">{text.about}</p>
             <p className={cn("mt-1 whitespace-pre-line break-words text-paper/90", page ? "text-[15px] leading-[1.6]" : "line-clamp-3 text-[13px] leading-[1.45]")}>{card.sobre}</p>
           </div>
         )}

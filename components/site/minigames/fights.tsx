@@ -99,7 +99,7 @@ export function FightCard({
 /** A fight's replay in a dialog: the live's own box playing the very fight again, over and over. */
 export function DuelReplay({ fight, onClose }: { fight: Fight | null; onClose: () => void }) {
   return (
-    <Dialog open={!!fight} onClose={onClose} closeLabel={T.close} title={fight ? fill(T.replayTitle, { a: fight.nomes[0], b: fight.nomes[1] }) : ""} className="w-[min(26rem,calc(100vw-2rem))]">
+    <Dialog open={!!fight} onClose={onClose} closeLabel={T.close} title={fight ? fill(T.replayTitle, { a: fight.nomes[0], b: fight.nomes[1] }) : ""} width={26}>
       {fight && (
         <>
           <div className="cut bg-navy p-3">

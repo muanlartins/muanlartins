@@ -1,77 +1,86 @@
 "use client"
 
-import { ArrowRight, ImagePlus, Lock, Trash2 } from "lucide-react"
-import Link from "next/link"
+import { ImagePlus, Trash2 } from "lucide-react"
 import { useRef, useState } from "react"
+import { LockedSwatch, Swatch } from "@/components/site/profile/swatches"
 import { ImageCropper } from "@/components/site/viewer/image-cropper"
-import { ViewerCard } from "@/components/site/viewer/viewer-card"
+import { ViewerPhoto } from "@/components/site/viewer/viewer-card"
+import { Button, Field, Input, Select, Textarea } from "@/components/site/ui"
 import { profile } from "@/content/profile"
-import { SignedOut, type Fan, type Sigma, type SigmaStats, type Torcedor } from "@/lib/profile"
-import { LOCALE, localize } from "@/lib/site"
+import { SignedOut, type Sigma, type Torcedor } from "@/lib/profile"
+import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import {
   ABOUT_MAX,
   CARD_GAMES,
+  cardColors,
   eraseMyImage,
   forgetLook,
   FREE_THEME,
+  imageUrl,
   PRONOUNS_MAX,
   saveMyCard,
   saveMyImage,
   THEMES,
-  viewerPath,
   type Card,
   type ImageKind,
   type Images,
+  type Look,
 } from "@/lib/viewer"
 import { drawPicture, readPicture, type Crop } from "@/lib/viewer-images"
 
-const text = localize(profile)
-const label = "block text-[13px] font-medium uppercase tracking-[0.1em] text-muted"
-const field = "w-full rounded-md border border-line bg-paper px-3 py-2 text-ink outline-none focus:border-klein"
-const small = "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[13px] font-medium transition-colors"
+const text = localize(profile.card)
+const all = localize(profile)
+const DEFAULT_FREE: [string, string] = ["#002fa7", "#ff8a3d"]
 
 /**
- * Their profile on /perfil, Discord-style: the banner and the photo (pictures of their own, framed here and sent at
+ * The Cartão tab on /perfil, Discord-style: the banner and the photo (pictures of their own, framed here and sent at
  * once), the colours (a theme, or two of their own once their Σ unlocks free colours), pronouns, what they say about
- * themselves and their game, with the card as it shows on their page above it, wearing the fan being built. The text
- * and colours are saved together (PUT /eu/cartao), apart from the fan and from the pictures.
+ * themselves and their game. The card being edited lives in the profile page, so its preview beside the tabs follows
+ * every change; the text and colours are saved together (PUT /eu/cartao), apart from the fan and from the pictures.
  */
 export function CardEditor({
   token,
   login,
-  saved,
-  images: savedImages,
-  fan,
-  stats,
+  card,
+  base,
+  images,
+  look,
+  sigma,
   T,
   S,
+  onChange,
+  onSaved,
+  onImages,
   onExpired,
 }: {
   token: string
   login: string
-  saved: Card | null
+  /** The card being edited, and as it was last saved. */
+  card: Card
+  base: Card
   images: Images | null
-  fan: Fan
-  stats: SigmaStats | null | undefined
+  /** Their look as the preview draws it (fan and pictures), for the photo here. */
+  look: Look
+  sigma: number
   T: Torcedor
   S: Sigma | null
+  onChange: (patch: Partial<Card>) => void
+  onSaved: (card: Card) => void
+  onImages: (images: Images | null) => void
   onExpired: () => void
 }) {
-  const [base, setBase] = useState<Card>(saved ?? {})
-  const [card, setCard] = useState<Card>(saved ?? {})
-  const [images, setImages] = useState<Images | null>(savedImages)
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [framing, setFraming] = useState<{ kind: ImageKind; image: HTMLImageElement } | null>(null)
   const [picture, setPicture] = useState<{ kind: ImageKind; state: "sending" | "error" | "big" } | null>(null)
   const files = { banner: useRef<HTMLInputElement>(null), foto: useRef<HTMLInputElement>(null) }
-  const sigma = stats?.sigma ?? 0
   const freeUnlocked = Boolean(S && sigma >= S.COR_LIVRE)
-  const free = card.cores ?? ["#002fa7", "#ff8a3d"]
+  const free = card.cores ?? DEFAULT_FREE
   const dirty = JSON.stringify(card) !== JSON.stringify(base)
+  const [from, to] = cardColors(card, sigma, S)
 
   const change = (patch: Partial<Card>) => {
-    setCard((c) => ({ ...c, ...patch }))
+    onChange(patch)
     setStatus("idle")
   }
 
@@ -84,8 +93,7 @@ export function CardEditor({
     try {
       const { cartao } = await saveMyCard(token, card)
       forgetLook(login)
-      setBase(cartao ?? {})
-      setCard(cartao ?? {})
+      onSaved(cartao ?? {})
       setStatus("saved")
     } catch (error) {
       failed(error)
@@ -107,7 +115,7 @@ export function CardEditor({
     try {
       const blob = await drawPicture(image, crop, kind)
       if (!blob) return setPicture({ kind, state: "big" })
-      setImages(await saveMyImage(token, kind, blob))
+      onImages(await saveMyImage(token, kind, blob))
       forgetLook(login)
       setFraming(null)
       setPicture(null)
@@ -119,7 +127,7 @@ export function CardEditor({
 
   async function erase(kind: ImageKind) {
     try {
-      setImages(await eraseMyImage(token, kind))
+      onImages(await eraseMyImage(token, kind))
       forgetLook(login)
     } catch (error) {
       failed(error)
@@ -127,73 +135,75 @@ export function CardEditor({
     }
   }
 
-  const look = { aparencia: fan as unknown as Record<string, unknown>, cartao: null, duelo: null, imagens: images }
-
-  const pictureRow = (kind: ImageKind) => (
-    <div className="space-y-2">
-      <span className={label}>{kind === "banner" ? text.card.banner : text.card.photo}</span>
-      <div className="flex flex-wrap items-center gap-2">
-        <input ref={files[kind]} type="file" accept="image/*" className="hidden" onChange={(e) => (pick(kind, e.target.files?.[0]), (e.target.value = ""))} />
-        <button type="button" onClick={() => files[kind].current?.click()} className={cn(small, "border-klein/40 text-klein hover:bg-klein hover:text-paper")}>
-          <ImagePlus aria-hidden className="h-4 w-4" />
-          {images?.[kind] ? text.card.change : text.card.upload}
-        </button>
-        {images?.[kind] && (
-          <button type="button" onClick={() => erase(kind)} className={cn(small, "border-line text-muted hover:border-[#b42318] hover:text-[#b42318]")}>
-            <Trash2 aria-hidden className="h-4 w-4" />
-            {kind === "banner" ? text.card.bannerOff : text.card.photoOff}
-          </button>
-        )}
-      </div>
-      <p className="text-[12px] text-muted">
-        {picture?.kind === kind && picture.state === "error"
-          ? text.card.pictureError
-          : picture?.kind === kind && picture.state === "big"
-            ? text.card.pictureBig
-            : kind === "banner"
-              ? text.card.bannerHint
-              : text.card.photoHint}
-      </p>
+  const pictureButtons = (kind: ImageKind) => (
+    <div className="flex flex-wrap items-center gap-2">
+      <input ref={files[kind]} type="file" accept="image/*" className="hidden" onChange={(e) => (pick(kind, e.target.files?.[0]), (e.target.value = ""))} />
+      <Button size="sm" variant="secondary" icon={<ImagePlus aria-hidden className="h-4 w-4" />} onClick={() => files[kind].current?.click()}>
+        {images?.[kind] ? text.change : text.upload}
+      </Button>
+      {images?.[kind] && (
+        <Button size="sm" variant="quiet" icon={<Trash2 aria-hidden className="h-4 w-4" />} onClick={() => erase(kind)}>
+          {kind === "banner" ? text.bannerOff : text.photoOff}
+        </Button>
+      )}
     </div>
   )
+  const pictureLine = (kind: ImageKind) =>
+    picture?.kind === kind && picture.state !== "sending" ? (
+      <p role="alert" className="text-[13px] text-loss">
+        {picture.state === "big" ? text.pictureBig : text.pictureError}
+      </p>
+    ) : (
+      <p className="text-[13px] text-muted">{kind === "banner" ? text.bannerHint : text.photoHint}</p>
+    )
 
   return (
-    <section id="cartao" className="scroll-mt-24 space-y-5">
-      <div className="space-y-1.5">
-        <h2 className="text-[13px] font-medium uppercase tracking-[0.12em] text-klein">{text.card.title}</h2>
-        <p className="max-w-[40rem] text-[14px] leading-[1.6] text-ink">{text.card.hint}</p>
-      </div>
+    <div className="space-y-8">
+      {/* The banner, as wide as it shows. */}
+      <fieldset className="space-y-3">
+        <legend className="text-[13px] font-medium text-muted">{text.banner}</legend>
+        <div className="cut relative aspect-[3/1] overflow-hidden" style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}>
+          {images?.banner && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={imageUrl(login, "banner", images.banner)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          )}
+        </div>
+        {pictureButtons("banner")}
+        {pictureLine("banner")}
+      </fieldset>
 
-      <ViewerCard login={login} look={look} stats={stats} T={T} S={S} preview={card} />
+      <fieldset className="space-y-3">
+        <legend className="text-[13px] font-medium text-muted">{text.photo}</legend>
+        <div className="flex items-center gap-4">
+          <ViewerPhoto login={login} look={look} T={T} className="h-16 w-16 shrink-0" />
+          <div className="space-y-1.5">
+            {pictureButtons("foto")}
+            {pictureLine("foto")}
+          </div>
+        </div>
+      </fieldset>
 
-      <div className="grid gap-6 rounded-xl border border-line bg-paper/70 p-5 md:grid-cols-2">
-        <div className="space-y-5">
-          {pictureRow("banner")}
-          {pictureRow("foto")}
-          <div className="space-y-2">
-            <span className={label}>{text.card.colors}</span>
-            <div className="flex flex-wrap gap-2">
-              {THEMES.map((theme) => {
-                const on = (card.tema ?? THEMES[0].id) === theme.id
-                return (
-                  <button
-                    key={theme.id}
-                    type="button"
-                    title={theme.name}
-                    aria-label={theme.name}
-                    aria-pressed={on}
-                    onClick={() => change({ tema: theme.id, cores: undefined })}
-                    className={cn("h-9 w-9 rounded-full border-2 transition-transform hover:scale-110", on ? "border-paper ring-2 ring-klein" : "border-navy/15")}
-                    style={{ background: `linear-gradient(135deg, ${theme.colors[0]}, ${theme.colors[1]})` }}
-                  />
-                )
-              })}
-            </div>
-            {freeUnlocked ? (
-              <span className={cn("inline-flex h-9 items-center gap-2 rounded-full border-2 pl-3 pr-1.5 text-[13px] text-ink", card.tema === FREE_THEME ? "border-klein" : "border-line")}>
-                {text.card.free}
+      <fieldset className="space-y-3">
+        <legend className="text-[13px] font-medium text-muted">{text.colors}</legend>
+        <div className="flex flex-wrap items-center gap-2">
+          {THEMES.map((theme) => (
+            <Swatch
+              key={theme.id}
+              label={theme.name}
+              background={`linear-gradient(135deg, ${theme.colors[0]} 50%, ${theme.colors[1]} 50%)`}
+              on={(card.tema ?? THEMES[0].id) === theme.id}
+              onClick={() => change({ tema: theme.id, cores: undefined })}
+            />
+          ))}
+          {S &&
+            (freeUnlocked ? (
+              <span className={cn("inline-flex h-8 items-center gap-1.5 border pl-2 pr-1 text-[13px] text-ink", card.tema === FREE_THEME ? "border-klein" : "border-line-strong")}>
+                {text.free}
                 {[0, 1].map((i) => (
-                  <label key={i} className="relative h-6 w-6 cursor-pointer rounded-full border border-navy/20" style={{ background: free[i] }}>
+                  <label key={i} className="relative h-6 w-6 cursor-pointer border border-navy/20 focus-within:outline-2 focus-within:outline-klein" style={{ background: free[i] }}>
+                    <span className="sr-only">
+                      {text.free} {i + 1}
+                    </span>
                     <input
                       type="color"
                       value={free[i]}
@@ -202,67 +212,53 @@ export function CardEditor({
                         cores[i] = e.target.value
                         change({ tema: FREE_THEME, cores })
                       }}
-                      className="absolute inset-0 cursor-pointer opacity-0"
+                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                     />
                   </label>
                 ))}
               </span>
             ) : (
-              S && (
-                <p className="flex items-center gap-1.5 text-[12px] text-muted">
-                  <Lock aria-hidden className="h-3.5 w-3.5" />
-                  {text.card.freeLocked} {S.ranque(S.COR_LIVRE, LOCALE).nome} ({S.COR_LIVRE} Σ)
-                </p>
-              )
-            )}
-          </div>
+              <LockedSwatch S={S} at={S.COR_LIVRE} background={`linear-gradient(135deg, ${DEFAULT_FREE[0]} 50%, ${DEFAULT_FREE[1]} 50%)`} label={text.free} />
+            ))}
         </div>
+      </fieldset>
 
-        <div className="space-y-5">
-          <label className="block space-y-2">
-            <span className={label}>{text.card.pronouns}</span>
-            <input value={card.pronomes ?? ""} maxLength={PRONOUNS_MAX} placeholder={text.card.pronounsHint} onChange={(e) => change({ pronomes: e.target.value })} className={field} />
-          </label>
-          <label className="block space-y-2">
-            <span className={label}>{text.card.about}</span>
-            <textarea value={card.sobre ?? ""} maxLength={ABOUT_MAX} rows={5} onChange={(e) => change({ sobre: e.target.value })} className={cn(field, "resize-none leading-[1.5]")} />
-            <span className="flex justify-between gap-3 text-[12px] text-muted">
-              <span>{text.card.aboutHint}</span>
-              <span className="tabular-nums">
-                {Array.from(card.sobre ?? "").length}/{ABOUT_MAX}
-              </span>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Field label={text.pronouns}>
+          <Input value={card.pronomes ?? ""} maxLength={PRONOUNS_MAX} placeholder={text.pronounsHint} onChange={(e) => change({ pronomes: e.target.value })} />
+        </Field>
+        <Field label={text.game}>
+          <Select value={card.jogo ?? ""} onChange={(e) => change({ jogo: e.target.value || undefined })}>
+            <option value="">{text.noGame}</option>
+            {CARD_GAMES.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      </div>
+      <Field
+        label={text.about}
+        hint={
+          <span className="flex justify-between gap-3">
+            <span>{text.aboutHint}</span>
+            <span className="tabular-nums">
+              {Array.from(card.sobre ?? "").length}/{ABOUT_MAX}
             </span>
-          </label>
-          <label className="block space-y-2">
-            <span className={label}>{text.card.game}</span>
-            <select value={card.jogo ?? ""} onChange={(e) => change({ jogo: e.target.value || undefined })} className={field}>
-              <option value="">{text.card.noGame}</option>
-              {CARD_GAMES.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+          </span>
+        }
+      >
+        <Textarea value={card.sobre ?? ""} maxLength={ABOUT_MAX} rows={4} onChange={(e) => change({ sobre: e.target.value })} className="resize-none leading-[1.5]" />
+      </Field>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-4 md:col-span-2">
-          <button
-            type="button"
-            onClick={save}
-            disabled={!dirty || status === "saving"}
-            className="rounded-md bg-klein px-5 py-2 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-40"
-          >
-            {status === "saving" ? text.saving : text.card.save}
-          </button>
-          <p className="text-[14px] text-muted" aria-live="polite">
-            {status === "saved" ? text.card.saved : status === "error" ? text.error : dirty ? text.unsaved : text.card.picturesNow}
-          </p>
-          <Link href={viewerPath(login)} className="ml-auto inline-flex items-center gap-1.5 text-[14px] font-medium text-klein hover:underline">
-            {text.card.page}
-            <ArrowRight aria-hidden className="h-4 w-4" />
-          </Link>
-        </div>
+      <div className="sticky bottom-0 z-10 -mx-2 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ground/90 px-2 py-4 backdrop-blur">
+        <Button onClick={save} disabled={!dirty || status === "saving"}>
+          {status === "saving" ? all.saving : text.save}
+        </Button>
+        <p className={cn("text-[13px]", status === "error" ? "text-loss" : "text-muted")} aria-live="polite">
+          {status === "saved" ? text.saved : status === "error" ? all.error : dirty ? all.unsaved : text.picturesNow}
+        </p>
       </div>
 
       {framing && (
@@ -277,6 +273,6 @@ export function CardEditor({
           onDone={send}
         />
       )}
-    </section>
+    </div>
   )
 }

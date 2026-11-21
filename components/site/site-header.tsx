@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { ChristmasLights, SantaHat, useDecember } from "@/components/site/december"
 import { LiveBadge } from "@/components/site/lives/live-badge"
 import { SECTION_ICONS } from "@/components/site/section-icons"
+import { MyPageLink } from "@/components/site/viewer/my-page-link"
 import { cn } from "@/lib/utils"
 import { VIEWER_SLUG } from "@/lib/viewer"
 import {
@@ -100,6 +101,8 @@ export function SiteHeader({ lives }: { lives?: string }) {
               {LANGUAGE_LABEL[OTHER_LOCALE]}
             </a>
           )}
+          {/* Signed in with Twitch: their photo, to their page. */}
+          {hasSection("channel") && <MyPageLink />}
         </div>
       </nav>
       <ChristmasLights />

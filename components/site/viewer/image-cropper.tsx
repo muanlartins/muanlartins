@@ -2,6 +2,7 @@
 
 import { Minus, Plus } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { Button, Dialog } from "@/components/site/ui"
 import { profile } from "@/content/profile"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -57,13 +58,12 @@ export function ImageCropper({ image, kind, onCancel, onDone, busy }: { image: H
   }
 
   return (
-    <div role="dialog" aria-modal className="fixed inset-0 z-50 grid place-items-center bg-navy/60 p-4 backdrop-blur-sm" onClick={onCancel}>
-      <div className="w-full max-w-[600px] space-y-4 rounded-xl bg-paper p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <p className="text-[15px] font-medium text-ink">{kind === "banner" ? text.cropBanner : text.cropPhoto}</p>
+    <Dialog open onClose={onCancel} title={kind === "banner" ? text.cropBanner : text.cropPhoto} closeLabel={text.cancel} width={38}>
+      <div className="space-y-4">
         <div className="flex justify-center">
           <div
             ref={box}
-            className={cn("relative cursor-grab touch-none overflow-hidden bg-navy select-none active:cursor-grabbing", kind === "foto" ? "rounded-full" : "rounded-md")}
+            className={cn("relative cursor-grab touch-none overflow-hidden bg-navy select-none active:cursor-grabbing", kind === "foto" ? "rounded-full" : "cut")}
             style={{ width, height }}
             onPointerDown={(e) => {
               e.currentTarget.setPointerCapture(e.pointerId)
@@ -82,24 +82,24 @@ export function ImageCropper({ image, kind, onCancel, onDone, busy }: { image: H
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button type="button" aria-label={text.zoomOut} onClick={() => zoomTo(zoom / 1.2)} className="text-muted hover:text-klein">
-            <Minus className="h-4 w-4" />
+          <button type="button" aria-label={text.zoomOut} title={text.zoomOut} onClick={() => zoomTo(zoom / 1.2)} className="grid h-8 w-8 place-items-center text-muted hover:text-klein">
+            <Minus aria-hidden className="h-4 w-4" />
           </button>
           <input type="range" min={1} max={4} step={0.01} value={zoom} onChange={(e) => zoomTo(Number(e.target.value))} className="flex-1 accent-klein" aria-label={text.zoom} />
-          <button type="button" aria-label={text.zoomIn} onClick={() => zoomTo(zoom * 1.2)} className="text-muted hover:text-klein">
-            <Plus className="h-4 w-4" />
+          <button type="button" aria-label={text.zoomIn} title={text.zoomIn} onClick={() => zoomTo(zoom * 1.2)} className="grid h-8 w-8 place-items-center text-muted hover:text-klein">
+            <Plus aria-hidden className="h-4 w-4" />
           </button>
         </div>
-        <p className="text-[12px] text-muted">{text.cropHint}</p>
+        <p className="text-[13px] text-muted">{text.cropHint}</p>
         <div className="flex justify-end gap-3">
-          <button type="button" onClick={onCancel} className="rounded-md px-4 py-2 text-[14px] text-muted hover:text-klein">
+          <Button variant="secondary" onClick={onCancel}>
             {text.cancel}
-          </button>
-          <button type="button" onClick={done} disabled={busy} className="rounded-md bg-klein px-5 py-2 text-[14px] font-medium text-paper hover:opacity-90 disabled:opacity-50">
+          </Button>
+          <Button onClick={done} disabled={busy}>
             {busy ? text.sending : text.usePicture}
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Dialog>
   )
 }
