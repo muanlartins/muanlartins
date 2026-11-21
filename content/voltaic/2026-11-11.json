@@ -111,7 +111,8 @@
    "name": "VT Controltrack Blink Entry",
    "score": 3027,
    "accuracy": 59.3,
-   "seconds": 79
+   "seconds": 79,
+   "pause": 19.0
   },
   {
    "at": "2026-11-11T22:28:49Z",

@@ -23,7 +23,8 @@
    "name": "VT Closerange Long Strafes Entry",
    "score": 1658,
    "accuracy": 30.9,
-   "seconds": 80
+   "seconds": 80,
+   "pause": 20.0
   },
   {
    "at": "2026-11-12T21:40:50Z",

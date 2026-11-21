@@ -1,0 +1,150 @@
+{
+ "date": "2026-11-19",
+ "plays": [
+  {
+   "at": "2026-11-19T23:14:41Z",
+   "task": "CsLevel.Lowgravity56.VT Midra.RXPULN",
+   "name": "VT Midrange Long Strafes Entry",
+   "score": 2724,
+   "accuracy": 45.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:16:00Z",
+   "task": "CsLevel.Lowgravity56.VT Midra.RXPW4Q",
+   "name": "VT Midrange Short Strafes Entry",
+   "score": 2749,
+   "accuracy": 45.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:17:11Z",
+   "task": "CsLevel.Lowgravity56.VT Close.RXR9FA",
+   "name": "VT Closerange Long Strafes Entry",
+   "score": 2324,
+   "accuracy": 38.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:18:23Z",
+   "task": "CsLevel.Lowgravity56.VT Close.RXRGMC",
+   "name": "VT Closerange Short Strafes Entry",
+   "score": 3280,
+   "accuracy": 54.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:19:41Z",
+   "task": "CsLevel.Lowgravity56.VT Track.RXRS29",
+   "name": "VT Trackstop Entry",
+   "score": 3068,
+   "accuracy": 51.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:20:51Z",
+   "task": "CsLevel.Lowgravity56.VT MFSI .RXPXE3",
+   "name": "VT MFSI Entry",
+   "score": 2570,
+   "accuracy": 42.8,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:22:03Z",
+   "task": "CsLevel.Lowgravity56.VT Pillt.RXWY3K",
+   "name": "VT Pilltrack Entry Smooth",
+   "score": 4804,
+   "accuracy": 80.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:23:15Z",
+   "task": "CsLevel.Lowgravity56.VT Pillt.RXWY1F",
+   "name": "VT Pilltrack Novice Thin",
+   "score": 2370,
+   "accuracy": 39.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:24:25Z",
+   "task": "CsLevel.zcr.VT Pillt.R8KMR0",
+   "name": "VT Pilltrack Novice",
+   "score": 2062,
+   "accuracy": 34.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:25:43Z",
+   "task": "CsLevel.Lowgravity56.VT Air L.RXYLBN",
+   "name": "VT Air Long Strafes Far Entry",
+   "score": 3124,
+   "accuracy": 52.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:28:14Z",
+   "task": "CsLevel.Lowgravity56.VT Air S.RXYNOP",
+   "name": "VT Air Short Strafes Far Entry",
+   "score": 3565,
+   "accuracy": 60.5,
+   "seconds": 62,
+   "pause": 2.3
+  },
+  {
+   "at": "2026-11-19T23:29:26Z",
+   "task": "CsLevel.Lowgravity56.VT Air L.RY0K6Y",
+   "name": "VT Air Long Strafes Close Entry",
+   "score": 2563,
+   "accuracy": 42.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:30:36Z",
+   "task": "CsLevel.Lowgravity56.VT Air S.RY0ME1",
+   "name": "VT Air Short Strafes Close Entry",
+   "score": 3165,
+   "accuracy": 52.7,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:31:50Z",
+   "task": "CsLevel.Lowgravity56.VT AirXY.RXT4SU",
+   "name": "VT AirXYZ Entry",
+   "score": 3455,
+   "accuracy": 57.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:33:07Z",
+   "task": "CsLevel.Lowgravity56.VT Verti.RJOEWF",
+   "name": "VT VerticalTrack Entry",
+   "score": 4462,
+   "accuracy": 74.4,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:34:18Z",
+   "task": "CsLevel.Lowgravity56.VT UFO E.RXVOP4",
+   "name": "VT UFO Entry",
+   "score": 2992,
+   "accuracy": 50.0,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:35:29Z",
+   "task": "CsLevel.Lowgravity56.VT Axitr.RXUXJ3",
+   "name": "VT Axitrack Novice Small",
+   "score": 3117,
+   "accuracy": 52.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-19T23:36:40Z",
+   "task": "CsLevel.Lowgravity56.VT Axitr.RJF5AX",
+   "name": "VT Axitrack Novice ",
+   "score": 3603,
+   "accuracy": 60.3,
+   "seconds": 60
+  }
+ ]
+}
