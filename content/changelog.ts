@@ -487,7 +487,10 @@ export const SHIPPED: Shipped[] = [
     text: "Cada partida registrada sozinha, com a evolução do rank e o replay pra ver no RLR.",
     href: "/conteudo/rocket-league/ranked",
     video: "5GMvMT8wvo4",
-    media: [media("ranqueadas", "O gráfico de pontos da página de ranqueadas", { video: true })],
+    media: [
+      media("ranqueadas-rlr", "As partidas de 20/11 no 3v3, cada uma com o placar, os pontos e “Ver no RLR” pra abrir o replay"),
+      media("ranqueadas", "O gráfico de pontos da página de ranqueadas", { video: true }),
+    ],
   },
   {
     id: "paineis-e-alertas",
