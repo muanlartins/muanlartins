@@ -94,6 +94,10 @@ def matches_by_day():
     """The dock's matches, by the local day they were played."""
     days = {}
     for session in sessions():
+        # Matches played off the stream (since 2026-11-20) have no recording, so no place in Lives: their sessions
+        # have no outputs, and numbering them in would shift the live's matches (11-20: its first was "Partida 05").
+        if not session.get("outputs"):
+            continue
         for match in session["matches"]:
             day = datetime.fromisoformat((match.get("start") or match["at"]).replace("Z", "+00:00")).astimezone(TIME_ZONE).date().isoformat()
             days.setdefault(day, []).append(match)

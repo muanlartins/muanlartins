@@ -187,8 +187,10 @@ schedule and policy; its editing advice was overruled by him.
    "Videos\Lives\<date>\Thumb\rascunho <nome> A.jpg"` (the plate says CORTE DA LIVE · dd/mm by itself with
    `--folha`; a Live.mp4 second works as `--quadro` too, and a frame from elsewhere in the live is fine when it
    tells the story better: 11-17's cat video uses the cat in his lap from match 12); the pick goes to `brand/youtube/thumbnails/<date>-<nome>.jpg`. Picking is Luan's.
-4. **Publish**: Luan uploads the three files in Studio (private) and the ids go into the records; one a day from the
-   day after the live, 12:00 BRT (until Studio has audience data), the VOD at least a day after the last
+4. **Publish**: Luan uploads the three files in Studio (private) and the ids go into the records; since 11-20 two or
+   three a day at different hours, from the day after the live (Luan: "dado o ritmo de produção… 2 ou 3 vídeos por
+   dia dos cortes, em horários diferentes", with more shorts too and his produced videos, the analyses, starting;
+   11-20's: Sat 15:00 and 19:00, Sun 12:00; before that one a day at 12:00), the VOD at least a day after the last
    (`youtube.publish_at` in `content/lives/<date>.json`: `youtube.py live` schedules it, and the site keeps that live
    off its pages until a build after that moment, so its page never embeds a private video). Then
    `youtube.py video content/videos/<date>-<nome>.json --dry-run`, show him, apply (it makes the playlist "Rocket
@@ -205,8 +207,11 @@ loudnorm, not one gain; a jump in the recording (the PC went down) is listed in 
 its last real frame, a second before the join, and the stinger covers it); a match the dock caught late needs its
 start (`"inicio"`); the talk after a match ends at his first pause past the scoreboard unless `"fim"` keeps a line
 worth it ("estamos muito perto do Champion"). The dock's switch to the game comes 4–10 s before its recorded start,
-with a stinger; to Conversa 5.5 s after the end. Check with Luan that Rocket League's **Streamer Safe Music** is on:
-a claimed song in the VOD comes back in every video cut from it.
+with a stinger; to Conversa 5.5 s after the end. Rocket League's **Streamer Safe Music** is on (Luan, 11-20): a
+claimed song in the VOD would come back in every video cut from it. When the stream stayed on Conversa while a match
+was played (11-20, match 3: the dock didn't switch and he switched by hand 68 s in), `"jogo"` lays the game recording
+over that stretch, ending where the live's own stinger into the game covers the screen (OBS's log has the switch;
+plus 0.6 s); Luan picked that over leaving it or starting the match late.
 
 ## 3. YouTube
 

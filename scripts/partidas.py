@@ -17,6 +17,7 @@ the dock's events and approved by Luan; everything else is fixed here:
       "inicio": {"9": "1:08:52"},                        # a match's start, when the dock caught it late
       "fim": {"10": "1:21:18"},                          # a match's end, when the talk after it is worth keeping
       "saltos": ["1:10:24.512"],                         # where the recording jumps (OBS or the PC went down)
+      "jogo": {"3": "20:51.2-22:01.7"},                  # the game alone (Jogo.mp4) where the stream sat on Conversa
       "titulo": "Minha gata desligou o PC no meio da ranqueada",   # the hook; " | Rocket League 3v3 Diamante 3 (corte da live)" is added
       "descricao": "…",                                  # the description's first paragraph
       "publicar": "2026-11-18T21:00:00-03:00"            # when YouTube publishes it
@@ -38,6 +39,12 @@ outro, and a transition like the live's between them.
    with the stinger), so his reaction on camera stays and two stingers never come back to back. A jump in the recording ("saltos") ends the first piece at its last real frame and gets the
    transition too.
 3. **The outro** (Partes\\outro-editado.mp4, by montagem.py): the Twitch and the site, room for the end screen.
+
+When the stream stayed on Conversa while a match was played (11-20, match 3: the dock didn't switch and Luan switched
+by hand 68 s in), `"jogo"` puts the game recording (Jogo.mp4, the game alone) over that stretch, sound still the
+live's, so the match is whole and can be seen (Luan's pick, 11-20). End it where the live's own stinger into the game
+covers the screen (the scene switch in OBS's log plus 0.6 s): the cut back to the stream hides under it. The game's
+file is placed by picture (`jogo_offset`), since the names say its start only to the second.
 
 Sound: Live.mp4's track 1 (everything: game, his voice, Discord; never the music, which is on track 5 only), each
 part levelled to -14 LUFS like the intro and outro (loudnorm, as comentado.py). The recording itself is quiet: on
@@ -64,7 +71,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from content import LIVES, ROOT, brand_tables  # noqa: E402
 from live import FFMPEG  # noqa: E402
 from youtube import srt  # noqa: E402
-from thumb import STEP, TIME_ZONE, in_file, loudness, recording  # noqa: E402
+from thumb import STEP, TIME_ZONE, frame, in_file, loudness, recording, wall  # noqa: E402
 from windows import TEMP, VIDEOS, home, run, to_windows  # noqa: E402
 
 OUT = VIDEOS / "Partidas"
@@ -239,6 +246,20 @@ def last_frame(live, jump):
     return (max(times) + 1 / FPS) if times else jump
 
 
+def jogo_offset(date, at):
+    """Jogo.mp4's second minus Live.mp4's, measured at Live second `at` (where the stream shows the game): the files'
+    names give their starts to the second only (11-20: the game's file opened 0.77 s after its name's second), so the
+    picture settles it, the best match of the game's top centre (its clock and score) within ±1.5 s, in 0.1 s steps."""
+    live, game = recording(date, "Live"), recording(date, "Jogo")
+    guess = in_file(date, "Jogo", wall(date, at))
+    if guess is None:
+        sys.exit(f"O Jogo.mp4 não cobre {stamp(at)}.")
+    crop = lambda image: np.asarray(image.convert("L"), dtype=np.float32)[60:200, 150:330]
+    target = crop(frame(live, at, 480))
+    tries = [(float(((crop(frame(game, guess + k / 10, 480)) - target) ** 2).mean()), k / 10) for k in range(-15, 16)]
+    return guess - at + min(tries)[1]
+
+
 # --- The plan ----------------------------------------------------------------------------------------------
 
 def plan(roteiro):
@@ -275,10 +296,14 @@ def plan(roteiro):
         title = roteiro.get("capitulos", {}).get(str(n), f"Partida {n}")
         cuts = [t for t in sorted(jumps) if a < t < b]
         edges = [a, *cuts, b]
+        game = None
+        if str(n) in roteiro.get("jogo", {}):
+            g_from, g_to = (seconds(t) for t in roteiro["jogo"][str(n)].split("-"))
+            game = (g_from, g_to, jogo_offset(date, g_to + 8))
         for i in range(len(edges) - 1):
             end = last_frame(live, edges[i + 1]) if i < len(cuts) else edges[i + 1]
             parts.append({"kind": "partida", "label": f"partida {n}", "n": n, "title": title if i == 0 else None,
-                          "from": edges[i], "to": end, "result": result(p["match"])})
+                          "from": edges[i], "to": end, "result": result(p["match"]), "jogo": game})
     parts.append({"kind": "outro", "label": "outro", "from": 0.0, "to": duration(OUTRO)})
     return parts, problems
 
@@ -347,9 +372,19 @@ def render(roteiro, parts, out):
             graph.append(f"[{n}:v]setpts=PTS-STARTPTS,{video},{fit_v}[v{i}]")
             graph.append(f"[{n}:a]asetpts=PTS-STARTPTS,{audio},{fit_a}[a{i}]")
         n += 1
+        label = f"v{i}"
+        if p.get("jogo"):
+            # The game alone over the stretch where the stream sat on Conversa, placed on the video's clock.
+            g_from, g_to, offset = p["jogo"]
+            s, e = max(g_from, p["from"]) - p["from"], min(g_to, p["to"]) - p["from"]
+            if e > s:
+                args += ["-ss", f"{p['from'] + s + offset:.3f}", "-t", f"{e - s:.3f}",
+                         "-i", to_windows(recording(roteiro["data"], "Jogo"))]
+                graph.append(f"[{n}:v]setpts=PTS-STARTPTS+{s:.3f}/TB,{video}[g{i}]")
+                graph.append(f"[{label}][g{i}]overlay=eof_action=pass:enable='between(t,{s:.3f},{e:.3f})'[v{i}g]")
+                label, n = f"v{i}g", n + 1
         # The live's stinger over each join, in two halves anchored to the parts on either side: the first covers this
         # part's last STINGER_POINT s, the rest uncovers the next part's start.
-        label = f"v{i}"
         if i > 0:
             args += ["-c:v", "libvpx-vp9", "-ss", f"{STINGER_POINT}", "-i", to_windows(STINGER)]
             graph.append(f"[{n}:v]scale=1920:1080,format=yuva420p,setpts=PTS-STARTPTS[si{i}]")
@@ -425,6 +460,9 @@ def main():
                     f"{level_at(roteiro['data'], p['to']):4.0f} dB"
             extra = f"  {p['result']}" if p.get("title") else ""
             print(f"{p['label']:12} {length:7.1f} s  {edges}{extra}")
+            if p.get("jogo"):
+                g_from, g_to, offset = p["jogo"]
+                print(f"{'':12}            o jogo sozinho em {stamp(g_from)}–{stamp(g_to)} (Jogo.mp4 = Live.mp4 {offset:+.2f} s)")
         else:
             print(f"{p['label']:12} {length:7.1f} s")
     marks, total = chapters(roteiro, parts)
