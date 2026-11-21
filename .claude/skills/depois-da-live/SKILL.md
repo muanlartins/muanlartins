@@ -28,8 +28,22 @@ Luan, 2026-11-21: "a ideia é deixar tudo que eu for jogar registrado". What cha
   the summary as a draft for Luan. A live that switched games mid-way gets a chapter with `"game": "<id>"` where the
   other one starts (`{ "at": "1:30:00", "game": "rocket-league", "title": {…} }`): the site counts each game's hours
   from those, and lists the live under both.
-- **The goal:** mark what he finished in that live, `"done": true, "live": "<date>"` on each item (the chip links the
-  live), from his word or what the transcript makes plain ("peguei o coração!"); ask him when unsure.
+- **The goal comes from the game's save, never by hand** (Luan, 2026-11-21: deterministic). On a Celeste day, after
+  step 2 (so the live's page exists) and before the release (step 5):
+
+  ```sh
+  python3 scripts/celeste.py            # what changed in the save: items done or undone, the totals
+  python3 scripts/celeste.py --apply    # writes them into content/diversos.json, which goes in the release
+  ```
+
+  It reads Steam's `Celeste/Saves/<slot>.celeste` (only reads it; the slot is Celeste's `save.slot`, which only Luan
+  can say: while it's null the script says so and changes nothing, so ask him), ticks each goal item by its `save`
+  key (the script's docstring has the keys), dates what turned done and links it to that day's live, and keeps the
+  totals the page shows (strawberries, deaths, time in the game). Off-stream sessions count too: run it any day he
+  played. The save's `Name` is a person's name: never print or commit it (slot 0 is someone else's file).
+  Any game that later gets a reader of its own (`scripts/<jogo>.py`, the same shape: dry run, `--apply`, `save` keys
+  on the items) is run at this same point. A game without one: mark the items by hand from his word, with `date`
+  and `live`.
 - **2b** works the same (his line from the live as the hook). The title template is only "<Jogo> ao vivo": write one
   from the day's story for him to approve.
 - **2c doesn't apply** (no ranked matches): no match videos, so the VOD isn't held back (no `youtube.publish_at`)
@@ -299,8 +313,8 @@ during the live (its log, `~/.cache/muanlartins/valorant.log`, says "inventário
 
 ## 5. Release
 
-`pnpm lint`, `pnpm build` and `pnpm build:en`, delete `out/`. Commit (imperative, short, no names) and **ask
-Luan before pushing**: a push to `main` is a release. Then `gh run watch` and check the page live.
+`pnpm lint`, `pnpm build` and `pnpm build:en`, delete `out/` (on a Celeste day, `celeste.py --apply` first: "A day
+of another game"). Commit (imperative, short, no names) and **ask Luan before pushing**: a push to `main` is a release. Then `gh run watch` and check the page live.
 
 ## Things to keep in mind
 

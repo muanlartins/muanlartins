@@ -13,6 +13,7 @@ import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const MAIN = games.map((game) => game.id)
+const number = (n: number) => n.toLocaleString("pt-BR")
 
 const T = {
   next: "Próxima live",
@@ -32,6 +33,11 @@ const T = {
   done: "Feito: ",
   missing: "Falta: ",
   doneIn: (date: string) => `na live de ${shortDate(date)}`,
+  doneOn: (date: string) => `em ${shortDate(date)}`,
+  strawberries: "Morangos",
+  deaths: "Mortes",
+  inGame: "No jogo",
+  fromSave: (date: string) => `Morangos, mortes, tempo e meta lidos do save do jogo em ${shortDate(date)}.`,
   empty: "Nenhum jogo aqui ainda. Cada jogo novo das lives entra nesta lista.",
   credits: "Cada jogo e a sua capa são de quem fez o jogo. As capas vêm da Twitch, e o site não é oficial.",
 }
@@ -116,20 +122,29 @@ export function DiversosGamePage({ game, played }: { game: OtherGame; played: Pl
   const last = played.lives[0]?.live.date
   const line = lineOf(game)
   const description = line ?? T.mine(game.name)
+  const totals = game.save?.totals
   const stats = [
     { label: T.livesTitle, value: String(played.lives.length) },
     { label: T.played, value: played.seconds ? hours(played.seconds) : T.none },
     { label: T.lastLive, value: last ? shortDate(last) : T.none },
+    // From the game's own save, when it's read (scripts/celeste.py).
+    ...(totals
+      ? [
+          { label: T.strawberries, value: number(totals.strawberries) },
+          { label: T.deaths, value: number(totals.deaths) },
+          { label: T.inGame, value: hours(totals.seconds) },
+        ]
+      : []),
   ]
   return (
     <>
       <PageIntro title={game.name} description={description} />
 
       <div className="mt-12 space-y-16">
-        <Card className="flex items-center gap-5">
-          <GameCover game={game} className="w-24 sm:w-28" />
+        <Card className="flex flex-col gap-5 sm:flex-row sm:items-center">
+          <GameCover game={game} className="w-20 sm:w-28" />
           <div className="min-w-0 flex-1 space-y-4">
-            <dl className="grid grid-cols-3 gap-3">
+            <dl className="grid grid-cols-3 gap-x-3 gap-y-4">
               {stats.map((stat) => (
                 <div key={stat.label}>
                   <dt className="eyebrow text-muted">{stat.label}</dt>
@@ -137,6 +152,7 @@ export function DiversosGamePage({ game, played }: { game: OtherGame; played: Pl
                 </div>
               ))}
             </dl>
+            {game.save?.read && <p className="text-[13px] text-muted">{T.fromSave(game.save.read)}</p>}
             <DiversosNext main={MAIN} categoryId={game.categoryId} name={game.category} prefix={`${T.next}: `} className="block text-[13px] text-muted" />
           </div>
         </Card>
@@ -210,7 +226,14 @@ function GoalChip({ item }: { item: GoalItem }) {
     </>
   )
   const className = cn("inline-flex items-center gap-1.5 px-2 py-1 text-[14px]", item.done ? "bg-klein text-paper" : "bg-klein/[0.06] text-ink")
-  if (!item.live) return <span className={className}>{inner}</span>
+  if (!item.live) {
+    return (
+      <span className={className} title={item.date ? `Feito ${T.doneOn(item.date)}` : undefined}>
+        {inner}
+        {item.date && <span className="sr-only">, {T.doneOn(item.date)}</span>}
+      </span>
+    )
+  }
   return (
     <Link href={livePath(item.live)} title={`Feito ${T.doneIn(item.live)}`} className={cn(className, "transition-colors hover:bg-navy")}>
       {inner}
