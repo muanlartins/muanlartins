@@ -36,11 +36,8 @@ export function LivePage({
 
   return (
     <>
-      <Link
-        href={channelPath("lives")}
-        className="mb-6 inline-flex items-center gap-1.5 text-[14px] text-muted transition-colors hover:text-klein"
-      >
-        <ArrowLeft className="h-4 w-4" />
+      <Link href={channelPath("lives")} className="mb-6 inline-flex items-center gap-1.5 text-[13px] font-medium text-muted transition-colors hover:text-klein">
+        <ArrowLeft aria-hidden className="h-4 w-4" />
         {T.all}
       </Link>
       <PageIntro title={longDate(live.date)} description={localize(live.summary)}>

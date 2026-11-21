@@ -54,24 +54,57 @@ export const channel = {
   lives: {
     title: { pt: "Lives", en: "Streams" },
     description: {
-      pt: "As lives inteiras, com capítulos, partidas e transcrição.",
-      en: "Every stream in full, with chapters, matches and a transcript.",
+      pt: "A de agora, as próximas e as anteriores inteiras, com capítulos, partidas e transcrição.",
+      en: "The one on now, the next ones and every past stream in full, with chapters, matches and a transcript.",
+    },
+    past: { pt: "Lives anteriores", en: "Past streams" },
+    /** The past lives' list when it has none yet. */
+    noPast: {
+      pt: "Nenhuma live por aqui ainda. Cada uma aparece quando sai inteira no YouTube.",
+      en: "No streams here yet. Each one shows up once it's out in full on YouTube.",
     },
     /** When the lives are; the times themselves are the agenda Luan edits at /canal/agenda (lib/agenda.ts). */
     agenda: {
       title: { pt: "Agenda", en: "Schedule" },
       zone: { pt: "Horário de Brasília", en: "Brasília time" },
-      yours: { pt: "No seu horário", en: "In your time" },
       next: { pt: "Próxima live", en: "Next stream" },
-      now: { pt: "Agora, no horário da live", en: "Now, in stream hours" },
+      /** After the zone, when the viewer's clock differs: "em Lisboa, 3h a mais". */
+      ahead: { pt: "em {city}, {n} a mais", en: "{n} ahead in {city}" },
+      behind: { pt: "em {city}, {n} a menos", en: "{n} behind in {city}" },
+      /** The live on air, by the agenda's clock. */
+      now: { pt: "agora", en: "now" },
+      onAir: { pt: "Ao vivo agora", en: "Live now" },
+      /** Under the next live's day and time: "Até 16h30 · Rocket League". */
+      until: { pt: "Até {end}", en: "Until {end}" },
+      /** Badges beside a live in the week: the next one, the one on air. */
+      nextBadge: { pt: "Próxima", en: "Next" },
+      onAirBadge: { pt: "Ao vivo", en: "Live" },
       today: { pt: "hoje", en: "today" },
       tomorrow: { pt: "amanhã", en: "tomorrow" },
       /** A day with no live. */
-      none: { pt: "sem live", en: "no stream" },
-      empty: { pt: "Nenhuma live marcada nos próximos dias.", en: "No stream scheduled in the coming days." },
-      unavailable: { pt: "Não deu para carregar a agenda agora.", en: "The schedule couldn't be loaded right now." },
-      full: { pt: "Agenda completa", en: "Full schedule" },
+      none: { pt: "Sem live", en: "No stream" },
+      /** The lives page's line while the channel is offline: "A próxima é segunda-feira, 21h, de Valorant." */
+      offline: { pt: "Não estou ao vivo agora.", en: "I'm not live right now." },
+      nextIs: { pt: "A próxima é {when}, de {game}.", en: "The next one is {when}, {game}." },
+      /** The live's time came and the stream isn't up yet. */
+      startingNow: { pt: "A live de {game} já vai começar.", en: "The {game} stream is about to start." },
+      empty: {
+        pt: "Nenhuma live marcada nesses dias. Quando eu marcar, ela aparece aqui.",
+        en: "No stream scheduled for these days. When I plan one, it shows up here.",
+      },
+      unavailable: { pt: "Não deu pra carregar a agenda agora.", en: "The schedule couldn't be loaded right now." },
+      /** The browser couldn't ask for the agenda, so the one shown is the site's last release's. */
+      stale: {
+        pt: "Não deu pra buscar a agenda de agora: essa pode estar desatualizada.",
+        en: "Couldn't fetch the current schedule: this one may be out of date.",
+      },
+      full: { pt: "Ver a agenda", en: "See the schedule" },
       subscribe: { pt: "Adicionar à sua agenda", en: "Add to your calendar" },
+      subscribeHint: {
+        pt: "Cada live entra no seu calendário e muda sozinha quando eu mudo aqui.",
+        en: "Each stream goes into your calendar and changes by itself when I change it here.",
+      },
+      google: { pt: "Google Agenda", en: "Google Calendar" },
       otherApps: { pt: "Apple e outros", en: "Apple and others" },
       /** The calendar's name, and each event's with its game after a colon. */
       calendar: { pt: "Live do muanlartins", en: "muanlartins live" },
@@ -102,18 +135,16 @@ export const channel = {
       pt: "Quando é cada live, de qual jogo e o que vai rolar, dia a dia.",
       en: "When each stream is, of which game and what's on, day by day.",
     },
-    previous: { pt: "Mês anterior", en: "Previous month" },
-    next: { pt: "Próximo mês", en: "Next month" },
-    noLive: { pt: "Sem live neste dia.", en: "No stream this day." },
+    /** The week shown: the first one, then its dates ("28/11 a 04/12"). */
+    week: { pt: "Próximos 7 dias", en: "Next 7 days" },
+    weekRange: { pt: "{from} a {to}", en: "{from} to {to}" },
+    previous: { pt: "Dias anteriores", en: "Earlier days" },
+    next: { pt: "Próximos dias", en: "Later days" },
     upNext: { pt: "Próxima live", en: "Next stream" },
-    seeDay: { pt: "Ver o dia no calendário", en: "See the day on the calendar" },
     goals: { pt: "Meta do Pix", en: "Pix goal" },
-    seeMural: { pt: "Ver no mural", en: "See it on the mural" },
+    seeMural: { pt: "Ver o mural", en: "See the mural" },
     after: { pt: "Depois", en: "Then" },
-    /** On the calendar: a goal's first and last day. */
-    goalStarts: { pt: "nova meta", en: "new goal" },
-    goalEnds: { pt: "fim da meta", en: "goal ends" },
-    /** The day picked: "Começa a meta Natal". */
+    /** A goal's first and last day, on the day it happens: "Começa a meta Natal". */
     goalStartsDay: { pt: "Começa a meta", en: "The goal starts:" },
     goalEndsDay: { pt: "Último dia da meta", en: "Last day of the goal" },
   },
