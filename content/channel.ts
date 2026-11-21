@@ -9,53 +9,47 @@ export const channel = {
     pt: "Aprendendo jogos com o método científico, ao vivo na Twitch e em vídeo no YouTube.",
     en: "Learning games with the scientific method, live on Twitch and on video on YouTube.",
   },
+  /** Under the live's block: the other places, none of them live. */
   where: {
-    twitch: { pt: "Ao vivo", en: "Live" },
-    youtube: { pt: "Vídeos e lives", en: "Videos and streams" },
-    discord: { pt: "A comunidade", en: "The community" },
+    youtube: { pt: "Vídeos", en: "Videos" },
+    discord: { pt: "Pra conversar", en: "To talk" },
+    agenda: { pt: "Os horários", en: "The times" },
   },
-  /** The home's first block: the live on air, or the next one. */
+  /** The home's first block: the live on Twitch now, or a countdown to the next. */
   next: {
     title: { pt: "Próxima live", en: "Next stream" },
     onAir: { pt: "Ao vivo agora", en: "Live now" },
     watch: { pt: "Assistir aqui", en: "Watch here" },
-    schedule: { pt: "Agenda", en: "Schedule" },
+    open: { pt: "Abrir na Twitch", en: "Open on Twitch" },
+    follow: { pt: "Seguir na Twitch", en: "Follow on Twitch" },
+    /** For screen readers, before the time left: "Próxima live em 2 dias e 3 horas". */
+    countdown: { pt: "Próxima live em", en: "Next stream in" },
+    /** The agenda's time has come but Twitch isn't live yet. */
+    soon: { pt: "A qualquer momento", en: "Any moment now" },
+    none: { pt: "Nenhuma live marcada nos próximos dias.", en: "No stream scheduled in the coming days." },
+    error: { pt: "Não deu pra carregar a agenda agora.", en: "The schedule couldn't be loaded right now." },
+    retry: { pt: "Tentar de novo", en: "Try again" },
   },
 
-  /** What happens in a live, and the viewer's part in it: one line each. */
-  inside: {
-    title: { pt: "Na live", en: "In the live" },
-    crowd: {
-      text: { pt: "Quem está no chat vira torcedor na arquibancada.", en: "Everyone in the chat becomes a fan in the stand." },
-      cta: { pt: "Monte o seu torcedor", en: "Build your fan" },
-    },
-    moments: [
-      {
-        icon: "party",
-        title: { pt: "Gol ou round nosso", en: "Our goal or round" },
-        text: { pt: "Festa, stickers e uma dedicatória sorteada.", en: "A party, stickers and a dedication drawn by lot." },
-      },
-      {
-        icon: "chat",
-        title: { pt: "Comandos", en: "Commands" },
-        text: { pt: "!pula, !danca, !ola e mais: a live pelo chat.", en: "!pula, !danca, !ola and more: the stream from the chat." },
-        page: "comandos",
-      },
-      {
-        icon: "duel",
-        title: { pt: "Duelo de bolinhas", en: "Ball duel" },
-        text: { pt: "Dois do chat, sorteados, lutam no canto da tela.", en: "Two from the chat, drawn by lot, fight in the corner." },
-        page: "minijogos",
-      },
-      {
-        icon: "ranked",
-        title: { pt: "Ranqueadas", en: "Ranked" },
-        text: { pt: "Ranque e placar na tela; cada partida no site.", en: "Rank and score on screen; every match on the site." },
-      },
-    ],
+  /** The tiles of the channel's other pages, each with a line under its picture. */
+  more: {
+    title: { pt: "Mais do canal", en: "More of the channel" },
+    profile: { pt: "Monta o seu torcedor pra arquibancada.", en: "Build your fan for the stand." },
+    pix: { pt: "Sua mensagem na tela, na voz que você escolher.", en: "Your message on screen, in the voice you pick." },
+    minigames: { pt: "Duelo e corrida de bolinhas com o chat.", en: "Ball duels and races with the chat." },
+    agenda: { pt: "Quando é cada live, dia a dia.", en: "When each stream is, day by day." },
+    /** "Última: 17/11 · Rocket League". */
+    lives: { pt: "Última: {d}", en: "Latest: {d}" },
+    livesNone: { pt: "As lives inteiras, com capítulos.", en: "Every stream in full, with chapters." },
+    mural: { pt: "Quem manda Pix e quem mais assiste.", en: "Who sends a Pix and who watches the most." },
+    commands: { pt: "O que dá pra fazer pelo chat.", en: "What you can do from the chat." },
+    backstage: { pt: "Como a marca, a live e o site são feitos.", en: "How the brand, the stream and the site are made." },
+    /** "Novo: Estatísticas da partida na tela". */
+    roadmap: { pt: "Novo: {t}", en: "New: {t}" },
+    roadmapNone: { pt: "O que vem por aí e o que já saiu.", en: "What's coming and what's out." },
+    /** Over the latest feature's picture. */
+    latest: { pt: "Novo", en: "New" },
   },
-
-  more: { pt: "Mais do canal", en: "More of the channel" },
 
   lives: {
     title: { pt: "Lives", en: "Streams" },
@@ -91,26 +85,14 @@ export const channel = {
 
   pix: {
     title: { pt: "Pix na live", en: "Pix on the live" },
-    description: {
-      pt: "Sua mensagem na tela, na voz que você escolher.",
-      en: "Your message on screen, in the voice you pick.",
-    },
   },
 
   mural: {
     title: { pt: "Mural", en: "Mural" },
-    description: {
-      pt: "Quem apoiou com Pix, meta por meta.",
-      en: "Who supported with Pix, goal by goal.",
-    },
   },
 
   profile: {
     title: { pt: "Perfil", en: "Profile" },
-    description: {
-      pt: "Seu torcedor, seu Σ e seus badges.",
-      en: "Your fan, your Σ and your badges.",
-    },
   },
 
   /** /canal/agenda: the lives' calendar, which the channel's account plans right there. */
@@ -167,7 +149,6 @@ export const channel = {
       pt: "Os jogos que rolam no canto da live com quem está no chat. Escolha como você joga, veja quem está ganhando e assista de novo a qualquer luta.",
       en: "The games running in the corner of the stream with whoever is in the chat. Pick how you play, see who's winning and watch any fight again.",
     },
-    tile: { pt: "O duelo de bolinhas e a corrida: sua classe, os rankings e os replays.", en: "The ball duel and the race: your class, the rankings and the replays." },
     /** The marble race (lib/corrida.ts). */
     race: {
       title: { pt: "Corrida de bolinhas", en: "Marble race" },
@@ -462,8 +443,6 @@ export const channel = {
       pt: "O que vem por aí e tudo o que já entrou no canal, no site, na live e nos vídeos, com o crédito de quem deu cada ideia.",
       en: "What comes next and everything already in the channel, on the site, the stream and the videos, credited to whoever had each idea.",
     },
-    /** The line under its tile on the channel's home. */
-    tile: { pt: "O que vem por aí e tudo o que já entrou.", en: "What comes next and everything already in." },
     community: {
       title: { pt: "Ideias da comunidade", en: "Ideas from the community" },
       text: {
