@@ -32,6 +32,10 @@ State in ~/.cache/muanlartins/rocket-league.json (the last rank in each mode, th
 
     GET /eventos   server-sent events: {"tipo": "pontos", "partida": <the match's guid>, "modo": "2v2", "mmr": 1033,
                    "pontos": 9 (or null), "tier": "diamond-3", "divisao": 2}
+    GET /          the panel (scripts/rocket_league_painel.html; Luan, 2026-11-20: to see the matches as the OBS dock
+                   shows them): the game open or not, the rank in each mode, the session not yet published, the last
+                   one published and the log's latest lines, read from
+    GET /estado    that, as JSON
 """
 import argparse
 import base64
@@ -59,6 +63,8 @@ ROOT = Path(__file__).resolve().parent.parent
 POWERSHELL = "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
 PORT = 8795
 STATE = Path.home() / ".cache" / "muanlartins" / "rocket-league.json"
+LOG = Path.home() / ".cache" / "muanlartins" / "rocket-league.log"  # where the Startup launcher sends this one's output
+PAINEL = Path(__file__).resolve().parent / "rocket_league_painel.html"
 ALIADOS = ROOT / "public" / "stream" / "aliados.json"
 TZ = ZoneInfo("America/Sao_Paulo")
 ORIGINS = {"https://muanlartins.com.br", "https://muanlartins.com", "http://localhost:3000", "http://localhost:8130"}
@@ -367,6 +373,7 @@ class Game:
         self.match = None
         self.finished: set[str] = set()
         self.closed_at: float | None = None
+        self.open = False  # statsapi.ps1 has the game's socket (for the panel)
         self.unread: dict[str, dict | None] = {}  # each mode's last match, while its points are unknown
 
     def player_key(self, p):
@@ -560,6 +567,7 @@ class Game:
         with state_lock:
             if self.state.get("sessao") and self.state["sessao"]["id"] == body["id"]:
                 self.state["sessao"] = None
+            self.state["publicada"] = {"id": body["id"], "partidas": len(body["matches"]), "em": iso(), "por": why}
             save_state(self.state)
 
     def tick(self):
@@ -627,9 +635,11 @@ def relay(game: Game, show=False):
             for message in messages:
                 if message == "#aberto":
                     game.closed_at = None
+                    game.open = True
                     log("Rocket League aberto")
                 elif message == "#fechado":
                     game.closed_at = time.time()
+                    game.open = False
                     game.match = None
                     buffer = ""
                     log("Rocket League fechado")
@@ -643,6 +653,30 @@ def relay(game: Game, show=False):
         proc.wait()
         log("o repasse da Stats API parou; de novo em 5 s")
         time.sleep(5)
+
+
+GAME: Game | None = None  # the one being followed, for the panel
+
+
+def estado() -> dict:
+    """What the panel shows: the game, the ranks, the sessions, the log's latest lines (its last 12 KB)."""
+    game = GAME
+    with state_lock:
+        state = json.loads(json.dumps(game.state if game else {}))
+    m = game and game.match
+    on = None
+    if m and m.get("started") and m.get("playlist"):
+        on = {"modo": PLAYLISTS.get(m["playlist"]) or "?", "ranqueada": m["playlist"] in RANKED,
+              "desde": iso(m["start"]) if m.get("start") else None}
+    lines = []
+    try:
+        with LOG.open("rb") as f:
+            f.seek(max(0, f.seek(0, 2) - 12000))
+            lines = f.read().decode("utf-8", "replace").splitlines()[1:][-60:]
+    except OSError:
+        pass
+    return {"aberto": bool(game and game.open), "partida": on, "ranks": state.get("ranks"), "sessao": state.get("sessao"),
+            "publicada": state.get("publicada"), "log": lines}
 
 
 class Request(BaseHTTPRequestHandler):
@@ -660,7 +694,23 @@ class Request(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path != "/eventos":
+        path = self.path.split("?")[0]
+        if path == "/space-grotesk.ttf":  # the brand's font for the panel, from the overlays' own copy
+            body = (ROOT / "public" / "stream" / "space-grotesk.ttf").read_bytes()
+            self.headers_for(200, "font/ttf")
+            self.send_header("content-length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        if path in ("/", "/estado"):
+            body = PAINEL.read_bytes() if path == "/" else json.dumps(estado(), ensure_ascii=False).encode()
+            self.headers_for(200, "text/html; charset=utf-8" if path == "/" else "application/json")
+            self.send_header("cache-control", "no-store")
+            self.send_header("content-length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        if path != "/eventos":
             self.headers_for(404)
             self.end_headers()
             return
@@ -710,6 +760,8 @@ def main():
     server = ThreadingHTTPServer(("127.0.0.1", PORT), Request)  # a second copy stops here
     server.daemon_threads = True
     game = Game(publish=not args.ver)
+    global GAME
+    GAME = game
     ocr()
 
     def warm():
@@ -730,7 +782,7 @@ def main():
                 log("tick:", type(error).__name__, error)
 
     threading.Thread(target=ticking, daemon=True).start()
-    log(f"Rocket League em http://127.0.0.1:{PORT}/eventos")
+    log(f"Rocket League em http://127.0.0.1:{PORT}/eventos (o painel em http://localhost:{PORT}/)")
     server.serve_forever()
 
 

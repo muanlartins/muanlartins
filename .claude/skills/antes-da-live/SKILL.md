@@ -47,6 +47,9 @@ made his stream stutter: OBS skipped hundreds of frames and he felt it in the ga
   the window in front, so an empty corner while he's on the desktop is right.
   An OBS that opened meanwhile has the "Filtros" source and dock on an error page: refresh the source
   (`PressInputPropertiesButton` `refreshnocache` on "Filtros") and have Luan reload the dock (or reopen OBS).
+- The camera is off while OBS is neither streaming nor recording (the Efeitos dock turns it on when the stream starts,
+  in a second or two, under Começando). A black camera on the air means the dock isn't connected: check it says "OBS
+  conectado", or press "Ativar" in the Câmera source's properties.
 - Never restart or close OBS, or change scenes/inputs, while he's live unless he asks for that change.
 - The same goes, more mildly, whenever OBS is open: a 9-minute ffmpeg encode on 11-05 left OBS with 35% of its
   render frames skipped while it sat idle.
