@@ -3,35 +3,43 @@
  "nome": "limpei as formiguinhas",
  "jogo": "rocket-league",
  "post": "Você faz o gol, eu limpo as formiguinhas 🧹🐜 #rocketleague",
+ "extra": "scripts/efeitos/2026-11-20-formiguinhas.py",
  "destaques": [
   "formiguinhas",
   "defensores",
   "pancada",
   "flip",
   "octane",
-  "cabeça"
+  "cabeça",
+  "sujeira"
  ],
  "trechos": [
   {
-   "de": 4269.7,
-   "ate": 4271.6,
+   "de": 4269.68,
+   "ate": 4272.05,
    "camera": "jogo",
-   "seco": true
+   "seco": "de"
   },
   {
    "de": 4255.2,
-   "ate": 4272.8,
+   "ate": 4264.25,
    "camera": "jogo",
    "entrada": "zoom"
   },
   {
-   "de": 4360.3,
-   "ate": 4363.7,
+   "de": 4265.38,
+   "ate": 4273.29,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 4358.95,
+   "ate": 4363.05,
    "camera": "jogo"
   },
   {
-   "de": 4377.2,
-   "ate": 4381.6,
+   "de": 4377.12,
+   "ate": 4382.22,
    "camera": "jogo"
   }
  ],
@@ -40,54 +48,90 @@
    "LIMPEI AS",
    "FORMIGUINHAS"
   ],
-  "de": 4269.8,
-  "ate": 4271.6,
-  "trecho": 0
+  "de": 4269.72,
+  "ate": 4272.05,
+  "trecho": 0,
+  "y": 1030
  },
+ "rotulos": [
+  {
+   "linhas": [
+    "110 KM/H"
+   ],
+   "de": 4360.46,
+   "ate": 4361.9,
+   "trecho": 3
+  }
+ ],
  "impactos": [
   {
    "em": 4269.85,
    "onde": "camera",
    "soco": {
-    "z": 1.25,
+    "z": 1.22,
     "entra": 3,
-    "segura": 1.6,
+    "segura": 1.7,
     "sai": 8
    },
    "trecho": 0
   },
   {
-   "em": 4258.1,
+   "em": 4269.85,
+   "onde": "jogo",
+   "tremor": 12,
+   "chute": 0.05,
+   "trecho": 0
+  },
+  {
+   "em": 4257.81,
+   "flash": "branco",
+   "forca": 0.35,
+   "onde": "jogo",
+   "tremor": 10,
+   "chute": 0.06
+  },
+  {
+   "em": 4259.85,
    "flash": "branco",
    "forca": 0.4,
    "onde": "jogo",
-   "tremor": 10,
+   "tremor": 12,
    "chute": 0.08
   },
   {
-   "em": 4260.2,
+   "em": 4261.77,
    "flash": "branco",
-   "forca": 0.45,
-   "onde": "jogo",
-   "tremor": 12,
+   "forca": 0.5,
+   "tremor": 14,
    "chute": 0.1
   },
   {
-   "em": 4262.1,
-   "flash": "branco",
-   "forca": 0.55,
-   "tremor": 14,
-   "chute": 0.12
+   "em": 4269.85,
+   "onde": "camera",
+   "soco": {
+    "z": 1.22,
+    "entra": 3,
+    "segura": 1.7,
+    "sai": 8
+   },
+   "trecho": 2
   },
   {
-   "em": 4360.8,
+   "em": 4269.85,
+   "onde": "jogo",
+   "tremor": 12,
+   "chute": 0.05,
+   "trecho": 2
+  },
+  {
+   "em": 4360.44,
    "flash": "branco",
    "forca": 0.6,
    "tremor": 16,
    "chute": 0.14
   },
   {
-   "em": 4361.0,
+   "em": 4360.6,
    "onde": "camera",
    "soco": {
     "z": 1.25,
@@ -97,169 +141,178 @@
    }
   },
   {
-   "em": 4377.4,
+   "em": 4377.38,
    "onde": "camera",
    "soco": {
     "z": 1.3,
     "entra": 4,
-    "segura": 3.6,
+    "segura": 2.1,
     "sai": 10
    }
   },
   {
-   "em": 4269.9,
+   "em": 4381.38,
    "onde": "camera",
-   "soco": {
-    "z": 1.25,
-    "entra": 3,
-    "segura": 1.6,
-    "sai": 8
-   },
-   "trecho": 1
-  }
- ],
- "figurinhas": [
-  {
-   "arquivo": "Shorts/Partes/figurinhas/vassoura.png",
-   "de": 4269.85,
-   "ate": 4271.6,
-   "x": 810,
-   "y": 430,
-   "altura": 560,
-   "trecho": 0
-  },
-  {
-   "arquivo": "Shorts/Partes/figurinhas/vassoura.png",
-   "de": 4269.95,
-   "ate": 4273.2,
-   "x": 810,
-   "y": 430,
-   "altura": 560,
-   "trecho": 1
+   "flash": "branco",
+   "forca": 0.3,
+   "flash_tau": 0.08,
+   "tremor": 12,
+   "chute": 0.06
   }
  ],
  "sons": [
   [
-   4258.1,
+   4257.81,
    "hit",
    -9
   ],
   [
-   4260.2,
+   4259.85,
    "hit",
    -9
   ],
   [
-   4262.1,
+   4261.77,
    "impact-boom",
    -8
   ],
   [
-   4262.2,
+   4261.85,
    "palmas",
    -16
   ],
   [
-   4360.8,
+   4360.44,
    "impact-boom",
    -7
   ],
   [
-   4377.5,
+   4360.46,
+   "hit",
+   -12
+  ],
+  [
+   4377.42,
+   "whoosh_curto",
+   -11
+  ],
+  [
+   4378.22,
+   "whoosh_curto",
+   -11
+  ],
+  [
+   4381.38,
    "bonk",
-   -8
-  ],
-  [
-   4378.0,
-   "bonk",
-   -8
-  ],
-  [
-   4380.3,
-   "bonk",
-   -7
-  ],
-  [
-   4269.85,
-   "pop",
-   -10,
-   {
-    "trecho": 0
-   }
-  ],
-  [
-   4270.2,
-   "whoosh",
-   -10,
-   {
-    "trecho": 0
-   }
-  ],
-  [
-   4269.95,
-   "pop",
-   -10,
-   {
-    "trecho": 1
-   }
-  ],
-  [
-   4270.3,
-   "whoosh",
-   -10,
-   {
-    "trecho": 1
-   }
+   -9
   ]
  ],
  "capa": {
   "quadro": 4265.0,
   "origem": "camera",
   "fundo": 4262.3,
-  "texto": "LIMPEI AS|FORMIGUINHAS"
+  "texto": "LIMPEI AS|FORMIGUINHAS",
+  "figurinha": {
+   "arquivo": "Shorts/Partes/formiguinhas/capa-vassoura.png",
+   "x": 560,
+   "y": 950,
+   "altura": 660
+  }
  },
- "corrigir": [
-  [
-   4270.02,
-   "Limpei as"
-  ]
- ],
  "trocas": {
   "Doctane": "do Octane"
  },
  "palavras": [
   [
-   4377.45,
-   4377.7,
+   4269.85,
+   4269.99,
+   "Pum!"
+  ],
+  [
+   4269.99,
+   4270.33,
+   "Limpei"
+  ],
+  [
+   4270.33,
+   4270.48,
+   "as"
+  ],
+  [
+   4270.48,
+   4271.25,
+   "formiguinhas"
+  ],
+  [
+   4271.25,
+   4271.36,
+   "do"
+  ],
+  [
+   4271.36,
+   4271.83,
+   "campo."
+  ],
+  [
+   4272.83,
+   4273.05,
+   "hein?"
+  ],
+  [
+   4377.53,
+   4377.72,
+   "Flip!"
+  ],
+  [
+   4378.25,
+   4378.55,
    "Flip!"
   ]
  ],
- "borrar": [
-  {
-   "x": 180,
-   "y": 1680,
-   "w": 900,
-   "h": 240,
-   "de": 4269.7,
-   "ate": 4271.6,
-   "trecho": 0
-  },
-  {
-   "x": 180,
-   "y": 1680,
-   "w": 900,
-   "h": 240,
-   "de": 4262.4,
-   "ate": 4273.29,
-   "trecho": 1
-  },
-  {
-   "x": 180,
-   "y": 1680,
-   "w": 900,
-   "h": 240,
-   "de": 4361.2,
-   "ate": 4363.7
-  }
+ "corrigir": [
+  [
+   4269.93,
+   ""
+  ],
+  [
+   4270.09,
+   ""
+  ],
+  [
+   4271.08,
+   ""
+  ],
+  [
+   4271.55,
+   ""
+  ],
+  [
+   4269.91,
+   ""
+  ],
+  [
+   4270.18,
+   ""
+  ],
+  [
+   4270.56,
+   ""
+  ],
+  [
+   4270.81,
+   ""
+  ],
+  [
+   4271.25,
+   ""
+  ],
+  [
+   4271.33,
+   ""
+  ],
+  [
+   4377.76,
+   ""
+  ]
  ]
 }

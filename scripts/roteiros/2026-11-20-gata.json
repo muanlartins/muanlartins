@@ -3,6 +3,7 @@
  "nome": "a gata me deu sorte",
  "jogo": "rocket-league",
  "filtro": false,
+ "extra": "scripts/efeitos/2026-11-20-gata.py",
  "post": "Dessa vez a minha gata me deu sorte 🐱⚽ #rocketleague",
  "destaques": [
   "filha",
@@ -22,13 +23,14 @@
    "de": 8977.6,
    "ate": 9000.75,
    "camera": "jogo",
-   "entrada": "zoom"
+   "entrada": "seco"
   },
   {
    "de": 9005.5,
    "ate": 9010.35,
    "camera": "jogo",
-   "seco": "ate"
+   "seco": "ate",
+   "entrada": "seco"
   }
  ],
  "titulo": {
@@ -64,23 +66,13 @@
    ],
    "de": 8998.4,
    "ate": 9000.7
-  },
-  {
-   "linhas": [
-    "A GATA ME",
-    "DEU SORTE"
-   ],
-   "de": 9008.6,
-   "ate": 9010.35,
-   "trecho": 2
   }
  ],
  "impactos": [
   {
    "em": 9008.5,
-   "flash": "quente",
-   "forca": 0.5,
-   "chute": 0.1,
+   "onde": "jogo",
+   "chute": 0.08,
    "trecho": 0
   },
   {
@@ -94,7 +86,7 @@
    }
   },
   {
-   "em": 8990.3,
+   "em": 8990.42,
    "flash": "branco",
    "forca": 0.6,
    "tremor": 16,
@@ -117,53 +109,19 @@
    "onde": "camera"
   }
  ],
- "zoom": [
-  {
-   "de": 9006.0,
-   "ate": 9010.35,
-   "onde": "camera",
-   "z": 1.18,
-   "trecho": 2
-  }
- ],
- "borrar": [
-  {
-   "de": 8990.6,
-   "ate": 9000.8,
-   "x": 180,
-   "y": 1680,
-   "w": 900,
-   "h": 240
-  }
- ],
  "sons": [
-  [
-   9008.5,
-   "coro",
-   -12
-  ],
-  [
-   9008.5,
-   "impact-boom",
-   -12
-  ],
   [
    8977.7,
    "suspense",
    -18
   ],
   [
-   8984.9,
-   "tambor",
-   -16
-  ],
-  [
-   8990.3,
+   8990.42,
    "impact-boom",
    -7
   ],
   [
-   8990.3,
+   8990.42,
    "palmas",
    -14
   ],
@@ -178,9 +136,9 @@
    -14
   ],
   [
-   9008.6,
-   "coro",
-   -11,
+   9005.85,
+   "palmas",
+   -16,
    {
     "trecho": 2
    }
@@ -190,7 +148,13 @@
   "quadro": 9010.0,
   "origem": "camera",
   "fundo": 8990.5,
-  "texto": "A GATA ME|DEU SORTE"
+  "texto": "A GATA ME|DEU SORTE",
+  "figurinha": {
+   "arquivo": "Shorts/Partes/gata/aureola.png",
+   "x": 790,
+   "y": 872,
+   "altura": 125
+  }
  },
  "trocas": {
   "cham-pyeong": "Champion"
@@ -199,6 +163,10 @@
   [
    8978.8,
    ""
+  ],
+  [
+   8981.4,
+   "filha."
   ]
  ],
  "palavras": [
@@ -210,7 +178,7 @@
  ],
  "sem_legenda": [
   [
-   9008.4,
+   9005.4,
    9010.4
   ]
  ]

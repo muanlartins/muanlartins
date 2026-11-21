@@ -449,6 +449,36 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
   - **A teaser replays a later stretch's seconds**, so every time in it went to the teaser: the laser sticker meant
     for the end stayed on the whole short, the cat's closing title showed twice at the start. `"trecho"` places an
     effect in its own stretch.
+- **The second round (11-20/21): one agent per short, an `"extra"` module each** (`scripts/efeitos/2026-11-20-*.py`,
+  the shared brief in `~/.cache/muanlartins/ferramentas/brief-shorts-2026-11-20.md`; memes:
+  `pesquisa-memes.md` beside this file, with sources to check on the day, picks by situation and the Content ID traps).
+  What each became, and the techniques worth reusing:
+  - *montanha-russa*: Diamond III filling with light and bursting into Champion I on the game's own flash; a meme cat
+    (Gemini, X-ray frame from the same picture so the swap lines up) for the shock; the Champion emblem cracking on each
+    "caiu" and shattering into Diamond (cracks as jagged radials + bowed rings, shards cut from the gaps with
+    `cv2.connectedComponents`, tumbling as rotation × cos φ with a darker back); a Pokémon-style evolution dialog
+    ("O quê? DIAMANTE III está evoluindo!", swaps accelerating 2.5 → 17 Hz with the riser on the same curve); party cat
+    → record scratch, grey freeze → crying cat thumbs-up with a sad trombone. Where a stretch runs into the live's
+    stinger, freeze the last clean camera frame (`hold_camera`).
+  - *gata*: the Klein background swapped for heaven (rays, halo found on the cat each frame: not Klein, not skin,
+    light, biggest blob, top of it, ±3 frames smoothing), a synthesized choir; the shot as tension (push-in on the
+    ball up to 1.75×, desaturation, vignette pulsing with a heartbeat 75 → 150 bpm, riser + snare roll, 40 ms of
+    silence) released on the explosion's first frame; the lift as a club (beams, strobe on each "CHAM", confetti,
+    crown, emblem, "CHAMPION" bouncing on his syllables at his own 126 bpm). Swap the background before zooms and
+    transitions (those stretches `"entrada": "seco"`, the module redoes them). A preview script that runs frames
+    through the module without a full render: ~50 s a try instead of ~4.5 min.
+  - *hoje eu acordei diferente*: a black-and-white Gigachad of him (Gemini edit of his own frame; asking it to
+    remove the glasses keeps it aligned pixel for pixel) with pixel deal-with-it shades (24×8 sprite) as the hook and
+    the ending; on "onde a coruja dorme" the Gigachad cuts in; at the end the costume goes (`"filtro": false`) and the
+    shades slide onto his real eyes, tracked with Lucas-Kanade on the glasses' and brows' corners (forward-backward
+    < 0.7 px, RANSAC similarity, re-seed under 25 points, 5-frame average), then a synthesized 808 drop.
+  - *formiguinhas*: a real 3D broom (three.js headless, 420 straw ribbons recomputed each frame, two 1080×620 tiles,
+    ~1 s a frame) sweeping orange Octanes (`public/models/octane.glb`) like ants, its handle reaching his chest so the
+    sweep is his; the demolished cars splat on the screen like bugs; ants circling his head after the flip. The scene
+    writes a JSON per frame (broom tip, contacts, hits) and the sounds are built from it; exact beats from
+    `content/matches/<id>.events.json`.
+  - Sounds on phones: pure sub is inaudible; saturate thumps, add 2nd/3rd harmonics and a mid "growl", cut < 40 Hz.
+  - `antes` runs after the transitions: a picture replacing a half has to redo the transition itself.
 - **Still open:** music (none yet); the outro's effect on retention once a few shorts have their numbers.
 
 **The effects-heavy edit (`scripts/cortes.py`, rejected 11-11):** five picks chopped into 14 stretches in 34 s,

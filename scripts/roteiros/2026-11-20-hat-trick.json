@@ -2,7 +2,7 @@
  "live": "2026-11-20",
  "nome": "hoje eu acordei diferente",
  "jogo": "rocket-league",
- "post": "Hoje eu acordei diferente 😤🔥 #rocketleague",
+ "post": "Hoje eu acordei diferente 😎🔥 #rocketleague",
  "destaques": [
   "coruja",
   "cagada",
@@ -16,7 +16,8 @@
    "de": 1586.75,
    "ate": 1588.05,
    "camera": "jogo",
-   "seco": true
+   "seco": true,
+   "filtro": false
   },
   {
    "de": 1447.0,
@@ -31,9 +32,17 @@
   },
   {
    "de": 1579.9,
-   "ate": 1589.85,
+   "ate": 1586.7,
    "camera": "jogo",
    "seco": "ate"
+  },
+  {
+   "de": 1586.7,
+   "ate": 1589.85,
+   "camera": "jogo",
+   "seco": true,
+   "entrada": "seco",
+   "filtro": false
   }
  ],
  "titulo": {
@@ -75,13 +84,6 @@
   }
  ],
  "impactos": [
-  {
-   "em": 1586.8,
-   "flash": "quente",
-   "forca": 0.5,
-   "onde": "camera",
-   "trecho": 0
-  },
   {
    "em": 1453.5,
    "flash": "branco",
@@ -132,42 +134,6 @@
     "segura": 3.0,
     "sai": 10
    }
-  },
-  {
-   "em": 1586.9,
-   "flash": "quente",
-   "forca": 0.55,
-   "onde": "camera",
-   "tremor": 8,
-   "trecho": 3
-  }
- ],
- "figurinhas": [
-  {
-   "arquivo": "Shorts/Partes/figurinhas/coruja.png",
-   "de": 1448.3,
-   "ate": 1452.0,
-   "x": 800,
-   "y": 1080,
-   "altura": 330
-  },
-  {
-   "arquivo": "Shorts/Partes/figurinhas/acordei.png",
-   "de": 1586.85,
-   "ate": 1588.05,
-   "x": 820,
-   "y": 430,
-   "altura": 600,
-   "trecho": 0
-  },
-  {
-   "arquivo": "Shorts/Partes/figurinhas/acordei.png",
-   "de": 1586.9,
-   "ate": 1589.7,
-   "x": 820,
-   "y": 430,
-   "altura": 600,
-   "trecho": 3
   }
  ],
  "sons": [
@@ -205,27 +171,6 @@
    1581.6,
    "palmas",
    -14
-  ],
-  [
-   1448.3,
-   "pop",
-   -12
-  ],
-  [
-   1586.85,
-   "laser",
-   -9,
-   {
-    "trecho": 0
-   }
-  ],
-  [
-   1586.9,
-   "laser",
-   -9,
-   {
-    "trecho": 3
-   }
   ]
  ],
  "capa": {
@@ -240,7 +185,27 @@
    "vamos!"
   ],
   [
-   1589.77,
+   1584.44,
+   "Meu"
+  ],
+  [
+   1585.67,
+   "Deus!"
+  ],
+  [
+   1585.76,
+   ""
+  ],
+  [
+   1586.93,
+   ""
+  ],
+  [
+   1587.6,
+   ""
+  ],
+  [
+   1587.09,
    ""
   ]
  ],
@@ -249,42 +214,27 @@
    1580.55,
    1580.95,
    "Nossa,"
+  ],
+  [
+   1586.92,
+   1587.06,
+   "Hoje"
+  ],
+  [
+   1587.06,
+   1587.14,
+   "eu"
+  ],
+  [
+   1587.14,
+   1587.36,
+   "acordei"
+  ],
+  [
+   1587.36,
+   1588.05,
+   "diferente."
   ]
  ],
- "borrar": [
-  {
-   "x": 180,
-   "y": 1680,
-   "w": 900,
-   "h": 240,
-   "de": 1453.9,
-   "ate": 1456.81
-  },
-  {
-   "x": 180,
-   "y": 1680,
-   "w": 900,
-   "h": 240,
-   "de": 1556.5,
-   "ate": 1568.77
-  },
-  {
-   "x": 180,
-   "y": 1680,
-   "w": 900,
-   "h": 240,
-   "de": 1581.9,
-   "ate": 1589.85,
-   "trecho": 3
-  },
-  {
-   "x": 180,
-   "y": 1680,
-   "w": 900,
-   "h": 240,
-   "de": 1586.75,
-   "ate": 1588.05,
-   "trecho": 0
-  }
- ]
+ "extra": "scripts/efeitos/2026-11-20-hat-trick.py"
 }

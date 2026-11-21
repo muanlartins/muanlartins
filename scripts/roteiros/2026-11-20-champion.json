@@ -50,7 +50,7 @@
   },
   {
    "de": 7945.7,
-   "ate": 7950.4,
+   "ate": 7951.4,
    "camera": "jogo",
    "seco": "ate"
   },
@@ -82,8 +82,9 @@
     "CAÍ PRO",
     "DIAMANTE"
    ],
-   "de": 3554.4,
-   "ate": 3556.6
+   "de": 3556.1,
+   "ate": 3558.35,
+   "y": 1045
   }
  ],
  "impactos": [
@@ -134,111 +135,22 @@
    "chute": 0.1
   },
   {
-   "em": 7977.9,
+   "em": 7978.14,
    "onde": "camera",
    "soco": {
-    "z": 1.35,
-    "entra": 5,
-    "segura": 1.6,
-    "sai": 10
+    "z": 1.3,
+    "entra": 3,
+    "segura": 1.3,
+    "sai": 12
    }
   },
   {
-   "em": 7949.5,
-   "onde": "camera",
-   "soco": {
-    "z": 1.2,
-    "entra": 4,
-    "segura": 0.7,
-    "sai": 8
-   }
-  }
- ],
- "figurinhas": [
-  {
-   "arquivo": "Shorts/Partes/figurinhas/choque-a.png",
-   "de": 2980.85,
-   "ate": 2982.9,
-   "x": 800,
-   "y": 440,
-   "altura": 560,
-   "trocas": [
-    [
-     2980.97,
-     2981.09,
-     "Shorts/Partes/figurinhas/choque-b.png"
-    ],
-    [
-     2981.21,
-     2981.33,
-     "Shorts/Partes/figurinhas/choque-b.png"
-    ],
-    [
-     2981.45,
-     2981.57,
-     "Shorts/Partes/figurinhas/choque-b.png"
-    ],
-    [
-     2981.69,
-     2981.81,
-     "Shorts/Partes/figurinhas/choque-b.png"
-    ],
-    [
-     2981.93,
-     2982.05,
-     "Shorts/Partes/figurinhas/choque-b.png"
-    ]
-   ]
-  }
- ],
- "borrar": [
-  {
-   "de": 2504.6,
-   "ate": 2509.35,
-   "x": 215,
-   "y": 1393,
-   "w": 405,
-   "h": 160
-  },
-  {
-   "de": 2531.0,
-   "ate": 2534.1,
-   "x": 215,
-   "y": 1393,
-   "w": 405,
-   "h": 160
-  },
-  {
-   "de": 2962.8,
-   "ate": 2966.55,
-   "x": 40,
-   "y": 1085,
-   "w": 1000,
-   "h": 170
-  },
-  {
-   "de": 7945.7,
-   "ate": 7950.4,
-   "x": 0,
-   "y": 1240,
-   "w": 330,
-   "h": 430
-  },
-  {
-   "de": 7977.3,
-   "ate": 7981.7,
-   "x": 215,
-   "y": 1198,
-   "w": 405,
-   "h": 50
-  },
-  {
-   "de": 7977.3,
-   "ate": 7981.7,
-   "x": 215,
-   "y": 1393,
-   "w": 405,
-   "h": 160
+   "em": 3555.8,
+   "flash": "branco",
+   "forca": 0.4,
+   "flash_tau": 0.12,
+   "onde": "jogo",
+   "tremor": 12
   }
  ],
  "sons": [
@@ -269,36 +181,22 @@
    -6
   ],
   [
-   3554.4,
-   "apito",
-   -9
-  ],
-  [
    7946.0,
    "impact-boom",
    -10
   ],
   [
-   7981.5,
-   "badumtss",
-   -8
-  ],
-  [
    2963.9,
    "uuuh",
    -13
-  ],
-  [
-   7949.5,
-   "hit",
-   -12
   ]
  ],
  "capa": {
   "quadro": 2503.6,
   "origem": "camera",
   "fundo": 2507.0,
-  "texto": "SUBI PRO|CHAMPION"
+  "texto": "SUBI PRO|CHAMPION",
+  "emblema": "champion"
  },
  "corrigir": [
   [
@@ -328,6 +226,14 @@
   [
    7977.9,
    "pobre"
+  ],
+  [
+   3554.42,
+   "caiu,"
+  ],
+  [
+   3554.73,
+   "a"
   ]
  ],
  "zoom": [
@@ -337,5 +243,6 @@
    "onde": "camera",
    "z": 1.15
   }
- ]
+ ],
+ "extra": "scripts/efeitos/2026-11-20-champion.py"
 }
