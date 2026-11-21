@@ -21,9 +21,14 @@ const COLUMNS: Category[][] = [
   ["rifles", "heavies"],
 ]
 
+// The brand's tokens (app/globals.css), the canvas's only colours.
 const NAVY = "#001447"
+const KLEIN = "#002fa7"
 const CLARO = "#85a7ff"
 const PAPER = "#f4f5f7"
+
+/** A token at some opacity, for the canvas: "#002fa7" at 0.5 → rgba(0, 47, 167, 0.5). */
+const alpha = (hex: string, a: number) => `rgba(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)}, ${a})`
 
 export interface ImageText {
   /** Above the name: "Loadout dos sonhos". */
@@ -65,9 +70,16 @@ function clip(ctx: CanvasRenderingContext2D, text: string, width: number) {
   return cut.trimEnd() + "…"
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+/** The identity's 45° cut (brand/interface.md, "Shape"): top-left and bottom-right, `c` long. */
+function cutRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, c: number) {
   ctx.beginPath()
-  ctx.roundRect(x, y, w, h, r)
+  ctx.moveTo(x + c, y)
+  ctx.lineTo(x + w, y)
+  ctx.lineTo(x + w, y + h - c)
+  ctx.lineTo(x + w - c, y + h)
+  ctx.lineTo(x, y + h)
+  ctx.lineTo(x, y + c)
+  ctx.closePath()
 }
 
 /** The picture, as a PNG. `font` is the page's font family, already loaded. */
@@ -90,12 +102,12 @@ export async function drawLoadout(board: InventoryWeapon[], text: ImageText, for
     image("/brand/mark-on-klein.svg"),
   ])
 
-  // The ground: navy, a Klein (#002fa7) glow from the top right.
+  // The ground: navy, a Klein glow from the top right.
   ctx.fillStyle = NAVY
   ctx.fillRect(0, 0, width, height)
   const glow = ctx.createRadialGradient(width * 0.85, -height * 0.1, 0, width * 0.85, -height * 0.1, Math.max(width, height) * 0.9)
-  glow.addColorStop(0, "rgba(0, 47, 167, 0.85)")
-  glow.addColorStop(1, "rgba(0, 47, 167, 0)")
+  glow.addColorStop(0, alpha(KLEIN, 0.85))
+  glow.addColorStop(1, alpha(KLEIN, 0))
   ctx.fillStyle = glow
   ctx.fillRect(0, 0, width, height)
 
@@ -132,19 +144,19 @@ export async function drawLoadout(board: InventoryWeapon[], text: ImageText, for
       const x = margin + column * (columnWidth + gap)
       const y = top + row * (rowHeight + gap)
       const picked = !!weapon.ideal
-      roundRect(ctx, x, y, columnWidth, rowHeight, 14)
+      cutRect(ctx, x, y, columnWidth, rowHeight, wide ? 18 : 16)
       if (picked) {
         const fill = ctx.createLinearGradient(x, y, x + columnWidth, y + rowHeight)
-        fill.addColorStop(0, "rgba(0, 47, 167, 0.92)")
-        fill.addColorStop(1, "rgba(0, 47, 167, 0.55)")
+        fill.addColorStop(0, alpha(KLEIN, 0.92))
+        fill.addColorStop(1, alpha(KLEIN, 0.55))
         ctx.fillStyle = fill
         ctx.fill()
-        ctx.strokeStyle = "rgba(133, 167, 255, 0.35)"
+        ctx.strokeStyle = alpha(CLARO, 0.35)
         ctx.lineWidth = 1.5
         ctx.setLineDash([])
         ctx.stroke()
       } else {
-        ctx.strokeStyle = "rgba(133, 167, 255, 0.3)"
+        ctx.strokeStyle = alpha(CLARO, 0.3)
         ctx.lineWidth = 1.5
         ctx.setLineDash([8, 7])
         ctx.stroke()
@@ -170,11 +182,11 @@ export async function drawLoadout(board: InventoryWeapon[], text: ImageText, for
         ctx.fillStyle = CLARO
         ctx.font = type(500, 19)
         ctx.fillText(clip(ctx, weapon.name, tw), tx, y + rowHeight / 2 - 16)
-        ctx.fillStyle = picked ? PAPER : "rgba(244, 245, 247, 0.55)"
+        ctx.fillStyle = picked ? PAPER : alpha(PAPER, 0.55)
         ctx.font = type(600, 25)
         ctx.fillText(clip(ctx, name, tw), tx, y + rowHeight / 2 + 14)
         if (variant) {
-          ctx.fillStyle = "rgba(244, 245, 247, 0.7)"
+          ctx.fillStyle = alpha(PAPER, 0.7)
           ctx.font = type(500, 18)
           const vx = swatch ? tx + 24 : tx
           if (swatch) drawSwatch(ctx, swatch, tx, y + rowHeight / 2 + 26, 18)
@@ -183,7 +195,7 @@ export async function drawLoadout(board: InventoryWeapon[], text: ImageText, for
       } else {
         const tw = columnWidth - pad * 2
         const ty = y + rowHeight - pad
-        ctx.fillStyle = picked ? PAPER : "rgba(244, 245, 247, 0.55)"
+        ctx.fillStyle = picked ? PAPER : alpha(PAPER, 0.55)
         ctx.font = type(600, 22)
         ctx.fillText(clip(ctx, name, tw - (swatch ? 26 : 0)), x + pad, ty - 24)
         ctx.fillStyle = CLARO
@@ -197,13 +209,8 @@ export async function drawLoadout(board: InventoryWeapon[], text: ImageText, for
   // Where it's from.
   const fy = height - margin - (wide ? 44 : 50)
   const size = wide ? 44 : 50
-  if (mark) {
-    ctx.save()
-    roundRect(ctx, margin, fy, size, size, 8)
-    ctx.clip()
-    ctx.drawImage(mark, margin, fy, size, size)
-    ctx.restore()
-  }
+  // The mark as it is: never rounded.
+  if (mark) ctx.drawImage(mark, margin, fy, size, size)
   ctx.fillStyle = PAPER
   ctx.font = type(600, wide ? 24 : 26)
   ctx.fillText("muanlartins", margin + size + 16, fy + size / 2 - 3)
@@ -211,7 +218,7 @@ export async function drawLoadout(board: InventoryWeapon[], text: ImageText, for
   ctx.font = type(500, wide ? 19 : 20)
   ctx.fillText(text.link, margin + size + 16, fy + size / 2 + 22)
   ctx.textAlign = "right"
-  ctx.fillStyle = "rgba(244, 245, 247, 0.45)"
+  ctx.fillStyle = alpha(PAPER, 0.45)
   ctx.font = type(500, wide ? 16 : 16)
   ctx.fillText(text.credit, width - margin, fy + size / 2 + 22)
   ctx.textAlign = "left"
@@ -219,16 +226,10 @@ export async function drawLoadout(board: InventoryWeapon[], text: ImageText, for
   return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("toBlob"))), "image/png"))
 }
 
+/** A variant's swatch, square as the game draws it, with a hairline round it. */
 function drawSwatch(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, size: number) {
-  ctx.save()
-  ctx.beginPath()
-  ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2)
-  ctx.clip()
   ctx.drawImage(img, x, y, size, size)
-  ctx.restore()
-  ctx.beginPath()
-  ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2)
-  ctx.strokeStyle = "rgba(244, 245, 247, 0.35)"
+  ctx.strokeStyle = alpha(PAPER, 0.35)
   ctx.lineWidth = 1
-  ctx.stroke()
+  ctx.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1)
 }

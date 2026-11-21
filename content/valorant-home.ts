@@ -26,8 +26,8 @@ export default game({
   ranked: {
     title: { pt: "Ranqueadas", en: "Ranked" },
     description: {
-      pt: "Meu elo, meu RR e cada partida competitiva das lives.",
-      en: "My rank, my RR and every competitive match from the streams.",
+      pt: "Meu rank, meu RR e cada partida ranqueada, nas lives e fora delas.",
+      en: "My rank, my RR and every ranked match, on stream and off it.",
     },
   },
   aim: {
@@ -40,8 +40,8 @@ export default game({
   inventory: {
     title: { pt: "Inventário", en: "Inventory" },
     description: {
-      pt: "A skin que uso em cada arma, a coleção que estou montando e o seu loadout dos sonhos: monte com qualquer skin do jogo e exporte numa imagem.",
-      en: "The skin I use on each weapon, the collection I'm building, and your dream loadout: build it from any skin in the game and export it as one image.",
+      pt: "A coleção que estou montando, a skin que uso em cada arma e o seu loadout dos sonhos: monta com qualquer skin do jogo e exporta numa imagem.",
+      en: "The collection I'm building, the skin I use on each weapon, and your dream loadout: build it from any skin in the game and export it as one image.",
     },
   },
   links: [],

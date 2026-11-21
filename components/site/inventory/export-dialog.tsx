@@ -1,7 +1,8 @@
 "use client"
 
-import { Download, Share2, X } from "lucide-react"
+import { Download, Share2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { Button, buttonClass, Choice, Dialog, ErrorLine, Skeleton } from "@/components/site/ui"
 import { drawLoadout, FORMATS, type Format, type ImageText } from "@/lib/loadout-image"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -13,8 +14,9 @@ const T = localize({
   format: { pt: "Formato", en: "Format" },
   retrato: { pt: "Retrato", en: "Portrait" },
   paisagem: { pt: "Paisagem", en: "Landscape" },
-  drawing: { pt: "Desenhando…", en: "Drawing…" },
-  failed: { pt: "Não deu pra desenhar a imagem. Tente de novo.", en: "Couldn't draw the image. Try again." },
+  drawing: { pt: "Desenhando a imagem…", en: "Drawing the image…" },
+  failed: { pt: "Não deu pra desenhar a imagem.", en: "Couldn't draw the image." },
+  retry: { pt: "Tentar de novo", en: "Try again" },
   download: { pt: "Baixar", en: "Download" },
   share: { pt: "Compartilhar", en: "Share" },
 })
@@ -24,16 +26,10 @@ const T = localize({
  * browser can (phones), hand it straight to an app.
  */
 export function ExportDialog({ board, text, file, open, onClose }: { board: InventoryWeapon[]; text: ImageText; file: string; open: boolean; onClose: () => void }) {
-  const dialog = useRef<HTMLDialogElement>(null)
   const [format, setFormat] = useState<Format>("retrato")
-  const [drawn, setDrawn] = useState<{ key: string; url: string; blob: Blob } | "failed">()
-  const key = `${format}:${JSON.stringify(text)}:${board.map((w) => w.ideal?.variants[0].id ?? "").join()}`
-
-  useEffect(() => {
-    const element = dialog.current
-    if (open && !element?.open) element?.showModal()
-    if (!open && element?.open) element.close()
-  }, [open])
+  const [drawn, setDrawn] = useState<{ key: string; url: string; blob: Blob } | { key: string; failed: true }>()
+  const [attempt, setAttempt] = useState(0)
+  const key = `${format}:${attempt}:${JSON.stringify(text)}:${board.map((w) => w.ideal?.variants[0].id ?? "").join()}`
 
   // The picture on screen stays valid until the next one replaces it.
   const shownUrl = useRef<string>(undefined)
@@ -48,7 +44,7 @@ export function ExportDialog({ board, text, file, open, onClose }: { board: Inve
         shownUrl.current = url
         setDrawn({ key, url, blob })
       })
-      .catch(() => !gone && setDrawn("failed"))
+      .catch(() => !gone && setDrawn({ key, failed: true }))
     return () => {
       gone = true
     }
@@ -56,9 +52,12 @@ export function ExportDialog({ board, text, file, open, onClose }: { board: Inve
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, key])
 
-  const ready = drawn && drawn !== "failed" && drawn.key === key ? drawn : undefined
+  const current = drawn?.key === key ? drawn : undefined
+  const ready = current && "url" in current ? current : undefined
+  const failed = !!current && "failed" in current
   const name = `${file}-${format}.png`
   const canShare = typeof navigator !== "undefined" && !!ready && navigator.canShare?.({ files: [new File([ready.blob], name, { type: "image/png" })] })
+  const { width, height } = FORMATS[format]
 
   async function share() {
     if (!ready) return
@@ -68,71 +67,45 @@ export function ExportDialog({ board, text, file, open, onClose }: { board: Inve
   }
 
   return (
-    <dialog
-      ref={dialog}
-      onClose={onClose}
-      onClick={(event) => event.target === dialog.current && onClose()}
-      className="m-auto w-[min(46rem,calc(100vw-1rem))] max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-md border border-line bg-paper p-0 text-ink backdrop:bg-navy/55 backdrop:backdrop-blur-[2px] open:motion-safe:animate-[inventory-dialog_0.22s_ease-out]"
-    >
-      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5">
-        <h3 className="text-[15px] font-medium text-ink">{T.title}</h3>
-        <div className="flex items-center gap-2">
-          <div role="radiogroup" aria-label={T.format} className="flex rounded-md border border-line p-0.5">
-            {(Object.keys(FORMATS) as Format[]).map((each) => (
-              <button
-                key={each}
-                type="button"
-                role="radio"
-                aria-checked={format === each}
-                onClick={() => setFormat(each)}
-                className={cn(
-                  "rounded-[4px] px-2.5 py-1 text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-klein",
-                  format === each ? "bg-klein text-paper" : "text-muted hover:text-ink",
-                )}
-              >
-                {T[each]}
-              </button>
-            ))}
-          </div>
-          <button type="button" onClick={onClose} aria-label={T.close} className="rounded-md p-1.5 text-muted outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-klein">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <Dialog open={open} onClose={onClose} title={T.title} closeLabel={T.close} width={46} flush>
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line px-5 py-3" role="group" aria-label={T.format}>
+        {(Object.keys(FORMATS) as Format[]).map((each) => (
+          <Choice key={each} size="sm" on={format === each} onClick={() => setFormat(each)}>
+            {T[each]}
+          </Choice>
+        ))}
       </div>
-      <div className="bg-zinc-100 p-4 sm:p-5">
-        <div className="relative mx-auto flex items-center justify-center" style={{ aspectRatio: `${FORMATS[format].width} / ${FORMATS[format].height}`, maxHeight: "60dvh" }}>
+      <div className="min-h-0 flex-1 overflow-y-auto bg-zinc-100 p-5">
+        <div className="relative mx-auto flex max-h-[56dvh] max-w-full items-center justify-center" style={{ aspectRatio: `${width} / ${height}` }}>
           {ready ? (
+            // The file as it is: a full rectangle, so it posts anywhere without corners to fill.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={ready.url} alt={`${text.title} · ${text.who}`} className="max-h-[60dvh] max-w-full rounded-[4px] shadow-[0_12px_40px_rgba(0,20,71,0.25)]" />
+            <img src={ready.url} alt={`${text.title} · ${text.who}`} className="max-h-[56dvh] max-w-full shadow-float" />
+          ) : failed ? (
+            <ErrorLine onRetry={() => setAttempt((n) => n + 1)} retryLabel={T.retry}>
+              {T.failed}
+            </ErrorLine>
           ) : (
-            <p className="text-[14px] text-muted">{drawn === "failed" ? T.failed : T.drawing}</p>
+            <>
+              <Skeleton className="cut absolute inset-0" />
+              <p role="status" className="relative text-[15px] text-muted">
+                {T.drawing}
+              </p>
+            </>
           )}
         </div>
       </div>
-      <div className="flex flex-wrap justify-end gap-2 border-t border-line px-4 py-3 sm:px-5">
+      <div className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-line px-5 py-3">
         {canShare && (
-          <button
-            type="button"
-            onClick={share}
-            className="flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-[14px] font-medium text-ink outline-none transition-colors hover:border-klein focus-visible:ring-2 focus-visible:ring-klein"
-          >
-            <Share2 aria-hidden className="h-4 w-4" />
+          <Button variant="secondary" size="sm" onClick={share} icon={<Share2 aria-hidden className="h-4 w-4" />}>
             {T.share}
-          </button>
+          </Button>
         )}
-        <a
-          href={ready?.url}
-          download={name}
-          aria-disabled={!ready}
-          className={cn(
-            "flex items-center gap-1.5 rounded-md bg-klein px-4 py-1.5 text-[14px] font-medium text-paper outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-klein focus-visible:ring-offset-2",
-            ready ? "hover:opacity-90" : "pointer-events-none opacity-50",
-          )}
-        >
+        <a href={ready?.url} download={name} aria-disabled={!ready} className={cn(buttonClass({ size: "sm" }), !ready && "pointer-events-none opacity-40")}>
           <Download aria-hidden className="h-4 w-4" />
           {T.download}
         </a>
       </div>
-    </dialog>
+    </Dialog>
   )
 }

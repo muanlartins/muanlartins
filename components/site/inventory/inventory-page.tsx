@@ -25,7 +25,7 @@ export function InventoryPage({ title, description, credits }: { title: string; 
       <div className="mt-12">
         <InventoryBoard start={subset(catalog(), skinIds(start))} seed={start} />
       </div>
-      <div className="mt-16 space-y-2 text-[12px] leading-[1.6] text-muted">
+      <div className="mt-16 space-y-2 text-[13px] leading-[1.6] text-muted">
         <p>{T.art}</p>
         <p>{credits}</p>
       </div>

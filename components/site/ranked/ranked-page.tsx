@@ -1,22 +1,22 @@
 "use client"
 
-import { useSyncExternalStore } from "react"
+import { useSyncExternalStore, type ReactNode } from "react"
 import { PageIntro } from "@/components/site/page-intro"
-import { type RankInfo } from "@/components/site/ranked/format"
 import { RankedRecord } from "@/components/site/ranked/record"
 import { BallBackdrop } from "@/components/site/roadmap/ball-backdrop"
-import { MODES, type Mode, type Session } from "@/lib/ranked"
-import { rocketLeagueView } from "@/lib/ranked-view"
+import { EmptyState, TabPanel, Tabs } from "@/components/site/ui"
+import type { RecordView } from "@/lib/ranked-view"
 import { localize } from "@/lib/site"
-import { cn } from "@/lib/utils"
 
-const T = localize({
-  modes: { pt: "Modo", en: "Mode" },
-  empty: {
-    pt: "Nenhuma partida ranqueada de {mode} publicada ainda.",
-    en: "No ranked {mode} matches published yet.",
-  },
-})
+const T = localize({ modes: { pt: "Modo", en: "Mode" } })
+
+/** One of a game's ranked modes (Rocket League's 1v1, 2v2, 3v3; Valorant has one), already drawn up by
+ * lib/ranked-view.ts. */
+export interface RankedMode {
+  id: string
+  label: string
+  view: RecordView
+}
 
 // The selected mode lives in the URL's hash (#3v3), so a link can open a tab.
 function subscribe(onChange: () => void) {
@@ -25,74 +25,62 @@ function subscribe(onChange: () => void) {
 }
 const readHash = () => decodeURIComponent(window.location.hash.slice(1))
 
-/** Rocket League's ranked record, one tab per mode, drawn by the record every game shares (record.tsx). */
+/**
+ * Every game's ranked page: the title, a tab per mode when the game has more than one, and the record every game
+ * shares (record.tsx). What's a game's own comes in its view; before its first match a mode says what will fill it,
+ * with `before` under the line (Valorant: the ladder with where I am).
+ */
 export function RankedPage({
+  game,
   title,
   description,
-  sessions,
-  ranks,
-  moments,
   credits,
+  modes,
+  before,
 }: {
+  game: string
   title: string
   description: string
-  sessions: Session[]
-  ranks: RankInfo[]
-  /** Matches a live has a chapter for: where to watch them. */
-  moments: Record<string, { date: string; at: number }>
-  /** Whose game and art it is (the game's `credits`). */
   credits: string
+  modes: RankedMode[]
+  before?: ReactNode
 }) {
   const hash = useSyncExternalStore(subscribe, readHash, () => "")
   // Without a hash, the mode of the latest match.
-  const latest = sessions
-    .flatMap((session) => session.matches)
-    .filter((match) => (MODES as readonly string[]).includes(match.mode))
-    .sort((a, b) => b.at.localeCompare(a.at))[0]
-  const mode: Mode = (MODES as readonly string[]).includes(hash) ? (hash as Mode) : ((latest?.mode as Mode) ?? "3v3")
+  const latest = modes.reduce<RankedMode | undefined>((best, mode) => ((mode.view.matches.at(-1)?.at ?? "") > (best?.view.matches.at(-1)?.at ?? "") ? mode : best), undefined)
+  const mode = modes.find((each) => each.id === hash) ?? latest ?? modes[0]
 
-  function choose(next: Mode) {
+  function choose(next: string) {
     history.replaceState(null, "", `#${next}`)
     window.dispatchEvent(new HashChangeEvent("hashchange"))
   }
 
-  const counts = Object.fromEntries(
-    MODES.map((m) => [m, sessions.reduce((n, s) => n + s.matches.filter((match) => match.mode === m).length, 0)]),
+  const record = mode.view.matches.length ? (
+    <RankedRecord key={mode.id} view={mode.view} />
+  ) : (
+    <div className="space-y-8">
+      <EmptyState>{mode.view.empty}</EmptyState>
+      {before}
+    </div>
   )
-  const view = rocketLeagueView(sessions, mode, ranks, moments)
 
   return (
     <>
-      <BallBackdrop />
+      {game === "rocket-league" && <BallBackdrop />}
       <PageIntro title={title} description={description} />
 
-      <div role="tablist" aria-label={T.modes} className="mt-12 flex gap-2">
-        {MODES.map((m) => (
-          <button
-            key={m}
-            role="tab"
-            aria-selected={m === mode}
-            onClick={() => choose(m)}
-            className={cn(
-              "rounded-md border px-4 py-2 text-[15px] font-medium tabular-nums transition-colors",
-              m === mode ? "border-klein bg-klein text-paper" : "border-line text-ink hover:border-klein",
-            )}
-          >
-            {m}
-            <span className={cn("ml-2 text-[12px]", m === mode ? "text-klein-claro" : "text-muted")}>{counts[m]}</span>
-          </button>
-        ))}
-      </div>
+      {modes.length > 1 ? (
+        <div className="mt-12">
+          <Tabs label={T.modes} idPrefix="modo" items={modes.map((each) => ({ id: each.id, label: each.label, count: each.view.matches.length }))} value={mode.id} onChange={choose} />
+          <TabPanel idPrefix="modo" id={mode.id} className="mt-10">
+            {record}
+          </TabPanel>
+        </div>
+      ) : (
+        <div className="mt-12">{record}</div>
+      )}
 
-      <div role="tabpanel" className="mt-10">
-        {view.matches.length === 0 ? (
-          <p className="rounded-md border border-dashed border-zinc-300 px-5 py-6 text-[14px] text-muted">{T.empty.replace("{mode}", mode)}</p>
-        ) : (
-          <RankedRecord key={mode} view={view} />
-        )}
-      </div>
-
-      <p className="mt-16 text-[12px] leading-[1.6] text-muted">{credits}</p>
+      <p className="mt-16 text-[13px] leading-[1.6] text-muted">{credits}</p>
     </>
   )
 }
