@@ -1,5 +1,3 @@
-import { dayOf } from "@/lib/ranked"
-
 /**
  * Valorant's matches as the stream's "Partidas" dock records them (its Valorant tab, from scripts/valorant.py, which
  * reads Valorant's own match history once a match ends): one file per session in content/valorant/, published from
@@ -82,10 +80,6 @@ export interface ValorantSummary {
   rank?: { tier: number; rr: number }
   /** Per match: kills, deaths, assists; and ACS and headshot % over every round and hit. */
   averages?: { kills: number; deaths: number; assists: number; acs: number; headshots: number }
-  agents: { agent: string; matches: number; wins: number }[]
-  maps: { map: string; matches: number; wins: number }[]
-  /** Newest first, each day's matches newest first, with the day's RR. */
-  days: { date: string; matches: ValorantMatch[]; wins: number; losses: number; rr: number }[]
   /** The viewers who played with Luan, most matches first, with their averages in those matches. */
   allies: { login: string; matches: number; wins: number; losses: number; rr: number; averages: { kills: number; deaths: number; assists: number } }[]
 }
@@ -115,28 +109,6 @@ export function summarizeValorant(sessions: ValorantSession[]): ValorantSummary 
       }
     : undefined
 
-  const tally = <K extends string>(key: (m: ValorantMatch) => K) => {
-    const counts = new Map<K, { matches: number; wins: number }>()
-    for (const m of matches) {
-      const entry = counts.get(key(m)) ?? { matches: 0, wins: 0 }
-      entry.matches++
-      if (m.result === "win") entry.wins++
-      counts.set(key(m), entry)
-    }
-    return [...counts].sort((a, b) => b[1].matches - a[1].matches || b[1].wins - a[1].wins)
-  }
-
-  const days: ValorantSummary["days"] = []
-  for (const match of [...matches].reverse()) {
-    const date = dayOf(match.at)
-    let day = days.at(-1)
-    if (day?.date !== date) days.push((day = { date, matches: [], wins: 0, losses: 0, rr: 0 }))
-    day.matches.push(match)
-    if (match.result === "win") day.wins++
-    if (match.result === "loss") day.losses++
-    day.rr += match.rr ?? 0
-  }
-
   const allies = new Map<string, { matches: number; wins: number; losses: number; rr: number; kills: number; deaths: number; assists: number }>()
   for (const m of matches) {
     for (const mate of m.mates ?? []) {
@@ -159,9 +131,6 @@ export function summarizeValorant(sessions: ValorantSession[]): ValorantSummary 
     losses,
     rank,
     averages,
-    agents: tally((m) => m.agent).map(([agent, counts]) => ({ agent, ...counts })),
-    maps: tally((m) => m.map).map(([map, counts]) => ({ map, ...counts })),
-    days,
     allies: [...allies]
       .map(([login, { kills, deaths, assists, ...counts }]) => ({
         login,

@@ -1,11 +1,12 @@
 "use client"
 
-import { Check, Download, Link2, Lock, LogOut, Play, X } from "lucide-react"
+import { Check, Download, Link2, Lock, LogOut } from "lucide-react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { useEffect, useRef, useState } from "react"
 import { ExportDialog } from "@/components/site/inventory/export-dialog"
-import { SkinPicker } from "@/components/site/inventory/skin-picker"
-import { longDate } from "@/components/site/ranked/format"
+import { Rarity, ShowcaseButton, SkinPicker } from "@/components/site/inventory/skin-picker"
+import { longDay, time } from "@/components/site/ranked/format"
+import { Button, Choice, Dialog, EmptyState, ErrorLine, SignInButton, Skeleton, TabPanel, Tabs } from "@/components/site/ui"
 import type { ImageText } from "@/lib/loadout-image"
 import { keptToken, signIn, signOut, SignedOut } from "@/lib/profile"
 import { dayOf } from "@/lib/ranked"
@@ -19,17 +20,19 @@ import { draft, eraseMyLoadout, isLogin, keepDraft, loadLoadout, loadMyLoadout, 
 const T = localize({
   ideal: { pt: "Coleção", en: "Collection" },
   now: { pt: "No jogo agora", en: "In game now" },
-  build: { pt: "Monte o seu", en: "Build yours" },
+  build: { pt: "Monta o seu", en: "Build yours" },
   views: { pt: "O que mostrar", en: "What to show" },
   of: { pt: "de", en: "of" },
   inCollection: { pt: "skins da coleção", en: "collection skins" },
   weapons: { pt: "armas", en: "weapons" },
   picked: { pt: "armas escolhidas", en: "weapons picked" },
-  read: { pt: "Inventário lido do jogo em", en: "Inventory read from the game on" },
+  read: { pt: "Lido do jogo em {date}, às {time}.", en: "Read from the game on {date}, at {time}." },
   unread: {
-    pt: "O que está equipado em cada arma aparece depois da primeira leitura do jogo.",
-    en: "What's equipped on each weapon shows up after the game's first reading.",
+    pt: "O que está em cada arma aparece depois da primeira leitura do jogo.",
+    en: "What's on each weapon shows up after the game's first reading.",
   },
+  channelFailed: { pt: "Não deu pra buscar o inventário de agora.", en: "Couldn't fetch the inventory as it is now." },
+  retry: { pt: "Tentar de novo", en: "Try again" },
   owned: { pt: "Na coleção", en: "Collected" },
   locked: { pt: "Variante bloqueada", en: "Variant locked" },
   missing: { pt: "Falta", en: "Missing" },
@@ -41,8 +44,6 @@ const T = localize({
   collection: { pt: "Coleção", en: "Collection" },
   preferred: { pt: "Preferida", en: "Preferred" },
   alternative: { pt: "Alternativa", en: "Alternative" },
-  showcase: { pt: "Ver em jogo", en: "See it in game" },
-  stopShowcase: { pt: "Ver a imagem", en: "See the image" },
   close: { pt: "Fechar", en: "Close" },
   variants: { pt: "Variantes", en: "Variants" },
   statusOwned: { pt: "Já tenho esta skin.", en: "I have this skin." },
@@ -51,24 +52,24 @@ const T = localize({
     en: "I have this skin, but the chosen variant is still locked.",
   },
   statusMissing: { pt: "Ainda não tenho esta skin.", en: "I don't have this skin yet." },
-  statusOpen: { pt: "Ainda não escolhi a skin desta arma para a coleção.", en: "I haven't picked this weapon's collection skin yet." },
+  statusOpen: { pt: "Ainda não escolhi a skin desta arma pra coleção.", en: "I haven't picked this weapon's collection skin yet." },
   export: { pt: "Exportar imagem", en: "Export image" },
   copyLink: { pt: "Copiar link", en: "Copy link" },
   copied: { pt: "Link copiado", en: "Link copied" },
   clear: { pt: "Limpar", en: "Clear" },
-  confirmClear: { pt: "Limpar tudo? Clique de novo", en: "Clear it all? Click again" },
+  confirmClear: { pt: "Limpar tudo? Clica de novo", en: "Clear it all? Click again" },
   signIn: { pt: "Entrar com a Twitch", en: "Sign in with Twitch" },
   signOut: { pt: "Sair", en: "Sign out" },
   starting: { pt: "Carregando o seu loadout…", en: "Loading your loadout…" },
   local: {
-    pt: "Fica salvo neste navegador. Entre com a Twitch pra guardar no seu perfil e ter um link pra mostrar.",
-    en: "It stays in this browser. Sign in with Twitch to keep it in your profile and get a link to show.",
+    pt: "Pra guardar no seu perfil e ter um link pra mostrar. Sem entrar, fica salvo só neste navegador.",
+    en: "To keep it in your profile and get a link to show. Without signing in, it stays in this browser only.",
   },
   saving: { pt: "Salvando no seu perfil…", en: "Saving to your profile…" },
   savedIn: { pt: "Salvo no perfil de", en: "Saved in the profile of" },
   saveError: {
-    pt: "Não deu pra salvar agora. Fica neste navegador e eu tento de novo na próxima mudança.",
-    en: "Couldn't save just now. It stays in this browser, and I'll try again on the next change.",
+    pt: "Não deu pra salvar no seu perfil. Fica salvo neste navegador e vai pro perfil na próxima mudança.",
+    en: "Couldn't save to your profile. It stays in this browser and goes to your profile on the next change.",
   },
   expired: { pt: "A Twitch pediu pra você entrar de novo.", en: "Twitch asked you to sign in again." },
   channelNote: {
@@ -76,8 +77,9 @@ const T = localize({
     en: "You're building the channel's collection: what you save here shows in Collection for everyone.",
   },
   theirsTitle: { pt: "Loadout dos sonhos de", en: "Dream loadout of" },
-  theirsLoading: { pt: "Carregando…", en: "Loading…" },
-  theirsNone: { pt: "ainda não montou um loadout dos sonhos.", en: "hasn't built a dream loadout yet." },
+  theirsLoading: { pt: "Carregando o loadout de {login}…", en: "Loading {login}'s loadout…" },
+  theirsNone: { pt: "Nenhum loadout dos sonhos montado ainda.", en: "No dream loadout built yet." },
+  theirsFailed: { pt: "Não deu pra buscar o loadout de {login}.", en: "Couldn't fetch {login}'s loadout." },
   buildMine: { pt: "Montar o meu", en: "Build mine" },
   imageTitle: { pt: "Loadout dos sonhos", en: "Dream loadout" },
   imageCollection: { pt: "Coleção dos sonhos", en: "Dream collection" },
@@ -89,6 +91,8 @@ type View = "ideal" | "now" | "build" | "theirs"
 type Save = "local" | "saving" | "saved" | "error" | "expired"
 
 const ORDER = Object.keys(CATEGORIES) as Category[]
+/** The site's one curve (brand/interface.md, "Motion"). */
+const EASE = [0.65, 0, 0.35, 1] as const
 
 /**
  * The inventory: the channel's collection as a board grouped like the game's own (each weapon a card, pale with its
@@ -102,6 +106,7 @@ export function InventoryBoard({ start, seed }: { start: Catalog; seed: ChannelI
   const [catalog, setCatalog] = useState(start)
   const [loaded, setLoaded] = useState<"start" | "full" | "failed">("start")
   const [channel, setChannel] = useState(seed)
+  const [channelFailed, setChannelFailed] = useState(false)
   const [view, setView] = useState<View>("ideal")
   const [open, setOpen] = useState<{ weapon: InventoryWeapon; mode: "channel" | "loadout" }>()
   const [picking, setPicking] = useState<string>()
@@ -110,29 +115,42 @@ export function InventoryBoard({ start, seed }: { start: Catalog; seed: ChannelI
   const [account, setAccount] = useState<{ token: string; login: string } | null>(null)
   const [save, setSave] = useState<Save>("local")
   const [started, setStarted] = useState(false)
-  const [theirs, setTheirs] = useState<{ login: string; loadout?: Loadout | null }>()
+  const [theirs, setTheirs] = useState<{ login: string; loadout?: Loadout | null; failed?: boolean }>()
   const [confirmClear, setConfirmClear] = useState(false)
   const [copied, setCopied] = useState(false)
   // What the profile holds, to save only what changed.
   const saved = useRef<Loadout | null>(null)
 
-  useEffect(() => {
+  function loadFull() {
+    setLoaded("start")
     loadCatalog()
       .then((full) => (setCatalog(full), setLoaded("full")))
       .catch(() => setLoaded("failed"))
+  }
+
+  function loadChannel() {
+    setChannelFailed(false)
     loadLoadout(CHANNEL)
       .then((answer) => setChannel((before) => ({ colecao: answer.loadout ?? before.colecao, jogo: answer.jogo ?? before.jogo })))
-      .catch(() => {})
+      .catch(() => setChannelFailed(true))
+  }
 
+  function loadTheirs(login: string) {
+    setTheirs({ login })
+    loadLoadout(login)
+      .then((answer) => setTheirs({ login, loadout: answer.loadout }))
+      .catch(() => setTheirs({ login, failed: true }))
+  }
+
+  useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- the address and this browser's storage only exist here */
+    loadFull()
+    loadChannel()
     if (location.hash === "#montar") setView("build")
     const de = new URLSearchParams(location.search).get("de")?.toLowerCase() ?? null
     if (isLogin(de) && de !== CHANNEL) {
-      setTheirs({ login: de })
       setView("theirs")
-      loadLoadout(de)
-        .then((answer) => setTheirs({ login: de, loadout: answer.loadout }))
-        .catch(() => setTheirs({ login: de, loadout: null }))
+      loadTheirs(de)
     }
     const token = keptToken()
     const kept = draft()
@@ -187,8 +205,9 @@ export function InventoryBoard({ start, seed }: { start: Catalog; seed: ChannelI
   const board = view === "build" ? own : view === "theirs" ? other : collection
   const counts = progress(board)
   const groups = ORDER.map((category) => ({ category, weapons: board.filter((weapon) => weapon.category === category) }))
-  const read = channel.jogo?.lido ? longDate(dayOf(channel.jogo.lido)) : null
+  const read = channel.jogo?.lido ? T.read.replace("{date}", longDay(dayOf(channel.jogo.lido)).replace(/^[^,]*, /, "")).replace("{time}", time(channel.jogo.lido)) : null
   const views: View[] = [...(theirs ? (["theirs"] as const) : []), "ideal", "now", "build"]
+  const theirsReady = view !== "theirs" || !!theirs?.loadout
 
   function setPick(weapon: string, pick: Pick | null) {
     setConfirmClear(false)
@@ -239,50 +258,40 @@ export function InventoryBoard({ start, seed }: { start: Catalog; seed: ChannelI
     credit: T.imageCredit,
   }
 
-  const button =
-    "flex items-center gap-1.5 rounded-md border border-line bg-paper/75 px-3 py-1.5 text-[14px] font-medium text-ink outline-none backdrop-blur-sm transition-colors hover:border-klein focus-visible:ring-2 focus-visible:ring-klein"
   const exportButton = (
-    <button type="button" onClick={() => setExporting(true)} className={button}>
-      <Download aria-hidden className="h-4 w-4" />
+    <Button variant="secondary" size="sm" onClick={() => setExporting(true)} icon={<Download aria-hidden className="h-4 w-4" />}>
       {T.export}
-    </button>
+    </Button>
+  )
+  const count = (value: string, label: string) => (
+    <p className="flex flex-wrap items-baseline gap-x-2 text-ink">
+      <span className="whitespace-nowrap text-4xl font-medium tabular-nums tracking-[-0.02em] text-klein">{value}</span>
+      <span className="text-[15px] text-muted">{label}</span>
+    </p>
   )
 
   return (
-    <section className="space-y-10">
-      <div className="flex flex-col gap-5">
-        <div role="radiogroup" aria-label={T.views} className="relative flex max-w-full self-start overflow-x-auto rounded-md border border-line bg-paper/70 p-1 backdrop-blur-sm">
-          {views.map((each) => (
-            <button
-              key={each}
-              type="button"
-              role="radio"
-              aria-checked={view === each}
-              onClick={() => setView(each)}
-              className={cn(
-                "relative shrink-0 whitespace-nowrap rounded-[4px] px-3.5 py-1.5 text-[14px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-klein",
-                view === each ? "text-paper" : "text-muted hover:text-ink",
-              )}
-            >
-              {view === each && (
-                <motion.span layoutId="inventory-view" transition={{ type: "spring", stiffness: 380, damping: 32 }} className="absolute inset-0 rounded-[4px] bg-klein" />
-              )}
-              <span className="relative">{each === "theirs" ? theirs?.login : T[each]}</span>
-            </button>
-          ))}
-        </div>
+    <section>
+      <Tabs
+        label={T.views}
+        idPrefix="inventario"
+        items={views.map((each) => ({ id: each, label: each === "theirs" ? theirs?.login : T[each] }))}
+        value={view}
+        onChange={setView}
+      />
 
+      <TabPanel idPrefix="inventario" id={view} className="mt-8 space-y-10">
         {(view === "ideal" || view === "now") && (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0 flex-1 space-y-2.5">
-              <p className="flex items-baseline gap-2 text-ink">
-                <span className="whitespace-nowrap text-3xl font-medium tabular-nums tracking-[-0.02em] text-klein">
-                  {counts.owned} {T.of} {counts.picked}
-                </span>
-                <span className="text-[15px] text-muted">{T.inCollection}</span>
-              </p>
+            <div className="min-w-0 flex-1 space-y-3">
+              {count(`${counts.owned} ${T.of} ${counts.picked}`, T.inCollection)}
               <Bar weapons={board.filter((weapon) => weapon.ideal)} done={(weapon) => !!weapon.ideal?.owned} />
-              <p className="text-[13px] text-muted">{read ? `${T.read} ${read}.` : T.unread}</p>
+              <p className="text-[13px] text-muted">{read ?? T.unread}</p>
+              {channelFailed && (
+                <ErrorLine onRetry={loadChannel} retryLabel={T.retry} className="text-[13px]">
+                  {T.channelFailed}
+                </ErrorLine>
+              )}
             </div>
             {view === "ideal" && <div className="flex gap-2">{exportButton}</div>}
           </div>
@@ -290,30 +299,28 @@ export function InventoryBoard({ start, seed }: { start: Catalog; seed: ChannelI
 
         {view === "build" && (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0 flex-1 space-y-2.5">
-              <p className="flex items-baseline gap-2 text-ink">
-                <span className="whitespace-nowrap text-3xl font-medium tabular-nums tracking-[-0.02em] text-klein">
-                  {counts.picked} {T.of} {counts.total}
-                </span>
-                <span className="text-[15px] text-muted">{T.picked}</span>
-              </p>
+            <div className="min-w-0 flex-1 space-y-3">
+              {count(`${counts.picked} ${T.of} ${counts.total}`, T.picked)}
               <Bar weapons={board} done={(weapon) => !!weapon.ideal} />
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-muted">
                 {!started ? (
-                  <span>{T.starting}</span>
+                  <span role="status">{T.starting}</span>
                 ) : account ? (
                   <>
-                    <span>
-                      {save === "saving" ? T.saving : save === "error" ? T.saveError : (
+                    <span role="status">
+                      {save === "saving" ? (
+                        T.saving
+                      ) : save === "error" ? (
+                        <span className="text-loss">{T.saveError}</span>
+                      ) : (
                         <>
                           {T.savedIn} <strong className="font-medium text-klein">{account.login}</strong>.
                         </>
                       )}
                     </span>
-                    <button type="button" onClick={leave} className="flex items-center gap-1 underline underline-offset-2 hover:text-klein">
-                      <LogOut aria-hidden className="h-3.5 w-3.5" />
+                    <Button variant="quiet" size="sm" onClick={leave} icon={<LogOut aria-hidden className="h-3.5 w-3.5" />} className="text-[13px]">
                       {T.signOut}
-                    </button>
+                    </Button>
                   </>
                 ) : (
                   <span className="max-w-[34rem]">{save === "expired" ? T.expired : T.local}</span>
@@ -323,82 +330,90 @@ export function InventoryBoard({ start, seed }: { start: Catalog; seed: ChannelI
             </div>
             <div className="flex flex-wrap gap-2">
               {started && !account && (
-                <button
-                  type="button"
-                  onClick={() => signIn(null, `${location.pathname}#montar`)}
-                  className="rounded-md bg-[#9146ff] px-3 py-1.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90"
-                >
+                <SignInButton platform="twitch" size="sm" onClick={() => signIn(null, `${location.pathname}#montar`)}>
                   {T.signIn}
-                </button>
+                </SignInButton>
               )}
               {account && save === "saved" && (
-                <button type="button" onClick={copyLink} className={button}>
-                  {copied ? <Check aria-hidden className="h-4 w-4" /> : <Link2 aria-hidden className="h-4 w-4" />}
+                <Button variant="secondary" size="sm" onClick={copyLink} icon={copied ? <Check aria-hidden className="h-4 w-4" /> : <Link2 aria-hidden className="h-4 w-4" />}>
                   {copied ? T.copied : T.copyLink}
-                </button>
+                </Button>
               )}
               {counts.picked > 0 && exportButton}
               {counts.picked > 0 && (
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => (confirmClear ? (setMine(EMPTY), setConfirmClear(false)) : setConfirmClear(true))}
-                  className={cn(button, confirmClear && "border-loss text-loss")}
+                  className={cn(confirmClear && "border-loss text-loss hover:border-loss hover:text-loss")}
                 >
                   {confirmClear ? T.confirmClear : T.clear}
-                </button>
+                </Button>
               )}
             </div>
           </div>
         )}
 
         {view === "theirs" && theirs && (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="min-w-0 flex-1 space-y-2.5">
-              <p className="text-[15px] text-muted">{T.theirsTitle}</p>
-              <p className="flex items-baseline gap-3">
-                <span className="truncate text-3xl font-medium tracking-[-0.02em] text-klein">{theirs.login}</span>
-                {theirs.loadout && (
-                  <span className="whitespace-nowrap text-[15px] tabular-nums text-muted">
-                    {counts.picked} {T.of} {counts.total} {T.weapons}
-                  </span>
-                )}
-              </p>
-              {theirs.loadout === undefined && <p className="text-[13px] text-muted">{T.theirsLoading}</p>}
-              {theirs.loadout === null && (
-                <p className="text-[13px] text-muted">
-                  {theirs.login} {T.theirsNone}
+          <div className="space-y-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="text-[15px] text-muted">{T.theirsTitle}</p>
+                <p className="flex flex-wrap items-baseline gap-x-3">
+                  <span className="truncate text-4xl font-medium tracking-[-0.02em] text-klein">{theirs.login}</span>
+                  {theirs.loadout && (
+                    <span className="whitespace-nowrap text-[15px] tabular-nums text-muted">
+                      {counts.picked} {T.of} {counts.total} {T.weapons}
+                    </span>
+                  )}
                 </p>
-              )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {theirs.loadout && exportButton}
+                <Button size="sm" onClick={() => setView("build")}>
+                  {T.buildMine}
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {theirs.loadout && exportButton}
-              <button type="button" onClick={() => setView("build")} className="rounded-md bg-klein px-3 py-1.5 text-[14px] font-medium text-paper transition-opacity hover:opacity-90">
-                {T.buildMine}
-              </button>
-            </div>
+            {theirs.loadout === undefined && !theirs.failed && (
+              <p role="status" className="sr-only">
+                {T.theirsLoading.replace("{login}", theirs.login)}
+              </p>
+            )}
+            {theirs.failed && (
+              <ErrorLine onRetry={() => loadTheirs(theirs.login)} retryLabel={T.retry}>
+                {T.theirsFailed.replace("{login}", theirs.login)}
+              </ErrorLine>
+            )}
+            {theirs.loadout === null && <EmptyState>{T.theirsNone}</EmptyState>}
           </div>
         )}
-      </div>
 
-      {groups.map(({ category, weapons: inGroup }) => (
-        <div key={category}>
-          <h2 className="text-[12px] font-medium uppercase tracking-[0.12em] text-muted">{localize(CATEGORIES[category])}</h2>
-          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
-            {inGroup.map((weapon) => (
-              <li key={weapon.id}>
-                <WeaponCard
-                  weapon={weapon}
-                  view={view}
-                  order={board.indexOf(weapon)}
-                  read={!!channel.jogo}
-                  disabled={view === "build" && !started}
-                  onOpen={() => (view === "build" ? setPicking(weapon.id) : setOpen({ weapon, mode: view === "theirs" ? "loadout" : "channel" }))}
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+        {theirsReady
+          ? groups.map(({ category, weapons: inGroup }) => (
+              <div key={category}>
+                <p id={`grupo-${category}`} className="eyebrow text-muted">
+                  {localize(CATEGORIES[category])}
+                </p>
+                <ul aria-labelledby={`grupo-${category}`} className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {inGroup.map((weapon) => (
+                    // A weapon alone at the end of its group takes the row, so no card is left by itself.
+                    <li key={weapon.id} className="sm:odd:last:col-span-2">
+                      <WeaponCard
+                        weapon={weapon}
+                        view={view}
+                        order={board.indexOf(weapon)}
+                        read={!!channel.jogo}
+                        disabled={view === "build" && !started}
+                        onOpen={() => (view === "build" ? setPicking(weapon.id) : setOpen({ weapon, mode: view === "theirs" ? "loadout" : "channel" }))}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          : theirs?.loadout === undefined && !theirs?.failed && <BoardSkeleton groups={groups.map((group) => group.weapons.length)} />}
+      </TabPanel>
 
       <SkinDialog weapon={open?.weapon} mode={open?.mode ?? "channel"} read={!!channel.jogo} onClose={() => setOpen(undefined)} />
       <SkinPicker
@@ -408,6 +423,7 @@ export function InventoryBoard({ start, seed }: { start: Catalog; seed: ChannelI
         pick={picking ? mine.armas[picking] : undefined}
         onPick={(pick) => picking && setPick(picking, pick)}
         onTheme={applyTheme}
+        onRetry={loadFull}
         onClose={() => setPicking(undefined)}
       />
       <ExportDialog board={board} text={image} file={`loadout-dos-sonhos-${who.replace(/\s+/g, "-").toLowerCase()}`} open={exporting} onClose={() => setExporting(false)} />
@@ -415,11 +431,29 @@ export function InventoryBoard({ start, seed }: { start: Catalog; seed: ChannelI
   )
 }
 
+/** The board while someone's loadout comes: its groups, a pale card per weapon. */
+function BoardSkeleton({ groups }: { groups: number[] }) {
+  return (
+    <div className="space-y-10" aria-hidden>
+      {groups.map((size, index) => (
+        <div key={index}>
+          <Skeleton className="h-3 w-24" />
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            {Array.from({ length: size }, (_, card) => (
+              <Skeleton key={card} className={cn("cut h-40", size % 2 === 1 && card === size - 1 && "sm:col-span-2")} />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function Bar({ weapons, done }: { weapons: InventoryWeapon[]; done: (weapon: InventoryWeapon) => boolean }) {
   return (
     <div className="flex h-1.5 max-w-sm gap-[3px]" aria-hidden>
       {weapons.map((weapon) => (
-        <span key={weapon.id} title={weapon.name} className={cn("flex-1 rounded-full transition-colors", done(weapon) ? "bg-navy" : "bg-zinc-200")} />
+        <span key={weapon.id} title={weapon.name} className={cn("flex-1 transition-colors", done(weapon) ? "bg-navy" : "bg-zinc-200")} />
       ))}
     </div>
   )
@@ -486,22 +520,22 @@ function WeaponCard({
       onClick={onOpen}
       disabled={disabled}
       className={cn(
-        "group flex h-40 w-full flex-col rounded-md border p-3.5 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-klein focus-visible:ring-offset-2 focus-visible:ring-offset-ground disabled:cursor-wait disabled:opacity-60",
+        "cut cut-edge group relative flex h-40 w-full flex-col border p-4 text-left transition-colors disabled:cursor-wait disabled:opacity-60",
         card.done
-          ? "border-navy bg-navy bg-[radial-gradient(ellipse_at_50%_45%,rgba(0,47,167,0.95),transparent_70%)] text-paper hover:border-klein-claro"
+          ? "border-navy bg-navy bg-[radial-gradient(ellipse_at_50%_45%,color-mix(in_oklab,var(--color-klein)_95%,transparent),transparent_70%)] text-paper hover:border-klein-claro focus-visible:outline-paper"
           : card.ghost
-            ? "border-dashed border-zinc-300 bg-paper/40 hover:border-klein"
-            : "border-line bg-paper/75 backdrop-blur-sm hover:border-klein",
+            ? "border-dashed border-line-strong bg-paper/40 before:border-dashed after:border-dashed hover:border-klein"
+            : "border-line bg-paper/70 hover:border-klein",
       )}
     >
       <span className="flex items-center justify-between gap-2">
-        <span className={cn("text-[12px] font-medium", card.done ? "text-klein-claro" : "text-muted")}>{weapon.name}</span>
+        <span className={cn("text-[13px] font-medium", card.done ? "text-klein-claro" : "text-muted")}>{weapon.name}</span>
         {view !== "now" && card.swatches && (
           <span className="flex gap-1">
             {card.swatches.map((variant) =>
               variant.swatch ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={variant.id} src={variant.swatch} alt="" title={variant.name} className={cn("h-3.5 w-3.5 rounded-full ring-1", card.done ? "ring-paper/30" : "ring-line")} />
+                <img key={variant.id} src={variant.swatch} alt="" title={variant.name} className={cn("h-3.5 w-3.5 ring-1", card.done ? "ring-paper/30" : "ring-line")} />
               ) : null,
             )}
           </span>
@@ -516,12 +550,12 @@ function WeaponCard({
             loading="lazy"
             decoding="async"
             initial={reduced ? { opacity: 0 } : { opacity: 0, x: 14 }}
-            animate={{ opacity: card.ghost ? (card.open ? 0.3 : 0.65) : 1, x: 0, transition: { duration: 0.32, delay: reduced ? 0 : order * 0.018, ease: [0.2, 0.7, 0.2, 1] } }}
-            exit={reduced ? { opacity: 0 } : { opacity: 0, x: -14, transition: { duration: 0.18 } }}
+            animate={{ opacity: card.ghost ? (card.open ? 0.3 : 0.65) : 1, x: 0, transition: { duration: 0.32, delay: reduced ? 0 : order * 0.018, ease: EASE } }}
+            exit={reduced ? { opacity: 0 } : { opacity: 0, x: -14, transition: { duration: 0.18, ease: EASE } }}
             className={cn(
               "absolute inset-0 m-auto max-h-full max-w-[88%] object-contain transition-transform duration-300 group-hover:scale-[1.03]",
               card.ghost && "mix-blend-multiply [filter:grayscale(1)_sepia(1)_hue-rotate(185deg)_saturate(1.6)_brightness(1.45)]",
-              card.done && "drop-shadow-[0_6px_18px_rgba(133,167,255,0.25)]",
+              card.done && "drop-shadow-[0_6px_18px_color-mix(in_oklab,var(--color-klein-claro)_25%,transparent)]",
             )}
           />
         </AnimatePresence>
@@ -529,7 +563,7 @@ function WeaponCard({
       <span className="flex items-baseline justify-between gap-3">
         <span className={cn("truncate text-[15px] font-medium tracking-[-0.01em]", card.done ? "text-paper" : card.open ? "text-muted" : "text-klein")}>{card.name}</span>
         {card.status && (
-          <span className={cn("flex shrink-0 items-center gap-1 text-[12px]", card.done ? "text-klein-claro" : "text-muted")}>
+          <span className={cn("flex shrink-0 items-center gap-1 text-[13px]", card.done ? "text-klein-claro" : "text-muted")}>
             {Icon && <Icon aria-hidden className="h-3.5 w-3.5" />}
             <span className="max-w-[11rem] truncate">{card.status.text}</span>
           </span>
@@ -542,26 +576,18 @@ function WeaponCard({
 /**
  * A weapon's skin up close: the render of a variant, or Riot's showcase video for it, the variants with the ones
  * picked (and, for the channel's collection, the ones unlocked), and what's on the weapon now in the channel's game.
- * A native dialog, so focus, Esc and the backdrop behave.
  */
 function SkinDialog({ weapon, mode, read, onClose }: { weapon?: InventoryWeapon; mode: "channel" | "loadout"; read: boolean; onClose: () => void }) {
-  const dialog = useRef<HTMLDialogElement>(null)
   const [shown, setShown] = useState<InventoryWeapon>()
   const [selected, setSelected] = useState<string>()
   const [playing, setPlaying] = useState(false)
 
-  // The dialog keeps its weapon while it closes; a new one starts on its first picked variant, as an image.
+  // A new weapon starts on its first picked variant, as an image.
   if (weapon && weapon !== shown) {
     setShown(weapon)
     setSelected(undefined)
     setPlaying(false)
   }
-
-  useEffect(() => {
-    const element = dialog.current
-    if (weapon && !element?.open) element?.showModal()
-    if (!weapon && element?.open) element.close()
-  }, [weapon])
 
   const ideal = shown?.ideal
   const skin: Skin | undefined = ideal?.skin ?? shown?.current.skin
@@ -580,14 +606,9 @@ function SkinDialog({ weapon, mode, read, onClose }: { weapon?: InventoryWeapon;
           : T.statusLocked
 
   return (
-    <dialog
-      ref={dialog}
-      onClose={onClose}
-      onClick={(event) => event.target === dialog.current && onClose()}
-      className="m-auto w-[min(42rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-md border border-line bg-paper p-0 text-ink backdrop:bg-navy/55 backdrop:backdrop-blur-[2px] open:motion-safe:animate-[inventory-dialog_0.22s_ease-out]"
-    >
+    <Dialog open={!!weapon} onClose={onClose} title={skin ? (skin.standard ? T.standard : skin.name) : ""} closeLabel={T.close} width={42} flush>
       {shown && skin && chroma && (
-        <div>
+        <div className="min-h-0 overflow-y-auto">
           <div className="relative h-56 bg-navy sm:h-64">
             {playing && chroma.video ? (
               <video key={chroma.video} src={chroma.video} autoPlay controls playsInline className="h-full w-full bg-navy object-contain" onError={() => setPlaying(false)} />
@@ -598,86 +619,58 @@ function SkinDialog({ weapon, mode, read, onClose }: { weapon?: InventoryWeapon;
                 src={chroma.image}
                 alt={`${skin.name} · ${chroma.name}`}
                 className={cn(
-                  "absolute inset-0 m-auto max-h-[78%] max-w-[86%] object-contain drop-shadow-[0_10px_30px_rgba(133,167,255,0.3)] motion-safe:animate-[inventory-in_0.3s_ease-out]",
+                  "absolute inset-0 m-auto max-h-[78%] max-w-[86%] object-contain drop-shadow-[0_10px_30px_color-mix(in_oklab,var(--color-klein-claro)_30%,transparent)] motion-safe:animate-[inventory-in_0.3s_cubic-bezier(0.65,0,0.35,1)]",
                   ideal && !ideal.owned && "opacity-55 grayscale",
                 )}
               />
             )}
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={T.close}
-              className="absolute right-3 top-3 rounded-md p-1.5 text-paper/80 outline-none transition-colors hover:bg-paper/10 hover:text-paper focus-visible:ring-2 focus-visible:ring-klein-claro"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            {chroma.video && (
-              <button
-                type="button"
-                onClick={() => setPlaying(!playing)}
-                className={cn(
-                  "absolute left-3 flex items-center gap-1.5 rounded-md bg-paper/10 px-2.5 py-1.5 text-[13px] font-medium text-paper outline-none backdrop-blur-sm transition-colors hover:bg-paper/20 focus-visible:ring-2 focus-visible:ring-klein-claro",
-                  playing ? "top-3" : "bottom-3",
-                )}
-              >
-                {!playing && <Play aria-hidden className="h-3.5 w-3.5 fill-current" />}
-                {playing ? T.stopShowcase : T.showcase}
-              </button>
-            )}
+            {chroma.video && <ShowcaseButton playing={playing} onClick={() => setPlaying(!playing)} />}
           </div>
 
-          <div className="space-y-6 p-5 sm:p-6">
-            <div className="space-y-1">
-              <p className="text-[13px] text-muted">{shown.name}</p>
-              <h3 className="flex flex-wrap items-center gap-x-3 gap-y-1 text-2xl font-medium tracking-[-0.02em] text-klein">
-                {skin.standard ? T.standard : skin.name}
-                {skin.tier && (
-                  <span className="flex items-center gap-1.5 rounded-full border border-line px-2 py-0.5 text-[12px] font-medium tracking-normal text-ink">
-                    <span className="h-2 w-2 rounded-full" style={{ background: skin.tier.color }} />
-                    {skin.tier.name}
-                  </span>
-                )}
-              </h3>
+          <div className="space-y-6 p-5">
+            <div className="space-y-1.5">
+              <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[15px] text-muted">
+                {shown.name}
+                {skin.tier && <Rarity name={skin.tier.name} color={skin.tier.color} />}
+              </p>
               {skin.theme && <p className="text-[13px] text-muted">{`${T.collection} ${skin.theme.name}`}</p>}
-              {status && <p className="text-[14px] text-ink">{status}</p>}
+              {status && <p className="text-[15px] text-ink">{status}</p>}
             </div>
 
             {skin.chromas.length > 1 && (
               <div className="space-y-2">
-                <p className="text-[13px] font-medium text-ink">{T.variants}</p>
+                <p className="text-[13px] font-medium text-muted">{T.variants}</p>
                 <ul className="flex flex-wrap gap-2">
                   {skin.chromas.map((each) => {
                     const pick = ideal?.variants.findIndex((variant) => variant.id === each.id) ?? -1
                     const locked = channel && !!ideal?.owned && !ideal.unlocked.includes(each.id)
-                    const current = each.id === chroma.id
                     return (
                       <li key={each.id}>
-                        <button
-                          type="button"
-                          aria-pressed={current}
+                        <Choice
+                          size="sm"
+                          on={each.id === chroma.id}
                           onClick={() => {
                             setSelected(each.id)
                             setPlaying(false)
                           }}
-                          className={cn(
-                            "flex items-center gap-2 rounded-md border py-1.5 pl-1.5 pr-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-klein",
-                            current ? "border-klein bg-klein text-paper" : pick >= 0 ? "border-klein/50 hover:border-klein" : "border-line text-muted hover:border-klein",
-                          )}
+                          className={cn("justify-start py-1.5 pl-1.5 pr-3 text-left", pick < 0 && each.id !== chroma.id && "text-muted")}
+                          icon={
+                            each.swatch ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={each.swatch} alt="" className="h-6 w-6" />
+                            ) : (
+                              <span className="h-6 w-6 bg-zinc-200" />
+                            )
+                          }
                         >
-                          {each.swatch ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={each.swatch} alt="" className="h-6 w-6 rounded-[3px]" />
-                          ) : (
-                            <span className="h-6 w-6 rounded-[3px] bg-zinc-200" />
-                          )}
                           <span className="leading-tight">
                             <span className="flex items-center gap-1 text-[13px] font-medium">
                               {each.name}
                               {locked && <Lock aria-label={T.locked} className="h-3 w-3" />}
                             </span>
-                            {pick >= 0 && <span className={cn("block text-[11px]", current ? "text-paper/80" : "text-muted")}>{pick === 0 ? T.preferred : T.alternative}</span>}
+                            {pick >= 0 && <span className="block text-[12px] opacity-80">{pick === 0 ? T.preferred : T.alternative}</span>}
                           </span>
-                        </button>
+                        </Choice>
                       </li>
                     )
                   })}
@@ -692,7 +685,7 @@ function SkinDialog({ weapon, mode, read, onClose }: { weapon?: InventoryWeapon;
                   <img src={shown.current.chroma.image} alt="" className="absolute inset-0 m-auto max-h-full max-w-full object-contain" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-[12px] text-muted">{T.now}</span>
+                  <span className="block text-[13px] text-muted">{T.now}</span>
                   <span className="block truncate text-[15px] font-medium text-ink">
                     {shown.current.skin.standard ? T.standard : shown.current.skin.name}
                     {shown.current.chroma.id !== shown.current.skin.chromas[0].id && <span className="font-normal text-muted"> · {shown.current.chroma.name}</span>}
@@ -703,6 +696,6 @@ function SkinDialog({ weapon, mode, read, onClose }: { weapon?: InventoryWeapon;
           </div>
         </div>
       )}
-    </dialog>
+    </Dialog>
   )
 }
