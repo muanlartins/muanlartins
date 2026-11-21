@@ -20,7 +20,7 @@ import { type ChannelPage } from "@/lib/channel"
 import { fundamentals, GAME_PAGES, type GamePage } from "@/lib/game"
 import { matchMoments } from "@/lib/lives"
 import { lives, transcript } from "@/lib/lives-files"
-import { miraDays, sessions, valorantSessions, voltaicDays } from "@/lib/matches"
+import { miraDays, miraRankedDays, sessions, valorantSessions, voltaicDays } from "@/lib/matches"
 import { sectionMetadata } from "@/lib/metadata"
 import { editionSlug, entries, findTopic, type Roadmap } from "@/lib/roadmap"
 import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
@@ -159,7 +159,7 @@ export default async function SectionSubpage({ params }: Props) {
   if (entry && roadmap) return <TopicPage game={game} roadmap={roadmap} id={entry.topic.id} />
   if (page === "fundamentals" && roadmap) return <RoadmapPage game={game} roadmap={roadmap} />
   if (page === "aim" && game.aim) {
-    return <AimPage title={localize(game.aim.title)} description={localize(game.aim.description)} days={voltaicDays()} mira={miraDays()} credits={localize(game.credits)} />
+    return <AimPage title={localize(game.aim.title)} description={localize(game.aim.description)} days={voltaicDays()} mira={miraDays()} ranked={miraRankedDays()} credits={localize(game.credits)} />
   }
   if (page === "inventory" && game.inventory) {
     return <InventoryPage title={localize(game.inventory.title)} description={localize(game.inventory.description)} credits={localize(game.credits)} />

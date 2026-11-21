@@ -19,7 +19,9 @@ link) when Valorant closes or 45 minutes after the last match, leaving out any a
 `--recuperar` does the same for the latest competitive matches in Valorant's history that the site lacks (a day the
 service was off). When Valorant opens,
 after each match and every 15 minutes in the menus, it sends his inventory to the site when it changed
-(valorant_inventory.py: the skin on each weapon and what he owns, for the inventory page). Nothing touches the
+(valorant_inventory.py: the skin on each weapon and what he owns, for the inventory page). After each match with a
+replay it queues it, and every minute off the air mira_auto.py downloads the queued replays (as the game's own
+"Download") and publishes the aim page's training and matches (mira.py, voltaic.py, mira_ranked.py). Nothing touches the
 game itself; the Riot Client's local API and Valorant's are unofficial, so a patch can change them. The Riot Client
 only answers most of this while Valorant is open.
 
@@ -52,6 +54,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from windows import home  # noqa: E402
 import publicar  # noqa: E402
+import mira_auto  # noqa: E402
 from zoneinfo import ZoneInfo  # noqa: E402
 
 PORT = 8792
@@ -329,6 +332,7 @@ def summarize_latest(tries=12, wait=15, newer_than_h=2):
             if details["matchInfo"].get("queueID") == "competitive":
                 updates = get(f"/mmr/v1/players/{puuid}/competitiveupdates?startIndex=0&endIndex=3&queue=competitive")["Matches"]
             match = summary(details, puuid, updates)
+            mira_auto.enfileirar(match["id"], match["queue"])  # its replay, for the aim page (mira_auto.py)
             summaries.append(match)
             del summaries[:-30]
             send({"tipo": "resumo", "partida": match}, show=False)
@@ -414,6 +418,38 @@ def off_stream_ticker():
             last = max(datetime.fromisoformat(m["at"].replace("Z", "+00:00")).timestamp() for m in kept)
             if time.time() - last > OFF_STREAM_IDLE:
                 publish_off_stream("45 minutos sem partida")
+
+
+def riot_account():
+    """(puuid, headers, shard) for Valorant's match history on Riot's service gateway, with the Riot Client's tokens
+    (in memory only); None while it hands out none (closed, or signed out)."""
+    found = client()
+    if not found:
+        return None
+    try:
+        tokens = ask(found, "/entitlements/v1/token")
+        region = ask(found, "/riotclient/region-locale").get("region", "br").lower()
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+    if "accessToken" not in tokens:
+        return None
+    headers = {"Authorization": f"Bearer {tokens['accessToken']}", "X-Riot-Entitlements-JWT": tokens["token"],
+               "User-Agent": "ShooterGame/13 Windows/10.0.19043.1.256.64bit"}
+    return tokens["subject"], headers, SHARDS.get(region, "na")
+
+
+def aim_ticker():
+    """Every minute, off the air: the queued matches' replays, then the aim page's training and matches (mira_auto.py)."""
+    puuid = None
+    while True:
+        time.sleep(60)
+        try:
+            account = riot_account()
+            puuid = account[0] if account else puuid
+            mira_auto.ciclo(riot=lambda: account, puuid=puuid,
+                            diz=lambda text: print(time.strftime("%H:%M:%S"), text, flush=True))
+        except Exception as error:  # a cycle that fails tries again in a minute; the service stays up
+            print(time.strftime("%H:%M:%S"), "mira:", type(error).__name__, str(error)[:200], flush=True)
 
 
 def recover(count: int):
@@ -515,6 +551,7 @@ def main():
     server.daemon_threads = True
     threading.Thread(target=watch, daemon=True).start()
     threading.Thread(target=off_stream_ticker, daemon=True).start()
+    threading.Thread(target=aim_ticker, daemon=True).start()
     print(f"Valorant em http://127.0.0.1:{PORT}/eventos", flush=True)
     server.serve_forever()
 

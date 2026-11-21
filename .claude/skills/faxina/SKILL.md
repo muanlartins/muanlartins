@@ -39,6 +39,7 @@ Talk to him in pt-BR.
 | `Shorts\candidatos\` | numbered reels for him to pick moments | go once the shorts from them are made |
 | `Shorts\` loose takes | studio takes (`shorts.py`) | `shorts.py --apply` deletes a take once its shorts exist; others: ask |
 | loose `2026-… .mp4/.mkv` in `Videos\` | OBS's files before `videos.py` files them | never delete a recent one: `videos.py` joins and files them. Stubs of a few KB from a recording that failed to start (11-12 16-45-28: 734 B and 111 KB) can go once checked with ffprobe (no duration) |
+| `%LOCALAPPDATA%\VALORANT\Saved\Demos\*.vrf` (outside Videos) | Valorant's replays, 50–100 MB each, downloaded after each match by `mira_auto.py` for the aim page | a match's file can go once `content/mira-ranked/` on main has its id (or `mira_ranked.py` skipped it as another account's); one a patch kept out (`mira-auto.json` says `patch`) stays until vrfkit reads it. Ask before deleting |
 | `NVIDIA\`, `Captures\` | GeForce/Xbox game clips, not the channel's | Luan's: ask (11-17: a June Chameleon clip, 0.6 GB, left) |
 
 Outside Videos, but on C: too: WSL's `~/.cache/muanlartins` (edicao caches, replay copies; small, `replay.py` clears
