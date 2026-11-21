@@ -297,30 +297,40 @@ export const channel = {
     },
   },
 
-  /** /canal/minijogos: the games in the corner of the live, played by whoever is in the chat. For now the ball duel
-   * (lib/duelo.ts): your ball, the ranking and the latest fights, each with its replay. Copy is a draft for Luan. */
+  /** /canal/minijogos: the games between the matches, played by whoever is in the chat: the ball duel (lib/duelo.ts)
+   * and the marble race (lib/corrida.ts); your ball, the rankings, the fights with their replays and the numbers by
+   * class. Copy is a draft for Luan. */
   minijogos: {
     title: { pt: "Minijogos", en: "Minigames" },
     description: {
-      pt: "Os jogos que rolam no canto da live com quem está no chat. Escolha como você joga, veja quem está ganhando e assista de novo a qualquer luta.",
-      en: "The games running in the corner of the stream with whoever is in the chat. Pick how you play, see who's winning and watch any fight again.",
+      pt: "Os jogos da live entre as partidas, com quem está no chat.",
+      en: "The stream's games between matches, with whoever is in the chat.",
     },
+    /** The page's own index, under its intro. */
+    index: {
+      label: { pt: "Nesta página", en: "On this page" },
+      duel: { pt: "Duelo", en: "Duel" },
+      race: { pt: "Corrida", en: "Race" },
+      ranking: { pt: "Ranking", en: "Ranking" },
+      fights: { pt: "Lutas", en: "Fights" },
+      stats: { pt: "Estatísticas", en: "Stats" },
+    },
+    how: { pt: "Como funciona", en: "How it works" },
+    idea: { pt: "Ideia de", en: "Idea by" },
     /** The marble race (lib/corrida.ts). */
     race: {
       title: { pt: "Corrida de bolinhas", en: "Marble race" },
-      short: { pt: "Todo mundo do chat numa pista 3D cheia de obstáculos, na conversa entre partidas.", en: "Everyone in the chat on a 3D track full of obstacles, in the talk between matches." },
-      /** The rules as chips under the title. */
-      rules: {
-        everyone: { pt: "Todo mundo do chat corre", en: "Everyone in the chat races" },
-        track: { pt: "Pista nova a cada corrida", en: "A new track every race" },
-        falls: { pt: "Caiu, volta um pedaço", en: "Fall off, go back a bit" },
-        record: { pt: "Só vale o registro", en: "Only the record counts" },
-      },
+      short: { pt: "Todo mundo do chat numa pista 3D cheia de obstáculos.", en: "Everyone in the chat on a 3D track full of obstacles." },
+      /** Under "Como funciona", a line each. */
+      how: [
+        { pt: "Entre as partidas, todo mundo do chat corre, até 40 por corrida. O duelo e a corrida revezam.", en: "Between matches, everyone in the chat races, up to 40 a race. The duel and the race take turns." },
+        { pt: "A pista é nova a cada corrida. Caiu, volta pro começo do trecho de onde caiu.", en: "The track is new every race. Fall off, and you go back to the start of that stretch." },
+        { pt: "Vale só pelo registro: a corrida não dá Σ.", en: "It's only for the record: the race gives no Σ." },
+      ],
       player: {
-        /** "Replay: the latest race, 12 on the track, 17/11". */
+        /** "Replay: 12 on the track · 17/11". */
         replay: { pt: "Replay: {n} na pista · {d}", en: "Replay: {n} on the track · {d}" },
-        demo: { pt: "Uma corrida de exemplo, até sair a primeira na live", en: "A sample race, until the first one on the live" },
-        back: { pt: "Voltar pra última", en: "Back to the latest" },
+        demo: { pt: "Uma corrida de exemplo, até sair a primeira na live", en: "A sample race, until the first one on the stream" },
       },
       yours: {
         title: { pt: "Sua bolinha", en: "Your marble" },
@@ -331,49 +341,35 @@ export const channel = {
         edit: { pt: "Mudar o torcedor", en: "Change my fan" },
       },
       finish: {
-        title: { pt: "Acabamento pelo ranque", en: "Finish by rank" },
+        title: { pt: "Acabamento pelo rank", en: "Finish by rank" },
         plain: { pt: "vidro", en: "glass" },
         glow: { pt: "brilha", en: "glows" },
         trail: { pt: "deixa rastro", en: "leaves a trail" },
         sparks: { pt: "faísca", en: "sparkles" },
         colours: { pt: "muda de cor", en: "changes colour" },
       },
-      ranking: { pt: "Ranking da corrida", en: "Race ranking" },
       total: { pt: "{n} corridas registradas", en: "{n} races recorded" },
       wins: { pt: "vitórias", en: "wins" },
       podiums: { pt: "pódios", en: "podiums" },
       races: { pt: "corridas", en: "races" },
       latest: { pt: "Últimas corridas", en: "Latest races" },
       of: { pt: "{n} na pista", en: "{n} on the track" },
-      watch: { pt: "Assistir", en: "Watch" },
       old: { pt: "pista antiga, em 2D", en: "old 2D track" },
-      none: { pt: "Ainda não teve corrida. A primeira sai na próxima conversa da live.", en: "No race yet. The first one comes at the stream's next talk." },
+      none: { pt: "Nenhuma corrida registrada ainda. A primeira sai na próxima conversa da live.", en: "No race recorded yet. The first one comes in the stream's next talk." },
+      unavailable: { pt: "Não deu pra carregar as corridas agora.", en: "The races couldn't be loaded right now." },
+      replayTitle: { pt: "Corrida de {d}", en: "Race of {d}" },
     },
     duel: {
       title: { pt: "Duelo de bolinhas", en: "Ball duel" },
-      lead: {
-        pt: "Durante a live, dois do chat são sorteados e se enfrentam no canto da tela, um duelo atrás do outro. Cada um é uma bolinha com as cores do seu torcedor e uma arma que cresce a cada acerto.",
-        en: "During the stream, two people from the chat are drawn and fight in the corner of the screen, one duel after another. Each is a ball in their fan's colours with a weapon that grows with every hit.",
-      },
-      fair: {
-        pt: "Todo mundo tem a mesma força: seus Σ só deixam a arma mais bonita. Quem tem mais Σ tem um pouco mais de chance de ser sorteado, como na dedicatória do gol.",
-        en: "Everyone is equally strong: your Σ only make your weapon look better. More Σ gives a little more chance of being drawn, like the goal's dedication.",
-      },
-      idea: { pt: "Ideia de", en: "Idea by" },
-      command: { pt: "No chat, !duelo mostra as suas vitórias.", en: "In the chat, !duelo shows your wins." },
-      /** The rules as chips under the title, a few words each. */
-      rules: {
-        drawn: { pt: "2 do chat, sorteados", en: "2 from the chat, drawn" },
-        loop: { pt: "Um duelo atrás do outro", en: "One duel after another" },
-        fair: { pt: "Mesma força pra todos", en: "Everyone equally strong" },
-        looks: { pt: "Σ só deixa a arma mais bonita", en: "Σ only make it prettier" },
-        command: { pt: "!duelo no chat", en: "!duelo in the chat" },
-      },
-      short: { pt: "Bolinhas com armas que crescem a cada acerto, no canto da live.", en: "Balls with weapons that grow with every hit, in the stream's corner." },
+      short: { pt: "Bolinhas com armas que crescem a cada acerto. Escolhe a sua classe.", en: "Balls with weapons that grow with every hit. Pick your class." },
+      /** Under "Como funciona", a line each. */
+      how: [
+        { pt: "Entre as partidas, dois do chat são sorteados e se enfrentam, um duelo por vez. Sozinho no chat, você enfrenta a bolinha do canal.", en: "Between matches, two from the chat are drawn and fight, one duel at a time. Alone in the chat, you face the channel's ball." },
+        { pt: "Todo mundo tem a mesma força: seus Σ só deixam a arma mais bonita. Quem tem mais Σ tem um pouco mais de chance de ser sorteado.", en: "Everyone is equally strong: your Σ only make the weapon prettier. More Σ is a little more chance of being drawn." },
+        { pt: "No chat, !duelo mostra as suas vitórias.", en: "In the chat, !duelo shows your wins." },
+      ],
     },
     yours: {
-      title: { pt: "Sua bolinha", en: "Your ball" },
-      signIn: { pt: "Entrar com a Twitch", en: "Sign in with Twitch" },
       signInNote: {
         pt: "Pra escolher a classe e o visual da sua bolinha. Sem entrar, ela luta com uma classe sorteada a cada duelo.",
         en: "To pick your ball's class and look. Without signing in, it fights with a class drawn each duel.",
@@ -381,10 +377,6 @@ export const channel = {
       signedInAs: { pt: "Entrou como", en: "Signed in as" },
       signOut: { pt: "Sair", en: "Sign out" },
       classTitle: { pt: "Classe", en: "Class" },
-      classHint: {
-        pt: "Cada classe vence perto de metade das lutas: escolha a que você mais curte ver. Sem escolha, uma é sorteada a cada duelo.",
-        en: "Every class wins about half its fights: pick the one you most like to watch. With none, one is drawn each duel.",
-      },
       random: { pt: "Aleatória", en: "Random" },
       randomText: { pt: "Uma diferente a cada duelo.", en: "A different one each duel." },
       stats: {
@@ -431,11 +423,7 @@ export const channel = {
         clava: { name: { pt: "Clava", en: "Club" }, text: { pt: "Atordoa: quem apanha fica parado, sem arma.", en: "Stuns: whoever gets hit stands still, weaponless." } },
       },
       materialTitle: { pt: "Visual da arma", en: "Weapon look" },
-      materialHint: {
-        pt: "Seus Σ liberam um visual por ranque, do Bronze à Lenda Supersônica. Sem escolha, a arma usa o do seu ranque.",
-        en: "Your Σ unlock one look per rank, from Bronze to Supersonic Legend. With none, the weapon wears your rank's.",
-      },
-      auto: { pt: "O do meu ranque", en: "My rank's" },
+      auto: { pt: "O do meu rank", en: "My rank's" },
       metal: { pt: "só o metal", en: "just the metal" },
       /** "Próximo visual: Diamante, com 2.000 Σ (você tem 1.000)." */
       next: { pt: "Próximo visual: {nome}, com {n} Σ (você tem {s}).", en: "Next look: {nome}, at {n} Σ (you have {s})." },
@@ -452,13 +440,16 @@ export const channel = {
       saving: { pt: "Salvando…", en: "Saving…" },
       saved: { pt: "Salvo. Vale a partir do próximo duelo.", en: "Saved. It counts from the next duel." },
       reset: { pt: "Voltar ao padrão", en: "Back to default" },
-      error: { pt: "Não deu pra salvar. Tente de novo.", en: "It couldn't be saved. Try again." },
-      expired: { pt: "Sua entrada com a Twitch expirou. Entre de novo.", en: "Your Twitch sign-in expired. Sign in again." },
+      error: { pt: "Não deu pra salvar. Tenta de novo.", en: "It couldn't be saved. Try again." },
+      expired: { pt: "A Twitch pediu pra você entrar de novo.", en: "Twitch asked you to sign in again." },
     },
     player: {
       preview: { pt: "Prévia: sua bolinha contra a do canal", en: "Preview: your ball against the channel's" },
-      replay: { pt: "Replay: {a} contra {b}", en: "Replay: {a} against {b}" },
-      back: { pt: "Voltar pra prévia", en: "Back to the preview" },
+      /** Signed in as the channel itself. */
+      previewChannel: { pt: "Prévia: a bolinha do canal contra a de um torcedor", en: "Preview: the channel's ball against a fan's" },
+      /** The other side's name in the channel's preview. */
+      fan: { pt: "torcedor", en: "fan" },
+      you: { pt: "você", en: "you" },
     },
     record: {
       title: { pt: "Seu histórico", en: "Your record" },
@@ -466,15 +457,23 @@ export const channel = {
       fights: { pt: "duelos", en: "duels" },
       rate: { pt: "de aproveitamento", en: "win rate" },
       place: { pt: "no ranking", en: "in the ranking" },
+      /** The channel's ball stays out of the ranking. */
+      outside: { pt: "fora do ranking", en: "out of the ranking" },
+      latest: { pt: "Suas últimas lutas", en: "Your latest fights" },
+      won: { pt: "Vitória", en: "Win" },
+      lost: { pt: "Derrota", en: "Loss" },
       none: {
-        pt: "Você ainda não lutou. Fique no chat com a live no ar: o sorteio pode chamar você a qualquer hora.",
+        pt: "Você ainda não lutou. Fica no chat com a live no ar: o sorteio pode chamar você a qualquer hora.",
         en: "You haven't fought yet. Stay in the chat while the stream is on: the draw may call you any time.",
       },
-      byClass: { pt: "Por classe", en: "By class" },
+      unavailable: { pt: "Não deu pra carregar o seu histórico agora.", en: "Your record couldn't be loaded right now." },
     },
     ranking: {
       title: { pt: "Ranking", en: "Ranking" },
-      note: { pt: "Mais vitórias primeiro; no empate, o melhor aproveitamento.", en: "Most wins first; on a tie, the best win rate." },
+      duel: { pt: "Duelo", en: "Duel" },
+      race: { pt: "Corrida", en: "Race" },
+      duelNote: { pt: "Mais vitórias primeiro; no empate, o melhor aproveitamento.", en: "Most wins first; on a tie, the best win rate." },
+      raceNote: { pt: "Mais vitórias primeiro; no empate, mais pódios.", en: "Most wins first; on a tie, more podiums." },
       /** "{n} duelos registrados". */
       total: { pt: "{n} duelos registrados", en: "{n} duels recorded" },
       empty: {
@@ -486,19 +485,55 @@ export const channel = {
         en: "The channel's ball, which fights whoever is alone in the chat: {v} of {p}.",
       },
       unavailable: { pt: "Não deu pra carregar os duelos agora.", en: "The duels couldn't be loaded right now." },
-      wins: { pt: "V", en: "W" },
-      fights: { pt: "D", en: "D" },
+      showAll: { pt: "Ver todos", en: "Show everyone" },
+      showLess: { pt: "Ver menos", en: "Show fewer" },
       you: { pt: "você", en: "you" },
     },
-    latest: {
-      title: { pt: "Últimas lutas", en: "Latest fights" },
-      won: { pt: "venceu", en: "beat" },
+    fights: {
+      title: { pt: "Lutas", en: "Fights" },
+      description: { pt: "As melhores e as mais recentes, cada uma com o replay.", en: "The best and the latest, each with its replay." },
+      best: { pt: "Melhores lutas", en: "Best fights" },
+      /** "Entre as últimas 100 lutas". */
+      among: { pt: "Entre as últimas {n} lutas", en: "Among the latest {n} fights" },
+      latest: { pt: "Últimas lutas", en: "Latest fights" },
+      /** Why a fight is among the best: its title and a line with its number. */
+      why: {
+        virada: { title: { pt: "A maior virada", en: "The biggest comeback" }, line: { pt: "Venceu depois de estar {p}% de vida atrás", en: "Won after being {p}% of life behind" } },
+        detalhe: { title: { pt: "No detalhe", en: "Down to the wire" }, line: { pt: "Venceu com {p}% de vida", en: "Won with {p}% of life left" } },
+        disputada: { title: { pt: "A mais disputada", en: "The closest fought" }, line: { pt: "A liderança trocou de lado {n} vezes", en: "The lead changed sides {n} times" } },
+        longa: { title: { pt: "A mais longa", en: "The longest" }, line: { pt: "{s} s de luta", en: "{s} s of fighting" } },
+      },
       knockout: { pt: "nocaute em {s} s", en: "knockout in {s} s" },
       time: { pt: "no tempo", en: "on time" },
       draw: { pt: "no sorteio", en: "by lot" },
-      drawn: { pt: "sorteada", en: "drawn" },
+      /** Beside a class its viewer picked (the rest were drawn). */
+      picked: { pt: "escolhida", en: "picked" },
+      /** The crown by the winner's name, for screen readers. */
+      won: { pt: "venceu", en: "won" },
       watch: { pt: "Assistir", en: "Watch" },
       old: { pt: "regras antigas", en: "old rules" },
+      /** The replay's dialog: "comehomens contra neilahm". */
+      replayTitle: { pt: "{a} contra {b}", en: "{a} against {b}" },
+      close: { pt: "Fechar", en: "Close" },
+      empty: { pt: "Nenhuma luta registrada ainda. As primeiras saem na próxima live.", en: "No fight recorded yet. The first ones come in the next stream." },
+    },
+    stats: {
+      title: { pt: "Estatísticas", en: "Stats" },
+      /** "As classes nas últimas 100 lutas, e quem mais luta." */
+      description: { pt: "As classes nas últimas {n} lutas, e quem mais luta.", en: "The classes in the latest {n} fights, and who fights the most." },
+      classes: { pt: "As classes", en: "The classes" },
+      used: { pt: "Mais usadas", en: "Most used" },
+      wins: { pt: "Vitórias", en: "Wins" },
+      length: { pt: "Duração", en: "Length" },
+      /** "Em 60 lutas · 100% sorteadas". */
+      usedNote: { pt: "Quantas vezes cada uma lutou. {p}% foram sorteadas, sem escolha.", en: "How many times each fought. {p}% were drawn, not picked." },
+      winsNote: { pt: "A linha é 50%. Mais claras: menos de 5 lutas, pouco pra dizer.", en: "The line is 50%. Paler: fewer than 5 fights, too few to tell." },
+      lengthNote: { pt: "Quanto dura, em média, uma luta com cada uma.", en: "How long a fight with each lasts, on average." },
+      /** "3 de 5" beside a share. */
+      of: { pt: "{v} de {p}", en: "{v} of {p}" },
+      fighters: { pt: "Quem mais lutou", en: "Who fought the most" },
+      rate: { pt: "Melhor aproveitamento", en: "Best win rate" },
+      rateNote: { pt: "Com {n} duelos ou mais.", en: "With {n} duels or more." },
     },
   },
 

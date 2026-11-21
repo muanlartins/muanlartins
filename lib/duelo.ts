@@ -150,3 +150,98 @@ export function playerUrl({ logins, nomes, classes, materiais, fight }: { logins
 /** A recorded fight's replay. */
 export const replayUrl = (f: Fight) =>
   playerUrl({ logins: f.logins, nomes: f.nomes, classes: f.classes, materiais: [f.materiais[0] ?? "*", f.materiais[1] ?? "*"], fight: f })
+
+/** What a fight's replay says beyond who won: the engine played again from its seed, in the browser. */
+export interface FightReading {
+  /** The winner's life at the end, 0 to 1. */
+  left: number
+  /** How far behind the winner ever was, in life (0 to 1): a comeback's size. */
+  behind: number
+  /** How many times the lead changed hands. */
+  leads: number
+}
+
+/**
+ * Plays the fights again off the page's thread (a worker running the live's own engine, duelo-motor.js), each fight
+ * a reading. Only fights under the engine's rules (`versao`) are played. About 20 ms a fight.
+ */
+export function readFights(fights: Fight[], versao: number): Promise<Record<string, FightReading>> {
+  const todo = fights.filter((f) => f.versao === versao).map(({ id, semente, classes }) => ({ id, semente, classes }))
+  if (!todo.length || typeof Worker === "undefined") return Promise.resolve({})
+  const code = `importScripts(${JSON.stringify(`${location.origin}/stream/duelo-motor.js`)})
+onmessage = ({ data }) => {
+  const D = self.Duelo, out = {}
+  for (const f of data) {
+    const luta = D.criar(f.semente, f.classes[0], f.classes[1])
+    let min = 0, max = 0
+    while (!luta.fim) {
+      D.passo(luta)
+      const d = luta.bolas[0].hp - luta.bolas[1].hp
+      if (d < min) min = d
+      if (d > max) max = d
+    }
+    const w = luta.fim.vencedor, total = luta.bolas[0].hpMax
+    out[f.id] = { left: Math.max(0, luta.bolas[w].hp) / total, behind: (w === 0 ? -min : max) / total, leads: luta.metricas.viradas }
+  }
+  postMessage(out)
+}`
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(new Blob([code], { type: "text/javascript" }))
+    const worker = new Worker(url)
+    const done = () => {
+      worker.terminate()
+      URL.revokeObjectURL(url)
+    }
+    worker.onmessage = ({ data }) => {
+      done()
+      resolve(data as Record<string, FightReading>)
+    }
+    worker.onerror = (e) => {
+      done()
+      reject(e)
+    }
+    worker.postMessage(todo)
+  })
+}
+
+/** Why a fight is among the best, in the order they're picked. */
+export const HIGHLIGHTS = ["virada", "detalhe", "disputada", "longa"] as const
+export type Highlight = (typeof HIGHLIGHTS)[number]
+
+/**
+ * The best fights among those given, one per criterion and never the same fight twice: the biggest comeback (the
+ * winner once 15% of life or more behind), the closest finish (the winner with 20% of life or less), the most
+ * disputed (the lead changing hands 4 times or more) and the longest. A criterion nobody meets is left out.
+ */
+export function bestFights(fights: Fight[], readings: Record<string, FightReading>) {
+  const read = fights.filter((f) => readings[f.id])
+  const picked = new Set<string>()
+  const best: { why: Highlight; fight: Fight; reading: FightReading | null }[] = []
+  const take = (why: Highlight, list: Fight[], score: (f: Fight) => number) => {
+    const top = list.filter((f) => !picked.has(f.id)).sort((a, b) => score(b) - score(a))[0]
+    if (!top) return
+    picked.add(top.id)
+    best.push({ why, fight: top, reading: readings[top.id] ?? null })
+  }
+  take("virada", read.filter((f) => readings[f.id].behind >= 0.15), (f) => readings[f.id].behind)
+  take("detalhe", read.filter((f) => readings[f.id].left <= 0.2), (f) => -readings[f.id].left)
+  take("disputada", read.filter((f) => readings[f.id].leads >= 4), (f) => readings[f.id].leads)
+  take("longa", fights, (f) => f.segundos)
+  return best
+}
+
+/** Each class in the fights given: how often it fought (and how often drawn), its wins and its average length. */
+export function classStats(fights: Fight[]) {
+  const by = new Map<string, { classe: string; lutas: number; sorteadas: number; vitorias: number; segundos: number }>()
+  for (const f of fights) {
+    f.classes.forEach((classe, i) => {
+      const s = by.get(classe) ?? { classe, lutas: 0, sorteadas: 0, vitorias: 0, segundos: 0 }
+      s.lutas++
+      if (f.sorteadas[i]) s.sorteadas++
+      if (f.vencedor === i) s.vitorias++
+      s.segundos += f.segundos
+      by.set(classe, s)
+    })
+  }
+  return [...by.values()].map((s) => ({ ...s, segundos: s.segundos / s.lutas }))
+}
