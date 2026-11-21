@@ -6,7 +6,10 @@
     <link rel="stylesheet" href="stream.css" />
     <link rel="stylesheet" href="torcedor.css" />
     <!--
-      OBS: Browser source "Corrida", 1920×1080, in the "Conversa" scene (between matches), over everything. Silent.
+      OBS: since 2026-11-20 inside the "Conversa" scene's overlay: conversa.html holds this page in an iframe (?vez)
+      and has it take turns with the ball duel in one box under the camera; a race starts when its turn comes, stops
+      where it is while the scene is off the air and carries on when it's back. Until then it was the browser source
+      "Corrida" there, starting a race each time the scene came on and dropping it when the scene left. Silent.
 
       The marble race (Lucca's idea, lucca_3098; Luan's rules, 2026-11-17), in 3D since 2026-11-17 (Luan: the point of
       Marbles is the 3D and the mess the maps make): when the scene goes on air, a race starts by itself with everyone in
@@ -565,6 +568,13 @@
         return top.join(" e ")
       }
 
+      // Taking turns with the duel in the "Conversa" scene (conversa.html holds this page in an iframe, ?vez): it says
+      // when this page's turn comes and when to stop where it is (the race waits, frozen, and carries on); this one
+      // says when its race is over ("fim") or that there's nobody to race ("vazio").
+      const VEZ = params.has("vez") && parent !== window
+      let pausada = false
+      const avisar = (minijogo) => VEZ && parent.postMessage({ minijogo }, location.origin)
+
       async function largar() {
         if (fase !== "parada") return
         let logins
@@ -573,7 +583,7 @@
           logins = REPLAY
         } else {
           logins = [...presentes.keys()].filter((l) => l !== CHANNEL)
-          if (!logins.length) return
+          if (!logins.length) return avisar("vazio")
           // More than fit: drawn by the seed (the same draw the API can check).
           if (logins.length > MAX) {
             let a = semente
@@ -587,7 +597,7 @@
           if (logins.length === 1) logins.push(CHANNEL)
           logins.sort()
         }
-        if (logins.length < 2) return
+        if (logins.length < 2) return avisar("vazio")
         await pedir(logins.filter((l) => l !== CHANNEL))
         const nomes = (params.get("nomes") ?? "").split(",")
         corredores = logins.map((login, i) => ({ login, nome: (REPLAY && nomes[i]?.trim()) || presentes.get(login) || login, aparencia: aparencia(login) }))
@@ -616,6 +626,7 @@
         setTimeout(() => podio.classList.remove("visivel"), 500)
         // The site's replay plays again.
         if (REPLAY) setTimeout(largar, 1200)
+        avisar("fim")
       }
 
       function mostrarPodio() {
@@ -810,7 +821,7 @@
         if (!corrida) return
         const dt = Math.min(0.1, (agora - (ultimo || agora)) / 1000)
         ultimo = agora
-        if (fase === "correndo") {
+        if (fase === "correndo" && !pausada) {
           acumulado += dt
           while (acumulado >= Corrida.DT && !corrida.fim) {
             Corrida.passo(corrida)
@@ -876,6 +887,7 @@
       // --- On air: the scene coming on starts a race; leaving it drops one still running -----------------------
       let largada
       addEventListener("obsSourceActiveChanged", ({ detail }) => {
+        if (VEZ) return
         clearTimeout(largada)
         if (detail?.active) largada = setTimeout(largar, 2500)
         else if (fase !== "parada") encerrar()
@@ -914,7 +926,18 @@
           },
         }
         addEventListener("keydown", (e) => keys[e.key]?.())
-        setTimeout(largar, 300)
+        if (!VEZ) setTimeout(largar, 300)
+      }
+      if (VEZ) {
+        addEventListener("message", ({ data, origin, source }) => {
+          if (origin !== location.origin || source !== parent) return
+          if (data?.minijogo === "vez") {
+            pausada = false
+            if (fase === "parada") largar()
+          }
+          if (data?.minijogo === "pausa") pausada = true
+        })
+        avisar("pronto")
       }
     </script>
   </body>

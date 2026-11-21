@@ -36,6 +36,7 @@ export const PEOPLE = {
   maxchadoz: { name: "maxchadoz", where: "twitch", login: "maxchadoz", url: "https://www.twitch.tv/maxchadoz" },
   ccamara: { name: "ccamara", where: "twitch", login: "ccamara", url: "https://www.twitch.tv/ccamara" },
   leila_m_30: { name: "leila_m_30", where: "twitch", login: "leila_m_30", url: "https://www.twitch.tv/leila_m_30" },
+  erikmd01: { name: "ErikMD01", where: "twitch", login: "erikmd01", url: "https://www.twitch.tv/erikmd01" },
 } satisfies Record<string, Person>
 
 export type PersonId = keyof typeof PEOPLE
@@ -115,6 +116,15 @@ export const UPCOMING: Upcoming[] = [
 /** Every feature released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "teclado-e-mouse",
+    date: "2026-11-20",
+    tag: "live",
+    title: "Teclado e mouse na tela",
+    text: "As teclas e os cliques que eu aperto aparecem do lado da câmera, no Valorant, no Rocket League e nos outros jogos.",
+    credits: [{ by: "erikmd01" }],
+    media: [media("teclado-e-mouse", "O teclado e o mouse acima da câmera: W e A acesos e o clique esquerdo do mouse apertado", { video: true })],
+  },
+  {
     id: "servidor-do-discord",
     date: "2026-11-19",
     tag: "live",
@@ -172,11 +182,11 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-15",
     tag: "live",
     title: "Duelo de bolinhas",
-    text: "Dois do chat se enfrentam no canto da tela. A classe da sua bolinha você escolhe no site, onde ficam o ranking e o replay de cada luta.",
+    text: "Entre as partidas, dois do chat se enfrentam, revezando com a corrida. A classe da sua bolinha você escolhe no site, onde ficam o ranking e o replay de cada luta.",
     href: "/canal/minijogos",
     credits: [{ by: "lucca_3098" }],
     media: [
-      media("duelo-compacto", "O duelo no canto da tela: Punho contra Clava, os nomes e as barras de vida em cima da arena e a vida de cada um dentro da bolinha"),
+      media("duelo-na-conversa", "O duelo embaixo da câmera, na cena de conversa: Katana contra Machado, cada um com o seu torcedor, a vida e o que a classe faz ao lado da arena"),
       media("duelo-com-fisica", "A bolinha de Punho, atordoada pela Clava, fica parada com estrelas na cabeça e as luvas apagadas", { video: true }),
       media("minijogos-com-cara-de-jogo", "A tela de seleção no site: a arena, a ficha da Adaga com as barras e os visuais da arma, e as classes embaixo"),
     ],

@@ -303,6 +303,89 @@ body {
   text-transform: uppercase;
 }
 
+/* The keyboard and the mouse (teclas.js): the game's keys and the mouse's buttons on a navy pane cut at 45° like the
+   camera frame, each lit in Branco while it's held. The pane comes while a game is in front and goes when it isn't. */
+.teclas {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  background: rgb(0 20 71 / 0.55);
+  clip-path: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease);
+}
+.teclas.visivel {
+  opacity: 1;
+}
+.teclas svg {
+  overflow: visible;
+}
+.teclas .tecla polygon,
+.teclas .tecla rect {
+  fill: rgb(0 20 71 / 0.85);
+  stroke: rgb(133 167 255 / 0.45);
+  stroke-width: 1.5;
+  transition:
+    fill 0.15s ease-out,
+    stroke 0.15s ease-out;
+}
+.teclas .tecla text {
+  fill: var(--klein-claro);
+  font-size: 16px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+  transition: fill 0.15s ease-out;
+}
+.teclas .tecla line {
+  stroke: var(--klein-claro);
+  stroke-width: 2;
+  transition: stroke 0.15s ease-out;
+}
+/* Held: lit at once, and let go a touch slower, so a tap still shows. */
+.teclas .tecla.apertada polygon,
+.teclas .tecla.apertada rect {
+  fill: var(--paper);
+  stroke: var(--paper);
+  transition: none;
+}
+.teclas .tecla.apertada text {
+  fill: var(--klein);
+  transition: none;
+}
+.teclas .tecla.apertada line {
+  stroke: var(--klein);
+  transition: none;
+}
+.teclas .corpo {
+  fill: rgb(0 20 71 / 0.85);
+  stroke: rgb(133 167 255 / 0.45);
+  stroke-width: 1.5;
+}
+.teclas .roda rect {
+  fill: var(--navy);
+}
+/* Each tick of the wheel: a chevron that flashes above or below it. */
+.teclas .seta {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+}
+.teclas .seta.girou {
+  animation: girou 0.35s ease-out;
+}
+@keyframes girou {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 /* The Pix call: a QR code to the site's /pix (pix-qr.svg, from scripts/pix-qr.mjs), in pix.html and conversa.html. */
 .chamada {
   display: flex;
