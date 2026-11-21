@@ -1,0 +1,341 @@
+{
+ "live": "2026-11-20",
+ "nome": "montanha-russa do Champion",
+ "jogo": "rocket-league",
+ "post": "Subi pro Champion… e o Champion respondeu 🎢⚡ #rocketleague",
+ "trocas": {
+  "Durapoco": "dura pouco",
+  "Durapoco.": "dura pouco.",
+  "Pau": "pobre"
+ },
+ "destaques": [
+  "campeão",
+  "champion",
+  "choque",
+  "realidade",
+  "caiu",
+  "pobre"
+ ],
+ "trechos": [
+  {
+   "de": 2504.6,
+   "ate": 2509.35,
+   "camera": "jogo",
+   "seco": true
+  },
+  {
+   "de": 2531.0,
+   "ate": 2534.1,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 2962.8,
+   "ate": 2966.55,
+   "camera": "jogo",
+   "seco": "ate"
+  },
+  {
+   "de": 2980.25,
+   "ate": 2983.0,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 3553.85,
+   "ate": 3558.43,
+   "camera": "conversa",
+   "baixo": "palco",
+   "seco": "de"
+  },
+  {
+   "de": 7945.7,
+   "ate": 7950.4,
+   "camera": "jogo",
+   "seco": "ate"
+  },
+  {
+   "de": 7976.0,
+   "ate": 7981.7,
+   "camera": "conversa"
+  }
+ ],
+ "titulo": {
+  "linhas": [
+   "SUBI PRO",
+   "CHAMPION"
+  ],
+  "de": 2505.4,
+  "ate": 2507.8
+ },
+ "rotulos": [
+  {
+   "linhas": [
+    "1ª PARTIDA",
+    "NO CHAMPION"
+   ],
+   "de": 2962.9,
+   "ate": 2964.7
+  },
+  {
+   "linhas": [
+    "CAÍ PRO",
+    "DIAMANTE"
+   ],
+   "de": 3554.4,
+   "ate": 3556.6
+  }
+ ],
+ "impactos": [
+  {
+   "em": 2505.4,
+   "flash": "branco",
+   "forca": 0.65,
+   "tremor": 16,
+   "chute": 0.14
+  },
+  {
+   "em": 2507.0,
+   "onde": "camera",
+   "soco": {
+    "z": 1.25,
+    "entra": 4,
+    "segura": 0.9,
+    "sai": 10
+   }
+  },
+  {
+   "em": 2963.7,
+   "flash": "branco",
+   "forca": 0.3,
+   "onde": "jogo",
+   "chute": 0.08
+  },
+  {
+   "em": 2980.85,
+   "choque": 1.1,
+   "onde": "camera",
+   "tremor": 18
+  },
+  {
+   "em": 3554.4,
+   "onde": "camera",
+   "soco": {
+    "z": 1.3,
+    "entra": 3,
+    "segura": 1.2,
+    "sai": 10
+   }
+  },
+  {
+   "em": 7946.0,
+   "flash": "quente",
+   "forca": 0.45,
+   "chute": 0.1
+  },
+  {
+   "em": 7977.9,
+   "onde": "camera",
+   "soco": {
+    "z": 1.35,
+    "entra": 5,
+    "segura": 1.6,
+    "sai": 10
+   }
+  },
+  {
+   "em": 7949.5,
+   "onde": "camera",
+   "soco": {
+    "z": 1.2,
+    "entra": 4,
+    "segura": 0.7,
+    "sai": 8
+   }
+  }
+ ],
+ "figurinhas": [
+  {
+   "arquivo": "Shorts/Partes/figurinhas/choque-a.png",
+   "de": 2980.85,
+   "ate": 2982.9,
+   "x": 800,
+   "y": 440,
+   "altura": 560,
+   "trocas": [
+    [
+     2980.97,
+     2981.09,
+     "Shorts/Partes/figurinhas/choque-b.png"
+    ],
+    [
+     2981.21,
+     2981.33,
+     "Shorts/Partes/figurinhas/choque-b.png"
+    ],
+    [
+     2981.45,
+     2981.57,
+     "Shorts/Partes/figurinhas/choque-b.png"
+    ],
+    [
+     2981.69,
+     2981.81,
+     "Shorts/Partes/figurinhas/choque-b.png"
+    ],
+    [
+     2981.93,
+     2982.05,
+     "Shorts/Partes/figurinhas/choque-b.png"
+    ]
+   ]
+  }
+ ],
+ "borrar": [
+  {
+   "de": 2504.6,
+   "ate": 2509.35,
+   "x": 215,
+   "y": 1393,
+   "w": 405,
+   "h": 160
+  },
+  {
+   "de": 2531.0,
+   "ate": 2534.1,
+   "x": 215,
+   "y": 1393,
+   "w": 405,
+   "h": 160
+  },
+  {
+   "de": 2962.8,
+   "ate": 2966.55,
+   "x": 40,
+   "y": 1085,
+   "w": 1000,
+   "h": 170
+  },
+  {
+   "de": 7945.7,
+   "ate": 7950.4,
+   "x": 0,
+   "y": 1240,
+   "w": 330,
+   "h": 430
+  },
+  {
+   "de": 7977.3,
+   "ate": 7981.7,
+   "x": 215,
+   "y": 1198,
+   "w": 405,
+   "h": 50
+  },
+  {
+   "de": 7977.3,
+   "ate": 7981.7,
+   "x": 215,
+   "y": 1393,
+   "w": 405,
+   "h": 160
+  }
+ ],
+ "sons": [
+  [
+   2505.4,
+   "riser",
+   -14,
+   "fim"
+  ],
+  [
+   2505.4,
+   "impact-boom",
+   -7
+  ],
+  [
+   2507.0,
+   "palmas",
+   -15
+  ],
+  [
+   2963.7,
+   "hit",
+   -12
+  ],
+  [
+   2980.85,
+   "zap",
+   -6
+  ],
+  [
+   3554.4,
+   "apito",
+   -9
+  ],
+  [
+   7946.0,
+   "impact-boom",
+   -10
+  ],
+  [
+   7981.5,
+   "badumtss",
+   -8
+  ],
+  [
+   2963.9,
+   "uuuh",
+   -13
+  ],
+  [
+   7949.5,
+   "hit",
+   -12
+  ]
+ ],
+ "capa": {
+  "quadro": 2503.6,
+  "origem": "camera",
+  "fundo": 2507.0,
+  "texto": "SUBI PRO|CHAMPION"
+ },
+ "corrigir": [
+  [
+   2505.01,
+   "Tá lá nós"
+  ],
+  [
+   2509.0,
+   ""
+  ],
+  [
+   7978.14,
+   "dura"
+  ],
+  [
+   7978.31,
+   "pouco."
+  ],
+  [
+   7981.46,
+   ""
+  ],
+  [
+   3553.96,
+   "Agora a"
+  ],
+  [
+   7977.9,
+   "pobre"
+  ]
+ ],
+ "zoom": [
+  {
+   "de": 2531.0,
+   "ate": 2534.1,
+   "onde": "camera",
+   "z": 1.15
+  }
+ ]
+}

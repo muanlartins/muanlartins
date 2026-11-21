@@ -1,0 +1,217 @@
+{
+ "live": "2026-11-20",
+ "nome": "a gata me deu sorte",
+ "jogo": "rocket-league",
+ "filtro": false,
+ "post": "Dessa vez a minha gata me deu sorte 🐱⚽ #rocketleague",
+ "destaques": [
+  "filha",
+  "gol",
+  "sorte",
+  "gato",
+  "champion"
+ ],
+ "trechos": [
+  {
+   "de": 9008.5,
+   "ate": 9010.35,
+   "camera": "jogo",
+   "seco": true
+  },
+  {
+   "de": 8977.6,
+   "ate": 9000.75,
+   "camera": "jogo",
+   "entrada": "zoom"
+  },
+  {
+   "de": 9005.5,
+   "ate": 9010.35,
+   "camera": "jogo",
+   "seco": "ate"
+  }
+ ],
+ "titulo": {
+  "linhas": [
+   "A GATA ME",
+   "DEU SORTE"
+  ],
+  "de": 9008.5,
+  "ate": 9010.35,
+  "trecho": 0
+ },
+ "rotulos": [
+  {
+   "linhas": [
+    "PRORROGAÇÃO",
+    "2 A 2"
+   ],
+   "de": 8977.7,
+   "ate": 8980.6
+  },
+  {
+   "linhas": [
+    "A GATA SUBIU",
+    "NA MESA"
+   ],
+   "de": 8981.4,
+   "ate": 8984.6
+  },
+  {
+   "linhas": [
+    "MVP DA",
+    "PARTIDA"
+   ],
+   "de": 8998.4,
+   "ate": 9000.7
+  },
+  {
+   "linhas": [
+    "A GATA ME",
+    "DEU SORTE"
+   ],
+   "de": 9008.6,
+   "ate": 9010.35,
+   "trecho": 2
+  }
+ ],
+ "impactos": [
+  {
+   "em": 9008.5,
+   "flash": "quente",
+   "forca": 0.5,
+   "chute": 0.1,
+   "trecho": 0
+  },
+  {
+   "em": 8981.4,
+   "onde": "camera",
+   "soco": {
+    "z": 1.2,
+    "entra": 4,
+    "segura": 2.1,
+    "sai": 8
+   }
+  },
+  {
+   "em": 8990.3,
+   "flash": "branco",
+   "forca": 0.6,
+   "tremor": 16,
+   "chute": 0.14
+  },
+  {
+   "em": 8994.9,
+   "onde": "camera",
+   "soco": {
+    "z": 1.25,
+    "entra": 5,
+    "segura": 1.8,
+    "sai": 10
+   }
+  },
+  {
+   "em": 8998.4,
+   "flash": "quente",
+   "forca": 0.35,
+   "onde": "camera"
+  }
+ ],
+ "zoom": [
+  {
+   "de": 9006.0,
+   "ate": 9010.35,
+   "onde": "camera",
+   "z": 1.18,
+   "trecho": 2
+  }
+ ],
+ "borrar": [
+  {
+   "de": 8990.6,
+   "ate": 9000.8,
+   "x": 180,
+   "y": 1680,
+   "w": 900,
+   "h": 240
+  }
+ ],
+ "sons": [
+  [
+   9008.5,
+   "coro",
+   -12
+  ],
+  [
+   9008.5,
+   "impact-boom",
+   -12
+  ],
+  [
+   8977.7,
+   "suspense",
+   -18
+  ],
+  [
+   8984.9,
+   "tambor",
+   -16
+  ],
+  [
+   8990.3,
+   "impact-boom",
+   -7
+  ],
+  [
+   8990.3,
+   "palmas",
+   -14
+  ],
+  [
+   8994.9,
+   "pop",
+   -12
+  ],
+  [
+   8998.4,
+   "ding",
+   -14
+  ],
+  [
+   9008.6,
+   "coro",
+   -11,
+   {
+    "trecho": 2
+   }
+  ]
+ ],
+ "capa": {
+  "quadro": 9010.0,
+  "origem": "camera",
+  "fundo": 8990.5,
+  "texto": "A GATA ME|DEU SORTE"
+ },
+ "trocas": {
+  "cham-pyeong": "Champion"
+ },
+ "corrigir": [
+  [
+   8978.8,
+   ""
+  ]
+ ],
+ "palavras": [
+  [
+   8981.4,
+   8981.7,
+   "Não,"
+  ]
+ ],
+ "sem_legenda": [
+  [
+   9008.4,
+   9010.4
+  ]
+ ]
+}

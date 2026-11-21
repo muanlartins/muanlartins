@@ -1,0 +1,290 @@
+{
+ "live": "2026-11-20",
+ "nome": "hoje eu acordei diferente",
+ "jogo": "rocket-league",
+ "post": "Hoje eu acordei diferente 😤🔥 #rocketleague",
+ "destaques": [
+  "coruja",
+  "cagada",
+  "flip",
+  "duplo",
+  "diferente",
+  "deus"
+ ],
+ "trechos": [
+  {
+   "de": 1586.75,
+   "ate": 1588.05,
+   "camera": "jogo",
+   "seco": true
+  },
+  {
+   "de": 1447.0,
+   "ate": 1456.4,
+   "camera": "jogo",
+   "entrada": "zoom"
+  },
+  {
+   "de": 1555.6,
+   "ate": 1568.2,
+   "camera": "jogo"
+  },
+  {
+   "de": 1579.9,
+   "ate": 1589.85,
+   "camera": "jogo",
+   "seco": "ate"
+  }
+ ],
+ "titulo": {
+  "linhas": [
+   "HAT-TRICK EM",
+   "2 MINUTOS"
+  ],
+  "de": 1586.8,
+  "ate": 1588.05,
+  "trecho": 0
+ },
+ "rotulos": [
+  {
+   "linhas": [
+    "1º GOL"
+   ],
+   "de": 1453.5,
+   "ate": 1455.2,
+   "y": 1560,
+   "tamanho": 104
+  },
+  {
+   "linhas": [
+    "2º GOL"
+   ],
+   "de": 1556.1,
+   "ate": 1557.8,
+   "y": 1560,
+   "tamanho": 104
+  },
+  {
+   "linhas": [
+    "3º GOL"
+   ],
+   "de": 1581.5,
+   "ate": 1583.2,
+   "y": 1560,
+   "tamanho": 104
+  }
+ ],
+ "impactos": [
+  {
+   "em": 1586.8,
+   "flash": "quente",
+   "forca": 0.5,
+   "onde": "camera",
+   "trecho": 0
+  },
+  {
+   "em": 1453.5,
+   "flash": "branco",
+   "forca": 0.5,
+   "tremor": 12,
+   "chute": 0.12
+  },
+  {
+   "em": 1556.1,
+   "flash": "branco",
+   "forca": 0.55,
+   "tremor": 14,
+   "chute": 0.12
+  },
+  {
+   "em": 1556.3,
+   "onde": "camera",
+   "soco": {
+    "z": 1.3,
+    "entra": 4,
+    "segura": 1.2,
+    "sai": 10
+   }
+  },
+  {
+   "em": 1560.2,
+   "onde": "camera",
+   "soco": {
+    "z": 1.18,
+    "entra": 4,
+    "segura": 1.0,
+    "sai": 8
+   }
+  },
+  {
+   "em": 1581.5,
+   "flash": "branco",
+   "forca": 0.65,
+   "tremor": 18,
+   "chute": 0.15
+  },
+  {
+   "em": 1582.1,
+   "onde": "camera",
+   "soco": {
+    "z": 1.25,
+    "entra": 4,
+    "segura": 3.0,
+    "sai": 10
+   }
+  },
+  {
+   "em": 1586.9,
+   "flash": "quente",
+   "forca": 0.55,
+   "onde": "camera",
+   "tremor": 8,
+   "trecho": 3
+  }
+ ],
+ "figurinhas": [
+  {
+   "arquivo": "Shorts/Partes/figurinhas/coruja.png",
+   "de": 1448.3,
+   "ate": 1452.0,
+   "x": 800,
+   "y": 1080,
+   "altura": 330
+  },
+  {
+   "arquivo": "Shorts/Partes/figurinhas/acordei.png",
+   "de": 1586.85,
+   "ate": 1588.05,
+   "x": 820,
+   "y": 430,
+   "altura": 600,
+   "trecho": 0
+  },
+  {
+   "arquivo": "Shorts/Partes/figurinhas/acordei.png",
+   "de": 1586.9,
+   "ate": 1589.7,
+   "x": 820,
+   "y": 430,
+   "altura": 600,
+   "trecho": 3
+  }
+ ],
+ "sons": [
+  [
+   1453.5,
+   "impact-boom",
+   -8
+  ],
+  [
+   1453.6,
+   "palmas",
+   -16
+  ],
+  [
+   1556.1,
+   "impact-boom",
+   -8
+  ],
+  [
+   1556.3,
+   "uuuh",
+   -15
+  ],
+  [
+   1560.2,
+   "hit",
+   -12
+  ],
+  [
+   1581.5,
+   "impact-boom",
+   -7
+  ],
+  [
+   1581.6,
+   "palmas",
+   -14
+  ],
+  [
+   1448.3,
+   "pop",
+   -12
+  ],
+  [
+   1586.85,
+   "laser",
+   -9,
+   {
+    "trecho": 0
+   }
+  ],
+  [
+   1586.9,
+   "laser",
+   -9,
+   {
+    "trecho": 3
+   }
+  ]
+ ],
+ "capa": {
+  "quadro": 1556.3,
+  "origem": "camera",
+  "fundo": 1587.0,
+  "texto": "HOJE EU ACORDEI|DIFERENTE"
+ },
+ "corrigir": [
+  [
+   1455.77,
+   "vamos!"
+  ],
+  [
+   1589.77,
+   ""
+  ]
+ ],
+ "palavras": [
+  [
+   1580.55,
+   1580.95,
+   "Nossa,"
+  ]
+ ],
+ "borrar": [
+  {
+   "x": 180,
+   "y": 1680,
+   "w": 900,
+   "h": 240,
+   "de": 1453.9,
+   "ate": 1456.81
+  },
+  {
+   "x": 180,
+   "y": 1680,
+   "w": 900,
+   "h": 240,
+   "de": 1556.5,
+   "ate": 1568.77
+  },
+  {
+   "x": 180,
+   "y": 1680,
+   "w": 900,
+   "h": 240,
+   "de": 1581.9,
+   "ate": 1589.85,
+   "trecho": 3
+  },
+  {
+   "x": 180,
+   "y": 1680,
+   "w": 900,
+   "h": 240,
+   "de": 1586.75,
+   "ate": 1588.05,
+   "trecho": 0
+  }
+ ]
+}

@@ -415,6 +415,36 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
   mouth on the left), the sticker on the right (`"figurinhas"`, swapping to the open mouth over the ranges his mouth
   is open), a `bloop` per opening; on the last kill this replaces the game's punch (never both halves moving). Stock
   meme pictures are someone's copyright: draw our own. The cover takes the sticker too (`capa.figurinha`).
+- **Four reels from one live (11-20, Champion I), the fish's line turned up:** Luan picked seven candidates and asked
+  for "estilo dopamina de reels, bons efeitos visuais e sonoros": the fish reel was the bar ("ainda dava pra aumentar
+  um pouquinho nos efeitos e cortes"), "talvez todos os momentos do champion mereçam ficar num reels só", and a cycle of
+  feedback to tune these instructions. Made: `2026-11-20-champion.json` (the rollercoaster, 29.6 s: the promotion
+  screen's flash as the hook, "eu não sei se eu sequer já fui campeão", the first Champion match's goal against and
+  "isso aqui é um choque de realidade" electrocuted, "a gente caiu" with a falling whistle on the live's Klein, "subiu
+  pro Champion de volta", "alegria de pobre dura pouco" with a rimshot), `-gata.json` (the overtime goal with the cat
+  on the desk: a teaser of the cat held up, then the stretch whole from "Nossa, muito perto. Não, filha, agora não"
+  through the goal to "um belo exemplar de gato", then him singing "Champion" holding her), `-hat-trick.json` (three
+  goals in two minutes, "hoje eu acordei diferente" with laser eyes, and an owl asleep in the goal's corner on "como o
+  JP diz, onde a coruja dorme") and `-formiguinhas.json` (two demolitions and JK's goal, "limpei as formiguinhas do
+  campo" with a broom, his goal, and the Octane filter flipping on his head: "toma flip do Octane na cabeça", bonk).
+  The cat first closed the rollercoaster: it ran past a minute, so it got its own reel. Shape of each: a 1.3-1.9 s
+  teaser of the payoff line under the title, then the play in order, each beat whole, one emphasis per beat.
+  - **Stickers, all in the fish's style:** one base drawn from a text prompt (him electrocuted: curly hair standing,
+    round glasses, moustache), then every other one as an edit of it (the same picture as an X-ray skeleton, with a
+    broom, with laser eyes, an owl in its style), so they match; on flat green, keyed (green minus max(r, b), despill)
+    into `Videos\Shorts\Partes\figurinhas\`. The electrocution swaps the two pictures every 0.12 s with `"choque"`
+    flickering the camera's half and a `zap`.
+  - **Names on screen** (none but ours and the allies' may show): after a match the scoreboard's opponents' rows
+    (blurred, the promotion's rank text kept), the Tab scoreboard he sometimes opens (end the stretch before it),
+    after every goal the "MARCADO POR" card with the assist's name and the red notices line at the bottom (a band
+    `x 180, y 1680, w 900, h 240` over the replay), the end screen's player banners. The nameplates over the cars in
+    play are still there, as in the earlier shorts: asked Luan (11-20).
+  - **Captions read whole before showing:** whisper on a short window heard "Alegria de pau de Turafogo" for "alegria
+    de pobre dura pouco", and a half-applied fix made it "pau dura". `corrigir` keys are the snapped starts *before*
+    `spread` (the raw cache in the work folder shows them); a word that appears once is safer fixed in `trocas`.
+  - **A teaser replays a later stretch's seconds**, so every time in it went to the teaser: the laser sticker meant
+    for the end stayed on the whole short, the cat's closing title showed twice at the start. `"trecho"` places an
+    effect in its own stretch.
 - **Still open:** music (none yet); the outro's effect on retention once a few shorts have their numbers.
 
 **The effects-heavy edit (`scripts/cortes.py`, rejected 11-11):** five picks chopped into 14 stretches in 34 s,
@@ -427,7 +457,8 @@ shears frames when the crop width is odd.
 
 ## Publishing shorts (YouTube and Instagram)
 
-- **Schedule:** at most one or two a day, spread out; Luan approves the table first. No audience data behind it yet:
+- **Schedule:** two or three a day since 11-20 (Luan wants more shorts, with produced videos starting), spread out and
+  apart from the long videos' hours; Luan approves the table first. No audience data behind it yet:
   late afternoon/evening for Brazil, and a game's short on the day of that game's live, a few hours before
   (11-09: Valorant's aim short Mon 18:00, before the 21:00 Valorant live; affiliate Tue 18:00; 11-12: RLR's "Jogar o
   replay" Thu 12:00, before the 14:30 Rocket League live, at lunch). Times in Brasília.

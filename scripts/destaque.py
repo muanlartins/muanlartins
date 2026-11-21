@@ -36,13 +36,23 @@ The roteiro is JSON and every time in it is a Live.mp4 second:
   "other.png"]]}]: a sticker popping in at (x, y) of the short, breathing a little, swapped for another picture over
   each "trocas" range (a meme's mouth opening with his, 11-19). A "soco" can take "centro": [x, y], the point it zooms
   about (a point off his mouth puts the mouth where the zoom lands: p = (m' - z·m) / (1 - z)).
-- "sons" also take "bloop" (a bubble, synthesised).
+- "sons" also take "bloop" (a bubble, synthesised), and since 11-20 "zap" (electrocution), "apito" (a slide whistle
+  falling), "bonk" (a cartoon knock), "coro" (a choir's "aaah") and "laser" (laser eyes), all synthesised.
+- "impactos" take "choque": s (11-20): the half ("onde") flickers between its negative in electric blue and a cold
+  glare, two frames each, for that long (an electrocution; with "tremor" and the "zap").
+- "borrar": [{"de", "ate", "x", "y", "w", "h"}] (the short's pixels): blurred past reading, for other players' names
+  (the scoreboard in the game's square after a match).
 - "capa": the cover's second (a frame of the short), or the cover drawn in the lives' thumbnail style, as
   capa.py takes it ({"quadro", "origem", "fundo", "texto", "emblema"}).
 
 - "arquivos": {"live", "jogo", "camera"} (paths under Videos) for a live not filed yet; "filtro": false for a live
   without the camera filters (the top is Câmera.mkv alone); "camera_recorte": [x, y, w, h], the camera's part (in
   1280×720, 1080:840 in shape) that fills the top (default clipe.CAM_CROP).
+- "trecho": k on an impact, zoom, title, label, sticker or blur ({"trecho": k} at the end of a sound): its seconds
+  placed in stretch k (0-based). Without it a time goes to the first stretch holding it, so a teaser that replays a
+  later stretch's seconds takes everything there (11-20: the laser sticker meant for the end stayed on the whole short).
+- A stretch's own "filtro": false (11-20) takes Câmera.mkv alone on top there: after the filter was switched off,
+  or where the live's camera box is covered (a stinger as the scene switches) and would be read as a costume.
 - "outro": false leaves out the shorts' outro (the site's call, Partes\\outro-editado.mp4), joined after it by default.
 
 The sound is the live's mix (what the VOD plays) at -20 dBFS with the effects over it, then -14 LUFS.
@@ -65,6 +75,7 @@ import clipe  # noqa: E402
 from clipe import BOX, CAM_CROP, CAM_H, CONVERSA, GAME_H, H, W, ffmpeg, hd_camera, part_of  # noqa: E402
 from cortes import camera_lag, camera_sound, material, offset, picture_lag  # noqa: E402
 from edicao import FPS, SR, WORK, animate, ass_time, ease, pauses, place, plain, snap  # noqa: E402
+from edicao import lowpass, svf_bandpass  # noqa: E402
 from edicao import sfx as synth  # noqa: E402
 from windows import VIDEOS  # noqa: E402
 
@@ -112,8 +123,12 @@ class Clock:
         self.starts = np.cumsum([0] + [b - a for a, b in self.spans]).tolist()
         self.length = self.starts[-1]
 
-    def out(self, t):
-        """The first stretch holding live second t (a teaser replaying a later stretch's seconds takes them)."""
+    def out(self, t, k=None):
+        """The first stretch holding live second t (a teaser replaying a later stretch's seconds takes them), or
+        stretch k's (an effect's "trecho": the same seconds played again later, 11-20)."""
+        if k is not None:
+            (a, b), o = self.spans[k], self.starts[k]
+            return o + min(max(t, a), b) - a
         for (a, b), o in zip(self.spans, self.starts):
             if a - 0.02 <= t <= b + 0.02:  # a stretch's end as the roteiro wrote it, before rounding to frames
                 return o + min(max(t, a), b) - a
@@ -485,21 +500,25 @@ def transition_sounds(cuts):
 
 class Effects:
     def __init__(self, roteiro, clock, trechos=()):
-        o = clock.out
+        def at(item, key):  # an item's live second in the short, in its own "trecho" when it names one
+            return clock.out(item[key], item.get("trecho"))
         self.cuts = transitions(trechos, clock) if trechos else []
-        self.impacts = [dict(i, em=o(i["em"])) for i in roteiro.get("impactos", [])]
-        self.zooms = [dict(z, de=o(z["de"]), ate=o(z["ate"])) for z in roteiro.get("zoom", [])]
-        self.titles = [{"de": o(t["de"]), "ate": o(t["ate"]), "anim": "slam", "y": t.get("y", TITLE_Y),
+        self.impacts = [dict(i, em=at(i, "em")) for i in roteiro.get("impactos", [])]
+        self.zooms = [dict(z, de=at(z, "de"), ate=at(z, "ate")) for z in roteiro.get("zoom", [])]
+        self.titles = [{"de": at(t, "de"), "ate": at(t, "ate"), "anim": "slam", "y": t.get("y", TITLE_Y),
                         "sprite": title_sprite(t["linhas"], t.get("tamanho", 118))}
                        for t in ([roteiro["titulo"]] if roteiro.get("titulo") else []) + roteiro.get("rotulos", [])]
+        self.blurs = [dict(b, de=at(b, "de"), ate=at(b, "ate")) for b in roteiro.get("borrar", [])]
         self.stickers = []
         for st in roteiro.get("figurinhas", []):
             def load(path, h=st["altura"]):
                 im = np.array(Image.open(VIDEOS / path).convert("RGBA"))
                 return cv2.resize(im, None, fx=h / im.shape[0], fy=h / im.shape[0], interpolation=cv2.INTER_AREA)
-            self.stickers.append({"de": o(st["de"]), "ate": o(st["ate"]), "anim": "pop", "x": st["x"], "y": st["y"],
+            k = st.get("trecho")
+            self.stickers.append({"de": at(st, "de"), "ate": at(st, "ate"), "anim": "pop", "x": st["x"], "y": st["y"],
                                   "base": load(st["arquivo"]),
-                                  "trocas": [(o(a), o(b), load(path)) for a, b, path in st.get("trocas", [])]})
+                                  "trocas": [(clock.out(a, k), clock.out(b, k), load(path))
+                                             for a, b, path in st.get("trocas", [])]})
 
     def zoom(self, o, where):
         z, center = 1.0, ((W / 2, CAM_H * 0.45) if where == "camera" else (W / 2, GAME_H / 2))
@@ -583,6 +602,22 @@ class Effects:
             color, a = self.flash(o, where)
             if a > 0.004:
                 f[y0:y1] = (f[y0:y1].astype(np.float32) * (1 - a) + np.array(color, np.float32) * a).astype(np.uint8)
+        for b in self.blurs:  # other players' names (a scoreboard in the game's square): never readable
+            if b["de"] <= o < b["ate"]:
+                x, y, w, h = b["x"], b["y"], b["w"], b["h"]
+                f[y:y + h, x:x + w] = cv2.GaussianBlur(f[y:y + h, x:x + w], (0, 0), 14)
+        for i in self.impacts:
+            x = o - i["em"]
+            if i.get("choque") and 0 <= x < i["choque"]:
+                # electrocuted: the half flickers between its negative and a cold electric glare, two frames each
+                y0, y1 = {"camera": (0, CAM_H), "jogo": (CAM_H, H)}.get(i.get("onde", "tudo"), (0, H))
+                part = f[y0:y1].astype(np.float32)
+                if int(x * FPS) // 2 % 2 == 0:
+                    part = 255 - part
+                    part = part * 0.75 + np.array((40, 170, 255), np.float32) * 0.25
+                else:
+                    part = np.clip(part * 1.25 + np.array((10, 40, 90), np.float32), 0, 255)
+                f[y0:y1] = part.astype(np.uint8)
         for st in self.stickers:
             if st["de"] - 0.1 <= o <= st["ate"] + 0.5:
                 scale, alpha, lift = animate(st, o)
@@ -609,11 +644,52 @@ def pcm(path, a=None, n=None, stream="0:a:0", channels=2):
     return np.frombuffer(raw, np.float32).reshape(-1, channels).copy()
 
 
+def peak1(x):
+    return (x / (np.abs(x).max() + 1e-9)).astype(np.float32)
+
+
 def sound(name):
     if name == "bloop":  # a bubble: a short sine gliding up, for a fish's mouth (11-19)
         t = np.arange(int(0.11 * SR)) / SR
         x = np.sin(2 * np.pi * np.cumsum(260 * (1100 / 260) ** np.minimum(1, t / 0.07)) / SR)
         return (x * np.minimum(1, t / 0.003) * np.exp(-t * 32)).astype(np.float32)
+    rng = np.random.default_rng(11)
+    if name == "zap":  # electrocution (11-20, "choque de realidade"): a mains buzz stuttering, with crackle
+        t = np.arange(int(0.9 * SR)) / SR
+        buzz = np.sign(np.sin(2 * np.pi * 110 * t)) * 0.5 + np.sin(2 * np.pi * 330 * t) * 0.3
+        stutter = (np.sin(2 * np.pi * 13 * t + 2 * np.sin(2 * np.pi * 3 * t)) > -0.2).astype(np.float32)
+        crackle = svf_bandpass(rng.standard_normal(len(t)).astype(np.float32), np.full(len(t), 3500.0), 0.7)
+        crackle *= (rng.random(len(t)) < 0.02).astype(np.float32) * 6 + 0.3
+        x = (buzz * stutter + crackle) * np.minimum(1, t / 0.01) * np.minimum(1, (0.9 - t) / 0.15)
+        return peak1(np.tanh(1.5 * x))
+    if name == "apito":  # a slide whistle falling: "a gente caiu" (11-20)
+        t = np.arange(int(1.0 * SR)) / SR
+        f = 1700 * (320 / 1700) ** (t / 1.0) * (1 + 0.015 * np.sin(2 * np.pi * 6 * t))
+        x = np.sin(2 * np.pi * np.cumsum(f) / SR) + 0.15 * np.sin(4 * np.pi * np.cumsum(f) / SR)
+        breath = svf_bandpass(rng.standard_normal(len(t)).astype(np.float32), f, 4.0) * 0.08
+        return peak1((x + breath) * np.minimum(1, t / 0.03) * np.minimum(1, (1.0 - t) / 0.2))
+    if name == "bonk":  # a cartoon knock on a head: a hollow wooden tone and a click (11-20)
+        t = np.arange(int(0.3 * SR)) / SR
+        tone = np.sin(2 * np.pi * np.cumsum(560 * np.exp(-t * 3) + 300) / SR) * np.exp(-t * 18)
+        click = svf_bandpass(rng.standard_normal(len(t)).astype(np.float32), np.full(len(t), 2500.0), 1.0)
+        return peak1(np.tanh(1.3 * (tone + click * np.exp(-t * 200))))
+    if name == "coro":  # an "aaah" from a choir, a major chord swelling (11-20: the cat held up like a trophy)
+        t = np.arange(int(2.0 * SR)) / SR
+        x = np.zeros_like(t)
+        for f0 in (220.0, 277.18, 329.63, 440.0, 554.37):
+            for voice in range(3):
+                vib = 1 + 0.006 * np.sin(2 * np.pi * (5 + voice * 0.4) * t + voice)
+                ph = 2 * np.pi * np.cumsum(f0 * (1 + (voice - 1) * 0.004) * vib) / SR
+                x += sum(np.sin(k * ph) / k for k in range(1, 9))
+        x = svf_bandpass(x.astype(np.float32), np.full(len(t), 800.0), 1.2) + 0.5 * svf_bandpass(
+            x.astype(np.float32), np.full(len(t), 1200.0), 2.0)
+        env = np.minimum(1, t / 0.35) * np.minimum(1, (2.0 - t) / 0.6)
+        return peak1(x * env)
+    if name == "laser":  # laser eyes (11-20, "hoje eu acordei diferente"): a beam humming, then a falling zap
+        t = np.arange(int(0.8 * SR)) / SR
+        f = 1400 * (220 / 1400) ** (t / 0.8)
+        x = np.sign(np.sin(2 * np.pi * np.cumsum(f) / SR)) * 0.4 + np.sin(2 * np.pi * np.cumsum(f * 2.01) / SR) * 0.4
+        return peak1(lowpass(x.astype(np.float32), 5000) * np.minimum(1, t / 0.01) * np.exp(-t * 2.5))
     path = SFX / f"{name}.mp3"
     if path.exists():
         x = pcm(path, stream="0:a:0", channels=1)[:, 0]
@@ -639,7 +715,9 @@ def mixdown(live, trechos, clock, sons, extra=()):
     rms = np.sqrt((mix.mean(axis=1)[: len(mix) // win * win].reshape(-1, win) ** 2).mean(axis=1))
     mix *= 0.1 / (np.percentile(rms, 90) + 1e-9)
     peak = 0.1 * 2.8  # speech's typical peak at that level: the effects' gains are set against it, as in edicao.py
-    placed = [(clock.out(t), name, gain, *how) for t, name, gain, *how in sons] + list(extra)
+    # a sound may end with {"trecho": k}: placed in that stretch when its seconds are played twice (a teaser)
+    placed = [(clock.out(t, next((h["trecho"] for h in how if isinstance(h, dict)), None)), name, gain,
+               *[h for h in how if not isinstance(h, dict)]) for t, name, gain, *how in sons] + list(extra)
     for o, name, gain, *how in placed:
         s = sound(name) * peak * 10 ** (gain / 20)
         o -= len(s) / SR if how and how[0] == "fim" else 0
@@ -677,7 +755,7 @@ def main():
     box = BOXES[roteiro.get("jogo", "valorant")]
     pieces = []
     for t, (j, c) in zip(trechos, at):
-        args = piece(live, game, camera, t, j, c, box, roteiro.get("filtro", True),
+        args = piece(live, game, camera, t, j, c, box, t.get("filtro", roteiro.get("filtro", True)),
                      tuple(roteiro.get("camera_recorte", CAM_CROP)))
         # named by its recipe: a changed stretch, sync or filter is a new file, so nothing needs deleting
         out = work / f"{t['camera']}-{t['de']:.2f}-{hashlib.sha1(repr(args).encode()).hexdigest()[:8]}.mp4"

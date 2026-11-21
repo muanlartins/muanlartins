@@ -1,0 +1,265 @@
+{
+ "live": "2026-11-20",
+ "nome": "limpei as formiguinhas",
+ "jogo": "rocket-league",
+ "post": "Você faz o gol, eu limpo as formiguinhas 🧹🐜 #rocketleague",
+ "destaques": [
+  "formiguinhas",
+  "defensores",
+  "pancada",
+  "flip",
+  "octane",
+  "cabeça"
+ ],
+ "trechos": [
+  {
+   "de": 4269.7,
+   "ate": 4271.6,
+   "camera": "jogo",
+   "seco": true
+  },
+  {
+   "de": 4255.2,
+   "ate": 4272.8,
+   "camera": "jogo",
+   "entrada": "zoom"
+  },
+  {
+   "de": 4360.3,
+   "ate": 4363.7,
+   "camera": "jogo"
+  },
+  {
+   "de": 4377.2,
+   "ate": 4381.6,
+   "camera": "jogo"
+  }
+ ],
+ "titulo": {
+  "linhas": [
+   "LIMPEI AS",
+   "FORMIGUINHAS"
+  ],
+  "de": 4269.8,
+  "ate": 4271.6,
+  "trecho": 0
+ },
+ "impactos": [
+  {
+   "em": 4269.85,
+   "onde": "camera",
+   "soco": {
+    "z": 1.25,
+    "entra": 3,
+    "segura": 1.6,
+    "sai": 8
+   },
+   "trecho": 0
+  },
+  {
+   "em": 4258.1,
+   "flash": "branco",
+   "forca": 0.4,
+   "onde": "jogo",
+   "tremor": 10,
+   "chute": 0.08
+  },
+  {
+   "em": 4260.2,
+   "flash": "branco",
+   "forca": 0.45,
+   "onde": "jogo",
+   "tremor": 12,
+   "chute": 0.1
+  },
+  {
+   "em": 4262.1,
+   "flash": "branco",
+   "forca": 0.55,
+   "tremor": 14,
+   "chute": 0.12
+  },
+  {
+   "em": 4360.8,
+   "flash": "branco",
+   "forca": 0.6,
+   "tremor": 16,
+   "chute": 0.14
+  },
+  {
+   "em": 4361.0,
+   "onde": "camera",
+   "soco": {
+    "z": 1.25,
+    "entra": 4,
+    "segura": 0.9,
+    "sai": 8
+   }
+  },
+  {
+   "em": 4377.4,
+   "onde": "camera",
+   "soco": {
+    "z": 1.3,
+    "entra": 4,
+    "segura": 3.6,
+    "sai": 10
+   }
+  },
+  {
+   "em": 4269.9,
+   "onde": "camera",
+   "soco": {
+    "z": 1.25,
+    "entra": 3,
+    "segura": 1.6,
+    "sai": 8
+   },
+   "trecho": 1
+  }
+ ],
+ "figurinhas": [
+  {
+   "arquivo": "Shorts/Partes/figurinhas/vassoura.png",
+   "de": 4269.85,
+   "ate": 4271.6,
+   "x": 810,
+   "y": 430,
+   "altura": 560,
+   "trecho": 0
+  },
+  {
+   "arquivo": "Shorts/Partes/figurinhas/vassoura.png",
+   "de": 4269.95,
+   "ate": 4273.2,
+   "x": 810,
+   "y": 430,
+   "altura": 560,
+   "trecho": 1
+  }
+ ],
+ "sons": [
+  [
+   4258.1,
+   "hit",
+   -9
+  ],
+  [
+   4260.2,
+   "hit",
+   -9
+  ],
+  [
+   4262.1,
+   "impact-boom",
+   -8
+  ],
+  [
+   4262.2,
+   "palmas",
+   -16
+  ],
+  [
+   4360.8,
+   "impact-boom",
+   -7
+  ],
+  [
+   4377.5,
+   "bonk",
+   -8
+  ],
+  [
+   4378.0,
+   "bonk",
+   -8
+  ],
+  [
+   4380.3,
+   "bonk",
+   -7
+  ],
+  [
+   4269.85,
+   "pop",
+   -10,
+   {
+    "trecho": 0
+   }
+  ],
+  [
+   4270.2,
+   "whoosh",
+   -10,
+   {
+    "trecho": 0
+   }
+  ],
+  [
+   4269.95,
+   "pop",
+   -10,
+   {
+    "trecho": 1
+   }
+  ],
+  [
+   4270.3,
+   "whoosh",
+   -10,
+   {
+    "trecho": 1
+   }
+  ]
+ ],
+ "capa": {
+  "quadro": 4265.0,
+  "origem": "camera",
+  "fundo": 4262.3,
+  "texto": "LIMPEI AS|FORMIGUINHAS"
+ },
+ "corrigir": [
+  [
+   4270.02,
+   "Limpei as"
+  ]
+ ],
+ "trocas": {
+  "Doctane": "do Octane"
+ },
+ "palavras": [
+  [
+   4377.45,
+   4377.7,
+   "Flip!"
+  ]
+ ],
+ "borrar": [
+  {
+   "x": 180,
+   "y": 1680,
+   "w": 900,
+   "h": 240,
+   "de": 4269.7,
+   "ate": 4271.6,
+   "trecho": 0
+  },
+  {
+   "x": 180,
+   "y": 1680,
+   "w": 900,
+   "h": 240,
+   "de": 4262.4,
+   "ate": 4273.29,
+   "trecho": 1
+  },
+  {
+   "x": 180,
+   "y": 1680,
+   "w": 900,
+   "h": 240,
+   "de": 4361.2,
+   "ate": 4363.7
+  }
+ ]
+}
