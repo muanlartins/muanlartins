@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import type { Line, Live } from "@/lib/lives"
+import { seconds, type Line, type Live } from "@/lib/lives"
 
 const FOLDER = join(process.cwd(), "content", "lives")
 
@@ -21,4 +21,10 @@ export function transcript(date: string): Line[] {
   } catch {
     return []
   }
+}
+
+/** How long a live's video is, in seconds: its `length`, or else where its transcript ends (0 without either). */
+export function lengthOf(live: Live) {
+  if (live.length) return seconds(live.length)
+  return transcript(live.date).at(-1)?.[0] ?? 0
 }

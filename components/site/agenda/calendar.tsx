@@ -1,12 +1,14 @@
 "use client"
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { GoalFlags, type GoalMarks } from "@/components/site/agenda/goals"
-import { gameLabel } from "@/components/site/lives/agenda"
+import { AgendaGameIcon, WEEKS_AHEAD } from "@/components/site/agenda/week"
+import { gameName } from "@/components/site/lives/agenda"
+import { Button } from "@/components/site/ui"
 import { channel } from "@/content/channel"
 import { diaDaSemana, instante, somaDias } from "@/infra/comum/agenda.mjs"
-import { clock, daysFrom, monthName, WEEKDAYS, type Agenda } from "@/lib/agenda"
+import { clock, dayMonth, daysFrom, longDay, monthName, WEEKDAYS, type Agenda } from "@/lib/agenda"
 import { localize } from "@/lib/site"
+import { cn } from "@/lib/utils"
 
 const T = localize(channel.agenda)
 
@@ -16,114 +18,106 @@ export function showDay() {
   requestAnimationFrame(() => document.getElementById("dia")?.scrollIntoView({ behavior: "smooth", block: "start" }))
 }
 
-/** How many months ahead the calendar goes. */
-export const MONTHS_AHEAD = 3
+/** How many weeks a page of the calendar shows. */
+export const CALENDAR_WEEKS = 5
 
-const addMonths = (month: string, n: number) => {
-  const [y, m] = month.split("-").map(Number)
-  const d = new Date(Date.UTC(y, m - 1 + n, 1))
-  return d.toISOString().slice(0, 7)
+/** The pages of weeks the calendar goes to. */
+const PAGES = Math.ceil(WEEKS_AHEAD / CALENDAR_WEEKS) + 1
+
+/** "Novembro de 2026" or "Novembro – dezembro de 2026": the months a page of weeks covers. */
+function rangeName(first: string, last: string) {
+  const a = monthName(first.slice(0, 7))
+  const b = monthName(last.slice(0, 7))
+  if (a === b) return a
+  const [aMonth] = a.split(" ")
+  return first.slice(0, 4) === last.slice(0, 4) ? `${aMonth} – ${b}` : `${a} – ${b}`
 }
 
 /**
- * A month of the agenda as a calendar, Monday first: each day with its lives (time and game) and its note (a mark on
- * a phone); today ringed, days gone faded, empty and not clickable (the agenda doesn't keep
- * the past). The month is the caller's (`month`, "YYYY-MM"). `goals` flags the days a Pix goal starts or ends.
+ * The editor's calendar: five weeks at a time from this one, Monday first (no past weeks to scroll past), each day with
+ * its lives as chips (the game's sign and the time, the sign alone on a phone) and a mark for its note; today in a
+ * Klein square, days gone faded and not clickable (the agenda doesn't keep the past).
  */
 export function Calendar({
   agenda,
   today,
-  month,
-  onMonth,
+  page,
+  onPage,
   selected,
   onSelect,
-  goals,
 }: {
   agenda: Agenda
   today: string
-  month: string
-  onMonth: (month: string) => void
+  page: number
+  onPage: (page: number) => void
   selected: string
   onSelect: (date: string) => void
-  goals?: Record<string, GoalMarks>
 }) {
-  const first = `${month}-01`
-  const last = somaDias(addMonths(month, 1) + "-01", -1)
-  const start = somaDias(first, 1 - diaDaSemana(first))
-  const end = somaDias(last, 7 - diaDaSemana(last))
-  const count = Math.round((Date.parse(end) - Date.parse(start)) / 86_400_000) + 1
-  const days = daysFrom(agenda, instante(start, "12:00", agenda.timeZone), count)
-  const firstMonth = today.slice(0, 7)
+  const start = somaDias(today, 1 - diaDaSemana(today) + page * CALENDAR_WEEKS * 7)
+  const days = daysFrom(agenda, instante(start, "12:00", agenda.timeZone), CALENDAR_WEEKS * 7)
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-medium tracking-[-0.02em] text-klein first-letter:uppercase">{monthName(month)}</h2>
-        <div className="flex gap-1">
-          <button
-            onClick={() => onMonth(addMonths(month, -1))}
-            disabled={month <= firstMonth}
-            aria-label={T.previous}
-            className="rounded-md border border-line p-1.5 text-ink transition-colors hover:border-klein hover:text-klein disabled:opacity-30 disabled:hover:border-line disabled:hover:text-ink"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => onMonth(addMonths(month, 1))}
-            disabled={month >= addMonths(firstMonth, MONTHS_AHEAD)}
-            aria-label={T.next}
-            className="rounded-md border border-line p-1.5 text-ink transition-colors hover:border-klein hover:text-klein disabled:opacity-30 disabled:hover:border-line disabled:hover:text-ink"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <h2 className="text-2xl font-medium tracking-[-0.02em] text-klein first-letter:uppercase">{rangeName(days[0].data, days.at(-1)!.data)}</h2>
+        <div className="flex gap-2">
+          <Button variant="secondary" size="sm" onClick={() => onPage(page - 1)} disabled={page <= 0} aria-label={T.previous} title={T.previous} className="px-2">
+            <ChevronLeft aria-hidden className="h-4 w-4" />
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => onPage(page + 1)} disabled={page >= PAGES - 1} aria-label={T.next} title={T.next} className="px-2">
+            <ChevronRight aria-hidden className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[11px] font-medium uppercase tracking-[0.08em] text-muted sm:text-[12px]">
+      <div aria-hidden className="mt-5 grid grid-cols-7 gap-1 text-center">
         {WEEKDAYS.map((name) => (
-          <span key={name}>{name}</span>
+          <span key={name} className="eyebrow text-muted">
+            {name}
+          </span>
         ))}
       </div>
-      <ol className="mt-1.5 grid grid-cols-7 gap-1">
+      <ol className="mt-2 grid grid-cols-7 gap-1">
         {days.map((day) => {
           const gone = day.data < today
-          const outside = !day.data.startsWith(month)
           const isToday = day.data === today
           const isSelected = day.data === selected
+          const first = day.data.endsWith("-01")
+          const label = [longDay(day.data), ...day.lives.map((live) => `${clock(live.start)} ${gameName(agenda, live.jogo)}`), day.nota].filter(Boolean).join(", ")
           return (
-            <li key={day.data} className={outside ? "opacity-45" : ""}>
+            <li key={day.data}>
               <button
                 onClick={() => onSelect(day.data)}
                 disabled={gone}
                 aria-pressed={isSelected}
-                aria-label={day.data}
-                className={`relative flex h-full min-h-[4.25rem] w-full flex-col gap-1 rounded-md border p-1 text-left transition-colors sm:min-h-28 sm:p-2 ${
-                  gone ? "cursor-default border-transparent opacity-40" : "bg-paper/70 hover:border-klein"
-                } ${isSelected ? "border-klein ring-2 ring-klein/30" : gone ? "" : "border-line"}`}
+                aria-label={label}
+                className={cn(
+                  "relative flex h-full min-h-16 w-full flex-col gap-1 border p-1 text-left transition-colors sm:min-h-24 sm:p-1.5",
+                  gone ? "cursor-default border-transparent opacity-40" : "border-line bg-paper/70 hover:border-klein",
+                  isSelected && "border-klein bg-paper outline-2 -outline-offset-3 outline-klein",
+                )}
               >
-                <span className="flex items-center justify-between">
-                  <span
-                    className={`grid h-6 min-w-6 place-items-center rounded-full px-1 text-[12px] font-medium tabular-nums sm:text-[13px] ${
-                      isToday ? "bg-klein text-paper" : "text-ink"
-                    }`}
-                  >
-                    {Number(day.data.slice(8))}
-                  </span>
+                <span
+                  className={cn(
+                    "self-start px-1 text-[13px] leading-5 font-medium tabular-nums",
+                    isToday ? "bg-klein text-paper" : first ? "text-klein" : "text-ink",
+                  )}
+                >
+                  {first ? dayMonth(day.data) : Number(day.data.slice(8))}
                 </span>
                 {!gone &&
                   day.lives.map((live) => (
-                    <span
-                      key={live.inicio}
-                      title={live.titulo}
-                      className="truncate rounded-[3px] bg-klein px-0.5 py-0.5 text-center text-[9px] font-medium leading-tight tabular-nums text-paper sm:px-1 sm:text-left sm:text-[12px]"
-                    >
-                      {clock(live.start)}
-                      <span className="hidden sm:inline"> {gameLabel(agenda, live.jogo)}</span>
+                    <span key={live.inicio} className="flex items-center justify-center gap-1 bg-klein px-1 py-1 text-[12px] leading-none font-medium tabular-nums text-paper sm:justify-start">
+                      <AgendaGameIcon game={live.jogo} size={14} onDark />
+                      <span className="hidden sm:inline">{clock(live.start)}</span>
                     </span>
                   ))}
-                {!gone && <GoalFlags marks={goals?.[day.data]} />}
-                {day.nota && !gone && <span className="hidden truncate text-[11px] leading-tight text-muted sm:block">{day.nota}</span>}
-                {day.nota && !gone && <span className="text-[10px] leading-none text-muted sm:hidden">{day.lives.length ? "•" : "—"}</span>}
+                {day.nota && !gone && (
+                  <>
+                    <span className="hidden truncate text-[12px] leading-tight text-muted sm:block">{day.nota}</span>
+                    <span className="mx-auto mt-auto h-1.5 w-1.5 rounded-full bg-muted sm:hidden" />
+                  </>
+                )}
               </button>
             </li>
           )

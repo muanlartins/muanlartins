@@ -129,8 +129,11 @@ export class PixError extends Error {
   }
 }
 
-/** R$ for cents, as Brazilians write it: 1234 → "12,34". */
-export const reais = (centavos: number) => (centavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+/** R$ for cents, as brand/voz.md writes money: 1234 → "12,34", 500 → "5", 123456 → "1.234,56". */
+export const reais = (centavos: number) => {
+  const whole = centavos % 100 === 0
+  return (centavos / 100).toLocaleString("pt-BR", { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : 2 })
+}
 
 /** Cents from what was typed: "2,50", "2.5", "R$ 10" → 250, 250, 1000; NaN if it isn't an amount. */
 export function centavosDe(texto: string) {

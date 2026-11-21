@@ -8,6 +8,51 @@ description: The routine after one of Luan's Twitch lives - file the recordings 
 The detailed history and the YouTube API setup are in `handoff/README.md` ("3. After each live"); this is
 the routine. Talk to Luan in pt-BR. `<date>` is the live's day, `YYYY-MM-DD`.
 
+## A day of another game ("Jogos diversos", since 2026-11-21)
+
+Any game besides Rocket League and Valorant (Celeste first; the OBS scene "Diversos + chat") is on the site at
+`/conteudo/diversos`, each game with its page, its lives, hours and goal, from `content/diversos.json` (`lib/diversos.ts`).
+Luan, 2026-11-21: "a ideia é deixar tudo que eu for jogar registrado". What changes in the routine:
+
+- **The game is in the list.** Before step 2, `content/diversos.json` must have it: `id` (its URL, and the live's
+  `game`; never changed once a live has it), `name`, `category` (Twitch's name), `categoryId` (Twitch's category id:
+  the agenda's `games` in `GET /agenda` has it, and the cover comes from Twitch's CDN by it), `line` (Luan's words;
+  a `TODO` isn't shown), an optional `goal` (a title and groups of items with `done`) and `notes`. A new game: add it
+  with `line` as a TODO and ask Luan for the line and the goal.
+- **No session, no replays, no teammates.** Step 0's session check and steps 1b and 1c don't apply; `videos.py` files the
+  recordings as usual (the Diversos capture records `Jogo.mp4` too).
+- **Step 2:** `live.py <date>` finds the game in the agenda's live that day by its Twitch category (or pass
+  `--game <id>`; it stops and says so when the agenda's game isn't in the list). It writes a "Começo" chapter and a
+  summary draft with the hours (`Celeste ao vivo por 2h41. Meta: 100%.`). Then, from the transcript, write the
+  chapters by hand at the game's milestones (Celeste: each chapter of the game, "Capítulo 3: Celestial Resort"), and
+  the summary as a draft for Luan. A live that switched games mid-way gets a chapter with `"game": "<id>"` where the
+  other one starts (`{ "at": "1:30:00", "game": "rocket-league", "title": {…} }`): the site counts each game's hours
+  from those, and lists the live under both.
+- **The goal comes from the game's save, never by hand** (Luan, 2026-11-21: deterministic). On a Celeste day, after
+  step 2 (so the live's page exists) and before the release (step 5):
+
+  ```sh
+  python3 scripts/celeste.py            # what changed in the save: items done or undone, the totals
+  python3 scripts/celeste.py --apply    # writes them into content/diversos.json, which goes in the release
+  ```
+
+  It reads Steam's `Celeste/Saves/<slot>.celeste` (only reads it; the slot is Celeste's `save.slot`, which only Luan
+  can say: while it's null the script says so and changes nothing, so ask him. His 100% run is slot 1, the menu's
+  second file, started from zero on 2026-11-21; if the script can't find `1.celeste`, he picked another file: ask which), ticks each goal item by its `save`
+  key (the script's docstring has the keys), dates what turned done and links it to that day's live, and keeps the
+  totals the page shows (strawberries, deaths, time in the game). Off-stream sessions count too: run it any day he
+  played. The save's `Name` is a person's name: never print or commit it (slot 0 is someone else's file).
+  Any game that later gets a reader of its own (`scripts/<jogo>.py`, the same shape: dry run, `--apply`, `save` keys
+  on the items) is run at this same point. A game without one: mark the items by hand from his word, with `date`
+  and `live`.
+- **2b** works the same (his line from the live as the hook). The title template is only "<Jogo> ao vivo": write one
+  from the day's story for him to approve.
+- **2c doesn't apply** (no ranked matches): no match videos, so the VOD isn't held back (no `youtube.publish_at`)
+  unless Luan asks for cuts.
+- **Step 3:** `youtube.py` dresses any game of the list like the two (`game_of`): "<Jogo> ao vivo" as the title and
+  the playlist (made the first time), its page on the site among the links, its tags and hashtags.
+- **Step 4:** mark the day `--done` after the thumbnail.
+
 ## 0. Make sure it's over
 
 - `node scripts/obs.mjs` says `live: no` (or OBS is closed). Until then, nothing heavy (see `antes-da-live`).
@@ -79,14 +124,35 @@ two matches or more with him, then the day's watchers by minutes from the Σ API
 The in-game names stay out of everything but `aliados.json` (the repo is public). Valorant has no replays: there the
 dock tags only viewers with a `riot` Riot ID in `aliados.json`.
 
+## 1c. The replays on the site (Rocket League days)
+
+Since 2026-11-21 each ranked match with a replay has "Ver no RLR" on the ranked page and on the live's chapters,
+opening RLR on the site with that replay. Once `videos.py` has filed them (and not while live: the upload competes
+with the stream):
+
+```sh
+python3 scripts/replays.py <date>            # which file is which match
+python3 scripts/replays.py <date> --apply
+```
+
+It matches each `Replays\Partida NN - ….replay` to its match (the replay's MatchGUID is the dock's id), uploads it as
+`<date>-NN.replay` to the GitHub prerelease `replays-<date>` ("Replays dd/mm"; the files are too big for git) and
+writes `replay` (`/replays/<date>/<date>-NN.replay`) into the session's matches. Publishing the release runs
+`.github/workflows/replays.yml`, which copies the files to the site's bucket (`/replays/<date>/`): check it with
+`gh run list --workflow replays.yml`, or run it with `gh workflow run replays.yml -f tag=replays-<date>`. The session
+goes out with the release (step 5). Luan's decision (2026-11-21): the replays go as they are, the players' names inside
+included; it's the one exception, for these files only. If the dock republishes the session later, run it again.
+
 ## 2. The live's page, transcript and thumbnail
 
 ```sh
 scripts/.venv/bin/python scripts/live.py <date>
 ```
 
-The day's game is the one whose session the dock published (`content/matches/` for Rocket League,
-`content/valorant/` for its Valorant tab, since 11-09), and the chapters, summary and thumbnail's plate follow it.
+The day's game is the one whose session the dock published for the live (`content/matches/` for Rocket League,
+`content/valorant/` for its Valorant tab, since 11-09), else the agenda's live that day (any other game: above),
+else `--game <id>`; the chapters, summary and thumbnail's plate follow it. The page also keeps the recording's
+length (`length`), from which the site counts hours.
 Transcribes the Microfone track (Windows whisper.cpp on CUDA), cleans it (hallucinations and repeats; names
 stay as said: Luan ended the blanking of names on 2026-11-08, "mostrar tudo sempre"), writes `content/lives/<date>.json` (chapters from
 the dock, a draft summary **for Luan to rewrite**: the copy is his) and `.transcript.json`, adds the day to
@@ -192,7 +258,8 @@ schedule and policy; its editing advice was overruled by him.
    dia dos cortes, em horários diferentes", with more shorts too and his produced videos, the analyses, starting;
    11-20's: Sat 15:00 and 19:00, Sun 12:00; before that one a day at 12:00), the VOD at least a day after the last
    (`youtube.publish_at` in `content/lives/<date>.json`: `youtube.py live` schedules it, and the site keeps that live
-   off its pages until a build after that moment, so its page never embeds a private video). Then
+   off its pages until a build after that moment, so its page never embeds a private video; the hourly
+   `.github/workflows/lives-agendadas.yml` runs that build once the moment passes). Then
    `youtube.py video content/videos/<date>-<nome>.json --dry-run`, show him, apply (it makes the playlist "Rocket
    League: cortes da live" the first time, and uploads the captions as the lives' are). The end screen (last 10 s,
    over the outro) is set in Studio by hand: the API can't. A slot that passes before he uploads (11-18: the noon
@@ -224,7 +291,8 @@ plus 0.6 s); Luan picked that over leaving it or starting the match late.
    title, description (his summary, the game's line, Twitch first among the links and the Discord right after, chapters, the date, three
    hashtags), tags (the game's, plus mode, rank, agents and maps played), thumbnail (thumb.py's `.jpg` over
    build.py's `.png`), **public** (`PRIVACY`; scheduled instead when `youtube.publish_at` holds it back, 2c), the game's playlist ("Rocket League ao vivo", "Valorant ao vivo":
-   made the first time it's missing, kept as public as the videos), captions. Per game in `GAMES` in `youtube.py`.
+   made the first time it's missing, kept as public as the videos), captions. Per game in `GAMES` in `youtube.py`
+   (any other game: `game_of`, from `content/diversos.json`).
    `--no-captions` when only the metadata changed (captions cost 400+ of the 10,000 daily quota units).
 
 **The public test** (agreed 2026-11-12; Luan feared public VODs would hurt the channel): YouTube judges each video by
@@ -265,13 +333,13 @@ during the live (its log, `~/.cache/muanlartins/valorant.log`, says "inventário
 
 ## 5. Release
 
-`pnpm lint`, `pnpm build` and `pnpm build:en`, delete `out/`. Commit (imperative, short, no names) and **ask
-Luan before pushing**: a push to `main` is a release. Then `gh run watch` and check the page live.
+`pnpm lint`, `pnpm build` and `pnpm build:en`, delete `out/` (on a Celeste day, `celeste.py --apply` first: "A day
+of another game"). Commit (imperative, short, no names) and **ask Luan before pushing**: a push to `main` is a release. Then `gh run watch` and check the page live.
 
 ## Things to keep in mind
 
 - Copyright: music on the stream is on track 5 only, so it isn't in the recording. If a recording may have caught
   some (a source routed to all tracks for a while), measure before cutting: per-second levels of track 1 against
   2 + 3 with ffmpeg's `astats`. On 11-05 the suspect stretch turned out silent: nothing to mute.
-- The repo is public: no other players' names or ids, no replays, teammates stay nameless, no tokens. The one exception is the viewers in `public/stream/aliados.json`, who agreed to be named: the dock tags them by Twitch login. A new one goes there only when Luan says they agreed.
+- The repo is public: no other players' names or ids, no replays in git (the prereleases of step 1c are Luan's one exception, 2026-11-21), teammates stay nameless, no tokens. The one exception is the viewers in `public/stream/aliados.json`, who agreed to be named: the dock tags them by Twitch login. A new one goes there only when Luan says they agreed.
 - For shorts and commented videos from the material, see the `estudio` skill.

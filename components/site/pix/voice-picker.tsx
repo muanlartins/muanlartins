@@ -26,27 +26,27 @@ import { cn } from "@/lib/utils"
 
 type Voice = (typeof VOICES)[number]
 
-/** Each voice's card: a thing it's known for, not a likeness. */
-const LOOK: Record<string, [LucideIcon, string]> = {
-  propria: [Mic, "#002fa7"],
-  antonio: [AudioLines, "#5b6b8c"],
-  francisca: [AudioWaveform, "#8a5fa8"],
-  galvao: [Trophy, "#1f9d55"],
-  bob: [Shell, "#d9a400"],
-  patrick: [Star, "#e8618c"],
-  lula: [Music, "#2f9e98"],
-  madruga: [Receipt, "#9a7440"],
-  chaves: [Sandwich, "#c8742a"],
-  silvio: [Plane, "#2b6fd6"],
-  faustao: [Tv, "#d64545"],
-  picapau: [Bird, "#c62f28"],
-  goku: [Zap, "#ef8a17"],
-  cid: [BookOpen, "#55557a"],
-  datena: [Siren, "#b8322a"],
+/** Each voice's card: a thing it's known for, not a likeness, in Klein like the rest of the form. */
+const ICON: Record<string, LucideIcon> = {
+  propria: Mic,
+  antonio: AudioLines,
+  francisca: AudioWaveform,
+  galvao: Trophy,
+  bob: Shell,
+  patrick: Star,
+  lula: Music,
+  madruga: Receipt,
+  chaves: Sandwich,
+  silvio: Plane,
+  faustao: Tv,
+  picapau: Bird,
+  goku: Zap,
+  cid: BookOpen,
+  datena: Siren,
 }
 
-/** The voices as cards: a tap picks one and plays its sample (public/pix/vozes/<id>.mp3); a second tap stops it. */
-export function VoicePicker({ voices, value, onChange }: { voices: Voice[]; value: string; onChange: (id: string) => void }) {
+/** The voices as cards: picking one plays its sample (public/pix/vozes/<id>.mp3); picking it again stops it. */
+export function VoicePicker({ voices, value, onChange, label }: { voices: Voice[]; value: string; onChange: (id: string) => void; label: string }) {
   const [playing, setPlaying] = useState<string | null>(null)
   const audio = useRef<HTMLAudioElement | null>(null)
 
@@ -67,9 +67,9 @@ export function VoicePicker({ voices, value, onChange }: { voices: Voice[]; valu
   }
 
   return (
-    <div role="radiogroup" className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+    <div role="radiogroup" aria-label={label} className="grid grid-cols-3 gap-2 sm:grid-cols-4">
       {voices.map((v) => {
-        const [Icon, color] = LOOK[v.id] ?? [AudioLines, "#002fa7"]
+        const Icon = ICON[v.id] ?? AudioLines
         const on = v.id === value
         const sounding = playing === v.id
         return (
@@ -80,25 +80,21 @@ export function VoicePicker({ voices, value, onChange }: { voices: Voice[]; valu
             aria-checked={on}
             onClick={() => pick(v)}
             className={cn(
-              "relative flex flex-col items-center gap-2 rounded-md border px-2 pt-3 pb-2.5 text-center transition-colors",
-              on ? "border-klein bg-klein/[0.07] ring-1 ring-klein" : "border-line bg-paper/70 hover:border-klein/60",
+              "cut-sm cut-edge relative flex flex-col items-center gap-2 border px-2 pt-3 pb-2.5 text-center transition-colors",
+              on ? "border-klein bg-klein/[0.08]" : "border-line-strong bg-paper/60 hover:border-klein",
             )}
           >
-            <span
-              className={cn("relative grid h-14 w-14 place-items-center overflow-hidden rounded-full transition-transform", sounding && "scale-105")}
-              style={{ background: `${color}26`, color }}
-            >
+            <span className={cn("relative grid h-12 w-12 place-items-center overflow-hidden rounded-full transition-colors", on ? "bg-klein text-paper" : "bg-klein/10 text-klein")}>
               {v.image ? (
                 // eslint-disable-next-line @next/next/no-img-element -- a static export: no image optimizer
                 <img src={`/pix/vozes/${v.id}.webp`} alt="" className="h-full w-full object-cover" />
               ) : (
-                <Icon className="h-7 w-7" strokeWidth={1.8} />
+                <Icon aria-hidden className="h-6 w-6" strokeWidth={1.8} />
               )}
-              {sounding && <span className="absolute inset-0 animate-ping rounded-full border-2" style={{ borderColor: color }} />}
             </span>
             <span className="text-[14px] leading-tight font-medium text-ink">{v.name}</span>
-            {v.note && <span className="-mt-1.5 text-[12px] leading-tight text-muted">{localize(v.note)}</span>}
-            {sounding && <Volume2 aria-hidden className="absolute top-1.5 right-1.5 h-4 w-4 animate-pulse text-klein" />}
+            {v.note && <span className="-mt-1.5 text-[13px] leading-tight text-muted">{localize(v.note)}</span>}
+            {sounding && <Volume2 aria-hidden className="absolute top-2 right-2 h-4 w-4 text-klein motion-safe:animate-pulse" />}
           </button>
         )
       })}

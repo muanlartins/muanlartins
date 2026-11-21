@@ -19,7 +19,8 @@ import { register } from "node:module"
 register("./ganchos.mjs", import.meta.url)
 const { local } = await import("./aws.mjs")
 
-const PORTA = 8130
+// PORTA=… runs it elsewhere, beside another copy.
+const PORTA = Number(process.env.PORTA) || 8130
 const GOOGLE_REAL = process.argv.includes("--google")
 const SINCRONIA_REAL = GOOGLE_REAL || process.argv.includes("--sincronia")
 const TESTES = "/mnt/c/Users/muanl/Downloads/teste-musica-ia"

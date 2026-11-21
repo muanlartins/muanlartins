@@ -788,9 +788,11 @@
         if (!TREINO || !pedidos) await pedir(par)
         pedidos = true
         const semente = params.has("semente") && (REPETIR || !luta) ? Number(params.get("semente")) >>> 0 : crypto.getRandomValues(new Uint32Array(1))[0]
-        // No class picked: one at random, each duel.
+        // No class picked: one at random, each duel, from the browser's secure generator (11-20: Katana came up 18 times
+        // in 60 drawn sides with Math.random, about one chance in 100,000 by luck; this rules the generator out).
         const escolhidas = par.map(classeDe)
-        const classes = escolhidas.map((c) => c ?? Duelo.IDS[Math.floor(Math.random() * Duelo.IDS.length)])
+        const sorteio = crypto.getRandomValues(new Uint32Array(2))
+        const classes = escolhidas.map((c, i) => c ?? Duelo.IDS[sorteio[i] % Duelo.IDS.length])
         const nomes = posicional("nomes")
         lutadores = par.map((login, i) => ({
           login,
@@ -1272,8 +1274,8 @@
       }
 
       // --- The chat, or the demo's ------------------------------------------------------------------------------
-      if (TREINO) {
-        // The site's player: no chat, and no VAR.
+      if (TREINO || (params.has("site") && !DEMO)) {
+        // The site's player: no chat, and no VAR. Given the same login twice it shows nothing, never the live's chat.
       } else if (!DEMO) irc(apply, { membership: true })
       else {
         const nomes = ["rafa", "Giovana_GC", "tiago.mendes", "marinamarina", "lucas_s", "bia.lima", "DuduSantos", "ceci", "otto", "jujuba"]

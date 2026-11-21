@@ -78,6 +78,9 @@ export const occurrences = (agenda: Agenda, from: Date, count = 7) => ocorrencia
 /** The live on air or the next one. */
 export const nextOccurrence = (agenda: Agenda, now: Date) => proxima(agenda, now) as Occurrence | null
 
+/** "HH:MM" → minutes since midnight. */
+export const minutesOf = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3))
+
 /** A slot's length in minutes (an end at or before the start is the next day's). */
 export const lengthOf = (start: string, end: string) => duracao(start, end) as number
 
@@ -90,8 +93,8 @@ export const hasGame = (agenda: Agenda, game: string) => Object.values(agenda.da
 
 const LANG = HTML_LANG[LOCALE]
 
-/** "14h30" in Portuguese, "14:30" in English. */
-export const clock = (hhmm: string) => (LOCALE === "pt" ? hhmm.replace(":", "h").replace(/h00$/, "h") : hhmm)
+/** "14h30" or "9h" in Portuguese, "14:30" in English. */
+export const clock = (hhmm: string) => (LOCALE === "pt" ? hhmm.replace(/^0(\d)/, "$1").replace(":", "h").replace(/h00$/, "h") : hhmm)
 
 /** The weekdays' short names, Monday first (2024-01-01 was one). */
 export const WEEKDAYS = Array.from({ length: 7 }, (_, index) =>
@@ -109,9 +112,9 @@ export const longDay = (date: string) =>
 export const monthName = (month: string) =>
   new Intl.DateTimeFormat(LANG, { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}-15T12:00:00Z`))
 
-/** "15/11" or "11/15": a date's day and month. */
+/** "01/12" or "12/01": a date's day and month, always two digits each (brand/voz.md, "Formats"). */
 export const dayMonth = (date: string) =>
-  new Intl.DateTimeFormat(LANG, { day: "numeric", month: "numeric", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`))
+  new Intl.DateTimeFormat(LANG, { day: "2-digit", month: "2-digit", timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`))
 
 /** "sáb": a date's short weekday. */
 export const weekdayOf = (date: string) => WEEKDAYS[(new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7]
@@ -137,4 +140,18 @@ export function whenOf(live: { start: Date; end: Date }, now: Date, zone: string
   const differs = time(live.start) !== time(live.start, zone)
   const city = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/").pop()?.replaceAll("_", " ")
   return { when, local: differs ? `${city}: ${time(live.start)}–${time(live.end)}` : undefined }
+}
+
+/**
+ * How far the viewer's clock is from the agenda's, at `now`: "em Lisboa, 3h a mais" (or "2h30 a menos"); undefined
+ * when they're the same.
+ */
+export function zoneDifference(zone: string, now: Date) {
+  const wall = (timeZone?: string) => Date.parse(`${new Intl.DateTimeFormat("en-CA", { timeZone }).format(now)}T${new Intl.DateTimeFormat("en-GB", { timeZone, hourCycle: "h23", hour: "2-digit", minute: "2-digit" }).format(now)}:00Z`)
+  const minutes = Math.round((wall() - wall(zone)) / 60_000)
+  if (!minutes) return undefined
+  const abs = Math.abs(minutes)
+  const n = clock(`${Math.floor(abs / 60)}:${String(abs % 60).padStart(2, "0")}`)
+  const city = Intl.DateTimeFormat().resolvedOptions().timeZone.split("/").pop()?.replaceAll("_", " ") ?? ""
+  return (minutes > 0 ? W.ahead : W.behind).replace("{city}", city).replace("{n}", n)
 }

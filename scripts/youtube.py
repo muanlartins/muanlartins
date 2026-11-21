@@ -15,6 +15,7 @@ import argparse
 import json
 import re
 import sys
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 import webbrowser
@@ -26,7 +27,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload, MediaIoBaseUpload
 
-from content import LIVES, ROOT, brand_tables, clock, matches_by_id, seconds
+from content import LIVES, ROOT, brand_tables, clock, matches_by_id, other_games, seconds
 from windows import CONFIG, VIDEOS
 
 # Valorant's rank names by tier (3 is Iron 1), as live.py writes them.
@@ -135,6 +136,31 @@ GAMES = {
         "hashtags": "#Valorant #ValorantBrasil #AoVivo",
     },
 }
+
+
+def game_of(live):
+    """The live's game as GAMES has it; any other (content/diversos.json, "Jogos diversos") dressed the same way:
+    its name, its page on the site, a playlist of its own, its tags."""
+    game_id = live.get("game", "rocket-league")
+    if game_id in GAMES:
+        return GAMES[game_id]
+    other = next((game for game in other_games() if game["id"] == game_id), None)
+    if not other:
+        sys.exit(f"O jogo {game_id!r} da live não está em GAMES nem em content/diversos.json.")
+    name, goal = other["name"], other.get("goal")
+    low = name.lower()
+    tag = re.sub(r"[^0-9A-Za-z]", "", unicodedata.normalize("NFKD", name))
+    return {
+        "name": name,
+        "pitch": f"{name} ao vivo, em português." + (f" A meta: {goal['title']}, com o progresso no site." if goal else ""),
+        "links": [TWITCH, DISCORD, ("Esta live no site, com a transcrição", THIS_LIVE[1]),
+                  (f"{name} no site: {'a meta e ' if goal else ''}todas as lives", f"{SITE}/conteudo/diversos/{game_id}")],
+        "playlist": f"{name} ao vivo",
+        "tags": [low, f"{low} ao vivo", f"live de {low}", f"{low} pt-br", f"{low} brasil", "jogos diversos", "muanlartins"],
+        "hashtags": f"#{tag} #AoVivo #PTBR",
+    }
+
+
 # The lives' privacy on YouTube, and their playlists'. Unlisted until 2026-11-12 (0 to 3 views each: unlisted videos
 # never show up in search or recommendations); public since, as a test Luan agreed to. YouTube judges each video by
 # its own audience, so a long VOD few click gets fewer impressions without holding the shorts back; if the shorts'
@@ -198,7 +224,7 @@ def describe(date):
     ranks, lives = brand_tables()
     rank, tier = lives.get(date, (None, None))
     year, month, day = date.split("-")
-    game = GAMES[live.get("game", "rocket-league")]
+    game = game_of(live)
     matches = matches_by_id()
     wins, losses, played = record(live, matches)
     rank_name = f"{ranks[rank][0]} {tier}" if rank else None
@@ -263,7 +289,7 @@ def live(args):
     publish_at = publish_at if publish_at and ahead(publish_at) else None
     print(f"Vídeo {video_id}  ({f'agendado para {publish_at}' if publish_at else PRIVACY})\n\n{title}  ({len(title)} caracteres)\n\n{description}\n\n"
           f"Tags: {', '.join(tags)}\nThumbnail: {thumbnail.relative_to(ROOT)}\n"
-          f"Playlist: {GAMES[record.get('game', 'rocket-league')]['playlist']} ({PRIVACY}, criada se faltar)\n")
+          f"Playlist: {game_of(record)['playlist']} ({PRIVACY}, criada se faltar)\n")
     if args.dry_run:
         return
 
@@ -292,7 +318,7 @@ def live(args):
     else:
         print(f"Thumbnail: falta {thumbnail.relative_to(ROOT)} (rode brand/build.py)")
 
-    name = GAMES[record.get("game", "rocket-league")]["playlist"]
+    name = game_of(record)["playlist"]
     playlist = next((p for p in all_playlists(api) if p["snippet"]["title"] == name), None)
     if not playlist:
         # The lives kept whole, in pt-BR, as visible as the videos.

@@ -5,7 +5,9 @@ import { LiveViewer } from "@/components/site/lives/live-viewer"
 import { PageIntro } from "@/components/site/page-intro"
 import { longDate } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
+import { games } from "@/content/projects"
 import { channelPath } from "@/lib/channel"
+import { otherGame } from "@/lib/diversos"
 import { seconds, type Line, type Live } from "@/lib/lives"
 import type { Match, Session } from "@/lib/ranked"
 import { LOCALE, localize } from "@/lib/site"
@@ -14,6 +16,12 @@ const T = localize({
   all: { pt: "Todas as lives", en: "All streams" },
   match: { pt: "Partida", en: "Match" },
 })
+
+/** A game by name: the site's own, or one of the other games (content/diversos.json). */
+function gameName(id: string) {
+  const game = games.find((game) => game.id === id)
+  return game ? localize(game.title) : (otherGame(id)?.name ?? id)
+}
 
 /** One live: the video, its chapters with the day's ranked matches, and what was said. */
 export function LivePage({
@@ -29,18 +37,19 @@ export function LivePage({
   let played = 0
   const chapters = live.chapters.map((chapter) => {
     const match = chapter.match ? matches.get(chapter.match) : undefined
-    const label = chapter.title ? localize(chapter.title) : `${T.match} ${++played}${match ? ` · ${match.mode}` : ""}`
+    const label = chapter.title
+      ? localize(chapter.title)
+      : chapter.game && !chapter.match
+        ? gameName(chapter.game)
+        : `${T.match} ${++played}${match ? ` · ${match.mode}` : ""}`
     return { at: seconds(chapter.at), label, match }
   })
   const title = `${localize(channel.lives.title)} · ${longDate(live.date)}`
 
   return (
     <>
-      <Link
-        href={channelPath("lives")}
-        className="mb-6 inline-flex items-center gap-1.5 text-[14px] text-muted transition-colors hover:text-klein"
-      >
-        <ArrowLeft className="h-4 w-4" />
+      <Link href={channelPath("lives")} className="mb-6 inline-flex items-center gap-1.5 text-[13px] font-medium text-muted transition-colors hover:text-klein">
+        <ArrowLeft aria-hidden className="h-4 w-4" />
         {T.all}
       </Link>
       <PageIntro title={longDate(live.date)} description={localize(live.summary)}>

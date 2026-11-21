@@ -7,7 +7,7 @@
  * mural (the Pix API), and what the site knows when it's built (/torcedor/dados.json: their ideas on the roadmap and the
  * matches they played with Luan).
  */
-import { loadFans, loadSigmas, PROFILE_API, SIGMA_API, signOut, SignedOut, type Choice, type Sigma, type SigmaStats } from "@/lib/profile"
+import { loadFans, loadSigmas, PROFILE_API, rememberMe, SIGMA_API, signOut, SignedOut, type Choice, type Sigma, type SigmaStats } from "@/lib/profile"
 
 /** Where someone's page is: every viewer has one, built or not (a login the build didn't know is drawn by the 404 page). */
 export const VIEWER_SLUG = "torcedor"
@@ -241,20 +241,27 @@ export async function saveMyImage(token: string, kind: ImageKind, picture: Blob)
     throw new SignedOut()
   }
   if (!response.ok) throw new Error(String(response.status))
-  return ((await response.json()) as { imagens: Images | null }).imagens
+  const { login, imagens } = (await response.json()) as { login: string; imagens: Images | null }
+  // The header shows their photo.
+  if (login) rememberMe({ login, imagens })
+  return imagens
 }
 
-async function erase(path: string, token: string): Promise<Images | null> {
+async function erase(path: string, token: string): Promise<{ login: string; imagens: Images | null }> {
   const response = await fetch(`${PROFILE_API}${path}`, { method: "DELETE", headers: { authorization: `Bearer ${token}` } })
   if (response.status === 401) {
     signOut()
     throw new SignedOut()
   }
   if (!response.ok) throw new Error(String(response.status))
-  return ((await response.json()) as { imagens: Images | null }).imagens
+  return (await response.json()) as { login: string; imagens: Images | null }
 }
 
 /** Takes their own banner or photo down. */
-export const eraseMyImage = (token: string, kind: ImageKind) => erase(`/eu/imagem/${kind}`, token)
+export async function eraseMyImage(token: string, kind: ImageKind): Promise<Images | null> {
+  const { login, imagens } = await erase(`/eu/imagem/${kind}`, token)
+  if (login) rememberMe({ login, imagens })
+  return imagens
+}
 /** The channel takes anyone's picture down (a picture that shouldn't be on the site). */
-export const takeDownImage = (token: string, login: string, kind: ImageKind) => erase(`/canal/imagem/${login.toLowerCase()}/${kind}`, token)
+export const takeDownImage = async (token: string, login: string, kind: ImageKind) => (await erase(`/canal/imagem/${login.toLowerCase()}/${kind}`, token)).imagens

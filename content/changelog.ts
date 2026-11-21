@@ -115,6 +115,15 @@ export const UPCOMING: Upcoming[] = []
 /** Every feature released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "jogos-diversos",
+    date: "2026-11-21",
+    tag: "site",
+    title: "Jogos diversos",
+    text: "Tudo que eu jogo além de Rocket League e Valorant, com as lives, as horas e a meta de cada jogo.",
+    href: "/conteudo/diversos",
+    media: [media("jogos-diversos", "A página do Celeste: a capa, as lives e as horas, e a meta de 100% capítulo por capítulo, com morangos, corações e fitas")],
+  },
+  {
     id: "estatisticas-da-partida",
     date: "2026-11-21",
     tag: "live",
@@ -360,10 +369,10 @@ export const SHIPPED: Shipped[] = [
     id: "audiencia",
     date: "2026-11-07",
     tag: "site",
-    title: "Audiência no mural",
+    title: "A torcida no mural",
     text: "Todo mundo que já assistiu, num ranking por Σ com pódio.",
-    href: "/mural#audiencia",
-    media: [media("mural-ranking", "O pódio dos três com mais Σ e o ranking da audiência no mural")],
+    href: "/mural#torcida",
+    media: [media("mural-ranking", "O pódio dos três com mais Σ e o ranking da torcida no mural")],
   },
   {
     id: "legendas",
@@ -475,7 +484,7 @@ export const SHIPPED: Shipped[] = [
     date: "2026-10-28",
     tag: "site",
     title: "Ranqueadas",
-    text: "Cada partida registrada sozinha, com a evolução do ranque.",
+    text: "Cada partida registrada sozinha, com a evolução do rank e o replay pra ver no RLR.",
     href: "/conteudo/rocket-league/ranked",
     video: "5GMvMT8wvo4",
     media: [media("ranqueadas", "O gráfico de pontos da página de ranqueadas", { video: true })],

@@ -4,8 +4,8 @@ import { channel } from "@/content/channel"
 import { localize } from "@/lib/site"
 
 /**
- * /canal/agenda: the lives day by day. Visitors see the next live, the month as a calendar, each day's lives with
- * their run of the show, and the usual week; the channel's account plans it right there (agenda-editor.tsx).
+ * /canal/agenda: the lives day by day. Visitors see the next live and the days week by week as a TV guide (week.tsx,
+ * which the lives page shows too); the channel's account plans it right there (agenda-editor.tsx).
  */
 export function AgendaPage() {
   return (

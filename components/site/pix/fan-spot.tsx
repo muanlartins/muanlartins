@@ -8,8 +8,9 @@ const SIZES = {
 }
 
 /**
- * Someone standing on a strip of the stand, the stream crowd's Klein floor: their fan when they signed in with
- * Twitch (by login: the one they built, or the one their login gives them), their initial otherwise.
+ * Someone standing on a strip of the stand, the stream crowd's Klein floor (its ends at a true 45°: as tall as it's cut):
+ * their fan when they signed in with Twitch (by login: the one they built, or the one their login gives them), their
+ * initial otherwise ("?" for an anonymous Pix).
  */
 export function FanSpot({
   T,
@@ -26,11 +27,8 @@ export function FanSpot({
 }) {
   const s = SIZES[size]
   return (
-    <div className={cn("relative shrink-0 rounded-sm bg-klein/[0.07]", s.box)} aria-hidden>
-      <div
-        className="absolute inset-x-0 bottom-0 h-2 rounded-b-sm bg-klein"
-        style={{ clipPath: "polygon(5px 0, calc(100% - 5px) 0, 100% 100%, 0 100%)" }}
-      />
+    <div className={cn("relative shrink-0 bg-klein/[0.07]", s.box)} aria-hidden>
+      <div className="absolute inset-x-0 bottom-0 h-2 bg-klein" style={{ clipPath: "polygon(8px 0, calc(100% - 8px) 0, 100% 100%, 0 100%)" }} />
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
         {login && T && fans ? (
           <FanView T={T} fan={T.normalizar(fans[login] ?? null, login)} className={s.fan} />

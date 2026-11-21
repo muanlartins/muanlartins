@@ -135,7 +135,9 @@ def gravacao(id: str, dados: bytes, voz: str | None) -> tuple[str, Path]:
     with tempfile.TemporaryDirectory(dir=CACHE) as tmp:
         tmp = Path(tmp)
         (tmp / "entrada").write_bytes(dados)
-        ffmpeg = ["ffmpeg", "-v", "error", "-y", "-i", str(tmp / "entrada"), "-t", "30", "-ac", "1"]
+        # /pix records up to a minute; a little over it is cut. 60 s takes ~20 s here warm on the 4070 (whisper ~8,
+        # RVC ~8), ~40 s cold, and the overlay starts it as soon as the reservation shows, while the viewer pays.
+        ffmpeg = ["ffmpeg", "-v", "error", "-y", "-i", str(tmp / "entrada"), "-t", "62", "-ac", "1"]
         subprocess.run([*ffmpeg, "-ar", "16000", str(tmp / "whisper.wav")], check=True)
         subprocess.run([*ffmpeg, "-ar", "48000", "-af", LOUDNORM, str(tmp / "voz.wav")], check=True)
         palavras = transcrever(tmp / "whisper.wav")

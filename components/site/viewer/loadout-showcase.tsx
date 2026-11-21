@@ -22,15 +22,12 @@ export async function loadShowcase(login: string): Promise<Showcase | null> {
 /** Their dream loadout as the inventory draws a weapon with its skin: the preferred variant, on the night. */
 export function LoadoutTiles({ picked }: { picked: InventoryWeapon[] }) {
   return (
-    <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       {picked.map(({ id, name, ideal }) => {
         const variant = ideal!.variants[0]
         return (
-          <li
-            key={id}
-            className="flex h-32 flex-col rounded-md border border-navy bg-navy bg-[radial-gradient(ellipse_at_50%_45%,rgba(0,47,167,0.95),transparent_70%)] p-3"
-          >
-            <span className="text-[11px] font-medium text-klein-claro">{name}</span>
+          <li key={id} className="cut-sm flex h-32 flex-col bg-navy bg-[radial-gradient(ellipse_at_50%_45%,var(--color-klein),transparent_70%)] p-3">
+            <span className="text-[12px] font-medium text-klein-claro">{name}</span>
             <span className="relative my-1 block flex-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -38,7 +35,7 @@ export function LoadoutTiles({ picked }: { picked: InventoryWeapon[] }) {
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="absolute inset-0 m-auto max-h-full max-w-[88%] object-contain drop-shadow-[0_6px_18px_rgba(133,167,255,0.25)]"
+                className="absolute inset-0 m-auto max-h-full max-w-[88%] object-contain drop-shadow-[0_6px_18px_color-mix(in_oklab,var(--color-klein-claro)_25%,transparent)]"
               />
             </span>
             <span className="truncate text-[13px] font-medium tracking-[-0.01em] text-paper" title={ideal!.skin.name}>

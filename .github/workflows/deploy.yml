@@ -46,8 +46,9 @@ jobs:
           aws-region: us-east-1
 
       # Hashed assets never change; pages are re-fetched by browsers and
-      # held by CloudFront until the invalidation below. musicas/ isn't the
-      # build's: it's the Pix songs, which the Pix API writes there.
+      # held by CloudFront until the invalidation below. musicas/ and replays/
+      # aren't the build's: the Pix songs, which the Pix API writes there, and
+      # the lives' replays, which replays.yml copies there.
       - name: Publish
         if: env.PUBLISH == 'true'
         env:
@@ -56,7 +57,7 @@ jobs:
           for locale in pt en; do
             aws s3 sync "out-$locale/_next/static" "s3://$BUCKET/$locale/_next/static" \
               --cache-control "public, max-age=31536000, immutable"
-            aws s3 sync "out-$locale" "s3://$BUCKET/$locale" --delete --exclude "_next/static/*" --exclude "musicas/*" \
+            aws s3 sync "out-$locale" "s3://$BUCKET/$locale" --delete --exclude "_next/static/*" --exclude "musicas/*" --exclude "replays/*" \
               --cache-control "public, max-age=0, s-maxage=31536000, must-revalidate"
           done
           aws cloudfront create-invalidation --distribution-id "${{ vars.DISTRIBUTION_PT }}" --paths "/*"

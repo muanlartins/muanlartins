@@ -74,19 +74,23 @@ const VOZ = /^[a-z0-9]{1,16}$/
 const DONO = "muanlartins" // the channel's own login: its Pix are tests
 const AUDIO = /^audio\/(webm|ogg|mp4|mpeg)(;[\w=.,\s-]*)?$/
 const BASE64 = /^[A-Za-z0-9+/]+=*$/
-const MAX_AUDIO = 360_000 // base64 characters: ~270 KB, far more than 20 s of Opus
+// base64 characters: ~270 KB, a minute of /pix's Opus at 32 kb/s (~240 KB) with room to spare, and the item stays under
+// DynamoDB's 400 KB. The page stops a recording at 60 s or before this size, whichever comes first.
+const MAX_AUDIO = 360_000
 // Where the site serves the songs; a local stand-in points it at itself.
 const MUSICAS_URL = process.env.MUSICAS_URL ?? "/musicas/"
 const SITE = "https://muanlartins.com.br"
 const FALHAS = 3 // tries at making a song before it plays as a plain alert: one and Lambda's two retries
 const RODANDO = 110_000 // a run that claimed a song this long ago died (Google's own wait is 95 s, the function's 120 s)
 const SINCRONIA = 30_000 // the most the lyrics' timing may take; a run still ends by 100 s, well before RODANDO
-const SUJA = "Tem uma palavra aí que não pode tocar na live. Mude o texto e tente de novo."
+const SUJA = "Tem uma palavra aí que não pode tocar na live. Muda o texto e tenta de novo."
 const TEMAS = ["natal"]
 const SUB = 1000 // a gift sub for every R$ 10 of a Christmas goal (Luan's call, 2026-11-14)
 // The Σ API (infra/sigma), for who's in the chat when a sub is drawn; a local stand-in points it elsewhere.
 const SIGMA_API = process.env.SIGMA_API ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
 const HEX = /^#[0-9a-f]{6}$/
+const LOGIN = /^[a-z0-9_]{1,25}$/ // a Twitch login
+const TRANSCRICAO_MAX = 1000
 const NOME_CURTO = /^[a-z]{1,12}$/
 
 const novoId = () => randomBytes(9).toString("base64url")
@@ -182,22 +186,22 @@ async function reservar(event) {
   const p = lerJson(event)
   if (!p) return out(400, { erro: "Pedido inválido." })
   const pedido = Number(p.centavos)
-  if (!Number.isInteger(pedido) || pedido < MINIMO || pedido > MAXIMO) return out(400, { erro: "Escolha um valor entre R$ 1 e R$ 10.000." })
+  if (!Number.isInteger(pedido) || pedido < MINIMO || pedido > MAXIMO) return out(400, { erro: "Escolhe um valor entre R$ 1 e R$ 10.000." })
   let musica
   if (p.musica !== undefined) {
     musica = pedidoDe(p.musica)
     if (musica.erro) return out(400, { erro: musica.erro, campo: "musica" })
     if (pedido < MINIMO_MUSICA) return out(400, { erro: "A música é a partir de R$ 5." })
-    if (!process.env.GEMINI_CHAVE) return out(503, { erro: "A música ainda não está disponível. Mande uma mensagem por enquanto." })
+    if (!process.env.GEMINI_CHAVE) return out(503, { erro: "A música ainda não está disponível. Manda uma mensagem por enquanto." })
     if (filtrar(musica.sobre ?? musica.letra).sujo) return out(422, { erro: SUJA, campo: "musica" })
   }
   let audio
   if (p.audio && !musica) {
     const { tipo, dados } = p.audio
-    if (!AUDIO.test(tipo) || typeof dados !== "string" || dados.length > MAX_AUDIO || !BASE64.test(dados)) return out(400, { erro: "Não deu para enviar o áudio. Grave de novo, mais curto." })
+    if (!AUDIO.test(tipo) || typeof dados !== "string" || dados.length > MAX_AUDIO || !BASE64.test(dados)) return out(400, { erro: "Não deu pra enviar o áudio. Grava de novo, mais curto." })
     audio = { tipo, dados }
   }
-  if (await demais(event.requestContext.http.sourceIp)) return out(429, { erro: "Muitas reservas seguidas. Espere alguns minutos e tente de novo." })
+  if (await demais(event.requestContext.http.sourceIp)) return out(429, { erro: "Muitas reservas seguidas. Espera uns minutos e tenta de novo." })
   if (musica) {
     const v = await revisar(musica, { chave: process.env.GEMINI_CHAVE })
     if (v.sem) console.log("musica: revisão pulada", v.sem)
@@ -221,7 +225,7 @@ async function reservar(event) {
     )
     if (livre) centavos = c
   }
-  if (centavos === null) return out(409, { erro: "Muitos Pix esperando nesse valor. Tente outro." })
+  if (centavos === null) return out(409, { erro: "Muitos Pix esperando nesse valor. Tenta outro." })
 
   if (audio) await db.send(new PutCommand({ TableName: T, Item: { pk: "audio", sk: id, ...audio, ttl: expiraEm(2 * DIA) } }))
   await db.send(
@@ -277,7 +281,7 @@ function paraQuemPediu(m) {
 async function editarMusica(event) {
   const p = lerJson(event)
   const r = p && typeof p.id === "string" && p.id.length < 32 ? await ler("reserva", p.id) : null
-  if (!r?.pix || !r.musica) return out(404, { erro: "Não achei esse Pix." })
+  if (!r?.pix || !r.musica) return out(404, { erro: "Não deu pra achar esse Pix." })
   const m = (await ler("pix", r.pix))?.musica
   if (!m || estadoDe(m) !== "recusada" || (m.edicoes ?? 0) >= EDICOES) return out(409, { erro: "Essa música não está mais esperando um texto novo." })
   const novo = pedidoDe({ estilo: p.estilo ?? m.estilo, sobre: p.sobre, letra: p.letra })
@@ -421,7 +425,8 @@ async function semMeta() {
 // The mural: each goal (the one on screen, then the ones before) with every Pix that came while it was up, so its
 // list adds up to its bar, by the name and message it was sent with, as the live showed them (Luan's call, 2026-11-10,
 // for the ones from before too, when the form still asked about the mural), with their Twitch login when they signed
-// in, so the page can draw their fan; one the dock took off shows only its value and day, as anonymous. Outside the
+// in, so the page can draw their fan (the dock's Atribuir sets both by hand, for one sent with no name or before its
+// sender signed in); one the dock took off shows only its value and day, as anonymous. Outside the
 // goals only the Pix whose `mural` is set show (every one from the form since 2026-11-10): the rest are the channel's
 // tests from before the first goal.
 async function mural() {
@@ -507,23 +512,26 @@ async function registrar(r, origem) {
     musica: r.musica ? { estilo: r.musica.estilo, sobre: r.musica.sobre, letra: r.musica.letra, estado: "gerando", pedidoEm: agora, edicoes: 0, falhas: 0 } : undefined,
   }
   await db.send(new PutCommand({ TableName: T, Item: item }))
-  // The channel earns no Σ of its own: its Pix are tests.
-  if (r.login && r.login !== DONO) {
-    await db.send(
-      new UpdateCommand({
-        TableName: process.env.SIGMAS,
-        Key: { login: r.login },
-        UpdateExpression: "ADD sigma :s, doado :c",
-        ExpressionAttributeValues: { ":s": Math.floor((r.centavos * SIGMA_POR_REAL) / 100), ":c": r.centavos },
-      }),
-    )
-  }
+  await doar(r.login, r.centavos)
   if (item.musica) {
     // The sender's /pix follows the song through its reservation.
     if (r.sk) await atualizar("reserva", r.sk, { pix: item.sk })
     await disparar(item.sk)
   }
   return item
+}
+
+/** A Pix's Σ (and what it adds to `doado`) for its sender; `sinal` -1 takes them back. The channel earns none: its Pix are tests. */
+async function doar(login, centavos, sinal = 1) {
+  if (!login || login === DONO) return
+  await db.send(
+    new UpdateCommand({
+      TableName: process.env.SIGMAS,
+      Key: { login },
+      UpdateExpression: "ADD sigma :s, doado :c",
+      ExpressionAttributeValues: { ":s": sinal * Math.floor((centavos * SIGMA_POR_REAL) / 100), ":c": sinal * centavos },
+    }),
+  )
 }
 
 // --- A song -------------------------------------------------------------------------------------------
@@ -786,9 +794,41 @@ async function acao(p) {
     if (typeof p.pix !== "string") return out(400, {})
     return out((await atualizar("pix", p.pix, { oculto: p.oculto !== false })) ? 200 : 404, {})
   }
-  // A recording's words, from the stream's whisper: filtered here, kept for the mural.
+  // Who sent a Pix, set by hand in the dock (one sent with no name, or before its sender signed in): the name the mural
+  // shows and, if given, their Twitch login, which draws their fan there and gives them the Σ the Pix would have given
+  // (taken back from the login it had, if it changes). It goes back on the mural if the dock had taken it off.
+  if (acao === "atribuir") {
+    const pix = typeof p.pix === "string" && (await ler("pix", p.pix))
+    if (!pix) return out(404, { erro: "Esse Pix não existe." })
+    const nome = filtrar(linha(p.nome, 25)).texto
+    const novo = typeof p.login === "string" ? p.login.trim().replace(/^@/, "").toLowerCase() : ""
+    if (novo && !LOGIN.test(novo)) return out(400, { erro: "Esse login da Twitch não vale." })
+    const login = novo || pix.login
+    if (!nome && !login) return out(400, { erro: "Falta o nome ou o login." })
+    const nomes = { "#nome": "nome", "#mural": "mural", "#oculto": "oculto", "#login": "login" }
+    const ok = await seCondicao(
+      db.send(
+        new UpdateCommand({
+          TableName: T,
+          Key: { pk: "pix", sk: pix.sk },
+          // Unless someone changed its login meanwhile: the Σ move from that one.
+          ConditionExpression: pix.login ? "#login = :antes" : "attribute_exists(sk) AND attribute_not_exists(#login)",
+          UpdateExpression: `SET #nome = :nome, #mural = :sim, #oculto = :nao${login ? ", #login = :login" : ""}`,
+          ExpressionAttributeNames: nomes,
+          ExpressionAttributeValues: { ":nome": nome, ":sim": true, ":nao": false, ...(login ? { ":login": login } : {}), ...(pix.login ? { ":antes": pix.login } : {}) },
+        }),
+      ),
+    )
+    if (!ok) return out(409, { erro: "Esse Pix mudou enquanto isso. Tenta de novo." })
+    if (login !== pix.login) {
+      await doar(pix.login, pix.centavos, -1)
+      await doar(login, pix.centavos)
+    }
+    return out(200, { pix: { ...pix, nome, login, mural: true, oculto: false } })
+  }
+  // A recording's words, from the stream's whisper: filtered here, kept for the mural. A minute of speech is ~900 characters.
   if (acao === "transcricao") {
-    const { texto, sujo } = filtrar(linha(p.texto, 400))
+    const { texto, sujo } = filtrar(linha(p.texto, TRANSCRICAO_MAX))
     if (typeof p.reserva === "string") await atualizar("reserva", p.reserva, { transcricao: texto, sujo })
     if (typeof p.pix === "string") await atualizar("pix", p.pix, { transcricao: texto, sujo })
     return out(200, { texto, sujo })

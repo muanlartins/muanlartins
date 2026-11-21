@@ -134,9 +134,16 @@
       }
       .mensagem {
         max-width: 1000px;
+        /* Four lines at most (a typed message's 200 characters fit); a longer one, a minute's recording, scrolls
+           through them while it's spoken (rolar). */
+        max-height: calc(30px * 1.25 * 4);
         margin: 12px 0 0;
+        overflow: hidden;
         font-size: 30px;
         line-height: 1.25;
+      }
+      .mensagem.rolando {
+        mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
       }
       .mensagem:empty {
         display: none;
@@ -637,19 +644,22 @@
           const em = pix.sk.slice(0, 24)
           const comPresente = !!natalDesde && pix.sk >= natalDesde
           mostrarPresente(comPresente && pix.presente, comPresente ? em : null)
-          const pronta = await Promise.race([preparar(pix, pix.sk), new Promise((r) => setTimeout(() => r(null), 15000))])
+          // Rendered while its reservation waited, as a rule; a minute's recording rendered only now takes ~20 s.
+          const pronta = await Promise.race([preparar(pix, pix.sk), new Promise((r) => setTimeout(() => r(null), pix.audio ? 30000 : 15000))])
           const texto = pronta?.texto ?? pix.mensagem ?? ""
           // A recording transcribed while its reservation waited: the paid Pix keeps the words for the mural.
           if (pix.audio && !pix.transcricao && texto && !DEMO) pedir("/canal", { acao: "transcricao", pix: pix.sk, texto }).catch(() => {})
           $(".rotulo").textContent = `${pix.musica?.estado === "pronta" && !pix.pular ? "Música" : "Pix"} · R$ ${reais(pix.centavos)}`
           $(".nome").textContent = pix.nome || "Anônimo"
           $(".mensagem").textContent = texto
+          $(".mensagem").scrollTop = 0
+          $(".mensagem").classList.remove("rolando")
           const falas = (pronta?.fala ?? []).filter(Boolean)
           const musica = pix.pular ? null : pronta?.musica
           const falando = falas.reduce((t, b) => t + b.duration, 0)
           const segundos = musica
             ? 1.2 + falando + Math.min(musica.duration, MUSICA_MAX) + 1
-            : Math.max(7, Math.min(40, 1.2 + falando + 1.5), 6 + texto.length * 0.05)
+            : Math.max(7, Math.min(75, 1.2 + falando + 1.5), Math.min(20, 6 + texto.length * 0.05))
           const alerta = $(".alerta")
           alerta.style.setProperty("--dura", `${segundos}s`)
           alerta.classList.remove("tocando")
@@ -657,12 +667,16 @@
           alerta.classList.add("tocando")
           chime()
           await new Promise((r) => setTimeout(r, 1200))
-          for (const b of falas) await tocar(b)
+          for (const [i, b] of falas.entries()) {
+            if (i === falas.length - 1 && !musica) rolar($(".mensagem"), b.duration)
+            await tocar(b)
+          }
           if (musica) {
             alerta.classList.add("mini")
             await tocarMusica(musica, pix.musica)
           } else await new Promise((r) => setTimeout(r, Math.max(0, segundos * 1000 - 1200 - falando * 1000)))
           alerta.classList.remove("tocando", "mini")
+          $(".mensagem").classList.remove("rolando")
           if (comPresente) soltar(em)
           vistos.set(pix.sk, Date.now())
           if (!DEMO) await pedir("/canal", { acao: "exibido", pix: pix.sk, reserva: pix.reserva }).catch(() => {})
@@ -671,6 +685,21 @@
           atual = null
           setTimeout(proximo, 800)
         }
+      }
+
+      // A text taller than its four lines (a minute's recording) scrolls through them, evenly, while it's spoken.
+      function rolar(el, segundos) {
+        el.scrollTop = 0
+        const sobra = el.scrollHeight - el.clientHeight
+        if (sobra <= 0 || !segundos) return
+        el.classList.add("rolando")
+        const inicio = performance.now()
+        const passo = (agora) => {
+          const f = Math.min(1, (agora - inicio) / (segundos * 1000))
+          el.scrollTop = sobra * f
+          if (f < 1) requestAnimationFrame(passo)
+        }
+        requestAnimationFrame(passo)
       }
 
       // --- Christmas (a goal with tema "natal") ---------------------------------------------------------------

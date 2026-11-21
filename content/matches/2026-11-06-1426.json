@@ -92,7 +92,8 @@
       "score": [
         3,
         1
-      ]
+      ],
+      "replay": "/replays/2026-11-06/2026-11-06-01.replay"
     },
     {
       "id": "1364200411F1DA0ACAF880959C9B171C",
@@ -143,7 +144,8 @@
         "mmr": 836
       },
       "points": -9,
-      "mmr": 827
+      "mmr": 827,
+      "replay": "/replays/2026-11-06/2026-11-06-02.replay"
     },
     {
       "id": "52DCE39611F1DA0B4DCB06B3B79AC2EF",
@@ -194,7 +196,8 @@
         "mmr": 827
       },
       "points": 9,
-      "mmr": 836
+      "mmr": 836,
+      "replay": "/replays/2026-11-06/2026-11-06-03.replay"
     },
     {
       "id": "8C3BD91611F1DA0C38B79CAF93F5F544",
@@ -245,7 +248,8 @@
         "mmr": 836
       },
       "points": 9,
-      "mmr": 845
+      "mmr": 845,
+      "replay": "/replays/2026-11-06/2026-11-06-04.replay"
     },
     {
       "id": "AE64F90E11F1DA0D6A55EEAF86B9BEA2",
@@ -296,7 +300,8 @@
         "mmr": 845
       },
       "points": 9,
-      "mmr": 854
+      "mmr": 854,
+      "replay": "/replays/2026-11-06/2026-11-06-05.replay"
     },
     {
       "id": "18EC128E11F1DA0F464520AC11A4202F",
@@ -347,7 +352,8 @@
         "mmr": 854
       },
       "points": -9,
-      "mmr": 845
+      "mmr": 845,
+      "replay": "/replays/2026-11-06/2026-11-06-06.replay"
     },
     {
       "id": "8D2495E411F1DA1048B0DEB871BE58A5",
@@ -400,7 +406,8 @@
         "mmr": 845
       },
       "points": 11,
-      "mmr": 856
+      "mmr": 856,
+      "replay": "/replays/2026-11-06/2026-11-06-07.replay"
     },
     {
       "id": "DEECBE7811F1DA11F36D86A695A970F4",
@@ -453,7 +460,8 @@
         "mmr": 856
       },
       "points": 10,
-      "mmr": 866
+      "mmr": 866,
+      "replay": "/replays/2026-11-06/2026-11-06-08.replay"
     },
     {
       "id": "C6A2FA9811F1DA12208CC9A6736BCBEC",
@@ -506,7 +514,8 @@
         "mmr": 866
       },
       "points": 9,
-      "mmr": 875
+      "mmr": 875,
+      "replay": "/replays/2026-11-06/2026-11-06-09.replay"
     },
     {
       "id": "1AAD2C5211F1DA14754BF5BF27B6CAA2",
@@ -559,7 +568,8 @@
         "mmr": 875
       },
       "points": 8,
-      "mmr": 883
+      "mmr": 883,
+      "replay": "/replays/2026-11-06/2026-11-06-10.replay"
     },
     {
       "id": "29DB558611F1DA153E567DA451234A5B",
@@ -612,7 +622,8 @@
         "mmr": 883
       },
       "points": 10,
-      "mmr": 893
+      "mmr": 893,
+      "replay": "/replays/2026-11-06/2026-11-06-11.replay"
     },
     {
       "id": "F19FC25A11F1DA1515AB5B987925C4DE",
@@ -665,7 +676,8 @@
         "mmr": 893
       },
       "points": -6,
-      "mmr": 887
+      "mmr": 887,
+      "replay": "/replays/2026-11-06/2026-11-06-12.replay"
     },
     {
       "id": "EFD492D811F1DA1649FA99A4304C3BE6",
@@ -718,7 +730,8 @@
         "mmr": 887
       },
       "points": 12,
-      "mmr": 899
+      "mmr": 899,
+      "replay": "/replays/2026-11-06/2026-11-06-13.replay"
     },
     {
       "id": "70EA3CE611F1DA18702DC28B3A52CFAC",
@@ -771,7 +784,8 @@
         "mmr": 899
       },
       "points": 8,
-      "mmr": 907
+      "mmr": 907,
+      "replay": "/replays/2026-11-06/2026-11-06-14.replay"
     }
   ],
   "ranks": [

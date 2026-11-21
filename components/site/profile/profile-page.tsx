@@ -1,15 +1,24 @@
 "use client"
 
+import { ArrowRight, Shuffle } from "lucide-react"
 import Script from "next/script"
-import { useRef, useState, type ReactNode } from "react"
-import { ArrowRight, Gamepad2, Swords } from "lucide-react"
-import Link from "next/link"
+import { useRef, useState } from "react"
+import { TwitchIcon } from "@/components/site/brand-icons"
+import { GameIcon } from "@/components/site/game/game-icon"
+import { ClassArt, duelKit, type DuelKit } from "@/components/site/minigames/class-art"
+import { Marble, marbleKit, type MarbleKit } from "@/components/site/minigames/marble"
 import { PageIntro } from "@/components/site/page-intro"
-import { FanView } from "@/components/site/profile/fan-view"
-import { SigmaPanel } from "@/components/site/profile/sigma-panel"
 import { DiscordLink } from "@/components/site/profile/discord-link"
+import { FanEditor } from "@/components/site/profile/fan-editor"
+import { FanStage, type Thrown } from "@/components/site/profile/fan-stage"
+import { SigmaPanel } from "@/components/site/profile/sigma-panel"
+import { Button, ButtonLink, cardClass, CardLink, EmptyState, ErrorLine, SignInButton, Skeleton, TabPanel, Tabs } from "@/components/site/ui"
 import { CardEditor } from "@/components/site/viewer/card-editor"
+import { ViewerCard, ViewerPhoto } from "@/components/site/viewer/viewer-card"
+import { channel } from "@/content/channel"
 import { profile } from "@/content/profile"
+import { channelPath } from "@/lib/channel"
+import type { DiscordLink as Discord } from "@/lib/discord"
 import {
   canSave,
   eraseMine,
@@ -27,143 +36,70 @@ import {
   type SigmaStats,
   type Torcedor,
 } from "@/lib/profile"
-import { channelPath } from "@/lib/channel"
-import { LOCALE, localize, sectionPath } from "@/lib/site"
+import { localize, sectionPath } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
-import { viewerPath, type Card, type Images } from "@/lib/viewer"
-import type { DiscordLink as Discord } from "@/lib/discord"
+import { viewerPath, type Card, type Images, type Look } from "@/lib/viewer"
 
 const text = localize(profile)
+const minigames = localize(channel.minijogos)
 type Status = "idle" | "saving" | "saved" | "erased" | "error" | "expired"
-type Option = "cabeca" | "roupa" | "acessorio" | "comemoracao"
+const TABS = ["torcedor", "cartao", "bolinha", "contas", "sigma"] as const
+type Tab = (typeof TABS)[number]
 
-function Group({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
-  return (
-    <section className="space-y-3 border-t border-line pt-6">
-      <h2 className="text-[13px] font-medium uppercase tracking-[0.12em] text-klein">{title}</h2>
-      {hint && <p className="-mt-1 text-[14px] text-muted">{hint}</p>}
-      {children}
-    </section>
-  )
-}
+/** A dot on a tab with changes not saved yet. */
+const unsavedDot = <span role="img" aria-label={text.unsaved} title={text.unsaved} className="h-1.5 w-1.5 rounded-full bg-klein" />
 
-/** Any colour, past the palette: a Σ unlock (sigma.js). Locked, it says where it unlocks. */
-function FreeColor({
-  value,
-  onChange,
-  locked,
-  unlocksAt,
-  palette,
-}: {
-  value: string
-  onChange: (color: string) => void
-  locked: boolean
-  unlocksAt: string
-  palette: string[]
-}) {
-  const custom = !palette.includes(value)
-  if (locked) {
-    return (
-      <span className="flex h-8 items-center rounded-sm border-2 border-dashed border-navy/20 px-2 text-[12px] text-muted">
-        {text.freeColor.locked} {unlocksAt}
-      </span>
-    )
-  }
-  return (
-    <label
-      title={text.freeColor.label}
-      className={cn(
-        "relative flex h-8 cursor-pointer items-center gap-1.5 rounded-sm border-2 px-2 text-[12px] text-ink",
-        custom ? "border-klein ring-2 ring-klein/40" : "border-navy/20",
-      )}
-    >
-      <span className="h-4 w-4 rounded-sm border border-navy/20" style={{ background: custom ? value : "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }} />
-      {text.freeColor.label}
-      <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 cursor-pointer opacity-0" />
-    </label>
-  )
-}
-
-/** Their team: a club from the list dresses the fan in its shirt; any other is just its name. */
-function TeamGroup({ T, fan, change }: { T: Torcedor; fan: Fan; change: (patch: Partial<Fan>) => void }) {
-  const club = T.TIMES.find((t) => t.nome === fan.time)
-  const [typing, setTyping] = useState(Boolean(fan.time && !club))
-  const value = club ? club.nome : typing ? "outro" : ""
-  return (
-    <Group title={text.groups.team} hint={text.groups.teamHint}>
-      <div className="flex flex-wrap items-center gap-3">
-        <select
-          value={value}
-          onChange={(e) => {
-            const pick = e.target.value
-            if (pick === "outro") {
-              setTyping(true)
-              change({ time: "" })
-              return
-            }
-            setTyping(false)
-            const team = T.TIMES.find((t) => t.nome === pick)
-            change(team ? { time: team.nome, cor: team.cor, detalhe: team.detalhe, terceira: team.terceira ?? team.detalhe, roupa: team.roupa } : { time: "" })
-          }}
-          className="rounded-sm border border-line bg-paper px-3 py-2 text-ink"
-        >
-          <option value="">{text.groups.teamNone}</option>
-          {T.TIMES.map((t) => (
-            <option key={t.nome} value={t.nome}>
-              {t.nome}
-            </option>
-          ))}
-          <option value="outro">{text.groups.teamOther}</option>
-        </select>
-        {typing && (
-          <input
-            value={fan.time}
-            maxLength={T.TIME_MAX}
-            placeholder={text.groups.teamName}
-            aria-label={text.groups.teamName}
-            onChange={(e) => change({ time: e.target.value })}
-            className="w-full max-w-[14rem] rounded-sm border border-line bg-paper px-3 py-2 text-ink"
-          />
-        )}
-      </div>
-    </Group>
-  )
-}
-
-const tile = (on: boolean) =>
-  cn(
-    "flex flex-col items-center gap-2 rounded-md border px-2 pb-2 pt-3 text-[13px] transition-colors",
-    on ? "border-klein bg-paper text-klein" : "border-line text-ink hover:border-klein/60",
-  )
-
+/**
+ * The profile, as an editor: what they're making stays in view beside it (their fan on a bit of the stand, playing its
+ * moments, and their card as it shows on their name), and the parts are tabs: Torcedor (look, team, what it does in the
+ * live), Cartão (banner, photo, colours, pronouns, about), Bolinha e loadout (picked on their own pages), Contas
+ * (Twitch, Discord) and Σ e medalhas. The fan and the card are saved apart (PUT /eu, PUT /eu/cartao); the pictures and
+ * Discord at once. Signed in, "Ver minha página" leads to their page (/torcedor/<login>).
+ */
 export function ProfilePage() {
   const [T, setT] = useState<Torcedor | null>(null)
   const [S, setS] = useState<Sigma | null>(null)
+  const [kit, setKit] = useState<DuelKit | null>(null)
+  const [mkit, setMkit] = useState<MarbleKit | null>(null)
   // undefined while it loads; null when they have none yet.
   const [stats, setStats] = useState<SigmaStats | null | undefined>(undefined)
   const [token, setToken] = useState<string | null>(null)
   const [login, setLogin] = useState("")
   const [saved, setSaved] = useState<Fan | null>(null)
-  // Their card as saved (null: never), once their profile came back.
-  const [card, setCard] = useState<Card | null | undefined>(undefined)
+  // Their card as saved and as being edited (undefined: their profile hasn't come back).
+  const [cardBase, setCardBase] = useState<Card | undefined>(undefined)
+  const [cardDraft, setCardDraft] = useState<Card>({})
   const [images, setImages] = useState<Images | null>(null)
+  const [duelo, setDuelo] = useState<Look["duelo"]>(null)
+  const [weapons, setWeapons] = useState<number | null>(null)
   // Their Discord as linked (null: none), once their profile came back.
   const [discord, setDiscord] = useState<Discord | null | undefined>(undefined)
   const [fan, setFan] = useState<Fan | null>(null)
   const [status, setStatus] = useState<Status>("idle")
+  const [loadFailed, setLoadFailed] = useState(false)
   const [confirmErase, setConfirmErase] = useState(false)
   const [move, setMove] = useState("")
-  const [stickers, setStickers] = useState<{ id: number; emoji: string; dx: number; up: number; wait: number }[]>([])
+  const [stickers, setStickers] = useState<Thrown[]>([])
   const [shout, setShout] = useState("")
-  const [other, setOther] = useState({ gol: "", contra: "" })
+  const [tab, setTab] = useState<Tab>("torcedor")
+  const [ballsOpened, setBallsOpened] = useState(false)
   const moveTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   const nextSticker = useRef(0)
+
+  function openTab(next: Tab, remember = true) {
+    setTab(next)
+    if (next === "bolinha") setBallsOpened(true)
+    if (remember) history.replaceState(null, "", `#${next}`)
+  }
 
   // Once torcedor.js is in: who's signed in, what they saved, and any fan built before going to Twitch.
   function start(T: Torcedor | undefined) {
     if (!T) return
     setT(T)
+    // A tab named in the address (/perfil#cartao, the "Editar perfil" of their page); the editor shows from here on.
+    const named = location.hash.slice(1) as Tab
+    if (TABS.includes(named)) openTab(named, false)
     const found = canSave ? takeToken() : null
     // A sign-in from another page (/pix) goes back there with the token.
     const back = takeBack()
@@ -177,12 +113,16 @@ export function ProfilePage() {
       setFan(draft ? T.normalizar(draft) : T.padrao())
       return
     }
+    setLoadFailed(false)
     loadMine(found)
-      .then(({ login, aparencia, cartao, imagens, discord }) => {
+      .then(({ login, aparencia, cartao, imagens, discord, duelo, loadout }) => {
         setLogin(login)
-        setCard(cartao ?? null)
+        setCardBase(cartao ?? {})
+        setCardDraft(cartao ?? {})
         setImages(imagens ?? null)
         setDiscord(discord ?? null)
+        setDuelo(duelo ?? null)
+        setWeapons(loadout?.armas ? Object.keys(loadout.armas).length : 0)
         loadMySigma(found, login)
           .then(setStats)
           .catch(() => setStats(null))
@@ -191,14 +131,19 @@ export function ProfilePage() {
         setFan(draft ? T.normalizar(draft, login) : (mine ?? T.padrao(login)))
       })
       .catch((error) => {
-        if (error instanceof SignedOut) setToken(null)
-        setStatus(error instanceof SignedOut ? "expired" : "error")
+        if (error instanceof SignedOut) {
+          setToken(null)
+          setStatus("expired")
+        } else setLoadFailed(true)
         setFan(draft ? T.normalizar(draft) : T.padrao())
       })
   }
 
   const baseline = T && (saved ?? T.padrao(login))
   const dirty = Boolean(fan && baseline && JSON.stringify(fan) !== JSON.stringify(baseline))
+  const cardDirty = cardBase !== undefined && JSON.stringify(cardDraft) !== JSON.stringify(cardBase)
+  const signedIn = Boolean(token && login)
+  const isChannel = signedIn && login === CHANNEL
 
   function change(patch: Partial<Fan>) {
     setFan((current) => current && T && T.normalizar({ ...current, ...patch }, login))
@@ -264,7 +209,11 @@ export function ProfilePage() {
     signOut()
     setToken(null)
     setLogin("")
-    setCard(undefined)
+    setCardBase(undefined)
+    setCardDraft({})
+    setImages(null)
+    setDuelo(null)
+    setWeapons(null)
     setDiscord(undefined)
     setStats(undefined)
     setSaved(null)
@@ -272,330 +221,288 @@ export function ProfilePage() {
     setStatus("idle")
   }
 
-  function toggleSticker(when: "gol" | "contra", emoji: string) {
-    if (!fan || !T) return
-    const list = fan.stickers[when]
-    const next = list.includes(emoji) ? list.filter((e) => e !== emoji) : [...list, emoji].slice(-T.STICKERS_MAX)
-    change({ stickers: { ...fan.stickers, [when]: next } })
+  const expired = () => {
+    setToken(null)
+    setStatus("expired")
   }
 
-  const options: { key: Option; title: string; list: (T: Torcedor) => string[]; hint?: string }[] = [
-    { key: "cabeca", title: text.groups.head, list: (T) => T.CABECAS },
-    { key: "roupa", title: text.groups.outfit, list: (T) => T.ROUPAS },
-    { key: "acessorio", title: text.groups.accessory, list: (T) => T.ACESSORIOS },
-  ]
-  const optionName = (key: Option, id: string) =>
-    (text.options[key] as Record<string, string | undefined>)[id] ?? id
+  const twitchButton = canSave ? (
+    <SignInButton platform="twitch" onClick={() => signIn(fan)}>
+      {text.signIn}
+    </SignInButton>
+  ) : null
+  const signInPrompt = (line: string) => (
+    <EmptyState className="space-y-4">
+      <p>{line}</p>
+      {twitchButton ?? <p>{text.soon}</p>}
+    </EmptyState>
+  )
+
+  const look: Look = { aparencia: fan as unknown as Record<string, unknown>, cartao: null, duelo, imagens: images }
+  const name = login || text.you
+  const stage = T && fan ? <FanStage T={T} fan={fan} name={name} move={move} shout={shout} stickers={stickers} play={play} /> : null
+  const cardPreview =
+    signedIn && T ? (
+      <figure className="space-y-2">
+        {/* The cut clips a box shadow: the shadow follows the shape from this wrapper, as the card does over a name. */}
+        <div className="drop-shadow-[0_8px_24px_rgb(0_20_71/0.16)]">
+          <ViewerCard login={login} look={look} stats={stats} T={T} S={S} size="pop" preview={cardDraft} />
+        </div>
+        <figcaption className="text-[13px] text-muted">{text.preview.card}</figcaption>
+      </figure>
+    ) : null
+  const tabs = TABS.filter((id) => !(isChannel && id === "sigma"))
+  const freeSigma = stats?.sigma ?? 0
 
   return (
-    <div className="space-y-10">
+    <div>
       {/* The same drawing and moves as the stream's crowd; React hoists the stylesheet into the head. */}
       {/* eslint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
       <Script src="/stream/torcedor.js" onReady={() => start(window.Torcedor)} />
       <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />
+      {ballsOpened && (
+        <>
+          <Script src="/stream/duelo-motor.js" onReady={() => setKit(duelKit())} />
+          <Script src="/stream/duelo-arte.js" onReady={() => setKit(duelKit())} />
+          <Script src="/stream/bolinha.js" onReady={() => setMkit(marbleKit())} />
+        </>
+      )}
       <PageIntro title={text.title} description={text.description} />
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px]">
-        {token && login ? (
+      {/* Who's signed in, and the way to their page. */}
+      <div className="mt-12 flex flex-wrap items-center gap-x-4 gap-y-3">
+        {!T || (token && !login && !loadFailed && status !== "expired") ? (
           <>
-            <span className="text-ink">
-              {text.signedInAs}{" "}
-              <Link href={viewerPath(login)} className="font-medium text-klein hover:underline">
-                {login}
-              </Link>
-            </span>
-            <button onClick={leave} className="text-muted underline underline-offset-2 hover:text-klein">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-5 w-56" />
+          </>
+        ) : signedIn ? (
+          <>
+            <ViewerPhoto login={login} look={look} T={T} className="h-10 w-10 shrink-0" />
+            <p className="text-[15px] text-ink">
+              {text.signedInAs} <b className="font-medium">{login}</b>
+            </p>
+            <ButtonLink href={viewerPath(login)} icon={<ArrowRight aria-hidden className="h-4 w-4" />} className="flex-row-reverse">
+              {text.myPage}
+            </ButtonLink>
+            <Button variant="quiet" onClick={leave}>
               {text.signOut}
-            </button>
+            </Button>
           </>
         ) : canSave ? (
           <>
-            <button
-              onClick={() => fan && signIn(fan)}
-              className="rounded-sm bg-[#9146ff] px-4 py-2 font-medium text-white transition-opacity hover:opacity-90"
-            >
-              {text.signIn}
-            </button>
-            <p className="max-w-[30rem] text-[14px] text-muted">{text.signInNote}</p>
+            {twitchButton}
+            <p className="max-w-[28rem] text-[13px] text-muted">{text.signInNote}</p>
           </>
         ) : (
-          <p className="max-w-[34rem] text-[14px] text-muted">{text.soon}</p>
+          <p className="max-w-[34rem] text-[13px] text-muted">{text.soon}</p>
+        )}
+        {isChannel && (
+          <ButtonLink href={channelPath("agenda")} variant="secondary" icon={<ArrowRight aria-hidden className="h-4 w-4" />} className="flex-row-reverse">
+            {text.agenda}
+          </ButtonLink>
         )}
       </div>
-
-      {token && login === CHANNEL && (
-        <Link href={channelPath("agenda")} className="mt-6 inline-flex items-center gap-1.5 text-[15px] font-medium text-klein hover:underline">
-          {text.agenda}
-          <ArrowRight aria-hidden className="h-4 w-4" />
-        </Link>
+      {loadFailed && (
+        <ErrorLine className="mt-3" onRetry={() => T && start(T)}>
+          {text.loadError}
+        </ErrorLine>
       )}
+      {status === "expired" && !token && <p className="mt-3 text-[15px] text-loss">{text.expired}</p>}
 
-      {/* The channel earns no Σ of its own. */}
-      {S && canSave && !(token && login === CHANNEL) && <SigmaPanel S={S} login={token ? login : ""} stats={stats} />}
-
-      {/* Their Σ rank as a role in the community's Discord server. */}
-      {canSave && !(token && login === CHANNEL) && (
-        <DiscordLink
-          token={token && login ? token : null}
-          linked={discord}
-          onExpired={() => {
-            setToken(null)
-            setStatus("expired")
-          }}
-        />
-      )}
-
-      {/* Their card, the same on every name of theirs on the site and on top of their page. */}
-      {token && login && T && fan && card !== undefined && (
-        <CardEditor
-          token={token}
-          login={login}
-          saved={card}
-          images={images}
-          fan={fan}
-          stats={stats}
-          T={T}
-          S={S}
-          onExpired={() => {
-            setToken(null)
-            setStatus("expired")
-          }}
-        />
-      )}
-
-      {/* Their ball in the live's duel and their dream loadout are kept with the profile too, each on its own page. */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {[
-          { href: channelPath("minijogos"), Icon: Gamepad2, title: text.duel, hint: text.duelHint },
-          { href: `${sectionPath("content")}/valorant/inventory#montar`, Icon: Swords, title: text.loadout, hint: text.loadoutHint },
-        ].map(({ href, Icon, title, hint }) => (
-          <Link key={href} href={href} className="group flex items-center gap-4 rounded-md border border-line bg-paper/60 p-4 transition-colors hover:border-klein">
-            <Icon aria-hidden className="h-6 w-6 shrink-0 text-klein" />
-            <span className="min-w-0 flex-1">
-              <span className="block font-medium text-klein">{title}</span>
-              <span className="block text-[14px] text-muted">{hint}</span>
-            </span>
-            <ArrowRight aria-hidden className="h-5 w-5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-klein" />
-          </Link>
-        ))}
-      </div>
-
-      {T && fan && (
-        <div className="grid gap-10 sm:grid-cols-[15rem_1fr]">
-          {/* The fan on a bit of the stream's stand, as the crowd shows it. */}
-          <div className="sm:sticky sm:top-24 sm:self-start">
-            <div className="relative h-72 overflow-hidden rounded-md bg-navy">
-              <div
-                className="absolute inset-x-0 bottom-0 h-8 bg-klein"
-                style={{ clipPath: "polygon(24px 0, calc(100% - 24px) 0, 100% 100%, 0 100%)" }}
-              />
-              <div className="absolute bottom-6 left-1/2 h-[140px] w-[94px] -translate-x-1/2">
-                <span className="absolute bottom-[calc(100%+28px)] left-1/2 z-10 -translate-x-1/2 whitespace-nowrap bg-navy/80 px-2 py-0.5 text-[15px] font-semibold text-paper">
-                  {login || text.you}
-                </span>
-                {shout && (
-                  <span className="absolute bottom-[calc(100%+62px)] left-1/2 z-10 w-max max-w-[13rem] -translate-x-1/2 bg-paper px-3 py-1.5 text-[15px] font-medium text-klein">
-                    {shout}
-                  </span>
-                )}
-                <FanView T={T} fan={fan} move={move} className="h-full w-full" />
-                {stickers.map((s) => (
-                  <span
-                    key={s.id}
-                    className="sticker"
-                    style={{
-                      left: "50%",
-                      bottom: "100%",
-                      ["--dx" as string]: `${s.dx}px`,
-                      ["--sobe" as string]: `${s.up}px`,
-                      ["--espera" as string]: `${s.wait}s`,
-                    }}
-                  >
-                    {s.emoji}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2 text-[13px]">
-              {(["goal", "against", "arrive"] as const).map((kind) => (
-                <button
-                  key={kind}
-                  onClick={() => play(kind)}
-                  disabled={kind === "arrive" && !fan.frase}
-                  className="rounded-sm border border-klein/40 px-2.5 py-1.5 text-klein transition-colors hover:bg-paper disabled:opacity-40"
-                >
-                  {text.preview[kind]}
-                </button>
-              ))}
-            </div>
+      {!T || !fan ? (
+        <div className="mt-10 grid gap-8 md:grid-cols-[18rem_minmax(0,1fr)]" aria-busy>
+          <Skeleton className="hidden h-64 md:block" />
+          <div className="space-y-6">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-40 w-full" />
           </div>
+        </div>
+      ) : (
+        <div className="mt-10">
+          <Tabs
+            label={text.tabs.label}
+            idPrefix="perfil"
+            className="max-md:-mx-6 max-md:px-6"
+            value={tab}
+            onChange={(id) => openTab(id)}
+            items={tabs.map((id) => ({
+              id,
+              label:
+                (id === "torcedor" && dirty && token) || (id === "cartao" && cardDirty) ? (
+                  <>
+                    {text.tabs[id]}
+                    {unsavedDot}
+                  </>
+                ) : (
+                  text.tabs[id]
+                ),
+            }))}
+          />
+          <div className="mt-8 grid gap-8 md:grid-cols-[18rem_minmax(0,1fr)]">
+            {/* What they're making, in view while they make it. */}
+            <aside className="hidden space-y-8 md:sticky md:top-24 md:block md:self-start">
+              {/* On the card's tab the card comes first. */}
+              {tab === "cartao" ? (
+                <>
+                  {cardPreview}
+                  {stage}
+                </>
+              ) : (
+                <>
+                  {stage}
+                  {cardPreview}
+                </>
+              )}
+            </aside>
 
-          <div className="space-y-8">
-            <TeamGroup T={T} fan={fan} change={change} />
+            <div className="min-w-0">
 
-            <Group title={text.groups.colors}>
-              {(T.TRES_CORES.includes(fan.roupa) ? (["cor", "detalhe", "terceira"] as const) : (["cor", "detalhe"] as const)).map((key) => (
-                <div key={key} className="space-y-2">
-                  <p className="text-[14px] text-muted">
-                    {key === "cor" ? text.groups.color : key === "detalhe" ? text.groups.detail : text.groups.third}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {T.CORES.map((color) => (
-                      <button
-                        key={color}
-                        aria-label={color}
-                        aria-pressed={fan[key] === color}
-                        onClick={() => change({ [key]: color })}
-                        className={cn(
-                          "h-8 w-8 rounded-sm border-2 transition-transform hover:scale-110",
-                          fan[key] === color ? "border-klein ring-2 ring-klein/40" : "border-navy/20",
-                        )}
-                        style={{ background: color }}
-                      />
+              <TabPanel idPrefix="perfil" id="torcedor" className={cn(tab !== "torcedor" && "hidden")}>
+                {stage && <div className="mb-10 md:hidden">{stage}</div>}
+                <FanEditor T={T} S={S} fan={fan} login={login} sigma={freeSigma} change={change} play={play} />
+                <div className="sticky bottom-0 z-10 -mx-2 mt-12 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ground/90 px-2 py-4 backdrop-blur">
+                  {canSave &&
+                    (token ? (
+                      <Button onClick={save} disabled={status === "saving" || !dirty}>
+                        {status === "saving" ? text.saving : text.save}
+                      </Button>
+                    ) : (
+                      twitchButton
                     ))}
-                    {S && (
-                      <FreeColor
-                        value={fan[key]}
-                        onChange={(color) => change({ [key]: color })}
-                        locked={(stats?.sigma ?? 0) < S.COR_LIVRE}
-                        unlocksAt={`${S.ranque(S.COR_LIVRE, LOCALE).nome} (${S.COR_LIVRE} Σ)`}
-                        palette={T.CORES}
-                      />
+                  <p className={cn("text-[13px]", status === "error" || status === "expired" ? "text-loss" : "text-muted")} aria-live="polite">
+                    {status === "saved"
+                      ? text.saved
+                      : status === "erased"
+                        ? text.erased
+                        : status === "error"
+                          ? text.error
+                          : status === "expired"
+                            ? text.expired
+                            : dirty && token
+                              ? text.unsaved
+                              : ""}
+                  </p>
+                  <div className="ml-auto flex gap-4">
+                    <Button variant="quiet" size="sm" onClick={() => change(T.padrao(login))}>
+                      {text.reset}
+                    </Button>
+                    {token && saved && (
+                      <Button variant="quiet" size="sm" onClick={erase} className={confirmErase ? "text-loss" : undefined}>
+                        {confirmErase ? text.confirmErase : text.erase}
+                      </Button>
                     )}
                   </div>
                 </div>
-              ))}
-            </Group>
+              </TabPanel>
 
-            {options.map(({ key, title, list }) => (
-              <Group key={key} title={title}>
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-                  {list(T).map((id) => (
-                    <button key={id} aria-pressed={fan[key] === id} onClick={() => change({ [key]: id })} className={tile(fan[key] === id)}>
-                      <FanView T={T} fan={T.normalizar({ ...fan, [key]: id }, login)} className="h-[54px] w-9" />
-                      {optionName(key, id)}
-                    </button>
-                  ))}
-                </div>
-                {key === "roupa" && fan.roupa === "numero" && (
-                  <label className="flex items-center gap-3 text-[14px] text-muted">
-                    {text.groups.number}
-                    <input
-                      type="number"
-                      min={0}
-                      max={99}
-                      value={fan.numero}
-                      onChange={(e) => change({ numero: Math.max(0, Math.min(99, Math.trunc(Number(e.target.value) || 0))) })}
-                      className="w-20 rounded-sm border border-line bg-paper px-2 py-1 text-ink"
-                    />
-                  </label>
-                )}
-              </Group>
-            ))}
-
-            <Group title={text.groups.celebration} hint={text.groups.celebrationHint}>
-              <div className="flex flex-wrap gap-2">
-                {T.COMEMORACOES.map((id) => (
-                  <button
-                    key={id}
-                    aria-pressed={fan.comemoracao === id}
-                    onClick={() => play("goal", id)}
-                    className={cn(tile(fan.comemoracao === id), "px-4 py-2")}
-                  >
-                    {optionName("comemoracao", id)}
-                  </button>
-                ))}
-              </div>
-            </Group>
-
-            <Group title={text.groups.phrase} hint={text.groups.phraseHint}>
-              <div className="flex items-center gap-3">
-                <input
-                  value={fan.frase}
-                  maxLength={T.FRASE_MAX}
-                  onChange={(e) => change({ frase: e.target.value })}
-                  onBlur={() => fan.frase && play("arrive")}
-                  className="w-full max-w-sm rounded-sm border border-line bg-paper px-3 py-2 text-ink"
-                />
-                <span className="text-[13px] tabular-nums text-muted">
-                  {Array.from(fan.frase).length}/{T.FRASE_MAX}
-                </span>
-              </div>
-            </Group>
-
-            <Group title={text.groups.stickers} hint={text.groups.stickersHint}>
-              {(["gol", "contra"] as const).map((when) => (
-                <div key={when} className="space-y-2">
-                  <p className="text-[14px] text-ink">
-                    {when === "gol" ? text.groups.onGoal : text.groups.onAgainst}{" "}
-                    <span className="text-[20px]">{fan.stickers[when].join(" ")}</span>
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {T.STICKERS.map((emoji) => (
-                      <button
-                        key={emoji}
-                        aria-pressed={fan.stickers[when].includes(emoji)}
-                        onClick={() => toggleSticker(when, emoji)}
-                        className={cn(
-                          "h-10 w-10 rounded-sm text-[22px] transition-colors",
-                          fan.stickers[when].includes(emoji) ? "bg-klein/15 ring-2 ring-klein" : "hover:bg-paper",
-                        )}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                    <input
-                      aria-label={text.groups.otherEmoji}
-                      placeholder={text.groups.otherEmoji}
-                      value={other[when]}
-                      onChange={(e) => {
-                        const value = e.target.value.trim()
-                        if (T.umEmoji(value)) {
-                          toggleSticker(when, value)
-                          setOther({ ...other, [when]: "" })
-                        } else setOther({ ...other, [when]: value })
+              <TabPanel idPrefix="perfil" id="cartao" className={cn(tab !== "cartao" && "hidden")}>
+                {signedIn && cardBase !== undefined ? (
+                  <>
+                    {cardPreview && <div className="mx-auto mb-10 max-w-[300px] md:hidden">{cardPreview}</div>}
+                    <CardEditor
+                      token={token!}
+                      login={login}
+                      card={cardDraft}
+                      base={cardBase}
+                      images={images}
+                      look={look}
+                      sigma={freeSigma}
+                      T={T}
+                      S={S}
+                      onChange={(patch) => setCardDraft((c) => ({ ...c, ...patch }))}
+                      onSaved={(card) => {
+                        setCardBase(card)
+                        setCardDraft(card)
                       }}
-                      className="h-10 w-32 rounded-sm border border-line bg-paper px-2 text-[14px] text-ink"
+                      onImages={setImages}
+                      onExpired={expired}
                     />
-                  </div>
-                </div>
-              ))}
-            </Group>
-
-            <div className="sticky bottom-0 -mx-2 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ground/90 px-2 py-4 backdrop-blur">
-              {canSave && (
-                <button
-                  onClick={save}
-                  disabled={status === "saving" || (Boolean(token) && !dirty)}
-                  className="rounded-sm bg-klein px-5 py-2 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-40"
-                >
-                  {status === "saving" ? text.saving : token ? text.save : text.signIn}
-                </button>
-              )}
-              <p className="text-[14px] text-muted" aria-live="polite">
-                {status === "saved"
-                  ? text.saved
-                  : status === "erased"
-                    ? text.erased
-                    : status === "error"
-                      ? text.error
-                      : status === "expired"
-                        ? text.expired
-                        : dirty && token
-                          ? text.unsaved
-                          : ""}
-              </p>
-              <div className="ml-auto flex gap-4 text-[14px]">
-                <button onClick={() => change(T.padrao(login))} className="text-muted underline underline-offset-2 hover:text-klein">
-                  {text.reset}
-                </button>
-                {token && saved && (
-                  <button onClick={erase} className="text-muted underline underline-offset-2 hover:text-klein">
-                    {confirmErase ? text.confirmErase : text.erase}
-                  </button>
+                  </>
+                ) : (
+                  signInPrompt(text.card.signIn)
                 )}
-              </div>
+              </TabPanel>
+
+              <TabPanel idPrefix="perfil" id="bolinha" className={cn("space-y-3", tab !== "bolinha" && "hidden")}>
+                <CardLink href={`${channelPath("minijogos")}#duelo`} className="flex items-center gap-4">
+                  <span className="cut-sm grid h-16 w-16 shrink-0 place-items-center bg-navy">
+                    {duelo?.classe ? (
+                      <ClassArt kit={kit} classe={duelo.classe} material={duelo.material ?? (S ? S.ranque(freeSigma).id.replace(/-\d$/, "") : "bronze")} fan={fan} size={56} />
+                    ) : (
+                      <Shuffle aria-hidden className="h-6 w-6 text-paper/70" />
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15px] font-medium text-ink">{text.extras.duel}</span>
+                    <span className="block text-[13px] text-muted">
+                      {duelo?.classe ? ((minigames.yours.classes as Record<string, { name: string }>)[duelo.classe]?.name ?? duelo.classe) : text.extras.random}
+                    </span>
+                    <span className="mt-1.5 inline-flex items-center gap-1.5 text-[15px] font-medium text-klein">
+                      {text.extras.pick}
+                      <ArrowRight aria-hidden className="h-4 w-4" />
+                    </span>
+                  </span>
+                </CardLink>
+                <CardLink href={`${channelPath("minijogos")}#corrida`} className="flex items-center gap-4">
+                  <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-navy">
+                    <Marble kit={mkit} fan={fan as unknown as Record<string, unknown>} rankId={S && stats ? S.ranque(stats.sigma).id : undefined} size={56} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15px] font-medium text-ink">{text.extras.race}</span>
+                    <span className="block text-[13px] text-muted">{text.extras.raceHint}</span>
+                    <span className="mt-1.5 inline-flex items-center gap-1.5 text-[15px] font-medium text-klein">
+                      {text.extras.raceSee}
+                      <ArrowRight aria-hidden className="h-4 w-4" />
+                    </span>
+                  </span>
+                </CardLink>
+                <CardLink href={`${sectionPath("content")}/valorant/inventory#montar`} className="flex items-center gap-4">
+                  <span className="cut-sm grid h-16 w-16 shrink-0 place-items-center bg-navy text-paper">
+                    <GameIcon game="valorant" size={28} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15px] font-medium text-ink">{text.extras.loadout}</span>
+                    <span className="block text-[13px] text-muted">{weapons ? text.extras.loadoutCount.replace("{n}", String(weapons)) : text.extras.loadoutNone}</span>
+                    <span className="mt-1.5 inline-flex items-center gap-1.5 text-[15px] font-medium text-klein">
+                      {weapons ? text.extras.edit : text.extras.build}
+                      <ArrowRight aria-hidden className="h-4 w-4" />
+                    </span>
+                  </span>
+                </CardLink>
+              </TabPanel>
+
+              <TabPanel idPrefix="perfil" id="contas" className={cn("space-y-3", tab !== "contas" && "hidden")}>
+                <section aria-labelledby="conta-twitch" className={cn(cardClass, "space-y-3 p-5")}>
+                  <h2 id="conta-twitch" className="flex items-center gap-2 text-[15px] font-medium text-ink">
+                    <TwitchIcon className="h-5 w-5 text-klein" />
+                    {text.twitch.title}
+                  </h2>
+                  <p className="max-w-[38rem] text-[15px] text-muted">{text.twitch.hint}</p>
+                  {signedIn ? (
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px]">
+                      <span className="text-ink">
+                        {text.signedInAs} <b className="font-medium">{login}</b>
+                      </span>
+                      <Button variant="quiet" size="sm" onClick={leave}>
+                        {text.signOut}
+                      </Button>
+                    </div>
+                  ) : (
+                    (twitchButton ?? <p className="text-[13px] text-muted">{text.soon}</p>)
+                  )}
+                </section>
+                {/* Their Σ rank as a role in the Discord server; the channel's own account has none. */}
+                {canSave && !isChannel && <DiscordLink token={signedIn ? token : null} linked={discord} onExpired={expired} onReturn={() => openTab("contas", false)} />}
+              </TabPanel>
+
+              {!isChannel && (
+                <TabPanel idPrefix="perfil" id="sigma" className={cn(tab !== "sigma" && "hidden")}>
+                  <SigmaPanel S={S} stats={signedIn ? stats : undefined} signIn={signedIn ? undefined : signInPrompt(text.sigma.signIn)} />
+                </TabPanel>
+              )}
             </div>
           </div>
         </div>

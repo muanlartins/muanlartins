@@ -105,7 +105,10 @@ export function ordem(placar, sem) {
     .sort((a, b) => b.vitorias - a.vitorias || b.vitorias / b.partidas - a.vitorias / a.partidas || a.partidas - b.partidas || (a.login < b.login ? -1 : 1))
 }
 
-/** GET /duelos: how many fights ever, the ranking's top, the channel's ball apart, and the latest fights. */
+/**
+ * GET /duelos: how many fights ever, the ranking's top, the channel's ball apart, and every fight kept (LUTAS, about
+ * 35 KB): the site draws its best fights and its numbers by class from them.
+ */
 export function resumo(geral, canal) {
   const todos = ordem(geral?.placar, canal)
   const c = geral?.placar?.[canal]
@@ -114,12 +117,29 @@ export function resumo(geral, canal) {
     duelistas: todos.length,
     ranking: todos.slice(0, RANKING),
     canal: c ? { vitorias: c.v, partidas: c.p } : null,
-    lutas: (geral?.lutas ?? []).slice(0, 30),
+    lutas: geral?.lutas ?? [],
   }
+}
+
+/**
+ * The channel's ball has no item of its own (index.mjs writes none for it), so its record is the ranking's (its wins
+ * and fights) and, by class and latest, what the fights kept in "#duelos" say.
+ */
+function doCanal(canal, geral) {
+  const c = geral?.placar?.[canal]
+  const suas = (geral?.lutas ?? []).filter((l) => l.logins.includes(canal))
+  const classes = {}
+  for (const l of suas) {
+    const i = l.logins.indexOf(canal)
+    const [v, p] = classes[l.classes[i]] ?? [0, 0]
+    classes[l.classes[i]] = [v + (l.vencedor === i ? 1 : 0), p + 1]
+  }
+  return c ? { v: c.v, p: c.p, classes, ultimas: suas.slice(0, ULTIMAS) } : undefined
 }
 
 /** GET /duelos?login=a: their wins and fights, by class, where they are in the ranking, and their latest fights. */
 export function deViewer(login, duelos, geral, canal) {
+  if (login === canal) duelos = doCanal(canal, geral)
   const posicao = ordem(geral?.placar, canal).findIndex((x) => x.login === login)
   return {
     login,
