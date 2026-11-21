@@ -3,6 +3,8 @@ import { LanguageBadge } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
 import { channel } from "@/content/channel"
 import { GameNext } from "@/components/site/agenda/game-next"
+import { DiversosRow } from "@/components/site/diversos/entries"
+import { buttonClass } from "@/components/site/ui"
 import { fundamentals, gamePath, type Game } from "@/lib/game"
 import { localize, type L10n } from "@/lib/site"
 
@@ -13,14 +15,15 @@ const T = localize({
 /**
  * The content page: each game with its pages one click away (its fundamentals, its ranked record, its aim
  * training, its links
- * elsewhere) and when it's live, so nobody has to go through a game's home to reach them.
+ * elsewhere) and when it's live, so nobody has to go through a game's home to reach them. Then the other games
+ * ("Jogos diversos"), each one a click away.
  */
 export function GameList({ page, games }: { page: { title: L10n; description: L10n }; games: Game[] }) {
   return (
     <>
       <PageIntro title={localize(page.title)} description={localize(page.description)} />
 
-      <ul className="mt-16 divide-y divide-line border-y border-line">
+      <ul className="mt-12 divide-y divide-line border-y border-line">
         {games.map((game) => {
           const pages = [
             { label: T.fundamentals, href: gamePath(game, "fundamentals") },
@@ -58,7 +61,7 @@ export function GameList({ page, games }: { page: { title: L10n; description: L1
                         target: "_blank",
                         rel: "noreferrer",
                       })}
-                    className="inline-flex items-center gap-1 rounded-md border border-line px-3 py-1.5 text-[14px] text-ink transition-colors hover:border-klein hover:text-klein"
+                    className={buttonClass({ variant: "secondary", size: "sm" })}
                   >
                     {page.label}
                     {"away" in page && <ArrowUpRight className="h-3.5 w-3.5 opacity-60" />}
@@ -68,6 +71,7 @@ export function GameList({ page, games }: { page: { title: L10n; description: L1
             </li>
           )
         })}
+        <DiversosRow />
       </ul>
     </>
   )

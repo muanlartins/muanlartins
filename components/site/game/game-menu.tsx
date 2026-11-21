@@ -5,8 +5,7 @@ import { motion } from "motion/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useRef } from "react"
-import { Ball } from "@/components/site/game/game-icon"
-import { Crosshair } from "@/components/site/game/crosshair"
+import { GameIcon } from "@/components/site/game/game-icon"
 import { cn } from "@/lib/utils"
 
 export interface MenuItem {
@@ -29,6 +28,7 @@ const ICONS = {
   agenda: CalendarDays,
   commands: MessagesSquare,
   minigames: Gamepad2,
+  game: Gamepad2,
   pix: QrCode,
   mural: Heart,
   profile: UserRound,
@@ -45,7 +45,7 @@ export interface OtherGame {
 
 /**
  * A game's pages. Wide screens get a column in the left margin that follows
- * the page down, with a ball (Valorant: a crosshair) moving to the page being
+ * the page down, with a ball (Valorant: a crosshair; the other games: a gamepad) moving to the page being
  * read; narrower ones a single row above it that scrolls sideways, the page being read kept in view (ten pages
  * wrapping into four rows of chips buried the title on phones). A page under another counts as
  * that one's (a live as the lives'), and topic pages as the roadmap's.
@@ -115,7 +115,7 @@ export function GameMenu({
                       transition={{ type: "spring", stiffness: 260, damping: 24 }}
                       className="absolute -left-[7px] top-1/2 -mt-[6px] block"
                     >
-                      {look === "valorant" ? <Crosshair /> : <Ball />}
+                      <GameIcon game={look ?? "rocket-league"} />
                     </motion.span>
                   )}
                   <MenuLink

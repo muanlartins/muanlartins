@@ -2,12 +2,14 @@ import { ChannelMenu } from "@/components/site/channel/channel-menu"
 import { AgentBackdrop } from "@/components/site/game/agent-backdrop"
 import { GameMenu } from "@/components/site/game/game-menu"
 import { games } from "@/content/projects"
+import { DIVERSOS, diversos, diversosPath } from "@/lib/diversos"
 import { gamePath, type Game } from "@/lib/game"
 import { localize, sectionFromSlug } from "@/lib/site"
 
 const LABELS = localize({
   home: { pt: "Início", en: "Home" },
   fundamentals: { pt: "Fundamentos", en: "Fundamentals" },
+  all: { pt: "Todos", en: "All" },
 })
 
 /** Every page of a game shares its menu: home, roadmap, ranked record, links elsewhere, and the other games. The channel's have its own. */
@@ -17,6 +19,25 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
     return (
       <div className="relative">
         <ChannelMenu />
+        {children}
+      </div>
+    )
+  }
+  // The other games ("Jogos diversos"): all of them, each one's page, and the site's own games one click away.
+  if (project === DIVERSOS) {
+    const items = [
+      { label: LABELS.all, href: diversosPath(), icon: "home" as const },
+      ...diversos.games.map((other) => ({ label: other.name, href: diversosPath(other), icon: "game" as const })),
+    ]
+    return (
+      <div className="relative">
+        <GameMenu
+          title={diversos.page.title}
+          home={diversosPath()}
+          items={items}
+          look={DIVERSOS}
+          games={games.map((other) => ({ title: localize(other.title), home: gamePath(other), pages: [] }))}
+        />
         {children}
       </div>
     )
@@ -35,9 +56,12 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
     ...pagesOf(game),
     ...game.links.flatMap((link) => (link.href ? [{ label: localize(link.name), href: link.href, away: true }] : [])),
   ]
-  const others = games
-    .filter((other) => other !== game)
-    .map((other) => ({ title: localize(other.title), home: gamePath(other), pages: pagesOf(other).map((page) => page.href) }))
+  const others = [
+    ...games
+      .filter((other) => other !== game)
+      .map((other) => ({ title: localize(other.title), home: gamePath(other), pages: pagesOf(other).map((page) => page.href) })),
+    { title: diversos.page.title, home: diversosPath(), pages: [] },
+  ]
 
   return (
     <div className="relative">

@@ -7,9 +7,10 @@ import { longDate, signed, weekday } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
 import { livePath } from "@/lib/channel"
-import type { Live } from "@/lib/lives"
+import { otherGame } from "@/lib/diversos"
+import { gamesOf, type Live } from "@/lib/lives"
 import { dayRecord, type DayRecord, type Session } from "@/lib/ranked"
-import { localize } from "@/lib/site"
+import { HTML_LANG, LOCALE, localize } from "@/lib/site"
 
 const T = localize({
   past: { pt: "Lives anteriores", en: "Past streams" },
@@ -52,7 +53,12 @@ export function LivesPage({ lives, sessions }: { lives: Live[]; sessions: Sessio
 
 function LiveCard({ href, live, record }: { href: string; live: Live; record: DayRecord }) {
   const played = record.wins + record.losses
-  const game = games.find((game) => game.id === live.game)
+  // Its games by name: the site's own, or the other games' (content/diversos.json).
+  const names = gamesOf(live).flatMap((id) => {
+    const game = games.find((game) => game.id === id)
+    const name = game ? localize(game.title) : otherGame(id)?.name
+    return name ? [name] : []
+  })
   return (
     <Link
       href={href}
@@ -71,7 +77,7 @@ function LiveCard({ href, live, record }: { href: string; live: Live; record: Da
         </h3>
         <p className="text-[13px] text-muted first-letter:uppercase">
           {weekday(live.date)}
-          {game && ` · ${localize(game.title)}`}
+          {names.length > 0 && ` · ${new Intl.ListFormat(HTML_LANG[LOCALE]).format(names)}`}
         </p>
         <p className="text-[14px] leading-[1.6] text-ink">{localize(live.summary)}</p>
         {played > 0 && (

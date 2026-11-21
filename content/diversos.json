@@ -1,0 +1,114 @@
+{
+  "page": {
+    "title": "Jogos diversos",
+    "description": "Tudo que eu jogo nas lives além de Rocket League e Valorant, e a meta de cada jogo."
+  },
+  "games": [
+    {
+      "id": "celeste",
+      "name": "Celeste",
+      "category": "Celeste",
+      "categoryId": "492535",
+      "line": "TODO(Luan): uma linha sobre o Celeste, do seu jeito.",
+      "goal": {
+        "title": "100%",
+        "groups": [
+          {
+            "title": "Capítulo 1 · Forsaken City",
+            "items": [
+              { "text": "Lado A", "done": false },
+              { "text": "20 morangos", "done": false },
+              { "text": "Coração de cristal", "done": false },
+              { "text": "Fita cassete", "done": false },
+              { "text": "Lado B", "done": false },
+              { "text": "Lado C", "done": false }
+            ]
+          },
+          {
+            "title": "Capítulo 2 · Old Site",
+            "items": [
+              { "text": "Lado A", "done": false },
+              { "text": "18 morangos", "done": false },
+              { "text": "Coração de cristal", "done": false },
+              { "text": "Fita cassete", "done": false },
+              { "text": "Lado B", "done": false },
+              { "text": "Lado C", "done": false }
+            ]
+          },
+          {
+            "title": "Capítulo 3 · Celestial Resort",
+            "items": [
+              { "text": "Lado A", "done": false },
+              { "text": "25 morangos", "done": false },
+              { "text": "Coração de cristal", "done": false },
+              { "text": "Fita cassete", "done": false },
+              { "text": "Lado B", "done": false },
+              { "text": "Lado C", "done": false }
+            ]
+          },
+          {
+            "title": "Capítulo 4 · Golden Ridge",
+            "items": [
+              { "text": "Lado A", "done": false },
+              { "text": "29 morangos", "done": false },
+              { "text": "Coração de cristal", "done": false },
+              { "text": "Fita cassete", "done": false },
+              { "text": "Lado B", "done": false },
+              { "text": "Lado C", "done": false }
+            ]
+          },
+          {
+            "title": "Capítulo 5 · Mirror Temple",
+            "items": [
+              { "text": "Lado A", "done": false },
+              { "text": "31 morangos", "done": false },
+              { "text": "Coração de cristal", "done": false },
+              { "text": "Fita cassete", "done": false },
+              { "text": "Lado B", "done": false },
+              { "text": "Lado C", "done": false }
+            ]
+          },
+          {
+            "title": "Capítulo 6 · Reflection",
+            "items": [
+              { "text": "Lado A", "done": false },
+              { "text": "Coração de cristal", "done": false },
+              { "text": "Fita cassete", "done": false },
+              { "text": "Lado B", "done": false },
+              { "text": "Lado C", "done": false }
+            ]
+          },
+          {
+            "title": "Capítulo 7 · The Summit",
+            "items": [
+              { "text": "Lado A", "done": false },
+              { "text": "47 morangos", "done": false },
+              { "text": "Coração de cristal", "done": false },
+              { "text": "Fita cassete", "done": false },
+              { "text": "Lado B", "done": false },
+              { "text": "Lado C", "done": false }
+            ]
+          },
+          {
+            "title": "Capítulo 8 · Core",
+            "items": [
+              { "text": "Lado A", "done": false },
+              { "text": "5 morangos", "done": false },
+              { "text": "Coração de cristal", "done": false },
+              { "text": "Fita cassete", "done": false },
+              { "text": "Lado B", "done": false },
+              { "text": "Lado C", "done": false }
+            ]
+          },
+          {
+            "title": "Capítulo 9 · Farewell",
+            "items": [
+              { "text": "Terminar", "done": false }
+            ]
+          }
+        ]
+      },
+      "notes": []
+    }
+  ]
+}

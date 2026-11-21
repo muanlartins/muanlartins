@@ -3,6 +3,7 @@ import Link from "next/link"
 import type { ReactNode } from "react"
 import { FanStand } from "@/components/site/channel/fan-stand"
 import { NextLive } from "@/components/site/channel/next-live"
+import { DiversosCard } from "@/components/site/diversos/entries"
 import { GameIcon } from "@/components/site/game/game-icon"
 import { PageIntro } from "@/components/site/page-intro"
 import { longDate } from "@/components/site/ranked/format"
@@ -51,6 +52,8 @@ export function ChannelHome({ lives }: { /** Newest first. */ lives: Live[] }) {
               <ArrowRight aria-hidden className="h-4 w-4 shrink-0 text-muted transition-colors group-hover:text-klein" />
             </Link>
           ))}
+          {/* Jogos diversos: every other game, as a third card (components/site/diversos/entries.tsx). */}
+          <DiversosCard />
         </div>
       </section>
 

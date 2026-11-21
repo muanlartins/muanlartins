@@ -2,16 +2,21 @@
 See "After each live" in handoff/README.md.
 
     scripts/.venv/bin/python scripts/live.py <date>                 # transcript, chapters, summary, thumbnail
+    scripts/.venv/bin/python scripts/live.py <date> --game celeste  # when the day's game isn't found by itself
     scripts/.venv/bin/python scripts/live.py <date> --video <id>    # once it's on YouTube: the video's id
     scripts/.venv/bin/python scripts/youtube.py live <date>         # then the video itself
 
-- The game is the one whose session the dock published that day: Rocket League (content/matches/) or Valorant
-  (content/valorant/), and so are the chapters and the summary.
+- The game is the one whose session the dock published for the live that day: Rocket League (content/matches/) or
+  Valorant (content/valorant/), and so are the chapters and the summary. A day without one (any other game, "Jogos
+  diversos") takes the agenda's live that day, matched to content/diversos.json by its Twitch category; `--game`
+  says it outright. Such a live gets a "Começo" chapter and a summary with the hours; its chapters are written by
+  hand from the transcript.
 - The recording is the one the "Partidas" dock saw OBS make that day (the session's `outputs`), or else the
   largest in Videos named for that day. Its start is second 0 of the VOD.
 - The transcript is whisper (Windows, CUDA, with VAD) on the microphone's own track, cleaned of hallucinations and
   repeats. Names stay as said: nothing is blanked (Luan's call, 2026-11-08).
 - Chapters: each ranked match from its start, a "Começo" before the first and a "Fim" after the last.
+- The page keeps the recording's length (`length`): the site counts each game's hours with it.
 - The summary is a draft from the numbers, for Luan to rewrite.
 - The thumbnail: the rank reached, if the day climbed, goes into LIVES in brand/build.py, and the plain PNG is drawn
   (the fallback: the one YouTube gets is thumb.py's, from a frame Luan picks).
@@ -21,13 +26,15 @@ Files already there are kept; --force writes them again.
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
+import urllib.request
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from content import LIVES, ROOT, SESSIONS, clock, sessions
+from content import LIVES, ROOT, SESSIONS, clock, other_games, sessions
 from windows import PROGRAMS, TEMP, VIDEOS, run, to_windows
 
 TIME_ZONE = ZoneInfo("America/Sao_Paulo")
@@ -51,8 +58,71 @@ VALORANT_TIERS = [("Ferro", "Iron"), ("Bronze", "Bronze"), ("Prata", "Silver"), 
 VALORANT_QUEUES = {"competitive": ("Competitivo", "Competitive"), "unrated": ("Sem classificação", "Unrated"),
                    "swiftplay": ("Frenético", "Swiftplay"), "spikerush": ("Disparada", "Spike Rush"),
                    "deathmatch": ("Mata-mata", "Deathmatch"), "hurm": ("Mata-mata em equipe", "Team Deathmatch")}
-# The thumbnail's plate names the game.
+# The thumbnail's plate names the game (any other: its name in content/diversos.json).
 GAME_NAMES = {"rocket-league": "Rocket League", "valorant": "Valorant"}
+# The agenda (lib/profile.ts's PROFILE_API): what was planned on a day without a session.
+PROFILE_API = os.environ.get("PROFILE_API", "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com")
+
+
+# --- The day's game ------------------------------------------------------------------------------------
+
+def planned(date):
+    """The lives the agenda has on that day: [(its game's id there, the Twitch category's name, its id)]. Past days
+    stay in the agenda until Luan next saves it; nothing when it can't be read."""
+    try:
+        with urllib.request.urlopen(f"{PROFILE_API}/agenda", timeout=15) as response:
+            agenda = json.load(response).get("agenda") or {}
+    except (OSError, ValueError):
+        return []
+    games = agenda.get("games", {})
+    return [(live["game"], games.get(live["game"], {}).get("name", ""), games.get(live["game"], {}).get("category", ""))
+            for live in agenda.get("dates", {}).get(date, {}).get("lives", [])]
+
+
+def day_game(date, chosen=None):
+    """The live's game, by its id: --game; the one whose session has the live's recording (the dock's); the agenda's
+    that day (any other game is matched to content/diversos.json by its Twitch category); a session played off the
+    stream that day, as before."""
+    others = other_games()
+    known = [*SESSIONS, *(game["id"] for game in others)]
+    if chosen:
+        if chosen not in known:
+            sys.exit(f"--game {chosen}: não conheço. Use um de: {', '.join(known)} (um jogo novo entra em content/diversos.json).")
+        return chosen
+    live = next((g for g in SESSIONS if any(s.get("outputs") for s in sessions(date, g))), None)
+    if live:
+        return live
+    for game, name, category in planned(date):
+        if game in SESSIONS:
+            return game
+        found = next((o for o in others if (category and o.get("categoryId") == category)
+                      or o["category"].casefold() == name.casefold() or o["id"] == game), None)
+        if found:
+            return found["id"]
+        sys.exit(f"A agenda de {date} tem \"{name}\" (categoria {category} da Twitch), que não está em "
+                 "content/diversos.json: põe o jogo lá (id, name, category, categoryId) ou passe --game.")
+    off = next((g for g in SESSIONS if sessions(date, g)), None)
+    if off:
+        return off
+    sys.exit(f"Nem sessão nem live na agenda em {date}: passe --game <id> ({', '.join(known)}).")
+
+
+def hours(total):
+    """9660 → "2h41", 2700 → "45 min" (lib/diversos.ts's hours)."""
+    minutes = round(total / 60)
+    if minutes < 60:
+        return f"{minutes} min"
+    h, m = divmod(minutes, 60)
+    return f"{h}h{m:02d}" if m else f"{h}h"
+
+
+def other_summary(game, length):
+    """A draft for any other game: how long, and the goal when it has one."""
+    pt, en = f"{game['name']} ao vivo por {hours(length)}.", f"{game['name']} live for {hours(length)}."
+    if game.get("goal"):
+        pt += f" Meta: {game['goal']['title']}."
+        en += f" Goal: {game['goal']['title']}."
+    return {"pt": pt, "en": en}
 
 
 # --- The recording ------------------------------------------------------------------------------------
@@ -267,13 +337,13 @@ def reached(day):
     return rank, int(tier)
 
 
-def thumbnail(date, rank, tier, game):
-    """Adds the day to LIVES in brand/build.py (and to LIVE_GAMES when it isn't Rocket League) and draws its
-    thumbnail."""
+def thumbnail(date, rank, tier, game, name):
+    """Adds the day to LIVES in brand/build.py (and to LIVE_GAMES, with the game's name, when it isn't Rocket League)
+    and draws its thumbnail."""
     build = ROOT / "brand" / "build.py"
     text = build.read_text()
     for table, entry in (("LIVES", f'    "{date}": ({rank!r}, {tier!r}),'.replace("'", '"')),
-                         ("LIVE_GAMES", f'    "{date}": "{GAME_NAMES[game]}",' if game != "rocket-league" else None)):
+                         ("LIVE_GAMES", f'    "{date}": {json.dumps(name, ensure_ascii=False)},' if game != "rocket-league" else None)):
         block = re.search(rf"\n{table} = \{{\n(.*?)\n?\}}\n", text, re.S)
         if entry and f'"{date}":' not in block.group(1):
             text = text[:block.end(1)] + (f"\n{entry}" if block.group(1) else f"{entry}\n") + text[block.end(1):]
@@ -304,6 +374,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("date", help="YYYY-MM-DD, the day of the live")
     parser.add_argument("--video", help="the YouTube video's id, once uploaded")
+    parser.add_argument("--game", help="the game's id (rocket-league, valorant or one in content/diversos.json), "
+                                       "when the sessions and the agenda don't say it")
     parser.add_argument("--force", action="store_true", help="write again what's already there")
     args = parser.parse_args()
 
@@ -316,10 +388,12 @@ def main():
         print(f"Vídeo {args.video} em {page.relative_to(ROOT)}. Agora: scripts/youtube.py live {args.date}")
         return
 
-    # The day's game: the one whose dock published a session that day (Rocket League's Partidas, or its Valorant tab).
-    game = next((g for g in SESSIONS if sessions(args.date, g)), "rocket-league")
-    # Matches played off the stream (since 2026-11-20) are sessions without outputs: not the live's.
-    day = [s for s in sessions(args.date, game) if s.get("outputs")] or sessions(args.date, game)
+    game = day_game(args.date, args.game)
+    other = next((o for o in other_games() if o["id"] == game), None)
+    print(f"Jogo: {other['name'] if other else GAME_NAMES[game]}.")
+    # Matches played off the stream (since 2026-11-20) are sessions without outputs: not the live's. Any other game
+    # has no sessions at all.
+    day = [] if other else [s for s in sessions(args.date, game) if s.get("outputs")] or sessions(args.date, game)
     file, start = recording(args.date, day)
     length = duration(file)
     print(f"Gravação: {file.name}, {clock(length)}.")
@@ -334,15 +408,15 @@ def main():
     if page.exists() and not args.force:
         print(f"{page.relative_to(ROOT)} já existe: mantida.")
     else:
-        live = {"date": args.date, "game": game, "video": args.video or "",
-                "summary": valorant_summary(day) if game == "valorant" else summary(day),
+        live = {"date": args.date, "game": game, "video": args.video or "", "length": clock(length),
+                "summary": other_summary(other, length) if other else valorant_summary(day) if game == "valorant" else summary(day),
                 "chapters": chapters(day, placer(file, start), length)}
         write_live(page, live)
         print(f"Página: {len(live['chapters'])} capítulos em {page.relative_to(ROOT)}. O resumo é um rascunho.")
 
     # A climb shows on the thumbnail with Rocket League's emblems; Valorant's lives get the plain one for now.
     rank, tier = reached(day) if game == "rocket-league" else (None, None)
-    thumbnail(args.date, rank, tier, game)
+    thumbnail(args.date, rank, tier, game, other["name"] if other else GAME_NAMES[game])
     print(f"Thumbnail: brand/youtube/thumbnails/live-{args.date}.png" + (f" ({rank} {tier})" if rank else ""))
     print(f"A thumb de clicar: scripts/thumb.py {args.date} (folha de reações para o Luan escolher)")
     if not args.video:

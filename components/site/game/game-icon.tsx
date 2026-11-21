@@ -1,9 +1,20 @@
+import { Gamepad2 } from "lucide-react"
 import { Crosshair } from "@/components/site/game/crosshair"
 
-/** Each game's sign, wherever a game is named: Rocket League's ball, Valorant's crosshair. */
+/** Each game's sign, wherever a game is named: Rocket League's ball, Valorant's crosshair, a gamepad for the other games ("diversos"). */
 export function GameIcon({ game, size = 12, className }: { game: string; size?: number; className?: string }) {
   if (game === "valorant") return <Crosshair size={size} className={className} />
+  if (game === "diversos") return <Pad size={size} className={className} />
   return <Ball size={size} className={className} />
+}
+
+/** The other games' sign: a gamepad in Klein, on Branco so it covers a menu's rail as the ball does. */
+export function Pad({ size = 12, className }: { size?: number; className?: string }) {
+  return (
+    <span aria-hidden className={className ?? "block"} style={{ width: size, height: size }}>
+      <Gamepad2 className="block h-full w-full bg-paper text-klein" strokeWidth={size < 16 ? 2.5 : 2} />
+    </span>
+  )
 }
 
 /** A tiny ball: Klein, with the panel seams of the real one. */

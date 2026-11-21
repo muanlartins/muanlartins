@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { AimPage } from "@/components/site/aim/aim-page"
 import { AgendaPage } from "@/components/site/agenda/agenda-page"
 import { BackstagePage } from "@/components/site/channel/backstage-page"
+import { DiversosGamePage, DiversosPage } from "@/components/site/diversos/diversos-page"
 import { ChangelogPage } from "@/components/site/channel/changelog-page"
 import { CommandsPage } from "@/components/site/channel/commands-page"
 import { GameHome } from "@/components/site/game/game-home"
@@ -17,9 +18,10 @@ import { TopicPage } from "@/components/site/roadmap/topic-page"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
 import { type ChannelPage } from "@/lib/channel"
+import { DIVERSOS, diversos, lineOf, otherGame, playedOf, type OtherGame } from "@/lib/diversos"
 import { fundamentals, GAME_PAGES, type GamePage } from "@/lib/game"
 import { matchMoments } from "@/lib/lives"
-import { lives, transcript } from "@/lib/lives-files"
+import { lengthOf, lives, transcript } from "@/lib/lives-files"
 import { miraDays, miraRankedDays, sessions, valorantSessions, voltaicDays } from "@/lib/matches"
 import { sectionMetadata } from "@/lib/metadata"
 import { editionSlug, entries, findTopic, type Roadmap } from "@/lib/roadmap"
@@ -29,7 +31,8 @@ import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
  * Pages under a section. In the content section, a game at
  * /conteudo/<project>: its home, its roadmap at /fundamentals (an older
  * edition at /fundamentals/v<n>), its ranked record at /ranked, its aim training at /aim, its weapon skins at /inventory, and each
- * topic, of any edition, at /<topic>. In the channel, its lives
+ * topic, of any edition, at /<topic>. The other games ("Jogos diversos", lib/diversos.ts) at /conteudo/diversos, each at
+ * /conteudo/diversos/<game>. In the channel, its lives
  * at /canal/lives, each at /canal/lives/<date>, its agenda at /canal/agenda, the chat's commands at /canal/comandos, its
  * minigames at /canal/minijogos, its backstage at
  * /canal/backstage and its roadmap at /canal/roadmap. One route for all, so a roadmap with no topics yet still
@@ -57,6 +60,13 @@ export function generateStaticParams() {
       ...game.roadmaps.slice(1).map((roadmap) => ({ section: content, project: game.id, topic: ["fundamentals", editionSlug(roadmap)] })),
     ]
   })
+  // A live's `game` names either kind, so the ids can't meet.
+  const taken = diversos.games.find((other) => other.id === DIVERSOS || games.some((game) => game.id === other.id) || !/^[a-z0-9-]+$/.test(other.id))
+  if (taken) throw new Error(`content/diversos.json: "${taken.id}" is taken or isn't a lowercase-and-dashes id; give it another.`)
+  const inDiversos = [
+    { section: content, project: DIVERSOS, topic: [] },
+    ...diversos.games.map((other) => ({ section: content, project: DIVERSOS, topic: [other.id] })),
+  ]
   const section = sectionPath("channel").slice(1)
   const inChannel = [
     { section, project: "lives", topic: [] },
@@ -67,13 +77,14 @@ export function generateStaticParams() {
     { section, project: "backstage", topic: [] },
     { section, project: "roadmap", topic: [] },
   ]
-  return [...inGames, ...inChannel]
+  return [...inGames, ...inDiversos, ...inChannel]
 }
 
 type Props = PageProps<"/[section]/[project]/[[...topic]]">
 
 type Found =
   | { channel: ChannelPage; live?: ReturnType<typeof lives>[number] }
+  | { diversos: true; other?: OtherGame }
   | { game: (typeof games)[number]; page?: GamePage; roadmap?: Roadmap; entry?: NonNullable<ReturnType<typeof findTopic>> }
 
 async function find(params: Props["params"]): Promise<Found | undefined> {
@@ -84,6 +95,12 @@ async function find(params: Props["params"]): Promise<Found | undefined> {
     if (!id) return { channel: "lives" }
     const live = lives().find((live) => live.date === id)
     return live && { channel: "lives", live }
+  }
+  if (sectionFromSlug(section) === "content" && project === DIVERSOS) {
+    if (rest.length > 0) return undefined
+    if (!id) return { diversos: true }
+    const other = otherGame(id)
+    return other && { diversos: true, other }
   }
   const game = games.find((game) => game.id === project)
   if (sectionFromSlug(section) !== "content" || !game) return undefined
@@ -115,6 +132,12 @@ export async function generateMetadata({ params }: Props) {
       return sectionMetadata("channel", { title, description: live.summary }, `/lives/${live.date}`)
     }
     return sectionMetadata("channel", channel[found.channel], `/${found.channel}`)
+  }
+  if ("diversos" in found) {
+    const { other } = found
+    if (!other) return sectionMetadata("content", diversos.page, `/${DIVERSOS}`)
+    const goal = other.goal ? ` Meta: ${other.goal.title}.` : ""
+    return sectionMetadata("content", { title: `${other.name} · ${diversos.page.title}`, description: lineOf(other) ?? `Minhas lives de ${other.name}.${goal}` }, `/${DIVERSOS}/${other.id}`)
   }
   const { game, page, roadmap, entry } = found
   if (page === "fundamentals" && roadmap) {
@@ -154,6 +177,11 @@ export default async function SectionSubpage({ params }: Props) {
     if (found.channel === "comandos") return <CommandsPage />
     if (found.channel === "minijogos") return <MinigamesPage />
     return <BackstagePage />
+  }
+  if ("diversos" in found) {
+    const all = lives()
+    if (found.other) return <DiversosGamePage game={found.other} played={playedOf(found.other, all, lengthOf)} />
+    return <DiversosPage played={new Map(diversos.games.map((other) => [other.id, playedOf(other, all, lengthOf)]))} />
   }
   const { game, page, roadmap, entry } = found
   if (entry && roadmap) return <TopicPage game={game} roadmap={roadmap} id={entry.topic.id} />
