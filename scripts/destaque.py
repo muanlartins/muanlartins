@@ -62,7 +62,11 @@ The roteiro is JSON and every time in it is a Live.mp4 second:
   mono float32 array at ctx.SR, dB)], mixed like the transitions' sounds. `f` is the 1080×1920 RGB frame (numpy,
   edit it in place or return a new one), `o` the short's second; `ctx` has roteiro, clock (`clock.out(live_s, k)`
   maps a live second into stretch k), W, H, CAM_H (the camera's half ends there), GAME_H, FPS, SR, VIDEOS, ROOT, work
-  (the cache folder) and the helpers place, animate, ease, title_sprite and sound.
+  (the cache folder), the helpers place, animate, ease, title_sprite and sound, and the channel's look: grotesk(size,
+  weight) (Space Grotesk), plate(draw, x, y, w, h, fill) (the plate cut at 45°) and cores (klein, klein_escuro,
+  klein_claro, branco, noite). Since 11-21 captions and titles are drawn in that look (Luan, three times: "mais
+  elegante / atrativo e dentro da identidade visual do canal"); a module's own texts should be too, unless the joke
+  is another look (a game's dialog box).
 
 The sound is the live's mix (what the VOD plays) at -20 dBFS with the effects over it, then -14 LUFS.
 """
@@ -111,6 +115,12 @@ AJUSTE = 2.5  # how far an edge may move to reach a pause
 TRANSICAO = (0.12, 0.2)  # a transition's seconds before and after its cut
 OUTRO = VIDEOS / "Shorts" / "Partes" / "outro-editado.mp4"  # the site's call (montagem.py), after the short
 OURO, FOGO, BRANCO = (255, 201, 60), (255, 106, 26), (255, 255, 255)
+# The channel's identity (brand/README.md), as the live's captions and the thumbnails have it (Luan, 11-21: captions
+# and texts "mais elegante / atrativo e dentro da identidade visual do canal"): Space Grotesk Bold, Branco, Klein
+# claro for the word being said, dark Klein plates with two corners cut at 45° like the stream's camera frame.
+GROTESK = ROOT / "brand" / "fonts" / "SpaceGrotesk.ttf"
+KLEIN, KLEIN_DARK, KLEIN_CLARO, PAPER = (0, 47, 167), (0, 22, 84), (133, 167, 255), (244, 245, 247)
+NOITE = (0, 20, 71)  # the live captions' plate (rgb(0 20 71 / 0.78) in torcida.html)
 TITLE_Y = 1150  # the hook's title, on the game's half, above Shorts' bottom bar (y > 1248)
 
 
@@ -402,6 +412,95 @@ def spread(said):
     return out
 
 
+_fonts = {}
+
+
+def grotesk(size, weight=700):
+    """Space Grotesk (a variable font) at a weight: 700 for captions and titles."""
+    key = (int(size), weight)
+    if key not in _fonts:
+        f = ImageFont.truetype(str(GROTESK), int(size))
+        f.set_variation_by_axes([weight])
+        _fonts[key] = f
+    return _fonts[key]
+
+
+def plate(draw, x, y, w, h, fill, cut=None):
+    """The brand's plate: two opposite corners cut at 45°, as the stream's camera frame (thumb.plate)."""
+    c = cut if cut is not None else h * 0.28
+    draw.polygon([(x + c, y), (x + w, y), (x + w, y + h - c), (x + w - c, y + h), (x, y + h), (x, y + c)], fill=fill)
+
+
+class Legendas:
+    """Word by word on the seam, three words at most, never across a cut, in the channel's look (since 11-21): a dark
+    Klein plate cut at 45° holding the whole group (so it never jumps), the words appearing as they're said, the one
+    being said in Klein claro popping in, the said ones in Branco; a key word ("destaques") gets the thumbnails'
+    Branco plate with Klein letters while it's said, and stays Klein claro after. Drawn on the frames in Python
+    (Space Grotesk is a variable font, which libass can't set to Bold)."""
+    SIZE, PAD_X, PAD_Y, GAP = 76, 30, 16, 20
+
+    def __init__(self, said, keys, clock):
+        groups, group = [], []
+        for w in said:
+            if group and (len(group) >= 3 or len(" ".join(x[2] for x in group + [w])) > 15
+                          or w[0] - group[-1][1] > 0.35 or group[-1][2][-1] in ".?!,…"
+                          or clock.cut_after(group[0][0]) <= w[0]):
+                groups.append(group)
+                group = []
+            group.append(w)
+        if group:
+            groups.append(group)
+        self.groups = []
+        f = grotesk(self.SIZE)
+        for n, g in enumerate(groups):
+            end = min(g[-1][1] + 0.35, clock.cut_after(g[0][0]))
+            if n + 1 < len(groups):
+                end = min(end, groups[n + 1][0][0])
+            words = [w.upper() for _, _, w in g]
+            widths = [f.getlength(w) for w in words]
+            self.groups.append({"start": g[0][0], "end": end, "starts": [x[0] for x in g], "words": words,
+                                "widths": widths, "keys": [plain(w) in keys for _, _, w in g]})
+
+    def draw(self, frame, o):
+        g = next((g for g in self.groups if g["start"] <= o < g["end"]), None)
+        if g is None:
+            return
+        f = grotesk(self.SIZE)
+        asc, desc = f.getmetrics()
+        th = asc + desc
+        width = sum(g["widths"]) + self.GAP * (len(g["words"]) - 1) + 2 * self.PAD_X
+        height = th + 2 * self.PAD_Y
+        m = 40  # room around the plate for its shadow and a word popping past it
+        img = Image.new("RGBA", (int(width) + 2 * m, int(height) + 2 * m))
+        shadow = Image.new("RGBA", img.size)
+        plate(ImageDraw.Draw(shadow), m, m + 6, width, height, (0, 0, 0, 120))
+        img.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(8)))
+        d = ImageDraw.Draw(img)
+        plate(d, m, m, width, height, NOITE + (228,))
+        current = max(i for i, t in enumerate(g["starts"]) if t <= o)
+        x = m + self.PAD_X
+        for i, (word, w, key) in enumerate(zip(g["words"], g["widths"], g["keys"])):
+            if i < current:
+                d.text((x, m + self.PAD_Y), word, font=f, fill=KLEIN_CLARO if key else PAPER)
+            elif i == current:  # the word being said, popped in (118% → 100%)
+                k = 1 + 0.18 * max(0.0, 1 - (o - g["starts"][i]) / 0.11)
+                fs = grotesk(self.SIZE * k)
+                sw, sh = fs.getlength(word), th * k
+                tile = Image.new("RGBA", (int(sw) + 36, int(sh) + 20))
+                dt = ImageDraw.Draw(tile)
+                if key:
+                    plate(dt, 2, 2, sw + 32, sh + 14, PAPER + (255,))
+                    dt.text((18, 8), word, font=fs, fill=KLEIN)
+                else:
+                    dt.text((18, 8), word, font=fs, fill=KLEIN_CLARO)
+                cx, cy = x + w / 2, m + self.PAD_Y + th / 2
+                img.alpha_composite(tile, (max(0, int(cx - tile.width / 2)), max(0, int(cy - tile.height / 2))))
+            x += w + self.GAP
+        out = np.array(img)
+        pop = min(1.0, (o - g["start"]) / 0.08)
+        place(frame, out, W / 2, CAM_H, 0.92 + 0.08 * pop, pop)
+
+
 def captions(said, keys, clock):
     """Word by word on the seam, three words at most: each word pops in gold with a fire glow when said, then stays
     white (key words fire and 12% bigger). Heavy capitals, a black edge and a soft shadow. Never across a cut."""
@@ -457,33 +556,43 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 
 def title_sprite(lines, size=118):
-    """The hook's title: heavy capitals, the first line white, the rest gold into fire, a black edge, a fire glow."""
-    f = ImageFont.truetype(str(HEAVY), size)
+    """A title in the thumbnails' hook style (since 11-21): Space Grotesk Bold capitals, the first line Branco with a
+    dark Klein edge and a soft shadow, each line after it Klein on the Branco plate cut at 45°."""
+    lines = [line.upper() for line in lines]
+    first = grotesk(size)
+    rest = grotesk(size * 0.82)
     probe = ImageDraw.Draw(Image.new("L", (1, 1)))
-    widths = [probe.textlength(line, font=f) for line in lines]
+    widths = [probe.textlength(lines[0], font=first)] + [probe.textlength(x, font=rest) + 56 for x in lines[1:]]
     if max(widths) > W - 120:  # a long line: the size that fits, never past the frame's edges
         return title_sprite(lines, int(size * (W - 120) / max(widths)))
-    edge, pad, lh = 11, 60, int(size * 1.08)
-    w, h = int(max(widths)) + 2 * pad, lh * len(lines) + 2 * pad
-    shape = Image.new("L", (w, h))
-    fill = Image.new("L", (w, h))
-    ds, df = ImageDraw.Draw(shape), ImageDraw.Draw(fill)
-    for n, line in enumerate(lines):
-        x, y = (w - widths[n]) / 2, pad + n * lh
-        ds.text((x, y), line, font=f, fill=255, stroke_width=edge, stroke_fill=255)
-        df.text((x, y), line, font=f, fill=255)
-    glow = Image.new("RGBA", (w, h), FOGO + (0,))
-    glow.putalpha(shape.filter(ImageFilter.GaussianBlur(18)).point(lambda v: int(v * 0.85)))
-    out = Image.alpha_composite(Image.new("RGBA", (w, h)), glow)
-    out = Image.alpha_composite(out, Image.merge("RGBA", (*[Image.new("L", (w, h), 0)] * 3, shape)))
-    ramp = np.zeros((h, w, 3), np.float32)
-    first = pad + lh
-    ys = np.clip((np.arange(h) - first) / max(1, h - pad - first), 0, 1)[:, None]
-    ramp[:] = np.where(np.arange(h)[:, None, None] < first, np.array(BRANCO, np.float32),
-                       (np.array(OURO) * (1 - ys) + np.array(FOGO) * ys)[:, None, :])
-    color = Image.fromarray(ramp.astype(np.uint8))
-    color.putalpha(fill)
-    return np.array(Image.alpha_composite(out, color))
+    pad, edge = 40, max(6, int(size * 0.085))
+    b1 = first.getbbox(lines[0])
+    h1 = b1[3] - b1[1]
+    boxes = [rest.getbbox(x) for x in lines[1:]]
+    plates = [(b[3] - b[1]) + int(size * 0.34) for b in boxes]
+    gap = int(size * 0.2)
+    w = int(max(widths)) + 2 * pad
+    h = h1 + sum(p + gap for p in plates) + 2 * pad + 16
+    img = Image.new("RGBA", (w, h))
+    shadow = Image.new("RGBA", (w, h))
+    ds = ImageDraw.Draw(shadow)
+    y = pad - b1[1]
+    ds.text(((w - widths[0]) / 2 + 5, y + 8), lines[0], font=first, fill=(0, 0, 0, 170), stroke_width=edge,
+            stroke_fill=(0, 0, 0, 170))
+    yy = pad + h1 + gap
+    for line, box, ph, lw in zip(lines[1:], boxes, plates, widths[1:]):
+        plate(ds, (w - lw) / 2 + 5, yy + 8, lw, ph, (0, 0, 0, 150))
+        yy += ph + gap
+    img.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(9)))
+    d = ImageDraw.Draw(img)
+    d.text(((w - widths[0]) / 2, y), lines[0], font=first, fill=PAPER, stroke_width=edge, stroke_fill=KLEIN_DARK)
+    yy = pad + h1 + gap
+    for line, box, ph, lw in zip(lines[1:], boxes, plates, widths[1:]):
+        x0 = (w - lw) / 2
+        plate(d, x0, yy, lw, ph, PAPER)
+        d.text((x0 + 28, yy + (ph - (box[3] - box[1])) / 2 - box[1]), line, font=rest, fill=KLEIN)
+        yy += ph + gap
+    return np.array(img)
 
 
 # ---------------------------------------------------------------------------------------------------- the effects
@@ -600,6 +709,7 @@ class Effects:
         return f
 
     extra = None  # (module, ctx) of the roteiro's "extra"
+    legendas = None  # the captions, drawn last
 
     def hook(self, name, f, o):
         if self.extra and hasattr(self.extra[0], name):
@@ -653,6 +763,8 @@ class Effects:
                 scale, alpha, lift = animate(title, o)
                 place(f, title["sprite"], W / 2, title["y"] + lift, scale, alpha)
         self.hook("depois", f, o)
+        if self.legendas:
+            self.legendas.draw(f, o)
         return f
 
 
@@ -794,9 +906,9 @@ def main():
     said = [(o, min(o + y - x, clock.cut_after(o)), w)
             for (a, _), start, s in zip(clock.spans, clock.starts, heard) for x, y, w in s
             for o in [start + x - a]]
-    (work / "legendas.ass").write_text(captions(said, {plain(k) for k in roteiro.get("destaques", [])}, clock),
-                                       encoding="utf-8")
+    (work / "legendas.ass").write_text(captions([], set(), clock), encoding="utf-8")  # the captions are drawn below
     fx = Effects(roteiro, clock, trechos)
+    fx.legendas = Legendas(said, {plain(k) for k in roteiro.get("destaques", [])}, clock)
     extra_sounds = []
     if roteiro.get("extra"):
         path = ROOT / roteiro["extra"]
@@ -805,7 +917,9 @@ def main():
         spec.loader.exec_module(module)
         ctx = SimpleNamespace(roteiro=roteiro, clock=clock, W=W, H=H, CAM_H=CAM_H, GAME_H=GAME_H, FPS=FPS, SR=SR,
                               VIDEOS=VIDEOS, ROOT=ROOT, work=work, place=place, animate=animate, ease=ease,
-                              title_sprite=title_sprite, sound=sound)
+                              title_sprite=title_sprite, sound=sound, grotesk=grotesk, plate=plate,
+                              cores={"klein": KLEIN, "klein_escuro": KLEIN_DARK, "klein_claro": KLEIN_CLARO,
+                                     "branco": PAPER, "noite": NOITE})
         if hasattr(module, "setup"):
             module.setup(ctx)
         fx.extra = (module, ctx)
