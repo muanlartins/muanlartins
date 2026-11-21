@@ -110,7 +110,8 @@ only that take is new.
 
 ## Publishing shorts (YouTube and Instagram)
 
-- **Schedule:** at most one or two a day, spread out; Luan approves the table first. No audience data behind it yet:
+- **Schedule:** two or three a day since 11-20 (Luan wants more shorts, with produced videos starting), spread out and
+  apart from the long videos' hours; Luan approves the table first. No audience data behind it yet:
   late afternoon/evening for Brazil, and a game's short on the day of that game's live, a few hours before
   (11-09: Valorant's aim short Mon 18:00, before the 21:00 Valorant live; affiliate Tue 18:00). Times in Brasília.
 - **YouTube:** the upload is Luan's, in Studio, as private (an unverified app's uploads stay locked private). He
