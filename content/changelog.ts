@@ -111,18 +111,19 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
 export const UPCOMING: Upcoming[] = [
-  {
-    id: "teclado-e-mouse",
-    status: "agora",
-    tag: "live",
-    title: "Teclado e mouse na tela",
-    text: "As teclas e os cliques que eu aperto aparecem do lado da câmera, no Valorant, no Rocket League e nos outros jogos.",
-    credits: [{ by: "erikmd01" }],
-  },
 ]
 
 /** Every feature released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "teclado-e-mouse",
+    date: "2026-11-20",
+    tag: "live",
+    title: "Teclado e mouse na tela",
+    text: "As teclas e os cliques que eu aperto aparecem do lado da câmera, no Valorant, no Rocket League e nos outros jogos.",
+    credits: [{ by: "erikmd01" }],
+    media: [media("teclado-e-mouse", "O teclado e o mouse acima da câmera: W e A acesos e o clique esquerdo do mouse apertado", { video: true })],
+  },
   {
     id: "servidor-do-discord",
     date: "2026-11-19",
@@ -181,11 +182,11 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-15",
     tag: "live",
     title: "Duelo de bolinhas",
-    text: "Dois do chat se enfrentam no canto da tela. A classe da sua bolinha você escolhe no site, onde ficam o ranking e o replay de cada luta.",
+    text: "Entre as partidas, dois do chat se enfrentam, revezando com a corrida. A classe da sua bolinha você escolhe no site, onde ficam o ranking e o replay de cada luta.",
     href: "/canal/minijogos",
     credits: [{ by: "lucca_3098" }],
     media: [
-      media("duelo-compacto", "O duelo no canto da tela: Punho contra Clava, os nomes e as barras de vida em cima da arena e a vida de cada um dentro da bolinha"),
+      media("duelo-na-conversa", "O duelo embaixo da câmera, na cena de conversa: Katana contra Machado, cada um com o seu torcedor, a vida e o que a classe faz ao lado da arena"),
       media("duelo-com-fisica", "A bolinha de Punho, atordoada pela Clava, fica parada com estrelas na cabeça e as luvas apagadas", { video: true }),
       media("minijogos-com-cara-de-jogo", "A tela de seleção no site: a arena, a ficha da Adaga com as barras e os visuais da arma, e as classes embaixo"),
     ],
