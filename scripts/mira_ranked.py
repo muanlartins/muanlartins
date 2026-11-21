@@ -277,7 +277,7 @@ def medir_partida(vrf, manifesto, mv, dano, rodadas, eventos, obs, atores, detal
             tiros += [a["time_ms"] / 1000] * (-a["delta"])
     tiros.sort()
 
-    acertos = sorted((r["time_ms"] / 1000, r) for r in meus_danos.iter_rows(named=True))
+    acertos = sorted(((r["time_ms"] / 1000, r) for r in meus_danos.iter_rows(named=True)), key=lambda par: par[0])
     usados = set()
     medidos, lutas, antes = [], [], -1e9
     ossos = Counter()
