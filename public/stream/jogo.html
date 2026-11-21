@@ -22,6 +22,10 @@
       top edge; under the Pix call and goal when it's at the top (Valorant's). The keys are the game's: Valorant's with
       ?jogo=valorant, any game's with ?jogo=diversos, else Rocket League's; ?teclas=valorant (or rocket-league, outro)
       picks them. ?demo presses them on their own.
+      In Rocket League's scene (no ?jogo), Luan's numbers in the match run in a column beside the camera frame
+      (numeros.js: score, goals, assists, saves, shots, touches, aerials, demos, a +1 lighting its line) while the
+      Partidas dock sends them, from the first countdown to a minute and a half after the end; the dock's "Estatísticas
+      da partida na live" turns them off, and so does ?numeros=0 (and ?placar=0). ?demo plays a match.
     -->
     <style>
       .hole {
@@ -118,9 +122,11 @@
       <div class="chat-pane empty" id="chat-pane" hidden></div>
       <div class="game-chat" id="chat" hidden></div>
       <div id="teclas" hidden></div>
+      <div id="numeros"></div>
     </main>
     <script src="stream.js"></script>
     <script src="teclas.js"></script>
+    <script src="numeros.js"></script>
     <script>
       const BAND = 12
       const hole = document.querySelector(".hole")
@@ -142,6 +148,12 @@
       if (params.get("placar") !== "0") {
         if (params.get("jogo") === "valorant") valorantPlate(document.getElementById("record"), hole, BAND, params.get("valorant") ?? "http://127.0.0.1:8792")
         else recordPlate(document.getElementById("record"), hole, BAND)
+      }
+
+      // Rocket League's numbers in the match, beside the camera frame.
+      if (!params.get("jogo") && params.get("placar") !== "0" && params.get("numeros") !== "0") {
+        placarDaPartida(document.getElementById("numeros"), hole, BAND)
+        if (params.has("demo")) demoDosNumeros()
       }
 
       // The keyboard and the mouse, in the camera's column (?teclas=1).

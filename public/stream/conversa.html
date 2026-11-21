@@ -26,6 +26,14 @@
       so their fights and races are recorded as before. ?minijogos=0 leaves
       them out. The duel shows its columns (each fighter beside the arena);
       ?duelo=compacto shows the arena alone, as the game scenes had it.
+
+      After a match (Luan, 2026-11-20: the games' after-match stats), the
+      topic gives its place to the match that just ended, as the Partidas dock
+      sends it (numeros.js, fimDePartida): Rocket League's score, goals,
+      assists, saves, shots, touches, aerials and demos, or Valorant's K/D/A,
+      ACS, headshots, first kills and damage per round from its summary; until
+      the next match starts, five minutes at most. ?numeros=0 leaves it out;
+      ?demo plays one of each.
     -->
     <style>
       .ground {
@@ -48,6 +56,10 @@
         left: 64px;
         top: 728px;
         width: 640px;
+        transition: opacity 0.6s var(--ease);
+      }
+      .below.fora {
+        opacity: 0;
       }
       .topic {
         margin: 8px 0 0;
@@ -146,6 +158,7 @@
         <p class="eyebrow" id="label">Agora</p>
         <p class="topic" id="topic">Rocket League</p>
       </div>
+      <div id="fim-de-partida"></div>
       <div id="chamada"></div>
       <div class="minijogos-vazio" id="minijogos-vazio">
         <p class="eyebrow">Minijogos</p>
@@ -157,6 +170,7 @@
       </aside>
     </main>
     <script src="stream.js"></script>
+    <script src="numeros.js"></script>
     <script>
       const border = frame(document.querySelector(".hole"), { band: 16, fill: "#001447" })
       const attention = plate(document.getElementById("plate"), `muanlartins<span class="accent">.com.br</span>`)
@@ -165,6 +179,12 @@
       if (params.get("rotulo")) document.getElementById("label").textContent = params.get("rotulo")
       chat(document.getElementById("chat"))
       if (params.get("chamada") !== "0") chamada(document.getElementById("chamada"))
+      // The match that just ended, in the topic's place.
+      if (params.get("numeros") !== "0") {
+        const below = document.querySelector(".below")
+        fimDePartida(document.getElementById("fim-de-partida"), { aoMostrar: (sim) => below.classList.toggle("fora", sim) })
+        if (params.has("demo")) demoDosNumeros({ comValorant: true })
+      }
       if (params.get("minijogos") !== "0") minijogos()
 
       /**
