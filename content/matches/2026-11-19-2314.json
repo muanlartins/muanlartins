@@ -1,7 +1,7 @@
 {
   "id": "2026-11-19-2314",
   "start": "2026-11-20T02:14:02.141Z",
-  "end": "2026-11-20T03:46:05.100Z",
+  "end": "2026-11-20T03:46:06.157Z",
   "startRanks": {
     "3v3": {
       "tier": "diamond-3",
@@ -40,7 +40,9 @@
         "demos": 0
       },
       "mates": [],
-      "rank": null
+      "rank": null,
+      "mmr": null,
+      "points": null
     },
     {
       "id": "11EE884C11F1E4943FBDB8933AC558AA",
@@ -66,8 +68,18 @@
         "demos": 0
       },
       "mates": [],
-      "rank": null
+      "rank": null,
+      "mmr": 643,
+      "points": 15
     }
   ],
-  "ranks": []
+  "ranks": [
+    {
+      "at": "2026-11-20T03:46:26.117Z",
+      "mode": "1v1",
+      "tier": "unranked",
+      "division": 1,
+      "mmr": 643
+    }
+  ]
 }

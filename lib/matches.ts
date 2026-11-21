@@ -8,13 +8,30 @@ import type { VoltaicDay } from "@/lib/voltaic"
 /**
  * Every published session (content/matches/*.json), oldest first. Read at build time. Each session's
  * match logs (<id>.events.json) are for editing the lives, not the site.
+ *
+ * A match is counted once: with OBS open off the stream, the Partidas dock and scripts/rocket_league.py both record
+ * it (11-20: two 1v1 matches in two sessions). The first session keeps it, taking the points it lacks from the copy.
  */
 export function sessions(): Session[] {
   const folder = join(process.cwd(), "content", "matches")
+  const seen = new Map<string, Session["matches"][number]>()
   return readdirSync(folder)
     .filter((file) => file.endsWith(".json") && !file.endsWith(".events.json"))
     .sort()
     .map((file) => JSON.parse(readFileSync(join(folder, file), "utf8")) as Session)
+    .map((session) => ({
+      ...session,
+      matches: session.matches.filter((match) => {
+        const first = seen.get(match.id)
+        if (!first) {
+          seen.set(match.id, match)
+          return true
+        }
+        first.points ??= match.points
+        first.mmr ??= match.mmr
+        return false
+      }),
+    }))
 }
 
 /** Every published Valorant session (content/valorant/*.json), oldest first; none before the first. */
