@@ -10,10 +10,15 @@ import { sectionPath } from "@/lib/site"
  * chapter's `game`, from where it started), and its card counts those lives and hours.
  */
 
-/** One thing to do towards a goal; `live` is the day it was done ("YYYY-MM-DD"), linking that live. */
+/**
+ * One thing to do towards a goal. `save` names what in the game's save fills it (Celeste's: scripts/celeste.py);
+ * `date` is the day it turned done, and `live` that day's live, which its chip links ("YYYY-MM-DD").
+ */
 export interface GoalItem {
   text: string
+  save?: string
   done?: boolean
+  date?: string
   live?: string
 }
 
@@ -33,6 +38,8 @@ export interface OtherGame {
   categoryId?: string
   /** A line about it, in Luan's words; one still starting with "TODO" isn't shown. */
   line?: string
+  /** Read from the game's own save (scripts/celeste.py): which slot, the day it was read and its totals. */
+  save?: { slot?: number | null; read?: string; totals?: { strawberries: number; deaths: number; seconds: number } }
   goal?: Goal
   /** Paragraphs on its page. */
   notes?: string[]

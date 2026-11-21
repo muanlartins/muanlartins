@@ -10,100 +10,103 @@
       "category": "Celeste",
       "categoryId": "492535",
       "line": "TODO(Luan): uma linha sobre o Celeste, do seu jeito.",
+      "save": {
+        "slot": null
+      },
       "goal": {
         "title": "100%",
         "groups": [
           {
             "title": "Capítulo 1 · Forsaken City",
             "items": [
-              { "text": "Lado A", "done": false },
-              { "text": "20 morangos", "done": false },
-              { "text": "Coração de cristal", "done": false },
-              { "text": "Fita cassete", "done": false },
-              { "text": "Lado B", "done": false },
-              { "text": "Lado C", "done": false }
+              { "text": "Lado A", "save": "1/A", "done": false },
+              { "text": "20 morangos", "save": "1/berries/20", "done": false },
+              { "text": "Coração de cristal", "save": "1/heart", "done": false },
+              { "text": "Fita cassete", "save": "1/cassette", "done": false },
+              { "text": "Lado B", "save": "1/B", "done": false },
+              { "text": "Lado C", "save": "1/C", "done": false }
             ]
           },
           {
             "title": "Capítulo 2 · Old Site",
             "items": [
-              { "text": "Lado A", "done": false },
-              { "text": "18 morangos", "done": false },
-              { "text": "Coração de cristal", "done": false },
-              { "text": "Fita cassete", "done": false },
-              { "text": "Lado B", "done": false },
-              { "text": "Lado C", "done": false }
+              { "text": "Lado A", "save": "2/A", "done": false },
+              { "text": "18 morangos", "save": "2/berries/18", "done": false },
+              { "text": "Coração de cristal", "save": "2/heart", "done": false },
+              { "text": "Fita cassete", "save": "2/cassette", "done": false },
+              { "text": "Lado B", "save": "2/B", "done": false },
+              { "text": "Lado C", "save": "2/C", "done": false }
             ]
           },
           {
             "title": "Capítulo 3 · Celestial Resort",
             "items": [
-              { "text": "Lado A", "done": false },
-              { "text": "25 morangos", "done": false },
-              { "text": "Coração de cristal", "done": false },
-              { "text": "Fita cassete", "done": false },
-              { "text": "Lado B", "done": false },
-              { "text": "Lado C", "done": false }
+              { "text": "Lado A", "save": "3/A", "done": false },
+              { "text": "25 morangos", "save": "3/berries/25", "done": false },
+              { "text": "Coração de cristal", "save": "3/heart", "done": false },
+              { "text": "Fita cassete", "save": "3/cassette", "done": false },
+              { "text": "Lado B", "save": "3/B", "done": false },
+              { "text": "Lado C", "save": "3/C", "done": false }
             ]
           },
           {
             "title": "Capítulo 4 · Golden Ridge",
             "items": [
-              { "text": "Lado A", "done": false },
-              { "text": "29 morangos", "done": false },
-              { "text": "Coração de cristal", "done": false },
-              { "text": "Fita cassete", "done": false },
-              { "text": "Lado B", "done": false },
-              { "text": "Lado C", "done": false }
+              { "text": "Lado A", "save": "4/A", "done": false },
+              { "text": "29 morangos", "save": "4/berries/29", "done": false },
+              { "text": "Coração de cristal", "save": "4/heart", "done": false },
+              { "text": "Fita cassete", "save": "4/cassette", "done": false },
+              { "text": "Lado B", "save": "4/B", "done": false },
+              { "text": "Lado C", "save": "4/C", "done": false }
             ]
           },
           {
             "title": "Capítulo 5 · Mirror Temple",
             "items": [
-              { "text": "Lado A", "done": false },
-              { "text": "31 morangos", "done": false },
-              { "text": "Coração de cristal", "done": false },
-              { "text": "Fita cassete", "done": false },
-              { "text": "Lado B", "done": false },
-              { "text": "Lado C", "done": false }
+              { "text": "Lado A", "save": "5/A", "done": false },
+              { "text": "31 morangos", "save": "5/berries/31", "done": false },
+              { "text": "Coração de cristal", "save": "5/heart", "done": false },
+              { "text": "Fita cassete", "save": "5/cassette", "done": false },
+              { "text": "Lado B", "save": "5/B", "done": false },
+              { "text": "Lado C", "save": "5/C", "done": false }
             ]
           },
           {
             "title": "Capítulo 6 · Reflection",
             "items": [
-              { "text": "Lado A", "done": false },
-              { "text": "Coração de cristal", "done": false },
-              { "text": "Fita cassete", "done": false },
-              { "text": "Lado B", "done": false },
-              { "text": "Lado C", "done": false }
+              { "text": "Lado A", "save": "6/A", "done": false },
+              { "text": "Coração de cristal", "save": "6/heart", "done": false },
+              { "text": "Fita cassete", "save": "6/cassette", "done": false },
+              { "text": "Lado B", "save": "6/B", "done": false },
+              { "text": "Lado C", "save": "6/C", "done": false }
             ]
           },
           {
             "title": "Capítulo 7 · The Summit",
             "items": [
-              { "text": "Lado A", "done": false },
-              { "text": "47 morangos", "done": false },
-              { "text": "Coração de cristal", "done": false },
-              { "text": "Fita cassete", "done": false },
-              { "text": "Lado B", "done": false },
-              { "text": "Lado C", "done": false }
+              { "text": "Lado A", "save": "7/A", "done": false },
+              { "text": "47 morangos", "save": "7/berries/47", "done": false },
+              { "text": "Coração de cristal", "save": "7/heart", "done": false },
+              { "text": "Fita cassete", "save": "7/cassette", "done": false },
+              { "text": "Lado B", "save": "7/B", "done": false },
+              { "text": "Lado C", "save": "7/C", "done": false }
             ]
           },
           {
             "title": "Capítulo 8 · Core",
             "items": [
-              { "text": "Lado A", "done": false },
-              { "text": "5 morangos", "done": false },
-              { "text": "Coração de cristal", "done": false },
-              { "text": "Fita cassete", "done": false },
-              { "text": "Lado B", "done": false },
-              { "text": "Lado C", "done": false }
+              { "text": "Lado A", "save": "9/A", "done": false },
+              { "text": "5 morangos", "save": "9/berries/5", "done": false },
+              { "text": "Coração de cristal", "save": "9/heart", "done": false },
+              { "text": "Fita cassete", "save": "9/cassette", "done": false },
+              { "text": "Lado B", "save": "9/B", "done": false },
+              { "text": "Lado C", "save": "9/C", "done": false }
             ]
           },
           {
             "title": "Capítulo 9 · Farewell",
             "items": [
-              { "text": "Terminar", "done": false }
+              { "text": "Terminar", "save": "10/A", "done": false }
             ]
           }
         ]
