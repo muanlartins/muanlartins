@@ -18,7 +18,8 @@ the first one's name, and Lives\\<date>\\partes.json says where each piece start
 joined file (live.py places the chapters with it; the minutes OBS was down aren't in the file). The VAR's clips (saved by the Efeitos dock:
 OBS's Replay Buffer, "Replay 2026-11-05 14-32-10.mp4", and the game alone from Source Record's, "Replay … jogo.mkv")
 go to Lives\\<date>\\VAR\\14-32-10 VAR.mp4 and 14-32-10 VAR jogo.mkv, material for shorts like the Jogo recording. Replays stay in the game's folder (it lists them from there) and are copied to
-Lives\\<date>\\Replays\\, matched to the dock's matches by score and time.
+Lives\\<date>\\Replays\\, matched to the dock's matches by score and time. Then `replays.py <date> --apply` puts them
+on the site for RLR ("Ver no RLR" on each match).
 
 Lives come every day and an hour of them is tens of GB, so the material goes once it has done its job:
 - the stream's (Live), Jogo and Câmera recordings and the VAR's clips once the day is marked done (--done, after its
@@ -104,25 +105,35 @@ def matches_by_day():
     return days
 
 
+def saved_replay(path):
+    """A replay as the matching reads it: (path, the moments its Date may mean, the two teams' goals), or None when
+    it has no Date."""
+    date, goals = header(path)
+    if not date:
+        return None
+    # The game writes the date in local time or in UTC, depending on how the replay was saved.
+    clock = datetime.strptime(date, "%Y-%m-%d %H-%M-%S")
+    return path, [clock.replace(tzinfo=TIME_ZONE), clock.replace(tzinfo=timezone.utc)], goals
+
+
+def replay_of(match, saved):
+    """Which of the saved replays (saved_replay's) is the match's: the same goals, saved within 3 minutes of its end,
+    the nearest; None when none is. replays.py matches the filed copies this way too."""
+    end = datetime.fromisoformat(match["at"].replace("Z", "+00:00"))
+    fits = [(path, min(abs(when - end) for when in whens)) for path, whens, goals in saved
+            if match.get("score") and goals == set(match["score"]) and min(abs(when - end) for when in whens) < timedelta(minutes=3)]
+    return min(fits, key=lambda fit: fit[1])[0] if fits else None
+
+
 def replays():
     """(replay, where its copy goes) for each match the dock logged that has a replay saved."""
-    saved = []
-    for folder in DEMOS:
-        for path in folder.glob("*.replay") if folder.exists() else []:
-            date, goals = header(path)
-            if not date:
-                continue
-            # The game writes the date in local time or in UTC, depending on how the replay was saved.
-            clock = datetime.strptime(date, "%Y-%m-%d %H-%M-%S")
-            saved.append((path, [clock.replace(tzinfo=TIME_ZONE), clock.replace(tzinfo=timezone.utc)], goals))
+    saved = [found for folder in DEMOS for path in (folder.glob("*.replay") if folder.exists() else [])
+             if (found := saved_replay(path))]
     for day, matches in matches_by_day().items():
         for number, match in enumerate(sorted(matches, key=lambda m: m.get("start") or m["at"]), 1):
-            end = datetime.fromisoformat(match["at"].replace("Z", "+00:00"))
-            fits = [(path, min(abs(when - end) for when in whens)) for path, whens, goals in saved
-                    if match.get("score") and goals == set(match["score"]) and min(abs(when - end) for when in whens) < timedelta(minutes=3)]
-            if not fits:
+            path = replay_of(match, saved)
+            if not path:
                 continue
-            path = min(fits, key=lambda fit: fit[1])[0]
             result = {"win": "Vitória", "loss": "Derrota"}.get(match["result"], match["result"])
             name = f"Partida {number:02d} - {result} {match['score'][0]}-{match['score'][1]}{' (prorrogação)' if match.get('overtime') else ''}.replay"
             yield path, LIVES / day / "Replays" / name

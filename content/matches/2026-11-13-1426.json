@@ -79,7 +79,8 @@
         "mmr": 1001
       },
       "points": -9,
-      "mmr": 992
+      "mmr": 992,
+      "replay": "/replays/2026-11-13/2026-11-13-01.replay"
     },
     {
       "id": "975F129A11F1DF89F36DE79795A970F4",
@@ -132,7 +133,8 @@
         "mmr": 992
       },
       "points": 9,
-      "mmr": 1001
+      "mmr": 1001,
+      "replay": "/replays/2026-11-13/2026-11-13-02.replay"
     },
     {
       "id": "EEEB78D611F1DF8AE09E08BDA4E06F15",
@@ -185,7 +187,8 @@
         "mmr": 1001
       },
       "points": 10,
-      "mmr": 1011
+      "mmr": 1011,
+      "replay": "/replays/2026-11-13/2026-11-13-03.replay"
     },
     {
       "id": "C5F78EDC11F1DF8BEB4502B917A47F2F",
@@ -238,7 +241,8 @@
         "mmr": 1011
       },
       "points": 10,
-      "mmr": 1021
+      "mmr": 1021,
+      "replay": "/replays/2026-11-13/2026-11-13-04.replay"
     },
     {
       "id": "D20C79D411F1DF8CD67A359B78296A08",
@@ -291,7 +295,8 @@
         "mmr": 1021
       },
       "points": -10,
-      "mmr": 1011
+      "mmr": 1011,
+      "replay": "/replays/2026-11-13/2026-11-13-05.replay"
     },
     {
       "id": "D5482EE411F1DF8D06B0C0A4CFA29187",
@@ -344,7 +349,8 @@
         "mmr": 1011
       },
       "points": -8,
-      "mmr": 1003
+      "mmr": 1003,
+      "replay": "/replays/2026-11-13/2026-11-13-06.replay"
     },
     {
       "id": "053B04E011F1DF8F87EF3886777CAF14",
@@ -397,7 +403,8 @@
         "mmr": 1003
       },
       "points": 10,
-      "mmr": 1013
+      "mmr": 1013,
+      "replay": "/replays/2026-11-13/2026-11-13-07.replay"
     },
     {
       "id": "F6C529A811F1DF8F7C9475B63B5C4973",
@@ -450,7 +457,8 @@
         "mmr": 1013
       },
       "points": -12,
-      "mmr": 1001
+      "mmr": 1001,
+      "replay": "/replays/2026-11-13/2026-11-13-08.replay"
     },
     {
       "id": "FA2E006411F1DF901FABD3AF18155A90",
@@ -503,7 +511,8 @@
         "mmr": 1003
       },
       "points": 10,
-      "mmr": 1013
+      "mmr": 1013,
+      "replay": "/replays/2026-11-13/2026-11-13-09.replay"
     },
     {
       "id": "E8F0077411F1DF91077401A4DB1F9E4B",
@@ -556,7 +565,8 @@
         "mmr": 1013
       },
       "points": -9,
-      "mmr": 1004
+      "mmr": 1004,
+      "replay": "/replays/2026-11-13/2026-11-13-10.replay"
     },
     {
       "id": "F81DFA5211F1DF92DDD3BBA56FA86103",
@@ -609,7 +619,8 @@
         "mmr": 1004
       },
       "points": 9,
-      "mmr": 1013
+      "mmr": 1013,
+      "replay": "/replays/2026-11-13/2026-11-13-11.replay"
     },
     {
       "id": "DAEE00C011F1DF93608D24BD657C6A1A",
@@ -662,7 +673,8 @@
         "mmr": 1013
       },
       "points": -9,
-      "mmr": 1004
+      "mmr": 1004,
+      "replay": "/replays/2026-11-13/2026-11-13-12.replay"
     },
     {
       "id": "1AF84D0A11F1DF950C9CAA9293EEA1E6",
@@ -715,7 +727,8 @@
         "mmr": 1004
       },
       "points": -8,
-      "mmr": 996
+      "mmr": 996,
+      "replay": "/replays/2026-11-13/2026-11-13-13.replay"
     },
     {
       "id": "3040895611F1DF9684BBB29A1A6F09FC",
@@ -768,7 +781,8 @@
         "mmr": 996
       },
       "points": -10,
-      "mmr": 986
+      "mmr": 986,
+      "replay": "/replays/2026-11-13/2026-11-13-14.replay"
     },
     {
       "id": "3B372D7811F1DF9799EF67A9A9D8C6B3",
@@ -821,7 +835,8 @@
         "mmr": 986
       },
       "points": 9,
-      "mmr": 995
+      "mmr": 995,
+      "replay": "/replays/2026-11-13/2026-11-13-15.replay"
     }
   ],
   "ranks": [

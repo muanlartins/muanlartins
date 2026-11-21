@@ -13,6 +13,10 @@ export type Mode = (typeof MODES)[number]
 /** Days are counted in Luan's time, wherever the site is built. */
 export const TIME_ZONE = "America/Sao_Paulo"
 
+/** RLR, the replay player, on the site's own domain (/rlr/, GitHub Pages behind CloudFront), opening a replay the
+ * site serves (`Match.replay`): same origin, so RLR fetches it without CORS. */
+export const rlrHref = (replay: string) => `/rlr/?replay=${encodeURIComponent(replay)}`
+
 /** A rank: `tier` is an emblem in public/ranks ("diamond-2"), `division` 1–4. */
 export interface Standing {
   tier: string
@@ -63,6 +67,8 @@ export interface Match {
   /** Points won or lost, and the total after. */
   points?: number | null
   mmr?: number | null
+  /** Its replay on the site, "/replays/2026-11-20/2026-11-20-01.replay" (scripts/replays.py): RLR opens it. */
+  replay?: string
 }
 
 export interface Session {
