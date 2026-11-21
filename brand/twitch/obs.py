@@ -133,7 +133,9 @@ valorant = capture("Captura · Valorant", VALORANT)
 # Its capture takes whatever game is fullscreen or borderless in front, so a new game needs no setup (a windowed one
 # is picked in the capture's properties). The camera and the chat sit where Rocket League has them.
 various = capture("Captura · Diversos")
-# Stays on between scenes, so switching to one with the camera doesn't wait for it to start.
+# Stays on between scenes, so switching to one with the camera doesn't wait for it to start. Off the air it's off
+# altogether since 2026-11-20: the Efeitos dock presses its Activate/Deactivate button as the stream and the recording
+# start and stop (cameraSoNoAr in efeitos.html), so OBS left open doesn't keep the webcam and its lamp on.
 # It also goes to a file of its own at native resolution while recording (the Source Record plugin), with the
 # microphone for syncing it to the main recording.
 camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_video_device_id": CAMERA,

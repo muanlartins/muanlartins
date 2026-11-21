@@ -583,6 +583,7 @@
             gravando = !!recording?.outputActive
             conhecido = true
             gravarSoOJogo()
+            cameraSoNoAr()
             await bufferStatus()
             enviarVar()
           } else if (op === 5) {
@@ -595,6 +596,7 @@
               gravando = d.eventData.outputActive
               bufferPreciso()
               gravarSoOJogo()
+              cameraSoNoAr()
             }
             if (d.eventType === "ReplayBufferStateChanged" && !d.eventData.outputState.endsWith("ING")) bufferStatus()
           } else if (op === 7) {
@@ -1552,6 +1554,33 @@
         }
       }
 
+      // The camera only while it's needed (Luan, 2026-11-20: OBS left open shouldn't keep the webcam, and the lamp that
+      // follows it, on): every video capture device in OBS (the "Câmera", NVIDIA Broadcast's camera) is turned on when
+      // the stream or a recording starts and off once both have stopped, with its own Activate/Deactivate button
+      // (dshow's "activate"), which OBS remembers, so it opens off next time too. Opening takes a second or two, under
+      // Começando. That button in the source's properties turns it on by hand (to frame it before a live) until the
+      // next start or stop; the camera filters open the camera on their own only while a filter is on.
+      let cameraQuer = null
+      let cameraFila = Promise.resolve()
+      function cameraSoNoAr() {
+        if (!conhecido) return
+        const quer = stateOnAir || gravando
+        if (quer === cameraQuer) return
+        cameraQuer = quer
+        cameraFila = cameraFila.then(async () => {
+          const lista = await request("GetInputList", { inputKind: "dshow_input" })
+          for (const { inputName } of lista?.inputs ?? []) {
+            const s = await request("GetInputSettings", { inputName })
+            if (!s) continue
+            // "active" is only there once the button has been pressed: until then it's on.
+            const ativa = s.inputSettings?.active !== false
+            if (ativa === cameraQuer) continue
+            await request("PressInputPropertiesButton", { inputName, propertyName: "activate" })
+            logLine(`${inputName}: ${cameraQuer ? "ligada (no ar)" : "desligada (fora do ar)"}`)
+          }
+        })
+      }
+
       // Paused off the air, so nobody spends points on an effect nobody sees.
       // One change at a time, to the latest state, so a quick off and on can't land out of order.
       let stateOnAir = false
@@ -1560,6 +1589,7 @@
         stateOnAir = live
         bufferPreciso()
         gravarSoOJogo()
+        cameraSoNoAr()
         syncing = syncing.then(async () => {
           const want = stateOnAir
           if (!tw.user || airing === want) return
