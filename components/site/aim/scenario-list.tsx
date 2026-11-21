@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 
 const T = localize({
   notPlayed: { pt: "não jogado", en: "not played" },
-  to: { pt: "para", en: "to" },
+  to: { pt: "pra", en: "to" },
   top: { pt: "acima do último rank do nível", en: "past the level's last rank" },
   previous: { pt: "domingo anterior", en: "the Sunday before" },
   accuracy: { pt: "de precisão", en: "accuracy" },
@@ -22,17 +22,17 @@ export function ScenarioList({ benchmark, previous }: { benchmark: Benchmark; pr
   const level = LEVELS.find((l) => l.id === benchmark.level)!
   const before = previous?.level === benchmark.level ? previous : undefined
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       {CATEGORIES.map((category) => (
-        <section key={category.id} className="rounded-md border border-line bg-paper/70 p-4 backdrop-blur-sm">
-          <h3 className="text-[12px] font-medium uppercase tracking-[0.12em] text-klein">{localize(category.name)}</h3>
+        <section key={category.id} aria-label={localize(category.name)} className="cut cut-edge relative border border-line bg-paper/70 p-5">
+          <p className="eyebrow text-klein">{localize(category.name)}</p>
           {category.subcategories.map((name) => (
             <div key={name} className="mt-3 grid gap-x-4 sm:grid-cols-[6rem_minmax(0,1fr)]">
-              <p className="flex items-baseline gap-2 pt-0.5 text-[12px] text-muted sm:block">
+              <p className="flex items-baseline gap-2 pt-0.5 text-[13px] text-muted sm:block">
                 {name}
-                <span className="block text-[13px] font-semibold tabular-nums text-ink" title={T.energyTitle}>
+                <span className="block text-[15px] font-semibold tabular-nums text-ink" title={T.energyTitle}>
                   {benchmark.subcategories.find((s) => s.name === name)?.energy ?? 0}
-                  <span className="ml-1 text-[11px] font-normal text-muted">{T.energy}</span>
+                  <span className="ml-1 text-[13px] font-normal text-muted">{T.energy}</span>
                 </span>
               </p>
               <ul className="mt-1 space-y-3 sm:mt-0">
@@ -66,10 +66,10 @@ function Row({ scenario, previous, ranks }: { scenario: ScenarioResult; previous
     <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 sm:grid-cols-[8rem_minmax(0,1fr)_auto]">
       <span className="truncate text-[15px] font-medium text-ink sm:row-start-1">{scenario.name.replace(/^VT /, "")}</span>
       <span className="flex shrink-0 items-baseline justify-end gap-2 tabular-nums sm:col-start-3 sm:row-start-1">
-        {change !== undefined && change !== 0 && <span className={cn("text-[12px]", change > 0 ? "text-win" : "text-loss")}>{signed(change)}</span>}
-        <span className="text-[15px] font-semibold text-ink">{score ?? "—"}</span>
-        <span className="w-[4.5rem] text-right text-[12px] font-medium" style={{ color: rank?.color }}>
-          {rank?.name ?? (score === null ? T.notPlayed : "—")}
+        {change !== undefined && change !== 0 && <span className={cn("text-[13px] font-medium", change > 0 ? "text-win" : "text-loss")}>{signed(change)}</span>}
+        <span className="text-[15px] font-semibold text-ink">{score ?? "–"}</span>
+        <span className="w-[5.5rem] text-right text-[13px] font-medium" style={{ color: rank?.color }}>
+          {rank?.name ?? (score === null ? T.notPlayed : "–")}
         </span>
       </span>
       <div
@@ -79,7 +79,7 @@ function Row({ scenario, previous, ranks }: { scenario: ScenarioResult; previous
           .map((s) => `${s.name} ${s.from}`)
           .join(" · ")}
       >
-        <div className="absolute inset-0 flex gap-[2px] overflow-hidden rounded-full">
+        <div className="absolute inset-0 flex gap-[2px] overflow-hidden">
           {segments.map((segment) => {
             const width = ((Math.min(segment.to, top) - segment.from) / top) * 100
             const lit = score === null ? 0 : Math.min(1, Math.max(0, (score - segment.from) / (segment.to - segment.from)))
@@ -92,13 +92,13 @@ function Row({ scenario, previous, ranks }: { scenario: ScenarioResult; previous
         </div>
         {previous?.score != null && (
           <span
-            className="absolute -top-1 h-4 w-[2px] -translate-x-1/2 rounded-full bg-navy/60"
+            className="absolute -top-1 h-4 w-[2px] -translate-x-1/2 bg-navy/70"
             style={{ left: at(previous.score) }}
             title={`${T.previous}: ${previous.score}`}
           />
         )}
       </div>
-      <p className="col-span-2 mt-1 text-[11px] tabular-nums text-muted sm:col-span-1 sm:col-start-2">
+      <p className="col-span-2 mt-1 text-[13px] tabular-nums text-muted sm:col-span-1 sm:col-start-2">
         {score === null
           ? null
           : next >= 0

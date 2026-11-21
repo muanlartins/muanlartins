@@ -25,14 +25,20 @@ again) before its replays read; until then this skips them, saying so, and reads
 
 What it takes from a replay (Luan's account: the one of the game's config folders, `Saved\\Config\\<puuid>-<region>`,
 that played the match): his shots are his guns' magazine going down (shotguns left out: one shell is many pellets);
-a shot hit when one of his hits came from -40 to +200 ms of it; the target is the enemy whose head was nearest the
+a shot hit when one of his hits on an enemy came from -40 to +200 ms of it (a bullet in a wall, a turret or a Boom Bot
+isn't a hit, as Riot's own counts don't make it one), and where it hit is the game's own region of the hit (head, body,
+legs: the neck counts as head and the hips as legs, as in Riot's match summary, which these match hit for hit); the target is the enemy whose head was nearest the
 crosshair (the replay has no walls, so it can't say who he saw; misses are aimed at whoever was nearest, as Aimlabs'
 are); a head's centre is where the match's headshots landed over the body's position, and its radius the 90th
 percentile of their distance from it. A shot's aim starts at the shot before or 0.8 s earlier. Before using a match it
 checks that the view it rebuilds lines up with the game's own hits: the ray from his eye along his view at each hit
 must pass, at the median, within a degree of where the bullet landed, or the match is skipped and says why.
 
-Nothing about the other players is kept: no names, ids or numbers. A day's file keeps what it had.
+Every flick is kept one by one too (`cada_flick`, mira.py's): its way to the head in degrees on screen, the head's
+radius, whether it hit and where, its corrections, and the body walking or not.
+
+Nothing about the other players is kept: no names, ids, positions or numbers (only his crosshair against the nearest
+head). A day's file keeps what it had.
 """
 import argparse
 import bisect
@@ -52,7 +58,7 @@ from pathlib import Path
 import numpy as np
 import polars as pl
 
-from mira import medir, resumo
+from mira import medir, para_json, resumo
 from voltaic import TIME_ZONE
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -67,7 +73,17 @@ ANDANDO = 150
 # A fight: a shot more than this after the one before (s) opens one.
 LUTA = 0.6
 SHOTGUNS = "/Shotguns/"
-BONES = {"cabeca": ("Head",), "perna": ("Knee", "Foot", "Leg", "Thigh", "Calf", "Ankle", "Toe")}
+# Where a hit landed, by the bone's name, for a replay without the game's own region (REGIOES): what Riot counts.
+BONES = {"cabeca": ("Head", "Neck"), "perna": ("Hip", "Knee", "Foot", "Leg", "Thigh", "Calf", "Ankle", "Toe")}
+REGIOES = {1: "cabeca", 2: "perna", 0: "corpo"}
+
+
+def regiao(hit) -> str:
+    """Head, body or legs, as Riot's match summary counts them: the game's region of the hit, else the bone's name."""
+    if hit.get("regional_damage") in REGIOES:
+        return REGIOES[hit["regional_damage"]]
+    osso = hit.get("bone") or ""
+    return next((k for k, nomes in BONES.items() if any(n in osso for n in nomes)), "corpo")
 
 
 class Pula(Exception):
@@ -277,7 +293,9 @@ def medir_partida(vrf, manifesto, mv, dano, rodadas, eventos, obs, atores, detal
             tiros += [a["time_ms"] / 1000] * (-a["delta"])
     tiros.sort()
 
-    acertos = sorted(((r["time_ms"] / 1000, r) for r in meus_danos.iter_rows(named=True)), key=lambda par: par[0])
+    # His hits on the enemies only: a bullet in a wall of Sage's or a Boom Bot lands too, but it hit nobody.
+    acertos = sorted(((r["time_ms"] / 1000, r) for r in meus_danos.iter_rows(named=True) if r["victim_subject"] in inimigos),
+                     key=lambda par: par[0])
     usados = set()
     medidos, lutas, antes = [], [], -1e9
     ossos = Counter()
@@ -288,9 +306,8 @@ def medir_partida(vrf, manifesto, mv, dano, rodadas, eventos, obs, atores, detal
             _, i = min(perto)
             usados.add(i)
             hit = acertos[i][1]
-            osso = hit["bone"] or ""
-            ossos[next((k for k, nomes in BONES.items() if any(n in osso for n in nomes)), "corpo")] += 1
-        alvo = hit["victim_subject"] if hit and hit["victim_subject"] in inimigos else None
+            ossos[regiao(hit)] += 1
+        alvo = hit["victim_subject"] if hit else None
         if alvo is None:
             vivos = [s for s in inimigos if vivo(s, ts)]
             if vivos:
@@ -303,12 +320,15 @@ def medir_partida(vrf, manifesto, mv, dano, rodadas, eventos, obs, atores, detal
         if not primeiro or alvo is None or math.hypot(*erro_para(cabeca_de(alvo, ts), ts)[0]) > 20:
             continue  # a burst's follow-up, or nobody near the crosshair (a shot at a wall, a smoke)
         tiro = medir(T, A, ts, ts - JANELA, lambda x, s=alvo: erro_para(cabeca_de(s, x), x), raio_w, hit is not None)
+        tiro["andando"] = bool(no(EU, ts, "vel") > ANDANDO)
+        if hit is not None:
+            tiro["osso"] = regiao(hit)
         medidos.append(tiro)
         t0 = ts - JANELA + tiro["reacao"] if tiro["tipo"] == "flick" else ts - JANELA
         (_, ey), _ = erro_para(cabeca_de(alvo, t0), t0)
         lutas.append({"acertou": hit is not None, "vel": float(no(EU, ts, "vel")), "altura": -ey, "tipo": tiro["tipo"]})
 
-    numeros = resumo({"tiros": medidos, "acertos": len(usados), "n_tiros": len(tiros)})
+    numeros = resumo({"tiros": medidos, "acertos": len(usados), "n_tiros": len(tiros)}, caminhos=None)
     if not numeros:
         raise Pula(f"fewer than 10 flicks ({sum(1 for t in medidos if t['tipo'] == 'flick')})")
     parado = [x for x in lutas if x["vel"] <= ANDANDO]
@@ -348,10 +368,10 @@ def medir_partida(vrf, manifesto, mv, dano, rodadas, eventos, obs, atores, detal
     }
     checagem = {"confere_mediana": round(confere, 3), "confere_p90": round(float(np.percentile(raios, 90)), 3), "olho": round(float(olho[2]), 1),
                 "cabeca": [round(float(c), 1) for c in cabeca], "raio_cabeca": round(raio_w, 1), "atraso_ms": round(atraso * 1000),
-                "acertos_dele": meus_danos.height}
+                "acertos_dele": meus_danos.height, "nos_inimigos": len(acertos)}
     if detalhe:
         for t in medidos:
-            print({k: (round(v, 3) if isinstance(v, float) else v) for k, v in t.items() if k != "curva"})
+            print({k: (round(v, 3) if isinstance(v, float) else v) for k, v in t.items() if k not in ("curva", "caminho")})
     return partida, checagem
 
 
@@ -400,7 +420,7 @@ def main():
         print(f"{dia}: {len(novas)} matches ({len(novas) - len(antes):+d})")
         if args.apply:
             OUT.mkdir(parents=True, exist_ok=True)
-            caminho.write_text(json.dumps({"date": dia, "matches": novas}, ensure_ascii=False, indent=1) + "\n")
+            caminho.write_text(para_json({"date": dia, "matches": novas}))
     if not mudou:
         print("Nothing new.")
     elif not args.apply:

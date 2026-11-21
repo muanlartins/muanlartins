@@ -10,7 +10,7 @@ const T = localize({
   before: { pt: "O anterior", en: "The one before" },
   energy: { pt: "energia", en: "energy" },
   notPlayed: { pt: "não jogado", en: "not played" },
-  hint: { pt: "Passe o mouse ou toque numa subcategoria.", en: "Hover or tap a subcategory." },
+  hint: { pt: "Escolhe uma subcategoria pra ver os cenários dela.", en: "Pick a subcategory to see its scenarios." },
 })
 
 const C = 170
@@ -67,7 +67,7 @@ export function AimRadar({ benchmark, previous }: { benchmark: Benchmark; previo
                 strokeWidth={2}
                 strokeLinecap="round"
               />
-              <text dy={below ? 15 : -7} textAnchor="middle" className="fill-klein text-[11px] font-medium uppercase tracking-[0.14em]">
+              <text dy={below ? 18 : -8} textAnchor="middle" className="fill-klein text-[14px] font-medium uppercase tracking-[0.12em]">
                 <textPath href={`#${id}`} startOffset="50%">
                   {localize(category.name)}
                 </textPath>
@@ -89,7 +89,7 @@ export function AimRadar({ benchmark, previous }: { benchmark: Benchmark; previo
                 strokeDasharray={index === rings.length - 1 ? undefined : "2 3"}
               />
               {/* Each ring's rank, between the first two axes. */}
-              <text x={point(0.5, ring)[0]} y={point(0.5, ring)[1]} dx={3} dy="0.32em" className="text-[9px] font-medium" fill={rank.color}>
+              <text x={point(0.5, ring)[0]} y={point(0.5, ring)[1]} dx={3} dy="0.32em" className="text-[12px] font-medium" fill={rank.color}>
                 {rank.name}
               </text>
             </g>
@@ -122,19 +122,19 @@ export function AimRadar({ benchmark, previous }: { benchmark: Benchmark; previo
               onPointerDown={() => setActive(i)}
               onFocus={() => setActive(i)}
               onBlur={() => setActive(undefined)}
-              className="cursor-pointer outline-none"
+              className="cursor-pointer focus-visible:outline-none"
             >
               {/* A wedge to hover, wider than the label. */}
               <path
                 d={`M ${C} ${C} L ${C + (R + 60) * Math.cos(angle(i - 0.5))} ${C + (R + 60) * Math.sin(angle(i - 0.5))} L ${C + (R + 60) * Math.cos(angle(i + 0.5))} ${C + (R + 60) * Math.sin(angle(i + 0.5))} Z`}
-                fill="transparent"
+                className={i === active ? "fill-klein/[0.06]" : "fill-transparent"}
               />
               <text
                 x={x}
                 y={y}
                 dy="0.32em"
                 textAnchor={Math.abs(cos) < 0.2 ? "middle" : cos > 0 ? "start" : "end"}
-                className={cn("text-[12px]", i === active ? "fill-klein font-semibold" : "fill-ink")}
+                className={cn("text-[15px]", i === active ? "fill-klein font-semibold underline" : "fill-ink")}
               >
                 {s.name}
               </text>
@@ -144,9 +144,9 @@ export function AimRadar({ benchmark, previous }: { benchmark: Benchmark; previo
       </svg>
 
       <div className="space-y-4" onPointerLeave={() => setActive(undefined)}>
-        <div className="flex flex-wrap gap-5 text-[12px] text-muted">
+        <div className="flex flex-wrap gap-5 text-[13px] text-muted">
           <span className="flex items-center gap-1.5">
-            <span className="h-2.5 w-4 rounded-sm border-2 border-klein bg-klein/20" />
+            <span className="h-2.5 w-4 border-2 border-klein bg-klein/20" />
             {T.now}
           </span>
           {comparable && (
@@ -157,15 +157,15 @@ export function AimRadar({ benchmark, previous }: { benchmark: Benchmark; previo
           )}
         </div>
         {sub ? (
-          <div className="rounded-md border border-line bg-paper/70 px-4 py-3 backdrop-blur-sm">
-            <p className="text-[12px] uppercase tracking-[0.12em] text-muted">{sub.category}</p>
+          <div className="cut cut-edge relative border border-line bg-paper/70 p-5">
+            <p className="eyebrow text-muted">{sub.category}</p>
             <p className="flex items-baseline justify-between gap-3">
               <span className="text-xl font-medium tracking-[-0.02em] text-klein">{sub.name}</span>
               <span className="tabular-nums text-ink">
                 <span className="text-xl font-semibold">{sub.energy}</span> <span className="text-[13px] text-muted">{T.energy}</span>
               </span>
             </p>
-            <ul className="mt-2 space-y-1 text-[14px]">
+            <ul className="mt-2 space-y-1 text-[15px]">
               {scenarios.map((s) => {
                 const rank = rankById(s.rank)
                 return (
@@ -188,7 +188,7 @@ export function AimRadar({ benchmark, previous }: { benchmark: Benchmark; previo
           <ul className="grid grid-cols-3 gap-x-4 gap-y-3 md:grid-cols-1">
             {CATEGORIES.map((category) => (
               <li key={category.id} className="space-y-1">
-                <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-klein">{localize(category.name)}</p>
+                <p className="eyebrow text-klein">{localize(category.name)}</p>
                 {axes
                   .filter((s) => s.category === category.id)
                   .map((s) => (
@@ -201,7 +201,7 @@ export function AimRadar({ benchmark, previous }: { benchmark: Benchmark; previo
             ))}
           </ul>
         )}
-        {!sub && <p className="text-[12px] text-muted">{T.hint}</p>}
+        {!sub && <p className="text-[13px] text-muted">{T.hint}</p>}
       </div>
     </div>
   )
