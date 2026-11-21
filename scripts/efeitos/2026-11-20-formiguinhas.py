@@ -6,7 +6,9 @@ So the broom is real 3D (three.js in headless Chromium, built from primitives: a
 420 straw ribbons bent each frame by the stroke, red and green stitching) and the ants are the site's Octane
 (public/models/octane.glb, Jako, CC BY 4.0) painted the opponents' orange, a few hand-spans long on the field.
 
-- "eu tiro os defensores": the ants pop up on the game's field, scurrying in bursts like ants.
+- "eu tiro os defensores": a 45° wipe (the brand plate's cut) puts the game's half on the sweep's own stage (round 3,
+  Luan: "ficou um pouco confuso a varrida em cima da gameplay"): a 3D Klein floor with the live backgrounds' lattice,
+  lit where the ants are, under a night-blue backdrop; the ants pop up on it, scurrying in bursts like ants.
 - "Pum!": the broom slams down where the goal replay shows his demolition (its BOOM, left of the field), flattening
   the two ants there, with a dust burst. Then two strokes to the right ("limpei as" / "formiguinhas do campo")
   launch every ant tumbling off the frame. His camera above leans with each stroke, the handle reaching his chest
@@ -16,6 +18,12 @@ So the broom is real 3D (three.js in headless Chromium, built from primitives: a
 - "que sujeira, hein?": the swept field sparkles, with a bell for each glint.
 - "Flip! Flip!": motion arcs around the Octane on his head as it flips. "toma flip do Octane na cabeça": the ants
   come back and circle his head doing flips (the back half hidden behind the filter), bonk on "cabeça".
+- His goal (round 3: "uma construção até a grande pancada, tipo quando os filmes criam uma antecipação"): from 1.5 s
+  before his touch the colour drains, the frame closes in and pushes on the ball, a heart speeds up from ~83 to
+  ~180 bpm under a riser, manga focus lines close in and a speedometer in the channel's look ticks up; on the touch
+  (115 km/h in the session's log) a hit-stop (an inverted frame, a white one, the frozen hit shaking), a big hit,
+  the colour back hot with a shock ring, the needle slamming past 110; on the explosion "110 KM/H" is stamped in the
+  thumbnails' style with a burst.
 - Every sound here is synthesised (straw scratching the floor and whooshing through the air, from the broom's own
   speed per frame; a straw slap; squeaks for each ant hit; plastic clicks as they bounce; a wet splat; bells;
   birds).
@@ -50,6 +58,16 @@ FLIP_HEAD = (540, 433, 340, 310)  # the Octane on his head under the 1.3 punch-i
 ORBIT = (4380.45, 4381.38)  # the ants come in on "flip", the bonk on "cabeça"
 ARC_H = 840  # the arcs stay in the camera's half
 RING_Y = 340  # the ring's centre: the roof of the filter's Octane on his head, with no zoom (frame y)
+SLAM = 4269.85  # "Pum!": the stretches holding it (the teaser and the payoff) get the stage
+STAGE = (4268.56, 4268.76)  # the 45° wipe that puts the sweep on its own stage, just before the ants pop up
+HORIZON_GLOW = (0, 36, 128)  # the stage's fog and its backdrop at the horizon
+# his goal (round 3, Luan: "uma construção até a grande pancada, tipo quando os filmes criam uma antecipação")
+B0, TT, GOAL = 4358.0, 4359.55, 4360.44  # the build starts; his touch (115 km/h, the session's log); the explosion
+FREEZE = 0.15  # the hit-stop on his touch
+AIM = (530, 1430)  # the push-in: between the ball coming down and his car (frame px)
+TOUCH = (505, 1442)  # where the ball is hit, for the shock ring
+GAUGE_AT = (540, 1080)  # the speedometer, over the stands
+PLATE_AT = (540, 1180)  # "110 KM/H" stamped on the goal
 
 CENA = r"""<!doctype html><html><body style="margin:0;background:transparent">
 <script type="importmap">{"imports":{"three":"http://local/three/build/three.module.js","three/addons/":"http://local/three/examples/jsm/"}}</script>
@@ -345,8 +363,8 @@ const T = {
 };
 async function varrida(args) {
   await loadOctane(args.ant ?? 0.74);
-  const t0 = args.de ?? 4268.7, t1 = args.ate ?? 4272.8, fps = 60, sub = 4;
-  const y0 = args.y0 ?? 480, h = args.h ?? 1240;
+  const t0 = args.de ?? 4268.7, t1 = args.ate ?? 4273.4, fps = 60, sub = 4;
+  const y0 = args.y0 ?? 480, h = args.h ?? 1320;
   const only = args.so ? new Set(args.so) : null;
   // the field the ants stand on: a band of the game's half, in world coordinates
   const near = groundAt(540, 1640).z, far = groundAt(540, 1478).z;
@@ -576,7 +594,42 @@ async function orbita(args) {
   return { frames };
 }
 
+// ================================================================================================ the stage
+// The sweep's own floor (Luan, round 3: "colocar um fundo pra animação da varrida"): the channel's Klein with the
+// live backgrounds' diagonal lattice, lit in a pool where the ants are, fading into the night blue at the horizon.
+// Rendered once with the sweep's camera, so the ants and the broom stand on it.
+async function palco(args) {
+  hideBroom(true);
+  catcher.visible = false;
+  const near = groundAt(540, 1640).z, far = groundAt(540, 1478).z, mid = (near + far) / 2;
+  const N = 4096, SIZE = 64;  // texture pixels over metres of floor
+  const c = document.createElement("canvas"); c.width = c.height = N;
+  const g = c.getContext("2d");
+  const toPx = (x, z) => [N / 2 + x / SIZE * N, N / 2 + (z - mid) / SIZE * N];
+  const [px, pz] = toPx(0, mid + 0.4);
+  const grad = g.createRadialGradient(px, pz, 0, px, pz, N * 0.11);
+  grad.addColorStop(0, "rgb(18,76,212)"); grad.addColorStop(0.4, "rgb(0,47,167)"); grad.addColorStop(1, "rgb(0,30,104)");
+  g.fillStyle = grad; g.fillRect(0, 0, N, N);
+  const step = N / SIZE * 0.55;  // a line every 0.55 m, both diagonals
+  g.strokeStyle = "rgba(255,255,255,0.13)"; g.lineWidth = 2.2;
+  for (let k = -2 * N; k < 2 * N; k += step) {
+    g.beginPath(); g.moveTo(k, 0); g.lineTo(k + N, N); g.stroke();
+    g.beginPath(); g.moveTo(k, N); g.lineTo(k + N, 0); g.stroke();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 16;
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(SIZE, SIZE), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.set(0, 0, mid);
+  scene.add(floor);
+  scene.fog = new THREE.Fog(new THREE.Color("rgb(0,36,128)"), 8, 26);
+  await renderRegion(840, 1080, "palco.png", 540);
+  return { ok: 1 };
+}
+
 window.main = async (args) => {
+  if (args.modo === "palco") return palco(args);
   if (args.modo === "splat") return splat(args);
   if (args.modo === "orbita") return orbita(args);
   return varrida(args);
@@ -640,7 +693,8 @@ def render3d(ctx):
               if (p / "playwright-core").exists())
     env = dict(os.environ, PW_DIR=str(pw), THREE_DIR=str(ctx.ROOT / "node_modules" / "three"),
                MODELS_DIR=str(ctx.ROOT / "public" / "models"))
-    for args in ({"modo": "splat"}, {"modo": "orbita"}, {"modo": "varrida", "capa": 4271.0}, {"modo": "varrida"}):
+    for args in ({"modo": "palco"}, {"modo": "splat"}, {"modo": "orbita"}, {"modo": "varrida", "capa": 4271.0},
+                 {"modo": "varrida"}):
         print(f"  3D: {args['modo']}{' (capa)' if 'capa' in args else ''}…", flush=True)
         subprocess.run(["node", str(src / "driver.mjs"), str(src / "cena.html"), str(out), json.dumps(args)],
                        env=env, cwd=src, check=True, stdout=subprocess.DEVNULL)
@@ -780,6 +834,42 @@ def setup(ctx):
     S["star"] = star_sprite()
     S["orbit"] = {}
     cover_sticker(d)
+    S["stage"] = make_stage(d, ctx)
+    yy, xx = np.mgrid[0:ctx.H - ctx.CAM_H, 0:ctx.W]
+    S["diag"] = xx + yy
+    S["beats"] = beats()
+    S["vig_cam"] = vignette(ctx.W, ctx.CAM_H, 540, 420)
+    S["vig_game"] = vignette(ctx.W, ctx.H - ctx.CAM_H, AIM[0], AIM[1] - ctx.CAM_H)
+    S["plate"] = ctx.title_sprite(["110", "KM/H"], 220)
+    S["ctx"] = ctx
+
+
+def make_stage(d, ctx):
+    """The sweep's stage, the game's half: the 3D floor (Klein with the lattice, lit where the ants are, fading into
+    the fog), under a backdrop from the night blue to the horizon's glow with the live backgrounds' lattice, and a
+    faint beam of light from above."""
+    floor = rgba(d / "palco.png")
+    h, w = floor.shape[:2]
+    opaque = np.nonzero(floor[..., 3].max(1) > 200)[0]
+    edge = int(opaque.min()) if len(opaque) else h // 3
+    top, hor = np.array(ctx.cores["noite"], np.float32), np.array(HORIZON_GLOW, np.float32)
+    k = (np.clip(np.arange(h) / max(1, edge), 0, 1) ** 1.8)[:, None, None]
+    out = np.broadcast_to(top * (1 - k) + hor * k, (h, w, 3)).copy()
+    yy, xx = np.mgrid[0:h, 0:w]
+    lattice = (((yy + xx) % 44 < 2) | ((yy - xx) % 44 < 2)) & (yy < edge)
+    out[lattice] = out[lattice] * 0.9 + 255 * 0.07
+    a = floor[..., 3:4].astype(np.float32) / 255
+    out = out * (1 - a) + floor[..., :3] * a
+    beam = np.zeros((h, w), np.float32)
+    cv2.fillPoly(beam, [np.array([(455, 0), (625, 0), (1000, 760), (60, 760)], np.int32)], 1.0)
+    beam = cv2.GaussianBlur(beam * np.clip(1 - yy / 900, 0, 1) ** 0.7, (0, 0), 30)
+    out += beam[..., None] * np.array(ctx.cores["klein_claro"], np.float32) * 0.13
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
+def vignette(w, h, cx, cy):
+    y, x = np.mgrid[0:h, 0:w].astype(np.float32)
+    return np.clip(np.hypot((x - cx) / w, (y - cy) / h * 0.85) * 1.7 - 0.25, 0, 1) ** 1.4
 
 
 def cover_sticker(d):
@@ -823,6 +913,11 @@ def ramp(t, a, b):
 def antes(f, o, ctx):
     k, t = where(o, ctx)
     W, CAM_H = ctx.W, ctx.CAM_H
+    span = ctx.clock.spans[k]
+    if span[0] <= TT < span[1]:
+        goal_build(f, t, ctx)
+    if span[0] <= SLAM < span[1] and t >= STAGE[0]:
+        stage_on(f, t, ctx)
     # --- his camera leaning with the strokes, then the broom, the ants and the dust over everything
     spr, info = sweep_frame(t)
     if info and info["tip"] is not None:
@@ -911,6 +1006,217 @@ def orbit(f, t, ctx):
     mask[:ctx.CAM_H] = cv2.GaussianBlur((~klein).astype(np.float32), (0, 0), 2)
     blend(f, back, cx - back.shape[1] / 2, cy - back.shape[0] / 2, mask=mask)
     blend(f, front, cx - front.shape[1] / 2, cy - front.shape[0] / 2)
+
+
+def stage_on(f, t, ctx):
+    """The stage replaces the game's half behind a 45° wipe (the brand plate's cut) with a Klein claro edge."""
+    g = f[ctx.CAM_H:]
+    u = ramp(t, *STAGE)
+    if u >= 1:
+        g[:] = S["stage"]
+        return
+    u = u * u * (3 - 2 * u)
+    s = u * 2300 - 70
+    diag = S["diag"]
+    m = diag < s
+    g[m] = S["stage"][m]
+    g[(diag >= s) & (diag < s + 30)] = ctx.cores["klein_claro"]
+    g[(diag >= s + 30) & (diag < s + 38)] = ctx.cores["branco"]
+
+
+def beats():
+    """(lub, interval): the heart from the build's start to just before his touch, ~83 → ~180 bpm."""
+    out, t = [], B0 + 0.04
+    while t < TT - 0.16:
+        p = (t - B0) / (TT - B0)
+        i = 0.72 - 0.39 * p ** 0.85
+        out.append((t, i))
+        t += i
+    return out
+
+
+def dub_gap(i):
+    return 0.24 * (i / 0.72) ** 0.6
+
+
+def hb_env(t):
+    v = 0.0
+    for b, i in S["beats"]:
+        for at, w in ((b, 1.0), (b + dub_gap(i), 0.7)):
+            if at <= t:
+                v = max(v, w * math.exp(-(t - at) / 0.08))
+    return v
+
+
+def zoomed(img, z, cx, cy):
+    if abs(z - 1) < 1e-3:
+        return img
+    m = np.float32([[z, 0, (1 - z) * cx], [0, z, (1 - z) * cy]])
+    return cv2.warpAffine(img, m, (img.shape[1], img.shape[0]), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT101)
+
+
+def gray_of(x):
+    return x @ np.array([0.299, 0.587, 0.114], np.float32)
+
+
+def focus_lines(g, alpha, seed, cx, cy, color=(255, 255, 255)):
+    """Manga focus lines closing on (cx, cy) of the game's half."""
+    rng = np.random.default_rng(seed)
+    layer = np.zeros(g.shape[:2], np.float32)
+    for _ in range(56):
+        a, r0, w = rng.uniform(0, 2 * math.pi), rng.uniform(300, 520), rng.uniform(4, 15)
+        c, s_ = math.cos(a), math.sin(a)
+        pts = np.array([(cx + c * r0, cy + s_ * r0), (cx + c * 1300 - s_ * w, cy + s_ * 1300 + c * w),
+                        (cx + c * 1300 + s_ * w, cy + s_ * 1300 - c * w)], np.int32)
+        cv2.fillPoly(layer, [pts], 1.0, lineType=cv2.LINE_AA)
+    a = (layer * alpha)[..., None]
+    g[:] = (g.astype(np.float32) * (1 - a) + np.array(color, np.float32) * a).astype(np.uint8)
+
+
+def goal_build(f, t, ctx):
+    """The build to the big hit, like a film's before the punch: the colour drains, the frame closes in and pushes
+    on the ball, the heart speeds up, focus lines close in; on his touch the frame stops (an inverted frame, a white
+    one, then the frozen hit in colour, shaking), then real time with the colour back hot and a shock ring."""
+    H2 = ctx.CAM_H
+    if t < B0 or t > GOAL + 1.6:
+        return
+    if t < TT:
+        p = ramp(t, B0, TT)
+        hb = hb_env(t)
+        f[H2:] = zoomed(f[H2:], 1 + 0.32 * p ** 1.7 + 0.018 * hb, AIM[0], AIM[1] - H2)
+        f[:H2] = zoomed(f[:H2], 1 + 0.12 * p ** 1.5 + 0.01 * hb, 540, 420)
+        S["last_raw"] = f.copy()
+        x = f.astype(np.float32)
+        d = 0.8 * p ** 0.8
+        x = x * (1 - d) + gray_of(x)[..., None] * d
+        x = (x - 128) * (1 + 0.2 * p) + 128 - 10 * p
+        v = 0.25 + 0.5 * p + 0.3 * hb * p
+        for y0, y1, vig in ((0, H2, S["vig_cam"]), (H2, ctx.H, S["vig_game"])):
+            part = x[y0:y1]
+            part *= (1 - np.clip(v * vig, 0, 0.9))[..., None]
+            part[..., 2] += 22 * p * vig
+        f[:] = np.clip(x, 0, 255).astype(np.uint8)
+        if p > 0.5:
+            focus_lines(f[H2:], 0.55 * ((p - 0.5) / 0.5) ** 1.3, int(t * 30), AIM[0], AIM[1] - H2)
+    elif t < TT + FREEZE:
+        if "freeze" not in S:  # the frame of the touch, pushed in as far as the build went, in colour
+            S["freeze"] = S.get("last_raw", f).copy()
+        base = S["freeze"].astype(np.float32)
+        e = t - TT
+        if e < 2 / 60:  # the manga impact frame: inverted, hard black and white, black focus lines
+            g = np.clip((255 - gray_of(base) - 128) * 2.4 + 128, 0, 255)
+            f[:] = np.repeat(g[..., None], 3, axis=2).astype(np.uint8)
+            focus_lines(f[H2:], 0.9, 7, AIM[0], AIM[1] - H2, (0, 0, 0))
+        elif e < 4 / 60:
+            f[:] = (base * 0.25 + 255 * 0.75).astype(np.uint8)
+        else:
+            g = gray_of(base)[..., None]
+            x = np.clip(g + (base - g) * 1.5 + 10, 0, 255).astype(np.uint8)
+            dx, dy = 16 * math.sin(e * 140), 12 * math.cos(e * 110)
+            m = np.float32([[1.05, 0, -0.05 * AIM[0] + dx], [0, 1.05, -0.05 * AIM[1] + dy]])
+            f[:] = cv2.warpAffine(x, m, (ctx.W, ctx.H), borderMode=cv2.BORDER_REFLECT101)
+    else:
+        e = max(0.0, t - TT - FREEZE)
+        if e < 0.32:
+            f[H2:] = zoomed(f[H2:], 1 + 0.32 * (1 - ramp(e, 0, 0.32)) ** 2, AIM[0], AIM[1] - H2)
+        if e < 0.9:
+            x = f.astype(np.float32)
+            g = gray_of(x)[..., None]
+            x = g + (x - g) * (1 + 0.55 * math.exp(-e / 0.3)) + 14 * math.exp(-e / 0.15)
+            if e < 0.55:  # the shock ring from the ball
+                ring = np.zeros((ctx.H - H2, ctx.W), np.float32)
+                r = int(40 + 1400 * (e / 0.55) ** 0.6)
+                cv2.circle(ring, (TOUCH[0], TOUCH[1] - H2), r, 1.0, max(3, int(28 * (1 - e / 0.55))), cv2.LINE_AA)
+                ring = cv2.GaussianBlur(ring, (0, 0), 3)[..., None] * (1 - e / 0.55) ** 1.4
+                x[H2:] = x[H2:] * (1 - ring) + np.array(ctx.cores["klein_claro"], np.float32) * ring * 0.6 + 255 * ring * 0.4
+            f[:] = np.clip(x, 0, 255).astype(np.uint8)
+            a = 20 * math.exp(-e / 0.13)
+            if a > 0.5:
+                m = np.float32([[1.03, 0, -0.015 * ctx.W + a * math.sin(e * 130)], [0, 1.03, -0.015 * ctx.H + a * math.cos(e * 105)]])
+                f[:] = cv2.warpAffine(f, m, (ctx.W, ctx.H), borderMode=cv2.BORDER_REFLECT101)
+    speed_gauge(f, t, ctx)
+    speed_plate(f, t, ctx)
+
+
+def gauge_value(t):
+    if t < TT:
+        return 92 * ramp(t, B0 + 0.1, TT - 0.03) ** 1.7
+    e = t - TT
+    return 110 + 10 * math.exp(-e / 0.07) * math.cos(e * 55) + 1.2 * math.sin(e * 97)
+
+
+def speed_gauge(f, t, ctx):
+    """A speedometer in the channel's look charging with the build, its needle slamming to 110 on his touch; it
+    bursts as the plate lands on the goal."""
+    if t < B0 + 0.08 or t > GOAL + 0.12:
+        return
+    from PIL import Image, ImageDraw
+    c = ctx.cores
+    v = gauge_value(t)
+    W_, H_ = 470, 340
+    img = Image.new("RGBA", (W_, H_))
+    d = ImageDraw.Draw(img)
+    ctx.plate(d, 15, 15, W_ - 30, H_ - 30, c["noite"] + (230,))
+    cx, cy, r = W_ // 2, 200, 150
+    box = (cx - r, cy - r, cx + r, cy + r)
+    ang = lambda val: 180 + 180 * min(max(val, 0), 120) / 120
+    d.arc(box, 180, 360, fill=c["klein_escuro"] + (255,), width=26)
+    hot = v > 100
+    d.arc(box, 180, ang(min(v, 100)), fill=c["klein_claro"] + (255,), width=26)
+    if hot:
+        d.arc(box, ang(100), ang(v), fill=c["branco"] + (255,), width=30)
+    for tick in range(0, 121, 10):
+        a = math.radians(ang(tick))
+        r0 = r - 34 if tick % 60 else r - 46
+        d.line([(cx + math.cos(a) * r0, cy + math.sin(a) * r0), (cx + math.cos(a) * (r - 18), cy + math.sin(a) * (r - 18))],
+               fill=c["branco"] + (200,), width=4 if tick % 60 else 6)
+    a = math.radians(ang(v))
+    tip = (cx + math.cos(a) * (r - 8), cy + math.sin(a) * (r - 8))
+    side = (math.cos(a + math.pi / 2) * 8, math.sin(a + math.pi / 2) * 8)
+    d.polygon([tip, (cx + side[0], cy + side[1]), (cx - side[0], cy - side[1])], fill=c["branco"] + (255,))
+    d.ellipse((cx - 16, cy - 16, cx + 16, cy + 16), fill=c["branco"] + (255,))
+    d.ellipse((cx - 7, cy - 7, cx + 7, cy + 7), fill=c["klein"] + (255,))
+    num = "110" if t >= TT else f"{int(round(max(0, v))):03d}"  # the needle overshoots, the number locks
+    fn, fu = ctx.grotesk(86), ctx.grotesk(34)
+    nw = d.textlength(num, font=fn)
+    uw = d.textlength("KM/H", font=fu)
+    x0 = cx - (nw + 14 + uw) / 2
+    d.text((x0, cy + 14), num, font=fn, fill=c["branco"] + (255,))
+    d.text((x0 + nw + 14, cy + 58), "KM/H", font=fu, fill=c["klein_claro"] + (255,))
+    sprite = np.array(img)
+    pop = ramp(t, B0 + 0.08, B0 + 0.24)
+    s = 0.6 + 0.4 * (1 - (1 - pop) ** 3) + (0.06 * math.exp(-(t - TT) / 0.1) if t >= TT else 0)
+    alpha = pop
+    if t > GOAL:
+        u = ramp(t, GOAL, GOAL + 0.12)
+        s, alpha = s * (1 + 0.5 * u), 1 - u
+    ctx.place(f, sprite, GAUGE_AT[0], GAUGE_AT[1], s, alpha)
+
+
+def speed_plate(f, t, ctx):
+    """"110 KM/H" stamped on the goal in the thumbnails' style, with a white burst behind it."""
+    e = t - GOAL
+    if e < 0 or t > 4361.98:
+        return
+    if e < 0.09:
+        s, alpha = 2.6 - 1.6 * (e / 0.09) ** 2, min(1.0, e / 0.03)
+    elif e < 0.25:
+        s, alpha = 1 - 0.07 * math.sin(math.pi * (e - 0.09) / 0.16), 1.0
+    else:
+        s, alpha = 1 + 0.015 * math.sin(2 * math.pi * 2.2 * (e - 0.25)), 1.0
+    out = ramp(t, 4361.84, 4361.98)
+    s, alpha = s * (1 + 0.2 * out), alpha * (1 - out)
+    if e >= 0.09:  # the burst where it lands
+        b = max(0.0, e - 0.09)
+        if b < 0.45:
+            glow = np.zeros((ctx.H - ctx.CAM_H, ctx.W), np.float32)
+            cv2.circle(glow, (PLATE_AT[0], PLATE_AT[1] - ctx.CAM_H), int(120 + 900 * (b / 0.45) ** 0.5), 1.0,
+                       max(2, int(30 * (1 - b / 0.45))), cv2.LINE_AA)
+            glow = cv2.GaussianBlur(glow, (0, 0), 4)[..., None] * (1 - b / 0.45) ** 1.5
+            g = f[ctx.CAM_H:].astype(np.float32)
+            f[ctx.CAM_H:] = np.clip(g + (255 - g) * glow, 0, 255).astype(np.uint8)
+    sp = scaled(S["plate"], s, -3.0)
+    blend(f, sp, PLATE_AT[0] - sp.shape[1] / 2, PLATE_AT[1] - sp.shape[0] / 2, alpha=alpha)
 
 
 # ---------------------------------------------------------------------------------------------------- the sound
@@ -1003,6 +1309,67 @@ def birds(d):
     return norm(out)
 
 
+def heartbeat():
+    """lub and dub: a pitch-dropping thump with harmonics a phone can play."""
+    t = tt(0.22)
+
+    def thump(hi, lo):
+        ph = 2 * np.pi * np.cumsum(lo + (hi - lo) * np.exp(-t / 0.03)) / SR
+        body = np.sin(ph) * np.exp(-t / 0.08) * np.minimum(1, t / 0.004)
+        upper = np.sin(2 * ph) * np.exp(-t / 0.05) * 0.9 + np.sin(3 * ph) * np.exp(-t / 0.035) * 0.45
+        knock = band(RNG.standard_normal(len(t)), 150, 700) * np.exp(-t / 0.03)
+        return norm(np.tanh(3 * (0.6 * body + upper + 0.5 * norm(knock))))
+    return thump(140, 60), thump(160, 68) * 0.7
+
+
+def riser(d):
+    """Noise and a tone climbing into the hit, cut 5 ms before it."""
+    t = tt(d)
+    p = t / d
+    noise = svf_bandpass(RNG.standard_normal(len(t)).astype(np.float32), 400 * 20 ** p, 2.5)
+    f = 180 * 4 ** p
+    tone = sum(np.sin(2 * np.pi * np.cumsum(f * m) / SR) * w for m, w in ((1, 0.5), (2, 0.3), (3.01, 0.15)))
+    trem = 1 - 0.4 * (0.5 + 0.5 * np.sin(2 * np.pi * np.cumsum(5 + 26 * p ** 2) / SR))
+    x = (norm(noise) * 0.8 + norm(tone) * 0.55) * trem * p ** 2.2
+    x[-int(0.005 * SR):] *= np.linspace(1, 0, int(0.005 * SR))
+    return norm(x)
+
+
+def tick(f0):
+    """The speedometer's tick."""
+    t = tt(0.04)
+    return norm(np.sin(2 * np.pi * f0 * t) * np.exp(-t * 160) + 0.5 * band(RNG.standard_normal(len(t)), 3000, 9000) * np.exp(-t * 400))
+
+
+def porrada():
+    """The big hit: a crack, a body blow, a sub falling away, and a tail of grit."""
+    t = tt(1.4)
+    n = RNG.standard_normal(len(t))
+    crack = band(n, 1500, 9000) * np.exp(-t / 0.012)
+    body = np.sin(2 * np.pi * np.cumsum(160 * np.exp(-t / 0.05) + 55) / SR) * np.exp(-t / 0.18)
+    sub = np.sin(2 * np.pi * np.cumsum(70 * np.exp(-t / 0.5) + 26) / SR) * np.exp(-t / 0.55) * np.minimum(1, t / 0.01)
+    grit = band(n, 300, 2500) * np.exp(-t / 0.25)
+    return norm(np.tanh(2.2 * (norm(crack) * 0.9 + body + 0.9 * sub + 0.35 * norm(grit))))
+
+
+def ball_whoosh(d):
+    """The ball tearing through the air to the goal."""
+    t = tt(d)
+    p = t / d
+    x = svf_bandpass(RNG.standard_normal(len(t)).astype(np.float32), 500 + 2600 * p ** 1.5, 1.8)
+    return norm(norm(x) * (0.2 + 0.8 * p ** 1.6) * np.minimum(1, (d - t) / 0.02))
+
+
+def stamp():
+    """The plate landing: a thud and a short metallic ring."""
+    t = tt(0.6)
+    thud = np.sin(2 * np.pi * np.cumsum(120 * np.exp(-t / 0.04) + 50) / SR) * np.exp(-t / 0.1)
+    ring = sum(a * np.sin(2 * np.pi * fr * t) * np.exp(-t / dk) for fr, a, dk in
+               ((523, 0.5, 0.25), (1312, 0.35, 0.18), (2215, 0.25, 0.12), (3340, 0.15, 0.08)))
+    hit = band(RNG.standard_normal(len(t)), 800, 6000) * np.exp(-t / 0.015)
+    return norm(np.tanh(1.6 * (thud + 0.6 * ring + 0.6 * norm(hit))))
+
+
 def broom_track():
     """The broom from its own motion: straw scratching the floor while it's down (by its speed), air whooshing
     through it while it's up. Starts at the first frame the broom shows."""
@@ -1065,4 +1432,20 @@ def sons(ctx):
     for ts, _, _, _, f0 in SPARKLES:
         add(ts, ting(f0), -19)
     add(ORBIT[0] + 0.05, birds(2.0), -24)
+    # the stage coming in
+    add(STAGE[0] - 0.06, ctx.sound("whoosh_curto"), -13)
+    # his goal: the heart, the riser, the speedometer ticking up, the hit, the ball, the plate
+    lub, dub = heartbeat()
+    for b, i in S["beats"]:
+        q = ramp(b, B0, TT)
+        add(b, lub, -9 + 5 * q)
+        add(b + dub_gap(i), dub, -9 + 5 * q)
+    add(TT - 1.45, riser(1.4), -12)
+    span = TT - 0.03 - (B0 + 0.1)
+    for v in range(10, 91, 10):
+        add(B0 + 0.1 + (v / 92) ** (1 / 1.7) * span, tick(1500 + 15 * v), -21)
+    add(TT, porrada(), -5)
+    add(TT, ctx.sound("impact-boom"), -9)
+    add(TT + FREEZE, ball_whoosh(GOAL - TT - FREEZE), -15)
+    add(GOAL + 0.09, stamp(), -14)
     return out

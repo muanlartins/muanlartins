@@ -479,6 +479,19 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
     `content/matches/<id>.events.json`.
   - Sounds on phones: pure sub is inaudible; saturate thumps, add 2nd/3rd harmonics and a mid "growl", cut < 40 Hz.
   - `antes` runs after the transitions: a picture replacing a half has to redo the transition itself.
+- **Round 3 (11-21), after "NOSSA SENHORA eu estou IMPRESSIONADO… eu dou as ideias, você executa, e a gente vai
+  reiterando":** the captions and titles moved to the channel's look in destaque.py (`Legendas`, `title_sprite`),
+  and the modules' own texts with them (ctx.grotesk, ctx.plate, ctx.cores). Photoreal edits of HIM from his own frame
+  are what he loves (the Gigachad "GENIAL… MUITO ENGRAÇADO"); a pose change keeps the face when the prompt only asks
+  for the pose ("same man, same light, now does X"). What changed: the Gigachad's ending cycles bodybuilding poses
+  on the 808s; the goal labels are a Klein band with a hat-trick meter filling a slot per goal (a chime a note higher
+  each); the sweep has its own 3D stage (a Klein floor with the lattice, rendered once from the scene's camera, the
+  moving objects over it) behind a 45° wipe; his goal got a film-style build (colour draining, focus lines, a
+  speedometer ticking up, heartbeat 83 → 180 bpm, a freeze-frame hit) before "110 KM/H" stamps in the thumbnails'
+  style; the promotion got a stadium chanting "É campeão!" made from 11 edge-tts voices × 2 (44 layers per chant,
+  ±2 semitones, σ 30 ms, 220-4200 Hz, claps, 1.8 s echo; no recordings); the shock is a photoreal him electrocuted
+  ↔ X-ray; "alegria de pobre dura pouco" is him ostentando (crown, chains, money rain) → record scratch, grey →
+  him drenched and sad in the rain. A bouncing on-brand text swaps two pre-drawn plates (Branco, Klein) per beat.
 - **Still open:** music (none yet); the outro's effect on retention once a few shorts have their numbers.
 
 **The effects-heavy edit (`scripts/cortes.py`, rejected 11-11):** five picks chopped into 14 stretches in 34 s,

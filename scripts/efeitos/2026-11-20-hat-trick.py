@@ -11,8 +11,15 @@ um meme do cara com o queixo quadrado alfa male sigma").
   eyes (tracked frame by frame: Lucas-Kanade on his own glasses and brows, a similarity transform from the stretch's
   first frame) while he says "hoje eu acordei diferente", under a riser.
 - The drop: as they settle, a synthesised 808 bass drop ("turn down for what" style, no song) cuts to the Gigachad
-  wearing the shades, the picture kicking on each hit to the end. The teaser opens on the same picture, so the reel
-  loops.
+  wearing the shades, then (round 3, Luan: "se você conseguir diferentes poses… como se fosse um bodybuilder
+  demonstrando os músculos") through his bodybuilding routine, one pose per 808: front double biceps, side chest,
+  most muscular, and a kiss to his own muscle (with a "mwah"). Each pose is a Gemini edit of the Gigachad picture
+  (same face, same light), framed and graded here, the shades drawn on its eyes. The teaser opens on the first
+  picture, so the reel loops.
+- The goals (round 3, Luan: "a legenda '1º gol, 2º gol'… um pouco melhor visualmente pra dar mais impacto", in the
+  channel's look): a Klein band with the live's lattice wipes across the game, "GOL" slams in Branco with a dark
+  Klein edge beside the count on a Branco plate cut at 45°, and a hat-trick meter under it fills one slot per goal,
+  its chime climbing a note per goal; the third fills it.
 """
 import hashlib
 import json
@@ -29,11 +36,24 @@ CORUJA = (1448.36, 1449.62)  # live s: the Gigachad cut in on "onde a coruja dor
 REVEAL = 1586.70  # the last stretch's first frame: the costume's gone
 SLIDE = (1586.80, 1587.74)  # the shades sliding down
 DROP = 1588.0  # …the bass drop, onto the Gigachad
-HITS = (0.0, 0.6, 0.9, 1.2, 1.5)  # the drop's 808s after DROP (100 BPM: a beat, then eighths)
+HITS = (0.0, 0.4, 0.8, 1.2, 1.6)  # the drop's 808s after DROP, one pose each (the last holds to the end)
+GOLS = ((1453.5, 1), (1556.1, 2), (1581.5, 3))  # live s of each goal's frame, and its stretch
+GOL_DUR = 1.6  # the goal's label on screen
+GOL_Y = 1478  # its middle (the band: ~1350-1610, clear of the platforms' bottom 270 px)
 OLHOS_REF = (497.0, 578.0, 205.0)  # his glasses in the stretch's first frame (centre x, y, width), measured 11-20
 GIGA_ESCALA, GIGA_X0 = 1.2, 408  # gigachad.png (1376×768) scaled and cropped into the 1080×840 half
 GIGA_OLHOS = (790.0, 276.0, 300.0, 2.0)  # gigachad-sem-oculos.png (the same picture without his glasses, for
 # the shades): the eyes' middle, the shades' width, their tilt (degrees)
+# the bodybuilding routine after the first pose: (picture, scale, the subject's middle x, eyes' middle x, y, the
+# eyes' distance, tilt, where the eyes go in the half), all in the 1376×768 picture; the fists stay in, the elbows
+# may leave
+POSES = [
+    ("gigachad-biceps.png", 1.0, 700, 699, 204, 102, 1.4, 330),         # front double biceps
+    ("gigachad-peitoral.png", 1.0, 744, 718, 142, 78, 6.3, 300),        # side chest
+    ("gigachad-most-muscular.png", 0.9, 700, 691, 101, 117, 1.2, 280),  # most muscular (the fists at the foot)
+    ("gigachad-beijo.png", 1.0, 690, 850, 262, None, None, 380),        # kissing his own muscle: eyes closed, no shades
+]
+OLHO_LARGURA = 2.35  # the shades' width against the eyes' distance (the first picture's 300 / 130 × 1.02)
 
 # deal-with-it shades, one character a pixel: the bar with the temples, two lenses stepping in at the bottom, the
 # white glints in the top left of each lens
@@ -72,6 +92,8 @@ def setup(ctx):
     draw_oculos(shaded, s["fx_oculos"], gx * GIGA_ESCALA - GIGA_X0, gy * GIGA_ESCALA, gw * GIGA_ESCALA, ga)
     s["fx_giga_oculos"] = shaded
     s["fx_giga_centro"] = (cx, cy)
+    s["fx_poses"] = [(shaded, (cx, cy))] + [pose_picture(ctx, *p) for p in POSES]
+    s["fx_gol"] = gol_sprites(ctx)
     s["fx_pose"] = poses(ctx)
     s["fx_rng"] = np.random.default_rng(20)
 
@@ -107,6 +129,156 @@ def draw_oculos(top, sprite, cx, cy, width, angle):
     alpha = warped[..., 3:4] / 255
     part = top[y0:y1, x0:x1].astype(np.float32)
     top[y0:y1, x0:x1] = (part * (1 - alpha) + warped[..., :3] * alpha).astype(np.uint8)
+
+
+def pose_picture(ctx, name, k, subject_x, ex, ey, ed, tilt, eyes_y):
+    """A pose for the camera's half: the picture scaled by k, centred on the subject, its eyes at eyes_y (never
+    leaving a gap at the half's foot), its top edge melting into the black above it, graded like the first one; the
+    shades on its eyes. → (picture, eyes)."""
+    W, CAM_H = ctx.W, ctx.CAM_H
+    im = np.array(Image.open(ctx.VIDEOS / PARTES / name).convert("L").resize((1376, 768), Image.LANCZOS),
+                  np.float32)
+    small = cv2.resize(im, None, fx=k, fy=k, interpolation=cv2.INTER_AREA)
+    h, w = small.shape
+    ox, oy = int(round(W / 2 - subject_x * k)), max(CAM_H - h, int(round(eyes_y - ey * k)))
+    fade = np.clip(np.arange(h, dtype=np.float32) / 60, 0, 1)[:, None]  # its top 60 px into black
+    canvas = np.zeros((CAM_H, W), np.float32)
+    x0, x1 = max(0, ox), min(W, ox + w)
+    canvas[oy:, x0:x1] = (small * fade)[:CAM_H - oy, x0 - ox:x1 - ox]
+    eyes = (ex * k + ox, ey * k + oy)
+    y, x = np.mgrid[0:CAM_H, 0:W].astype(np.float32)
+    vignette = 1 - 0.5 * np.clip(np.hypot((x - eyes[0]) / W, (y - eyes[1]) / CAM_H * 0.8) * 1.5 - 0.3, 0, 1) ** 1.5
+    gray = np.clip((canvas - 128) * 1.12 + 128, 0, 255) * vignette
+    out = np.repeat(gray[..., None], 3, axis=2).astype(np.uint8)
+    if ed is not None:
+        draw_oculos(out, sprite_oculos(), eyes[0], eyes[1], ed * k * OLHO_LARGURA, tilt)
+    return out, eyes
+
+
+# ---------------------------------------------------------------------------------------------------- the goals
+
+
+def gol_sprites(ctx):
+    """The goals' pieces, in the channel's look: the band (Klein, the live's lattice, cut at 45°), each "Nº GOL" (the
+    count Klein on a Branco plate, "GOL" Branco with a dark Klein edge) and the hat-trick meter at each fill."""
+    from PIL import ImageDraw, ImageFilter
+    W = ctx.W
+    c = ctx.cores
+    klein, escuro, claro, branco, noite = c["klein"], c["klein_escuro"], c["klein_claro"], c["branco"], c["noite"]
+    out = {}
+    bw, bh = W + 80, 262
+    band = Image.new("RGBA", (bw, bh + 30))
+    d = ImageDraw.Draw(band)
+    ctx.plate(d, 0, 10, bw, bh, (0, 0, 0, 110), cut=70)
+    band = band.filter(ImageFilter.GaussianBlur(9))
+    d = ImageDraw.Draw(band)
+    ctx.plate(d, 0, 0, bw, bh, klein + (238,), cut=70)
+    lattice = Image.new("RGBA", band.size)
+    dl = ImageDraw.Draw(lattice)
+    for k in range(-bh, bw + bh, 44):  # the live's diagonal lattice, faint
+        dl.line([(k, 0), (k + bh, bh)], fill=(255, 255, 255, 22), width=2)
+        dl.line([(k + bh, 0), (k, bh)], fill=(255, 255, 255, 22), width=2)
+    mask = Image.new("L", band.size)
+    ctx.plate(ImageDraw.Draw(mask), 0, 0, bw, bh, 255, cut=70)
+    band.paste(lattice, (0, 0), Image.composite(lattice, Image.new("RGBA", band.size), mask))
+    d = ImageDraw.Draw(band)
+    d.line([(70, 2), (bw, 2)], fill=claro + (255,), width=5)  # a Klein claro edge on top
+    out["band"] = np.array(band)
+    big, num = ctx.grotesk(176), ctx.grotesk(104)
+    for n in (1, 2, 3):
+        word, count = "GOL", f"{n}º"
+        b = big.getbbox(word)
+        gw, gh = b[2] - b[0], b[3] - b[1]
+        nb = num.getbbox(count)
+        pw, ph = (nb[2] - nb[0]) + 52, gh + 6
+        gap, edge, pad = 26, 11, 30
+        w, h = pw + gap + gw + 2 * pad + 2 * edge, gh + 2 * pad + 2 * edge
+        img = Image.new("RGBA", (w, h))
+        sh = Image.new("RGBA", (w, h))
+        ds = ImageDraw.Draw(sh)
+        ctx.plate(ds, pad + 6, (h - ph) / 2 + 9, pw, ph, (0, 0, 0, 150))
+        ds.text((pad + pw + gap + edge - b[0] + 6, pad + edge - b[1] + 9), word, font=big, fill=(0, 0, 0, 160),
+                stroke_width=edge, stroke_fill=(0, 0, 0, 160))
+        img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(8)))
+        d = ImageDraw.Draw(img)
+        ctx.plate(d, pad, (h - ph) / 2, pw, ph, branco + (255,))
+        d.text((pad + 26 - nb[0], (h - ph) / 2 + (ph - (nb[3] - nb[1])) / 2 - nb[1]), count, font=num, fill=klein)
+        d.text((pad + pw + gap + edge - b[0], pad + edge - b[1]), word, font=big, fill=branco, stroke_width=edge,
+               stroke_fill=escuro)
+        out[f"texto{n}"] = np.array(img)
+    small = ctx.grotesk(40)
+    for filled in range(4):  # the meter with 0-3 slots filled
+        label = "HAT-TRICK"
+        lb = small.getbbox(label)
+        sw, sh_, sgap = 104, 38, 16
+        lw = lb[2] - lb[0] + 24  # letter-spaced below
+        w, h = lw + 22 + 3 * sw + 2 * sgap + 40, sh_ + 40
+        img = Image.new("RGBA", (w, h))
+        d = ImageDraw.Draw(img)
+        x = 20
+        for ch in label:  # tracked out a little
+            d.text((x, 20 + (sh_ - (lb[3] - lb[1])) / 2 - lb[1]), ch, font=small, fill=branco)
+            x += small.getlength(ch) + 24 / len(label)
+        x = 20 + lw + 22
+        for k in range(3):
+            if k < filled:
+                ctx.plate(d, x, 20, sw, sh_, branco + (255,), cut=10)
+            else:
+                ctx.plate(d, x, 20, sw, sh_, claro + (255,), cut=10)
+                ctx.plate(d, x + 3, 23, sw - 6, sh_ - 6, noite + (255,), cut=8)
+            x += sw + sgap
+        out[f"medidor{filled}"] = np.array(img)
+        out["slot_x"] = [20 + lw + 22 + k * (sw + sgap) + sw / 2 - w / 2 for k in range(3)]  # from the meter's middle
+    ring = Image.new("RGBA", (140, 80))
+    d = ImageDraw.Draw(ring)
+    ctx.plate(d, 4, 4, 132, 72, branco + (255,), cut=14)
+    ctx.plate(d, 10, 10, 120, 60, (0, 0, 0, 0), cut=12)
+    out["anel"] = np.array(ring)
+    return out
+
+
+def gol_label(f, o, ctx):
+    """The goal's label at short second o, if one is on: the band wiping in from the left, "Nº GOL" slamming, the
+    meter popping in and its slot filling with a ring, then everything wiping out to the right."""
+    W, clock, s = ctx.W, ctx.clock, ctx.__dict__
+    g = s["fx_gol"]
+    for live, k in GOLS:
+        t0 = clock.out(live, k)
+        x = o - t0
+        if not 0 <= x < GOL_DUR:
+            continue
+        n = GOLS.index((live, k)) + 1
+        out_u = ctx.ease((x - (GOL_DUR - 0.14)) / 0.14) if x > GOL_DUR - 0.14 else 0.0
+        dx = W * out_u  # leaving to the right
+        shake = 7 * math.exp(-x / 0.1) * math.sin(x * 140) if x < 0.4 else 0.0
+        inn = 1 - (1 - min(1.0, x / 0.1)) ** 3  # the band, in from the left
+        bx = -W + W * inn  # its left edge, from -W to 0
+        band = g["band"]
+        ctx.place(f, band, bx - 40 + band.shape[1] / 2 + dx, GOL_Y + band.shape[0] / 2 - 131 + shake, 1.0, 1.0)
+        if x >= 0.04:  # "Nº GOL" slams
+            y = x - 0.04
+            sc = 1 + 0.9 * (1 - ctx.ease(y / 0.12)) if y < 0.12 else 1 + 0.05 * math.exp(-(y - 0.12) * 12) * \
+                math.cos((y - 0.12) * 40)
+            ctx.place(f, g[f"texto{n}"], W / 2 + dx, GOL_Y - 38 + shake, sc, min(1.0, y / 0.05))
+        if x >= 0.16:  # the meter, then its slot filling
+            y = x - 0.16
+            fill_at = 0.12
+            filled = n if y >= fill_at else n - 1
+            if n == 3 and y >= fill_at + 0.25:  # the third: the whole meter blinking Branco/Klein claro
+                filled = 3 if int((y - fill_at - 0.25) / 0.08) % 2 == 0 else 0
+                filled = 3 if y > fill_at + 0.25 + 0.48 else filled
+            sc = 1 + 0.25 * (1 - ctx.ease(y / 0.1)) if y < 0.1 else 1.0
+            my = GOL_Y + 82 + shake
+            ctx.place(f, g[f"medidor{filled}"], W / 2 + dx, my, sc, min(1.0, y / 0.06))
+            z = y - fill_at
+            if 0 <= z < 0.25:  # the ring flying off the slot as it fills
+                ctx.place(f, g["anel"], W / 2 + g["slot_x"][n - 1] + dx, my, 0.8 + 1.4 * z / 0.25, 1 - z / 0.25)
+        return f
+    return f
+
+
+def depois(f, o, ctx):
+    return gol_label(f, o, ctx)
 
 
 # ---------------------------------------------------------------------------------------------------- tracking
@@ -285,18 +457,16 @@ def antes(f, o, ctx):
         flash(top, kick(o - r, 0.85, 0.07))
         f[:CAM_H] = top
         return f
-    if o >= d:  # the drop: the Gigachad in the shades, kicking on every 808
+    if o >= d:  # the drop: the Gigachad in the shades, then a bodybuilding pose on every 808
         x = o - d
-        z = 1 + 0.05 * min(1, x / 1.8) + kick(x, 0.3, 0.08)
-        dx = dy = 0.0
-        for h in HITS[1:]:
-            z += kick(x - h, 0.07, 0.1)
-        for h in HITS:
-            amp = kick(x - h, 14 if h == 0 else 7, 0.09)
-            dx += amp * math.sin((x - h) * 130 + h)
-            dy += amp * math.cos((x - h) * 105 + h)
-        top = grain(zoom_top(s["fx_giga_oculos"], z, s["fx_giga_centro"], dx, dy), rng)
-        flash(top, kick(x, 0.9, 0.06) + sum(kick(x - h, 0.22, 0.05) for h in HITS[1:]))
+        k = max(i for i, h in enumerate(HITS) if x >= h)
+        h = HITS[k]
+        picture, eyes = s["fx_poses"][k]
+        z = 1 + 0.04 * min(1, (x - h) / 0.4) + kick(x - h, 0.3 if k == 0 else 0.13, 0.08)
+        amp = kick(x - h, 14 if k == 0 else 9, 0.09)
+        dx, dy = amp * math.sin((x - h) * 130 + h), amp * math.cos((x - h) * 105 + h)
+        top = grain(zoom_top(picture, z, eyes, dx, dy), rng)
+        flash(top, kick(x, 0.9, 0.06) if k == 0 else kick(x - h, 0.35, 0.04))
         f[:CAM_H] = top
         return f
     return f
@@ -404,6 +574,33 @@ def poof(SR):
     return peak1(peak1(out) * _env(t, 0.006, 0.12) + 0.6 * thump)
 
 
+def mwah(SR):
+    """A cartoon kiss: the lips' squeak gliding up, then the smack."""
+    t = np.arange(int(0.3 * SR)) / SR
+    squeak = np.sin(2 * np.pi * np.cumsum(850 + 1100 * np.minimum(1, t / 0.07)) / SR) * \
+        np.minimum(1, t / 0.01) * np.clip((0.09 - t) / 0.03, 0, 1)
+    smack = band(np.random.default_rng(9).standard_normal(len(t)), 1400, 5000, SR)
+    smack = np.roll(smack * np.exp(-t / 0.012), int(0.085 * SR))
+    smack[:int(0.085 * SR)] = 0
+    pop = np.sin(2 * np.pi * np.cumsum(420 * np.exp(-np.maximum(0, t - 0.085) / 0.02) + 180) / SR) * \
+        (t >= 0.085) * np.exp(-np.maximum(0, t - 0.085) / 0.03)
+    return peak1(0.6 * squeak + 1.0 * peak1(smack) + 0.5 * pop)
+
+
+def chime(SR, notes):
+    """The meter's chime: bell notes one after another (a goal's slot: one note more each goal)."""
+    t = np.arange(int((0.07 * len(notes) + 0.7) * SR)) / SR
+    out = np.zeros_like(t)
+    for i, f0 in enumerate(notes):
+        tt = t - 0.07 * i
+        on = tt >= 0
+        tt = np.maximum(tt, 0)
+        bell = sum(a * np.sin(2 * np.pi * f0 * r * tt) * np.exp(-tt / d)
+                   for r, a, d in ((1, 1.0, 0.35), (2.0, 0.45, 0.2), (3.01, 0.25, 0.12), (4.2, 0.12, 0.07)))
+        out += bell * on * np.minimum(1, tt / 0.002)
+    return peak1(out)
+
+
 def riser(SR, length):
     """Into the drop: noise and a tone rising together, swelling to the hit."""
     t = np.arange(int(length * SR)) / SR
@@ -429,4 +626,6 @@ def sons(ctx):
         (d, drop(SR, clock.length - d), -10),
         (d, "impact-boom", -10),
         (d + 0.02, "buzina", -15),  # the MLG air horn on the landing
-    ]
+        (d + HITS[-1] + 0.02, mwah(SR), -9),  # the kiss to his own muscle
+    ] + [(clock.out(live, k) + 0.28, chime(SR, (1046.5, 1318.5, 1568.0, 2093.0)[:n + (n == 3)]), -15)
+         for n, (live, k) in enumerate(GOLS, 1)]

@@ -14,8 +14,9 @@ segurando a gata e fazendo 'champion champion champion'"):
   the explosion: colour back saturated, a shock ring from the ball, a crash and the crowd.
 - the same lift at the end (live 9005.5-9010.35): a party. He sings "CHAM-pion" on a grid (126 bpm: syllables at
   9005.85 + k·0.4745), so the beat is his: the Klein becomes a club (Gemini, `Partes\\gata\\festa.png`) with moving
-  beams and disco dots, coloured light on him, confetti cannons, "CHAMPION" and the Champion I emblem bouncing on
-  each syllable, a kick, claps and hats under him, air horn, party horns, applause.
+  beams and disco dots, coloured light on him, confetti cannons, a crown on her, "CHAMPION" (the channel's plate,
+  flashing to Klein on each CHAM) and the Champion I emblem bouncing on each syllable, a kick, claps and hats
+  under him, air horn, party horns, applause.
 
 Everything is synthesised here (no samples) but `palmas`, the stream's public-domain applause, from the roteiro.
 """
@@ -25,7 +26,7 @@ import subprocess
 
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter
 
 HIT, G = 8987.35, 8990.42  # his touch that sends the ball; the goal's explosion (its first frame on the live)
 SYL = [9005.85, 9006.31, 9006.82, 9007.27, 9007.77, 9008.23, 9008.69, 9009.18, 9009.63, 9010.12]  # his chant
@@ -200,26 +201,23 @@ def sprite_crown(w=170):
     return shrink(layers(size, parts), k)
 
 
-def sprite_word(text, size, root):
-    """Heavy capitals in the titles' style: gold into fire, a black edge, a fire glow."""
-    f = ImageFont.truetype(str(root / ".claude/skills/short-editing/engine/fonts/ArchivoBlack.ttf"), size)
-    probe = ImageDraw.Draw(Image.new("L", (1, 1)))
-    l, t, r, b = probe.textbbox((0, 0), text, font=f)
-    edge, pad = 13, 70
-    w, h = r - l + 2 * pad, b - t + 2 * pad
-    shape, fill = Image.new("L", (w, h)), Image.new("L", (w, h))
-    ImageDraw.Draw(shape).text((pad - l, pad - t), text, font=f, fill=255, stroke_width=edge, stroke_fill=255)
-    ImageDraw.Draw(fill).text((pad - l, pad - t), text, font=f, fill=255)
-    glow = Image.new("RGBA", (w, h), (255, 106, 26, 0))
-    glow.putalpha(shape.filter(ImageFilter.GaussianBlur(20)).point(lambda v: int(v * 0.9)))
-    out = Image.alpha_composite(Image.new("RGBA", (w, h)), glow)
-    out = Image.alpha_composite(out, Image.merge("RGBA", (*[Image.new("L", (w, h), 0)] * 3, shape)))
-    ys = np.clip((np.arange(h) - pad) / max(1, b - t), 0, 1)[:, None]
-    ramp = np.zeros((h, w, 3), np.float32)
-    ramp[:] = (np.array((255, 236, 120)) * (1 - ys) + np.array((255, 120, 20)) * ys)[:, None, :]
-    color = Image.fromarray(ramp.astype(np.uint8))
-    color.putalpha(fill)
-    return np.asarray(Image.alpha_composite(out, color)).copy()
+def sprite_champion(ctx, inverted=False, text="CHAMPION", size=118):
+    """The chant's word in the channel's look (11-21, as the titles' second line): Space Grotesk Bold capitals,
+    Klein on the Branco plate cut at 45°, a soft shadow; `inverted` (Branco on Klein, the flash of each CHAM)."""
+    c = ctx.cores
+    f = ctx.grotesk(size)
+    l, t, r, b = f.getbbox(text)
+    px, py, m = 40, int(size * 0.2), 40
+    w, h = (r - l) + 2 * px, (b - t) + 2 * py
+    img = Image.new("RGBA", (w + 2 * m, h + 2 * m))
+    shadow = Image.new("RGBA", img.size)
+    ctx.plate(ImageDraw.Draw(shadow), m + 6, m + 10, w, h, (0, 0, 0, 160))
+    img.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(10)))
+    d = ImageDraw.Draw(img)
+    plate_c, text_c = (c["klein"], c["branco"]) if inverted else (c["branco"], c["klein"])
+    ctx.plate(d, m, m, w, h, plate_c + (255,))
+    d.text((m + px - l, m + py - t), text, font=f, fill=text_c)
+    return np.asarray(img).copy()
 
 
 def place_rot(frame, sprite, cx, cy, scale, alpha, angle=0.0):
@@ -347,7 +345,8 @@ def setup(ctx):
     S["festa"] = cover(partes / "festa.png", ctx.W, ctx.CAM_H)
     S["halo"] = sprite_halo()
     S["star"] = sprite_star(72)
-    S["word"] = sprite_word("CHAMPION", 124, ctx.ROOT)
+    S["word"] = sprite_champion(ctx)
+    S["word_inv"] = sprite_champion(ctx, inverted=True)
     S["crown"] = sprite_crown()
     emb = Image.open(ctx.ROOT / "brand" / "youtube" / "thumbnails" / "ranks" / "champion.png").convert("RGBA")
     emb = emb.resize((round(emb.width * 250 / emb.height), 250), Image.LANCZOS)
@@ -619,7 +618,8 @@ def depois(f, o, ctx):
         scale = 1 + amp * math.exp(-e / 0.09) * math.cos(2 * math.pi * e / 0.24)
         tilt = (5 if i % 2 else -5) * math.exp(-e / 0.16) * (0.5 if strong else 1)
         lift = -34 * math.exp(-e / 0.08) * (1 if strong else 0.5)
-        place_rot(f, S["word"], 540, 1222 + lift, pop * scale, 1.0, tilt)
+        word = S["word_inv"] if strong and e < 0.13 else S["word"]  # each CHAM flashes the plate to Klein
+        place_rot(f, word, 540, 1222 + lift, pop * scale, 1.0, tilt)
     if live >= SYL[0]:  # the champion's crown on her head
         hx, top, _, _ = head(live)
         hx2, _, _, _ = head(live + 1 / 60)

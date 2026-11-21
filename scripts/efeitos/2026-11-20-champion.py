@@ -1,22 +1,25 @@
 """Montanha-russa do Champion (2026-11-20): the short's own effects, destaque.py's "extra".
 
-Luan on the first cut (11-20): the shock's idea was excellent (the zap, the flicker, the picture swapping) but no more
-drawings of him: current memes, a cat for everything; the demotion as the Champion emblem breaking into Diamond with
-good sounds, then Diamond evolving back into Champion; memes, effects and sounds on "alegria de pobre".
+Luan, round 1 (11-20): the shock's idea was excellent (the zap, the flicker, the picture swapping) but no drawings of
+him; the demotion as the Champion emblem breaking into Diamond, then evolving back. Round 2 (11-21): "NOSSA SENHORA eu
+estou IMPRESSIONADO"; the Pokémon evolution and the rain with the sad sound stay; the cats weren't at the level of the
+other reels (his real cat made angelic, the photoreal Gigachad of him): photoreal edits of HIM instead; a crowd
+singing "É campeão" under the promotion.
 
-- the promotion (hook): Diamond III charging on the game's half, bursting into Champion I with rays on the game's
-  own flash (2505.4);
-- "choque de realidade": an orange cat sticker electrocuted, swapping with its X-ray every 0.12 s and shaking, over the
-  roteiro's "choque" flicker and zap;
-- "a gente caiu": Champion I on the live's Klein, cracking on each "caiu" and shattering (shards spinning out, glints)
-  into Diamond III;
+- the promotion (hook): a stadium crowd chanting "É campeão!" from the game's flash (2505.4); Diamond III charging on
+  the game's half and bursting into Champion I with rays on that flash;
+- "choque de realidade": his camera swaps with a photoreal him electrocuted (hair on end, arcs) and its X-ray
+  skeleton, and back to the live's own flickering frame, every 0.27 s, shaking; smoke off his head after;
+- "a gente caiu": Champion I on the live's Klein, cracking on each "caiu" and shattering (shards, glints) into
+  Diamond III;
 - "subiu pro Champion de volta": the evolution meme: a game dialog ("O quê? DIAMANTE III está evoluindo!"),
   the two silhouettes swapping faster and faster over a rising chiptune, Champion I bursting out;
-- "alegria de pobre dura pouco": the cat partying (confetti cannons, a party horn), a record scratch on "dura", the
-  picture going grey, the cat crying with a thumbs up, a sad trombone.
+- "alegria de pobre dura pouco": "alegria": photoreal him "ostentando" (crown, gold chains, shades, a fan of notes)
+  under a rain of money, ka-ching; "dura": a record scratch, everything stops and greys; the money rain turns into
+  real rain; "é bom lembrar disso": him drenched, sad, one soggy note, over the sad trombone.
 
-The cats are Gemini's (four generations, text prompts, the first as the others' reference), keyed into
-Videos\\Shorts\\Partes\\champion\\. Every sound here is synthesised (numpy), nothing sampled.
+The pictures of him are Gemini edits of his own Câmera.mkv frames (Luan OK'd it), in Videos\Shorts\Partes\champion\
+(eu-*.png); the chant's voices are edge-tts's (coro\, 11 voices × 2), layered here. Every other sound is synthesised.
 """
 import math
 
@@ -224,8 +227,9 @@ def setup(ctx):
     ranks = ctx.ROOT / "brand" / "youtube" / "thumbnails" / "ranks"
     champion = np.array(Image.open(ranks / "champion.png").convert("RGBA"))
     diamond = np.array(Image.open(ranks / "diamond-3.png").convert("RGBA"))
-    cat = {n: premul(np.array(Image.open(ctx.VIDEOS / PARTES / f"gato-{n}.png").convert("RGBA")))
-           for n in ("choque", "raiox", "festa", "chorando")}
+    eu = {n: np.array(Image.open(ctx.VIDEOS / PARTES / f"eu-{n}.png").convert("RGB").resize((1080, 1080),
+                                                                                           Image.LANCZOS))
+          for n in ("choque", "raiox", "rico", "molhado")}
     S.update(
         # the beats, as short seconds (live seconds through the clock)
         promo_in=T(2504.62), promo_burst=T(2505.4), promo_out=T(2508.95),
@@ -258,94 +262,105 @@ def setup(ctx):
     S["sombra"] = radial(700, (0.0, 0.02, 0.1), 1.3)
     S["rays"] = rays(1000, (0.85, 0.7, 1.0))
     S["star"] = star()
-    S["cat"] = cat
-    S["cat_h"] = {"choque": 500, "raiox": 500, "festa": 590, "chorando": 600}
-    S["cat_s"] = {n: S["cat_h"][n] / c.shape[0] for n, c in cat.items()}
+    # his camera's half (1080×840) cut from the square edits around his face; the game's half takes them whole
+    S["eu_choque"], S["eu_raiox"] = eu["choque"][150:990].copy(), eu["raiox"][150:990].copy()
+    S["eu_rico"], S["eu_molhado"] = eu["rico"], eu["molhado"]
+    S["fumaca"] = radial(256, (0.82, 0.82, 0.85), 1.1)
     # glints flying out of the shatter, the promotion's burst and the evolution's reveal
     S["glints"] = [(rng.uniform(0, 2 * math.pi), rng.uniform(500, 1700), rng.uniform(0.35, 0.95), rng.uniform(0.12, 0.42),
                     rng.uniform(-60, 60), rng.uniform(-60, 60)) for _ in range(70)]
     S["twinkles"] = [(rng.uniform(-330, 330), rng.uniform(-250, 250), rng.uniform(0, 1), rng.uniform(0.25, 0.6))
                      for _ in range(14)]
     S["inward"] = [(rng.uniform(0, 2 * math.pi), rng.uniform(330, 520), rng.uniform(0, 1)) for _ in range(36)]
-    S["confetti"] = confetti_plan(rng, S["party"], S["dura"], S["party_end"], ctx.FPS)
+    S["money"] = money_plan(rng, S["party"], S["dura"], S["party_end"], ctx.FPS)
+    S["bill"] = bill_sprite()
+    S["rain"] = (rng.uniform(-300, 1180, 340), rng.uniform(0, 2300, 340), rng.uniform(1900, 2800, 340),
+                 rng.uniform(36, 80, 340), rng.uniform(0.35, 1.0, 340))
+    S["puffs"] = [(rng.uniform(-70, 70), rng.uniform(0, 0.55), rng.uniform(0.7, 1.1), rng.uniform(-40, 40))
+                  for _ in range(12)]
+    S["coro"] = sorted((ctx.VIDEOS / PARTES / "coro").glob("v*.mp3"))
     S["font"] = ImageFont.truetype(str(ctx.ROOT / PIXEL), 56)
 
 
-# ---------------------------------------------------------------------------------------------------- confetti
+# ---------------------------------------------------------------------------------------------------- money, rain
 
 
-PALETTE = [(255, 64, 129), (255, 214, 0), (0, 200, 255), (124, 77, 255), (0, 230, 118), (255, 145, 0), (255, 255, 255)]
+def bill_sprite():
+    """A banknote, generic (no real note's design): green paper, a darker frame, a pale oval with a portrait's shadow."""
+    w, h = 96, 44
+    im = Image.new("RGBA", (w, h))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 0, w - 1, h - 1), 4, fill=(122, 168, 104, 255))
+    d.rounded_rectangle((4, 4, w - 5, h - 5), 3, outline=(64, 104, 62, 255), width=2)
+    d.ellipse((w / 2 - 15, 9, w / 2 + 15, h - 9), fill=(196, 222, 176, 255))
+    d.ellipse((w / 2 - 8, 13, w / 2 + 8, h - 13), fill=(110, 150, 96, 255))
+    d.rectangle((10, h / 2 - 3, 24, h / 2 + 3), fill=(80, 124, 74, 255))
+    d.rectangle((w - 24, h / 2 - 3, w - 10, h / 2 + 3), fill=(80, 124, 74, 255))
+    return premul(np.array(im))
 
 
-def confetti_plan(rng, start, freeze, end, fps):
-    """Two cannons at the bottom corners firing up and in, and a rain of it from the top over the whole frame while the
-    party lasts (paper: drag, flutter); everything hangs in the air on the record scratch, then drops dead."""
-    nc, nr = 130, 170
-    n = nc + nr
-    side = np.where(np.arange(n) < nc // 2, -1, 1)
-    pos = np.zeros((n, 2))
-    vel = np.zeros((n, 2))
-    pos[:nc] = np.stack([np.where(side[:nc] < 0, 30.0, 1050.0), np.full(nc, 1620.0)], 1) + rng.normal(0, 14, (nc, 2))
-    vel[:nc] = np.stack([-side[:nc] * rng.uniform(250, 1300, nc), -rng.uniform(2600, 4200, nc)], 1)
-    pos[nc:] = np.stack([rng.uniform(-20, 1100, nr), rng.uniform(-420, -30, nr)], 1)
-    vel[nc:] = np.stack([rng.normal(0, 60, nr), rng.uniform(150, 350, nr)], 1)
-    delay = np.concatenate([rng.uniform(0, 0.1, nc), rng.uniform(0.05, 1.3, nr)])
-    piece = {"w": rng.uniform(10, 16, n), "h": rng.uniform(18, 30, n), "col": [PALETTE[i] for i in rng.integers(0, 7, n)],
-             "a0": rng.uniform(0, 360, n), "w_rot": rng.uniform(-500, 500, n), "w_flip": rng.uniform(5, 13, n),
-             "sway": rng.uniform(1.2, 3.0, n), "phase": rng.uniform(0, 2 * math.pi, n), "delay": delay}
-    frames = []
-    dt = 1 / fps
-    t = start
+def money_plan(rng, start, freeze, end, fps):
+    """A rain of money from the top over the whole frame (paper: drag, flutter); it hangs in the air on the record
+    scratch, then drops dead, heavy."""
+    n = 110
+    pos = np.stack([rng.uniform(-30, 1110, n), rng.uniform(-350, 1850, n)], 1)  # a storm at once, over the whole frame
+    vel = np.stack([rng.normal(0, 70, n), rng.uniform(250, 520, n)], 1)
+    delay = rng.uniform(0, 0.35, n)
+    piece = {"a0": rng.uniform(-40, 40, n), "w_rot": rng.uniform(-160, 160, n), "w_flip": rng.uniform(3, 8, n),
+             "sway": rng.uniform(0.8, 1.8, n), "phase": rng.uniform(0, 2 * math.pi, n), "size": rng.uniform(0.8, 1.25, n),
+             "delay": delay}
+    frames, dt, t = [], 1 / fps, start
     p, v = pos.copy(), vel.copy()
     stop = 0.3  # the scratch: everything hangs for a moment
     while t <= end + dt:
         live = (t - start - delay > 0)[:, None]
         if freeze <= t < freeze + stop:
             pass
-        elif t >= freeze + stop:  # dead: no flutter, heavy
-            v[:, 1] += 2600 * dt
-            v *= (1 - 0.5 * dt)
+        elif t >= freeze + stop:
+            v[:, 1] += 3200 * dt
             p += v * dt * live
         else:
-            v[:, 1] += 1500 * dt * live[:, 0]
-            v -= v * (3.0 * dt) * live  # paper in the air: ~500 px/s at most falling
-            flutter = np.sin((t - start) * piece["sway"] * 2 * math.pi + piece["phase"]) * 90
-            p += (v * dt + np.stack([flutter * dt, np.zeros(n)], 1)) * live
+            v[:, 1] += 900 * dt * live[:, 0]
+            v -= v * (2.2 * dt) * live  # paper: ~400 px/s falling at most
+            sway = np.sin((t - start) * piece["sway"] * 2 * math.pi + piece["phase"]) * 120
+            p += (v * dt + np.stack([sway * dt, np.zeros(n)], 1)) * live
         frames.append(p.copy())
         t += dt
-    piece["frames"] = frames
-    piece["start"] = start
-    piece["fps"] = fps
-    piece["stop"] = stop
+    piece.update(frames=frames, start=start, fps=fps, stop=stop)
     return piece
 
 
-def draw_confetti(f, o, grey):
-    c = S["confetti"]
+def draw_money(f, o):
+    c = S["money"]
     i = int(round((o - c["start"]) * c["fps"]))
     if i < 0 or i >= len(c["frames"]):
         return
-    p = c["frames"][i]
     x = o - c["start"]
-    frozen = min(x, S["dura"] - c["start"])  # their spin stops with the scratch too, then picks up slowly
-    spin_t = frozen + max(0.0, x - (S["dura"] - c["start"]) - c["stop"]) * 0.5
-    for k in range(len(p)):
-        if x < c["delay"][k]:
+    frozen = min(x, S["dura"] - c["start"])
+    spin_t = frozen + max(0.0, x - (S["dura"] - c["start"]) - c["stop"]) * 0.4
+    for k, (cx, cy) in enumerate(c["frames"][i]):
+        if x < c["delay"][k] or not (-60 < cx < 1140 and -60 < cy < 1980):
             continue
-        cx, cy = p[k]
-        if not (-40 < cx < 1120 and -40 < cy < 1960):
-            continue
-        ang = math.radians(c["a0"][k] + c["w_rot"][k] * spin_t)
-        flip = math.cos(c["w_flip"][k] * spin_t)
-        hw, hh = c["w"][k] / 2, c["h"][k] / 2 * max(0.15, abs(flip))
-        ca, sa = math.cos(ang), math.sin(ang)
-        pts = np.array([[cx + ca * dx - sa * dy, cy + sa * dx + ca * dy] for dx, dy in
-                        ((-hw, -hh), (hw, -hh), (hw, hh), (-hw, hh))], np.int32)
-        col = np.array(c["col"][k], np.float32) * (0.75 + 0.25 * abs(flip))
-        if grey > 0:
-            g = col @ np.array([0.299, 0.587, 0.114])
-            col = col * (1 - grey) + np.array([g * 0.85, g * 0.9, g]) * grey
-        cv2.fillConvexPoly(f, pts, tuple(int(v) for v in col), lineType=cv2.LINE_AA)
+        flip = math.cos(c["w_flip"][k] * spin_t + c["phase"][k])
+        pop = min(1.0, (x - c["delay"][k]) / 0.12)
+        gone = 1 - min(1.0, max(0.0, o - S["dura"] - c["stop"]) / 0.45)  # turning into the rain as they drop
+        blit(f, S["bill"], cx, cy, scale=c["size"][k] * (0.6 + 0.4 * pop), angle=c["a0"][k] + c["w_rot"][k] * spin_t,
+             sx=flip if abs(flip) > 0.08 else 0.08, alpha=pop * gone)
+
+
+def draw_rain(f, o, k):
+    """Rain over the whole frame: thin streaks falling fast with a little wind, added as light."""
+    if k <= 0.01:
+        return
+    xs, ys, vs, ls, al = S["rain"]
+    layer = np.zeros(f.shape[:2], np.uint8)
+    t = o - S["dura"]
+    for x0, y0, v, ln, a in zip(xs, ys, vs, ls, al):
+        y = (y0 + v * t) % 2300 - 150
+        x = x0 + 0.14 * y
+        cv2.line(layer, (int(x), int(y)), (int(x - 0.14 * ln), int(y - ln)), int(150 * a), 2, cv2.LINE_AA)
+    add = cv2.GaussianBlur(layer, (3, 3), 0).astype(np.float32)[..., None] * (k / 255) * np.array((0.8, 0.86, 1.0))
+    f[:] = np.clip(f.astype(np.float32) + add * 255 * 0.75, 0, 255).astype(np.uint8)
 
 
 # ---------------------------------------------------------------------------------------------------- the beats
@@ -397,25 +412,28 @@ def promo(f, o):
 
 
 def shock(f, o):
-    """The cat electrocuted: swapping with its X-ray every 0.12 s and shaking, an electric glow behind; then still."""
-    a, xs, end, out = S["shock_in"], S["shock_x"], S["shock_end"], S["shock_out"]
-    if not a - 0.02 <= o < out + 0.15:
-        return
-    cx, cy = 540, 1335
-    pop = back((o - a) / 0.18) if o < a + 0.18 else 1.0
-    if o > out:
-        pop *= 1 - ease_out((o - out) / 0.15)
-    name, dx, dy, ang = "choque", 0.0, 0.0, 0.0
+    """His camera's half swapping, every 0.27 s, between a photoreal him electrocuted, its X-ray and the live's own
+    frame (flickering negative from the roteiro's "choque"), jolting; then smoke rising off his head."""
+    a, end = S["shock_in"], S["shock_end"]
     if a <= o < end:
-        if o >= xs and int((o - xs) / 0.12) % 2 == 0:
-            name = "raiox"
-        k = int(o * 30)  # a new jolt every two frames
-        r = np.random.default_rng(k)
-        dx, dy, ang = r.uniform(-14, 14), r.uniform(-10, 10), r.uniform(-3.5, 3.5)
-        blit(f, S["glow_ciano"], cx, cy, scale=1.0 + 0.15 * r.random(), alpha=0.5 + 0.4 * r.random(), add=True)
-    else:
-        ang = math.sin((o - a) * 2 * math.pi * 1.3) * 1.5
-    blit(f, S["cat"][name], cx + dx, cy + dy, scale=S["cat_s"][name] * pop, angle=ang)
+        ph = (o - a) % 0.27
+        if ph < 0.2:
+            pic = S["eu_choque"] if ph < 0.1 else S["eu_raiox"]
+            r = np.random.default_rng(int(o * 30))  # a new jolt every two frames
+            z, dx, dy = 1.06, r.uniform(-16, 16), r.uniform(-12, 12)
+            m = np.float32([[z, 0, (1 - z) * 540 + dx], [0, z, (1 - z) * 420 + dy]])
+            top = cv2.warpAffine(pic, m, (1080, 840), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT101)
+            if ph < 0.1 and int(o * 60) // 2 % 2:  # the glare of the arcs
+                top = np.clip(top.astype(np.float32) * 1.25 + np.array((10, 40, 90), np.float32), 0, 255).astype(np.uint8)
+            f[:840] = top
+        return
+    x = o - end
+    if 0 <= x < 1.2:  # smoke off the top of his head
+        for ox, t0, size, drift in S["puffs"]:
+            u = x - t0
+            if 0 <= u < 0.65:
+                blit(f, S["fumaca"], 540 + ox + drift * u, 200 - 190 * u, scale=size * (0.5 + 1.3 * u),
+                     alpha=0.8 * (1 - u / 0.65))
 
 
 def fall(f, o):
@@ -523,32 +541,36 @@ def evolution(f, o):
     glints(f, o, rv, cx, cy, n=60, speed=1.1)
 
 
-def party(f, o):
-    """The cat partying from the first "Alegria"; on "dura" the record scratches and everything stops, frozen and
-    going grey; on "é bom lembrar disso" it's back crying, thumb up, in colour, over the sad trombone."""
+def alegria(f, o):
+    """"Alegria": the game's half becomes photoreal him "ostentando" under a rain of money. "dura": the record
+    scratches, everything stops (the picture's push-in too) and greys. "é bom lembrar disso": him drenched and sad."""
     a, d, sad, end = S["party"], S["dura"], S["sad"], S["party_end"]
-    if not a - 0.02 <= o < end + 0.05:
+    if not a <= o < end + 0.05:
         return
-    cx, cy = 540, 1325
-
-    def dancing(x):
-        pop = back(x / 0.22)
-        hop = abs(math.sin(x * 2 * math.pi * 1.15))
-        sc = S["cat_s"]["festa"] * pop * (1 + 0.05 * (1 - hop))
-        blit(f, S["cat"]["festa"], cx, cy - 42 * hop + 20, scale=sc, angle=math.sin(x * 2 * math.pi * 1.15) * 4)
-
+    y0 = 840
+    if o < sad + 0.12:  # (under the drenched one as it fades in)
+        x = min(o, d) - a  # frozen from "dura"
+        z = (1 + 0.1 * (1 - ease_out((o - a) / 0.16))) * (1 + 0.05 * x / (d - a))
+        m = np.float32([[z, 0, (1 - z) * 540], [0, z, (1 - z) * 500]])
+        f[y0:] = cv2.warpAffine(S["eu_rico"], m, (1080, 1080), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT101)
+        if o - a < 0.18:  # in on a flash
+            k = 1 - (o - a) / 0.18
+            f[y0:] = np.clip(f[y0:].astype(np.float32) + 255 * 0.8 * k ** 2, 0, 255).astype(np.uint8)
+        if o < d:
+            for px, py, ph, size in S["twinkles"]:  # bling
+                tw = max(0.0, math.sin(((o - a) * 1.6 + ph) * 2 * math.pi))
+                blit(f, S["star"], 540 + px * 1.3, 1340 + py * 1.5, scale=size * tw * 0.8, angle=o * 90, alpha=tw,
+                     add=True)
+    draw_money(f, o)
     grey = 0.85 * ease_out((o - d) / 0.22) if o >= d else 0.0
-    if o < d:
-        dancing(o - a)
-    elif o < sad:  # the freeze: the same pose, greying with the picture
-        dancing(d - a)
-        desaturate(f, grey)
-    else:
-        desaturate(f, grey)
+    desaturate(f, grey)
+    if o >= sad:
         x = o - sad
-        pop = back(x / 0.2)
-        sway = math.sin(x * 2 * math.pi * 0.45) * 2.5
-        blit(f, S["cat"]["chorando"], cx, cy, scale=S["cat_s"]["chorando"] * pop, angle=sway)
+        z = 1 + 0.05 * x / (end - sad)
+        m = np.float32([[z, 0, (1 - z) * 540], [0, z, (1 - z) * 480]])
+        wet = cv2.warpAffine(S["eu_molhado"], m, (1080, 1080), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT101)
+        k = min(1.0, x / 0.12)
+        f[y0:] = (f[y0:].astype(np.float32) * (1 - k) + wet.astype(np.float32) * k).astype(np.uint8)
 
 
 def dialog(f, o):
@@ -616,14 +638,15 @@ def antes(f, o, ctx):
     shock(f, o)
     fall(f, o)
     evolution(f, o)
-    party(f, o)
+    alegria(f, o)
     return f
 
 
 def depois(f, o, ctx):
     dialog(f, o)
-    if S["party"] <= o < S["party_end"] + 0.05:
-        draw_confetti(f, o, 0.85 * ease_out((o - S["dura"]) / 0.22) if o >= S["dura"] else 0.0)
+    rain_from = S["dura"] + S["money"]["stop"]
+    if rain_from <= o < S["party_end"] + 0.05:  # the money rain turned into rain
+        draw_rain(f, o, ease_out((o - rain_from) / 0.35))
     return f
 
 
@@ -736,27 +759,86 @@ def reveal(sr):
     return _norm(x)
 
 
-def horn(sr):
-    """A party horn: a buzzing paper reed, its pitch rising a little as it unrolls, with a rattle."""
-    dur = 0.6
-    t = np.arange(int(dur * sr)) / sr
-    pitch = 410 * (1 + 0.14 * np.minimum(1, t / 0.09)) * (1 + 0.012 * np.sin(2 * np.pi * 6 * t))
-    ph = np.cumsum(pitch) / sr
-    reed = 2 * (ph % 1) - 1 + 0.4 * np.sign(np.sin(2 * np.pi * ph * 2))
-    flutter = 1 + 0.25 * np.sin(2 * np.pi * 32 * t)
-    rasp = np.random.default_rng(8).standard_normal(len(t)) * 0.25
-    x = _filter(reed * flutter + rasp, sr, lo=500, hi=4200)
-    env = np.minimum(1, t / 0.02) * np.minimum(1, (dur - t) / 0.08)
-    return _norm(np.tanh(1.5 * x * env))
+def kaching(sr):
+    """A cash register: the drawer's clack and a bright bell, rung twice."""
+    rng = np.random.default_rng(31)
+    n = int(1.1 * sr)
+    t = np.arange(n) / sr
+    clack = _filter(rng.standard_normal(n) * np.exp(-t / 0.012), sr, lo=900, hi=5000) \
+        + 0.6 * np.sin(2 * np.pi * 150 * t) * np.exp(-t / 0.03)
+    bell = np.zeros(n)
+    for at, amp in ((0.06, 1.0), (0.16, 0.8)):
+        tt = np.clip(t - at, 0, None)
+        on = (t >= at).astype(np.float64)
+        for ratio, a, d in ((1.0, 1.0, 0.5), (2.0, 0.5, 0.35), (2.76, 0.4, 0.2), (5.4, 0.25, 0.08)):
+            bell += on * amp * a * np.sin(2 * np.pi * 2093 * ratio * tt) * np.exp(-tt / d)
+    return _norm(0.8 * clack + 0.5 * bell)
 
 
-def popper(sr):
-    """A party popper going off."""
-    t = np.arange(int(0.25 * sr)) / sr
-    rng = np.random.default_rng(12)
-    bang = _filter(rng.standard_normal(len(t)), sr, lo=300, hi=5000) * np.exp(-t / 0.018)
-    body = np.sin(2 * np.pi * np.cumsum(260 * np.exp(-t * 20) + 90) / sr) * np.exp(-t / 0.04)
-    return _norm(np.tanh(2.0 * bang + body))
+def chuva(sr, dur):
+    """Rain: a soft hiss and drops ticking on things, in and out gently."""
+    rng = np.random.default_rng(41)
+    n = int(dur * sr)
+    t = np.arange(n) / sr
+    hiss = _filter(rng.standard_normal(n), sr, lo=500, hi=7000) * (0.85 + 0.15 * np.sin(2 * np.pi * 0.6 * t))
+    drops = (rng.random(n) < 0.0025) * rng.standard_normal(n) * 6
+    drops = _filter(np.convolve(drops, np.exp(-np.arange(200) / 30), "same"), sr, lo=1500, hi=9000)
+    env = np.minimum(1, t / 0.4) * np.minimum(1, (dur - t) / 0.1)
+    return _norm((hiss + 0.6 * drops) * env)
+
+
+def coro(sr, files, starts, end, seed=5):
+    """A stadium chanting "É campeão!": each of edge-tts's voices twice per chant, ±2 semitones, ±30 ms, pushed and
+    band-limited like a crowd far off, a crowd's claps on the beats, the stand's roar under it, a stadium's tail.
+    Starts at the short's 0; ends at `end` (the cut)."""
+    import subprocess
+    rng = np.random.default_rng(seed)
+    n = int((end + 0.1) * sr)
+
+    def load(path):
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-ac", "1", "-ar", str(sr), "-f", "f32le", "-"],
+                             capture_output=True, check=True).stdout
+        x = np.frombuffer(raw, np.float32).astype(np.float64)
+        e = np.sqrt(np.convolve(x ** 2, np.ones(480) / 480, "same"))
+        on = np.where(e > 0.02)[0]
+        return x[max(0, on[0] - 480): on[-1] + 2400]
+
+    voices = [(load(path), 0.5 if i >= 16 else 1.0) for i, path in enumerate(files)]  # the last six are women's
+    dry = np.zeros(n)
+    for s0 in starts:
+        for x, g in voices:
+            for _ in range(2):
+                r = 2 ** (rng.uniform(-2.0, 2.0) / 12)
+                y = np.interp(np.arange(0, len(x) - 1, r), np.arange(len(x)), x)
+                i0 = int((s0 + rng.normal(0, 0.03)) * sr)
+                if i0 < 0:
+                    y, i0 = y[-i0:], 0
+                y = y[: max(0, n - i0)]
+                dry[i0:i0 + len(y)] += y * g * rng.uniform(0.6, 1.0)
+    dry = _filter(np.tanh(1.5 * dry / (np.abs(dry).max() + 1e-9)), sr, lo=220, hi=4200)
+    claps = np.zeros(n)
+    tc = np.arange(int(0.05 * sr)) / sr
+    for s0 in starts:
+        for beat in (0.0, 0.24, 0.48):
+            for _ in range(28):
+                i0 = int((s0 + beat + rng.normal(0, 0.016)) * sr)
+                if 0 <= i0 < n - len(tc):
+                    claps[i0:i0 + len(tc)] += rng.standard_normal(len(tc)) * np.exp(-tc / rng.uniform(0.006, 0.014)) \
+                        * rng.uniform(0.4, 1.0)
+    claps = _filter(claps, sr, lo=800, hi=4500)
+    claps *= 0.35 * np.abs(dry).max() / (np.abs(claps).max() + 1e-9)
+    t = np.arange(n) / sr
+    roar = _filter(rng.standard_normal(n), sr, lo=300, hi=2200)
+    roar *= (0.6 + 0.4 * np.sin(2 * np.pi * 0.7 * t + 1) * np.sin(2 * np.pi * 0.23 * t)) / (np.abs(roar).max() + 1e-9) * 0.35
+    mix = dry + claps + roar
+    ir_t = np.arange(int(1.8 * sr)) / sr
+    ir = _filter(rng.standard_normal(len(ir_t)) * np.exp(-ir_t * 6.9 / 1.8), sr, lo=200, hi=5000)
+    ir = np.concatenate([np.zeros(int(0.035 * sr)), ir])
+    m = len(mix) + len(ir)
+    wet = np.fft.irfft(np.fft.rfft(mix, m) * np.fft.rfft(ir, m), m)[: len(mix)]
+    out = 0.55 * mix + 0.9 * wet * (np.abs(mix).max() / (np.abs(wet).max() + 1e-9))
+    out *= np.clip((end - t) / 0.06, 0, 1) * np.clip((t - starts[0] + 0.15) / 0.15, 0, 1)
+    return _norm(out)
 
 
 def scratch(sr):
@@ -812,7 +894,12 @@ def trombone(sr):
 def sons(ctx):
     sr = ctx.SR
     rv, fl = S["evo_reveal"], S["evo_flick"]
+    beat = 1.0
+    chant = [S["promo_burst"] + 0.02 + k * beat for k in range(4)]
+    rain_from = S["dura"] + S["money"]["stop"]
     return [
+        # the promotion: the stand sings
+        (0.0, coro(sr, S["coro"], chant, ctx.clock.starts[1] - 0.04), -5),
         (S["promo_burst"] - 0.02, sparkle(sr, 4), -15),
         # the demotion
         (S["crack1"], crack(sr, 1), -5),
@@ -826,8 +913,9 @@ def sons(ctx):
         (rv, reveal(sr), -8),
         (rv, "impact-boom", -16),
         # alegria de pobre
-        (S["party"] - 0.02, popper(sr), -9),
-        (S["party"] + 0.05, horn(sr), -14),
+        (S["party"] - 0.01, kaching(sr), -9),
+        (S["party"] + 0.08, sparkle(sr, 6), -15),
         (S["dura"] - 0.3, scratch(sr), -8),
+        (rain_from, chuva(sr, S["party_end"] - rain_from), -17),
         (S["sad"] + 0.02, trombone(sr), -7),
     ]
