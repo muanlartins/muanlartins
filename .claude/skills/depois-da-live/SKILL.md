@@ -19,7 +19,7 @@ Luan, 2026-11-21: "a ideia é deixar tudo que eu for jogar registrado". What cha
   the agenda's `games` in `GET /agenda` has it, and the cover comes from Twitch's CDN by it), `line` (Luan's words;
   a `TODO` isn't shown), an optional `goal` (a title and groups of items with `done`) and `notes`. A new game: add it
   with `line` as a TODO and ask Luan for the line and the goal.
-- **No session, no replays, no teammates.** Step 0's session check and step 1b don't apply; `videos.py` files the
+- **No session, no replays, no teammates.** Step 0's session check and steps 1b and 1c don't apply; `videos.py` files the
   recordings as usual (the Diversos capture records `Jogo.mp4` too).
 - **Step 2:** `live.py <date>` finds the game in the agenda's live that day by its Twitch category (or pass
   `--game <id>`; it stops and says so when the agenda's game isn't in the list). It writes a "Começo" chapter and a
@@ -108,6 +108,25 @@ two matches or more with him, then the day's watchers by minutes from the Σ API
 
 The in-game names stay out of everything but `aliados.json` (the repo is public). Valorant has no replays: there the
 dock tags only viewers with a `riot` Riot ID in `aliados.json`.
+
+## 1c. The replays on the site (Rocket League days)
+
+Since 2026-11-21 each ranked match with a replay has "Ver no RLR" on the ranked page and on the live's chapters,
+opening RLR on the site with that replay. Once `videos.py` has filed them (and not while live: the upload competes
+with the stream):
+
+```sh
+python3 scripts/replays.py <date>            # which file is which match
+python3 scripts/replays.py <date> --apply
+```
+
+It matches each `Replays\Partida NN - ….replay` to its match (the replay's MatchGUID is the dock's id), uploads it as
+`<date>-NN.replay` to the GitHub prerelease `replays-<date>` ("Replays dd/mm"; the files are too big for git) and
+writes `replay` (`/replays/<date>/<date>-NN.replay`) into the session's matches. Publishing the release runs
+`.github/workflows/replays.yml`, which copies the files to the site's bucket (`/replays/<date>/`): check it with
+`gh run list --workflow replays.yml`, or run it with `gh workflow run replays.yml -f tag=replays-<date>`. The session
+goes out with the release (step 5). Luan's decision (2026-11-21): the replays go as they are, the players' names inside
+included; it's the one exception, for these files only. If the dock republishes the session later, run it again.
 
 ## 2. The live's page, transcript and thumbnail
 
@@ -307,5 +326,5 @@ Luan before pushing**: a push to `main` is a release. Then `gh run watch` and ch
 - Copyright: music on the stream is on track 5 only, so it isn't in the recording. If a recording may have caught
   some (a source routed to all tracks for a while), measure before cutting: per-second levels of track 1 against
   2 + 3 with ffmpeg's `astats`. On 11-05 the suspect stretch turned out silent: nothing to mute.
-- The repo is public: no other players' names or ids, no replays, teammates stay nameless, no tokens. The one exception is the viewers in `public/stream/aliados.json`, who agreed to be named: the dock tags them by Twitch login. A new one goes there only when Luan says they agreed.
+- The repo is public: no other players' names or ids, no replays in git (the prereleases of step 1c are Luan's one exception, 2026-11-21), teammates stay nameless, no tokens. The one exception is the viewers in `public/stream/aliados.json`, who agreed to be named: the dock tags them by Twitch login. A new one goes there only when Luan says they agreed.
 - For shorts and commented videos from the material, see the `estudio` skill.

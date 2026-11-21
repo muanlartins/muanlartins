@@ -1,0 +1,65 @@
+name: Replays
+
+# A live's Rocket League replays on the site, for RLR (/rlr/?replay=/replays/<date>/<file>): scripts/replays.py
+# uploads them to the prerelease replays-<date>, and this copies them to the site's bucket under pt/replays/<date>/,
+# served at https://muanlartins.com.br/replays/<date>/ (the same origin as RLR, so no CORS). deploy.yml's sync leaves
+# that folder alone.
+#
+# The deploy role trusts only main (infra/site.yml), and a release's run is on its tag, so publishing or editing a
+# replays-* release only asks for a run on main, which does the copy. By hand: gh workflow run replays.yml -f tag=replays-2026-11-20
+on:
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The release's tag, replays-YYYY-MM-DD"
+        required: true
+
+concurrency:
+  group: replays-${{ github.event_name }}-${{ inputs.tag || github.event.release.tag_name }}
+
+jobs:
+  on-main:
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'replays-') && !github.event.release.draft
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh workflow run replays.yml --repo "$GITHUB_REPOSITORY" --ref main -f tag="$TAG"
+
+  copy:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TAG: ${{ inputs.tag }}
+    steps:
+      - name: Download the release's replays
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! [[ "$TAG" =~ ^replays-[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then echo "::error::not a replays-YYYY-MM-DD tag: $TAG"; exit 1; fi
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.replay' --dir replays
+          ls -l replays
+
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      # A file keeps its name when the match is the same, so it's cached for long and CloudFront forgets the day's
+      # folder after each copy (a replaced replay shows at once).
+      - name: Copy them to the site
+        env:
+          BUCKET: ${{ vars.SITE_BUCKET }}
+        run: |
+          date="${TAG#replays-}"
+          aws s3 cp replays "s3://$BUCKET/pt/replays/$date/" --recursive \
+            --content-type application/octet-stream --cache-control "public, max-age=31536000"
+          aws cloudfront create-invalidation --distribution-id "${{ vars.DISTRIBUTION_PT }}" --paths "/replays/$date/*"

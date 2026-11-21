@@ -20,6 +20,7 @@ import { useEffect, useState, type CSSProperties, type ReactNode } from "react"
 import { FanSpot } from "@/components/site/pix/fan-spot"
 import { decimal, longDate, shortDate, signed, time, weekday } from "@/components/site/ranked/format"
 import { RatingChart } from "@/components/site/ranked/rating-chart"
+import { RlrLink } from "@/components/site/ranked/rlr-link"
 import { livePath } from "@/lib/channel"
 import { loadFans, type Choice, type Torcedor } from "@/lib/profile"
 import { dayOf } from "@/lib/ranked"
@@ -526,6 +527,7 @@ function MatchRow({ match, unit }: { match: ViewMatch; unit: string }) {
             {T.onLive}
           </Link>
         )}
+        {match.replay && <RlrLink replay={match.replay} />}
       </span>
     </li>
   )

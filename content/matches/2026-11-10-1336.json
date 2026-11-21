@@ -78,7 +78,8 @@
         "mmr": 907
       },
       "points": -9,
-      "mmr": 898
+      "mmr": 898,
+      "replay": "/replays/2026-11-10/2026-11-10-01.replay"
     },
     {
       "id": "BB466AA411F1DD2DF05547B7D16595B0",
@@ -130,7 +131,8 @@
         "mmr": 898
       },
       "points": 10,
-      "mmr": 908
+      "mmr": 908,
+      "replay": "/replays/2026-11-10/2026-11-10-02.replay"
     },
     {
       "id": "6610D99211F1DD2EB57A859AE67B0A36",
@@ -182,7 +184,8 @@
         "mmr": 908
       },
       "points": -9,
-      "mmr": 899
+      "mmr": 899,
+      "replay": "/replays/2026-11-10/2026-11-10-03.replay"
     },
     {
       "id": "77138C8E11F1DD2F9C2675AE286FAD60",
@@ -234,7 +237,8 @@
         "mmr": 899
       },
       "points": 9,
-      "mmr": 908
+      "mmr": 908,
+      "replay": "/replays/2026-11-10/2026-11-10-04.replay"
     },
     {
       "id": "187E4D7411F1DD31F363B58746B62918",
@@ -285,7 +289,8 @@
         "mmr": 908
       },
       "points": 9,
-      "mmr": 917
+      "mmr": 917,
+      "replay": "/replays/2026-11-10/2026-11-10-05.replay"
     },
     {
       "id": "21A27A5011F1DD3269967797EA63DF0F",
@@ -336,7 +341,8 @@
         "mmr": 917
       },
       "points": 9,
-      "mmr": 926
+      "mmr": 926,
+      "replay": "/replays/2026-11-10/2026-11-10-06.replay"
     },
     {
       "id": "67452E0811F1DD33EDE97C96429A32CD",
@@ -387,7 +393,8 @@
         "mmr": 926
       },
       "points": 9,
-      "mmr": 935
+      "mmr": 935,
+      "replay": "/replays/2026-11-10/2026-11-10-07.replay"
     },
     {
       "id": "1F1DC27211F1DD36FFF67BBC30E2FA76",
@@ -438,7 +445,8 @@
         "mmr": 935
       },
       "points": 10,
-      "mmr": 945
+      "mmr": 945,
+      "replay": "/replays/2026-11-10/2026-11-10-08.replay"
     },
     {
       "id": "B3CF545211F1DD374351E68F459FE61A",
@@ -489,7 +497,8 @@
         "mmr": 945
       },
       "points": -10,
-      "mmr": 935
+      "mmr": 935,
+      "replay": "/replays/2026-11-10/2026-11-10-09.replay"
     },
     {
       "id": "1A798BF411F1DD39A86F21827AC938C8",
@@ -540,7 +549,8 @@
         "mmr": 935
       },
       "points": 10,
-      "mmr": 945
+      "mmr": 945,
+      "replay": "/replays/2026-11-10/2026-11-10-10.replay"
     }
   ],
   "ranks": [

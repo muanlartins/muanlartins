@@ -3,6 +3,7 @@
 import { Search } from "lucide-react"
 import { useDeferredValue, useRef, useState, useSyncExternalStore, type ReactNode } from "react"
 import { MatchResult } from "@/components/site/ranked/match-result"
+import { RlrLink } from "@/components/site/ranked/rlr-link"
 import { Input, Section } from "@/components/site/ui"
 import { YouTubeVideo, type Seek } from "@/components/site/youtube-video"
 import { clock, type Line } from "@/lib/lives"
@@ -69,11 +70,11 @@ export function LiveViewer({
         <Section title={T.chapters} description={T.chaptersHint}>
           <ul className="divide-y divide-line/60 border-y border-line">
             {chapters.map((chapter) => (
-              <li key={chapter.at}>
+              <li key={chapter.at} className="flex flex-wrap items-center sm:flex-nowrap">
                 <button
                   type="button"
                   onClick={() => jump(chapter.at)}
-                  className="group grid w-full grid-cols-[4rem_1fr] items-center gap-x-4 gap-y-2 px-2 py-3 text-left text-[15px] tabular-nums transition-colors hover:bg-paper/60 sm:grid-cols-[4rem_9rem_1fr]"
+                  className="group grid w-full grid-cols-[4rem_1fr] items-center gap-x-4 gap-y-2 px-2 py-3 text-left text-[15px] tabular-nums transition-colors hover:bg-paper/60 sm:w-auto sm:min-w-0 sm:flex-1 sm:grid-cols-[4rem_9rem_1fr]"
                 >
                   <span className="text-muted transition-colors group-hover:text-klein">{clock(chapter.at)}</span>
                   <span className="font-medium text-ink">{chapter.label}</span>
@@ -83,6 +84,8 @@ export function LiveViewer({
                     </span>
                   )}
                 </button>
+                {/* Beside the chapter's button, not in it (a link inside a button isn't valid); on phones under the result. */}
+                {chapter.match?.replay && <RlrLink replay={chapter.match.replay} className="-mt-1.5 mb-2.5 ml-[5.5rem] sm:mx-2 sm:my-0" />}
               </li>
             ))}
           </ul>

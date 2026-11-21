@@ -44,6 +44,8 @@ export interface ViewMatch {
   extra: string[]
   viewers: string[]
   moment?: { date: string; at: number }
+  /** Its replay on the site, for RLR (Rocket League's, lib/ranked.ts). */
+  replay?: string
 }
 
 export interface Standing {
@@ -213,6 +215,7 @@ export function rocketLeagueView(
     extra: [match.overtime && T.overtime, match.left && T.left].filter(Boolean) as string[],
     viewers: viewersIn(match),
     moment: moments[match.id],
+    replay: match.replay,
   }))
   const byId = new Map(matches.map((m) => [m.id, m]))
   const standing = summary.standing && tierOf(summary.standing.tier, ranks)
