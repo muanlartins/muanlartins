@@ -37,7 +37,8 @@ Luan, 2026-11-21: "a ideia é deixar tudo que eu for jogar registrado". What cha
   ```
 
   It reads Steam's `Celeste/Saves/<slot>.celeste` (only reads it; the slot is Celeste's `save.slot`, which only Luan
-  can say: while it's null the script says so and changes nothing, so ask him), ticks each goal item by its `save`
+  can say: while it's null the script says so and changes nothing, so ask him. His 100% run is slot 1, the menu's
+  second file, started from zero on 2026-11-21; if the script can't find `1.celeste`, he picked another file: ask which), ticks each goal item by its `save`
   key (the script's docstring has the keys), dates what turned done and links it to that day's live, and keeps the
   totals the page shows (strawberries, deaths, time in the game). Off-stream sessions count too: run it any day he
   played. The save's `Name` is a person's name: never print or commit it (slot 0 is someone else's file).
