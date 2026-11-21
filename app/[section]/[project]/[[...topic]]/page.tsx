@@ -9,6 +9,7 @@ import { InventoryPage } from "@/components/site/inventory/inventory-page"
 import { LivePage } from "@/components/site/lives/live-page"
 import { LivesPage } from "@/components/site/lives/lives-page"
 import { MinigamesPage } from "@/components/site/minigames/minigames-page"
+import { SigmaPage } from "@/components/site/channel/sigma-page"
 import { fullDate } from "@/components/site/ranked/format"
 import { RankedPage } from "@/components/site/ranked/ranked-page"
 import { ValorantRankedPage } from "@/components/site/ranked/valorant-ranked-page"
@@ -30,7 +31,8 @@ import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
  * /conteudo/<project>: its home, its roadmap at /fundamentals (an older
  * edition at /fundamentals/v<n>), its ranked record at /ranked, its aim training at /aim, its weapon skins at /inventory, and each
  * topic, of any edition, at /<topic>. In the channel, its lives
- * at /canal/lives, each at /canal/lives/<date>, its agenda at /canal/agenda, the chat's commands at /canal/comandos, its
+ * at /canal/lives, each at /canal/lives/<date>, its agenda at /canal/agenda, the chat's commands at /canal/comandos, Σ at
+ * /canal/sigma, its
  * minigames at /canal/minijogos, its backstage at
  * /canal/backstage and its roadmap at /canal/roadmap. One route for all, so a roadmap with no topics yet still
  * builds.
@@ -63,6 +65,7 @@ export function generateStaticParams() {
     ...lives().map((live) => ({ section, project: "lives", topic: [live.date] })),
     { section, project: "agenda", topic: [] },
     { section, project: "comandos", topic: [] },
+    { section, project: "sigma", topic: [] },
     { section, project: "minijogos", topic: [] },
     { section, project: "backstage", topic: [] },
     { section, project: "roadmap", topic: [] },
@@ -79,7 +82,7 @@ type Found =
 async function find(params: Props["params"]): Promise<Found | undefined> {
   const { section, project, topic: [id, ...rest] = [] } = await params
   if (sectionFromSlug(section) === "channel") {
-    if ((project === "agenda" || project === "comandos" || project === "minijogos" || project === "backstage" || project === "roadmap") && !id) return { channel: project }
+    if ((project === "agenda" || project === "comandos" || project === "sigma" || project === "minijogos" || project === "backstage" || project === "roadmap") && !id) return { channel: project }
     if (project !== "lives" || rest.length > 0) return undefined
     if (!id) return { channel: "lives" }
     const live = lives().find((live) => live.date === id)
@@ -152,6 +155,7 @@ export default async function SectionSubpage({ params }: Props) {
     if (found.channel === "roadmap") return <ChangelogPage />
     if (found.channel === "agenda") return <AgendaPage />
     if (found.channel === "comandos") return <CommandsPage />
+    if (found.channel === "sigma") return <SigmaPage />
     if (found.channel === "minijogos") return <MinigamesPage />
     return <BackstagePage />
   }
