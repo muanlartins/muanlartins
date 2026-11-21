@@ -160,14 +160,17 @@ function Duel() {
   )
 }
 
-/** The latest live's frame, as YouTube serves it, with a play sign. */
+/** The latest live's frame whole, as YouTube serves it (16:9, on the lattice above and below), with a play sign. */
 function Thumbnail({ video }: { video: string }) {
   return (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element -- YouTube's own thumbnail, already sized */}
-      <img src={`https://i.ytimg.com/vi/${video}/mqdefault.jpg`} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-      <span className="cut-sm absolute bottom-2.5 left-2.5 grid h-8 w-8 place-items-center bg-klein text-paper">
-        <Play className="h-4 w-4 fill-current" />
+      <Lattice />
+      <span className="absolute inset-x-0 top-1/2 aspect-video -translate-y-1/2">
+        {/* eslint-disable-next-line @next/next/no-img-element -- YouTube's own thumbnail, already sized */}
+        <img src={`https://i.ytimg.com/vi/${video}/mqdefault.jpg`} alt="" loading="lazy" className="h-full w-full object-cover" />
+        <span className="cut-sm absolute right-2 top-2 grid h-7 w-7 place-items-center bg-klein text-paper">
+          <Play className="h-3.5 w-3.5 fill-current" />
+        </span>
       </span>
     </>
   )

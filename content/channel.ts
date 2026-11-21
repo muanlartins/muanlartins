@@ -13,7 +13,7 @@ export const channel = {
   where: {
     youtube: { pt: "Vídeos", en: "Videos" },
     discord: { pt: "Pra conversar", en: "To talk" },
-    agenda: { pt: "Os horários", en: "The times" },
+    agenda: { pt: "Calendário", en: "Calendar" },
   },
   /** The home's first block: the live on Twitch now, or a countdown to the next. */
   next: {

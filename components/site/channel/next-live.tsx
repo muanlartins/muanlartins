@@ -165,7 +165,7 @@ function Elsewhere() {
     <ul className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
       {links.map((link) => (
         <li key={link.label}>
-          <ButtonLink href={link.href} variant="secondary" icon={link.icon} className="w-full px-2 sm:px-4">
+          <ButtonLink href={link.href} variant="secondary" icon={link.icon} className="h-full w-full whitespace-nowrap px-2 sm:px-4">
             {link.label}
             <span className="hidden whitespace-nowrap font-normal text-muted lg:inline">· {link.hint}</span>
           </ButtonLink>
