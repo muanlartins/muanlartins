@@ -111,6 +111,13 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
 export const UPCOMING: Upcoming[] = [
+  {
+    id: "estatisticas-da-partida",
+    status: "ideia",
+    tag: "live",
+    title: "Estatísticas da partida na tela",
+    text: "Meus toques, gols, defesas, aéreos e score em cada partida, e os números da live inteira nos créditos do fim.",
+  },
 ]
 
 /** Every feature released, newest first. */
