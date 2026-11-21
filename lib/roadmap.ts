@@ -6,12 +6,6 @@ import { localize, sectionPath, type L10n, type Locale } from "@/lib/site"
  * page reorders them by the rank they belong to.
  */
 
-export interface Paint {
-  color: string
-  /** Metallic, as the ranks are; off for a plain primer. Default on. */
-  metal?: boolean
-}
-
 export interface Rank {
   id: string
   name: L10n
@@ -19,8 +13,6 @@ export interface Rank {
   color: string
   /** The rank's emblem for each division, lowest first: finishing more of its topics shows the next one. */
   icons?: string[]
-  /** The car's finish while the rank is read, when the emblem's colour won't do: real silver is lighter than a legible one. */
-  paint?: Paint
   /** A line under the rank's name: what changes here. */
   summary?: L10n
 }
@@ -41,7 +33,12 @@ export interface Topic {
   title: L10n
   /** The YouTube video, in the roadmap's language: the id in youtube.com/watch?v=<id>. Missing shows "coming soon". */
   video?: string
-  /** The written version under the video, in the roadmap's language. A blank line starts a new paragraph. */
+  /**
+   * The written version under the video, in the roadmap's language, laid out as a documentation page (`topicText`):
+   * a blank line starts a new paragraph; the first paragraph is the page's lede; a line `## Title` starts a numbered
+   * section (without any, the text is one section, "Resumo"); a paragraph starting with `> ` is set apart as a note
+   * (the training pack). Training pack codes (05A4-631B-C3DB-A894) are set as typed.
+   */
   text?: string
   /** The best sources found for it, credited under the text. */
   sources?: Source[]
@@ -144,4 +141,44 @@ export function roadmapPath(roadmap: Roadmap, topic?: Topic, latest = true) {
   const game = `${sectionPath("content")}/${roadmap.game}`
   if (topic) return `${game}/${topic.id}`
   return `${game}/fundamentals${latest ? "" : `/${editionSlug(roadmap)}`}`
+}
+
+/** A paragraph of a topic's text, or a note set apart from it. */
+export interface TextBlock {
+  note: boolean
+  text: string
+}
+
+export interface TextSection {
+  id: string
+  title: string
+  blocks: TextBlock[]
+}
+
+/** "Rolamento aéreo (air roll)" → "rolamento-aereo-air-roll": a section's anchor. */
+export function slug(title: string) {
+  return title
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+}
+
+/**
+ * A topic's text as its page lays it out: the lede (its first paragraph, unless that's a note or a section's title),
+ * then its sections. Paragraphs before the first `## Title` are the section `summary` is the title of.
+ */
+export function topicText(text: string | undefined, summary: string) {
+  const paragraphs = text?.split(/\n\s*\n/).map((paragraph) => paragraph.trim()).filter(Boolean) ?? []
+  const lede = paragraphs[0] && !/^(##|>)\s/.test(paragraphs[0]) ? paragraphs.shift() : undefined
+  const sections: TextSection[] = []
+  for (const paragraph of paragraphs) {
+    const heading = paragraph.match(/^##\s+(.+?)(?:\n([\s\S]*))?$/)
+    if (heading) sections.push({ id: slug(heading[1]), title: heading[1], blocks: [] })
+    else if (sections.length === 0) sections.push({ id: slug(summary), title: summary, blocks: [] })
+    const body = heading ? heading[2]?.trim() : paragraph
+    if (body) sections[sections.length - 1].blocks.push(/^>\s/.test(body) ? { note: true, text: body.replace(/^>\s+/, "") } : { note: false, text: body })
+  }
+  return { lede, sections: sections.filter((section) => section.blocks.length > 0) }
 }

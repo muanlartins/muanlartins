@@ -6,40 +6,53 @@ import { useReducedMotion } from "motion/react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Color, MathUtils, type Group, type Mesh, type MeshPhysicalMaterial, type Object3D } from "three"
 import { airRollReplay } from "@/lib/air-roll"
-import type { Paint } from "@/lib/roadmap"
 
 const MODEL = "/models/octane.glb"
-const KLEIN: Paint = { color: "#002fa7", metal: false }
+/** The brand's values (app/globals.css), which the car's paint and the light read: Klein claro, Klein, navy, Branco. */
+const TOKENS = { kleinClaro: "#85a7ff", klein: "#002fa7", navy: "#001447", paper: "#f4f5f7" }
 /** Air roll ticks per pixel scrolled: about a revolution a screen. */
 const TICKS_PER_PIXEL = 0.15
+/** The paint's finish, the same at every rank: a satin metal. */
+const FINISH = { metalness: 0.55, roughness: 0.32 }
 
 /**
- * The Octane behind the page, air rolling as the page scrolls: down plays
- * the roll forwards, up rewinds it. Its paint becomes that of the rank
- * being read (Klein above the ranks).
+ * The car's paint at a `step` of `steps` (the rank being read, -1 above the first): a tint of Klein, from Klein claro
+ * at the bottom through Klein to navy at the top, so the car darkens as the ranks climb. The ranks' own colours stay
+ * on their emblems and the rail.
  */
-export default function Garage({ paint = KLEIN }: { paint?: Paint }) {
+export function paintAt(step: number, steps: number) {
+  const t = steps > 1 ? Math.max(0, step) / (steps - 1) : 0
+  const [from, to, along] = t < 0.5 ? [TOKENS.kleinClaro, TOKENS.klein, t * 2] : [TOKENS.klein, TOKENS.navy, t * 2 - 1]
+  return new Color(from).lerp(new Color(to), along)
+}
+
+/**
+ * The Octane behind Rocket League's fundamentals, air rolling as the page scrolls: down plays the roll forwards, up
+ * rewinds it, and it's still whenever the page is. Its paint follows the rank being read (`paintAt`). Under reduced
+ * motion it holds one pose and changes paint at once.
+ */
+export default function Garage({ step = -1, steps = 1 }: { step?: number; steps?: number }) {
   return (
     <Canvas frameloop="demand" dpr={[1, 1.5]} camera={{ position: [0, 0, 5.2], fov: 30 }} gl={{ alpha: true, antialias: true }}>
-      <ambientLight intensity={0.4} />
+      <ambientLight intensity={0.5} />
       <directionalLight position={[3, 5, 4]} intensity={1.6} />
       <Environment resolution={256}>
         <Lightformer form="rect" intensity={3} position={[0, 4, 0]} rotation-x={Math.PI / 2} scale={[8, 3, 1]} />
         <Lightformer form="rect" intensity={2} position={[-5, 1, 2]} rotation-y={Math.PI / 2} scale={[6, 2, 1]} />
         <Lightformer form="rect" intensity={1.5} position={[5, 1, -2]} rotation-y={-Math.PI / 2} scale={[6, 2, 1]} />
-        <Lightformer form="rect" color="#e6e8ec" intensity={0.8} position={[0, 0, 8]} scale={[20, 10, 1]} />
-        <Lightformer form="rect" color="#e6e8ec" intensity={0.5} position={[0, -4, 0]} rotation-x={-Math.PI / 2} scale={[20, 20, 1]} />
-        <Lightformer form="ring" color="#85a7ff" intensity={2} position={[0, 1, -6]} scale={4} />
+        <Lightformer form="rect" color={TOKENS.paper} intensity={0.8} position={[0, 0, 8]} scale={[20, 10, 1]} />
+        <Lightformer form="rect" color={TOKENS.paper} intensity={0.5} position={[0, -4, 0]} rotation-x={-Math.PI / 2} scale={[20, 20, 1]} />
+        <Lightformer form="ring" color={TOKENS.kleinClaro} intensity={2} position={[0, 1, -6]} scale={4} />
       </Environment>
-      <Octane color={paint.color} metal={paint.metal ?? true} />
+      <Octane step={step} steps={steps} />
     </Canvas>
   )
 }
 
-function Octane({ color, metal }: { color: string; metal: boolean }) {
+function Octane({ step, steps }: { step: number; steps: number }) {
   const { scene } = useGLTF(MODEL)
   const [replay] = useState(() => airRollReplay())
-  const target = useMemo(() => new Color(color), [color])
+  const target = useMemo(() => paintAt(step, steps), [step, steps])
   const reduced = useReducedMotion()
   const viewport = useThree((state) => state.viewport)
   const invalidate = useThree((state) => state.invalidate)
@@ -54,20 +67,22 @@ function Octane({ color, metal }: { color: string; metal: boolean }) {
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
   }, [invalidate])
-  useEffect(() => invalidate(), [color, invalidate])
+  useEffect(() => invalidate(), [target, invalidate])
 
   useFrame((_, frame) => {
     const delta = Math.min(frame, 0.1)
     if (!body.current) return
     let moving = false
 
-    paint.current ??= findPaint(body.current)
+    if (!paint.current) {
+      paint.current = findPaint(body.current)
+      if (paint.current) Object.assign(paint.current, FINISH)
+    }
     if (paint.current) {
-      paint.current.color.lerp(target, 1 - Math.exp(-4 * delta))
-      paint.current.metalness = MathUtils.damp(paint.current.metalness, metal ? 1 : 0.3, 4, delta)
-      paint.current.roughness = MathUtils.damp(paint.current.roughness, metal ? 0.22 : 0.45, 4, delta)
-      moving ||= Math.abs(paint.current.metalness - (metal ? 1 : 0.3)) > 0.001
-      moving ||= Math.abs(paint.current.color.r - target.r) + Math.abs(paint.current.color.g - target.g) + Math.abs(paint.current.color.b - target.b) > 0.002
+      if (reduced) paint.current.color.copy(target)
+      else paint.current.color.lerp(target, 1 - Math.exp(-4 * delta))
+      const { r, g, b } = paint.current.color
+      moving ||= Math.abs(r - target.r) + Math.abs(g - target.g) + Math.abs(b - target.b) > 0.002
     }
 
     if (!reduced) {

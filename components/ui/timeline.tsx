@@ -5,9 +5,11 @@
  * with `shadcn add https://ui.aceternity.com/registry/timeline.json`.
  * Restyled to the brand and sized for the site's column; entries take an
  * id (an anchor) and their own dot. The dots stay on the rail while the
- * titles follow the page. Instead of the scroll, the beam shows each
- * entry's `fills` (how far its stretch of rail is lit) and rolls in when
- * the timeline comes into view; a `marker` rides the `current` entry's tip.
+ * titles follow the page (from 640 px; narrower, each title sits over its
+ * entry). Instead of the scroll, the beam shows each entry's `fills` (how
+ * far its stretch of rail is lit, in Klein) and rolls in when the timeline
+ * comes into view; a `marker` rides the `current` entry's tip. Under
+ * reduced motion, both are simply where they belong.
  */
 
 import { motion, useInView, useReducedMotion, useSpring, useTransform, type MotionValue } from "motion/react"
@@ -24,6 +26,8 @@ interface TimelineEntry {
 /** The dot's centre, and the gap the marker keeps from a dot. */
 const DOT = 20
 const GAP = 34
+/** How the beam and the marker roll to where they belong: a ball's roll, settling in about a second. */
+const ROLL = { stiffness: 90, damping: 22 }
 
 export const Timeline = ({
   data,
@@ -70,7 +74,7 @@ export const Timeline = ({
 
   const inView = useInView(ref, { once: true, margin: "0px 0px -30% 0px" })
   const shown = inView && layout.height > 0
-  const tip = useSpring(0, { stiffness: 45, damping: 16 })
+  const tip = useSpring(0, ROLL)
   const reduced = useReducedMotion()
   const target = shown ? tipOf(current) : 0
   useEffect(() => {
@@ -89,22 +93,22 @@ export const Timeline = ({
             ref={(row) => {
               rows.current[index] = row
             }}
-            className="relative flex scroll-mt-24 justify-start pt-10 md:gap-10 md:pt-24"
+            className="relative flex scroll-mt-24 justify-start pt-10 sm:gap-10 sm:pt-24"
           >
-            <div className="absolute left-0 top-10 z-40 flex h-10 w-10 items-center justify-center rounded-full bg-ground md:top-24">
-              {item.dot ?? <div className="h-4 w-4 rounded-full border border-zinc-300 bg-zinc-200 p-2" />}
+            <div className="absolute left-0 top-10 z-40 flex h-10 w-10 items-center justify-center sm:top-24">
+              {item.dot ?? <div className="h-3 w-3 rotate-45 border-2 border-line-strong bg-ground" />}
             </div>
-            <div className="sticky top-28 z-30 hidden self-start md:block md:w-56 md:shrink-0 md:pl-16">{item.title}</div>
+            <div className="sticky top-28 z-30 hidden self-start sm:block sm:w-56 sm:shrink-0 sm:pl-16">{item.title}</div>
 
-            <div className="relative w-full min-w-0 pl-16 md:pl-0">
-              <div className="mb-4 block pt-1 md:hidden">{item.title}</div>
+            <div className="relative w-full min-w-0 pl-16 sm:pl-0">
+              <div className="mb-6 block pt-1 sm:hidden">{item.title}</div>
               {item.content}
             </div>
           </div>
         ))}
         <div
           style={{ height: layout.height + "px" }}
-          className="absolute left-5 top-0 w-[2px] -translate-x-1/2 overflow-hidden bg-[linear-gradient(to_bottom,var(--tw-gradient-stops))] from-transparent from-[0%] via-zinc-300 to-transparent to-[99%] [mask-image:linear-gradient(to_bottom,transparent_0,black_40px,black_calc(100%-80px),transparent_100%)]"
+          className="absolute left-5 top-0 w-[2px] -translate-x-1/2 overflow-hidden bg-line [mask-image:linear-gradient(to_bottom,transparent_0,black_40px,black_calc(100%-80px),transparent_100%)]"
         >
           {stretches.map((stretch, index) => (
             <Beam
@@ -127,7 +131,7 @@ export const Timeline = ({
 
 /** One entry's lit stretch, growing down from its dot. */
 function Beam({ top, length, reduced }: { top: number; length: number; reduced: boolean | null }) {
-  const height = useSpring(0, { stiffness: 45, damping: 16 })
+  const height = useSpring(0, ROLL)
   useEffect(() => {
     if (reduced) height.jump(length)
     else height.set(length)
@@ -136,7 +140,7 @@ function Beam({ top, length, reduced }: { top: number; length: number; reduced: 
   return (
     <motion.div
       style={{ top, height }}
-      className="absolute inset-x-0 w-[2px] rounded-full bg-gradient-to-t from-klein-claro from-[0%] via-klein via-[12%] to-klein"
+      className="absolute inset-x-0 w-[2px] bg-klein"
     />
   )
 }

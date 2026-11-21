@@ -2,37 +2,47 @@
 
 import { RotateCcw } from "lucide-react"
 import { useEffect, useState } from "react"
+import { Button } from "@/components/site/ui"
 import { useProgress } from "@/lib/progress"
 import { UI } from "@/lib/site"
-import { cn } from "@/lib/utils"
+import { ROADMAP } from "./labels"
 
-/** Wipes a roadmap's saved progress: the first click asks, a second one within a few seconds clears. */
+/**
+ * Wipes a roadmap's saved progress, the site's one pattern for destroying something: the first click asks ("Apagar
+ * mesmo? Clica de novo"), a second within a few seconds clears it and says so ("Apagado.").
+ */
 export function ClearProgress({ roadmap }: { roadmap: string }) {
   const { progress, clear } = useProgress(roadmap)
-  const [asking, setAsking] = useState(false)
+  const [step, setStep] = useState<"idle" | "asking" | "cleared">("idle")
 
   useEffect(() => {
-    if (!asking) return
-    const timer = setTimeout(() => setAsking(false), 4000)
+    if (step === "idle") return
+    const timer = setTimeout(() => setStep("idle"), step === "asking" ? 4000 : 2500)
     return () => clearTimeout(timer)
-  }, [asking])
+  }, [step])
 
+  if (step === "cleared") {
+    return (
+      <p role="status" className="text-[14px] font-medium text-muted">
+        {ROADMAP.cleared}
+      </p>
+    )
+  }
   if (Object.keys(progress).length === 0) return null
 
   return (
-    <button
-      type="button"
+    <Button
+      variant={step === "asking" ? "primary" : "secondary"}
+      size="sm"
+      icon={<RotateCcw aria-hidden className="h-4 w-4" />}
       onClick={() => {
-        if (asking) clear()
-        setAsking(!asking)
+        if (step === "asking") {
+          clear()
+          setStep("cleared")
+        } else setStep("asking")
       }}
-      className={cn(
-        "inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-[13px] font-medium transition-colors",
-        asking ? "border-navy bg-navy text-paper" : "border-zinc-300 text-muted hover:border-klein hover:text-klein",
-      )}
     >
-      <RotateCcw className="h-3.5 w-3.5" />
-      {asking ? UI.confirmClear : UI.clearProgress}
-    </button>
+      {step === "asking" ? UI.confirmClear : UI.clearProgress}
+    </Button>
   )
 }

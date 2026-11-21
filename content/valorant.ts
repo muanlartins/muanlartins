@@ -15,7 +15,7 @@ export default roadmap({
   game: "valorant",
   title: { pt: "Como estou aprendendo Valorant", en: "How I'm learning Valorant" },
   description: {
-    pt: "Conceito por conceito, com as melhores fontes que encontrei para cada um.",
+    pt: "Conceito por conceito, com as melhores fontes que encontrei pra cada um.",
     en: "Concept by concept, with the best sources I found for each.",
   },
   language: "pt",

@@ -15,7 +15,7 @@ export default roadmap({
   game: "rocket-league",
   title: { pt: "Fundamentos do Rocket League", en: "Rocket League Fundamentals" },
   description: {
-    pt: "Um roteiro para evoluir no jogo.",
+    pt: "Um roteiro pra evoluir no jogo.",
     en: "A roadmap for improving at the game.",
   },
   language: "pt",
@@ -24,10 +24,9 @@ export default roadmap({
   ranks: [
     {
       id: "unranked",
-      name: { pt: "Unranked", en: "Unranked" },
+      name: { pt: "Sem rank", en: "Unranked" },
       color: "#5f6675",
       icons: ["/ranks/unranked.webp"],
-      paint: { color: "#4e535c", metal: false },
     },
     {
       id: "bronze",
@@ -41,7 +40,6 @@ export default roadmap({
       name: { pt: "Prata", en: "Silver" },
       color: "#7d8799",
       icons: divisions("silver"),
-      paint: { color: "#c9cdd4" },
     },
     { id: "gold", name: { pt: "Ouro", en: "Gold" }, color: "#c39a1c", icons: divisions("gold") },
     { id: "platinum", name: { pt: "Platina", en: "Platinum" }, color: "#3aa7b5", icons: divisions("platinum") },
@@ -76,17 +74,29 @@ export default roadmap({
               video: "CqVSrP8xpWY",
               text: `Todo comando pode ser testado no jogo livre (Treino › Jogo livre), e a lista completa fica em Configurações › Controles. Estes são os que importam agora.
 
-Acelerar e frear. O freio também é a marcha ré. O impulso (boost) dá muito mais velocidade e força, e ganha da ré: segurando os dois, o carro vai para a frente.
+## Acelerar e frear
 
-Direção. O analógico esquerdo vira o carro para os lados. No ar, ele também inclina o carro para cima e para baixo.
+O freio também é a marcha ré. O impulso (boost) dá muito mais velocidade e força, e ganha da ré: segurando os dois, o carro vai para a frente.
 
-Pulo. Segurar o botão dá um pulo mais alto; soltar rápido, um mais baixo. Depois de qualquer um deles dá para pular de novo, mas só por pouco mais de um segundo depois do primeiro pulo.
+## Direção
 
-Drift. Uma derrapada para virar rápido. Não faz uma curva em U perfeita, então leva um tempo para se acostumar, e com impulso a curva fica ainda mais fechada. Com pouco espaço, também dá para pular, girar o carro 180° e seguir andando. Mais à frente vem o half flip, que faz isso melhor.
+O analógico esquerdo vira o carro para os lados. No ar, ele também inclina o carro para cima e para baixo.
 
-Câmera. O analógico direito olha em volta, e apertá-lo mostra a visão traseira, para andar de ré vendo o campo. Um botão alterna entre a câmera normal e a câmera da bola (ball cam), assunto do próximo tópico.
+## Pulo
 
-Rolamento aéreo (air roll). No ar, virar para os lados gira o carro como no chão. Segurando o botão do drift, ou o de rolamento aéreo se você configurou um, ele passa a rolar no próprio eixo. Serve para ajeitar o carro antes de bater na bola, com a quina, por exemplo, e para girar enquanto voa.`,
+Segurar o botão dá um pulo mais alto; soltar rápido, um mais baixo. Depois de qualquer um deles dá para pular de novo, mas só por pouco mais de um segundo depois do primeiro pulo.
+
+## Drift
+
+Uma derrapada para virar rápido. Não faz uma curva em U perfeita, então leva um tempo para se acostumar, e com impulso a curva fica ainda mais fechada. Com pouco espaço, também dá para pular, girar o carro 180° e seguir andando. Mais à frente vem o half flip, que faz isso melhor.
+
+## Câmera
+
+O analógico direito olha em volta, e apertá-lo mostra a visão traseira, para andar de ré vendo o campo. Um botão alterna entre a câmera normal e a câmera da bola (ball cam), assunto do próximo tópico.
+
+## Rolamento aéreo (air roll)
+
+No ar, virar para os lados gira o carro como no chão. Segurando o botão do drift, ou o de rolamento aéreo se você configurou um, ele passa a rolar no próprio eixo. Serve para ajeitar o carro antes de bater na bola, com a quina, por exemplo, e para girar enquanto voa.`,
             },
             {
               id: "keyboard-or-controller",
@@ -180,7 +190,7 @@ Na parede, o objetivo não é sair voando. É conseguir chegar numa bola chutada
 
 O jogo tem gravidade: parado na parede, o carro escorrega para baixo, mas acelerando ele não cai. O ângulo do bico ao pular também muda tudo. Subindo com o bico para cima, o pulo sai alto; com o bico para baixo, você sai de cabeça para baixo; de lado, já sai caindo. Em geral, deixe o bico um pouco para cima.
 
-Para treinar, use o pacote Basic Wall Clears (70F1-3753-10A1-BA21), que achei no Prejump (prejump.com), um site com vários pacotes de treino para buscar. Ele é indicado para o Prata e trata de defesa na parede, e os três primeiros chutes são os que mais importam. A bola corre para a parede e você tem que tirá-la, sempre do centro do gol para fora. O quique na parede é imprevisível: acelere para pegar a bola colada na parede, ou pule. Use a ball cam e mantenha o bico um pouco para cima. Se precisar pular, um pulo simples, já se preparando para cair direito, no chão ou na parede: pulos e pulos duplos demais deixam você perdido no ar quando deveria estar voltando para a posição.
+> Para treinar, use o pacote Basic Wall Clears (70F1-3753-10A1-BA21), que achei no Prejump (prejump.com), um site com vários pacotes de treino para buscar. Ele é indicado para o Prata e trata de defesa na parede, e os três primeiros chutes são os que mais importam. A bola corre para a parede e você tem que tirá-la, sempre do centro do gol para fora. O quique na parede é imprevisível: acelere para pegar a bola colada na parede, ou pule. Use a ball cam e mantenha o bico um pouco para cima. Se precisar pular, um pulo simples, já se preparando para cair direito, no chão ou na parede: pulos e pulos duplos demais deixam você perdido no ar quando deveria estar voltando para a posição.
 
 Um bom clear manda a bola para longe, o mais na lateral possível, e não para o meio, onde o atacante deles espera. Acertar a bola de baixo para cima a manda longe; de cima para baixo, ela fica fácil para o colega pegar, e aí é um passe, não uma defesa.
 
@@ -199,7 +209,7 @@ A ideia é parar de jogar a velocidade fora. Passou da bola e precisa voltar? Fr
 
 O conceito também vale para os outros. Se um adversário acabou de passar por você e errou a bola, ele não volta num passe de mágica, e essa é a sua chance de ir para cima dela.
 
-Não achei um pacote de treino bom para isso; é mais uma introdução ao que vem a seguir. O half flip é a mecânica que mais aproveita a ideia, e a shadow defense, no Platina, também faz bom uso dela.`,
+> Não achei um pacote de treino bom para isso; é mais uma introdução ao que vem a seguir. O half flip é a mecânica que mais aproveita a ideia, e a shadow defense, no Platina, também faz bom uso dela.`,
             },
             {
               id: "shadow-defense",
@@ -214,7 +224,7 @@ O difícil é o ângulo. A bola vem das suas costas, e a setinha da bola não d�
 
 Com a bola vindo rápida e alta, acompanhe-a pelo chão com boost antes de subir: no chão você acelera mais rápido do que voando, e saindo voando direto você não chega na bola. É o que vimos em manter a velocidade.
 
-Para treinar, use o pacote Shadow Defense 101 (6726-51F1-6B0D-9540), do Prejump (prejump.com), com chutes de várias velocidades e alturas. O importante é ficar confortável interceptando a bola.`,
+> Para treinar, use o pacote Shadow Defense 101 (6726-51F1-6B0D-9540), do Prejump (prejump.com), com chutes de várias velocidades e alturas. O importante é ficar confortável interceptando a bola.`,
             },
           ],
         },
@@ -287,7 +297,7 @@ Comece com um flip para trás e repare na velocidade que o carro ganha. Logo dep
 
 De barriga para cima, gire o carro no próprio eixo com o rolamento aéreo. Em Configurações › Controles, dá para pôr o rolamento para a direita e para a esquerda em botões próprios, e aí basta apertar um deles. Bem feito, o carro cai nas quatro rodas, já virado para o outro lado e com a velocidade que tinha. Compare com uma curva ou uma derrapada a partir da ré: você para e perde tudo. Dois flips para trás seguidos de um half flip chegam até o supersônico.
 
-Para treinar, use o pacote Do a half flip! (05A4-631B-C3DB-A894), do Prejump (prejump.com). Os chutes começam de costas para a bola; de ré ou com uma curva normal, você não chega a tempo em vários deles, e os melhores para praticar são o terceiro e o quarto. A ideia não é dar um jeito de pegar a bola, é praticar o half flip. E lembre: o boost só empurra o carro para a frente, então quanto antes você estiver de frente, antes pode usá-lo.`,
+> Para treinar, use o pacote Do a half flip! (05A4-631B-C3DB-A894), do Prejump (prejump.com). Os chutes começam de costas para a bola; de ré ou com uma curva normal, você não chega a tempo em vários deles, e os melhores para praticar são o terceiro e o quarto. A ideia não é dar um jeito de pegar a bola, é praticar o half flip. E lembre: o boost só empurra o carro para a frente, então quanto antes você estiver de frente, antes pode usá-lo.`,
             },
           ],
         },
@@ -329,7 +339,7 @@ Aperte o boost primeiro, antes mesmo de pular, para ele ficar ligado o voo intei
 
 Na bola, bater com o bico dá força; com o capô, um toque direcionado; com as quatro rodas, o toque mais fraco que existe. Às vezes também é preciso dosar o boost, para não passar da bola e chegar nela na hora certa.
 
-Para treinar, use os pacotes Aerial Class 1, 2 e 3 (7FD9-54FB-1CDB-E23F, 9343-1F3A-605A-EF63 e 6418-F477-6032-0C8E), do Prejump (prejump.com). Eles têm chutes de várias alturas, distâncias e dificuldades; no começo, fique nos primeiros chutes do primeiro pacote.`,
+> Para treinar, use os pacotes Aerial Class 1, 2 e 3 (7FD9-54FB-1CDB-E23F, 9343-1F3A-605A-EF63 e 6418-F477-6032-0C8E), do Prejump (prejump.com). Eles têm chutes de várias alturas, distâncias e dificuldades; no começo, fique nos primeiros chutes do primeiro pacote.`,
             },
             {
               id: "high-aerial",
@@ -342,7 +352,7 @@ No ar, sem atrito, o carro mantém a velocidade que tinha quando saiu do chão. 
 
 Como o segundo pulo não serve para um flip lá em cima, use-o para subir mais rápido: boost, pulo, carro apontado para cima e, logo em seguida, o segundo pulo, um empurrãozinho a mais que faz diferença.
 
-Para treinar, use os pacotes Aerial Class 1, 2 e 3 (7FD9-54FB-1CDB-E23F, 9343-1F3A-605A-EF63 e 6418-F477-6032-0C8E), do Prejump (prejump.com); os chutes mais altos são os mais difíceis, e o terceiro pacote é bem puxado. No começo, você vai chegar atrasado ou passar da bola: dose o boost para chegar na hora certa. Depois, mire no gol: bata no lado da bola oposto ao de onde quer mandá-la, de cima para baixo para um chute para baixo, e com o bico para um toque forte. Com as rodas, o toque amortece a bola. Também não é preciso pegar a bola no ponto mais alto: esperar ela cair um pouco pode facilitar.
+> Para treinar, use os pacotes Aerial Class 1, 2 e 3 (7FD9-54FB-1CDB-E23F, 9343-1F3A-605A-EF63 e 6418-F477-6032-0C8E), do Prejump (prejump.com); os chutes mais altos são os mais difíceis, e o terceiro pacote é bem puxado. No começo, você vai chegar atrasado ou passar da bola: dose o boost para chegar na hora certa. Depois, mire no gol: bata no lado da bola oposto ao de onde quer mandá-la, de cima para baixo para um chute para baixo, e com o bico para um toque forte. Com as rodas, o toque amortece a bola. Também não é preciso pegar a bola no ponto mais alto: esperar ela cair um pouco pode facilitar.
 
 Força não é a preocupação agora; o que importa é acertar a bola com direção e intenção, e se acostumar a voar. Quanto melhor você lê a subida da bola, melhor o seu posicionamento, e isso se treina jogando partidas, não adivinhando no treino. Inclinar o carro para chutar melhor é uma camada a mais, para quando chegarmos aos ajustes finos do aéreo.`,
             },
@@ -366,7 +376,7 @@ Para a bola ir reta, bata no centro dela, como um taco de sinuca. Dê um pulinho
 
 A direção vem do ângulo da batida. Antes de chutar, ponha o carro na linha entre a bola e o gol, do lado oposto ao gol. Chegando pelo lado errado, a bola vai parar no canto. Ninguém domina isso rápido; o que importa é bater com intenção.
 
-Para treinar, além das partidas, o Treinamento personalizado tem pacotes em destaque, um para cada rank. O de Bronze tem chutes simples que só entram se você ajustar o carro com freio, aceleração e impulso e acertar a direção: acelerar demais sobe a bola, e o carro passa por ela. Depois, invente desafios: chutar de mais perto, chutar com drift, defender a mesma bola.`,
+> Para treinar, além das partidas, o Treinamento personalizado tem pacotes em destaque, um para cada rank. O de Bronze tem chutes simples que só entram se você ajustar o carro com freio, aceleração e impulso e acertar a direção: acelerar demais sobe a bola, e o carro passa por ela. Depois, invente desafios: chutar de mais perto, chutar com drift, defender a mesma bola.`,
             },
             {
               id: "shooting",
@@ -379,7 +389,7 @@ Se a bola está devagar e ninguém está por perto, não bata nela de onde estiv
 
 Agora, com o flip, o chute ganha força e direção. Um flip na diagonal manda a bola para os cantos de baixo; de frente, com o bico do carro, ela sai forte. O drift e o impulso ajudam a ajeitar a bola antes. O objetivo não é acertar tudo, e sim ficar à vontade para ajustar a bola e mandá-la para o gol, não para qualquer lugar.
 
-Para praticar, o Treinamento personalizado tem, nos destaques, os pacotes da Psyonix, um para cada rank. No de Bronze, onde antes bastava um pulinho, use o flip, e pense em para onde quer mandar a bola. Os controles no canto superior esquerdo reiniciam e trocam o chute. Cinco minutos bastam; depois, vá jogar.
+> Para praticar, o Treinamento personalizado tem, nos destaques, os pacotes da Psyonix, um para cada rank. No de Bronze, onde antes bastava um pulinho, use o flip, e pense em para onde quer mandar a bola. Os controles no canto superior esquerdo reiniciam e trocam o chute. Cinco minutos bastam; depois, vá jogar.
 
 Os erros mais comuns são bater com a traseira do carro no fim do flip e fazer o flip para o lado errado. De lado, o chute sai bem mais fraco que de bico. Se estiver se sentindo corajoso, ajuste o carro no ar com o rolamento aéreo, como em Caindo sobre as rodas, para bater com a quina.`,
             },
@@ -398,7 +408,7 @@ Bata com o bico, não com o capô, senão a bola amortece e sai devagar. Um puli
 
 Com a bola quicando, espere ela começar a subir. Descendo, ela tem velocidade para baixo e o chute sai fraco; subindo, ela já ganha altura sozinha, e toda a sua força vai para a frente. Pule para pegar o meio da bola, sem chegar em cima dela. Com a bola vindo na sua direção, bata com a quina do carro, como numa trivela, e ela sai para o lado.
 
-Para treinar, use o pacote Powershots (7028-5E10-88EF-E83E), do Prejump (prejump.com). A bola só entra se você acertar de primeira, e não é preciso fazer todos os chutes: dá para repetir o mesmo, ou espelhá-lo.
+> Para treinar, use o pacote Powershots (7028-5E10-88EF-E83E), do Prejump (prejump.com). A bola só entra se você acertar de primeira, e não é preciso fazer todos os chutes: dá para repetir o mesmo, ou espelhá-lo.
 
 Os bons jogadores fazem esse básico com muita consistência, e é por isso que podem pensar nas coisas mais complicadas.`,
             },
@@ -415,7 +425,7 @@ No começo, o objetivo é só acertar a bola em cheio, com o capô. Com mais pr�
 
 Quando a bola está descolada da parede, não tem jeito: é preciso pular. Prefira o pulo simples e, para cair, gire o carro 90° até as quatro rodas apontarem para o chão, como em Caindo sobre as rodas. Sair da parede assim também é um bom treino de voo, que vem a seguir.
 
-Para treinar, use o pacote Wall Shots (9F6D-4387-4C57-2E4B), que achei no Prejump (prejump.com).`,
+> Para treinar, use o pacote Wall Shots (9F6D-4387-4C57-2E4B), que achei no Prejump (prejump.com).`,
             },
           ],
         },
@@ -449,7 +459,7 @@ O exercício é acelerar e frear acompanhando a velocidade da bola até ela pous
 
 Onde a bola encosta no carro decide para onde ela vai: na traseira, ela cai para trás; no bico, vai para a frente com força; numa quina, para o lado. Com esse conforto, uma bola que vinha pelo ar vira uma bola no seu capô, e dali saem jogadas como o flick, mais à frente.
 
-Não achei um pacote de treino específico para isso. Qualquer pacote de aéreo serve, como o Aerial Class 1 (7FD9-54FB-1CDB-E23F), do Prejump (prejump.com), porque o que importa é a bola chegando em velocidades e direções diferentes.`,
+> Não achei um pacote de treino específico para isso. Qualquer pacote de aéreo serve, como o Aerial Class 1 (7FD9-54FB-1CDB-E23F), do Prejump (prejump.com), porque o que importa é a bola chegando em velocidades e direções diferentes.`,
             },
             { id: "hood-dribble", rank: "diamond", title: { pt: "Carregando a bola no capô", en: "Carrying the ball on your hood" } },
           ],
@@ -522,7 +532,7 @@ Quem chega primeiro disputa a bola. Esperar mais dá um toque melhor, com a bola
 
 Na defesa, a leitura muda o lugar do toque. Um atacante vindo junto com a bola vai chutar na primeira brecha, então tire a bola antes dele, o mais perto possível da borda do gol, fechando o ângulo dele mesmo que o toque não saia perfeito.
 
-Para treinar, use os pacotes Sidewall bounce reading (D51D-9918-4A84-609F), só com bolas pela lateral, e Bounce Reads (DF13-7661-D094-0BDF), com leituras mais complicadas, como quiques de defesa e no canto do gol, que é curvo; os dois estão no Prejump (prejump.com). Nas configurações de controles, lá embaixo, há um comando para sortear os chutes, que no teclado não vem configurado: com ele, o pacote alterna chutes aleatórios, e você não decora a sequência.`,
+> Para treinar, use os pacotes Sidewall bounce reading (D51D-9918-4A84-609F), só com bolas pela lateral, e Bounce Reads (DF13-7661-D094-0BDF), com leituras mais complicadas, como quiques de defesa e no canto do gol, que é curvo; os dois estão no Prejump (prejump.com). Nas configurações de controles, lá embaixo, há um comando para sortear os chutes, que no teclado não vem configurado: com ele, o pacote alterna chutes aleatórios, e você não decora a sequência.`,
             },
           ],
         },
@@ -701,7 +711,7 @@ O rebote aéreo, depois de um chute forte, é o mais difícil, e não é o prime
 
 Uma dica de mecânica: em vez do flip para a frente, use o flip na diagonal logo antes do contato. Mesmo errando o centro da bola, ele ajusta a trajetória do carro. Para mandar a bola para a esquerda, jogue o carro para a direita e toque nela pelo lado direito, como na sinuca. Você perde um pouco de força, mas a diagonal é bem melhor do que o flip lateral; só cuidado para acertar a bola com o capô, não com o bico. O flip não salva um pulo muito errado, e, com a mira já certa, pode estragá-la.
 
-Para treinar, use o pacote Rebound Consistency (E744-D5FC-64A7-037F), do Prejump (prejump.com), com chutes na tabela e saindo da parede, uns mais longe, mais aéreos e mais laterais que outros.`,
+> Para treinar, use o pacote Rebound Consistency (E744-D5FC-64A7-037F), do Prejump (prejump.com), com chutes na tabela e saindo da parede, uns mais longe, mais aéreos e mais laterais que outros.`,
             },
           ],
         },

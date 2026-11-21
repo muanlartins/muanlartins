@@ -22,6 +22,7 @@ export interface DocLink {
  */
 export function DocPage({
   trail,
+  here = DOCS.docs,
   title,
   description,
   meta = [],
@@ -29,8 +30,10 @@ export function DocPage({
   more = [],
   children,
 }: {
-  /** Where the page sits, as the eyebrow over the title: a link back, then "Documentação". */
+  /** Where the page sits, as the eyebrow over the title: a link back, then `here`. */
   trail: DocLink[]
+  /** The trail's last step, the page itself: "Documentação" unless the page is another kind (a fundamentals' topic). */
+  here?: ReactNode
   title: string
   description: ReactNode
   meta?: DocMeta[]
@@ -57,7 +60,7 @@ export function DocPage({
               </span>
             </Fragment>
           ))}
-          <span className="text-klein">{DOCS.docs}</span>
+          <span className="inline-flex items-center gap-2 text-klein">{here}</span>
         </p>
         <h1 className="mt-4 text-4xl font-medium tracking-[-0.03em] text-klein sm:text-5xl">{title}</h1>
         <div className="mt-4 max-w-[38rem] text-[17px] leading-[1.6] text-ink">{description}</div>
