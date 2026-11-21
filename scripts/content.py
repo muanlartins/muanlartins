@@ -1,5 +1,5 @@
 """The repository's content the scripts share: ranked sessions (content/matches/ for Rocket League,
-content/valorant/ for Valorant) and lives (content/lives/)."""
+content/valorant/ for Valorant), the other games (content/diversos.json) and lives (content/lives/)."""
 
 import ast
 import json
@@ -10,12 +10,19 @@ MATCHES = ROOT / "content" / "matches"
 LIVES = ROOT / "content" / "lives"
 # Each game's sessions, by its id in content/projects.ts.
 SESSIONS = {"rocket-league": MATCHES, "valorant": ROOT / "content" / "valorant"}
+# Every other game ("Jogos diversos", lib/diversos.ts): no sessions, only lives.
+DIVERSOS = ROOT / "content" / "diversos.json"
 
 
 def sessions(date="", game="rocket-league"):
     """A game's published sessions, oldest first; with `date` (YYYY-MM-DD), only that day's."""
     return [json.loads(path.read_text()) for path in sorted(SESSIONS[game].glob(f"{date}*.json"))
             if not path.name.endswith(".events.json")]
+
+
+def other_games():
+    """The other games, as content/diversos.json has them: id, name, category (Twitch's name), categoryId, goal…"""
+    return json.loads(DIVERSOS.read_text())["games"]
 
 
 def matches_by_id():

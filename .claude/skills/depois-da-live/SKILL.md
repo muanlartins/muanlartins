@@ -8,6 +8,36 @@ description: The routine after one of Luan's Twitch lives - file the recordings 
 The detailed history and the YouTube API setup are in `handoff/README.md` ("3. After each live"); this is
 the routine. Talk to Luan in pt-BR. `<date>` is the live's day, `YYYY-MM-DD`.
 
+## A day of another game ("Jogos diversos", since 2026-11-21)
+
+Any game besides Rocket League and Valorant (Celeste first; the OBS scene "Diversos + chat") is on the site at
+`/conteudo/diversos`, each game with its page, its lives, hours and goal, from `content/diversos.json` (`lib/diversos.ts`).
+Luan, 2026-11-21: "a ideia é deixar tudo que eu for jogar registrado". What changes in the routine:
+
+- **The game is in the list.** Before step 2, `content/diversos.json` must have it: `id` (its URL, and the live's
+  `game`; never changed once a live has it), `name`, `category` (Twitch's name), `categoryId` (Twitch's category id:
+  the agenda's `games` in `GET /agenda` has it, and the cover comes from Twitch's CDN by it), `line` (Luan's words;
+  a `TODO` isn't shown), an optional `goal` (a title and groups of items with `done`) and `notes`. A new game: add it
+  with `line` as a TODO and ask Luan for the line and the goal.
+- **No session, no replays, no teammates.** Step 0's session check and step 1b don't apply; `videos.py` files the
+  recordings as usual (the Diversos capture records `Jogo.mp4` too).
+- **Step 2:** `live.py <date>` finds the game in the agenda's live that day by its Twitch category (or pass
+  `--game <id>`; it stops and says so when the agenda's game isn't in the list). It writes a "Começo" chapter and a
+  summary draft with the hours (`Celeste ao vivo por 2h41. Meta: 100%.`). Then, from the transcript, write the
+  chapters by hand at the game's milestones (Celeste: each chapter of the game, "Capítulo 3: Celestial Resort"), and
+  the summary as a draft for Luan. A live that switched games mid-way gets a chapter with `"game": "<id>"` where the
+  other one starts (`{ "at": "1:30:00", "game": "rocket-league", "title": {…} }`): the site counts each game's hours
+  from those, and lists the live under both.
+- **The goal:** mark what he finished in that live, `"done": true, "live": "<date>"` on each item (the chip links the
+  live), from his word or what the transcript makes plain ("peguei o coração!"); ask him when unsure.
+- **2b** works the same (his line from the live as the hook). The title template is only "<Jogo> ao vivo": write one
+  from the day's story for him to approve.
+- **2c doesn't apply** (no ranked matches): no match videos, so the VOD isn't held back (no `youtube.publish_at`)
+  unless Luan asks for cuts.
+- **Step 3:** `youtube.py` dresses any game of the list like the two (`game_of`): "<Jogo> ao vivo" as the title and
+  the playlist (made the first time), its page on the site among the links, its tags and hashtags.
+- **Step 4:** mark the day `--done` after the thumbnail.
+
 ## 0. Make sure it's over
 
 - `node scripts/obs.mjs` says `live: no` (or OBS is closed). Until then, nothing heavy (see `antes-da-live`).
@@ -85,8 +115,10 @@ dock tags only viewers with a `riot` Riot ID in `aliados.json`.
 scripts/.venv/bin/python scripts/live.py <date>
 ```
 
-The day's game is the one whose session the dock published (`content/matches/` for Rocket League,
-`content/valorant/` for its Valorant tab, since 11-09), and the chapters, summary and thumbnail's plate follow it.
+The day's game is the one whose session the dock published for the live (`content/matches/` for Rocket League,
+`content/valorant/` for its Valorant tab, since 11-09), else the agenda's live that day (any other game: above),
+else `--game <id>`; the chapters, summary and thumbnail's plate follow it. The page also keeps the recording's
+length (`length`), from which the site counts hours.
 Transcribes the Microfone track (Windows whisper.cpp on CUDA), cleans it (hallucinations and repeats; names
 stay as said: Luan ended the blanking of names on 2026-11-08, "mostrar tudo sempre"), writes `content/lives/<date>.json` (chapters from
 the dock, a draft summary **for Luan to rewrite**: the copy is his) and `.transcript.json`, adds the day to
@@ -224,7 +256,8 @@ plus 0.6 s); Luan picked that over leaving it or starting the match late.
    title, description (his summary, the game's line, Twitch first among the links and the Discord right after, chapters, the date, three
    hashtags), tags (the game's, plus mode, rank, agents and maps played), thumbnail (thumb.py's `.jpg` over
    build.py's `.png`), **public** (`PRIVACY`; scheduled instead when `youtube.publish_at` holds it back, 2c), the game's playlist ("Rocket League ao vivo", "Valorant ao vivo":
-   made the first time it's missing, kept as public as the videos), captions. Per game in `GAMES` in `youtube.py`.
+   made the first time it's missing, kept as public as the videos), captions. Per game in `GAMES` in `youtube.py`
+   (any other game: `game_of`, from `content/diversos.json`).
    `--no-captions` when only the metadata changed (captions cost 400+ of the 10,000 daily quota units).
 
 **The public test** (agreed 2026-11-12; Luan feared public VODs would hurt the channel): YouTube judges each video by

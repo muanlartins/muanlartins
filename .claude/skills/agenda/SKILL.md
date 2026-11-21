@@ -15,7 +15,9 @@ the bottom of the page, or the link on `/perfil`). The page becomes the editor:
   da live** (steps at a time or not: "15h · inhouse com a torcida"). A day off is a day with only a note. "Repetir em <next
   week>" copies it to the same weekday next week, "Limpar o dia" empties it.
 - **Any game:** "Outro jogo…" in a live's game picker searches Twitch's categories and adds it; **Jogos** (folded)
-  has each game's default title.
+  has each game's default title. A game besides Rocket League and Valorant also goes in `content/diversos.json`
+  (its `categoryId` is the agenda's `category`), so it shows on `/conteudo/diversos` with its next live, and
+  `live.py` finds a day's game by it (the `depois-da-live` skill, "A day of another game").
 - **Ver como visitante** shows the page as viewers see it. "Como funciona" (folded, at the top) says where a save
   goes and where each live's title goes (below).
 

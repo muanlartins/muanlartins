@@ -13,15 +13,19 @@ export interface Chapter {
   at: string
   title?: L10n
   match?: string
+  /** From here on, another game (its id): a live of more than one. Before the first such chapter, the live's `game`. */
+  game?: string
 }
 
 export interface Live {
   /** YYYY-MM-DD, in Luan's time; also its URL. */
   date: string
-  /** The game played, by its id in content/projects.ts. */
+  /** The game played, by its id in content/projects.ts, or in content/diversos.json for any other (lib/diversos.ts). */
   game?: string
   /** The YouTube video. */
   video: string
+  /** How long the recording is, "2:41:07" (scripts/live.py): the hours each game was played. */
+  length?: string
   summary: L10n
   chapters: Chapter[]
   /** Only for YouTube (scripts/youtube.py, scripts/thumb.py); the site doesn't show it: the video's title when
@@ -58,4 +62,16 @@ export function matchMoments(all: Live[]) {
       live.chapters.flatMap((chapter) => (chapter.match ? [[chapter.match, { date: live.date, at: seconds(chapter.at) }]] : [])),
     ),
   ) as Record<string, { date: string; at: number }>
+}
+
+/** Each game a live played, in order: its `game`, then the chapters' that switch to another. */
+export function gamesOf(live: Live) {
+  return [...new Set([live.game, ...live.chapters.map((chapter) => chapter.game)].filter((game): game is string => !!game))]
+}
+
+/** A live as stretches of one game each, in seconds of its video (`length`: how long it is). */
+export function stretches(live: Live, length: number) {
+  const switches = live.chapters.flatMap((chapter) => (chapter.game ? [{ game: chapter.game, at: seconds(chapter.at) }] : []))
+  const starts = [...(live.game && switches[0]?.at !== 0 ? [{ game: live.game, at: 0 }] : []), ...switches]
+  return starts.map((start, index) => ({ game: start.game, from: start.at, to: Math.max(start.at, starts[index + 1]?.at ?? length) }))
 }

@@ -8,11 +8,13 @@ import { cardClass, EmptyState, Section } from "@/components/site/ui"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
 import { livePath } from "@/lib/channel"
-import type { Live } from "@/lib/lives"
+import { otherGame } from "@/lib/diversos"
+import { gamesOf, type Live } from "@/lib/lives"
 import { dayRecord, type DayRecord, type Session } from "@/lib/ranked"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { Fragment } from "react"
 
 const L = localize(channel.lives)
 // "14 partidas ranqueadas · 10 vitórias e 4 derrotas · +53 pontos"
@@ -63,7 +65,12 @@ export function LivesPage({ lives, sessions }: { lives: Live[]; sessions: Sessio
 
 function LiveCard({ href, live, record }: { href: string; live: Live; record: DayRecord }) {
   const played = record.wins + record.losses
-  const game = games.find((game) => game.id === live.game)
+  // Its games: the site's own with their sign, or the other games' by name (content/diversos.json).
+  const gamesPlayed = gamesOf(live).flatMap((id) => {
+    const game = games.find((game) => game.id === id)
+    const name = game ? localize(game.title) : otherGame(id)?.name
+    return name ? [{ id, name, main: Boolean(game) }] : []
+  })
   return (
     <Link href={href} className={cn(cardClass, "group flex flex-col gap-4 p-3 transition-colors hover:border-klein sm:flex-row sm:items-center sm:p-4")}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -73,15 +80,15 @@ function LiveCard({ href, live, record }: { href: string; live: Live; record: Da
           {longDate(live.date)}
           <LanguageBadge language="pt" />
         </h3>
-        <p className="flex items-center gap-1.5 text-[13px] text-muted">
+        <p className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted">
           <span className="first-letter:uppercase">{weekday(live.date)}</span>
-          {game && (
-            <>
+          {gamesPlayed.map(({ id, name, main }) => (
+            <Fragment key={id}>
               <span aria-hidden>·</span>
-              <GameIcon game={game.id} size={14} className="block shrink-0" />
-              {localize(game.title)}
-            </>
-          )}
+              {main && <GameIcon game={id} size={14} className="block shrink-0" />}
+              {name}
+            </Fragment>
+          ))}
         </p>
         <p className="text-[15px] leading-[1.6] text-ink">{localize(live.summary)}</p>
         {played > 0 && (

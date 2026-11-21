@@ -5,6 +5,7 @@ import { GameNext } from "@/components/site/agenda/game-next"
 import { FanStand } from "@/components/site/channel/fan-stand"
 import { AgendaDays, Podium } from "@/components/site/channel/home-tiles"
 import { NextLive } from "@/components/site/channel/next-live"
+import { DiversosCard } from "@/components/site/diversos/entries"
 import { GameIcon } from "@/components/site/game/game-icon"
 import { PageIntro } from "@/components/site/page-intro"
 import { Badge, CardLink, Lattice, Section } from "@/components/site/ui"
@@ -80,7 +81,8 @@ export async function ChannelHome({ lives }: { /** Newest first. */ lives: Live[
  * each fits its column; one under the other on phones.
  */
 function Games() {
-  const three = games.length >= 3
+  // Rocket League, Valorant and, third, every other game (Jogos diversos, components/site/diversos/entries.tsx).
+  const three = games.length + 1 >= 3
   return (
     <ul className={cn("grid gap-3", three ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
       {games.map((game) => (
@@ -96,6 +98,9 @@ function Games() {
           </CardLink>
         </li>
       ))}
+      <li>
+        <DiversosCard className={cn("flex h-full items-center gap-4", three && "sm:flex-col sm:items-start sm:gap-3")} />
+      </li>
     </ul>
   )
 }
