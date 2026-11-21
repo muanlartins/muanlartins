@@ -60,9 +60,9 @@ export function Snowfall() {
     document.documentElement.addEventListener("pointerleave", leave)
     const flake = (anywhere: boolean) => {
       const z = Math.random() ** 1.5
-      return { x: Math.random() * w, y: anywhere ? Math.random() * h : -6, vx: 0, z, r: 1 + z * 2.6, v: 14 + z * 38, f: Math.random() * 6.3, a: 0.45 + z * 0.5, s: 6 + Math.random() * 16 }
+      return { x: Math.random() * w, y: anywhere ? Math.random() * h : -6, vx: 0, z, r: 1 + z * 2.6, v: 45 + z * 105, f: Math.random() * 6.3, a: 0.45 + z * 0.5, s: 8 + Math.random() * 22 }
     }
-    const flakes = Array.from({ length: Math.round(Math.min(90, (w * h) / 16000)) }, () => flake(true))
+    const flakes = Array.from({ length: Math.round(Math.min(240, (w * h) / 6000)) }, () => flake(true))
     // A white flake with a faint navy rim, drawn once: plain white all but vanishes on the site's pale blue.
     const sprite = document.createElement("canvas")
     sprite.width = sprite.height = 32
@@ -107,7 +107,7 @@ export function Snowfall() {
         const i = Math.round(p.x / COL)
         const ground = h - (bank[i] ?? 0)
         if (p.y >= ground) {
-          if (i >= 0 && i < bank.length) settle(p.x, 2.2 + p.r * 1.6)
+          if (i >= 0 && i < bank.length) settle(p.x, 0.5 + p.r * 0.4)
           Object.assign(p, flake(false))
         } else if (p.x < -10 || p.x > w + 10) Object.assign(p, flake(false))
         ctx.globalAlpha = p.a
