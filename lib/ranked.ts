@@ -30,6 +30,14 @@ export interface PlayerStats {
   demos: number
 }
 
+/** Luan's own line: the Partidas dock adds these since 2026-11-21 (missing before). */
+export interface MyStats extends PlayerStats {
+  /** His touches in the air (the Stats API has none: the dock counts them). */
+  aerials?: number
+  /** The match's MVP. */
+  mvp?: boolean
+}
+
 /** A teammate: their numbers, and their Twitch login when they're a viewer who agreed to be named. */
 export interface Mate extends PlayerStats {
   login?: string
@@ -48,7 +56,7 @@ export interface Match {
   /** Goals, ours first. Missing on matches added by hand. */
   score?: [number, number]
   overtime?: boolean
-  me?: PlayerStats
+  me?: MyStats
   mates?: Mate[]
   /** The rank going into the match. */
   rank?: Standing | null
