@@ -2,7 +2,7 @@
   "_sobre": [
     "Every way to take part in the live from the chat, in one place. Read by: the site's /canal/comandos (lib/commands.ts), the stand's tips, said by the channel's own fan (torcida.html, `dica`), scripts/comandos.py (StreamElements' commands, from `resposta`, and the Twitch panel's text).",
     "Each command: `comando` (how to type it), `apelidos` (other ways that work), `uso` (how to show it, when it takes something after it), `texto` (what it does, for the site and the panel), `dica` (a tip for the stand's balloon), `resposta` (the chat bot's answer: only these go to StreamElements; ${...} are its variables, customapi answers in plain text) and `espera` (the bot's cooldown in seconds, per person and for everyone; 15 and 5 when not given).",
-    "The stand's commands are comandos.js; the VAR's, var.html; the channel points' rewards, REWARDS in efeitos.html (keep `recompensas` the same)."
+    "The stand's commands are comandos.js; the VAR's, var.html; the channel points' rewards, REWARDS in efeitos.html (keep `recompensas` the same: the dock copies a changed text to Twitch's reward by its title). `sigma` is how Σ come, for the site's /canal/sigma."
   ],
   "pagina": "https://muanlartins.com.br/canal/comandos",
   "grupos": [
@@ -12,7 +12,7 @@
       "texto": "Quem está no chat vira torcedor na arquibancada da live, com o visual que montou no perfil. Esses comandos mexem o seu.",
       "nota": "Um movimento a cada 8 segundos, um grito a cada 30, uma ola por vez pra live inteira. Também valem nos créditos, no fim da live.",
       "comandos": [
-        { "comando": "!pula", "texto": "Seu torcedor pula.", "dica": "digite !pula e seu torcedor pula" },
+        { "comando": "!pula", "texto": "Seu torcedor pula.", "dica": "manda !pula e o seu torcedor pula" },
         { "comando": "!danca", "apelidos": ["!dança"], "texto": "Seu torcedor dança.", "dica": "!danca e o seu dança" },
         { "comando": "!comemora", "texto": "Seu torcedor faz a comemoração que você escolheu no perfil.", "dica": "!comemora: a comemoração do seu perfil" },
         { "comando": "!grito", "texto": "Seu torcedor solta de novo o grito de chegada do seu perfil.", "dica": "!grito: seu grito de chegada, de novo" },
@@ -41,7 +41,7 @@
           "comando": "!sigma",
           "apelidos": ["!sigmas"],
           "uso": "!sigma ou !sigma @alguém",
-          "texto": "Quantos Σ você tem (ou alguém), o seu ranque no canal, quanto falta pro próximo e as lives que você viu.",
+          "texto": "Quantos Σ você tem (ou alguém), o seu rank no canal, quanto falta pro próximo e as lives que você viu.",
           "dica": "!sigma: quantos Σ você tem",
           "resposta": "${customapi.https://p1rblei1o9.execute-api.us-east-1.amazonaws.com/sigma.txt?login=${user.name}&nome=${user}}",
           "espera": [30, 3]
@@ -58,7 +58,7 @@
         {
           "comando": "!agenda",
           "apelidos": ["!proxima"],
-          "texto": "Quando é a próxima live, e o jogo.",
+          "texto": "Quando é a próxima live e de qual jogo.",
           "resposta": "${customapi.https://wtpv8afsak.execute-api.us-east-1.amazonaws.com/agenda.txt}"
         },
         {
@@ -66,16 +66,16 @@
           "uso": "!perfil ou !perfil @alguém",
           "texto": "O link da sua página no site (ou da de alguém): o torcedor, os Σ, as medalhas, os duelos e os Pix. E onde montar o seu torcedor e o seu cartão.",
           "dica": "!perfil: o link da sua página no site",
-          "resposta": "Página de ${user}: https://muanlartins.com.br/torcedor/${user.name} · monte o seu torcedor e o seu cartão em https://muanlartins.com.br/perfil"
+          "resposta": "Página de ${user}: https://muanlartins.com.br/torcedor/${user.name} · monta o seu torcedor e o seu cartão em https://muanlartins.com.br/perfil"
         },
         {
           "comando": "!pix",
           "texto": "Como mandar um Pix que toca na live.",
-          "resposta": "Mande um Pix com mensagem, numa das vozes ou como uma música feita na hora, e ele toca na live: https://muanlartins.com.br/pix"
+          "resposta": "Manda um Pix com mensagem, numa das vozes ou como uma música feita na hora, e ele toca na live: https://muanlartins.com.br/pix"
         },
         {
           "comando": "!mural",
-          "texto": "Quem apoiou cada meta e a audiência do canal.",
+          "texto": "Quem apoiou cada meta e quem mais assiste o canal.",
           "resposta": "Quem apoiou cada meta do Pix e quem mais assiste o canal: https://muanlartins.com.br/mural"
         },
         {
@@ -100,30 +100,30 @@
         },
         {
           "comando": "!discord",
-          "texto": "O servidor da comunidade no Discord.",
-          "dica": "!discord: o servidor da comunidade",
-          "resposta": "O servidor da comunidade: o aviso de quando a live abre, papo e canais de voz. Conecte o Discord no seu perfil do site e o seu rank Σ vira cargo lá: https://discord.gg/q5qxT7Pw2E"
+          "texto": "O servidor do canal no Discord.",
+          "dica": "!discord: o servidor do canal",
+          "resposta": "O servidor do canal: o aviso de quando a live abre, papo e canais de voz. Conecta o Discord no seu perfil do site e o seu rank Σ vira cargo lá: https://discord.gg/q5qxT7Pw2E"
         }
       ]
     }
   ],
   "recompensas": {
-    "titulo": "Com os pontos do canal",
+    "titulo": "Com os pontos do canal da Twitch",
     "texto": "Os pontos do canal da Twitch (o ícone ao lado do chat) viram sons e efeitos na live.",
     "itens": [
       { "nome": "Palmas", "custo": 50, "texto": "Palmas na live." },
       { "nome": "Uuuh", "custo": 50, "texto": "O uuuh da torcida." },
       { "nome": "Tambor", "custo": 50, "texto": "Rufem os tambores." },
-      { "nome": "Bebe água!", "custo": 50, "texto": "O Luan para e bebe água." },
-      { "nome": "Phoenix na câmera", "custo": 100, "texto": "Uma habilidade da Phoenix, ao acaso, na câmera do Luan." },
-      { "nome": "Sova na câmera", "custo": 100, "texto": "Uma habilidade do Sova, ao acaso, na câmera do Luan." },
-      { "nome": "Sage na câmera", "custo": 100, "texto": "Uma habilidade da Sage, ao acaso, na câmera do Luan." },
-      { "nome": "Octane na câmera", "custo": 100, "texto": "O Octane na cabeça do Luan: um flip ou uma demolição." }
+      { "nome": "Bebe água!", "custo": 50, "texto": "Eu paro e bebo água. Saúde!" },
+      { "nome": "Phoenix na câmera", "custo": 100, "texto": "Uma habilidade do Phoenix, ao acaso, na minha câmera." },
+      { "nome": "Sova na câmera", "custo": 100, "texto": "Uma habilidade do Sova, ao acaso, na minha câmera." },
+      { "nome": "Sage na câmera", "custo": 100, "texto": "Uma habilidade da Sage, ao acaso, na minha câmera." },
+      { "nome": "Octane na câmera", "custo": 100, "texto": "O Octane na minha cabeça: um flip ou uma demolição." }
     ]
   },
   "sigma": {
-    "titulo": "Os Σ",
-    "texto": "Os pontos do canal no site: nunca se gastam nem se perdem, e viram o seu ranque e as suas medalhas.",
+    "titulo": "Σ, os pontos do site",
+    "texto": "Você ganha assistindo às lives. Eles nunca se gastam nem se perdem e viram o seu rank no canal.",
     "ganhos": [
       { "quanto": "1 Σ", "como": "por minuto no chat com a live no ar" },
       { "quanto": "10 Σ", "como": "por live que você assiste" },

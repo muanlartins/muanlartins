@@ -150,25 +150,150 @@ export const channel = {
   },
 
   /** /canal/comandos: every way to take part in the live from the chat. The commands themselves, with what each does,
-   * are public/stream/comandos.json (also the chat bot's answers and the Twitch panel). */
+   * are public/stream/comandos.json (also the chat bot's answers and the Twitch panel). A documentation page. */
   comandos: {
     title: { pt: "Comandos", en: "Commands" },
     description: {
-      pt: "Tudo o que dá pra fazer na live pelo chat: mexer o seu torcedor, votar no VAR, perguntar pro bot e trocar os pontos do canal.",
-      en: "Everything you can do on the stream from the chat: move your fan, vote on the VAR, ask the bot and spend channel points.",
+      pt: "Tudo o que dá pra fazer na live pelo chat: mexer o seu torcedor, votar no VAR, perguntar pro bot e trocar os pontos do canal da Twitch.",
+      en: "Everything you can do on the stream from the chat: move your fan, vote on the VAR, ask the bot and spend Twitch's channel points.",
+    },
+    /** The facts under the title. */
+    meta: {
+      commands: { pt: "Comandos", en: "Commands" },
+      rewards: { pt: "Recompensas", en: "Rewards" },
+    },
+    /** The lists' column heads. */
+    head: {
+      command: { pt: "Comando", en: "Command" },
+      does: { pt: "O que faz", en: "What it does" },
+      reward: { pt: "Recompensa", en: "Reward" },
+      cost: { pt: "Custo", en: "Cost" },
     },
     /** Before a command's other spellings: "também !dança". */
     also: { pt: "também", en: "also" },
     /** Under the stand's commands: try them on the sample fans. */
-    tryIt: { pt: "Toque num comando pra ver.", en: "Tap a command to see it." },
-    /** The sample fan in the middle, who does what's tapped. */
+    tryIt: { pt: "Escolhe um comando pra ver.", en: "Pick a command to see it." },
+    /** The sample fan in the middle, who does what's picked. */
     you: { pt: "você", en: "you" },
     /** The sample fan's shout for !grito. */
     shout: { pt: "bora Luan!", en: "let's go!" },
     points: { pt: "pontos", en: "points" },
+    /** Under the rewards: they're Twitch's points, not Σ. */
+    notSigma: {
+      pt: "São os pontos da Twitch, não os Σ: trocar uma recompensa não gasta nem dá Σ.",
+      en: "These are Twitch's points, not Σ: a reward neither spends nor earns Σ.",
+    },
     profile: {
       text: { pt: "O seu torcedor é do jeito que você montar.", en: "Your fan looks the way you build it." },
-      cta: { pt: "Monte o seu torcedor", en: "Build your fan" },
+      cta: { pt: "Montar o meu", en: "Build mine" },
+    },
+    /** The way to Σ's own page, at the end. */
+    sigma: {
+      title: { pt: "Σ, os pontos do site", en: "Σ, the site's points" },
+      text: {
+        pt: "Você ganha assistindo, acertando o VAR e mandando Pix. Como ganhar, os ranks e o que eles liberam estão na página deles.",
+        en: "You earn them by watching, getting the VAR right and sending Pix. How to earn them, the ranks and what they unlock are on their page.",
+      },
+      cta: { pt: "Ver os Σ", en: "See Σ" },
+    },
+  },
+
+  /** /canal/sigma: Σ, the site's points (public/stream/sigma.js): how they come, the ranks they make, what they unlock and
+   * where to see them. A documentation page, linked from the commands and the profile. Copy is a draft for Luan. */
+  sigma: {
+    title: { pt: "Σ, os pontos do site", en: "Σ, the site's points" },
+    description: {
+      pt: "Você ganha assistindo às lives. Eles nunca se gastam nem se perdem e viram o seu rank no canal.",
+      en: "You earn them watching the streams. They're never spent or lost, and they become your rank on the channel.",
+    },
+    meta: {
+      ways: { pt: "Jeitos de ganhar", en: "Ways to earn" },
+      ranks: { pt: "Ranks", en: "Ranks" },
+    },
+    earn: {
+      title: { pt: "Como ganhar", en: "How to earn them" },
+      head: { amount: { pt: "Quanto", en: "How many" }, how: { pt: "Como", en: "How" } },
+      twitch: {
+        pt: "Os pontos do canal da Twitch são outra coisa: viram sons e efeitos na live e não dão Σ.",
+        en: "Twitch's channel points are something else: they become sounds and effects on the stream and give no Σ.",
+      },
+      rewards: { pt: "Ver as recompensas", en: "See the rewards" },
+    },
+    ranks: {
+      title: { pt: "Os ranks", en: "The ranks" },
+      text: {
+        pt: "Os Σ viram os ranks do Rocket League. Cada um tem três divisões até o próximo, e o topo leva cerca de um ano de lives.",
+        en: "Σ become Rocket League's ranks. Each has three divisions before the next, and the top takes about a year of streams.",
+      },
+      /** On each rank: "a partir de 370 Σ". */
+      from: { pt: "a partir de", en: "from" },
+      /** "{n}": where Valorant's Gold 1 starts. */
+      valorant: {
+        pt: "Na cena do Valorant, os mesmos Σ aparecem nos ranks do Valorant: o Ouro 1 também começa em {n} Σ.",
+        en: "In Valorant's scene, the same Σ show as Valorant's ranks: Gold 1 also starts at {n} Σ.",
+      },
+    },
+    unlocks: {
+      title: { pt: "O que eles liberam", en: "What they unlock" },
+      stand: {
+        term: { pt: "Lugar na arquibancada", en: "A place in the stand" },
+        text: {
+          pt: "O seu rank fica ao lado do seu nome, e quem tem mais Σ fica mais na frente.",
+          en: "Your rank sits by your name, and whoever has more Σ stands further in front.",
+        },
+      },
+      /** "{rank}" and "{n}": where free colours unlock. */
+      colors: {
+        term: { pt: "Cores livres", en: "Free colours" },
+        text: {
+          pt: "A partir do {rank} ({n} Σ), o seu torcedor pode usar qualquer cor, não só as da paleta.",
+          en: "From {rank} ({n} Σ), your fan can wear any colour, not only the palette's.",
+        },
+      },
+      games: {
+        term: { pt: "Minijogos", en: "Minigames" },
+        text: {
+          pt: "O material da arma no duelo de bolinhas e o acabamento da sua bolinha na corrida.",
+          en: "Your weapon's material in the ball duel and your marble's finish in the race.",
+        },
+      },
+      dedication: {
+        term: { pt: "Gol dedicado", en: "Dedicated goals" },
+        text: {
+          pt: "Quanto mais Σ, mais chance de um gol ser dedicado a você. Quem chegou agora também tem a sua.",
+          en: "The more Σ, the better your chance of a goal dedicated to you. Newcomers get theirs too.",
+        },
+      },
+      discord: {
+        term: { pt: "Cargo no Discord", en: "A role on Discord" },
+        text: {
+          pt: "Conectando o Discord no seu perfil, o seu rank vira cargo no servidor.",
+          en: "Connect Discord on your profile and your rank becomes a role on the server.",
+        },
+      },
+    },
+    where: {
+      title: { pt: "Onde ver os seus", en: "Where to see yours" },
+      chat: {
+        pt: "No chat: os seus Σ, o rank e quanto falta pro próximo. Com @alguém, os de outra pessoa.",
+        en: "In the chat: your Σ, your rank and how far the next one is. With @someone, theirs.",
+      },
+      profile: {
+        term: { pt: "Perfil", en: "Profile" },
+        text: { pt: "Os seus Σ, o caminho até o próximo rank e as suas medalhas.", en: "Your Σ, the way to the next rank and your badges." },
+      },
+      page: {
+        term: { pt: "A sua página", en: "Your page" },
+        text: { pt: "Tudo seu no site, pra qualquer um ver, em /torcedor/seu-login.", en: "Everything of yours on the site, for anyone to see, at /torcedor/your-login." },
+      },
+      mural: {
+        term: { pt: "Mural", en: "Mural" },
+        text: { pt: "O ranking de quem mais assiste, na aba Audiência.", en: "The ranking of who watches most, in the Audiência tab." },
+      },
+      medals: {
+        pt: "As medalhas contam outra coisa: horas e lives assistidas, lives seguidas e reais em Pix, em oito níveis cada.",
+        en: "Badges count something else: hours and streams watched, streams in a row and reais sent by Pix, eight levels each.",
+      },
     },
   },
 
@@ -471,14 +596,22 @@ export const channel = {
   roadmap: {
     title: { pt: "Roadmap", en: "Roadmap" },
     description: {
-      pt: "O que vem por aí e tudo o que já entrou no canal, no site, na live e nos vídeos, com o crédito de quem deu cada ideia.",
-      en: "What comes next and everything already in the channel, on the site, the stream and the videos, credited to whoever had each idea.",
+      pt: "O que vem por aí e tudo o que já saiu no canal, no site, na live e nos vídeos, com o crédito de quem deu cada ideia.",
+      en: "What comes next and everything already out on the channel, the site, the stream and the videos, credited to whoever had each idea.",
+    },
+    /** The facts under the title. */
+    meta: {
+      shipped: { pt: "Já saiu", en: "Out" },
+      /** "{n} novidades". */
+      count: { pt: "{n} novidades", en: "{n} releases" },
+      latest: { pt: "Última", en: "Latest" },
+      ideas: { pt: "Ideias da torcida", en: "Ideas from the crowd" },
     },
     community: {
-      title: { pt: "Ideias da comunidade", en: "Ideas from the community" },
+      title: { pt: "Ideias da torcida", en: "Ideas from the crowd" },
       text: {
-        pt: "Tem uma ideia? Manda no chat da live ou comenta num vídeo. Se ela entrar, seu nome fica aqui.",
-        en: "Got an idea? Say it in the stream's chat or comment on a video. If it makes it in, your name stays here.",
+        pt: "Manda a sua ideia no chat da live ou comenta num vídeo: se ela entrar, o seu nome fica aqui.",
+        en: "Say your idea in the stream's chat or comment on a video: if it makes it in, your name stays here.",
       },
       suggested: { pt: "Sugeriu", en: "Suggested" },
       reported: { pt: "Avisou", en: "Reported" },
@@ -486,29 +619,43 @@ export const channel = {
     },
     next: {
       title: { pt: "Próximos passos", en: "Next steps" },
+      empty: {
+        pt: "Nada na fila agora. A próxima novidade que eu decidir aparece aqui, e pode ser uma ideia sua.",
+        en: "Nothing queued right now. The next thing I decide on shows here, and it can be your idea.",
+      },
     },
     shipped: {
-      title: { pt: "Changelog", en: "Changelog" },
+      title: { pt: "Já saiu", en: "Out" },
       /** "{n} novidades em {d} dias". */
-      summary: { pt: "{n} novidades em {d} dias", en: "{n} releases in {d} days" },
+      summary: { pt: "{n} novidades em {d} dias.", en: "{n} releases in {d} days." },
+      /** The filters' label. */
+      filter: { pt: "Categoria", en: "Category" },
       all: { pt: "Tudo", en: "All" },
-      /** The filter for what the community suggested or told about. */
-      community: { pt: "Comunidade", en: "Community" },
+      /** The filter for what the crowd suggested or told about. */
+      community: { pt: "Da torcida", en: "From the crowd" },
       day: { pt: "Dia", en: "Day" },
       date: { pt: "Data", en: "Date" },
       idea: { pt: "Ideia de", en: "Idea by" },
-      reported: { pt: "Avisado por", en: "Reported by" },
+      reported: { pt: "Avisou", en: "Reported by" },
       see: { pt: "Ver", en: "See" },
       watch: { pt: "Assistir", en: "Watch" },
-      none: { pt: "Nada com essa marca ainda.", en: "Nothing with this tag yet." },
+      none: { pt: "Nada nessa categoria ainda.", en: "Nothing in this category yet." },
     },
   },
 
+  /** /canal/backstage: how the brand, the live and the site are made (brand/), as a documentation page. Copy is a draft
+   * for Luan. */
   backstage: {
     title: { pt: "Bastidores", en: "Behind the scenes" },
     description: {
       pt: "Como a marca, a live e o site são feitos.",
       en: "How the brand, the stream and the site are made.",
+    },
+    /** The day this page last changed: update it with the page. */
+    updated: "2026-11-21",
+    meta: {
+      updated: { pt: "Atualizado em", en: "Updated" },
+      code: { pt: "Código", en: "Code" },
     },
     mark: {
       title: { pt: "A marca", en: "The mark" },
@@ -516,44 +663,119 @@ export const channel = {
         pt: "A marca é a minha assinatura: “Luan” num traço só, L, U, A, N, redesenhado numa grade de 45°, em que todo segmento é diagonal ou vertical. Girado 90°, o traço vira um Σ, a soma, o primeiro símbolo que a gente encontra na estatística: é disso que o canal trata, medir como a gente melhora.\n\nDuas cópias, uma girada 180°, se cruzam por cima e por baixo nos quatro cruzamentos. O resultado é um S simétrico que, por baixo, ainda é só “Luan” duas vezes.",
         en: "The mark is my signature: “Luan” in one stroke, L, U, A, N, redrawn on a 45° lattice where every segment is diagonal or vertical. Turned 90°, the stroke reads as a Σ, the sum, the first symbol you meet in statistics: that's what the channel is about, measuring how you get better.\n\nTwo copies, one turned 180°, weave over and under each other at their four crossings. The result is a symmetric S that, underneath, is still just “Luan” twice.",
       },
+      alt: { pt: "A marca em branco e Klein claro sobre o Klein", en: "The mark in white and light Klein on Klein" },
     },
     colors: {
-      title: { pt: "Cores", en: "Colors" },
+      title: { pt: "Cores", en: "Colours" },
+      text: {
+        pt: "Três cores fazem a marca. O site e a live usam mais algumas, sempre as mesmas.",
+        en: "Three colours make the brand. The site and the stream add a few more, always the same.",
+      },
       klein: { pt: "O fundo de tudo: o Azul Klein Internacional.", en: "The ground of everything: International Klein Blue." },
       branco: { pt: "A tinta principal, a cópia de cima.", en: "The main ink, the copy on top." },
       kleinClaro: {
-        pt: "O destaque, a cópia de baixo: o mesmo azul, mais claro.",
-        en: "The accent, the copy underneath: the same blue, lighter.",
+        pt: "O destaque, a cópia de baixo: o mesmo azul, mais claro. Só sobre o Klein ou o navy.",
+        en: "The accent, the copy underneath: the same blue, lighter. Only on Klein or navy.",
       },
+      navy: { pt: "A tinta do site e os painéis escuros.", en: "The site's ink and its dark panels." },
+      ground: { pt: "O fundo claro do site.", en: "The site's light ground." },
+      win: { pt: "Vitórias.", en: "Wins." },
+      loss: { pt: "Derrotas e erros.", en: "Losses and errors." },
+      ouro: { pt: "Primeiro lugar, pódios e prêmios, sobre fundo escuro.", en: "First place, podiums and prizes, on dark grounds." },
+      head: { name: { pt: "Cor", en: "Colour" }, use: { pt: "Uso", en: "Use" } },
     },
     type: {
-      title: { pt: "Tipografia", en: "Typography" },
+      title: { pt: "Tipografia", en: "Type" },
       text: {
         pt: "Space Grotesk, em tudo: no site, nos overlays e nas thumbnails. O nome vai sempre em minúsculas.",
         en: "Space Grotesk, everywhere: the site, the overlays and the thumbnails. The name is always lowercase.",
       },
+      /** The site's scale, each size with what it's for. */
+      scale: [
+        { size: 48, use: { pt: "Título da página", en: "Page title" } },
+        { size: 24, use: { pt: "Título de seção", en: "Section title" } },
+        { size: 20, use: { pt: "Destaque de um card", en: "A card's lead" } },
+        { size: 17, use: { pt: "A linha de abertura", en: "The opening line" } },
+        { size: 15, use: { pt: "O texto", en: "The text" } },
+        { size: 13, use: { pt: "Dicas e legendas", en: "Hints and captions" } },
+        { size: 12, use: { pt: "Rótulos", en: "Labels" }, upper: true },
+      ],
+    },
+    shape: {
+      title: { pt: "Forma", en: "Shape" },
+      text: {
+        pt: "Linhas retas e cortes de 45° em dois cantos opostos, como a simetria de 180° da marca. Nada arredondado: redondo, só o que é redondo.",
+        en: "Straight lines and 45° cuts on two opposite corners, like the mark's 180° symmetry. Nothing rounded: only what is round is round.",
+      },
+      card: { pt: "Card", en: "Card" },
+      cardNote: { pt: "corte de 12 px", en: "12 px cut" },
+      button: { pt: "Botão", en: "Button" },
+      buttonNote: { pt: "corte de 6 px", en: "6 px cut" },
+      badge: { pt: "Selo", en: "Badge" },
+      badgeNote: { pt: "quadrado", en: "square" },
+      round: { pt: "fotos, pontos, a bola", en: "photos, dots, the ball" },
+    },
+    motifs: {
+      title: { pt: "Padrões", en: "Motifs" },
+      lattice: {
+        term: { pt: "A grade", en: "The lattice" },
+        text: {
+          pt: "Linhas a ±45°, a cada 24 px: o fundo de tudo o que é Klein, na live e no site. Nunca atrás de texto no fundo claro.",
+          en: "Lines at ±45°, 24 px apart: the ground of everything Klein, on the stream and the site. Never behind text on the light ground.",
+        },
+      },
+      streaks: {
+        term: { pt: "Os rastros", en: "The streaks" },
+        text: {
+          pt: "Um traço branco e um Klein claro, meia volta um do outro: movimento, na moldura da câmera e nas transições.",
+          en: "A white and a light Klein streak, half a lap apart: movement, on the camera frame and the transitions.",
+        },
+      },
+      plate: {
+        term: { pt: "A placa", en: "The plate" },
+        text: {
+          pt: "Uma aba Klein com um lado cortado, que entra pela diagonal: os rótulos da live, como o nome na câmera e o rank.",
+          en: "A Klein tab with one side cut, wiping in along the diagonal: the stream's labels, like the name on the camera and the rank.",
+        },
+      },
+    },
+    voice: {
+      title: { pt: "A voz", en: "The voice" },
+      text: {
+        pt: "O canal escreve como eu falo: curto, informal, com “você” e “pra”. Quem fala no site, nos overlays e no bot sou eu. Uma palavra pra cada coisa:",
+        en: "The channel writes the way I talk: short, informal, in the first person. One word for each thing:",
+      },
+      head: { say: { pt: "Diga", en: "Say" }, not: { pt: "Em vez de", en: "Instead of" } },
+      words: [
+        { say: { pt: "torcedor", en: "torcedor (a fan)" }, not: { pt: "viewer, espectador", en: "viewer" } },
+        { say: { pt: "a torcida", en: "a torcida (everyone)" }, not: { pt: "a comunidade, a audiência", en: "the community" } },
+        { say: { pt: "partida", en: "partida (a match)" }, not: { pt: "jogo, match", en: "jogo, match" } },
+        { say: { pt: "a live", en: "a live (the stream)" }, not: { pt: "transmissão, stream", en: "transmissão" } },
+        { say: { pt: "Σ, os pontos do site", en: "Σ, the site's points" }, not: { pt: "pontos do canal (esses são da Twitch)", en: "channel points (Twitch's)" } },
+      ],
     },
     stream: {
       title: { pt: "A live por dentro", en: "The live from the inside" },
       text: {
-        pt: "Os overlays são páginas deste site, que o OBS abre como fontes de navegador: a moldura da câmera, o chat, a arquibancada. Um painel ao lado lê as estatísticas pela API do próprio Rocket League, conta vitórias e derrotas, avisa a arquibancada dos gols e das defesas e corta para a conversa quando a partida acaba.",
-        en: "The overlays are pages of this site that OBS opens as browser sources: the camera frame, the chat, the stand. A panel beside them reads the stats from Rocket League's own API, counts wins and losses, tells the stand about goals and saves and cuts to the talk when the match ends.",
+        pt: "Os overlays são páginas deste site, que o OBS abre como fontes de navegador: a moldura da câmera, o chat, a arquibancada, os minijogos.\n\nNo Rocket League, um painel lê as estatísticas pela API do próprio jogo, conta vitórias e derrotas, avisa a arquibancada dos gols e das defesas e corta pra conversa quando a partida acaba. No Valorant, um script lê o cliente da Riot e avisa a arquibancada de cada rodada.",
+        en: "The overlays are pages of this site that OBS opens as browser sources: the camera frame, the chat, the stand, the minigames.\n\nIn Rocket League, a panel reads the stats from the game's own API, counts wins and losses, tells the stand about goals and saves and cuts to the talk when the match ends. In Valorant, a script reads Riot's client and tells the stand about every round.",
       },
     },
     after: {
       title: { pt: "Depois da live", en: "After the live" },
       text: {
-        pt: "A live inteira vai para o YouTube e ganha uma página aqui, com um capítulo por partida, um resumo e a transcrição do que eu falei, feita pelo Whisper, sem os nomes dos amigos.",
-        en: "The whole live goes to YouTube and gets a page here, with a chapter per match, a summary and a transcript of what I said, made by Whisper, without my friends' names.",
+        pt: "A live inteira vai pro YouTube e ganha uma página aqui, com um capítulo por partida, um resumo e a transcrição do que eu falei, feita pelo Whisper. E partidas da live viram vídeos próprios no YouTube.",
+        en: "The whole live goes to YouTube and gets a page here, with a chapter per match, a summary and a transcript of what I said, made by Whisper. And matches from the live become videos of their own on YouTube.",
       },
     },
     site: {
       title: { pt: "O site", en: "The site" },
       text: {
-        pt: "Feito em Next.js, estático, em dois idiomas: muanlartins.com.br em português e muanlartins.com em inglês. O código é aberto.",
-        en: "Built with Next.js, static, in two languages: muanlartins.com.br in Portuguese and muanlartins.com in English. The code is open.",
+        pt: "Feito em Next.js, estático, em dois idiomas: muanlartins.com.br em português e muanlartins.com em inglês. O código é aberto, e as regras da marca estão nele.",
+        en: "Built with Next.js, static, in two languages: muanlartins.com.br in Portuguese and muanlartins.com in English. The code is open, and the brand's rules are in it.",
       },
       code: { pt: "Código no GitHub", en: "Code on GitHub" },
+      guide: { pt: "Guia da marca", en: "Brand guide" },
     },
   },
 }

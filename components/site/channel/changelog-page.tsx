@@ -1,12 +1,13 @@
 "use client"
 
-import { ArrowLeft, ArrowUpRight, Car, Clapperboard, Globe, Lightbulb, Play, Radio, Sigma, Users, type LucideIcon } from "lucide-react"
+import { ArrowUpRight, Car, Clapperboard, Globe, Lightbulb, Play, Radio, Sigma, Users, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import Script from "next/script"
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { LifelinePhotoCard } from "@/components/lifeline/lifeline-photos"
 import { TwitchIcon, YouTubeIcon } from "@/components/site/brand-icons"
-import { PageIntro } from "@/components/site/page-intro"
+import { DocPage, DocSection, docsLinks } from "@/components/site/docs"
+import { Badge, buttonClass, cardClass, EmptyState } from "@/components/site/ui"
 import { FanView } from "@/components/site/profile/fan-view"
 import {
   FIRST_DAY,
@@ -40,7 +41,7 @@ const STATUS_ORDER = Object.keys(STATUSES) as Status[]
 
 const person = (id: PersonId): Person => PEOPLE[id]
 
-/** The changelog's filter: everything, a tag, or what the community suggested or told about. */
+/** What's out, filtered: everything, a category, or what the crowd suggested or told about. */
 type Filter = Tag | "comunidade" | null
 const shows = (filter: Filter, entry: Shipped) => !filter || (filter === "comunidade" ? Boolean(entry.credits?.length) : entry.tag === filter)
 
@@ -48,6 +49,7 @@ const shows = (filter: Filter, entry: Shipped) => !filter || (filter === "comuni
 const ENTRIES = SHIPPED.map((entry, index) => ({ entry, index }))
   .sort((a, b) => b.entry.date.localeCompare(a.entry.date) || a.index - b.index)
   .map(({ entry }) => entry)
+const ENTRY_IDS = new Set<string>(ENTRIES.map((entry) => entry.id))
 
 /** Who suggested (or told about) what, in the order of PEOPLE, with everything of theirs (released or coming) and
  * their credit on it. */
@@ -65,12 +67,17 @@ const LOGINS = SUGGESTIONS.flatMap(({ id }) => {
 
 const noon = (day: string) => new Date(`${day}T12:00:00Z`).getTime()
 const dayNumber = (day: string) => Math.round((noon(day) - noon(FIRST_DAY)) / 86_400_000) + 1
-const MONTH = new Intl.DateTimeFormat(HTML_LANG[LOCALE], { month: "short", timeZone: "UTC" })
-/** "10 nov 2026", like the personal timeline's dates. */
+const WEEKDAY = new Intl.DateTimeFormat(HTML_LANG[LOCALE], { weekday: "short", timeZone: "UTC" })
+/** The year shows only once the list spans more than one (brand/voz.md, "Formats"). */
+const YEARS = new Set(ENTRIES.map((entry) => entry.date.slice(0, 4))).size > 1
+/** "sáb., 21/11" (brand/voz.md, "Formats"), with the year when the list spans years. */
 function dateLabel(day: string) {
-  const [y, m, d] = day.split("-").map(Number)
-  return `${d} ${MONTH.format(Date.UTC(y, m - 1, d)).replace(".", "")} ${y}`
+  const [y, m, d] = day.split("-")
+  const weekday = WEEKDAY.format(noon(day)).replace(/\.$/, "")
+  return `${weekday}., ${d}/${m}${YEARS ? `/${y}` : ""}`
 }
+/** "21/11". */
+const shortDate = (day: string) => `${day.slice(8, 10)}/${day.slice(5, 7)}`
 
 /** Seeded by the entry, so the server's tilt matches the browser's; neighbours lean apart. */
 function tilt(seed: string, index: number) {
@@ -105,9 +112,15 @@ export function ChangelogPage() {
     )
   }, [])
 
-  // A link to an entry shows it even when another tag is picked.
+  // A link to an entry shows it even when another category is picked (a link to a section doesn't touch the filter).
   useEffect(() => {
-    const show = () => location.hash.length > 1 && setFilter(null)
+    const show = () => {
+      const id = decodeURIComponent(location.hash.slice(1))
+      if (!ENTRY_IDS.has(id)) return
+      setFilter(null)
+      // It may only exist once the filter is off: go to it after that render.
+      requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView()))
+    }
     show()
     addEventListener("hashchange", show)
     return () => removeEventListener("hashchange", show)
@@ -120,36 +133,41 @@ export function ChangelogPage() {
       <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
       <Script src="/stream/torcedor.js" onReady={() => setLook((look) => ({ ...look, T: window.Torcedor ?? null }))} />
 
-      <Link
-        href={channelPath()}
-        className="mb-6 inline-flex items-center gap-1.5 text-[14px] text-muted transition-colors hover:text-klein"
+      <DocPage
+        trail={[{ label: T.title, href: channelPath() }]}
+        title={R.title}
+        description={R.description}
+        meta={[
+          { label: R.meta.shipped, value: R.meta.count.replace("{n}", `${ENTRIES.length}`) },
+          { label: R.meta.latest, value: shortDate(ENTRIES[0].date) },
+          { label: R.meta.ideas, value: CREDITED },
+        ]}
+        toc={TOC}
+        more={docsLinks(channelPath("roadmap"))}
       >
-        <ArrowLeft className="h-4 w-4" />
-        {T.title}
-      </Link>
-      <PageIntro title={R.title} description={R.description} />
-
-      <Community look={look} />
-      <Next look={look} />
-      <Changelog look={look} filter={filter} setFilter={setFilter} />
+        <Community look={look} />
+        <Next look={look} />
+        <Changelog look={look} filter={filter} setFilter={setFilter} />
+      </DocPage>
     </>
   )
 }
 
-function Heading({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
-  return (
-    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-      <h2 className="text-2xl font-medium tracking-[-0.02em] text-klein">{children}</h2>
-      {aside}
-    </div>
-  )
-}
+/** The page's sections, as its index numbers them. Their ids aren't any entry's. */
+const TOC = [
+  { id: "torcida", title: R.community.title },
+  { id: "proximos-passos", title: R.next.title },
+  { id: "ja-saiu", title: R.shipped.title },
+]
+const n = (id: string) => TOC.findIndex((section) => section.id === id) + 1
+/** How many releases came from the crowd's ideas. */
+const CREDITED = ENTRIES.filter((entry) => entry.credits?.length).length
 
 /** The narrowest place on the community's stand: room for a name, or, on a phone, for the fan alone (names then go at two heights). */
 const SLOT = 120
 const SLOT_COMPACT = 56
-/** A step of the stand, the stream's band cut at 45° on its ends. */
-const STEP = { clipPath: "polygon(16px 0, calc(100% - 16px) 0, 100% 100%, 0 100%)" }
+/** A step of the stand, the stream's band cut at a true 45° on its ends (as tall as they're cut). */
+const STEP = { clipPath: "polygon(20px 0, calc(100% - 20px) 0, 100% 100%, 0 100%)" }
 
 /**
  * The people who suggested something, standing on the stream's stand, each celebrating in turn. As many to a row as
@@ -186,11 +204,8 @@ function Community({ look }: { look: Fans }) {
   }, [look.T])
 
   return (
-    <section className="mt-14">
-      <Heading>{R.community.title}</Heading>
-      <p className="mt-2 max-w-[38rem] text-[15px] leading-[1.6] text-muted">{R.community.text}</p>
-
-      <div ref={box} className="mt-5 overflow-hidden rounded-md border border-line bg-paper/70">
+    <DocSection id="torcida" n={n("torcida")} title={R.community.title} description={R.community.text}>
+      <div ref={box} className={cn(cardClass, "overflow-hidden")}>
         {rows.map((row, r) => (
           <div key={r} className="relative px-3 pb-3" style={{ paddingTop: stagger ? 64 : 44 }}>
             <div className="absolute inset-x-0 bottom-0 h-5 bg-klein" style={STEP} />
@@ -202,7 +217,7 @@ function Community({ look }: { look: Fans }) {
                     <a href={`#${items[0].item.id}`} className={cn("group relative block", compact ? "h-[72px] w-12" : "h-[96px] w-16")} aria-label={p.name}>
                       <span
                         className={cn(
-                          "absolute flex items-center gap-1 whitespace-nowrap bg-navy/80 px-1 py-px text-[10px] font-semibold text-paper transition-colors group-hover:bg-klein sm:px-1.5 sm:text-[11px]",
+                          "absolute flex items-center gap-1 whitespace-nowrap bg-navy/80 px-1 py-px text-[12px] font-semibold text-paper transition-colors group-hover:bg-klein sm:px-1.5",
                           stagger && j % 2 ? "bottom-[calc(100%+32px)]" : "bottom-[calc(100%+12px)]",
                           // At two heights the names run wider than their place: the ends' lean inwards, off the edge.
                           stagger && row.length > 1 && j === 0 ? "left-0" : stagger && row.length > 1 && j === row.length - 1 ? "right-0" : "left-1/2 -translate-x-1/2",
@@ -233,7 +248,8 @@ function Community({ look }: { look: Fans }) {
         {SUGGESTIONS.map(({ id, items }) => {
           const p = person(id)
           return (
-            <li key={id} className="rounded-md border border-line bg-paper/70 px-4 py-3 backdrop-blur-sm">
+            // An odd card out takes the whole last row (brand/interface.md: no orphan tile).
+            <li key={id} className={cn(cardClass, "px-4 py-3 sm:[&:last-child:nth-child(odd)]:col-span-2")}>
               {p.login ? (
                 <span className="inline-flex items-center gap-1.5 text-[15px] font-medium text-ink">
                   <PlatformIcon where={p.where} className="h-3.5 w-3.5 text-klein" />
@@ -261,7 +277,7 @@ function Community({ look }: { look: Fans }) {
                 ({ label, list }) =>
                   list.length > 0 && (
                     <div key={label}>
-                      <p className="mt-2 text-[12px] font-medium uppercase tracking-[0.1em] text-muted">{label}</p>
+                      <p className="eyebrow mt-2 text-muted">{label}</p>
                       <ul className="mt-1 space-y-0.5">
                         {list.map(({ item, credit }) => (
                           <li key={item.id}>
@@ -278,17 +294,16 @@ function Community({ look }: { look: Fans }) {
           )
         })}
       </ul>
-    </section>
+    </DocSection>
   )
 }
 
-/** What comes next, by how sure it is: what's being made now, what's decided, and ideas. */
+/** What comes next, by how sure it is: what's being made now, what's decided, and ideas; or, with nothing queued, what will be. */
 function Next({ look }: { look: Fans }) {
-  if (!UPCOMING.length) return null
   return (
-    <section className="mt-16">
-      <Heading>{R.next.title}</Heading>
-      <div className="mt-6 space-y-8">
+    <DocSection id="proximos-passos" n={n("proximos-passos")} title={R.next.title}>
+      {UPCOMING.length === 0 && <EmptyState className="max-w-[38rem]">{R.next.empty}</EmptyState>}
+      <div className="space-y-8">
         {STATUS_ORDER.map((status) => {
           const items = UPCOMING.filter((item) => item.status === status)
           if (!items.length) return null
@@ -296,7 +311,7 @@ function Next({ look }: { look: Fans }) {
             <div key={status}>
               <div className="flex items-center gap-2.5">
                 <StatusDot status={status} />
-                <h3 className="text-[13px] font-medium uppercase tracking-[0.12em] text-klein">{STATUSES[status].title}</h3>
+                <h3 className="eyebrow text-klein">{STATUSES[status].title}</h3>
                 <span className="text-[13px] text-muted">{STATUSES[status].text}</span>
               </div>
               <ul className={cn("mt-3 grid gap-3", status !== "agora" && items.length > 1 && "sm:grid-cols-2")}>
@@ -308,7 +323,7 @@ function Next({ look }: { look: Fans }) {
           )
         })}
       </div>
-    </section>
+    </DocSection>
   )
 }
 
@@ -321,7 +336,7 @@ function StatusDot({ status }: { status: Status }) {
       </span>
     )
   }
-  return <span aria-hidden className={cn("h-2.5 w-2.5 rounded-full", status === "proximo" ? "bg-klein-claro" : "border border-dashed border-klein")} />
+  return <span aria-hidden className={cn("h-2.5 w-2.5 rounded-full", status === "proximo" ? "bg-line-strong" : "border border-dashed border-klein")} />
 }
 
 function UpcomingCard({ item, look }: { item: Upcoming; look: Fans }) {
@@ -330,10 +345,10 @@ function UpcomingCard({ item, look }: { item: Upcoming; look: Fans }) {
     <li
       id={item.id}
       className={cn(
-        "scroll-mt-28 rounded-md px-5 py-4",
+        "cut relative scroll-mt-32 p-5",
         now && "bg-klein text-paper",
-        item.status === "proximo" && "border border-line bg-paper/70 backdrop-blur-sm",
-        item.status === "ideia" && "border border-dashed border-klein/35",
+        item.status === "proximo" && "cut-edge border border-line bg-paper/70",
+        item.status === "ideia" && "border border-dashed border-line-strong",
       )}
     >
       <TagChip tag={item.tag} inverted={now} />
@@ -344,18 +359,14 @@ function UpcomingCard({ item, look }: { item: Upcoming; look: Fans }) {
   )
 }
 
+/** An entry's category, as a square badge with its icon. */
 function TagChip({ tag, inverted }: { tag: Tag; inverted?: boolean }) {
   const Icon = TAG_ICONS[tag]
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-medium",
-        inverted ? "bg-paper/15 text-paper" : "bg-klein/[0.08] text-klein",
-      )}
-    >
+    <Badge tone="soft" className={cn(inverted && "bg-paper/15 text-paper")}>
       <Icon aria-hidden className="h-3 w-3" />
       {TAGS[tag]}
-    </span>
+    </Badge>
   )
 }
 
@@ -390,8 +401,8 @@ function CreditLine({ credit, look, inverted }: { credit: Credit; look: Fans; in
         className={cn("inline-flex items-center gap-1.5 font-medium", inverted ? "text-paper hover:underline" : "text-ink hover:text-klein")}
       >
         {look.T && (
-          <span aria-hidden className={cn("relative inline-block h-[30px] w-[24px] rounded-sm", inverted ? "bg-paper/15" : "bg-klein/[0.08]")}>
-            <span className="absolute inset-x-0 bottom-0 h-1 rounded-b-sm bg-klein" />
+          <span aria-hidden className={cn("relative inline-block h-[30px] w-[24px]", inverted ? "bg-paper/15" : "bg-klein/[0.08]")}>
+            <span className="absolute inset-x-0 bottom-0 h-1 bg-klein" />
             <FanView
               T={look.T}
               fan={look.T.normalizar(p.login ? (look.fans?.[p.login] ?? null) : null, p.login ?? p.name.toLowerCase())}
@@ -432,10 +443,11 @@ function Changelog({ look, filter, setFilter }: { look: Fans; filter: Filter; se
   const count = (filter: Filter) => ENTRIES.filter((entry) => shows(filter, entry)).length
 
   return (
-    <section className="mt-20">
-      <Heading aside={<span className="text-[14px] text-muted">{summary}</span>}>{R.shipped.title}</Heading>
-
-      <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label={R.shipped.title}>
+    <DocSection id="ja-saiu" n={n("ja-saiu")} title={R.shipped.title} description={summary}>
+      <p id="ja-saiu-filtro" className="eyebrow mb-3 text-muted">
+        {R.shipped.filter}
+      </p>
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-labelledby="ja-saiu-filtro">
         <FilterButton active={filter === null} onClick={() => setFilter(null)} label={R.shipped.all} count={ENTRIES.length} />
         {count("comunidade") > 0 && (
           <FilterButton active={filter === "comunidade"} onClick={() => setFilter("comunidade")} label={R.shipped.community} count={count("comunidade")} icon={Users} />
@@ -448,27 +460,27 @@ function Changelog({ look, filter, setFilter }: { look: Fans; filter: Filter; se
       {/* The personal page's rail: Klein tints, a dashed line, the count on the left. */}
       <div className="-mx-6 mt-10 px-6">
         <div className={`${GRID} mb-6 items-end`}>
-          <p className="text-right text-[11px] font-medium uppercase leading-5 tracking-[0.08em] text-zinc-500">{R.shipped.day}</p>
+          <p className="eyebrow text-right leading-5 text-muted">{R.shipped.day}</p>
           <div aria-hidden />
-          <p className="text-[11px] font-medium uppercase leading-5 tracking-[0.08em] text-zinc-500">{R.shipped.date}</p>
+          <p className="eyebrow leading-5 text-muted">{R.shipped.date}</p>
         </div>
 
         {days.length === 0 ? (
-          <p className="text-[15px] text-muted">{R.shipped.none}</p>
+          <EmptyState>{R.shipped.none}</EmptyState>
         ) : (
           <div className="relative">
             <div aria-hidden className="pointer-events-none absolute bottom-0 top-0 -translate-x-1/2" style={{ left: RAIL_LEFT, width: 1 }}>
-              <div className="h-full w-px border-l border-dashed border-zinc-300" />
+              <div className="h-full w-px border-l border-dashed border-line-strong" />
             </div>
             <ol className="relative">
               {days.map(({ date, entries }) => (
                 <li key={date} className="pb-12">
                   <div className={`${GRID} items-center`}>
-                    <p className="text-right text-[11px] font-medium leading-4 tabular-nums text-zinc-500">{dayNumber(date)}</p>
+                    <p className="text-right text-[12px] font-medium leading-4 tabular-nums text-muted">{dayNumber(date)}</p>
                     <div className="flex items-center justify-center">
-                      <span aria-hidden className="block h-px w-[10px] bg-zinc-400" />
+                      <span aria-hidden className="block h-px w-[10px] bg-line-strong" />
                     </div>
-                    <p className="whitespace-nowrap text-[15px] font-medium leading-5 tabular-nums text-zinc-500">{dateLabel(date)}</p>
+                    <p className="whitespace-nowrap text-[15px] font-medium leading-5 tabular-nums text-muted">{dateLabel(date)}</p>
                   </div>
                   <ul className="mt-6 space-y-8">
                     {entries.map((entry) => (
@@ -481,10 +493,11 @@ function Changelog({ look, filter, setFilter }: { look: Fans; filter: Filter; se
           </div>
         )}
       </div>
-    </section>
+    </DocSection>
   )
 }
 
+/** A filter chip (brand/interface.md, "Tabs and filters"): square, filled Klein when on. */
 function FilterButton({ active, onClick, label, count, icon: Icon }: { active: boolean; onClick: () => void; label: string; count: number; icon?: LucideIcon }) {
   return (
     <button
@@ -492,8 +505,8 @@ function FilterButton({ active, onClick, label, count, icon: Icon }: { active: b
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[14px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-klein",
-        active ? "border-klein bg-klein text-paper" : "border-line text-ink hover:border-klein",
+        "inline-flex items-center gap-1.5 border px-3 py-1.5 text-[14px] transition-colors",
+        active ? "border-klein bg-klein text-paper" : "border-line-strong text-ink hover:border-klein hover:text-klein",
       )}
     >
       {Icon && <Icon aria-hidden className="h-3.5 w-3.5 opacity-75" />}
@@ -513,21 +526,23 @@ function ShippedEntry({ entry, look }: { entry: Shipped; look: Fans }) {
           aria-hidden
           className={cn(
             "relative z-10 block rounded-full ring-4 ring-ground",
-            entry.credits?.length ? "h-2.5 w-2.5 bg-klein" : "h-1.5 w-1.5 bg-zinc-400",
+            entry.credits?.length ? "h-2.5 w-2.5 bg-klein" : "h-1.5 w-1.5 bg-line-strong",
           )}
         />
       </div>
-      <article
-        id={entry.id}
-        className={cn(
-          "min-w-0 scroll-mt-28 rounded-md transition-colors duration-700",
-          entry.credits?.length ? "border border-klein/25 bg-klein/[0.04] p-4" : "py-1",
-          "target:bg-klein/[0.08]",
-        )}
-      >
+      <article id={entry.id} className={cn("group relative isolate min-w-0 scroll-mt-32", entry.credits?.length ? "p-5" : "py-1")}>
+        {/* The entry's panel (credited ones) and the highlight when it's linked to, behind it so the tilted pictures
+            aren't clipped by the cut. */}
+        <span
+          aria-hidden
+          className={cn(
+            "cut absolute -z-10 transition-colors duration-700 group-target:bg-klein/[0.08]",
+            entry.credits?.length ? "cut-edge inset-0 border border-klein/25 bg-klein/[0.04]" : "-inset-x-4 -inset-y-3",
+          )}
+        />
         <TagChip tag={entry.tag} />
-        <h3 className="mt-2 text-[18px] font-medium leading-snug tracking-[-0.01em] text-ink">{entry.title}</h3>
-        <p className="mt-1 max-w-[34rem] text-[15px] leading-[1.6] text-muted">{entry.text}</p>
+        <h3 className="mt-2 text-[17px] font-medium leading-snug tracking-[-0.02em] text-ink">{entry.title}</h3>
+        <p className="mt-1 max-w-[38rem] text-[15px] leading-[1.6] text-muted">{entry.text}</p>
         <Credits credits={entry.credits} look={look} />
 
         {(entry.href || entry.video) && (
@@ -571,5 +586,4 @@ function ShippedEntry({ entry, look }: { entry: Shipped; look: Fans }) {
   )
 }
 
-const LINK =
-  "inline-flex items-center gap-1 rounded-md border border-line bg-paper/70 px-2.5 py-1 text-[13px] font-medium text-ink transition-colors hover:border-klein hover:text-klein"
+const LINK = buttonClass({ variant: "secondary", size: "sm" })

@@ -1389,11 +1389,11 @@
         { title: "Palmas", cost: 50, prompt: "Palmas na live.", cooldown: 60, play: () => sound("palmas") },
         { title: "Uuuh", cost: 50, prompt: "O uuuh da torcida.", cooldown: 60, play: () => sound("uuuh") },
         { title: "Tambor", cost: 50, prompt: "Rufem os tambores.", cooldown: 60, play: () => sound("tambor") },
-        { title: "Bebe água!", cost: 50, prompt: "O Luan para e bebe água. Saúde!", cooldown: 600, play: () => ready && !BREAKS.includes(current) },
-        { title: "Phoenix na câmera", cost: 100, prompt: "Uma habilidade da Phoenix, ao acaso, na câmera do Luan.", cooldown: 120, play: () => camera("phoenix", ["blaze", "flash", "molotov", "ult"]) },
-        { title: "Sova na câmera", cost: 100, prompt: "Uma habilidade do Sova, ao acaso, na câmera do Luan.", cooldown: 120, play: () => camera("sova", ["drone", "choque", "recon", "ult"]) },
-        { title: "Sage na câmera", cost: 100, prompt: "Uma habilidade da Sage, ao acaso, na câmera do Luan.", cooldown: 120, play: () => camera("sage", ["barreira", "lentidao", "cura", "ult"]) },
-        { title: "Octane na câmera", cost: 100, prompt: "O Octane na cabeça do Luan: um flip ou uma demolição.", cooldown: 120, play: () => camera("octane", ["demo", "flip"]) },
+        { title: "Bebe água!", cost: 50, prompt: "Eu paro e bebo água. Saúde!", cooldown: 600, play: () => ready && !BREAKS.includes(current) },
+        { title: "Phoenix na câmera", cost: 100, prompt: "Uma habilidade do Phoenix, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("phoenix", ["blaze", "flash", "molotov", "ult"]) },
+        { title: "Sova na câmera", cost: 100, prompt: "Uma habilidade do Sova, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("sova", ["drone", "choque", "recon", "ult"]) },
+        { title: "Sage na câmera", cost: 100, prompt: "Uma habilidade da Sage, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("sage", ["barreira", "lentidao", "cura", "ult"]) },
+        { title: "Octane na câmera", cost: 100, prompt: "O Octane na minha cabeça: um flip ou uma demolição.", cooldown: 120, play: () => camera("octane", ["demo", "flip"]) },
       ]
       function sound(som) {
         if (!ready || BREAKS.includes(current)) return false

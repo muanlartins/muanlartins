@@ -1,9 +1,8 @@
-import { ArrowLeft, ArrowRight } from "lucide-react"
-import Link from "next/link"
-import type { ReactNode } from "react"
+import { ArrowRight, Sigma } from "lucide-react"
 import { CommandName } from "@/components/site/channel/command-name"
 import { StandDemo } from "@/components/site/channel/stand-demo"
-import { PageIntro } from "@/components/site/page-intro"
+import { Callout, DefList, DocPage, DocSection, docsLinks } from "@/components/site/docs"
+import { ButtonLink } from "@/components/site/ui"
 import { channel } from "@/content/channel"
 import { channelPath } from "@/lib/channel"
 import { commands } from "@/lib/commands"
@@ -11,91 +10,74 @@ import { localize, profileSlug } from "@/lib/site"
 
 const T = localize(channel)
 const C = T.comandos
+const TERM = "14rem"
 
 /**
- * /canal/comandos: every way to take part in the live from the chat, from public/stream/comandos.json (the same
- * list the stand's tips, the chat bot and the Twitch panel come from): the stand's commands, tried on sample fans;
- * the VAR's vote; the chat bot's; the channel points' sounds; and how Σ come.
+ * /canal/comandos, a documentation page: every way to take part in the live from the chat, from
+ * public/stream/comandos.json (the same list the stand's tips, the chat bot and the Twitch panel come from): the
+ * stand's commands, tried on sample fans; the VAR's vote; the chat bot's; the rewards for Twitch's channel points;
+ * and the way to Σ's own page.
  */
 export function CommandsPage() {
-  const { grupos, recompensas, sigma } = commands()
-  return (
-    <>
-      <Link
-        href={channelPath()}
-        className="mb-6 inline-flex items-center gap-1.5 text-[14px] text-muted transition-colors hover:text-klein"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {T.title}
-      </Link>
-      <PageIntro title={C.title} description={C.description} />
+  const { grupos, recompensas } = commands()
+  const toc = [...grupos.map((g) => ({ id: g.id, title: g.titulo })), { id: "recompensas", title: recompensas.titulo }, { id: "sigma", title: C.sigma.title }]
+  const count = grupos.reduce((n, g) => n + g.comandos.length, 0)
 
-      {grupos.map((grupo) => (
-        <Part key={grupo.id} id={grupo.id} title={grupo.titulo} text={grupo.texto}>
+  return (
+    <DocPage
+      trail={[{ label: T.title, href: channelPath() }]}
+      title={C.title}
+      description={C.description}
+      meta={[
+        { label: C.meta.commands, value: count },
+        { label: C.meta.rewards, value: recompensas.itens.length },
+      ]}
+      toc={toc}
+      more={docsLinks(channelPath("comandos"))}
+    >
+      {grupos.map((grupo, i) => (
+        <DocSection key={grupo.id} id={grupo.id} n={i + 1} title={grupo.titulo} description={grupo.texto}>
           {grupo.id === "arquibancada" ? (
-            <StandDemo commands={grupo.comandos} you={C.you} hint={C.tryIt} shout={C.shout} also={C.also} />
+            <StandDemo commands={grupo.comandos} you={C.you} hint={C.tryIt} shout={C.shout} also={C.also} term={TERM} />
           ) : (
-            <ul className="divide-y divide-line border-y border-line">
-              {grupo.comandos.map((c) => (
-                <li key={c.comando} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-baseline sm:gap-6">
-                  <CommandName command={c} also={C.also} />
-                  <span className="text-[15px] leading-[1.55] text-ink">{c.texto}</span>
-                </li>
-              ))}
-            </ul>
+            <DefList
+              termWidth={TERM}
+              head={grupo.comandos.length > 2 ? [C.head.command, C.head.does] : undefined}
+              items={grupo.comandos.map((c) => ({ key: c.comando, term: <CommandName command={c} also={C.also} />, detail: c.texto }))}
+            />
           )}
-          {grupo.nota && <p className="mt-3 text-[13px] leading-[1.5] text-muted">{grupo.nota}</p>}
+          {grupo.nota && <p className="mt-3 max-w-[38rem] text-[13px] leading-[1.5] text-muted">{grupo.nota}</p>}
           {grupo.id === "arquibancada" && (
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-[15px] text-ink">{C.profile.text}</p>
-              <Link
-                href={`/${profileSlug()}`}
-                className="inline-flex w-fit shrink-0 items-center gap-2 rounded-md bg-klein px-4 py-2.5 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
-              >
+              <ButtonLink href={`/${profileSlug()}`} variant="secondary" className="w-fit shrink-0">
                 {C.profile.cta}
                 <ArrowRight aria-hidden className="h-4 w-4" />
-              </Link>
+              </ButtonLink>
             </div>
           )}
-        </Part>
+        </DocSection>
       ))}
 
-      <Part id="pontos" title={recompensas.titulo} text={recompensas.texto}>
-        <ul className="grid gap-3 sm:grid-cols-3">
-          {recompensas.itens.map((r) => (
-            <li key={r.nome} className="rounded-md border border-line bg-paper/70 px-4 py-3">
-              <span className="flex items-baseline justify-between gap-3">
-                <span className="text-[16px] font-medium text-klein">{r.nome}</span>
-                <span className="text-[13px] text-muted">
-                  {r.custo} {C.points}
-                </span>
-              </span>
-              <span className="mt-1 block text-[14px] text-ink">{r.texto}</span>
-            </li>
-          ))}
-        </ul>
-      </Part>
+      <DocSection id="recompensas" n={grupos.length + 1} title={recompensas.titulo} description={recompensas.texto}>
+        <DefList
+          termWidth={TERM}
+          head={[C.head.reward, C.head.does, C.head.cost]}
+          items={recompensas.itens.map((r) => ({
+            key: r.nome,
+            term: <span className="text-[15px] font-medium text-klein">{r.nome}</span>,
+            detail: r.texto,
+            aside: `${r.custo} ${C.points}`,
+          }))}
+        />
+        <Callout className="mt-6">{C.notSigma}</Callout>
+      </DocSection>
 
-      <Part id="sigma" title={sigma.titulo} text={sigma.texto}>
-        <dl className="divide-y divide-line border-y border-line">
-          {sigma.ganhos.map((g) => (
-            <div key={g.como} className="flex items-baseline gap-6 py-3">
-              <dt className="w-16 shrink-0 text-[17px] font-medium text-klein">{g.quanto}</dt>
-              <dd className="text-[15px] text-ink">{g.como}</dd>
-            </div>
-          ))}
-        </dl>
-      </Part>
-    </>
-  )
-}
-
-function Part({ id, title, text, children }: { id: string; title: string; text: string; children: ReactNode }) {
-  return (
-    <section id={id} className="mt-14 scroll-mt-24">
-      <h2 className="text-2xl font-medium tracking-[-0.02em] text-klein">{title}</h2>
-      <p className="mt-2 max-w-[38rem] text-[15px] leading-[1.6] text-ink">{text}</p>
-      <div className="mt-5">{children}</div>
-    </section>
+      <DocSection id="sigma" n={grupos.length + 2} title={C.sigma.title} description={C.sigma.text}>
+        <ButtonLink href={channelPath("sigma")} variant="secondary" icon={<Sigma aria-hidden className="h-4 w-4" />}>
+          {C.sigma.cta}
+        </ButtonLink>
+      </DocSection>
+    </DocPage>
   )
 }
