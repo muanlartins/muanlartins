@@ -33,8 +33,8 @@ export default game({
   aim: {
     title: { pt: "Mira", en: "Aim" },
     description: {
-      pt: "Meu treino de mira com a Voltaic: a rotina no Aimlabs todo dia e o benchmark todo domingo, para ver a mira subir semana a semana.",
-      en: "My aim training with Voltaic: their Aimlabs routine every day and their benchmark every Sunday, to watch my aim climb week by week.",
+      pt: "Meu treino de mira no Aimlabs e a minha mira nas partidas, medidos do mesmo jeito: o treino está chegando no jogo?",
+      en: "My aim training in Aimlabs and my aim in matches, measured the same way: is the training reaching the game?",
     },
   },
   inventory: {

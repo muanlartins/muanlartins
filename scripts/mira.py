@@ -28,6 +28,11 @@ the speed drops under 30% of the peak, and any later speed peak is a correction.
 the target, the error is negative short of it and positive past it, measured against the target as it moves. A shot
 that needed less than three target radii of movement is an adjustment, not a flick.
 
+Each play also keeps its flicks one by one (`cada_flick`, for the site's replay and its target): the crosshair against
+the target, in degrees on screen, every 25 ms from the flick's start to the click (x right, y down; the click last), the
+ms from the start to the click, the target's radius, whether it hit, and its corrections. A play keeps the whole way for CAMINHOS of its flicks, spread
+across it, and only the click for the rest, so a day's file stays small; Valorant's matches keep every flick's.
+
 Nothing about other players and no ids: the task, when it was played, the numbers. A day's file keeps what it had.
 """
 
@@ -35,6 +40,7 @@ import argparse
 import bisect
 import json
 import math
+import re
 import statistics as st
 import struct
 import sys
@@ -54,6 +60,10 @@ CURVA_MS = list(range(0, 801, 50))
 FAIXAS = [0.5 + 0.05 * k for k in range(21)]
 # Clicking while still moving: the crosshair, against the target, would cross the target's radius in less than this (s).
 EM_MOVIMENTO = 0.05
+# A flick's way, one by one: the crosshair against the target every this many seconds, from the flick's start to the click.
+PASSO = 0.025
+# A play keeps the whole way of this many of its flicks (the rest keep only the click).
+CAMINHOS = 10
 
 
 # --- The replay ---------------------------------------------------------------------------------------------------
@@ -372,6 +382,9 @@ def medir(T, A, ts, de, erro, raio_w, acertou):
     dt = ts - T[max(i1 - 1, 0)]
     rel = math.hypot(fx - px, fy - py) / dt if dt > 0.004 else None
     final = [(T[i], *erro(T[i])[0]) for i in range(bisect.bisect_left(T, ts - 0.15), i1 + 1)]
+    # The way as the site draws it: the crosshair against the target, every PASSO from the start, the click last.
+    caminho = [erro(t0 + k * PASSO)[0] for k in range(int((ts - t0) / PASSO + 1e-9) + 1) if t0 + k * PASSO < ts - 1e-6]
+    caminho.append((fx, fy))
     tiro.update(
         {
             "tipo": "flick",
@@ -385,6 +398,7 @@ def medir(T, A, ts, de, erro, raio_w, acertou):
             "tremor": _tendencia(final),
             "ao_longo": fx * ux + fy * uy,
             "curva": [(t - t0, p / amp) for t, p in trajeto],
+            "caminho": [[round(float(x), 2), round(float(y), 2)] for x, y in caminho],
         }
     )
     return tiro
@@ -423,8 +437,24 @@ def _curva(flicks):
     return out
 
 
-def resumo(analise: dict):
-    """One play's numbers for the site."""
+def um_a_um(flicks, caminhos=None):
+    """The flicks one by one for the site: each one's way (or only its click, past the first `caminhos` spread across
+    the play), the target's radius, whether it hit, its corrections, and whatever the match added (`osso`, `andando`)."""
+    n = len(flicks)
+    inteiros = set(range(n)) if caminhos is None or n <= caminhos else {round(k * (n - 1) / (caminhos - 1)) for k in range(caminhos)}
+    out = []
+    for i, t in enumerate(flicks):
+        um = {"caminho": t["caminho"] if i in inteiros else t["caminho"][-1:], "ms": round(float(t["movimento"]) * 1000),
+              "raio": round(float(t["raio"]), 3), "acertou": bool(t["acertou"]), "correcoes": int(t["correcoes"])}
+        for chave in ("osso", "andando"):
+            if chave in t:
+                um[chave] = t[chave]
+        out.append(um)
+    return out
+
+
+def resumo(analise: dict, caminhos=CAMINHOS):
+    """One play's numbers for the site; `caminhos` is how many flicks keep their whole way (None: all)."""
     tiros = analise["tiros"]
     flicks = [t for t in tiros if t["tipo"] == "flick"]
     if len(flicks) < 10:
@@ -456,7 +486,17 @@ def resumo(analise: dict):
         "erros": lados,
         "curva": _curva(flicks),
         "primeiro": _faixas([t["cobre"] for t in flicks]),
+        "cada_flick": um_a_um(flicks, caminhos),
     }
+
+
+def para_json(dados) -> str:
+    """A day's file: JSON indented by one, but each list of numbers (and each way, a list of pairs) on one line."""
+    texto = json.dumps(dados, ensure_ascii=False, indent=1)
+    numeros = r"\[\s*(-?[\d.eE+-]+(?:,\s*-?[\d.eE+-]+)*)\s*\]"
+    texto = re.sub(numeros, lambda m: "[" + ", ".join(x.strip() for x in m.group(1).split(",")) + "]", texto)
+    pares = r"\[\s*(\[[^\[\]]*\](?:,\s*\[[^\[\]]*\])*)\s*\]"
+    return re.sub(pares, lambda m: "[" + ", ".join(re.findall(r"\[[^\[\]]*\]", m.group(1))) + "]", texto) + "\n"
 
 
 def _faixas(cobre):
@@ -508,7 +548,7 @@ def main():
         if not analise:
             raise SystemExit(motivo)
         for t in analise["tiros"]:
-            print({k: (round(v, 3) if isinstance(v, float) else v) for k, v in t.items() if k != "curva"})
+            print({k: (round(v, 3) if isinstance(v, float) else v) for k, v in t.items() if k not in ("curva", "caminho")})
         print(json.dumps(resumo(analise), ensure_ascii=False))
         return
 
@@ -542,7 +582,7 @@ def main():
         print(f"{dia}: {len(novas)} plays ({len(novas) - len(antes):+d})")
         if args.apply:
             OUT.mkdir(parents=True, exist_ok=True)
-            caminho.write_text(json.dumps({"date": dia, "plays": novas}, ensure_ascii=False, indent=1) + "\n")
+            caminho.write_text(para_json({"date": dia, "plays": novas}))
     if not mudou:
         print("Nothing new.")
     elif not args.apply:
