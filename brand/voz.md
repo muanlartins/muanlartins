@@ -10,7 +10,7 @@ Examples are given as they should appear.
 Where this came from: Luan's feedback on what I drafted, the titles and hooks he picked, and how he talks on stream
 (about 22 hours of the lives' transcripts, 10-28 to 11-20). Almost all copy on the site so far is a draft he approved
 in bulk; this guide is what the next pass of every page is measured against. Lines marked **(a decidir)** wait for
-his call.
+his call. Decisions he made are dated.
 
 ## The voice in one paragraph
 
@@ -54,9 +54,9 @@ the games like football (gol, defesa, golaço, arquibancada, torcida), thanks pe
 
 - **"pra", not "para"** (his writing, and already the majority of the warmest lines). "Para" only in legal text
   (`content/privacy.ts`).
-- **Imperative (a decidir).** Proposta: the colloquial imperative Brazilians use with "você", as he talks: "Manda no
-  chat", "Tenta de novo", "Escolhe a sua classe", "Bebe água!", "Respira.". The alternative is the standard one
-  ("Mande", "Tente", "Escolha"), which the site uses most today. Whichever wins, one per site, never both in a file.
+- **The colloquial imperative** Brazilians use with "você", as he talks (Luan's call, 2026-11-21): "Manda no chat",
+  "Tenta de novo", "Escolhe a sua classe", "Monta o seu torcedor", "Bebe água!", "Respira.". Not the standard
+  "Mande", "Tente", "Escolha", which most of the site still uses and the review changes.
 - **Buttons are infinitives**: "Salvar", "Entrar com a Twitch", "Ver o mural", "Montar o meu". (Infinitives read the
   same in either register.)
 - **Gender: don't assume.** Templates that name a viewer avoid masculine defaults: "Gol dedicado a {nome}!", "Sub de
@@ -72,7 +72,7 @@ One name per thing. When a word here differs from what a page says, the page is 
 
 | Thing | Say | Don't say |
 |---|---|---|
-| A person who watches | **torcedor** (a decidir: or "viewer", the word he uses on stream) | espectador, telespectador, usuário |
+| A person who watches | **torcedor** (Luan's call, 2026-11-21: it goes with the stand and `/torcedor`) | viewer, espectador, telespectador, usuário |
 | Everyone who watches | **a torcida** | a comunidade, a audiência (the mural's tab can keep "Audiência" only if renamed with it, a decidir) |
 | The stand overlay | **a arquibancada** | a torcida (that's the people) |
 | A viewer's drawing on the stand | **o torcedor** ("o seu torcedor") | avatar, boneco |
@@ -84,7 +84,7 @@ One name per thing. When a word here differs from what a page says, the page is 
 | The ranked mode, its page | **ranqueadas** ("as ranqueadas", "Ranqueadas" as a title) | ranked, competitiva |
 | Someone's place in it | **rank** (a decidir: "elo", the word he says most, 37 to 12) | ranque, elo, classificação |
 | No rank yet | **Sem rank** | Unranked, Sem classificação |
-| Rocket League's tiers | **as do jogo em português**: Bronze, Prata, Ouro, Platina, Diamante, **Campeão** (a decidir: "Champion", as he says it), Grão-Campeão, Lenda Supersônica | mixing both in one text |
+| Rocket League's tiers | **the game's Portuguese names**, everywhere, titles too (Luan's call, 2026-11-21): Bronze, Prata, Ouro, Platina, Diamante, Campeão, Grande Campeão, Lenda Supersônica | Champion, Grand Champion, SSL |
 | A rank with its division | "Diamante 3, divisão 2"; compact "Diamante 3 · div. 2" | "Diamante 3 II" |
 | Rank points | **pontos** ("1.076 pontos"; "pts" only where space is tight) | MMR |
 | The channel's points | **Σ**, read "sigmas"; first mention on a page "Σ, os pontos do site"; plural: "seus Σ", "100 Σ" | pontos do canal (that's Twitch's), sigma points |
@@ -157,7 +157,7 @@ Tenta de novo." "A Twitch pediu pra você entrar de novo." "O navegador não dei
 
 **Confirmations.** "Salvo." plus what happens next: "Salvo. Na próxima live você aparece assim na arquibancada."
 
-**Destructive actions.** One pattern: "Apagar mesmo? Clica de novo" (in the chosen imperative), then "Apagado."
+**Destructive actions.** One pattern: "Apagar mesmo? Clica de novo", then "Apagado."
 
 **Sign-in prompts.** What signing in gives, then what happens without it: "Pra escolher a classe da sua bolinha. Sem
 entrar, ela luta com uma classe sorteada."
@@ -168,8 +168,8 @@ entrar, ela luta com uma classe sorteada."
 
 - **Site.** Page title + one line. Sections say what the reader gets, not how it's built. Explanations of method
   (how the aim is measured, how Σ add up) fold under "Como funciona".
-- **The live's screens.** Few words, big. Banner words in caps, the narrator in his football voice. Anything the
-  viewers do is in their words: "!pula", "Mande um Pix" becomes "Manda um Pix" with the chosen imperative.
+- **The live's screens.** Few words, big. Banner words in caps, the narrator in his football voice. What viewers
+  can do is said as a call: "!pula", "Manda um Pix".
 - **The chat bot.** One line, the answer first: "Fulano tem 1.240 Σ (Ouro 2): faltam 60 pro Ouro 3."
 - **Twitch.** Panels and rewards are short labels and one line; rewards say what happens on screen.
 - **YouTube.** Titles: what happened first, then the game, under 70 characters, no date; his line when the day had
@@ -184,6 +184,6 @@ entrar, ela luta com uma classe sorteada."
 
 1. Is it as short as it can be? Would a picture or a number say it?
 2. Is every term the one in "Words"?
-3. Does it speak as Luan ("eu"), to "você", in the chosen imperative, with "pra"?
+3. Does it speak as Luan ("eu"), to "você", in the colloquial imperative, with "pra"?
 4. Is it still true about how the thing works today?
 5. Is it a draft of his voice? Tell him it's a draft; he has the last word on copy.

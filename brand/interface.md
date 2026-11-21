@@ -6,7 +6,7 @@ words on screen are [voz.md](voz.md).
 
 This was written from what exists (a survey of the 109 site files and the overlays' ~5,200 lines of CSS, 2026-11-21),
 choosing the pattern most of the code already follows as the rule. Where the code drifts from it, the code is what
-changes. Lines marked **(a decidir)** wait for Luan's call.
+changes. Decisions Luan made are dated.
 
 ## Two surfaces, one brand
 
@@ -34,7 +34,7 @@ lighter because it's read longer; it isn't a different brand.
 | `navy` | `#001447` | ink on the site; dark panes and dark islands |
 | `ground` | `#d6e2ff` | the site's page |
 | `muted` | navy 72% into ground | secondary text |
-| `line` | Klein 22% into ground | dividers, card edges. Inputs and anything that must be seen as a control use `line-strong` (a decidir: Klein ~45%, for 3:1) |
+| `line` | Klein 22% into ground | dividers, card edges. Inputs and anything that must be seen as a control use `line-strong` (Klein mixed in until it reaches 3:1 against the ground) |
 | `win` / `loss` | `#007645` / `#b53031` | results; `loss` is also **the** error colour. Small text in `win` on the ground is 4.4:1: use it at 14 px medium or larger |
 | `ouro` | `#ffd166` | first place, crowns, podiums, rewards, on dark grounds only (today typed by hand in the minigames: make it a token) |
 | `amarelo` | `#ffd23f` | the referee (VAR) and warnings on the live; one yellow, not three |
@@ -106,15 +106,14 @@ mark's 180° symmetry), from one utility (`--cut` + `.cortado` in `stream.css`) 
 **24** (boxes, panels, the minigames), **52** (plates, big tabs). The camera frame's cut follows its band. Today the
 same polygon is typed by hand ~19 times in nine sizes: that's what goes.
 
-**The site (a decidir).**
-- *Proposta:* bring the cut to the site. Cards, buttons, inputs and badges lose their rounded corners and take a
-  small 45° cut on two opposite corners (cards 12 px, buttons and inputs 6 px, badges square). Circles stay only for
-  what is round: photos, dots, the ball. The site would carry the identity in its own shapes, as the live does, and
-  the stand strip under the fans gets a real 45° end (its height equals its cut).
-- *The alternative:* keep the site rounded but with one radius (6 px, `rounded-md`) everywhere, `rounded-full` only for
-  photos, dots and counts; the cuts stay the live's.
-
-Either way the mark itself is never rounded (the header's `rounded-[7px]` on it goes).
+**The site, too** (Luan's call, 2026-11-21: the site carries the identity in its own shapes, as the live does). No
+rounded corners. Cards, buttons, fields, dialogs and panels are cut at 45° on two opposite corners, top-left and
+bottom-right: **12 px** for cards, panels and dialogs, **6 px** for buttons, fields and tabs; badges and chips are
+square. Circles only for what is round: photos, dots, the ball, the Σ emblem. One utility does it (a `cut` class with
+a size, `clip-path` on a polygon), never a polygon typed in a component. A cut element's border is drawn so the
+diagonal has its edge too (an inner 1 px inset of the same shape, or an SVG frame), not lost to the clip. The stand
+strip under the fans ends in a true 45° (its height equals its cut). The mark itself is never rounded (the header's
+`rounded-[7px]` on it goes).
 
 ## The motifs
 
@@ -138,8 +137,8 @@ tabs four ways, the fans' stand strip six ways); each becomes one component in `
 - **Button.** Primary: Klein fill, Branco text. Secondary: `line-strong` border, ink text, Klein border and text on
   hover. Quiet: a text link. Two sizes: default (15 px, `px-4 py-2`) and small (14 px, `px-3 py-1.5`); full width only
   for a form's main action on phones. Disabled at 40%. With an icon: 16 px, before the label.
-- **Sign in with Twitch / Discord.** One component each: the primary button with the platform's glyph (a decidir: our
-  Klein, or the platform's colour, as Twitch purple is today in places). Same size everywhere.
+- **Sign in with Twitch / Discord.** One component each: the primary button (Klein) with the platform's glyph, not the
+  platform's colour (Twitch purple is used today in places). Same size everywhere.
 - **Card.** `line` edge, `paper` at 70%, one shape (above), 20 px padding. A card that links: Klein edge on hover,
   the whole card clickable. A **showcase** (a card with a title bar) is the viewer page's; elsewhere a section is an
   h2 and its content.
