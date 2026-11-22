@@ -13,6 +13,8 @@
  */
 :root {
   --ground: #d6e2ff;
+  /* The one curve for anything moving from one place to another (brand/interface.md, "Motion"). */
+  --ease: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 @theme inline {

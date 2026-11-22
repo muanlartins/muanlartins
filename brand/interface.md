@@ -128,6 +128,25 @@ strip under the fans ends in a true 45° (its height equals its cut). The mark i
 - **The glint** (a light sweeping across at 45°): once every few seconds on the live's frame and plates, to catch the
   eye. Not on the site.
 
+## The game kit
+
+Every game on the site has the same five pieces, each drawn its own way (Luan, 2026-11-21: "mais ou menos os mesmos
+elementos", "porém também cada jogo tendo a sua individualidade"). Each is picked by the game's id in one place, so a
+third game is a new entry, never a new page. All in the brand's tokens: no game palettes (no Valorant red, no Rocket
+League orange); a game's character comes from its own objects, shapes and motion.
+
+| Piece | Where | Rocket League | Valorant |
+|---|---|---|---|
+| **Sign** (`GameIcon`, `game-icon.tsx`) | menus, cards, lives | its icon | its icon |
+| **Marker** (`GameMarker`, `game-icon.tsx`; the rail's in `roadmap/kit.tsx`) | the menu's current page, the home's ladder, the fundamentals' rail tip | the ball (3D on the rail) | the crosshair (it opens while it travels on the rail) |
+| **Moment** (chosen in `game-home.tsx`) | the hero of the game's home: something to play with or watch, never a still picture | the play in the distance (below) | the range, a Klein block on the lattice |
+| **Backdrop** (`backdrop.tsx`) | behind the game's pages, out of the bottom-left corner, recoloured to navy, Klein and Branco, 12% on phones and 20% from 640 px, moving only with scroll | the ball; the Octane behind the fundamentals, a Klein tint per rank | the agent of Luan's latest ranked match |
+| **Card** (`game-card.tsx`) | the game's tile on the content list and the channel home, the same art in both | an aerial into the goal, the boost as the brand's streaks | the round bar and the range's diamonds under the crosshair |
+
+Jogos diversos takes the card (the games' Twitch box arts) and nothing else until a game there earns its own page.
+A game's moment is the one thing on the site that may play on its own (see Motion); it stops off screen and under
+reduced motion.
+
 ## Components
 
 One of each, shared, in `components/site/ui/` (exported by its `index.ts`; on the live, one class in `stream.css`):
@@ -180,7 +199,8 @@ shared piece goes there, generic. A showcase's h2 (it heads a card) is 20 px.
   surfaces. Springs only where something follows a pointer or scroll (the menu's marker, the ball).
 - **Durations:** feedback (hover, press) 150 ms; things appearing 300–600 ms; on the live, banners and plates 600–900
   ms; ambient loops slow (the lattice's drift 12 s, the streaks' lap 9 s).
-- **The site stays still at rest.** Nothing loops but what's live (the Ao vivo pulse, a payment being waited for).
+- **The site stays still at rest.** Nothing loops but what's live (the Ao vivo pulse, a payment being waited for)
+  and a game's moment on its home ("The game kit"), which stops off screen and under reduced motion.
 - **Reduced motion:** one global rule on the site turns off animation and smooth scrolling under
   `prefers-reduced-motion`; motion's `MotionConfig reducedMotion="user"` wraps the app. OBS never asks for it, so the
   live animates freely.

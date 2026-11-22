@@ -97,7 +97,7 @@ studio), moving it breaks that page's copy: tell him to add it again from the ne
 
 ## 1b. Who played with him (Rocket League days)
 
-The site names the viewers who played with him (the ranked page's "Eu e os viewers que jogaram comigo" and each
+The site names the torcedores who played with him (the ranked page's "Eu e os torcedores que jogaram comigo" and each
 match), but the dock only tags those already in `public/stream/aliados.json` while the match is played. A friend who
 shows up mid-live goes untagged: on 11-12 Exponja and Edu played 10 and 12 of the 14 matches and the site didn't say
 so (Luan: "essa identificação tinha que fazer parte"). So, once the replays are filed:
@@ -126,7 +126,7 @@ dock tags only viewers with a `riot` Riot ID in `aliados.json`.
 
 ## 1c. The replays on the site (Rocket League days)
 
-Since 2026-11-21 each ranked match with a replay has "Ver no RLR" on the ranked page and on the live's chapters,
+Since 2026-11-21 each ranked match with a replay has "Assistir no RLR" on the ranked page and on the live's chapters,
 opening RLR on the site with that replay. Once `videos.py` has filed them (and not while live: the upload competes
 with the stream):
 
