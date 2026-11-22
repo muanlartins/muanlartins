@@ -287,9 +287,10 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-10",
     tag: "live",
     title: "Filtros na câmera",
-    text: "Phoenix, Sova e Sage com as habilidades e os sons do jogo, ou a bola e os carros do Rocket League no lugar da minha cabeça.",
+    text: "Phoenix, Sova e Sage com as habilidades, Madeline e Badeline reagindo ao meu Celeste, ou a bola e os carros.",
     credits: [{ by: "woody_fdp" }, { by: "ccamara", about: "Pintura e decalques nos carros" }],
     media: [
+      media("filtros-celeste", "Luan de Madeline na câmera, com o cabelo azul e o rastro vermelho do dash do Celeste"),
       media("filtros-phoenix", "Luan com o cabelo e a jaqueta do Phoenix na câmera da live", { video: true }),
       media("filtros-sova-habilidades", "Luan de Sova com as habilidades do jogo: o arco puxado com a flecha de reconhecimento, a flecha de choque, o drone coruja e a Fúria do Caçador"),
       media("filtros-60fps", "Luan acenando com a cara de Octane na câmera", { video: true }),
