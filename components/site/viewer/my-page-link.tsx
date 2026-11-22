@@ -38,7 +38,7 @@ export function MyPageLink() {
       title={`${LABEL} (${me.login})`}
       aria-current={path === href ? "page" : undefined}
       className={cn(
-        "relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-navy text-paper ring-2 ring-offset-2 ring-offset-ground transition-shadow",
+        "relative grid h-8 w-8 max-sm:h-6 max-sm:w-6 shrink-0 place-items-center overflow-hidden rounded-full bg-navy text-paper ring-2 ring-offset-2 ring-offset-ground transition-shadow",
         path === href ? "ring-klein" : "ring-transparent hover:ring-line-strong",
       )}
     >

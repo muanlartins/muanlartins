@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react"
+import { Play } from "lucide-react"
 import type {
   LifelineEvent,
   LifelineEventEffect,
@@ -69,27 +71,44 @@ export function LifelineEventText({
   )
 }
 
-/** Always-visible media embedded in the timeline (image.inline). */
+/** Always-visible media embedded in the timeline (image.inline). A clip is still, with a play mark, until `playing`. */
 export function LifelineEventMedia({
   media,
   className,
+  playing = false,
 }: {
   media: LifelineEventImage
   className?: string
+  playing?: boolean
 }) {
+  const video = useRef<HTMLVideoElement>(null)
+  useEffect(() => {
+    const clip = video.current
+    if (!clip) return
+    if (playing) clip.play().catch(() => {}) // refused or cut short by leaving: the still stays
+    else clip.pause()
+  }, [playing])
+
   if (media.video) {
     return (
-      <video
-        src={media.video}
-        poster={media.src}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        aria-label={media.alt}
-        className={className}
-      />
+      <>
+        <video
+          ref={video}
+          src={media.video}
+          poster={media.src}
+          muted
+          loop
+          playsInline
+          preload="none"
+          aria-label={media.alt}
+          className={className}
+        />
+        {!playing && (
+          <span aria-hidden className="cut-sm pointer-events-none absolute bottom-2 left-2 grid h-7 w-7 place-items-center bg-paper text-klein">
+            <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
+          </span>
+        )}
+      </>
     )
   }
 

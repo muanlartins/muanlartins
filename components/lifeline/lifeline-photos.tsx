@@ -40,7 +40,8 @@ function randomTilt() {
 /**
  * The interactive photo card, positioning-agnostic: drag moves it for
  * the session, a press without travel (or Enter or Space) expands it into
- * the lightbox.
+ * the lightbox. A clip plays there, or on the card under a mouse or the
+ * keyboard's focus unless motion is reduced; never by itself.
  * Desktop floats it over the track (absolute + left/top); the vertical
  * layout drops it into normal flow.
  */
@@ -67,6 +68,8 @@ export function LifelinePhotoCard({
 }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [active, setActive] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const play = () => setPlaying(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
   const [lightboxStart, setLightboxStart] =
     useState<LifelineLightboxStart | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
@@ -167,6 +170,10 @@ export function LifelinePhotoCard({
         tabIndex={0}
         aria-label={photo.alt}
         onKeyDown={onKeyDown}
+        onPointerEnter={(event) => event.pointerType === "mouse" && play()}
+        onPointerLeave={() => setPlaying(false)}
+        onFocus={(event) => event.currentTarget.matches(":focus-visible") && play()}
+        onBlur={() => setPlaying(false)}
         className={cn(
           // pan-y keeps page scrolling alive on touch: a vertical swipe
           // starting on a card scrolls the timeline (the browser claims
@@ -213,6 +220,7 @@ export function LifelinePhotoCard({
           >
             <LifelineEventMedia
               media={photo}
+              playing={playing && !lightboxStart}
               className="pointer-events-none block w-full"
             />
           </div>

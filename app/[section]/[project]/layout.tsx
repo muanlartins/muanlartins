@@ -1,5 +1,6 @@
 import { ChannelMenu } from "@/components/site/channel/channel-menu"
 import { AgentBackdrop } from "@/components/site/game/agent-backdrop"
+import { GameNotices } from "@/components/site/game-notices"
 import { GameMenu } from "@/components/site/game/game-menu"
 import { games } from "@/content/projects"
 import assets from "@/content/valorant-assets.json"
@@ -31,6 +32,7 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
       <div className="relative">
         <ChannelMenu />
         {children}
+        <GameNotices />
       </div>
     )
   }

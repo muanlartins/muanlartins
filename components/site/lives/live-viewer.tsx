@@ -74,12 +74,12 @@ export function LiveViewer({
                 <button
                   type="button"
                   onClick={() => jump(chapter.at)}
-                  className="group grid w-full grid-cols-[4rem_1fr] items-center gap-x-4 gap-y-2 px-2 py-3 text-left text-[15px] tabular-nums transition-colors hover:bg-paper/60 sm:w-auto sm:min-w-0 sm:flex-1 sm:grid-cols-[4rem_9rem_1fr]"
+                  className="group grid w-full min-w-0 grid-cols-[4rem_minmax(0,1fr)] items-center gap-x-4 gap-y-2 px-2 py-3 text-left text-[15px] tabular-nums transition-colors hover:bg-paper/60 sm:w-auto sm:min-w-0 sm:flex-1 sm:grid-cols-[4rem_9rem_1fr]"
                 >
                   <span className="text-muted transition-colors group-hover:text-klein">{clock(chapter.at)}</span>
                   <span className="font-medium text-ink">{chapter.label}</span>
                   {chapter.match && (
-                    <span className="col-start-2 flex items-center gap-x-3 sm:col-start-auto sm:gap-x-4">
+                    <span className="col-start-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 sm:col-start-auto sm:flex-nowrap sm:gap-x-4">
                       <MatchResult match={chapter.match} />
                     </span>
                   )}

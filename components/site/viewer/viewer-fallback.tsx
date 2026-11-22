@@ -1,6 +1,7 @@
 "use client"
 
 import { useSyncExternalStore, type ReactNode } from "react"
+import { GameNotices } from "@/components/site/game-notices"
 import { ChannelMenu } from "@/components/site/channel/channel-menu"
 import { ViewerPage } from "@/components/site/viewer/viewer-page"
 import { hasSection } from "@/lib/site"
@@ -32,6 +33,7 @@ export function ViewerFallback({ children }: { children: ReactNode }) {
     <div className="relative">
       <ChannelMenu />
       <ViewerPage login={login} />
+      <GameNotices />
     </div>
   )
 }

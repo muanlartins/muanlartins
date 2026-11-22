@@ -569,14 +569,15 @@ function ShippedEntry({ entry, look }: { entry: Shipped; look: Fans }) {
         )}
 
         {entry.media && entry.media.length > 0 && (
-          <div className="mt-6 flex flex-wrap items-start pl-1">
+          // A pile's cards all step back by the overlap, so a row that wraps starts in line with the text, not over the rail.
+          <div className={cn("mt-6 flex flex-wrap items-start", entry.media.length > 1 ? "pl-9" : "pl-1")}>
             {entry.media.map((media, index) => (
               <LifelinePhotoCard
                 key={media.src}
                 photo={media}
                 rotate={tilt(entry.id, index)}
                 width={media.portrait ? 136 : 208}
-                className={cn("relative", index > 0 && "-ml-8 mt-6")}
+                className={cn("relative", entry.media!.length > 1 ? "-ml-8 max-w-[calc(100%+2rem)]" : "max-w-full", index > 0 && "mt-6")}
               />
             ))}
           </div>

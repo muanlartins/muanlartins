@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import { ChannelHome } from "@/components/site/channel/channel-home"
+import { GameNotices } from "@/components/site/game-notices"
 import { ChannelMenu } from "@/components/site/channel/channel-menu"
 import { GameList } from "@/components/site/game/game-list"
 import { MuralPage } from "@/components/site/pix/mural-page"
@@ -83,9 +84,9 @@ export async function generateMetadata({ params }: PageProps<"/[section]">) {
 export default async function SectionPage({ params }: PageProps<"/[section]">) {
   const slug = (await params).section
   if (slug === privacySlug()) return <PrivacyPage />
-  if (slug === profileSlug()) return <OfChannel page={<ProfilePage />} />
+  if (slug === profileSlug()) return <OfChannel page={<ProfilePage />} notices />
   if (slug === PIX_SLUG) return <OfChannel page={<PixPage />} />
-  if (slug === MURAL_SLUG) return <OfChannel page={<MuralPage />} />
+  if (slug === MURAL_SLUG) return <OfChannel page={<MuralPage />} notices />
   const section = sectionFromSlug(slug)
   if (section === "personal") return <TimelinePage content={personal} />
   if (section === "professional") return <TimelinePage content={professional} />
@@ -94,12 +95,13 @@ export default async function SectionPage({ params }: PageProps<"/[section]">) {
   notFound()
 }
 
-/** A page with the channel's menu, like those under /canal get from their layout. */
-function OfChannel({ page }: { page: React.ReactNode }) {
+/** A page with the channel's menu, like those under /canal get from their layout, and the games' notices when it shows their emblems. */
+function OfChannel({ page, notices = false }: { page: React.ReactNode; notices?: boolean }) {
   return (
     <div className="relative">
       <ChannelMenu />
       {page}
+      {notices && <GameNotices />}
     </div>
   )
 }
