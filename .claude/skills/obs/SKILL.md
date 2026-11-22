@@ -161,6 +161,11 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   arrivals, captions and the VAR as ever). The Partidas dock never cuts away from it (no matches to follow) and the
   Anúncios dock treats it as play. `obs.py --apply` copies the stand's `#chave=` from "Torcida" into the new
   source, never printing it.
+- Celeste has a scene of its own (2026-11-22, made live): "Celeste + chat · Diversos", the game shrunk to 1600×900
+  with nothing over it (`celeste.html` around it, `pix.html` moving into its column by the scene's name), over
+  Diversos' own capture and stand. Keep "Diversos" in its name: the Efeitos dock finds the game by it, for F2, F4, F8
+  and "Gravar jogo"; its Lance ruim and VAR are Diversos'. In "Diversos + chat" and its Lance ruim the stand is at
+  x 184 and Pix at y 304 since that day (`various_stand_at`, `various_pix_at`); `--apply` doesn't move those back.
 - Effects (2026-11-07): scenes "Lance ruim" (cut in; the Efeitos dock zooms the camera and returns) and "Terapia"
   (fade in), and the sounds: the browser source "Sons" (`public/stream/tocador.html`) plays them when the dock hears a
   hotkey restart its trigger, a media source "Som · …" with `gatilho.webm`, no sound at all (media sources play once when OBS loads, so

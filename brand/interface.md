@@ -96,6 +96,8 @@ Banner words (GOOOL!, VAR, FIM DE JOGO) are uppercase and heavy (700); everythin
 
 **The live.** A 1920×1080 stage laid out in pixels (`brand/README.md`, "Stream"): margins of 44 or 64 px, things
 aligned to the lattice's 24 px. The camera frame is `frame()` in `stream.js`; nothing redraws it.
+A game whose whole screen matters (Celeste, 2026-11-22) is framed instead of covered: the game at a size that keeps
+its pixels whole, the overlay's pieces on the Klein ground around it, and only the moments (alerts, banners) over it.
 
 ## Shape
 
