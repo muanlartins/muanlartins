@@ -33,7 +33,7 @@ export interface Live {
    * offset; the live stays off the site until then: lib/lives-files.ts). */
   youtube?: {
     title?: string
-    thumb?: { quadro: string; segundo: number; texto: string; emblema: boolean; fundo?: string }
+    thumb?: { quadro: string; segundo: number; texto: string; emblema: boolean; fundo?: string; recorte?: number[] }
     publish_at?: string
   }
 }

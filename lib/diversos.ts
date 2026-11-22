@@ -40,8 +40,8 @@ export interface OtherGame {
   art?: string
   /** A line about it, in Luan's words; one still starting with "TODO" isn't shown. */
   line?: string
-  /** Read from the game's own save (scripts/celeste.py): which slot, the day it was read and its totals. */
-  save?: { slot?: number | null; read?: string; totals?: { strawberries: number; deaths: number; seconds: number } }
+  /** Read from the game's own save (scripts/celeste.py): which slot, the day the run began, the day it was read and its totals. */
+  save?: { slot?: number | null; start?: string; read?: string; totals?: { strawberries: number; deaths: number; seconds: number } }
   goal?: Goal
   /** Paragraphs on its page. */
   notes?: string[]

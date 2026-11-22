@@ -21,8 +21,9 @@ Run it after a Celeste live, before the release (the `depois-da-live` skill), or
 - An item that turns done gets `date` (the day credited) and, when Celeste had a live that day
   (content/lives/<date>.json with `game` "celeste", or a chapter switching to it), `live`: its chip links that live.
   The day credited is --date, else Celeste's newest live if it's from today or yesterday (a live past midnight),
-  else today, in Brasília. On a slot's first read (no `save.read` yet) what's already done gets no date: it was
-  done before the site watched.
+  else today, in Brasília. On a slot's first read (no `save.read` yet) what's already done gets no date (it was
+  done before the site watched), unless the run has a `save.start`, the day it began from zero with the site
+  already watching: then the first read is credited like any other.
 - `save.totals` keeps the page's numbers: strawberries, deaths and the time played (seconds), and `save.read` the
   day it was read.
 """
@@ -144,7 +145,7 @@ def main():
     if not file.exists():
         sys.exit(f"Não achei o save do slot {slot} em {args.saves}.")
     areas, totals = read_save(file)
-    first = not save.get("read")
+    first = not save.get("read") and not save.get("start")  # a run from zero has nothing from before the site
     day, live = credited_day(args.date)
 
     changes = []

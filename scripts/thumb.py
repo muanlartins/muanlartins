@@ -6,6 +6,7 @@ with a hook of two to four words. YouTube decides what to show people by who cli
     scripts/.venv/bin/python scripts/thumb.py <date> --quadro 7b --texto "SUBI PRO|DIAMANTE 3"
     scripts/.venv/bin/python scripts/thumb.py <date> --quadro 7b --texto "..." --fundo 56:20 --emblema
     scripts/.venv/bin/python scripts/thumb.py <date> --refazer          # again, from the live's youtube.thumb
+    scripts/.venv/bin/python scripts/thumb.py <date> --da-live 16,774,288,270 --trecho 25:20-1:57:20   # with the filter
     scripts/.venv/bin/python scripts/thumb.py <date> --folha gata --trecho 54:53-1:21:18   # a sheet of one stretch
     scripts/.venv/bin/python scripts/thumb.py <date> --folha gata --quadro 4b --texto "..." \
         --saida brand/youtube/thumbnails/<date>-gata.jpg            # a partidas.py video's thumbnail
@@ -26,6 +27,9 @@ his (the `depois-da-live` skill), the rest is fixed:
   matches cut from a live (partidas.py, made with `--folha`) carry "CORTE DA LIVE" and the day instead (Luan, 11-19:
   so they stand apart from the videos made for YouTube; `--etiqueta` overrides it), and their sheet comes from their
   matches only (`--trecho`, Live.mp4 times, as many as needed; `--folha` names the sheet, Thumb\\candidatos <folha>.jpg).
+- The camera recording has no filter. When the filter is the day's look (Celeste's Madeline), `--da-live x,y,w,h` takes
+  him from that box of Live.mp4 instead, as the stream showed him, for the sheet and the thumbnail both: the camera's
+  box in the scene of that moment, inside its frame (each scene has its own, so give a `--trecho` of that scene).
 
 Writes brand/youtube/thumbnails/live-<date>.jpg (JPEG: YouTube takes 2 MB at most), which youtube.py prefers over
 build.py's plain live-<date>.png. Never deletes anything.
@@ -168,6 +172,17 @@ def candidates(date, spans=None):
     return sorted(kept)
 
 
+def pictured(date, live_second, box=None, width=None):
+    """Him at a Live.mp4 second: the camera recording (no filter), or with `box` that crop of the stream itself, as
+    it went out (filter on). None when the camera wasn't recording then."""
+    if box:
+        x, y, w, h = box
+        picture = frame(recording(date, "Live"), live_second).crop((x, y, x + w, y + h))
+        return picture.resize((width, round(h * width / w)), Image.LANCZOS) if width else picture
+    second = in_file(date, "Câmera", wall(date, live_second))
+    return frame(recording(date, "Câmera"), second, width) if second is not None else None
+
+
 def mmss(s):
     s = int(s)
     return f"{s // 3600}:{s % 3600 // 60:02d}:{s % 60:02d}" if s >= 3600 else f"{s // 60}:{s % 60:02d}"
@@ -186,8 +201,7 @@ def peak(date, live_second):
     return (a + int(np.argmax(levels[a:b]))) * STEP
 
 
-def sheet(date, spans=None, name=None):
-    camera = recording(date, "Câmera")
+def sheet(date, spans=None, name=None, box=None):
     found = candidates(date, spans)
     cell_w, cell_h, label = 256, 144, 54
     cols = 2
@@ -201,9 +215,10 @@ def sheet(date, spans=None, name=None):
         x0 = 24 + (n - 1) % cols * block_w
         y0 = 24 + (n - 1) // cols * (cell_h + label + 18)
         for k, dt in enumerate(FRAMES):
-            cam = in_file(date, "Câmera", wall(date, at + dt))
-            picture = frame(camera, cam, width=cell_w) if cam is not None else Image.new("RGB", (cell_w, cell_h))
-            out.paste(picture.resize((cell_w, cell_h)), (x0 + k * cell_w, y0))
+            picture = pictured(date, at + dt, box, cell_w) or Image.new("RGB", (cell_w, cell_h))
+            fit = min(cell_w / picture.width, cell_h / picture.height)
+            picture = picture.resize((round(picture.width * fit), round(picture.height * fit)))
+            out.paste(picture, (x0 + k * cell_w + (cell_w - picture.width) // 2, y0))
             draw.text((x0 + k * cell_w + 8, y0 + 4), f"{n}{'abc'[k]}", font=font(30), fill=PAPER,
                       stroke_width=3, stroke_fill=KLEIN_DARK)
             picks[f"{n}{'abc'[k]}"] = round(at + dt, 2)
@@ -222,14 +237,19 @@ def sheet(date, spans=None, name=None):
 
 # --- The thumbnail -------------------------------------------------------------------------------------------
 
-def cutout(picture):
+def cutout(picture, filtered=False):
     """Luan without the camera's Klein background: an alpha mask from how blue each pixel is. Also whether he goes
-    out of the frame at the top (a fist raised past the camera)."""
+    out of the frame at the top (a fist raised past the camera). `filtered`: the stream's picture (--da-live), where
+    a costume may be blue too (Madeline's jacket): only the dark Klein of the background and its vignette goes."""
     rgb = np.asarray(picture).astype(np.int16)
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     blue = (b - np.maximum(r, g)).clip(0, 255)
     # Klein and its lattice are ~100+ bluer than red/green; skin, hair, headphones and a white shirt are not.
     alpha = ((110 - blue) * (255 / 70)).clip(0, 255).astype(np.uint8)
+    if filtered:
+        alpha = (~((b > 78) & (b - g >= 38) & (g < 86) & (r <= g + 4))).astype(np.uint8) * 255
+        # The costume's own dark navy lines are only a few pixels wide: closed back.
+        alpha = np.asarray(Image.fromarray(alpha).filter(ImageFilter.MaxFilter(7)).filter(ImageFilter.MinFilter(7))).copy()
     # The camera's background carries the lockup at the top centre, in Branco and Klein claro: off, but not his
     # hands when he raises them over it (skin is never a neutral white).
     hh, ww = alpha.shape
@@ -309,19 +329,19 @@ def fitted(text, width, start, weight=700):
     return font(size, weight)
 
 
-def compose(date, pick, hook, fundo=None, emblem=False, out=None, at=None, label=None, name=None):
+def compose(date, pick, hook, fundo=None, emblem=False, out=None, at=None, label=None, name=None, box=None):
     sheet_file = folder(date) / "Thumb" / (f"candidatos {name}.json" if name else "candidatos.json")
     picks = json.loads(sheet_file.read_text()) if sheet_file.exists() else {}
     at = at if at is not None else picks[pick] if pick in picks else float(pick)
     when = wall(date, at)
-    camera = frame(recording(date, "Câmera"), in_file(date, "Câmera", when))
+    camera = pictured(date, at, box)
     back_at = wall(date, parse_time(fundo)) if fundo else when
     game_second = in_file(date, "Jogo", back_at)
     game = (frame(recording(date, "Jogo"), game_second) if game_second is not None
             else frame(recording(date, "Live"), (back_at - pieces(date, "Live")[0][0]).total_seconds()))
 
     thumb = background(game)
-    person, out_top = cutout(camera)
+    person, out_top = cutout(camera, filtered=bool(box))
     # On the right half: big (his head about half the height), never wider than 62% of the frame, so the hook
     # on the left never covers his face.
     scale = min(H * 0.95 / person.height, W * 0.62 / person.width)
@@ -382,7 +402,8 @@ def compose(date, pick, hook, fundo=None, emblem=False, out=None, at=None, label
         page = LIVES / f"{date}.json"
         live = json.loads(page.read_text())
         live.setdefault("youtube", {})["thumb"] = {"quadro": pick, "segundo": at, "texto": hook, "emblema": emblem,
-                                                   **({"fundo": fundo} if fundo else {})}
+                                                   **({"fundo": fundo} if fundo else {}),
+                                                   **({"recorte": list(box)} if box else {})}
         write_live(page, live)
     return target
 
@@ -411,18 +432,22 @@ def main():
     parser.add_argument("--refazer", action="store_true", help="make it again from the live's youtube.thumb")
     parser.add_argument("--etiqueta", help="the plate top left instead of AO VIVO · dd/mm, or CORTE DA LIVE · dd/mm with --folha")
     parser.add_argument("--trecho", action="append", default=[], help="the sheet only from here: Live.mp4 a-b")
+    parser.add_argument("--da-live", metavar="x,y,w,h", help="him from this box of Live.mp4 (with the filter), not the camera recording")
     parser.add_argument("--folha", help="the sheet's name, for a sheet of --trecho (Thumb\\candidatos <folha>.jpg)")
     args = parser.parse_args()
+    box = tuple(int(v) for v in args.da_live.split(",")) if args.da_live else None
+    if box and len(box) != 4:
+        parser.error("--da-live quer x,y,w,h")
     if args.refazer:
         picked = json.loads((LIVES / f"{args.date}.json").read_text())["youtube"]["thumb"]
         compose(args.date, picked["quadro"], picked["texto"], picked.get("fundo"), picked["emblema"],
-                Path(args.saida) if args.saida else None, at=picked["segundo"])
+                Path(args.saida) if args.saida else None, at=picked["segundo"], box=box or picked.get("recorte"))
     elif not args.quadro:
         spans = [tuple(parse_time(x) for x in span.split("-")) for span in args.trecho]
-        sheet(args.date, spans, args.folha)
+        sheet(args.date, spans, args.folha, box)
     else:
         compose(args.date, args.quadro, args.texto or "", args.fundo, args.emblema,
-                Path(args.saida) if args.saida else None, name=args.folha,
+                Path(args.saida) if args.saida else None, name=args.folha, box=box,
                 label=args.etiqueta or (f"CORTE DA LIVE · {args.date[8:10]}/{args.date[5:7]}" if args.folha else None))
 
 

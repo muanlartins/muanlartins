@@ -18,6 +18,8 @@ Talk to him in pt-BR.
 3. `scripts/.venv/bin/python scripts/videos.py --clean` lists what goes from `Lives` and `Partidas` and why (it
    checks on YouTube that each video is processed and as long as its file before letting a file go). Days whose
    thumbnail, match videos and shorts are done get `python3 scripts/videos.py --done <date>` first.
+   A Celeste day stays whole (Live, Jogo, Câmera) until Luan decides on its archive (proposed 2026-11-22): the
+   script doesn't know, so look for one in its list before `--apply` (`depois-da-live`, "A Celeste day").
 4. Everything else by the table below. Deleting is for good (no Recycle Bin from WSL): show Luan the list with sizes
    unless he already asked for this cleaning in so many words (11-17: "tudo que não for mais ser utilizado e
    deletar"), and even then ask about anything the table doesn't cover.
