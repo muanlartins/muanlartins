@@ -64,7 +64,7 @@ export const filtros = [
 ]
 
 export async function criar(m) {
-  const { THREE, GLTFLoader, sfx, at3, panAt, faceBox, toScreen, handShape, video, renderer, GLSL_COMMON, VERT, quad, ortho, W, H, ease, easeOutBack, fail, FACE_OVAL } = m
+  const { THREE, GLTFLoader, sfx, at3, panAt, faceBox, toScreen, handShape, video, renderer, GLSL_COMMON, GLSL_APAGAR, VERT, quad, ortho, W, H, ease, easeOutBack, fail, FACE_OVAL } = m
   const ASPECT = W / H
   const { uCam, uMask, uCover, uTime, uAspect, uFace, uFaceUp } = m.uniforms
   const clamp = THREE.MathUtils.clamp
@@ -1780,8 +1780,10 @@ export async function criar(m) {
     return id ?? 0
   }
   const amb = { a: 0, b: 0, k: 1, on: 0, maskOk: 0 }
+  const { uErase, uPlate, uPlateFix, uPlateOk, uMaskShift, uEraseLow, uMem, uKeep } = m.uniforms
   const ambU = {
     uCam, uMask, uCover, uTime, uAspect, uFace, uFaceUp,
+    uErase, uPlate, uPlateFix, uPlateOk, uMaskShift, uEraseLow, uMem, uKeep,
     uAmbA: { value: 0 }, uAmbB: { value: 0 }, uAmbK: { value: 1 }, uAmbOn: { value: 0 }, uMaskOk: { value: 0 },
   }
   const ambMat = new THREE.ShaderMaterial({
@@ -1790,8 +1792,7 @@ export async function criar(m) {
     ...PREMUL,
     fragmentShader: /* glsl */ `
       ${GLSL_COMMON}
-      uniform vec4 uFace;
-      uniform vec2 uFaceUp;
+      ${GLSL_APAGAR}
       uniform int uAmbA, uAmbB;
       uniform float uAmbK, uAmbOn, uMaskOk;
       float T;
@@ -2000,7 +2001,9 @@ export async function criar(m) {
         T = uTime;
         P = vUv * vec2(uAspect, 1.0);
         VIG = smoothstep(0.3, 1.0, length((vUv - 0.5) * vec2(uAspect, 1.0)) / (0.5 * length(vec2(uAspect, 1.0))));
-        vec3 cam = texture2D(uCam, camUv(vUv)).rgb;
+        // It paints the whole box, so from the camera with his own hair out, never the raw one.
+        vec4 apagada = apagarCabelo(texture2D(uCam, camUv(vUv)).rgb, vUv);
+        vec3 cam = apagada.rgb;
         vec3 g;
         float ga;
         vec4 far, near;
@@ -2020,7 +2023,9 @@ export async function criar(m) {
         d = vec2(dot(d, vec2(uFaceUp.y, -uFaceUp.x)), dot(d, uFaceUp));
         float fw = max(uFace.z, uFace.w * 0.72), fh = uFace.w;
         float faceK = smoothstep(1.15, 0.75, length((d - vec2(0.0, fh * 0.25)) / vec2(fw * 1.7, fh * 1.6)));
-        float body = uMaskOk * smoothstep(0.35, 0.65, maskAt(vUv, 0.0));
+        // Where his hair was is background now, as toned as the rest.
+        float body = uMaskOk * smoothstep(0.35, 0.65, maskAt(vUv, 0.0)) * (1.0 - apagada.a);
+        faceK *= 1.0 - apagada.a;
         // The grade stronger around him (what's behind him takes the mood while the mask says where he is), a third
         // of it on him, less again on his face.
         float onde = mix(1.0, mix(1.4, 0.35, body), uMaskOk);

@@ -14,6 +14,7 @@ self.importScripts = (...urls) => {
 }
 
 import { semCadeira } from "./tronco.js"
+import { SEGURA } from "./quadro.js"
 import { FilesetResolver, GestureRecognizer, HandLandmarker, ImageSegmenter, FaceLandmarker, PoseLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.2/vision_bundle.mjs"
 
 const MODELS = "https://storage.googleapis.com/mediapipe-models/"
@@ -23,8 +24,10 @@ let delegate = ""
 let small = null
 let smallCtx = null
 let MH = 144
-// His shoulders' joints in the newest answer, for `quer.tronco` (they're tracked in the body mask's worker).
+// His shoulders' joints in the newest answer that had them, for `quer.tronco` (they're tracked in the body mask's
+// worker): one answer without them doesn't bring the chair back.
 let juntas = null
+let juntasEm = -Infinity
 
 async function load({ cpu, which, gestos }) {
   const files = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.2/wasm")
@@ -83,7 +86,10 @@ function track({ bitmap, t, quer }) {
       time("ombros", () => {
         const r = tasks.ombros.detectForVideo(bitmap, t)
         const lm = r.landmarks?.[0]
-        juntas = lm && lm[11].visibility > 0.4 && lm[12].visibility > 0.4 ? [lm[11], lm[12]].map((p) => [p.x, p.y]) : null
+        if (lm && lm[11].visibility > 0.4 && lm[12].visibility > 0.4) {
+          juntas = [lm[11], lm[12]].map((p) => [p.x, p.y])
+          juntasEm = t
+        } else if (t - juntasEm > SEGURA.ombros) juntas = null
         return { landmarks: r.landmarks?.[0] || null, world: r.worldLandmarks?.[0] || null }
       })
     }
@@ -116,9 +122,12 @@ function track({ bitmap, t, quer }) {
   } catch (e) {
     out.erro = `${e?.name || ""} ${e?.message || e}`
   }
-  bitmap.close()
+  // The frame goes back with its mask when what's behind him is learnt from it: the two must be the same frame.
+  const volta = !!(quer.quadro && out.corpo)
+  if (volta) out.quadro = bitmap
+  else bitmap.close()
   out.t1 = performance.timeOrigin + performance.now()
-  const transfer = []
+  const transfer = volta ? [bitmap] : []
   if (out.corpo?.mask) transfer.push(out.corpo.mask.buffer)
   if (out.corpo?.tronco) transfer.push(out.corpo.tronco.buffer)
   if (out.corpo?.topo) transfer.push(out.corpo.topo.buffer)
