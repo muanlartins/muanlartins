@@ -140,7 +140,7 @@ League orange); a game's character comes from its own objects, shapes and motion
 | **Sign** (`GameIcon`, `game-icon.tsx`) | menus, cards, lives | its icon | its icon |
 | **Marker** (`GameMarker`, `game-icon.tsx`; the rail's in `roadmap/kit.tsx`) | the menu's current page, the home's ladder, the fundamentals' rail tip | the ball (3D on the rail) | the crosshair (it opens while it travels on the rail) |
 | **Moment** (chosen in `game-home.tsx`) | the hero of the game's home: something to play with or watch, never a still picture | the Octane on a turntable you can drag, and far behind it a small Octane dribbling, flicking and air dribbling the ball in a loop (real mechanics, RocketSim's numbers) | the range, a Klein block on the lattice: ten targets timed |
-| **Backdrop** (`backdrop.tsx`) | behind the game's pages, out of the bottom-left corner, recoloured to navy, Klein and Branco, 12% on phones and 20% from 640 px, moving only with scroll | the ball; the Octane behind the fundamentals, a Klein tint per rank | the agent of Luan's latest ranked match |
+| **Backdrop** (`backdrop.tsx`) | behind the game's pages, out of the bottom-left corner, recoloured to navy, Klein and Branco, 12% while the text runs over it and 20% from 1024 px (the side menu's margin), moving only with scroll | the ball; the Octane behind the fundamentals, a Klein tint per rank | the agent of Luan's latest ranked match |
 | **Card** (`game-card.tsx`) | the game's tile on the content list and the channel home, the same art in both | an aerial into the goal, the boost as the brand's streaks | the round bar and the range's diamonds under the crosshair |
 
 Jogos diversos takes the card (the games' Twitch box arts) and nothing else until a game there earns its own page.
