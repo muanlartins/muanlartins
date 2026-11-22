@@ -6,17 +6,15 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
 } from "react"
 import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 import type { LifelinePhoto } from "./types"
 
 const OPEN_MS = 520
-/**
- * Gentle start, soft landing — the quint curve front-loaded nearly all
- * of the travel into the first 120ms, which read as a jump.
- */
-const EASE = "cubic-bezier(0.32, 0.72, 0, 1)"
+/** The site's one curve for anything that moves from one place to another (app/globals.css). */
+const EASE = "var(--ease)"
 /** Fraction of the viewport the expanded media may occupy. */
 const FIT = 0.85
 
@@ -143,6 +141,7 @@ export function LifelineLightbox({
   const { left, top, width, height } = target.current
 
   const figureRef = useRef<HTMLElement>(null)
+  const rootRef = useRef<HTMLDialogElement>(null)
 
   const reduceMotion = useRef(
     typeof window !== "undefined" &&
@@ -196,11 +195,19 @@ export function LifelineLightbox({
     }
   }, [reduceMotion])
 
+  // A modal dialog: the page behind is inert and focus comes inside, in the top layer over the header.
+  // (Opened before the first paint, or the FLIP would start a frame late.)
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    root.showModal()
+    return () => root.close()
+  }, [])
+
   // No gesture may pan while the lightbox is up — iOS otherwise
   // rubber-bands the body behind the fixed overlay and can leave the
   // whole page stuck offset after dismiss. React's root touch
   // listeners are passive, so this needs a native non-passive one.
-  const rootRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const root = rootRef.current
     if (!root) return
@@ -244,19 +251,28 @@ export function LifelineLightbox({
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") dismiss()
+      if (event.key !== "Escape") return
+      event.preventDefault() // or the dialog closes at once, without the flight back
+      dismiss()
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [dismiss])
 
   return createPortal(
-    <div
+    <dialog
       ref={rootRef}
-      className="fixed inset-0 z-[999] touch-none overscroll-contain"
-      role="dialog"
-      aria-modal="true"
+      className="fixed inset-0 h-full max-h-none w-full max-w-none touch-none overflow-hidden overscroll-contain bg-transparent backdrop:bg-transparent"
       aria-label={photo.alt}
+      onCancel={(event) => {
+        event.preventDefault()
+        dismiss()
+      }}
+      onKeyDown={(event) => {
+        if ((event.key !== "Enter" && event.key !== " ") || event.repeat) return
+        event.preventDefault()
+        dismiss()
+      }}
       // The portal lives under <body>, but React events still bubble up
       // the component tree — without this, a backdrop press would reach
       // the card's drag handlers and the track's scrubber.
@@ -267,7 +283,7 @@ export function LifelineLightbox({
     >
       <div
         className={cn(
-          "absolute inset-0 cursor-zoom-out bg-black/70 transition-opacity",
+          "absolute inset-0 cursor-zoom-out bg-navy/80 transition-opacity ease-[var(--ease)]",
           entered ? "opacity-100" : "opacity-0",
         )}
         // Synced to the media's travel — a faster fade left the clone
@@ -277,19 +293,23 @@ export function LifelineLightbox({
       />
       <figure
         ref={figureRef}
-        className="absolute cursor-zoom-out overflow-hidden rounded-xl shadow-2xl ring-1 ring-black/10 dark:ring-white/15"
+        className="cut absolute cursor-zoom-out"
         style={{
           left,
           top,
+          // The cut grows with the flight, or the clone lands on the card with its corners gone.
+          "--cut": `${entered ? 12 : 12 * (width / start.w)}px`,
           width,
           height,
           transform,
           transformOrigin: "center",
-          transition: reduceMotion ? undefined : `transform ${OPEN_MS}ms ${EASE}`,
+          transition: reduceMotion
+            ? undefined
+            : `transform ${OPEN_MS}ms ${EASE}, clip-path ${OPEN_MS}ms ${EASE}`,
           // Promoted for the whole flight — mobile otherwise
-          // re-rasterizes the shadowed, corner-clipped media mid-scale.
+          // re-rasterizes the corner-clipped media mid-scale.
           willChange: "transform",
-        }}
+        } as CSSProperties}
         onClick={dismiss}
         onTransitionEnd={(event) => {
           if (event.propertyName !== "transform") return
@@ -303,7 +323,7 @@ export function LifelineLightbox({
           mediaTime={start.mediaTime}
         />
       </figure>
-    </div>,
+    </dialog>,
     document.body,
   )
 }

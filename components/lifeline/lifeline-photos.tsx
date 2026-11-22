@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, type CSSProperties, type PointerEvent } from "react"
+import { useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react"
 import { cn } from "@/lib/utils"
 import { LifelineEventMedia } from "./lifeline-event"
 import {
@@ -39,7 +39,9 @@ function randomTilt() {
 
 /**
  * The interactive photo card, positioning-agnostic: drag moves it for
- * the session, a press without travel expands it into the lightbox.
+ * the session, a press without travel (or Enter or Space) expands it into
+ * the lightbox. A clip plays there, or on the card under a mouse or the
+ * keyboard's focus unless motion is reduced; never by itself.
  * Desktop floats it over the track (absolute + left/top); the vertical
  * layout drops it into normal flow.
  */
@@ -66,9 +68,12 @@ export function LifelinePhotoCard({
 }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 })
   const [active, setActive] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const play = () => setPlaying(!window.matchMedia("(prefers-reduced-motion: reduce)").matches)
   const [lightboxStart, setLightboxStart] =
     useState<LifelineLightboxStart | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
+  const fromKeys = useRef(false)
   const drag = useRef({
     startX: 0,
     startY: 0,
@@ -130,8 +135,22 @@ export function LifelinePhotoCard({
     setActive(false)
     // A press that never travelled is a click — expand to the lightbox.
     if (!drag.current.moved && !lightboxStart) {
+      fromKeys.current = false
       setLightboxStart(measureCard())
     }
+  }
+
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if ((event.key !== "Enter" && event.key !== " ") || event.repeat) return
+    event.preventDefault()
+    fromKeys.current = true
+    setLightboxStart(measureCard())
+  }
+
+  const onLightboxClosed = () => {
+    setLightboxStart(null)
+    // Opened by keys, focus goes back to the card, once it's visible again.
+    if (fromKeys.current) requestAnimationFrame(() => cardRef.current?.focus({ preventScroll: true }))
   }
 
   // The browser claiming the gesture (a vertical pan-y scroll on
@@ -147,13 +166,21 @@ export function LifelinePhotoCard({
       <div
         ref={cardRef}
         data-lifeline-interactive=""
+        role="button"
+        tabIndex={0}
+        aria-label={photo.alt}
+        onKeyDown={onKeyDown}
+        onPointerEnter={(event) => event.pointerType === "mouse" && play()}
+        onPointerLeave={() => setPlaying(false)}
+        onFocus={(event) => event.currentTarget.matches(":focus-visible") && play()}
+        onBlur={() => setPlaying(false)}
         className={cn(
           // pan-y keeps page scrolling alive on touch: a vertical swipe
           // starting on a card scrolls the timeline (the browser claims
           // the gesture and fires pointercancel); horizontal drags move
           // the card.
-          "group/photo pointer-events-auto cursor-grab touch-pan-y",
-          active ? "z-50 cursor-grabbing" : "z-20 hover:z-40",
+          "group/photo pointer-events-auto cursor-grab touch-pan-y select-none",
+          active ? "z-50 cursor-grabbing" : "z-20 hover:z-40 focus-visible:z-40",
           lightboxStart && "invisible",
           className,
         )}
@@ -171,11 +198,9 @@ export function LifelinePhotoCard({
       >
         <div
           className={cn(
-            "overflow-hidden rounded-xl shadow-xl ring-1 ring-black/10 transition-[transform,box-shadow] duration-200 ease-out dark:ring-white/15",
+            "drop-shadow-float transition-transform duration-150 ease-[var(--ease)]",
             animateIntro && "lifeline-marker-intro",
-            active
-              ? "scale-[1.05] shadow-2xl"
-              : "group-hover/photo:scale-[1.03] group-hover/photo:shadow-2xl",
+            active ? "scale-[1.05]" : "group-hover/photo:scale-[1.03]",
           )}
           style={
             animateIntro
@@ -186,10 +211,19 @@ export function LifelinePhotoCard({
               : undefined
           }
         >
-          <LifelineEventMedia
-            media={photo}
-            className="pointer-events-none block w-full"
-          />
+          {/* Cut inside the shadow's wrapper; no overflow-hidden, which would clip the diagonals' edge. */}
+          <div
+            className={cn(
+              "cut cut-edge relative border transition-colors duration-150",
+              active ? "border-klein" : "border-line group-hover/photo:border-klein group-focus-visible/photo:border-klein",
+            )}
+          >
+            <LifelineEventMedia
+              media={photo}
+              playing={playing && !lightboxStart}
+              className="pointer-events-none block w-full"
+            />
+          </div>
         </div>
       </div>
       {lightboxStart && (
@@ -198,7 +232,7 @@ export function LifelinePhotoCard({
           rotate={rotate}
           start={lightboxStart}
           getHome={measureCard}
-          onClosed={() => setLightboxStart(null)}
+          onClosed={onLightboxClosed}
         />
       )}
     </>

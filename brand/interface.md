@@ -136,7 +136,9 @@ third game is a new entry, never a new page. All in the brand's tokens: no game 
 League orange); a game's character comes from its own objects, shapes and motion. The one exception is the card,
 which is the game's official art in its own colours (Luan, 2026-11-21, of the drawn ones: "ficaram bem ruins"):
 never a drawing of ours, never a logo (Riot's policy), never fan art without the artist's OK, always with the
-makers' notices (`content/notices.ts`, word for word) on the page that shows it.
+makers' notices (`content/notices.ts`, word for word, in the site's language as each maker publishes it: Portuguese
+on the Portuguese site) on every page that shows their material: a game's `credits`, `GameArtCredits` with the cards,
+`GameNotices` on the channel's pages, the mural, the profile and the viewers' pages.
 
 | Piece | Where | Rocket League | Valorant |
 |---|---|---|---|
@@ -203,7 +205,8 @@ shared piece goes there, generic. A showcase's h2 (it heads a card) is 20 px.
 - **Durations:** feedback (hover, press) 150 ms; things appearing 300–600 ms; on the live, banners and plates 600–900
   ms; ambient loops slow (the lattice's drift 12 s, the streaks' lap 9 s).
 - **The site stays still at rest.** Nothing loops but what's live (the Ao vivo pulse, a payment being waited for)
-  and a game's moment on its home ("The game kit"), which stops off screen and under reduced motion.
+  and a game's moment on its home ("The game kit"), which stops off screen and under reduced motion. A clip (the
+  roadmap's) waits with a play mark: it plays on hover or focus unless motion is reduced, or opened.
 - **Reduced motion:** one global rule on the site turns off animation and smooth scrolling under
   `prefers-reduced-motion`; motion's `MotionConfig reducedMotion="user"` wraps the app. OBS never asks for it, so the
   live animates freely.

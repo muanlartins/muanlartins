@@ -30,8 +30,9 @@ import { getMarkerHeight, hasMarkerContent } from "./lifeline-utils"
 import { useLifelineIntro } from "./use-lifeline-intro"
 import { useLifelineVerticalScroll } from "./use-lifeline-vertical-scroll"
 
-const GRID_CLASS = "grid grid-cols-[2.5rem_1rem_1fr] gap-x-3"
-const RAIL_LEFT = "calc(2.5rem + 0.75rem + 0.5rem)"
+// 3rem on the left: "IDADE" as an eyebrow (12 px, tracked) doesn't fit in 2.5.
+const GRID_CLASS = "grid grid-cols-[3rem_1rem_1fr] gap-x-3"
+const RAIL_LEFT = "calc(3rem + 0.75rem + 0.5rem)"
 
 /**
  * Above this many entries the delay-armed intro fades would promote
@@ -46,7 +47,7 @@ function RailTick() {
   return (
     <span
       aria-hidden="true"
-      className="block h-px w-[10px] bg-zinc-400 transition-colors duration-300 dark:bg-zinc-700"
+      className="block h-px w-[10px] bg-klein"
     />
   )
 }
@@ -105,7 +106,7 @@ function LifelineVerticalEvent({ event }: { event: LifelineEvent }) {
       <p
         ref={textRef}
         className={cn(
-          "max-w-[18rem] text-left md:max-w-[34rem] md:text-[15px] text-[14px] leading-[1.55] tracking-[-0.01em]",
+          "max-w-[38rem] text-pretty text-left text-[15px] leading-[1.6] text-ink",
           (image || effect) && "cursor-pointer",
         )}
         onClick={
@@ -187,7 +188,7 @@ const LifelineVerticalEntry = forwardRef<
   return (
     <li
       ref={ref}
-      className={hasContent ? "pb-10" : "pb-3"}
+      className={cn(hasContent ? "pb-12" : "pb-3", "last:pb-0")}
       aria-label={marker.label ?? `${marker.year}`}
     >
       <div
@@ -205,7 +206,7 @@ const LifelineVerticalEntry = forwardRef<
         }}
       >
         <div className={`${GRID_CLASS} items-center`}>
-          <p className="text-right text-[11px] font-medium leading-4 tabular-nums text-zinc-500 transition-colors duration-300 dark:text-zinc-600">
+          <p className="text-right text-[13px] font-medium leading-5 tabular-nums text-muted">
             {age}
           </p>
 
@@ -213,13 +214,13 @@ const LifelineVerticalEntry = forwardRef<
             <RailTick />
           </div>
 
-          <p className="whitespace-nowrap text-[15px] font-medium leading-5 tabular-nums text-zinc-500 transition-colors duration-300 dark:text-zinc-400">
+          <h2 className="whitespace-nowrap text-xl font-medium tabular-nums tracking-[-0.02em] text-klein">
             {marker.label ?? marker.year}
-          </p>
+          </h2>
         </div>
 
         {hasContent && (
-          <div className={`${GRID_CLASS} mt-6`}>
+          <div className={`${GRID_CLASS} mt-4`}>
             <div aria-hidden="true" />
             <div aria-hidden="true" />
             <div className="min-w-0 text-zinc-500 transition-colors duration-300 dark:text-zinc-400">
@@ -262,7 +263,9 @@ const LifelineVerticalEntry = forwardRef<
               )}
 
               {photos.length > 0 && (
-                <div className="mt-6 flex flex-wrap items-start">
+                // A pile's cards all step back by the overlap, so a row that wraps starts in line with the text
+                // instead of over the rail; on phones they shrink so two fit to a row.
+                <div className={cn("mt-6 flex flex-wrap items-start", photos.length > 1 && "pl-4")}>
                   {photos.map((photo, index) => (
                     <LifelinePhotoCard
                       key={`${photo.src}-${index}`}
@@ -271,7 +274,8 @@ const LifelineVerticalEntry = forwardRef<
                       width={160}
                       className={cn(
                         "relative",
-                        index > 0 && "-ml-8 mt-6",
+                        photos.length > 1 && "-ml-4 max-w-[calc(50%+1rem)]",
+                        index > 0 && "mt-6",
                       )}
                     />
                   ))}
@@ -426,17 +430,18 @@ export function LifelineVertical({
       ref={sectionRef}
       aria-label={title}
       className={cn(
-        "relative select-none px-6 pb-10 pt-4 [&_a]:cursor-pointer",
-        !isLayoutReady && "invisible",
+        "relative px-6 [&_a]:cursor-pointer",
+        // Hidden only for the intro, which embedded timelines don't play: they show as served, before any script.
+        !isEmbed && !isLayoutReady && "invisible",
       )}
       style={showIntro ? introStyle : undefined}
     >
       <div className={cn(`${GRID_CLASS} mb-6 items-end`, showIntro && "lifeline-labels-intro")}>
-        <p className="text-right text-[11px] font-medium uppercase leading-5 tracking-[0.08em] text-zinc-500 transition-colors duration-300 dark:text-zinc-600">
+        <p className="eyebrow text-right leading-5 text-muted">
           {labels.age}
         </p>
         <div aria-hidden="true" />
-        <p className="text-[11px] font-medium uppercase leading-5 tracking-[0.08em] text-zinc-500 transition-colors duration-300 dark:text-zinc-600">
+        <p className="eyebrow leading-5 text-muted">
           {labels.year}
         </p>
       </div>
@@ -449,7 +454,7 @@ export function LifelineVertical({
         >
           <div
             className={cn(
-              "h-full w-px border-l border-dashed border-zinc-300 transition-colors duration-300 dark:border-zinc-800",
+              "h-full w-px border-l border-dashed border-line-strong",
               showIntro && "lifeline-rail-intro-vertical",
             )}
           />

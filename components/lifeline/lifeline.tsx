@@ -55,7 +55,7 @@ export function Lifeline(props: LifelineProps) {
                   "lifeline-typeset h-full overflow-y-auto pt-5",
                   props.className,
                 )
-              : "lifeline-typeset pt-5"
+              : "lifeline-typeset"
           }
         >
           <LifelineVertical {...props} />

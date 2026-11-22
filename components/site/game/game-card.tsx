@@ -50,11 +50,11 @@ export function GameArt({ game, games = [], className }: { game: string; games?:
   )
 }
 
-/** The notices the games' makers ask for beside their art: Epic's and Riot's in their own words, so in English. */
+/** The notices the games' makers ask for beside their art: Epic's and Riot's in their own words, in the site's language. */
 export function GameArtCredits({ className }: { className?: string }) {
   return (
     <p className={cn("text-[12px] leading-[1.6] text-muted", className)}>
-      {CREDITS} <span lang="en">{EPIC_NOTICE} {RIOT_NOTICE}</span>
+      {CREDITS} {localize(EPIC_NOTICE)} {localize(RIOT_NOTICE)}
     </p>
   )
 }

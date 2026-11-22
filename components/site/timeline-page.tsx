@@ -9,11 +9,12 @@ export function TimelinePage({ content }: { content: Content }) {
 
   return (
     <>
-      <PageIntro title={title} description={localize(content.description)}>
+      <PageIntro title={title} description={localize(content.description)} />
+      <div className="mt-12">
         <YouTubeVideo id={localize(content.video)} title={title} />
-      </PageIntro>
+      </div>
 
-      <section className="-mx-6 mt-20">
+      <section className="-mx-6 mt-16">
         <Lifeline
           markers={toLifelineMarkers(content)}
           birthYear={0}
