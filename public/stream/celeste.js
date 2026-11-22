@@ -8,7 +8,8 @@
 // only while the game is connected; the clocks tick between states while the game says they run.
 //
 //   celesteNoJogo({ plate, column, hole, band, address, demo })
-//     plate, column   the two elements      hole, band   the camera frame and its band, as jogo.html's
+//     plate, column   the two elements      hole, band   the camera frame and its band, as jogo.html's; without a
+//                                                         hole the page places both (celeste.html)
 //     address         the mod's /eventos    demo         plays public/stream/celeste-sequencia.json (the stand-in's)
 //                                                         without a server, over and over; a step's name (a string)
 //                                                         plays up to it at once and stays there (screenshots)
@@ -57,6 +58,7 @@ function celesteNoJogo({ plate, column, hole, band, address = CELESTE_URL, demo 
   column.addEventListener("animationend", (e) => e.target.closest?.(".linha")?.classList.remove("subiu"))
 
   const lugar = () => {
+    if (!hole) return
     plate.style.left = `${hole.offsetLeft + hole.offsetWidth + band - plate.offsetWidth}px`
     plate.style.top = `${hole.offsetTop - band - 26}px`
     const direita = hole.classList.contains("right")

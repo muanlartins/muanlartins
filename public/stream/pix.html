@@ -17,6 +17,8 @@
       ?chamada=0 leaves it out. In Valorant's scenes (by the scene's name, as
       the source is the same in every scene) the call and the goal go down to
       y 380, under the camera's plate; ?canto=baixo forces it, to place it.
+      In "Celeste + chat · Diversos" they go into that scene's left column
+      (celeste.html) and the band is centred on its game (?canto=coluna).
 
       It reads the Pix API (infra/pix) every 2 s with the stream's key, the Σ
       key: #chave=<key> (?api= only to point it elsewhere). The voices come from
@@ -247,6 +249,33 @@
       .canto.baixo {
         top: 380px;
       }
+      /* Celeste's scene (celeste.html): the corner inside its 320 px column, the band over the game beside it. */
+      .coluna .canto {
+        top: 16px;
+        left: 16px;
+        width: 288px;
+        gap: 8px;
+      }
+      .coluna .chamada {
+        --qr: 84px;
+        gap: 10px;
+        padding: 8px 10px 8px 8px;
+      }
+      .coluna .chamada .convite {
+        font-size: 19px;
+      }
+      .coluna .chamada .pix,
+      .coluna .chamada .site {
+        font-size: 14.5px;
+        letter-spacing: 0;
+      }
+      .coluna .meta .arvore {
+        width: 88px;
+      }
+      .coluna .alerta,
+      .coluna .letra {
+        left: 320px;
+      }
       .meta {
         padding: 14px 18px 16px;
         background: rgb(0 20 71 / 0.82);
@@ -402,7 +431,9 @@
       // scenes the camera is where the corner was (top left, over the minimap), so the corner goes under it.
       const canto = document.querySelector(".canto")
       const VALORANT = ["Valorant + chat", "Lance ruim · Valorant"]
+      const CELESTE = "Celeste + chat · Diversos"
       const cena = (nome) => {
+        $(".stage").classList.toggle("coluna", nome === CELESTE || params.get("canto") === "coluna")
         canto.style.visibility = nome === "Conversa" ? "hidden" : ""
         canto.classList.toggle("baixo", VALORANT.includes(nome) || params.get("canto") === "baixo")
       }
