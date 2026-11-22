@@ -49,8 +49,9 @@ export function Picture({
   )
 }
 
-/** A picture beside its text, stacked on phones. */
+/** A picture beside its text, stacked on phones. Without the picture (someone else's this build lacks), just the text. */
 export function Beside({ media, children, flip = false }: { media: ReactNode; children: ReactNode; flip?: boolean }) {
+  if (!media) return <>{children}</>
   return (
     <div className="grid items-center gap-x-8 gap-y-5 sm:grid-cols-2">
       <div className={cn("min-w-0", flip && "sm:order-last")}>{media}</div>
