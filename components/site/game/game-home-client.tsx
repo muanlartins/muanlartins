@@ -7,7 +7,7 @@ import { UI } from "@/lib/site"
 const Moment = dynamic(() => import("./rl-moment/moment"), { ssr: false })
 
 /** Rocket League's moment (`rl-moment/`), loaded in the browser only. */
-export function ShowroomStage() {
+export function MomentStage() {
   return <Moment />
 }
 

@@ -1,7 +1,7 @@
 import { LanguageBadge } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
 import { PageList } from "@/components/site/game/page-list"
-import { RoadmapProgress, ShowroomStage } from "@/components/site/game/game-home-client"
+import { RoadmapProgress, MomentStage } from "@/components/site/game/game-home-client"
 import { GameNextLine } from "@/components/site/game/game-next-line"
 import { Ladder } from "@/components/site/game/ladder"
 import { Range } from "@/components/site/game/range"
@@ -33,7 +33,7 @@ const T = localize({
   lastWith: { pt: "última partida de {agent}", en: "last match as {agent}" },
   noRank: { pt: "Nenhuma partida publicada ainda.", en: "No matches published yet." },
   latestLive: { pt: "Última", en: "Latest" },
-  drag: { pt: "Arraste para girar", en: "Drag to spin" },
+  drag: { pt: "Arrasta pra girar", en: "Drag to spin" },
   live: { pt: "Ao vivo", en: "Live" },
   soon: { pt: "Primeiros tópicos em breve", en: "First topics soon" },
   energy: { pt: "de energia", en: "energy" },
@@ -143,9 +143,9 @@ export async function GameHome({
       <PageIntro title={localize(game.title)} description={localize(game.description)} />
 
       {game.id === "rocket-league" && (
-        <div className="relative -mx-6 mt-6 h-64 sm:mx-0 sm:h-80">
-          <ShowroomStage />
-          <p className="pointer-events-none absolute bottom-1 right-6 text-[12px] text-muted sm:right-0">{T.drag}</p>
+        <div className="relative -mx-6 mt-12 h-72 sm:mx-0 sm:h-80">
+          <MomentStage />
+          <p className="pointer-events-none absolute bottom-1 right-6 text-[13px] text-muted sm:right-0">{T.drag}</p>
         </div>
       )}
       {game.id === "valorant" && (
