@@ -488,7 +488,7 @@ export const SHIPPED: Shipped[] = [
     href: "/conteudo/rocket-league/ranked",
     video: "5GMvMT8wvo4",
     media: [
-      media("ranqueadas-rlr", "As partidas de 20/11 no 3v3, cada uma com o placar, os pontos e “Ver no RLR” pra abrir o replay"),
+      media("ranqueadas-replays", "As partidas de 20/11 no 3v3, cada uma com o placar, os pontos e “Assistir no RLR” pra abrir o replay"),
       media("ranqueadas", "O gráfico de pontos da página de ranqueadas", { video: true }),
     ],
   },
