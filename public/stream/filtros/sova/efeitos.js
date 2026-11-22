@@ -3,7 +3,7 @@
 // in the game's centimetres; the page scales each system to the camera when it spawns it. Keys as in the game:
 // C Owl Drone, Q Shock Bolt, E Recon Bolt, X Hunter's Fury. Colours like (5, 20, 300) are the game's: tone mapped,
 // they come out white in the middle and blue at the edges.
-import { addTextures } from "./vfx.js"
+import { addTextures } from "../../vfx.js"
 
 const S = "sova/files/ShooterGame/Content/"
 addTextures({

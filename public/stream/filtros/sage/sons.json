@@ -1,0 +1,16 @@
+{
+  "sage-barreira-equip": {"parts": [{"evento": "Play_Thorne_AbilE_Equip {FP}", "agente": "sage"}], "cut": 1.0},
+  "sage-barreira-cast": {"parts": [{"evento": "Play_Thorne_AbilE_Cast {FP}", "agente": "sage"}]},
+  "sage-barreira-erupt": {"parts": [{"evento": "Play_Thorne_AbilE_Erupt", "agente": "sage"}, {"evento": "Play_Thorne_AbilE_Harden_Oneshot", "agente": "sage", "gain": -3, "delay": 0.6}]},
+  "sage-barreira-crumble": {"parts": [{"evento": "Play_Thorne_AbilE_WallCrumble", "agente": "sage"}]},
+  "sage-lentidao-equip": {"parts": [{"evento": "Play_Thorne_Abil4_Equip {FP}", "agente": "sage"}], "cut": 1.0},
+  "sage-lentidao-throw": {"parts": [{"evento": "Play_Thorne_Abil4_Cast {FP}", "agente": "sage"}, {"evento": "Play_Thorne_Abil4_Projectile", "agente": "sage", "gain": -3}], "cut": 1.2},
+  "sage-lentidao-explode": {"parts": [{"evento": "Play_Thorne_Abil4_Explode", "agente": "sage"}, {"evento": "Play_Thorne_Abil4_SlowFieldForm", "agente": "sage", "delay": 0.05}]},
+  "sage-lentidao-loop": {"parts": [{"wav": "Play_Thorne_Abil4_GroundLoop/00_thorne_abil4_slowfield_loop_01 (SFX).wav", "agente": "sage"}], "loop": true},
+  "sage-lentidao-end": {"parts": [{"evento": "Play_Thorne_Abil4_SlowFieldDecay", "agente": "sage"}]},
+  "sage-cura-equip": {"parts": [{"evento": "Play_Thorne_AbilQ_Equip {FP}", "agente": "sage"}], "cut": 0.8},
+  "sage-cura-cast": {"parts": [{"evento": "Play_Thorne_AbilQ_Cast_Self {FP}", "agente": "sage"}]},
+  "sage-cura-loop": {"parts": [{"wav": "Play_Thorne_AbilQ_Heal_Loop/01_Thorne_AbilQ_Heal_Loop_1P_01 (SFX).wav", "agente": "sage"}], "loop": true},
+  "sage-ult-equip": {"parts": [{"evento": "Play_Thorne_AbilX_Equip {FP}", "agente": "sage"}], "cut": 1.5},
+  "sage-ult-res": {"parts": [{"evento": "Play_Thorne_AbilX_Rez {FP}", "agente": "sage"}], "cut": 4.6, "fade": 0.8}
+}

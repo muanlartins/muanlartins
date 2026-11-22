@@ -1,0 +1,5 @@
+{
+  "carro-pulo": {"parts": [{"rl": "Play_Car_Movement_Jump"}], "cut": 0.9},
+  "carro-flip": {"parts": [{"rl": "Play_Car_Movement_Dodge"}], "cut": 1.2},
+  "carro-demo": {"parts": [{"rl": "Play_Impact_Car_Explode"}]}
+}

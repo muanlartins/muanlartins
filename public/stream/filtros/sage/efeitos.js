@@ -4,7 +4,7 @@
 // Keys as in the game: C Barrier Orb, Q Slow Orb, E Healing Orb, X Resurrection (internally Ability_E, Ability_4,
 // Ability_Q and Ability_X of Characters/Thorne). Colours like (5, 50, 25) are the game's colour times its colour
 // scale: tone mapped, they come out white in the middle and jade at the edges.
-import { addTextures } from "./vfx.js"
+import { addTextures } from "../../vfx.js"
 
 const S = "sage/files/ShooterGame/Content/"
 const T = S + "Characters/Thorne/S0/VFX/Textures/"

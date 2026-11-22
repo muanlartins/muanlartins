@@ -630,3 +630,120 @@ body {
 .fim-de-partida .accent {
   color: var(--klein-claro);
 }
+
+/* --- Celeste (celeste.js): the chapter on the frame's top edge and its numbers beside it, from the game's mod ------- */
+
+/* The record plate's place and shape, the mountain where the rank's emblem goes, the chapter's clock as its line. */
+.plate.celeste-placa .icone {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: var(--paper);
+}
+.plate.celeste-placa .icone svg {
+  width: 36px;
+  height: 36px;
+}
+.plate.celeste-placa .line {
+  min-width: 112px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.plate.celeste-placa .line small {
+  color: var(--klein-claro);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* The match numbers' column (.numeros), in two groups: this chapter, then the file, their lines spaced evenly. */
+.numeros.celeste-numeros {
+  width: 212px;
+  padding: 12px 18px 12px;
+}
+.celeste-numeros .grupo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.celeste-numeros .grupo.capitulo {
+  flex: 0.8;
+}
+.celeste-numeros .grupo.arquivo {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgb(133 167 255 / 0.3);
+}
+.celeste-numeros .titulo {
+  margin-bottom: 0;
+  font-size: 13px;
+}
+.celeste-numeros .linha {
+  line-height: 1.22;
+}
+.celeste-numeros .valor {
+  font-size: 22px;
+}
+.celeste-numeros .grupo.arquivo .valor {
+  font-size: 19px;
+}
+.celeste-numeros .valor .accent {
+  color: var(--klein-claro);
+  font-weight: 500;
+}
+/* In the menus only the file's. */
+.celeste-numeros.no-menu .grupo.arquivo {
+  gap: 2px;
+}
+.celeste-numeros.no-menu .grupo.capitulo {
+  display: none;
+}
+.celeste-numeros.no-menu .grupo.arquivo {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+/* The file's hearts and cassettes: each with its count, side by side. */
+.celeste-numeros .coletas-arquivo .valor {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.celeste-numeros .coletas-arquivo .item svg {
+  width: 20px;
+  height: 20px;
+}
+/* The chapter's heart and cassette: outlines until collected, then filled. */
+.celeste-numeros .coletas .valor {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 3px 0 2px;
+}
+.celeste-numeros .item svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: var(--klein-claro);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  opacity: 0.7;
+}
+.celeste-numeros .item .furo {
+  fill: none;
+}
+.celeste-numeros .item.tem svg {
+  fill: var(--paper);
+  stroke: var(--paper);
+  opacity: 1;
+}
+.celeste-numeros .item.tem .furo {
+  fill: var(--klein);
+  stroke: var(--klein);
+}
+.celeste-numeros .linha::after {
+  right: 64px;
+}

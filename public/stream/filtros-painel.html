@@ -15,7 +15,7 @@
       default, against the blue behind Luan) and its gestures. "Sons dos filtros" is for all of them.
 
       It's served like filtros.html, from this working copy on localhost:8126 ("Filtros muanlartins.vbs" in Startup),
-      so a new filter needs no release: an entry in FILTROS here and its drawing there.
+      so a new filter needs no release: its folder under filtros/ (filtros/README.md), which both pages read.
 
       It tells the page through obs-websocket, like the Efeitos dock: obs-browser's emit_event "muanlartins-filtro"
       with { filtro: "<id>", opcoes: { <switch>: true|false } } ("nenhum" for none), sent on each click and again
@@ -381,58 +381,13 @@
       </details>
     </div>
 
-    <script>
-      // Every filter, in the dropdown's order, grouped by `jogo`: filtros.html's id, its picture (an agent's face
-      // from the site, or a drawing in DESENHOS), its one-offs ([id, key, name]: the key is the ability's in
-      // Valorant, or none), its switches ([id, name]) and its gestures ([ability, how]).
-      const FILTROS = [
-        {
-          id: "phoenix",
-          nome: "Phoenix",
-          jogo: "Valorant",
-          acoes: [
-            ["blaze", "C", "Labareda"],
-            ["flash", "Q", "Bola Curva"],
-            ["molotov", "E", "Mãos Quentes"],
-            ["ult", "X", "Ultimate"],
-          ],
-          gestos: [
-            ["Fogo", "as duas palmas abertas, de frente uma para a outra."],
-            ["Bola Curva", "um estalo girando a mão."],
-          ],
-        },
-        {
-          id: "sage",
-          nome: "Sage",
-          jogo: "Valorant",
-          acoes: [
-            ["barreira", "C", "Orbe de Barreira"],
-            ["lentidao", "Q", "Orbe de Lentidão"],
-            ["cura", "E", "Orbe Curativo"],
-            ["ult", "X", "Ressurreição"],
-          ],
-          gestos: [["Orbe de Barreira", "cruze os braços em X na frente do peito e abra: a orbe vem na mão direita e a parede sobe quando os braços abrem."]],
-        },
-        {
-          id: "sova",
-          nome: "Sova",
-          jogo: "Valorant",
-          acoes: [
-            ["drone", "C", "Drone Coruja"],
-            ["choque", "Q", "Flecha de Choque"],
-            ["recon", "E", "Flecha de Reconhecimento"],
-            ["ult", "X", "Ultimate"],
-          ],
-          opcoes: [["patrulha", "Coruja sobrevoando"]],
-          gestos: [
-            ["Arco", "feche as duas mãos e encoste um punho no outro; afaste as mãos para puxar a corda e abra a mão da corda para atirar a Flecha de Reconhecimento."],
-            ["Drone Coruja", "mostre as duas palmas abertas para a câmera, lado a lado."],
-          ],
-        },
-        { id: "octane", nome: "Octane", jogo: "Rocket League", desenho: "carro", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]], pintura: true },
-        { id: "fennec", nome: "Fennec", jogo: "Rocket League", desenho: "carro", acoes: [["demo", "", "Demolição"], ["flip", "", "Flip"]], pintura: true },
-        { id: "bola", nome: "Bola", jogo: "Rocket League", desenho: "bola" },
-      ]
+    <script type="module">
+      // Every filter, in the dropdown's order, grouped by `jogo`, from the filters' own folders (filtros/index.js; a
+      // look on its own comes from filtros/visuais.js): filtros.html's id, its picture (`rosto`, an agent's face from
+      // the site, or a drawing in DESENHOS), its one-offs (`acoes`, [id, key, name]: the key is the ability's in the
+      // game, or none), its switches (`opcoes`, [id, name]) and its gestures (`gestos`, [ability, how]). Those marked
+      // `fora` stay off the dock (Pop and the lens).
+      const FILTROS = (await (await import("./filtros/index.js")).lista()).filter((f) => !f.fora)
       // The cars' paints ([id, name, swatch]; the page has the colours it draws) and decals ([id, name]).
       const CORES = [
         ["laranja", "Laranja", "#ff4205"],
@@ -451,8 +406,12 @@
         ["arcoiris", "Arco-íris"],
         ["listras", "Listras"],
       ]
-      // Rocket League's pictures: a car from the side and a ball, drawn here.
+      // Rocket League's pictures, a car from the side and a ball, a snowy mountain (Celeste), and a head for a look with no
+      // picture, drawn here.
       const DESENHOS = {
+        montanha:
+          '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M13 7l2.75 5-1.45-.8-1.3 1.4-1.4-1.4-1.35.8Z"/><path d="M9.54 13.3l2.06-.8 1.4 1.4 1.3-1.4 2.17.8L24 27H2Z"/><path d="M21.5 12.5l1.82 3.1-1-.5-.82.9-.9-.9-.92.5Z"/><path d="M19.87 16.8l.73-.5.9.9.8-.9 1.7.5L30 27H16Z"/></svg>',
+        pessoa: '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><circle cx="16" cy="11.5" r="6"/><path d="M5 28c0-6.1 4.9-10 11-10s11 3.9 11 10Z"/></svg>',
         carro:
           '<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M4 21v-4.5l4-1.5 4.5-4.5h7.5l5 5 3 .8V21h-2.2a3.3 3.3 0 0 0-6.6 0h-7.4a3.3 3.3 0 0 0-6.6 0Z"/><circle cx="9" cy="21.5" r="2.4"/><circle cx="22.4" cy="21.5" r="2.4"/></svg>',
         bola: '<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="16" cy="16" r="11"/><path d="M16 9.5l5 3.6-1.9 5.9h-6.2L11 13.1Z" fill="currentColor"/><path d="M16 9.5V5M21 13.1l4.6-1.5M19.1 19l2.8 3.9M12.9 19l-2.8 3.9M11 13.1l-4.6-1.5"/></svg>',
@@ -467,8 +426,11 @@
       // The Santa hat: off unless Luan turns it on, and kept as he left it (2026-11-18: on by itself through December,
       // it kept the camera and the face tracker running every live of the month, ~1 CPU core and GPU besides).
       const gorroLigado = () => !!state.opcoes.gorro
+      // A switch Luan hasn't touched is as its entry says (`opcoes`' third item: Celeste's hair on; off without one).
+      const PADROES = Object.fromEntries(FILTROS.flatMap((f) => (f.opcoes || []).filter((o) => o.length > 2).map(([id, , padrao]) => [id, !!padrao])))
+      const ligada = (id) => state.opcoes[id] ?? !!PADROES[id]
       // What the page gets: the switches, with the hat as it is now.
-      const opcoes = () => ({ ...state.opcoes, gorro: gorroLigado() })
+      const opcoes = () => ({ ...PADROES, ...state.opcoes, gorro: gorroLigado() })
       const fromHash = new URLSearchParams(location.hash.slice(1)).get("obs")
       if (fromHash) {
         state.obsPassword = fromHash
@@ -527,7 +489,7 @@
       const filtroDe = (id) => FILTROS.find((f) => f.id === id)
       const texto = (t) => t.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
       const icone = (f) =>
-        `<span class="icone">${f.desenho ? DESENHOS[f.desenho] : `<img src="../valorant/agentes/${f.id}.webp" alt="" />`}</span>`
+        `<span class="icone">${f.desenho ? DESENHOS[f.desenho] : f.rosto ? `<img src="${texto(f.rosto)}" alt="" />` : DESENHOS.pessoa}</span>`
       function ligar(id) {
         atual = id
         if (id !== "nenhum") {
@@ -643,12 +605,12 @@
         $("opcoes").replaceChildren(
           ...(ativo.opcoes || []).map(([id, nome]) => {
             const b = botao(texto(nome), () => {
-              state.opcoes[id] = !state.opcoes[id]
+              state.opcoes[id] = !ligada(id)
               save()
               send({ filtro: atual, opcoes: opcoes() })
-              b.classList.toggle("active", !!state.opcoes[id])
+              b.classList.toggle("active", ligada(id))
             })
-            b.classList.toggle("active", !!state.opcoes[id])
+            b.classList.toggle("active", ligada(id))
             return b
           }),
         )

@@ -26,6 +26,12 @@
       (numeros.js: score, goals, assists, saves, shots, touches, aerials, demos, a +1 lighting its line) while the
       Partidas dock sends them, from the first countdown to a minute and a half after the end; the dock's "Estatísticas
       da partida na live" turns them off, and so does ?numeros=0 (and ?placar=0). ?demo plays a match.
+      Celeste (celeste.js), from the MuanlartinsLink mod in the game (scripts/celeste-mod/, 127.0.0.1:8797): in
+      Diversos' scene (?jogo=diversos, any other game) and with ?jogo=celeste, while the game is connected, the chapter's
+      name, side and clock on the frame's top edge where the record goes, and beside the frame the chapter's deaths,
+      strawberries, heart and cassette and the file's, with its clock. ?celeste=0 leaves it out, ?celeste=<url> listens
+      elsewhere (the stand-in, scripts/celeste-mod/simular.py); ?jogo=celeste&demo plays the stand-in's sequence alone
+      (?demo=<step> goes to one of its steps and stays: public/stream/celeste-sequencia.json's names).
     -->
     <style>
       .hole {
@@ -123,10 +129,13 @@
       <div class="game-chat" id="chat" hidden></div>
       <div id="teclas" hidden></div>
       <div id="numeros"></div>
+      <div id="celeste-placa"></div>
+      <div id="celeste-numeros"></div>
     </main>
     <script src="stream.js"></script>
     <script src="teclas.js"></script>
     <script src="numeros.js"></script>
+    <script src="celeste.js"></script>
     <script>
       const BAND = 12
       const hole = document.querySelector(".hole")
@@ -156,12 +165,24 @@
         if (params.has("demo")) demoDosNumeros()
       }
 
+      // Celeste's chapter and numbers, from the game's mod, while it's connected (any other game's scene, or ?jogo=celeste).
+      const celeste = params.get("celeste")
+      if (["celeste", "diversos"].includes(params.get("jogo")) && celeste !== "0")
+        celesteNoJogo({
+          plate: document.getElementById("celeste-placa"),
+          column: document.getElementById("celeste-numeros"),
+          hole,
+          band: BAND,
+          address: celeste && celeste !== "1" ? celeste : CELESTE_URL,
+          demo: params.has("demo") && params.get("jogo") === "celeste" && (params.get("demo") || true),
+        })
+
       // The keyboard and the mouse, in the camera's column (?teclas=1).
       const qualTeclado = params.get("teclas")
       if (qualTeclado) {
         const box = document.getElementById("teclas")
         box.hidden = false
-        const jogo = qualTeclado !== "1" ? qualTeclado : { valorant: "valorant", diversos: "outro" }[params.get("jogo")] ?? "rocket-league"
+        const jogo = qualTeclado !== "1" ? qualTeclado : { valorant: "valorant", diversos: "outro", celeste: "outro" }[params.get("jogo")] ?? "rocket-league"
         teclas(box, { jogo, demo: params.has("demo") })
         box.style.left = `${hole.offsetLeft - BAND}px`
         // At the top (Valorant), under pix.html's call and goal, which reach y 724 with the Christmas tree.
