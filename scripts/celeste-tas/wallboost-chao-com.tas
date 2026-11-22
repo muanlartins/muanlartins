@@ -1,0 +1,12 @@
+# No chao, pulo de escalada com wallboost: 137,5 de stamina (3A, lavanderia, parede da direita)
+console load 3 5812 40
+   1
+
+#Start
+ 120
+   1,R
+   5
+   3,G
+   1,G,J
+   1,G,L
+  59,G,R

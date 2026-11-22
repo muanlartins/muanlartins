@@ -1,0 +1,10 @@
+# Coyote time com o jogo a 50% (modo assistência): quantos frames de relógio até o timer zerar
+console load 1 19 144
+   1
+
+#Start
+ 120
+Set, GameSpeed, 5
+  30
+  80,R
+   1

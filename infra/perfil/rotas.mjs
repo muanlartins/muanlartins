@@ -49,6 +49,15 @@ export const CANAL = "muanlartins"
 
 // Items that aren't viewers: "#" is never in a login.
 const AGENDA = "#agenda"
+// Celeste's learning as Luan set it by hand, over what his save and the lives' cuts say (lib/celeste.ts learningOf):
+// the item "#celeste", { aprendizado: { <fundamental's id>: "vou" | "aprendendo" | "aprendi", <an extra's id>: "feito" }, em }.
+//
+// Public:   GET /celeste                 it
+// Channel:  PUT /celeste                 the channel's Twitch only: { id, estado }, a null estado back to automatic
+const CELESTE = "#celeste"
+const APRENDIZADO = new Set(["vou", "aprendendo", "aprendi", "feito"])
+const FUNDAMENTO = /^[a-z0-9][a-z0-9-]{0,39}$/
+const FUNDAMENTOS_MAX = 120
 const CALENDARIO = "Live do muanlartins"
 const PAGINA_AGENDA = "https://muanlartins.com.br/canal/agenda"
 
@@ -232,6 +241,26 @@ export function rotas({ banco, usuario, chave, discord = null, agora = () => new
     return out(200, { agenda: a, em, proximas: ocorrencias(a, agora(), 14) })
   }
 
+  async function celeste(event, metodo) {
+    if (metodo === "GET") {
+      const i = await banco.ler(CELESTE)
+      const r = out(200, { aprendizado: i?.aprendizado ?? {}, em: i?.em ?? null })
+      return { ...r, headers: { ...r.headers, "cache-control": "no-store" } }
+    }
+    if (metodo !== "PUT") return out(405, {})
+    if (!(await doCanal(event))) return out(403, { erro: "Só a conta do canal marca o aprendizado." })
+    const corpo = json(event)
+    const { id, estado } = corpo ?? {}
+    if (typeof id !== "string" || !FUNDAMENTO.test(id) || (estado !== null && !APRENDIZADO.has(estado))) return out(400, {})
+    const aprendizado = { ...(await banco.ler(CELESTE))?.aprendizado }
+    if (estado === null) delete aprendizado[id]
+    else aprendizado[id] = estado
+    if (Object.keys(aprendizado).length > FUNDAMENTOS_MAX) return out(400, {})
+    const em = agora().toISOString()
+    await banco.definir(CELESTE, { aprendizado, em })
+    return out(200, { aprendizado, em })
+  }
+
   /** The ranks and the events, now: the hourly run and the channel's button. */
   async function sincronizar() {
     const a = (await banco.ler(AGENDA))?.agenda
@@ -325,6 +354,7 @@ export function rotas({ banco, usuario, chave, discord = null, agora = () => new
 
     if (caminho.startsWith("/imagem/") || caminho.startsWith("/canal/imagem/")) return imagem(event, metodo, caminho)
     if (caminho === "/agenda" || caminho === "/agenda.ics" || caminho === "/agenda.txt") return agenda(event, metodo, caminho)
+    if (caminho === "/celeste") return celeste(event, metodo)
     if (caminho === "/eu/discord" || caminho.startsWith("/canal/discord/")) return doDiscord(event, metodo, caminho)
 
     const minha = /^\/eu\/imagem\/(banner|foto)$/.exec(caminho)

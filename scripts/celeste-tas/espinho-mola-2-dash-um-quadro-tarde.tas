@@ -1,0 +1,14 @@
+# Same, dash one frame late (first that dies)
+console load 1 3328 -2232
+   1
+
+#Start
+ 120
+  35,L
+  24,L,J
+  10,L
+  10
+  29
+  10,R,X
+  30,R
+  50

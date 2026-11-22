@@ -119,9 +119,9 @@ def hours(total):
 def other_summary(game, length):
     """A draft for any other game: how long, and the goal when it has one."""
     pt, en = f"{game['name']} ao vivo por {hours(length)}.", f"{game['name']} live for {hours(length)}."
-    if game.get("goal"):
-        pt += f" Meta: {game['goal']['title']}."
-        en += f" Goal: {game['goal']['title']}."
+    if goal := game.get("goal") or game.get("roadmap"):
+        pt += f" Meta: {goal['title']}."
+        en += f" Goal: {goal['title']}."
     return {"pt": pt, "en": en}
 
 

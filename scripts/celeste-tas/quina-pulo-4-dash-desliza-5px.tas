@@ -1,0 +1,10 @@
+# Corner correction, 1A room 2, pillar: dash straight up from X=271
+console load 1 511 -64
+   1
+
+#Start
+ 120
+   7,U,X
+   1,U,X
+  12,U,X
+  40

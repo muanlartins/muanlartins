@@ -28,20 +28,24 @@ Luan, 2026-11-21: "a ideia é deixar tudo que eu for jogar registrado". What cha
   the summary as a draft for Luan. A live that switched games mid-way gets a chapter with `"game": "<id>"` where the
   other one starts (`{ "at": "1:30:00", "game": "rocket-league", "title": {…} }`): the site counts each game's hours
   from those, and lists the live under both.
-- **The goal comes from the game's save, never by hand** (Luan, 2026-11-21: deterministic). On a Celeste day, after
-  step 2 (so the live's page exists) and before the release (step 5):
+- **The progress comes from the game's save, never by hand** (Luan, 2026-11-21: deterministic). On a Celeste day, after
+  step 2 (so the live's page exists) and before the release (step 5), with the game closed (Steam writes its stats then):
 
   ```sh
-  python3 scripts/celeste.py            # what changed in the save: items done or undone, the totals
-  python3 scripts/celeste.py --apply    # writes them into content/diversos.json, which goes in the release
+  python3 scripts/celeste.py            # what changed in the save: the facts done or undone, the totals
+  python3 scripts/celeste.py --apply    # writes content/celeste-save.json, which goes in the release
   ```
 
-  It reads Steam's `Celeste/Saves/<slot>.celeste` (only reads it; the slot is Celeste's `save.slot`, which only Luan
-  can say: while it's null the script says so and changes nothing, so ask him. His 100% run is slot 1, the menu's
-  second file, started from zero on 2026-11-21; if the script can't find `1.celeste`, he picked another file: ask which), ticks each goal item by its `save`
-  key (the script's docstring has the keys), dates what turned done and links it to that day's live, and keeps the
-  totals the page shows (strawberries, deaths, time in the game). Off-stream sessions count too: run it any day he
-  played. The save's `Name` is a person's name: never print or commit it (slot 0 is someone else's file).
+  It reads Steam's `Celeste/Saves/<slot>.celeste` (only reads it; his run is slot 1, the menu's second file, from zero
+  since 2026-11-22; if the script can't find `1.celeste`, he picked another file or hasn't started: ask) and Steam's
+  stats for the 1UP! and PICO-8, writes the facts Celeste's roadmap names (`content/celeste.ts`), dates what turned
+  done and links it to that day's live, and keeps each side's deaths, time and strawberries. Off-stream sessions count
+  too: run it any day he played. The save's `Name` is a person's name: never print or commit it (slot 0 isn't his run).
+- **The fundamentals' cuts** (Luan, 2026-11-22: "recortes da live nos tópicos"): from the transcript and the recording,
+  the moments he tried or got one of `content/celeste.ts`'s fundamentals go to `content/celeste-recortes.json` as
+  `{ "topic", "title", "live", "from", "to" }` (the live's clock), with `"learned": true` on the first where it came
+  out right. Show him the list before the release: which ones count is his call. What he set by hand on the page
+  (the profile API's `/celeste`) wins over both: never set or clear it for him.
   Any game that later gets a reader of its own (`scripts/<jogo>.py`, the same shape: dry run, `--apply`, `save` keys
   on the items) is run at this same point. A game without one: mark the items by hand from his word, with `date`
   and `live`.

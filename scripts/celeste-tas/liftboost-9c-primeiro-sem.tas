@@ -1,0 +1,12 @@
+# Liftboost, 1A, 9c: let go of the block, jump never pressed
+# primeiro-sem: press on update 95 after the idle (block's last move: 84; N+11)
+console load 1 3904 -2112
+   1
+
+#Start
+ 120
+  28,R
+   2
+   1,L
+  63,G
+  50

@@ -1,0 +1,12 @@
+# Coyote time, primeira sala do 1A: pulo no último frame no chão
+console load 1 19 144
+   1
+
+#Start
+ 120
+  30
+  18,R
+  20,R,J
+  10,R
+  50
+Assert,Equal,True,{Player.onGround}

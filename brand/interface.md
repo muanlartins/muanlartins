@@ -149,6 +149,9 @@ on the Portuguese site) on every page that shows their material: a game's `credi
 | **Card** (`game-card.tsx`) | the game's tile on the content list and the channel home, the same art in both | its official key art | its official key art |
 
 Jogos diversos takes the card (each game's official wide art, `art` in `content/diversos.json`, else its Twitch box art) and nothing else until a game there earns its own page.
+Celeste earned one (2026-11-22, its roadmap): its sign and marker are a strawberry, its moment is the mountain with his
+climb lit on it (still: the save moves it), its backdrop the same mountain (`components/site/celeste/`), all drawn in
+the brand's tokens, none of the game's art.
 A game's moment is the one thing on the site that may play on its own (see Motion); it stops off screen and under
 reduced motion.
 

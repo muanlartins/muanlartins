@@ -1,0 +1,12 @@
+# Buffer: apertado 4 antes e segurado 4 frames
+console load 1 19 144
+   1
+
+#Start
+ 120
+  30
+  16,R
+  20,R,J
+   6,R
+  4,R,J
+  70,R,G

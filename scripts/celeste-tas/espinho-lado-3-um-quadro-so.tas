@@ -1,0 +1,11 @@
+# Directional spikes, 1A room 5z: jump straight up beside the right-facing spikes; 3-um-quadro-so
+console load 1 916 -784
+   1
+
+#Start
+ 120
+  12,J
+   1,J,R
+   1,J
+   9,J
+  54

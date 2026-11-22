@@ -110,7 +110,30 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * What comes next, in order within each status. Every new feature Luan decides on and won't release the same day goes
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
-export const UPCOMING: Upcoming[] = []
+export const UPCOMING: Upcoming[] = [
+  {
+    id: "celeste-roteiro",
+    status: "agora",
+    tag: "site",
+    title: "Minha trajetória com Celeste",
+    text: "O meu caminho até a platina e os 202 morangos, marcado pelo save, com recortes das lives e referências.",
+  },
+  {
+    id: "celeste-lore",
+    status: "proximo",
+    tag: "live",
+    title: "A lore de Celeste nas lives",
+    text: "A história por trás de cada capítulo e pautas pra conversar, sem spoiler.",
+    credits: [{ by: "leila_m_30" }],
+  },
+  {
+    id: "celeste-videos",
+    status: "ideia",
+    tag: "videos",
+    title: "Vídeos da trajetória com Celeste",
+    text: "Depois da platina, os vídeos preparados com toda a gameplay das lives.",
+  },
+]
 
 /** Every feature released, newest first. */
 export const SHIPPED: Shipped[] = [

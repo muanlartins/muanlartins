@@ -1,0 +1,9 @@
+# Only for the isolated copy that films the demonstrations (../README.md). Never in Luan's game.
+- Name: MuanlartinsDemo
+  Version: 1.0.0
+  DLL: MuanlartinsDemo.dll
+  Dependencies:
+    - Name: EverestCore
+      Version: 1.5935.0
+    - Name: CelesteTAS
+      Version: 3.47.1

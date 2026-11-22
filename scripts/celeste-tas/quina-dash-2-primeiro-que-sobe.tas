@@ -1,0 +1,13 @@
+# Dash corner correction, 1A room 2, step: jump, dash right on frame 13 after the jump
+console load 1 476 -40
+   1
+
+#Start
+ 120
+  12,J
+   8,J,X,R
+   1,J,X,R
+   1,J,X,R
+  10,R
+  40
+  10
