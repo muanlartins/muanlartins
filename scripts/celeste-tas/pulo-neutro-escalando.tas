@@ -1,0 +1,9 @@
+# Escalando com o direcional pra cima (3A, lavanderia, parede da direita)
+console load 3 5812 40
+   1
+
+#Start
+ 120
+   1,R
+   5
+ 150,G,U

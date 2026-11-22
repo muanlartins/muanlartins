@@ -5,15 +5,16 @@ import { DiversosSign, GameCover } from "@/components/site/diversos/game-cover"
 import { PageIntro } from "@/components/site/page-intro"
 import { longDate, shortDate, weekday } from "@/components/site/ranked/format"
 import { Card, CardLink, EmptyState, Section } from "@/components/site/ui"
+import { ACHIEVEMENTS } from "@/content/celeste"
 import { games } from "@/content/projects"
+import { CELESTE, save } from "@/lib/celeste"
 import { livePath } from "@/lib/channel"
-import { diversos, diversosPath, hours, lineOf, playedOf, progressOf, type Goal, type GoalItem, type OtherGame } from "@/lib/diversos"
+import { diversos, diversosPath, hours, lineOf, playedOf, progressOf, type GoalItem, type OtherGame } from "@/lib/diversos"
 import type { Live } from "@/lib/lives"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const MAIN = games.map((game) => game.id)
-const number = (n: number) => n.toLocaleString("pt-BR")
 
 const T = {
   next: "Próxima live",
@@ -34,10 +35,6 @@ const T = {
   missing: "Falta: ",
   doneIn: (date: string) => `na live de ${shortDate(date)}`,
   doneOn: (date: string) => `em ${shortDate(date)}`,
-  strawberries: "Morangos",
-  deaths: "Mortes",
-  inGame: "No jogo",
-  fromSave: (date: string) => `Morangos, mortes, tempo e meta lidos do save do jogo em ${shortDate(date)}.`,
   empty: "Nenhum jogo aqui ainda. Cada jogo novo das lives entra nesta lista.",
   credits: "Cada jogo e a sua capa são de quem fez o jogo. As capas vêm da Twitch, e o site não é oficial.",
 }
@@ -85,17 +82,17 @@ function GameCard({ game, played }: { game: OtherGame; played: Played }) {
         {line && <p className="max-w-[34rem] text-[15px] leading-[1.6] text-ink">{line}</p>}
         <p className="text-[13px] text-muted">
           {meta}
-          <DiversosNext main={MAIN} categoryId={game.categoryId} name={game.category} prefix={` · ${T.next}: `} className="inline-block" />
+          <DiversosNext main={MAIN} categoryId={game.categoryId} name={game.category} prefix={`\u00a0· ${T.next}: `} className="inline-block" />
         </p>
-        {game.goal && <GoalBar goal={game.goal} />}
+        {game.goal && <GoalBar title={game.goal.title} {...progressOf(game.goal)} />}
+        {game.roadmap && game.id === CELESTE && <GoalBar title={game.roadmap.title} done={save.achievements.length} total={ACHIEVEMENTS.length} />}
       </div>
     </CardLink>
   )
 }
 
 /** How much of a goal is done, as a bar: on a card with its name, on its page (under its title) with the share. */
-function GoalBar({ goal, large = false }: { goal: Goal; large?: boolean }) {
-  const { done, total } = progressOf(goal)
+function GoalBar({ title, done, total, large = false }: { title: string; done: number; total: number; large?: boolean }) {
   const share = total ? done / total : 0
   return (
     <span className="block space-y-1.5 pt-1">
@@ -105,7 +102,7 @@ function GoalBar({ goal, large = false }: { goal: Goal; large?: boolean }) {
         ) : (
           <span className="text-[13px] text-ink">
             <span className="eyebrow mr-2 text-muted">{T.goal}</span>
-            <span className="font-medium">{goal.title}</span>
+            <span className="font-medium">{title}</span>
           </span>
         )}
         <span className="text-[13px] tabular-nums text-muted">{large ? `${Math.round(share * 100)}%` : T.of(done, total)}</span>
@@ -123,19 +120,10 @@ export function DiversosGamePage({ game, played }: { game: OtherGame; played: Pl
   const published = new Set(played.lives.map(({ live }) => live.date))
   const line = lineOf(game)
   const description = line ?? T.mine(game.name)
-  const totals = game.save?.totals
   const stats = [
     { label: T.livesTitle, value: String(played.lives.length) },
     { label: T.played, value: played.seconds ? hours(played.seconds) : T.none },
     { label: T.lastLive, value: last ? shortDate(last) : T.none },
-    // From the game's own save, when it's read (scripts/celeste.py).
-    ...(totals
-      ? [
-          { label: T.strawberries, value: number(totals.strawberries) },
-          { label: T.deaths, value: number(totals.deaths) },
-          { label: T.inGame, value: hours(totals.seconds) },
-        ]
-      : []),
   ]
   return (
     <>
@@ -153,14 +141,13 @@ export function DiversosGamePage({ game, played }: { game: OtherGame; played: Pl
                 </div>
               ))}
             </dl>
-            {game.save?.read && <p className="text-[13px] text-muted">{T.fromSave(game.save.read)}</p>}
             <DiversosNext main={MAIN} categoryId={game.categoryId} name={game.category} prefix={`${T.next}: `} className="block text-[13px] text-muted" />
           </div>
         </Card>
 
         {game.goal && (
           <Section title={`${T.goal}: ${game.goal.title}`}>
-            <GoalBar goal={game.goal} large />
+            <GoalBar title={game.goal.title} {...progressOf(game.goal)} large />
             <div className="mt-8 space-y-6">
               {game.goal.groups.map((group, index) => (
                 <div key={group.title ?? index}>
@@ -245,7 +232,7 @@ function GoalChip({ item, published }: { item: GoalItem; published: Set<string> 
 }
 
 /** A live in a row: its thumbnail, its date, the time played and its summary. */
-function LiveRow({ live, meta }: { live: Live; meta: string }) {
+export function LiveRow({ live, meta }: { live: Live; meta: string }) {
   return (
     <CardLink href={livePath(live.date)} className="flex flex-col gap-4 p-3 sm:flex-row sm:items-center">
       {live.video ? (

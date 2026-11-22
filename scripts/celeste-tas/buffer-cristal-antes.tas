@@ -1,0 +1,12 @@
+# Buffer: dash no cristal (antes)
+console load 1 984 -1112
+   1
+
+#Start
+ 120
+  30
+  31,R
+  10,R,X
+  17,R
+   9,R,U,X
+ 100,R,G

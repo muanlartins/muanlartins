@@ -60,3 +60,7 @@ video-agent/edits/
 video-agent/.env
 
 video-agent/styles/*/stills/
+
+# Other people's footage and art on Celeste's technique pages (games' clips, the cartoon): a local preview shows them,
+# nothing here is committed or published until Luan decides on each.
+public/celeste/terceiros/

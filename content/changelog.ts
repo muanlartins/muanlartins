@@ -110,10 +110,38 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  * What comes next, in order within each status. Every new feature Luan decides on and won't release the same day goes
  * here as soon as he decides it, and moves to SHIPPED when it's released (AGENTS.md, "The roadmap and the changelog").
  */
-export const UPCOMING: Upcoming[] = []
+export const UPCOMING: Upcoming[] = [
+  {
+    id: "celeste-lore",
+    status: "proximo",
+    tag: "live",
+    title: "A lore de Celeste nas lives",
+    text: "A história por trás de cada capítulo e pautas pra conversar, sem spoiler.",
+    credits: [{ by: "leila_m_30" }],
+  },
+  {
+    id: "celeste-videos",
+    status: "ideia",
+    tag: "videos",
+    title: "Vídeos da trajetória com Celeste",
+    text: "Depois da platina, os vídeos preparados com toda a gameplay das lives.",
+  },
+]
 
 /** Every feature released, newest first. */
 export const SHIPPED: Shipped[] = [
+  {
+    id: "celeste-roteiro",
+    date: "2026-11-22",
+    tag: "site",
+    title: "Minha trajetória com Celeste",
+    text: "O meu caminho até a platina e os 202 morangos, marcado pelo save, com as técnicas filmadas no próprio jogo.",
+    href: "/conteudo/diversos/celeste",
+    media: [
+      media("celeste-roteiro", "O roteiro do Celeste: o próximo passo, a montanha com as oito etapas e os meus números lidos do save"),
+      media("celeste-tecnica", "A página do coyote time: a Madeline pula 5 frames depois de sair da beirada, no jogo, e chega no pilar", { video: true }),
+    ],
+  },
   {
     id: "jogos-diversos",
     date: "2026-11-21",
@@ -121,7 +149,7 @@ export const SHIPPED: Shipped[] = [
     title: "Jogos diversos",
     text: "Tudo que eu jogo além de Rocket League e Valorant, com as lives, as horas e a meta de cada jogo.",
     href: "/conteudo/diversos",
-    media: [media("jogos-diversos", "A página do Celeste: a capa, as lives e as horas, e a meta de 100% capítulo por capítulo, com morangos, corações e fitas")],
+    media: [media("jogos-diversos", "A lista dos jogos diversos: o card do Celeste, com a capa e a platina em 6 de 32 conquistas")],
   },
   {
     id: "estatisticas-da-partida",

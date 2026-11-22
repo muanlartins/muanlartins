@@ -1,0 +1,9 @@
+# Coyote time: agachada ela fica abaixada enquanto o timer dura
+console load 1 19 144
+   1
+
+#Start
+ 120
+  30
+  16,R
+  40,R,D

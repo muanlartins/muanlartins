@@ -1,0 +1,12 @@
+# Directional spikes, 1A room 10z: spring through the spiked semisolid, no escape
+console load 1 3328 -2232
+   1
+
+#Start
+ 120
+  35,L
+  24,L,J
+  10,L
+  10
+  29
+  61

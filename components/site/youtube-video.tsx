@@ -17,7 +17,7 @@ const EMBED = "https://www.youtube-nocookie.com"
  * A YouTube video that costs nothing until it's played: the thumbnail
  * stands in for the player, and the iframe only loads on click. A video
  * in the other `language` asks YouTube for captions in this site's.
- * `start` is where playing begins; `seek` jumps there, starting the
+ * `start` is where playing begins and `end` where it stops (a cut of a live); `seek` jumps there, starting the
  * player if it isn't yet.
  */
 export function YouTubeVideo({
@@ -25,12 +25,14 @@ export function YouTubeVideo({
   title,
   language = LOCALE,
   start = 0,
+  end,
   seek,
 }: {
   id: string
   title: string
   language?: Locale
   start?: number
+  end?: number
   seek?: Seek
 }) {
   const [playing, setPlaying] = useState(false)
@@ -63,6 +65,7 @@ export function YouTubeVideo({
   if (playing) {
     const params = new URLSearchParams({ autoplay: "1", rel: "0", hl: LOCALE, enablejsapi: "1", origin: window.location.origin })
     if (from) params.set("start", String(Math.floor(from)))
+    if (end && end > from) params.set("end", String(Math.ceil(end)))
     if (language !== LOCALE) {
       params.set("cc_load_policy", "1")
       params.set("cc_lang_pref", LOCALE)

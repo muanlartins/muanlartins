@@ -147,7 +147,7 @@ def game_of(live):
     other = next((game for game in other_games() if game["id"] == game_id), None)
     if not other:
         sys.exit(f"O jogo {game_id!r} da live não está em GAMES nem em content/diversos.json.")
-    name, goal = other["name"], other.get("goal")
+    name, goal = other["name"], other.get("goal") or other.get("roadmap")
     low = name.lower()
     tag = re.sub(r"[^0-9A-Za-z]", "", unicodedata.normalize("NFKD", name))
     return {

@@ -1,0 +1,15 @@
+# Same, dash right on the frame she would land (last that saves)
+console load 1 3328 -2232
+   1
+
+#Start
+ 120
+  35,L
+  24,L,J
+  10,L
+  10
+  28
+   1,R,X
+   9,R,X
+  30,R
+  50

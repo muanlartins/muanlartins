@@ -1,0 +1,20 @@
+# Pulo neutro errado: direcao segurada no frame do pulo (3A, lavanderia, parede da direita)
+console load 3 5812 40
+   1
+
+#Start
+ 120
+   1,R
+   5
+  19,J
+   1
+   1,J,R
+  24,J,R
+   1,R
+   1,J,R
+  24,J,R
+   1,R
+   1,J,R
+  24,J,R
+   1,R
+  50,R

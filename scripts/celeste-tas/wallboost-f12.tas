@@ -1,0 +1,15 @@
+# Wallboost: pra fora 12 frames depois, o primeiro que falha (3A, lavanderia, parede da direita)
+console load 3 5812 40
+   1
+
+#Start
+ 120
+   1,R
+   5
+  19,J
+   1
+   8,R,G
+   1,G,J
+  11,G,J
+   1,G,J,L
+  58,G,J,R

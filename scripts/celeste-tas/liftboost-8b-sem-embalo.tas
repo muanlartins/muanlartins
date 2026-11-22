@@ -1,0 +1,14 @@
+# Liftboost, 1A, 8b: traffic block up the spiked shaft
+# sem-embalo: press on update 65 after the idle (block's last move: 45; N+20)
+console load 1 3024 -1808
+   1
+
+#Start
+ 120
+Set, Player.Position, 3264, -1760
+  10,R
+  54
+  20,J
+   1,L,J,G
+   4,J,G
+  70,G

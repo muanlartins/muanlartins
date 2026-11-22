@@ -1,0 +1,20 @@
+# Pulos de escalada, que gastam stamina (3A, lavanderia, parede da direita)
+console load 3 5812 40
+   1
+
+#Start
+ 120
+   1,R
+   5
+  19,J
+   1
+   1,G,J
+  20,G,J
+   1,G
+   1,G,J
+  20,G,J
+   1,G
+   1,G,J
+  20,G,J
+   1,G
+  80,G

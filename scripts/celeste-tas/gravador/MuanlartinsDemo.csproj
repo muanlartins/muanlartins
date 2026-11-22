@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>MuanlartinsDemo</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Celeste" HintPath="$(CelestePath)/Celeste.dll" Private="false" />
+    <Reference Include="MMHOOK_Celeste" HintPath="$(CelestePath)/MMHOOK_Celeste.dll" Private="false" />
+    <Reference Include="FNA" HintPath="$(CelestePath)/FNA.dll" Private="false" />
+    <Reference Include="MonoMod.RuntimeDetour" HintPath="$(CelestePath)/MonoMod.RuntimeDetour.dll" Private="false" />
+    <Reference Include="MonoMod.Utils" HintPath="$(CelestePath)/MonoMod.Utils.dll" Private="false" />
+    <Reference Include="YamlDotNet" HintPath="$(CelestePath)/YamlDotNet.dll" Private="false" />
+    <Reference Include="CelesteTAS-EverestInterop" HintPath="$(CelesteTasPath)/CelesteTAS-EverestInterop.dll" Private="false" />
+    <Reference Include="StudioCommunication" HintPath="$(CelesteTasPath)/StudioCommunication.dll" Private="false" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,10 @@
+# Corner correction, 1A room 2, pillar: straight jump from X=272 (overlap 4 px)
+console load 1 512 -64
+   1
+
+#Start
+ 120
+   7,J
+   1,J
+  14,J
+  40

@@ -1,5 +1,6 @@
 import { Gamepad2 } from "lucide-react"
 import type { ComponentType } from "react"
+import { Strawberry } from "@/components/site/celeste/glyphs"
 import { Crosshair } from "@/components/site/game/crosshair"
 
 /*
@@ -30,16 +31,16 @@ export function Pad({ size = 12, className }: { size?: number; className?: strin
 }
 
 /** The sign: the game wherever it's named (menus, cards, the agenda, the lives). */
-const SIGNS: Record<string, Glyph> = { "rocket-league": Ball, valorant: Crosshair, diversos: Pad }
+const SIGNS: Record<string, Glyph> = { "rocket-league": Ball, valorant: Crosshair, diversos: Pad, celeste: Strawberry }
 
 /**
  * The marker, "you are here": the dot on the menu's rail at the page being read, and on a game's home at the page
  * being pointed at. Today each game's marker is its sign; they're kept apart so one can change alone. (The rail of the
  * fundamentals has its own, larger: Rocket League's 3D ball, Valorant's crosshair.)
  */
-const MARKERS: Record<string, Glyph> = { "rocket-league": Ball, valorant: Crosshair, diversos: Pad }
+const MARKERS: Record<string, Glyph> = { "rocket-league": Ball, valorant: Crosshair, diversos: Pad, celeste: Strawberry }
 
-/** Each game's sign: Rocket League's ball, Valorant's crosshair, a gamepad for the other games ("diversos"). */
+/** Each game's sign: Rocket League's ball, Valorant's crosshair, Celeste's strawberry, a gamepad for the other games ("diversos"). */
 export function GameIcon({ game, size = 12, className }: { game: string; size?: number; className?: string }) {
   const Sign = SIGNS[game] ?? Pad
   return <Sign size={size} className={className} />

@@ -1,0 +1,11 @@
+# Liftboost, 1A, 4: the game's first traffic block, jump with no direction held
+# primeiro-sem: press on update 66 after the idle (block's last move: 55; N+11)
+console load 1 824 -480
+   1
+
+#Start
+ 120
+  26,R
+  39
+  20,J
+  40

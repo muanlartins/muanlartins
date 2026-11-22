@@ -129,6 +129,22 @@ test("the agenda: only the channel saves it, everyone reads it, with the next li
   assert.equal(chat.body, "Próxima live amanhã às 21h (horário de Brasília): VALORANT, Aprendendo Valorant.")
 })
 
+test("Celeste's learning: only the channel sets it, everyone reads it, null is automatic again", async () => {
+  const { chamar } = montar()
+  assert.deepEqual((await chamar("GET", "/celeste")).body, { aprendizado: {}, em: null })
+  const marca = { id: "coyote-time", estado: "aprendendo" }
+  assert.equal((await chamar("PUT", "/celeste", { corpo: marca })).status, 403)
+  assert.equal((await chamar("PUT", "/celeste", { token: "bom", corpo: marca })).status, 403)
+  for (const corpo of [[], {}, { id: "__proto__", estado: "vou" }, { id: "wavedash", estado: "expert" }, { id: "wavedash" }, { id: "x".repeat(41), estado: "vou" }])
+    assert.equal((await chamar("PUT", "/celeste", { token: "canal", corpo })).status, 400)
+  assert.equal((await chamar("PUT", "/celeste", { token: "canal", corpo: marca })).status, 200)
+  await chamar("PUT", "/celeste", { token: "canal", corpo: { id: "wavedash", estado: "aprendi" } })
+  assert.deepEqual((await chamar("GET", "/celeste")).body.aprendizado, { "coyote-time": "aprendendo", wavedash: "aprendi" })
+  await chamar("PUT", "/celeste", { token: "canal", corpo: { id: "coyote-time", estado: null } })
+  assert.deepEqual((await chamar("GET", "/celeste")).body.aprendizado, { wavedash: "aprendi" })
+  assert.equal((await chamar("DELETE", "/celeste", { token: "canal" })).status, 405)
+})
+
 test("the ball in the duel: saved on its own, public by login for the overlay, junk dropped", async () => {
   const { chamar } = montar()
   await chamar("PUT", "/eu", { token: "bom", corpo: { cabeca: "bone" } })

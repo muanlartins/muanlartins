@@ -1,0 +1,415 @@
+{
+  "coyote-time": {
+    "crop": [0, 90, 160, 90],
+    "from": 152,
+    "to": 222,
+    "gauge": "coyote",
+    "cover": ["5", 175],
+    "takes": {
+      "0": "coyote-time-0",
+      "1": "coyote-time-1",
+      "2": "coyote-time-2",
+      "3": "coyote-time-3",
+      "4": "coyote-time-4",
+      "5": "coyote-time-5",
+      "6": "coyote-time-6"
+    },
+    "expect": {
+      "0": [
+        [222, "morta", "0"]
+      ],
+      "1": [
+        [222, "morta", "0"]
+      ],
+      "2": [
+        [222, "morta", "0"]
+      ],
+      "3": [
+        [222, "morta", "0"]
+      ],
+      "4": [
+        [222, "morta", "0"]
+      ],
+      "5": [
+        [222, "morta", "0"]
+      ],
+      "6": [
+        [222, "morta", "1"]
+      ]
+    }
+  },
+  "liftboost": {
+    "crop": [0, 0, 320, 180],
+    "from": 148,
+    "to": 226,
+    "cover": ["10", 176],
+    "takes": {
+      "1": "liftboost-8b-melhor",
+      "10": "liftboost-8b-ultimo",
+      "11": "liftboost-8b-primeiro-sem"
+    },
+    "expect": {
+      "1": [
+        [226, "estado", "1"],
+        [167, "teclas", "16"]
+      ],
+      "10": [
+        [226, "estado", "1"],
+        [176, "teclas", "16"]
+      ],
+      "11": [
+        [226, "chao", "1"],
+        [177, "teclas", "16"],
+        [176, "teclas", "0"]
+      ]
+    }
+  },
+  "liftboost-armadilha": {
+    "crop": [96, 8, 160, 90],
+    "from": 140,
+    "to": 215,
+    "cover": ["10", 186],
+    "takes": {
+      "10": "liftboost-4-ultimo",
+      "11": "liftboost-4-primeiro-sem"
+    },
+    "expect": {
+      "10": [
+        [191, "morta", "1"]
+      ],
+      "11": [
+        [215, "morta", "0"]
+      ]
+    }
+  },
+  "liftboost-soltar": {
+    "crop": [56, 90, 160, 90],
+    "from": 172,
+    "to": 236,
+    "cover": ["10", 215],
+    "takes": {
+      "10": "liftboost-9c-ultimo",
+      "11": "liftboost-9c-primeiro-sem"
+    },
+    "expect": {
+      "10": [
+        [215, "teclas", "0"],
+        [230, "vx", "38.4612"]
+      ],
+      "11": [
+        [215, "teclas", "64"],
+        [230, "vx", "0"]
+      ]
+    }
+  },
+  "coyote-agachada": {
+    "crop": [0, 90, 160, 90],
+    "from": 158,
+    "to": 190,
+    "gauge": "coyote",
+    "cover": ["sim", 174],
+    "takes": {
+      "sim": "coyote-agachada-sim",
+      "nao": "coyote-agachada-nao"
+    },
+    "expect": {
+      "sim": [
+        [172, "altura", "6"],
+        [176, "altura", "6"],
+        [177, "altura", "11"]
+      ],
+      "nao": [
+        [174, "altura", "11"]
+      ]
+    }
+  },
+  "coyote-parede": {
+    "crop": [0, 90, 160, 90],
+    "from": 160,
+    "to": 232,
+    "gauge": "coyote",
+    "cover": ["5", 176],
+    "takes": {
+      "5": "coyote-parede-5",
+      "6": "coyote-parede-6"
+    },
+    "expect": {
+      "5": [
+        [176, "vx", "-54.1669"],
+        [228, "chao", "1"]
+      ],
+      "6": [
+        [177, "vx", "130"],
+        [221, "morta", "1"]
+      ]
+    }
+  },
+  "buffer": {
+    "crop": [8, 72, 160, 90],
+    "from": 184,
+    "to": 236,
+    "cover": ["4", 195],
+    "takes": {
+      "5": "buffer-cedo-5",
+      "4": "buffer-cedo-4",
+      "3": "buffer-cedo-3",
+      "2": "buffer-cedo-2",
+      "1": "buffer-cedo-1",
+      "0": "buffer-cedo-0"
+    },
+    "expect": {
+      "0": [
+        [198, "vy", "-105"],
+        [236, "estado", "1"]
+      ],
+      "1": [
+        [198, "vy", "-105"],
+        [236, "estado", "1"]
+      ],
+      "2": [
+        [198, "vy", "-105"],
+        [236, "estado", "1"]
+      ],
+      "3": [
+        [198, "vy", "-105"],
+        [236, "estado", "1"]
+      ],
+      "4": [
+        [198, "vy", "-105"],
+        [236, "estado", "1"]
+      ],
+      "5": [
+        [227, "morta", "1"]
+      ]
+    }
+  },
+  "buffer-segurar": {
+    "crop": [8, 72, 160, 90],
+    "from": 184,
+    "to": 230,
+    "cover": ["5", 199],
+    "takes": {
+      "4": "buffer-segura-4",
+      "5": "buffer-segura-5",
+      "30": "buffer-segura-30"
+    },
+    "expect": {
+      "4": [
+        [224, "morta", "1"]
+      ],
+      "5": [
+        [198, "vy", "-105"],
+        [222, "morta", "1"]
+      ],
+      "30": [
+        [198, "vy", "-105"],
+        [230, "estado", "1"]
+      ]
+    }
+  },
+  "buffer-cristal": {
+    "crop": [36, 74, 176, 99],
+    "from": 196,
+    "to": 250,
+    "cover": ["toque", 213],
+    "takes": {
+      "antes": "buffer-cristal-antes",
+      "toque": "buffer-cristal-toque"
+    },
+    "expect": {
+      "antes": [
+        [211, "teclas", "38"],
+        [235, "morta", "1"]
+      ],
+      "toque": [
+        [212, "teclas", "38"],
+        [216, "estado", "2"],
+        [250, "morta", "0"]
+      ]
+    }
+  },
+  "pulo-neutro": {
+    "crop": [144, 80, 176, 99],
+    "from": 124,
+    "to": 274,
+    "gauge": "stamina",
+    "cover": ["neutro", 174],
+    "takes": {
+      "neutro": "pulo-neutro",
+      "segurando": "pulo-neutro-segurando",
+      "escalando": "pulo-neutro-escalando",
+      "escalada": "pulo-neutro-pulo-escalada"
+    },
+    "expect": {
+      "neutro": [
+        [200, "stamina", "110"],
+        [200, "vx", "-130"]
+      ],
+      "segurando": [
+        [274, "chao", "1"]
+      ],
+      "escalando": [
+        [236, "y", "-36.5002"]
+      ],
+      "escalada": [
+        [149, "stamina", "82.5"]
+      ]
+    }
+  },
+  "wallboost": {
+    "crop": [144, 80, 176, 99],
+    "from": 140,
+    "to": 205,
+    "gauge": "stamina",
+    "cover": ["11", 167],
+    "takes": {
+      "0": "wallboost-f0",
+      "1": "wallboost-f1",
+      "11": "wallboost-f11",
+      "12": "wallboost-f12"
+    },
+    "expect": {
+      "0": [
+        [160, "stamina", "109.6667"]
+      ],
+      "1": [
+        [158, "stamina", "109.6667"]
+      ],
+      "11": [
+        [168, "stamina", "109.6667"],
+        [167, "stamina", "82.1667"]
+      ],
+      "12": [
+        [180, "stamina", "82.1667"]
+      ]
+    }
+  },
+  "quina": {
+    "crop": [160, 56, 160, 90],
+    "from": 121,
+    "to": 180,
+    "cover": ["4", 1],
+    "takes": {
+      "1": "quina-pulo-3-desliza-1px",
+      "3": "quina-pulo-2-desliza-3px",
+      "4": "quina-pulo-0-desliza-4px",
+      "5": "quina-pulo-1-bate-5px",
+      "dash5": "quina-pulo-4-dash-desliza-5px",
+      "dash6": "quina-pulo-5-dash-bate-6px"
+    },
+    "expect": {
+      "4": [
+        [141, "x", "516"]
+      ],
+      "3": [
+        [141, "x", "516"]
+      ],
+      "1": [
+        [141, "x", "516"]
+      ],
+      "5": [
+        [141, "x", "511"],
+        [143, "chao", "1"]
+      ],
+      "dash5": [
+        [150, "x", "516"]
+      ],
+      "dash6": [
+        [135, "vy", "0"]
+      ]
+    }
+  },
+  "quina-dash": {
+    "crop": [160, 56, 160, 90],
+    "from": 145,
+    "to": 186,
+    "cover": ["30", 0],
+    "takes": {
+      "30": "quina-dash-0-ultimo-que-sobe",
+      "31": "quina-dash-1-primeiro-que-bate"
+    },
+    "expect": {
+      "30": [
+        [160, "y", "-64.375"]
+      ],
+      "31": [
+        [161, "vx", "0"],
+        [184, "chao", "1"]
+      ]
+    }
+  },
+  "quina-mata": {
+    "crop": [144, 50, 160, 90],
+    "from": 121,
+    "to": 172,
+    "cover": ["208", 0],
+    "takes": {
+      "207": "quina-mata-0-bate-vive",
+      "208": "quina-mata-1-corrigida-morre"
+    },
+    "expect": {
+      "207": [
+        [172, "morta", "0"]
+      ],
+      "208": [
+        [134, "morta", "1"],
+        [134, "x", "916"]
+      ]
+    }
+  },
+  "espinhos": {
+    "crop": [144, 50, 160, 90],
+    "from": 121,
+    "to": 170,
+    "cover": ["0", 0],
+    "takes": {
+      "0": "espinho-lado-0-afasta-a-tempo",
+      "1": "espinho-lado-1-um-quadro-tarde",
+      "2": "espinho-lado-2-parada",
+      "3": "espinho-lado-3-um-quadro-so",
+      "4": "espinho-lado-4-dash-pra-fora"
+    },
+    "expect": {
+      "0": [
+        [170, "morta", "0"],
+        [134, "vx", "10.8334"]
+      ],
+      "1": [
+        [134, "morta", "1"]
+      ],
+      "2": [
+        [134, "morta", "1"]
+      ],
+      "3": [
+        [135, "morta", "1"]
+      ],
+      "4": [
+        [136, "morta", "1"],
+        [136, "estado", "2"]
+      ]
+    }
+  },
+  "espinhos-mola": {
+    "crop": [140, 70, 176, 99],
+    "from": 185,
+    "to": 262,
+    "cover": ["dash", -8],
+    "takes": {
+      "sem": "espinho-mola-0-sem-fuga",
+      "dash": "espinho-mola-1-dash-no-ultimo-quadro",
+      "tarde": "espinho-mola-2-dash-um-quadro-tarde"
+    },
+    "expect": {
+      "sem": [
+        [229, "morta", "1"]
+      ],
+      "dash": [
+        [229, "estado", "2"],
+        [262, "morta", "0"]
+      ],
+      "tarde": [
+        [229, "morta", "1"]
+      ]
+    }
+  }
+}

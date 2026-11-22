@@ -1,0 +1,11 @@
+# Coyote time contra pulo de parede: pulo no frame 6 fora do chao
+console load 1 19 144
+   1
+
+#Start
+ 120
+  30
+  17,R
+   8,L
+  20,L,J
+  70,L

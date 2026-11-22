@@ -1,0 +1,10 @@
+# Corner correction into spikes, 1A room 5z: straight jump from X=208 under the spiked wall
+console load 1 912 -784
+   1
+
+#Start
+ 120
+  12,J
+   1,J
+   9,J
+  30

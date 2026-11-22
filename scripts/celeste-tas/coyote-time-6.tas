@@ -1,0 +1,12 @@
+# Coyote time, primeira sala do 1A: pulo 6 frames fora do chão, não sai
+console load 1 19 144
+   1
+
+#Start
+ 120
+  30
+  24,R
+   2,R,J
+Assert,Equal,False,{Player.onGround}
+  18,R,J
+  30
