@@ -4,10 +4,11 @@ import dynamic from "next/dynamic"
 import { useProgress } from "@/lib/progress"
 import { UI } from "@/lib/site"
 
-const Showroom = dynamic(() => import("./showroom"), { ssr: false })
+const Moment = dynamic(() => import("./rl-moment/moment"), { ssr: false })
 
+/** Rocket League's moment (`rl-moment/`), loaded in the browser only. */
 export function ShowroomStage() {
-  return <Showroom />
+  return <Moment />
 }
 
 /** The visitor's own progress through the roadmap, from this browser; nothing before the first topic done. */
