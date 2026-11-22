@@ -97,6 +97,8 @@ export function TopicPage({ game, roadmap, id }: { game: Game; roadmap: Roadmap;
           {previous ? <Neighbour roadmap={roadmap} entry={previous} label={UI.previous} /> : <span />}
           {next && <Neighbour roadmap={roadmap} entry={next} label={UI.next} forward />}
         </nav>
+
+        <p className="mt-16 max-w-[38rem] text-[13px] leading-[1.6] text-muted">{localize(game.credits)}</p>
       </DocPage>
     </>
   )
