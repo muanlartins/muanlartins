@@ -8,7 +8,21 @@
     "en": "I started Celeste from zero: the Prologue and the first three chapters, 39 strawberries, chapter 1's crystal heart and chapter 3's cassette, in 107 deaths."
   },
   "youtube": {
-    "title": "Conheci a minha versão do mal | Celeste ao vivo"
+    "title": "Conheci a minha versão do mal | Celeste ao vivo",
+    "thumb": {
+      "quadro": "72.5",
+      "segundo": 72.5,
+      "texto": "A VERSÃO|DO MAL",
+      "emblema": false,
+      "fundo": "1:02:40",
+      "recorte": [
+        80,
+        82,
+        994,
+        540
+      ]
+    },
+    "publish_at": "2026-11-25T12:00:00-03:00"
   },
   "chapters": [
     { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
