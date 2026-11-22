@@ -96,6 +96,13 @@ by elapsed seconds, so a slow frame can't skip a stage or a sound).
   add up: Celeste's dash whips it, its feather floats it); for a 2D layer of its own, `quad(material)`, `ortho`,
   `renderer` (its own render targets too: Celeste keeps his cutout from the last frames), `uniforms` (`uCam`, `uMask`,
   `uTime`, `uFace` and `uFaceUp` the face's oval…), `GLSL_COMMON` and `VERT`.
+- **His hair out of the camera** (`GLSL_APAGAR`): a look paints his own hair over with what's behind him, so a quad
+  that draws the camera over the whole box starts from `apagarCabelo(camera, vUv)` (the colour, and in `.a` how much
+  of it is background), never from `uCam` as it comes: that brings his hair back (Celeste's chapters did, 2026-11-22).
+- **A failed or late answer** is the engine's to deal with (`../quadro.js`): the face, the shoulders, the hands and
+  the body mask's last good answer stand in for a moment (`SEGURA`), and the background behind him is learnt only
+  from the mask's own frame, where several masks in a row agree he isn't, never round his head. A module takes
+  `headSeen`, `pose.seen` and `uMask` as they are.
 - **The body mask**: `uniforms.uMask`, tracked only while a module's `quer` asks for `corpo`; `mascaraEm` is when the
   newest came in (`performance.now()`), so an effect asked for at a moment can wait for a mask made after it
   (Celeste's afterimages and frozen silhouette).
@@ -183,7 +190,7 @@ on connecting and when it changes), and the moments as they happen. The module:
 - asks the trackers for what the game's state needs only while it needs it (`quer`: Celeste's hair keeps the body mask
   on while he's in a level; the hands' gesture is off while the game drives the dash);
 - can draw an ambient of its own in phase `"atras"` from the state (Celeste's per chapter): one quad over the box that
-  takes `uCam` towards its colours and lays its own particles, the far ones kept off his body with `uMask` while it's
+  takes the camera, his hair out of it (`apagarCabelo`), towards its colours and lays its own particles, the far ones kept off his body with `uMask` while it's
   fresh (`mascaraEm`), all kept off his face with `uFace`/`uFaceUp`, crossfading on a change and fading out when the
   game goes.
 
@@ -197,7 +204,10 @@ virtual clock (below).
 browser on a virtual clock and saves screenshots at chosen seconds (`barreira:0.5,1,2`), with the sounds it played
 and any errors, into `~/.cache/muanlartins/filtros-teste/`. `Math.random` comes from a seed (`--semente=N`, 1), so
 a change that shouldn't change the picture can be checked against a run from before it. `--video=<clip>.y4m` uses a
-few seconds of a live's `Câmera.mkv` as the camera (with `--params=zoom=1`), for gestures and the body mask. On the
+few seconds of a live's `Câmera.mkv` as the camera (with `--params=zoom=1`), for gestures and the body mask. What's
+erased behind him is judged only on the webcam's whole picture, without `zoom=1` (the clip put back at 854×480 in
+(206, 240) of `camera-fundo.png` at 1280×720): framed, the background doesn't line up. And with the game's stand-in
+connected: the chapters' grade redraws the camera. On the
 CPU the trackers' first answers come late (the body mask's first, ~30 s): put a long one-off first in the list, or
 the first one that needs the mask or the face runs without them. Gestures can be tried with made-up hands:
 `?debug`'s `window.__hands(now)` returns `{ landmarks: [hand] }` in the hand tracker's place. A filter that follows a game takes

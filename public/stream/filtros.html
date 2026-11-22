@@ -217,6 +217,7 @@
       import { lista as listaDeFiltros } from "./filtros/index.js"
       import { createSfx } from "./sfx.js"
       import { createHat } from "./gorro.js"
+      import { criarQuadro, SEGURA } from "./quadro.js"
 
       const q = new URLSearchParams(location.search)
       // The page's size: the camera's own (1280×720 at 60). In OBS each scene scales it into its camera box.
@@ -334,6 +335,9 @@
       // The same without the chair behind him, while the filter on asks for it (`quer`'s tronco); else the same.
       let troncoData = new Uint8Array(MW * MH)
       let troncoTex = makeMaskTex(troncoData)
+      // Where he may be, over the last masks and round his head: not to be learnt as background (quadro.js).
+      let foraData = new Uint8Array(MW * MH)
+      let foraTex = makeMaskTex(foraData)
       function makeMaskTex(data) {
         const t = new THREE.DataTexture(data, MW, MH, THREE.RedFormat, THREE.UnsignedByteType)
         t.minFilter = THREE.LinearMipmapLinearFilter
@@ -434,6 +438,8 @@
         // Where the erasing stops below the face (fades between these, in the face's half heights from its middle):
         // agents keep the jaw, the cars take the whole head down to the chin.
         uEraseLow: { value: new THREE.Vector2(-0.55, -0.3) },
+        // How far his head has moved on screen since the mask's frame: the erasing covers him at both places.
+        uMaskShift: { value: new THREE.Vector2() },
         // What's been seen behind him (memory below) and his face's mask (drawKeep: r the whole face and ears,
         // g the face as drawn back over the agent).
         uMem: { value: null },
@@ -451,6 +457,43 @@
         uBoomT: { value: -1 },
       }
 
+      // His own hair painted over with what's behind him, for whatever draws the camera over the whole box (the
+      // camera's layer, a filter's grade of it: Celeste's chapters). One drawing the raw camera there would bring his
+      // hair back (2026-11-22's live). The colour, and in .a how much of it is the background put there.
+      const GLSL_APAGAR = /* glsl */ `
+        uniform float uErase;
+        uniform vec4 uFace;
+        uniform vec2 uFaceUp;
+        uniform sampler2D uPlate;
+        uniform vec3 uPlateFix;
+        uniform float uPlateOk;
+        uniform vec2 uMaskShift;
+        uniform vec2 uEraseLow;
+        uniform sampler2D uMem;
+        uniform sampler2D uKeep;
+        vec4 apagarCabelo(vec3 col, vec2 uv) {
+          float a = 0.0;
+          if (uErase > 0.0) {
+            vec2 d = (uv - uFace.xy) * vec2(uAspect, 1.0);
+            d = vec2(dot(d, vec2(uFaceUp.y, -uFaceUp.x)), dot(d, uFaceUp));
+            // As wide as the head is tall, at least: turned, the face is narrow but the hair behind it isn't.
+            float zone = length(d / (vec2(max(uFace.z, uFace.w * 0.9), uFace.w) * vec2(2.6, 2.8)));
+            if (zone < 1.0 && d.y > uFace.w * uEraseLow.x) {
+              // Up to his face's outline (and ears), wherever the mask, widened a little, says he is; soft at
+              // the zone's edges, so no line shows where the erasing stops.
+              // (The mask is a few frames old: where he was in it, and there moved along with his head.)
+              float m = smoothstep(0.03, 0.2, max(maskAt(uv, 2.0), maskAt(uv - uMaskShift, 2.0)));
+              float k = (1.0 - smoothstep(0.2, 0.8, texture2D(uKeep, uv).r)) * smoothstep(1.0, 0.9, zone) * smoothstep(uEraseLow.x, uEraseLow.y, d.y / uFace.w);
+              vec2 v = camUv(uv);
+              vec4 mem = texture2D(uMem, v);
+              vec3 bg = mix(texture2D(uPlate, v).rgb + uPlateFix, mem.rgb, mem.a);
+              a = m * uErase * k * max(mem.a, uPlateOk);
+              col = mix(col, bg, a);
+            }
+          }
+          return vec4(col, a);
+        }`
+
       // Layer 0: the camera, or Pop's burst and fire where its shards have come in.
       const baseMat = new THREE.ShaderMaterial({
         uniforms,
@@ -462,15 +505,7 @@
           uniform float uPop;
           uniform vec2 uCenter;
           uniform float uEnergy;
-          uniform float uErase;
-          uniform vec4 uFace;
-          uniform vec2 uFaceUp;
-          uniform sampler2D uPlate;
-          uniform vec3 uPlateFix;
-          uniform float uPlateOk;
-          uniform vec2 uEraseLow;
-          uniform sampler2D uMem;
-          uniform sampler2D uKeep;
+          ${GLSL_APAGAR}
           vec3 burst(vec2 uv, float t) {
             vec2 p = (uv - uCenter) * vec2(uAspect, 1.0);
             float r = length(p);
@@ -511,22 +546,7 @@
               vec4 f = fire(vUv, uTime);
               col = mix(bg, f.rgb, f.a);
             }
-            if (uErase > 0.0) {
-              vec2 d = (vUv - uFace.xy) * vec2(uAspect, 1.0);
-              d = vec2(dot(d, vec2(uFaceUp.y, -uFaceUp.x)), dot(d, uFaceUp));
-              // As wide as the head is tall, at least: turned, the face is narrow but the hair behind it isn't.
-              float zone = length(d / (vec2(max(uFace.z, uFace.w * 0.9), uFace.w) * vec2(2.6, 2.8)));
-              if (zone < 1.0 && d.y > uFace.w * uEraseLow.x) {
-                // Up to his face's outline (and ears), wherever the mask, widened a little, says he is; soft at
-                // the zone's edges, so no line shows where the erasing stops.
-                float m = smoothstep(0.03, 0.2, maskAt(vUv, 2.0));
-                float k = (1.0 - smoothstep(0.2, 0.8, texture2D(uKeep, vUv).r)) * smoothstep(1.0, 0.9, zone) * smoothstep(uEraseLow.x, uEraseLow.y, d.y / uFace.w);
-                vec2 v = camUv(vUv);
-                vec4 mem = texture2D(uMem, v);
-                vec3 bg = mix(texture2D(uPlate, v).rgb + uPlateFix, mem.rgb, mem.a);
-                col = mix(col, bg, m * uErase * k * max(mem.a, uPlateOk));
-              }
-            }
+            col = apagarCabelo(col, vUv).rgb;
             gl_FragColor = vec4(col, 1.0);
           }`,
       })
@@ -607,39 +627,80 @@
       const bodyScene = quad(bodyMat)
       const lensScene = quad(lensMat)
 
-      // What's behind Luan, remembered in the video's own uv: each time the mask is new, the camera's pixels where
-      // he clearly isn't (his chair, the background) are kept, so what's painted over his hair is what was really
-      // there; where he's never moved away from, the plate (when it matches).
+      // What's behind Luan, remembered in the video's own uv: the pixels where he surely isn't (his chair, the
+      // background) are kept, so what's painted over his hair is what was really there; where he's never moved away
+      // from, the plate (when it matches). Surely: out of the last masks and off his head (quadro.js), and taken from
+      // the very frame the mask was made from (`uQuadro`, handed back by its worker), never the one on screen by then.
       const memRT = [0, 1].map(() => new THREE.WebGLRenderTarget(1280, 720, { depthBuffer: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter }))
       let memI = 0
-      let maskFresh = false
+      let aprender = null
+      let quadroTex = null
+      let memZeradaEm = -Infinity
       const memMat = new THREE.ShaderMaterial({
-        uniforms: { uCam: uniforms.uCam, uMask: uniforms.uMask, uPrev: { value: memRT[1].texture } },
+        uniforms: { uQuadro: { value: null }, uFora: { value: foraTex }, uPrev: { value: memRT[1].texture } },
         vertexShader: VERT,
         depthTest: false,
         depthWrite: false,
         fragmentShader: /* glsl */ `
-          uniform sampler2D uCam;
-          uniform sampler2D uMask;
+          uniform sampler2D uQuadro;
+          uniform sampler2D uFora;
           uniform sampler2D uPrev;
           varying vec2 vUv;
           void main() {
             // The same widened mask the erasing uses, so what it paints is what was learnt.
-            float m = textureLod(uMask, vec2(vUv.x, 1.0 - vUv.y), 2.0).r;
+            vec2 v = vec2(vUv.x, 1.0 - vUv.y); // both from the top: a bitmap is never flipped
+            float m = textureLod(uFora, v, 2.0).r;
             vec4 prev = texture2D(uPrev, vUv);
-            vec3 cam = texture2D(uCam, vUv).rgb;
+            vec3 cam = texture2D(uQuadro, v).rgb;
             gl_FragColor = m < 0.03 ? vec4(prev.a > 0.0 ? mix(prev.rgb, cam, 0.35) : cam, 1.0) : prev;
           }`,
       })
       const memScene = quad(memMat)
       function remember() {
+        const { bitmap, fora } = aprender
+        const img = quadroTex?.image
+        if (!img || quadroTex.userData.w !== bitmap.width || quadroTex.userData.h !== bitmap.height) {
+          quadroTex?.dispose()
+          quadroTex = new THREE.Texture(bitmap)
+          quadroTex.flipY = quadroTex.generateMipmaps = false
+          quadroTex.minFilter = quadroTex.magFilter = THREE.LinearFilter
+          quadroTex.userData = { w: bitmap.width, h: bitmap.height }
+          memMat.uniforms.uQuadro.value = quadroTex
+        }
+        quadroTex.image = bitmap
+        quadroTex.needsUpdate = true
+        foraData.set(fora)
+        foraTex.needsUpdate = true
         memMat.uniforms.uPrev.value = memRT[memI].texture
         memI = 1 - memI
         renderer.setRenderTarget(memRT[memI])
         renderer.render(memScene, ortho)
         renderer.setRenderTarget(null)
         uniforms.uMem.value = memRT[memI].texture
+        esquecerQuadro() // uploaded by that render
       }
+      function esquecerQuadro() {
+        aprender?.bitmap.close()
+        aprender = null
+      }
+      // Nothing known of what's behind him: another camera, another background, or the filter on from none.
+      function zerarFundo() {
+        esquecerQuadro()
+        quadro.limpa()
+        renderer.getClearColor(corLimpa)
+        const a = renderer.getClearAlpha()
+        renderer.setClearColor(0x000000, 0)
+        renderer.setScissorTest(false)
+        for (const rt of memRT) {
+          renderer.setRenderTarget(rt)
+          renderer.clear()
+        }
+        renderer.setRenderTarget(null)
+        renderer.setClearColor(corLimpa, a)
+        memZeradaEm = performance.now()
+        Object.assign(plate, { bateu: false, erros: 0, foraDesde: 0 })
+      }
+      const corLimpa = new THREE.Color()
 
       // The effects on his body, flat over the camera's box, from the body mask (any filter's, through `corpo`):
       // Valorant's red reveal or Sage's jade heal (a glow: a light colour over him, a halo outside his outline and a rim
@@ -935,7 +996,8 @@
       // Checked against the frame where the mask says he isn't, and evened out to it; it stays off while they
       // don't match (another background, or none), since a flat colour showed as a blue wedge. ?apagar=0 turns it off.
       const ERASE = q.get("apagar") !== "0"
-      const plate = { ok: false, img: null, canvas: document.createElement("canvas"), at: -1e9 }
+      const plate = { ok: false, img: null, canvas: document.createElement("canvas"), at: -1e9, bateu: false, erros: 0, foraDesde: 0 }
+      const PLATE_MAX = 12 // how far from the frame it may be and still match
       new THREE.TextureLoader().load(q.get("fundo") || "camera-fundo.png", (t) => {
         t.colorSpace = THREE.NoColorSpace
         t.minFilter = t.magFilter = THREE.LinearFilter
@@ -2093,6 +2155,7 @@
           for (const k of tr.which) if (want[k]) quer[k] = true
           if (quer.corpo && want.fundo) quer.fundo = true
           if (quer.corpo && want.tronco) quer.tronco = true
+          if (quer.corpo && want.quadro) quer.quadro = true
           if (!Object.keys(quer).length) continue
           tr.busy = true
           if (quer.ombros) {
@@ -2116,10 +2179,21 @@
         if (d.erro) fail("modelos", d.erro)
         if (d.maos && handsOn) applyHands(d.maos, d.t)
         if ("rosto" in d) applyFace(d.rosto, d.t)
-        if (d.ombros) applyPose(d.ombros)
-        if (d.corpo) {
-          applyBody(d.corpo)
-          if (d.corpo.topo) sampleBackground(d.corpo.topo)
+        if (d.ombros) applyPose(d.ombros, d.t)
+        let fica = false
+        try {
+          if (!d.corpo) return
+          const r = applyBody(d.corpo, d.t)
+          if (!r?.usar) return
+          if (d.corpo.topo) sampleBackground(d.corpo.topo, d.t)
+          // Learnt from only while the background is the one it was: a frame of the room, or of no picture, isn't.
+          if (d.quadro && r.fora && d.t > memZeradaEm && !(plate.bateu && plate.off >= PLATE_MAX)) {
+            esquecerQuadro()
+            aprender = { bitmap: d.quadro, fora: r.fora }
+            fica = true
+          }
+        } finally {
+          if (!fica) d.quadro?.close()
         }
       }
 
@@ -2141,6 +2215,9 @@
       let bodySentAt = -1e9
       // When the newest body mask came in (`mascaraEm`: a filter waiting for one made after it asked).
       let maskTime = -Infinity
+      // The frame the mask on screen was made from, and what's believed of the trackers' answers (quadro.js).
+      let maskDe = -Infinity
+      const quadro = criarQuadro()
       // When the newest camera frame came in: what's on screen, which the trackers' answers are carried up to.
       let shownAt = 0
       const lens = { amt: 0, pts: [0, 1, 2, 3].map(() => new THREE.Vector2(0.5, 0.5)), on: false }
@@ -2164,6 +2241,8 @@
         // A filter with a module lets go of what it was doing when another comes on, and what it put on his body
         // goes; the one coming on loads what it needs (its effects' textures).
         if (mode !== before) {
+          // Off and on again in the dock forgets what was learnt behind him.
+          if (before === "nenhum") zerarFundo()
           if (pluginOf(before) !== pluginOf(mode)) pluginOf(before)?.desligar?.()
           corpo.limpar()
           shaking.until = 0
@@ -2257,13 +2336,17 @@
       // The hands' answer (or ?debug's made-up hands): the gestures, the lens, Pop's pushes.
       function applyHands(r, now) {
         const hands = r.landmarks || []
-        handsTrack.prev = alignHands(handsTrack.cur, hands)
-        // The hands on screen in the answer's order too, each easing on from where it was.
-        const shown = alignHands(lastHands, hands)
-        lastHands = hands.map((h, i) => shown[i] || h.map((p) => ({ ...p })))
-        handsTrack.prevT = handsTrack.t
-        handsTrack.cur = hands
-        handsTrack.t = now
+        // A frame without them: drawn where they were for a moment (SEGURA). The gestures still get what was seen.
+        if (!hands.length && handsTrack.cur?.length && now - handsTrack.t <= SEGURA.maos) handsTrack.prev = null
+        else {
+          handsTrack.prev = alignHands(handsTrack.cur, hands)
+          // The hands on screen in the answer's order too, each easing on from where it was.
+          const shown = alignHands(lastHands, hands)
+          lastHands = hands.map((h, i) => shown[i] || h.map((p) => ({ ...p })))
+          handsTrack.prevT = handsTrack.t
+          handsTrack.cur = hands
+          handsTrack.t = now
+        }
         // The lens: both hands in an L, while it's the filter on.
         const ls = mode === "lente" ? hands.filter(isL) : []
         handInfo = `${hands.length} mão(s), ${ls.length} em L`
@@ -2293,8 +2376,12 @@
       }
 
       // The body mask's answer (256 wide, 0–255).
-      function applyBody({ mask, w, h, tronco }) {
-        if (w !== MW || h !== MH || !mask) return
+      function applyBody({ mask, w, h, tronco }, t) {
+        if (w !== MW || h !== MH || !mask) return null
+        const q = quadro.mascara(mask, w, h, t)
+        // A failed one: the last one stays on screen.
+        if (!q.usar) return q
+        maskDe = t
         let sum = 0, sx = 0, top = -1, diff = 0
         for (let y = 0; y < MH; y++) {
           let row = 0
@@ -2316,13 +2403,13 @@
         maskTex.needsUpdate = true
         troncoData.set(tronco || mask)
         troncoTex.needsUpdate = true
-        maskFresh = true
         maskTime = performance.now()
         energy = Math.max(energy, Math.min(1, diff / (MW * MH * 255) / 0.02))
         if (sum > 50 && top >= 0) {
           const [cx, cy] = toScreen(sx / sum / MW, Math.min(1, top / MH + 0.14))
           uniforms.uCenter.value.lerp(new THREE.Vector2(cx, cy), 0.15)
         }
+        return q
       }
 
       // The face's answer: the head's pose (the transformation matrix) and the face's points, kept with the one
@@ -2332,11 +2419,18 @@
       const handsTrack = { cur: null, prev: null, t: 0, prevT: -1e9 }
       function applyFace(r, t) {
         if (!r) {
+          // A frame without it: where it was, not carried on, for a moment (SEGURA).
+          if (headSeen && t - headTrack.t <= SEGURA.rosto) {
+            headTrack.prev = false
+            faceTrack.prev = null
+            return
+          }
           headSeen = false
           faceLm = null
           faceTrack.cur = null
           return
         }
+        quadro.rosto(r.landmarks, t)
         const fresh = !headSeen
         headTrack.pp.copy(headTrack.p)
         headTrack.pq.copy(headTrack.q)
@@ -2473,7 +2567,7 @@
       }
 
       // The shoulders' answer.
-      function applyPose(r) {
+      function applyPose(r, t) {
         const lm = r.landmarks
         const world = r.world
         if (lm && world && lm[11].visibility > 0.4 && lm[12].visibility > 0.4) {
@@ -2489,9 +2583,10 @@
           // With where the head was on the frame it's about, for carrying them with the head (`follow`).
           pose.target = { left: l, right: rr, dz, head: pose.sentHead }
           pose.seen = true
+          pose.em = t
           // The elbows, when they're in the picture (Phoenix's ultimate burns on them too).
           pose.elbows = [13, 14].map((i) => (lm[i].visibility > 0.5 ? new THREE.Vector2(...toScreen(lm[i].x, lm[i].y)) : null))
-        } else pose.seen = false
+        } else if (!(pose.seen && t - pose.em <= SEGURA.ombros)) pose.seen = false
         // The filter on's own use of them (Sage's barrier gesture), unless ?debug's made-up arms stand in.
         if (!(DEBUG && window.__bracos)) pluginOf(mode)?.pose?.(lm, performance.now())
       }
@@ -2500,7 +2595,7 @@
       // half (`px`, from the body mask's tracker, same frame): the mean difference evens out the camera's colours
       // (uPlateFix), and what's left after it must be small (the lattice's lines are a few levels off the blue;
       // another picture is tens).
-      function sampleBackground(px) {
+      function sampleBackground(px, t) {
         if (!plate.img) return
         const c = plate.canvas
         if (c.width !== MW || c.height !== MH || !plate.px) {
@@ -2526,7 +2621,14 @@
           for (let k = 0; k < 3; k++) off += Math.abs(px[i * 4 + k] - pl[i * 4 + k] - fix[k])
         }
         plate.off = off / n / 3
-        plate.ok = plate.off < 12
+        if (plate.off < PLATE_MAX) Object.assign(plate, { ok: true, bateu: true, erros: 0, foraDesde: 0 })
+        else {
+          // One sample that doesn't match doesn't bring his hair back; five seconds of them are another background.
+          if (++plate.erros >= 3) plate.ok = false
+          plate.foraDesde ||= t
+          if (plate.bateu && t - plate.foraDesde > 5000) zerarFundo()
+          return
+        }
         uniforms.uPlateFix.value.lerp(new THREE.Vector3(fix[0] / 255, fix[1] / 255, fix[2] / 255), 0.3)
       }
 
@@ -2595,6 +2697,7 @@
             const bodyEvery = handsOn && mode !== "pop" ? 80 : 0
             if ((mode === "pop" || pop > 0 || pq.corpo || ((lookErases || carOn) && ERASE)) && now - bodySentAt >= bodyEvery) want.corpo = true
             if (pq.tronco) want.tronco = true
+            if ((lookErases || carOn) && ERASE) want.quadro = true
             if ((lookErases || carOn) && ERASE && (plate.off === undefined || now - plate.at > 250)) want.fundo = true
             if (mode === "bola" || ballIn > 0 || agentOn || carOn || pq.rosto || gorro.want || gorro.visible) want.rosto = true
             // The shoulders ride the head between answers, so ~15 a second is plenty; Sage's barrier gesture reads the
@@ -2632,6 +2735,15 @@
         const carShown = Math.max(0, ...carList.map((c) => (c.group.visible ? c.shown : 0)))
         uniforms.uErase.value = headSeen && ERASE ? Math.max(eraseAmt, carShown) : 0
         uniforms.uEraseLow.value.set(...(carShown > eraseAmt ? [-1.05, -0.85] : [-0.55, -0.3]))
+        uniforms.uMaskShift.value.set(0, 0)
+        if (uniforms.uErase.value > 0 && faceLm) {
+          const de = quadro.centroEm(maskDe)
+          if (de) {
+            const [ax, ay] = toScreen(de[0], de[1])
+            const [bx, by] = toScreen((faceLm[10].x + faceLm[152].x) / 2, (faceLm[10].y + faceLm[152].y) / 2)
+            uniforms.uMaskShift.value.set(bx - ax, by - ay).clampLength(0, 0.15)
+          }
+        }
         // Under a car, centred on the middle of his head rather than his face, which turns off to a side.
         if (carShown > eraseAmt && headSeen) {
           const mid = new THREE.Vector3(...CAR_AT).applyMatrix4(head.matrix).project(headCam)
@@ -2655,9 +2767,9 @@
         const ready = agentList.filter((a) => a.amt > 0 && a.ready)
         if (ready.length) drawKeep(ready.find((a) => a.trim)?.trim, true, ready.some((a) => a.rostoPorCima !== false), ready.some((a) => a.maosPorCima !== false))
         else if (carAmt > 0) drawKeep(undefined, false)
-        if ((agentAmt > 0 || carAmt > 0) && ERASE && maskFresh) {
-          remember()
-          maskFresh = false
+        if (aprender) {
+          if ((agentAmt > 0 || carAmt > 0) && ERASE) remember()
+          else esquecerQuadro()
         }
 
         renderer.setScissorTest(false)
@@ -2830,13 +2942,18 @@
         troncoTex.dispose()
         troncoTex = makeMaskTex(troncoData)
         uniforms.uTronco.value = troncoTex
+        foraData = new Uint8Array(MW * MH)
+        foraTex.dispose()
+        foraTex = makeMaskTex(foraData)
+        memMat.uniforms.uFora.value = foraTex
+        zerarFundo()
       }
       // ---------- the filters' modules ----------
       // What every filter's module is handed (filtros/README.md says what each piece is): three.js and its loader,
       // the particles and the sounds, where he is (face, hands, shoulders, on screen and in the 3D camera's
       // centimetres), the box, the effects on his body, the drawing's pieces, and the page's error list.
       const motor = {
-        THREE, GLTFLoader, MeshoptDecoder, vfx, sfx, q, W, H, video, cover, uniforms, GLSL_COMMON, VERT, quad, ortho, headCam, renderer,
+        THREE, GLTFLoader, MeshoptDecoder, vfx, sfx, q, W, H, video, cover, uniforms, GLSL_COMMON, GLSL_APAGAR, VERT, quad, ortho, headCam, renderer,
         at3, onRay, onBox, toScreen, handAt, handShape, panAt, pan3, faceBox, headAt, headOnScreen, pose, headPos, easeOutBack, roomEnv, corpo, fail,
         toEdge, clamp01, ease, bez, bezDir, FACE_OVAL,
         sacudir: shake,
