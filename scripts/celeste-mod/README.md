@@ -12,6 +12,10 @@ reaches the game. Nothing is kept or written.
 - `everest.yaml`: the mod's name, DLL and its dependency on Everest's .NET Core branch (`EverestCore`).
 - `simular.py`: a stand-in with no game, for testing the pages (below).
 
+A chapter's saved numbers come from `SaveData.Areas_Safe[id]`, as the game reads them. Never Everest's
+`GetAreaStatsFor`: it finds nothing for the game's own chapters (on 2026-11-22's live the chapter's strawberries
+stayed at 0 while the file's rose).
+
 ## Build and install
 
 ```sh

@@ -532,7 +532,10 @@ namespace Celeste.Mod.MuanlartinsLink {
             AreaModeStats modo = null;
             AreaStats area = null;
             if (s != null && save != null) {
-                area = save.GetAreaStatsFor(s.Area);
+                // By id in Areas_Safe, as the game's own AddStrawberry does. Not Everest's GetAreaStatsFor: it looks in
+                // LevelSetStats.Areas, which is empty for the game's own chapters (theirs are SaveData.Areas).
+                var areas = save.Areas_Safe;
+                if (s.Area.ID >= 0 && s.Area.ID < areas.Count) area = areas[s.Area.ID];
                 int m = (int) s.Area.Mode;
                 if (area != null && area.Modes != null && m < area.Modes.Length) modo = area.Modes[m];
             }
