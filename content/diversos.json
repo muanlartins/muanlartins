@@ -9,6 +9,7 @@
       "name": "Celeste",
       "category": "Celeste",
       "categoryId": "492535",
+      "art": "https://cdn.cloudflare.steamstatic.com/steam/apps/504230/library_hero.jpg",
       "line": "TODO(Luan): uma linha sobre o Celeste, do seu jeito.",
       "save": {
         "slot": 1

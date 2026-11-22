@@ -133,17 +133,20 @@ strip under the fans ends in a true 45° (its height equals its cut). The mark i
 Every game on the site has the same five pieces, each drawn its own way (Luan, 2026-11-21: "mais ou menos os mesmos
 elementos", "porém também cada jogo tendo a sua individualidade"). Each is picked by the game's id in one place, so a
 third game is a new entry, never a new page. All in the brand's tokens: no game palettes (no Valorant red, no Rocket
-League orange); a game's character comes from its own objects, shapes and motion.
+League orange); a game's character comes from its own objects, shapes and motion. The one exception is the card,
+which is the game's official art in its own colours (Luan, 2026-11-21, of the drawn ones: "ficaram bem ruins"):
+never a drawing of ours, never a logo (Riot's policy), never fan art without the artist's OK, always with the
+makers' notices (`content/notices.ts`, word for word) on the page that shows it.
 
 | Piece | Where | Rocket League | Valorant |
 |---|---|---|---|
 | **Sign** (`GameIcon`, `game-icon.tsx`) | menus, cards, lives | its icon | its icon |
 | **Marker** (`GameMarker`, `game-icon.tsx`; the rail's in `roadmap/kit.tsx`) | the menu's current page, the home's ladder, the fundamentals' rail tip | the ball (3D on the rail) | the crosshair (it opens while it travels on the rail) |
-| **Moment** (chosen in `game-home.tsx`) | the hero of the game's home: something to play with or watch, never a still picture | the Octane on a turntable you can drag, and far behind it a small Octane dribbling, flicking and air dribbling the ball in a loop (real mechanics, RocketSim's numbers) | the range, a Klein block on the lattice: ten targets timed |
+| **Moment** (chosen in `game-home.tsx`) | the hero of the game's home: something to play with or watch, never a still picture | only a small Octane playing with the ball on the lattice floor (dribble, flick, air dribble: real mechanics, RocketSim's numbers), the camera gliding with it: no turntable, no goal | the range, a Klein block on the lattice: ten targets timed |
 | **Backdrop** (`backdrop.tsx`) | behind the game's pages, out of the bottom-left corner, recoloured to navy, Klein and Branco, 12% while the text runs over it and 20% from 1024 px (the side menu's margin), moving only with scroll | the ball; the Octane behind the fundamentals, a Klein tint per rank | the agent of Luan's latest ranked match |
-| **Card** (`game-card.tsx`) | the game's tile on the content list and the channel home, the same art in both | an aerial into the goal, the boost as the brand's streaks | the round bar and the range's diamonds under the crosshair |
+| **Card** (`game-card.tsx`) | the game's tile on the content list and the channel home, the same art in both | its official key art | its official key art |
 
-Jogos diversos takes the card (the games' Twitch box arts) and nothing else until a game there earns its own page.
+Jogos diversos takes the card (each game's official wide art, `art` in `content/diversos.json`, else its Twitch box art) and nothing else until a game there earns its own page.
 A game's moment is the one thing on the site that may play on its own (see Motion); it stops off screen and under
 reduced motion.
 
@@ -206,6 +209,9 @@ shared piece goes there, generic. A showcase's h2 (it heads a card) is 20 px.
   live animates freely.
 
 ## States
+
+What can be clicked shows the pointer (one rule in `app/globals.css`: buttons, tabs, summaries, selects, checkboxes
+and their labels); a disabled one doesn't.
 
 Every piece of data the browser fetches has all four states designed:
 

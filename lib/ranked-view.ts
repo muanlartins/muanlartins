@@ -37,7 +37,7 @@ export interface ViewMatch {
   value?: number | null
   /** That value in words: "812 pts", "Prata 2 · 45 RR". */
   valueText?: string
-  /** Played while unranked (the placement matches). */
+  /** Played while no rank was recorded yet (not always placements: 1v1 had 11 of these, and placements are 10). */
   unranked?: boolean
   map?: Art
   agent?: Art
@@ -377,7 +377,7 @@ export function valorantView(sessions: ValorantSession[], ranks: Rank[]): Record
       change: match.rr,
       value: match.rank?.tier ? ladder(match.rank) : null,
       valueText: match.rank && after ? `${after.name} · ${match.rank.rr} RR` : undefined,
-      // Riot's tier 0 is unranked: the placement matches.
+      // Riot's tiers under 3 are unranked.
       unranked: !!match.rank && match.rank.tier < 3,
       map: mapArt(match.map),
       agent: agentArt(match.agent),

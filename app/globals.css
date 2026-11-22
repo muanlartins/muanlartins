@@ -270,3 +270,16 @@
   }
 }
 
+/* What can be clicked says so: Tailwind's reset leaves a button with the arrow. In the base layer, so a cursor of its
+   own (grab, crosshair, not-allowed) still wins. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  summary,
+  select:not(:disabled),
+  input:is([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="color"]):not(:disabled),
+  label:has(input:is([type="checkbox"], [type="radio"], [type="file"]):not(:disabled)) {
+    cursor: pointer;
+  }
+}

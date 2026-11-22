@@ -5,7 +5,7 @@ import { FanStand } from "@/components/site/channel/fan-stand"
 import { AgendaDays, Podium } from "@/components/site/channel/home-tiles"
 import { NextLive } from "@/components/site/channel/next-live"
 import { DiversosCard } from "@/components/site/diversos/entries"
-import { GameTile } from "@/components/site/game/game-card"
+import { GameArtCredits, GameTile } from "@/components/site/game/game-card"
 import { GameNextLine } from "@/components/site/game/game-next-line"
 import { PageIntro } from "@/components/site/page-intro"
 import { Badge, CardLink, Lattice, Section } from "@/components/site/ui"
@@ -73,6 +73,8 @@ export async function ChannelHome({ lives }: { /** Newest first. */ lives: Live[
           <Tile href={channelPath("backstage")} title={T.backstage.title} line={T.more.backstage} art={<Mark />} artClass="bg-klein" />
         </ul>
       </Section>
+
+      <GameArtCredits className="mt-16" />
     </>
   )
 }
@@ -214,8 +216,8 @@ function Points() {
   return (
     <>
       <Lattice />
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[64px] font-medium leading-none text-paper">Σ</span>
-      <ul className="absolute inset-y-0 right-4 flex flex-col items-end justify-center gap-1.5 text-[12px] font-medium">
+      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[64px] font-medium leading-none text-paper max-sm:left-1/2 max-sm:-translate-x-1/2">Σ</span>
+      <ul className="absolute inset-y-0 right-4 flex flex-col items-end justify-center gap-1.5 text-[12px] font-medium max-sm:hidden">
         {["+1 por minuto", "+10 por live", "+3 no VAR"].map((chip) => (
           <li key={chip} className="bg-paper px-1.5 py-0.5 text-klein">
             {chip}

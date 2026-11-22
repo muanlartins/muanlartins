@@ -26,7 +26,7 @@ export function moment() {
 }
 
 /**
- * The play far behind: the small Octane and the ball, as `lib/rl-moment.ts` has them as the loop plays (or at
+ * The play: the small Octane and the ball, as `lib/rl-moment.ts` has them as the loop plays (or at
  * `still` seconds into it), with their shadows on the pitch and the boost's streak behind the car.
  */
 export function Play({ still, position, heading }: { still?: number; position: [number, number, number]; heading: number }) {
@@ -46,9 +46,9 @@ export function Play({ still, position, heading }: { still?: number; position: [
 
   useEffect(() => paintOctane(car), [car])
 
-  // The boost: a Klein claro streak with a Branco core, so it reads on the light page as on the game's sky.
-  const sheath = useMemo(() => streak({ width: 42, head: BRAND.kleinClaro, tail: BRAND.kleinClaro, opacity: 1 }), [])
-  const core = useMemo(() => streak({ width: 16, head: BRAND.paper, tail: BRAND.kleinClaro, opacity: 1 }), [])
+  // The boost: a Klein streak with a Branco core, so it reads on the light floor as on the game's sky.
+  const sheath = useMemo(() => streak({ width: 40, head: BRAND.klein, tail: BRAND.klein, opacity: 0.85 }), [])
+  const core = useMemo(() => streak({ width: 22, head: BRAND.paper, tail: BRAND.paper, opacity: 1 }), [])
 
   useFrame(({ clock }) => {
     const t = still ?? clock.elapsedTime

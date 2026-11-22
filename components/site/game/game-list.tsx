@@ -2,7 +2,7 @@ import { Route, Swords, Target, Trophy } from "lucide-react"
 import { LanguageBadge } from "@/components/site/language-badge"
 import { PageIntro } from "@/components/site/page-intro"
 import { DiversosRow } from "@/components/site/diversos/entries"
-import { GameRow, type GamePageLink } from "@/components/site/game/game-card"
+import { GameArtCredits, GameRow, type GamePageLink } from "@/components/site/game/game-card"
 import { GameNextLine } from "@/components/site/game/game-next-line"
 import { channel } from "@/content/channel"
 import { fundamentals, gamePath, type Game } from "@/lib/game"
@@ -57,6 +57,7 @@ export function GameList({ page, games }: { page: { title: L10n; description: L1
           <DiversosRow />
         </li>
       </ul>
+      <GameArtCredits className="mt-12" />
     </>
   )
 }

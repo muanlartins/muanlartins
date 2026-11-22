@@ -5,9 +5,10 @@ import { RoadmapProgress, MomentStage } from "@/components/site/game/game-home-c
 import { GameNextLine } from "@/components/site/game/game-next-line"
 import { Ladder } from "@/components/site/game/ladder"
 import { Range } from "@/components/site/game/range"
+import { RankSwitch } from "@/components/site/game/rank-switch"
 import { CollectionGlimpse } from "@/components/site/inventory/collection-glimpse"
-import { decimal, type RankInfo } from "@/components/site/ranked/format"
-import { Section } from "@/components/site/ui"
+import { decimal, divisionOf, type RankInfo } from "@/components/site/ranked/format"
+import { EmptyState, Section } from "@/components/site/ui"
 import { channel } from "@/content/channel"
 import { dayMonth, hasGame } from "@/lib/agenda"
 import { buildAgenda } from "@/lib/agenda-build"
@@ -29,11 +30,10 @@ const T = localize({
   videos: { pt: "vídeos", en: "videos" },
   topics: { pt: "tópicos", en: "topics" },
   points: { pt: "pontos", en: "points" },
-  division: { pt: "div.", en: "div." },
+  mode: { pt: "Modo", en: "Mode" },
   lastWith: { pt: "última partida de {agent}", en: "last match as {agent}" },
   noRank: { pt: "Nenhuma partida publicada ainda.", en: "No matches published yet." },
   latestLive: { pt: "Última", en: "Latest" },
-  drag: { pt: "Arrasta pra girar", en: "Drag to spin" },
   live: { pt: "Ao vivo", en: "Live" },
   soon: { pt: "Primeiros tópicos em breve", en: "First topics soon" },
   energy: { pt: "de energia", en: "energy" },
@@ -51,35 +51,32 @@ interface Standing {
   /** The emblem of the tier and level ("/ranks/platinum-1.webp"). */
   icon?: string
   name: string
-  /** "div. 2 · 641 pontos · 1v1", "55 RR". */
+  /** "div. 2 · 641 pontos", "55 RR". */
   detail?: string
   /** After it on the home, what it came from: "última partida de Sova" (the agent behind Valorant's pages). */
   note?: string
 }
 
-/** Rocket League's: the mode played last, from the ranked sessions. */
-function rocketLeagueStanding(sessions: Session[], ranks: Rank[]): Standing | undefined {
+/** Rocket League's, one per mode, from the ranked sessions, and the mode played last, which the home opens on. */
+function rocketLeagueStandings(sessions: Session[], ranks: Rank[]) {
   const latest = sessions
     .flatMap((session) => session.matches)
     .filter((match) => (MODES as readonly string[]).includes(match.mode))
     .sort((a, b) => b.at.localeCompare(a.at))[0]
-  const mode = latest?.mode as Mode | undefined
-  const standing = mode && summarize(sessions, mode).standing
-  if (!standing) return undefined
-  const [, id, level] = /^(.*?)(?:-(\d))?$/.exec(standing.tier)!
-  const rank = ranks.find((rank) => rank.id === id)
-  return {
-    rank: id,
-    icon: `/ranks/${standing.tier}.webp`,
-    name: [rank ? localize(rank.name) : id, level].filter(Boolean).join(" "),
-    detail: [
-      standing.division && `${T.division} ${standing.division}`,
-      standing.mmr != null && `${decimal(standing.mmr, 0)} ${T.points}`,
-      mode,
-    ]
-      .filter(Boolean)
-      .join(" · "),
-  }
+  const modes = MODES.map((id: Mode) => {
+    const standing = summarize(sessions, id).standing
+    if (!standing) return { id, standing: undefined }
+    const [, tier, level] = /^(.*?)(?:-(\d))?$/.exec(standing.tier)!
+    const rank = ranks.find((each) => each.id === tier)
+    const mine: Standing = {
+      rank: tier,
+      icon: `/ranks/${standing.tier}.webp`,
+      name: tier === "unranked" ? T.unranked : [rank ? localize(rank.name) : tier, level].filter(Boolean).join(" "),
+      detail: [divisionOf(standing), standing.mmr != null && `${decimal(standing.mmr, 0)} ${T.points}`].filter(Boolean).join(" · "),
+    }
+    return { id, standing: mine }
+  })
+  return { modes, latest: (latest?.mode as Mode | undefined) ?? "3v3" }
 }
 
 /** Valorant's: the latest ranked match's, or Luan's by hand (`rank` on the game) before the first. */
@@ -133,7 +130,9 @@ export async function GameHome({
   const scheduled = agenda ? hasGame(agenda, game.id) : false
   const videos = topics.filter(({ topic }) => topic.video).length
 
-  const standing = game.id === "valorant" ? valorantStanding(valorant, roadmap.ranks, game.rank) : rocketLeagueStanding(sessions, roadmap.ranks)
+  const standing = game.id === "valorant" ? valorantStanding(valorant, roadmap.ranks, game.rank) : undefined
+  const byMode = game.id === "rocket-league" ? rocketLeagueStandings(sessions, roadmap.ranks) : undefined
+  const rankedModes = byMode?.modes.filter((each) => each.standing) ?? []
   const aim = game.aim ? summarizeVoltaic(voltaic) : undefined
   const aimLatest = aim?.benchmarks.at(-1)
   const aimRank = rankById(aimLatest?.rank)
@@ -145,7 +144,6 @@ export async function GameHome({
       {game.id === "rocket-league" && (
         <div className="relative -mx-6 mt-12 h-72 sm:mx-0 sm:h-80">
           <MomentStage />
-          <p className="pointer-events-none absolute bottom-1 right-6 text-[13px] text-muted sm:right-0">{T.drag}</p>
         </div>
       )}
       {game.id === "valorant" && (
@@ -163,6 +161,26 @@ export async function GameHome({
       {standing && (
         <Section title={T.rank} description={[standing.name, standing.detail, standing.note].filter(Boolean).join(" · ")} className="mt-16">
           <Ladder game={game.id} ranks={roadmap.ranks} current={standing.rank} />
+        </Section>
+      )}
+
+      {byMode && rankedModes.length > 0 && (
+        <Section title={T.rank} className="mt-16">
+          <RankSwitch
+            label={T.mode}
+            initial={byMode.latest}
+            modes={byMode.modes.map(({ id, standing: mine }) => ({
+              id,
+              content: mine ? (
+                <>
+                  <p className="mb-6 text-[15px] tabular-nums text-muted">{[mine.name, mine.detail].filter(Boolean).join(" · ")}</p>
+                  <Ladder game={game.id} ranks={roadmap.ranks} current={mine.rank} />
+                </>
+              ) : (
+                <EmptyState>{T.noRank}</EmptyState>
+              ),
+            }))}
+          />
         </Section>
       )}
 
@@ -192,8 +210,18 @@ export async function GameHome({
                     icon: "ranked" as const,
                     title: localize(game.ranked.title),
                     summary: localize(game.ranked.description),
-                    glimpse:
-                      standing && standing.detail ? (
+                    glimpse: rankedModes.length ? (
+                        <span className="flex gap-4">
+                          {rankedModes.map(({ id, standing: mine }) => (
+                            <span key={id} className="flex flex-col items-center gap-1 text-center">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={mine!.icon} alt="" className="h-8 w-8 object-contain" />
+                              <span className="text-[13px] font-medium text-ink">{id}</span>
+                              <span className="text-[12px] leading-[1.3] text-muted">{mine!.name}</span>
+                            </span>
+                          ))}
+                        </span>
+                      ) : standing?.detail ? (
                         <span className="flex items-center gap-2.5">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           {standing.icon && <img src={standing.icon} alt="" className="h-8 w-8 shrink-0 object-contain" />}

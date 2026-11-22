@@ -94,7 +94,7 @@ export function YouTubeVideo({
         alt=""
         className="absolute inset-0 h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
       />
-      <span className="absolute inset-0 m-auto flex h-16 w-16 items-center justify-center cut-sm bg-klein text-paper transition-transform group-hover:scale-105">
+      <span className="absolute inset-0 m-auto flex h-16 w-16 items-center justify-center cut-sm bg-paper text-klein transition-transform group-hover:scale-105">
         <Play className="ml-1 h-6 w-6 fill-current" />
       </span>
     </button>
