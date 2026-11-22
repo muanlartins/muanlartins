@@ -66,12 +66,12 @@ What the first one taught, on top of the list above:
    second 0 is `==== Recording Start`. A switch away from the game's scene and back cuts `Jogo` in pieces
    (`videos.py` joins them; `partes.json` says where each starts).
 2. **`live.py`, then the chapters by hand.** A chapter starts at the postcard after "Escalar" on the map (a few
-   seconds before he names it): find it on frames every 2 s around where the transcript names it. Names as in
-   `content/diversos.json`. Also mark where he starts talking when the recording opens silent (11-22: the microphone
+   seconds before he names it): find it on frames every 2 s around where the transcript names it. Names as the
+   lives before them have it (`Capítulo 1: Forsaken City`). Also mark where he starts talking when the recording opens silent (11-22: the microphone
    was muted until 6:56) and where he explains the plan. The summary's numbers come from the save (`celeste.py`'s
    dry run), never from the transcript.
-3. **`celeste.py --apply`, with the page written.** `save.start` is the day the run began from zero: with it the
-   first read gets its date and live too. Two days or more after the live, pass `--date <date>`: what's done takes
+3. **`celeste.py --apply`, with the page written.** `start` in `content/celeste-save.json` is the day the run began
+   from zero, so the first read gets its date and live too. Two days or more after the live, pass `--date <date>`: what's done takes
    its date only once.
 4. **Watch the recording before it goes public** (a live in a game's own window shows more than a match does): a
    sheet of the whole Live.mp4 every 10 s, then closer (every 1–3 s) wherever one of these shows, and give Luan the
