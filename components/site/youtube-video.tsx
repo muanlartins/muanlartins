@@ -82,21 +82,25 @@ export function YouTubeVideo({
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => setPlaying(true)}
-      aria-label={`${UI.playVideo}: ${title}`}
-      className={`${frame} group block cursor-pointer`}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
-      />
-      <span className="absolute inset-0 m-auto flex h-16 w-16 items-center justify-center cut-sm bg-paper text-klein transition-transform group-hover:scale-105">
-        <Play className="ml-1 h-6 w-6 fill-current" />
-      </span>
-    </button>
+    // The focus ring is drawn round the frame: inside it, the picture would paint over it.
+    <div className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-klein">
+      <button
+        type="button"
+        onClick={() => setPlaying(true)}
+        aria-label={`${UI.playVideo}: ${title}`}
+        // A layer of its own: clipped one by one, the Klein behind bleeds along the picture's cuts as a stray line.
+        className={`${frame} group block cursor-pointer will-change-transform`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
+        />
+        <span className="absolute inset-0 m-auto flex h-16 w-16 items-center justify-center cut-sm bg-paper text-klein transition-transform group-hover:scale-105">
+          <Play className="ml-1 h-6 w-6 fill-current" />
+        </span>
+      </button>
+    </div>
   )
 }

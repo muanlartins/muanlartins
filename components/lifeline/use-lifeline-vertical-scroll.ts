@@ -113,8 +113,8 @@ export function useLifelineVerticalScroll(
     if (!scrollParent) return
 
     if (!initialized.current) {
-      scrollParent.scrollTop =
-        introSkippedRef.current && !isEmbedRef.current ? max : 0
+      // Embedded, the page keeps the reader's place (a reload, coming back, scrolling before hydration).
+      if (!isEmbedRef.current) scrollParent.scrollTop = introSkippedRef.current ? max : 0
       initialized.current = true
     }
 
@@ -208,7 +208,7 @@ export function useLifelineVerticalScroll(
       const scrollParent = scrollParentRef.current
       if (!scrollParent) return
 
-      if (!(introAnimatingRef.current && introStartedRef.current)) {
+      if (!isEmbedRef.current && !(introAnimatingRef.current && introStartedRef.current)) {
         scrollParent.scrollTop = clamp(
           scrollParent.scrollTop,
           0,

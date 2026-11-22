@@ -52,6 +52,9 @@
 
   /* Whatever floats over the page (a popover, a chart's tooltip, a dialog). */
   --shadow-float: 0 8px 24px rgb(0 20 71 / 0.16);
+  /* The same shadow for what's cut, as a filter on the wrapper (a clip cuts a box shadow): a filter's blur is
+     twice as wide as a box shadow's, so half the radius. */
+  --drop-shadow-float: 0 8px 12px rgb(0 20 71 / 0.16);
 
   --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
 }
