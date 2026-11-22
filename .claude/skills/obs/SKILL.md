@@ -35,17 +35,18 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   p5 with its passes (what viewers see); everything that records goes p4 (`ENCODER_LEVE` in `obs.py`).
 - Camera filters (`public/stream/filtros.html`): switched from the "Filtros" dock
   (`filtros-painel.html`, served from localhost:8126 too; `obs.py --apply` adds it with OBS closed), never by
-  gestures (Luan, 2026-11-10). The dock (2026-11-12) has a dropdown with every filter by game (`FILTROS` there:
+  gestures (Luan, 2026-11-10). The dock (2026-11-12) has a dropdown with every filter by game (from the filters' folders, `filtros/index.js`, since
+  2026-11-22: Celeste's Madeline and Badeline, which follow the game through its mod, `scripts/celeste-mod/`;
   Valorant's Phoenix, Sage and Sova with their faces from `public/valorant/agentes/`, then Rocket League's Octane,
   Fennec and the ball) and a power button beside it; picking one turns it on, the button turns the picked one off
   and on; under them, the one that's on's one-offs (each agent's abilities with their keys, the cars' Demolição and
   Flip), its switches, the cars' paint and animated decal (both cars; orange by default since 2026-11-13, against
   the blue behind Luan: ccamara's idea) and its gestures (Pop and the lens stay in the page, off the dock). Making a new one: the
   filtros skill. It tells the page with obs-browser's emit_event `muanlartins-filtro`
-  (`{"filtro": "phoenix" | "sage" | "sova" | "bola" | "octane" | "fennec" | "nenhum", "opcoes": {"patrulha": true, "mudo": false, "cor": "laranja", "decalque": "chamas"}}`, and the one-offs `{"acao": ...}`:
-  Phoenix's `blaze`, `flash`, `molotov`, `ult`; Sage's `barreira`, `lentidao`, `cura`, `ult`; Sova's `recon`, `choque`, `drone`, `ult`; the cars' `demo`, `flip`),
+  (`{"filtro": "phoenix" | "sage" | "sova" | "celeste" | "badeline" | "bola" | "octane" | "fennec" | "nenhum", "opcoes": {"patrulha": true, "mudo": false, "cor": "laranja", "decalque": "chamas"}}`, and the one-offs `{"acao": ...}`:
+  Phoenix's `blaze`, `flash`, `molotov`, `ult`; Sage's `barreira`, `lentidao`, `cura`, `ult`; Sova's `recon`, `choque`, `drone`, `ult`; the cars' `demo`, `flip`; Celeste's `dash`, `morte`, `morango`, `pena`, `eco`),
   which `scripts/obs.mjs` can send as well (`CallVendorRequest`). Phoenix's, Sova's and Sage's effects are drawn by `vfx.js` from the game's textures
-  and values (`vfx-phoenix.js`, `vfx-sova.js`, `vfx-sage.js`, textures in `privado/valorant/`), and Sova's bow, arrows
+  and values (each filter's folder under `filtros/`, textures in `privado/valorant/`), and Sova's bow, arrows
   and Owl Drone and Sage's orb and wall are the game's models from there too; without them their abilities do nothing
   but Phoenix's flash. Sage's look is her character-select model (Luan's download, `privado/sage.glb`).
   One gesture per agent stays on purpose (Luan, 2026-11-11: one signature ability each): Phoenix's flash (a snap),

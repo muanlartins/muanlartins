@@ -1,0 +1,7 @@
+# The Celeste link: reports the game to the stream's overlays on 127.0.0.1:8797 (README.md). Changes nothing in the game.
+- Name: MuanlartinsLink
+  Version: 1.0.0
+  DLL: MuanlartinsLink.dll
+  Dependencies:
+    - Name: EverestCore
+      Version: 1.4465.0

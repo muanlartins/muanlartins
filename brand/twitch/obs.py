@@ -131,6 +131,8 @@ valorant = capture("Captura · Valorant", VALORANT)
 # or record on the camera's frame (jogo.html?placar=0) and a stand that cheers no goals or rounds (?jogo=diversos).
 # Its capture takes whatever game is fullscreen or borderless in front, so a new game needs no setup (a windowed one
 # is picked in the capture's properties). The camera and the chat sit where Rocket League has them.
+# Celeste needs nothing more here: its overlay (jogo=diversos) shows the chapter and its numbers by itself while the
+# game's mod is connected (celeste.js, scripts/celeste-mod/), and the Filtros dock's "Celeste" follows the game.
 various = capture("Captura · Diversos")
 # Stays on between scenes, so switching to one with the camera doesn't wait for it to start. Off the air it's off
 # altogether since 2026-11-20: the Efeitos dock presses its Activate/Deactivate button as the stream and the recording

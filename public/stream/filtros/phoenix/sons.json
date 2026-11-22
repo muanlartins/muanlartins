@@ -1,0 +1,19 @@
+{
+  "phoenix-flash-equip": {"parts": [{"evento": "Play_Phoenix_AbilE_Equip {FP}", "agente": "phoenix"}], "cut": 1.2},
+  "phoenix-flash-throw": {"parts": [{"evento": "Play_Phoenix_AbilE_BuildFlash", "agente": "phoenix"}, {"evento": "Play_Phoenix_AbilE_Projectile", "agente": "phoenix", "gain": -2}]},
+  "phoenix-flash-pop": {"parts": [{"evento": "Play_Phoenix_AbilE_FlashWorld", "agente": "phoenix"}]},
+  "phoenix-flash-blind": {"parts": [{"evento": "Play_Phoenix_AbilE_FlashPlayer", "agente": "phoenix"}]},
+  "phoenix-molotov-equip": {"parts": [{"evento": "Play_Phoenix_Abil4_Equip {FP}", "agente": "phoenix"}], "cut": 1.0},
+  "phoenix-molotov-throw": {"parts": [{"evento": "Play_Phoenix_Abil4_Cast {FP}", "agente": "phoenix"}, {"evento": "Play_Phoenix_Abil4_Projectile", "agente": "phoenix", "gain": -3}]},
+  "phoenix-molotov-explode": {"parts": [{"evento": "Play_Phoenix_Abil4_Explode", "agente": "phoenix"}]},
+  "phoenix-molotov-burn": {"parts": [{"wav": "Play_Phoenix_Abil4_Loop/00_Phoenix_Molotov_Loop_TP (SFX).wav", "agente": "phoenix"}], "loop": true},
+  "phoenix-molotov-end": {"parts": [{"evento": "Play_Phoenix_Abil4_ZoneDecay", "agente": "phoenix"}]},
+  "phoenix-blaze-equip": {"parts": [{"evento": "Play_Phoenix_AbilQ_Equip {FP}", "agente": "phoenix"}, {"evento": "Play_Phoenix_Wall_Equip_Jacket_FP", "agente": "phoenix"}], "cut": 1.1},
+  "phoenix-blaze-run": {"parts": [{"evento": "Play_Phoenix_AbilQ_Projectile", "agente": "phoenix"}, {"wav": "Play_Phoenix_AbilQ_WallLoop/02_Phoenix_Wall_Form_TP_V2_A (SFX).wav", "agente": "phoenix", "gain": -4}, {"wav": "Play_Phoenix_AbilQ_WallLoop/00_Phoenix_Wall_Form_TP_V2_B (SFX).wav", "agente": "phoenix"}]},
+  "phoenix-blaze-burn": {"parts": [{"wav": "Play_Phoenix_AbilQ_WallLoop/01_Phoenix_Wall_Loop_TP (SFX).wav", "agente": "phoenix"}], "loop": true},
+  "phoenix-blaze-end": {"parts": [{"evento": "Play_Phoenix_AbilQ_WallDecay", "agente": "phoenix"}]},
+  "phoenix-ult-cast": {"parts": [{"evento": "Play_Phoenix_AbilX_Cast {FP}", "agente": "phoenix"}]},
+  "phoenix-ult-rise": {"parts": [{"wav": "Play_Phoenix_AbilX_LoopAtLocation/01_Phoenix_Ultimate_LoopAtLocation_WRise_FP_01 (SFX).wav", "agente": "phoenix"}]},
+  "phoenix-ult-return": {"parts": [{"evento": "Play_Phoenix_AbilX_FormReturn {FP}", "agente": "phoenix"}]},
+  "phoenix-fire": {"parts": [{"wav": "Play_Abil_Fire_Med_Lp/00_fire_crackle_med_lp (SFX).wav", "agente": "phoenix"}], "loop": true}
+}
