@@ -48,7 +48,7 @@ Luan, 2026-11-21: "a ideia é deixar tudo que eu for jogar registrado". What cha
 - **2b** works the same (his line from the live as the hook). The title template is only "<Jogo> ao vivo": write one
   from the day's story for him to approve.
 - **2c doesn't apply** (no ranked matches): no match videos, so the VOD isn't held back (no `youtube.publish_at`)
-  unless Luan asks for cuts.
+  unless Luan asks for cuts. Celeste has its own: a video per chapter, the VOD after them ("A Celeste day", 10).
 - **Step 3:** `youtube.py` dresses any game of the list like the two (`game_of`): "<Jogo> ao vivo" as the title and
   the playlist (made the first time), its page on the site among the links, its tags and hashtags.
 - **Step 4:** mark the day `--done` after the thumbnail (Celeste's days excepted: below).
@@ -71,7 +71,8 @@ What the first one taught, on top of the list above:
    its date only once.
 4. **Watch the recording before it goes public** (a live in a game's own window shows more than a match does): a
    sheet of the whole Live.mp4 every 10 s, then closer (every 1–3 s) wherever one of these shows, and give Luan the
-   times before he uploads. Covering, cutting or leaving is his call.
+   times before he uploads. Covering, cutting or leaving is his call (11-22, the filter's drops and the file
+   select: "Vai como está, fica em paz!", so give the times short and don't push covering).
    - the "Browser" capture he turns on by hand: tabs, addresses, anything signed in, unreleased pages;
    - the game's file select: the other files' names (slot 0 isn't his). Never in a thumbnail or a text of ours;
    - the filter letting go (he turns, bends down, drinks, leaves the chair): for a second or more the plain camera
@@ -85,13 +86,22 @@ What the first one taught, on top of the list above:
    The boxes, inside their frames: Conversa `80,82,994,540` (sharp: the best source), Celeste + chat · Diversos
    `26,786,268,244` (small: only a close face). For the sheet give that scene's stretch:
    `--da-live 26,786,268,244 --trecho 25:20-1:57:20`. Look at each draft's cutout.
-7. **Don't free it.** No `--done` for a Celeste day, and none of its files in a `--clean`, until Luan decides on
-   archiving them for the produced videos of his trajectory (proposed 11-22, undecided). `--clean` doesn't know
-   this: read its list before `--apply`.
+7. **Don't free it.** Luan keeps the Celeste days' recordings (Live, Jogo, Câmera) for the produced videos of his
+   trajectory (his call, 2026-11-22). So no `--done` for a Celeste day and none of its files in a `--clean`, which
+   doesn't know this: read its list before `--apply`.
 8. **Release only with the video's id** in the live's page (`live.py <date> --video <id>`): without it the page
    embeds an empty player. Push only the day's commits: check `git log origin/main..main` for others waiting his OK.
 9. **What he said on the air about the channel's things** (the filter, the overlay, the site, ideas) goes in the
    report to him with its time, and so does what the frames show broken. It's his to decide what becomes work.
+10. **A video per chapter, then the live** (Luan, 2026-11-22: "quebrar por capítulo pro youtube", "só depois a live
+   vem publicada"). `scripts/capitulos.py scripts/roteiros/capitulos/<date>-capitulo-<n>.json` plans, `--apply`
+   renders: the intro, the chapter whole, the outro, as 2c. The Prologue goes with chapter 1. Edges: in a pause of
+   his microphone, from after the file select (its names stay out), each video up to where he moves on to the next
+   chapter, the ad break left to the VOD. Marks: the chapter's story moments, checked on frames. Titles: his line as
+   the hook. Thumbnails as 2c's, with the filter (`--folha capitulo-<n> --da-live 26,786,268,244`), picking is his.
+   Schedule as 2c's, and the live's `youtube.publish_at` at least a day after the last one.
+11. **No shorts from a Celeste live** (Luan, 2026-11-22, said twice): he records Celeste's shorts by hand, about the
+   game's concepts. Don't scan the live for moments and don't make a candidates reel.
 
 ## 0. Make sure it's over
 

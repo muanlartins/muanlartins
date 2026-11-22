@@ -19,6 +19,9 @@ description: Making Luan's shorts and commented-match videos from a live's mater
 
 ## Two kinds of short (Luan, 2026-11-11)
 
+Celeste has only the second kind (Luan, 2026-11-22): he records shorts of its concepts by hand. No highlights, no
+candidates reel from a Celeste live.
+
 Keep them apart: they're found, chosen and edited differently.
 
 | | **Highlights da live** | **Intencionais (de conteúdo)** |
