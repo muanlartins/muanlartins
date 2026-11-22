@@ -6,6 +6,7 @@ import { ChristmasLights, SantaHat, useDecember } from "@/components/site/decemb
 import { LiveBadge } from "@/components/site/lives/live-badge"
 import { SECTION_ICONS } from "@/components/site/section-icons"
 import { MyPageLink } from "@/components/site/viewer/my-page-link"
+import { useLive } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
 import { VIEWER_SLUG } from "@/lib/viewer"
 import {
@@ -46,8 +47,10 @@ export function SiteHeader({ lives }: { lives?: string }) {
   const ofChannel = page === `/${profileSlug()}` || page === `/${PIX_SLUG}` || page === `/${MURAL_SLUG}` || page.startsWith(`/${VIEWER_SLUG}/`)
   const shown = onPrivacy ? null : ofChannel ? "channel" : current
   const december = useDecember()
-  // Four sections don't fit a phone beside the mark: there they take a second row, in the same 64 px.
+  // Four sections don't fit beside the mark under 768 px: there they take a second row, in the same 64 px.
   const twoRows = SECTIONS.length > 3
+  // Nor in one row with "Ao vivo", the other language and the photo all on: live, the name gives way to the pill.
+  const live = useLive() && hasSection("channel")
   // Pages under a section keep the same path in both languages.
   const subpath = current && page.startsWith(sectionPath(current)) ? page.slice(sectionPath(current).length) : ""
   const otherLanguage = onPrivacy
@@ -62,31 +65,33 @@ export function SiteHeader({ lives }: { lives?: string }) {
     <header className="fixed inset-x-0 top-0 z-50 border-b border-line bg-ground/80 backdrop-blur-xl">
       <nav
         className={cn(
-          "mx-auto flex h-16 w-full max-w-3xl items-center justify-between gap-3 px-6 sm:gap-6",
-          twoRows && "max-sm:flex-wrap max-sm:content-center max-sm:gap-y-0",
+          "mx-auto flex h-16 w-full max-w-3xl items-center justify-between gap-3 px-6",
+          // Not sm: with two rows: a min-width gap would win over the rows' own between 640 and 767 px.
+          twoRows ? "md:gap-6" : "sm:gap-6",
+          twoRows && "max-md:flex-wrap max-md:content-center max-md:gap-y-0",
         )}
       >
         <Link
           href="/"
           aria-label="muanlartins"
-          className={cn("flex items-center gap-3 transition-opacity hover:opacity-80", twoRows && "max-sm:mr-auto max-sm:h-8")}
+          className={cn("flex shrink-0 items-center gap-3 transition-opacity hover:opacity-80", twoRows && "max-md:mr-auto max-md:h-8")}
         >
           <span className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/mark-small.svg" alt="" className={cn("h-8 w-8", twoRows && "max-sm:h-6 max-sm:w-6")} />
+            <img src="/brand/mark-small.svg" alt="" className={cn("h-8 w-8", twoRows && "max-md:h-6 max-md:w-6")} />
             {/* December: the stand's Santa hat on the mark. */}
             {december && (
               <SantaHat
-                className={cn("absolute -top-[13px] -left-[7px] w-[34px] -rotate-[14deg]", twoRows && "max-sm:-top-[7px] max-sm:-left-[5px] max-sm:w-[24px]")}
+                className={cn("absolute -top-[13px] -left-[7px] w-[34px] -rotate-[14deg]", twoRows && "max-md:-top-[4px] max-md:-left-[5px] max-md:w-[24px]")}
               />
             )}
           </span>
-          <span className="hidden text-[17px] font-medium tracking-[-0.01em] sm:inline">muanlartins</span>
+          <span className={cn("hidden text-[17px] font-medium tracking-[-0.01em]", !live && (twoRows ? "md:inline" : "sm:inline"))}>muanlartins</span>
         </Link>
 
-        <div className={cn("flex items-center gap-3 text-[13px] sm:gap-6 sm:text-[14px]", twoRows && "max-sm:contents")}>
+        <div className={cn("flex items-center gap-3 text-[13px] sm:text-[14px]", twoRows ? "max-md:contents md:gap-6" : "sm:gap-6")}>
           {lives && hasSection("channel") && <LiveBadge href={lives} />}
-          <div className={cn("flex items-center gap-3 sm:gap-6", twoRows && "max-sm:order-last max-sm:w-full max-sm:justify-between max-sm:gap-1")}>
+          <div className={cn("flex items-center gap-3", twoRows ? "md:gap-6" : "sm:gap-6", twoRows && "max-md:order-last max-md:w-full max-md:justify-between max-md:gap-1")}>
             {SECTIONS.map((section) => {
               const Icon = SECTION_ICONS[section]
               return (
@@ -96,7 +101,7 @@ export function SiteHeader({ lives }: { lives?: string }) {
                   aria-current={section === shown ? "page" : undefined}
                   className={cn("inline-flex h-8 items-center gap-1.5 transition-colors hover:text-klein", section === shown ? "text-klein" : "text-muted")}
                 >
-                  <Icon aria-hidden className="hidden h-4 w-4 sm:block" />
+                  <Icon aria-hidden className={cn("hidden h-4 w-4", twoRows ? "md:block" : "sm:block")} />
                   {UI.sections[section]}
                 </Link>
               )

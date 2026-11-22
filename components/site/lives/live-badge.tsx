@@ -13,7 +13,7 @@ export function LiveBadge({ href }: { href: string }) {
     <Link
       href={href}
       aria-label={T.live}
-      className="flex min-h-6 min-w-6 items-center justify-center gap-1.5 bg-klein px-2 py-1 text-[11px] font-medium uppercase leading-none tracking-[0.08em] text-paper transition-opacity hover:opacity-85"
+      className="flex min-h-6 min-w-6 shrink-0 items-center whitespace-nowrap justify-center gap-1.5 bg-klein px-2 py-1 text-[11px] font-medium uppercase leading-none tracking-[0.08em] text-paper transition-opacity hover:opacity-85"
     >
       <Pulse />
       <span className="hidden sm:inline">{T.live}</span>
