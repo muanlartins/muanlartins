@@ -52,10 +52,60 @@ Luan, 2026-11-21: "a ideia é deixar tudo que eu for jogar registrado". What cha
 - **2b** works the same (his line from the live as the hook). The title template is only "<Jogo> ao vivo": write one
   from the day's story for him to approve.
 - **2c doesn't apply** (no ranked matches): no match videos, so the VOD isn't held back (no `youtube.publish_at`)
-  unless Luan asks for cuts.
+  unless Luan asks for cuts. Celeste has its own: a video per chapter, the VOD after them ("A Celeste day", 10).
 - **Step 3:** `youtube.py` dresses any game of the list like the two (`game_of`): "<Jogo> ao vivo" as the title and
   the playlist (made the first time), its page on the site among the links, its tags and hashtags.
-- **Step 4:** mark the day `--done` after the thumbnail.
+- **Step 4:** mark the day `--done` after the thumbnail (Celeste's days excepted: below).
+
+### A Celeste day, in order (first run 2026-11-22)
+
+What the first one taught, on top of the list above:
+
+1. **It's over:** OBS and the game closed (`tasklist.exe | grep -i -E "obs64|celeste"`; a `Celeste.exe` outside Steam's
+   folder is a TAS capture of another session, on saves of its own). OBS's log of the day has each scene switch:
+   second 0 is `==== Recording Start`. A switch away from the game's scene and back cuts `Jogo` in pieces
+   (`videos.py` joins them; `partes.json` says where each starts).
+2. **`live.py`, then the chapters by hand.** A chapter starts at the postcard after "Escalar" on the map (a few
+   seconds before he names it): find it on frames every 2 s around where the transcript names it. Names as in
+   `content/diversos.json`. Also mark where he starts talking when the recording opens silent (11-22: the microphone
+   was muted until 6:56) and where he explains the plan. The summary's numbers come from the save (`celeste.py`'s
+   dry run), never from the transcript.
+3. **`celeste.py --apply`, with the page written.** `save.start` is the day the run began from zero: with it the
+   first read gets its date and live too. Two days or more after the live, pass `--date <date>`: what's done takes
+   its date only once.
+4. **Watch the recording before it goes public** (a live in a game's own window shows more than a match does): a
+   sheet of the whole Live.mp4 every 10 s, then closer (every 1–3 s) wherever one of these shows, and give Luan the
+   times before he uploads. Covering, cutting or leaving is his call (11-22, the filter's drops and the file
+   select: "Vai como está, fica em paz!", so give the times short and don't push covering).
+   - the "Browser" capture he turns on by hand: tabs, addresses, anything signed in, unreleased pages;
+   - the game's file select: the other files' names (slot 0 isn't his). Never in a thumbnail or a text of ours;
+   - the filter letting go (he turns, bends down, drinks, leaves the chair): for a second or more the plain camera
+     is on the stream;
+   - the sound: track 1 against 2 + 3 + 4 (nothing of track 5 leaked), and where the microphone is silent.
+5. **The game's music is in the recording** (the soundtrack is the game's sound, tracks 1 and 3; only the stream's
+   music stays on track 5), and Celeste's has had Content ID claims before. Luan waits for Studio's copyright check
+   on the private upload; only then step 3 makes it public.
+6. **The thumbnail wears the filter.** `Câmera.mkv` has none, so never thumb or cut from it as it is on such a day.
+   `thumb.py <date> --da-live x,y,w,h` takes him from the stream, and is saved with the pick (`--refazer` keeps it).
+   The boxes, inside their frames: Conversa `80,82,994,540` (sharp: the best source), Celeste + chat · Diversos
+   `26,786,268,244` (small: only a close face). For the sheet give that scene's stretch:
+   `--da-live 26,786,268,244 --trecho 25:20-1:57:20`. Look at each draft's cutout.
+7. **Don't free it.** Luan keeps the Celeste days' recordings (Live, Jogo, Câmera) for the produced videos of his
+   trajectory (his call, 2026-11-22). So no `--done` for a Celeste day and none of its files in a `--clean`, which
+   doesn't know this: read its list before `--apply`.
+8. **Release only with the video's id** in the live's page (`live.py <date> --video <id>`): without it the page
+   embeds an empty player. Push only the day's commits: check `git log origin/main..main` for others waiting his OK.
+9. **What he said on the air about the channel's things** (the filter, the overlay, the site, ideas) goes in the
+   report to him with its time, and so does what the frames show broken. It's his to decide what becomes work.
+10. **A video per chapter, then the live** (Luan, 2026-11-22: "quebrar por capítulo pro youtube", "só depois a live
+   vem publicada"). `scripts/capitulos.py scripts/roteiros/capitulos/<date>-capitulo-<n>.json` plans, `--apply`
+   renders: the intro, the chapter whole, the outro, as 2c. The Prologue goes with chapter 1. Edges: in a pause of
+   his microphone, from after the file select (its names stay out), each video up to where he moves on to the next
+   chapter, the ad break left to the VOD. Marks: the chapter's story moments, checked on frames. Titles: his line as
+   the hook. Thumbnails as 2c's, with the filter (`--folha capitulo-<n> --da-live 26,786,268,244`), picking is his.
+   Schedule as 2c's, and the live's `youtube.publish_at` at least a day after the last one.
+11. **No shorts from a Celeste live** (Luan, 2026-11-22, said twice): he records Celeste's shorts by hand, about the
+   game's concepts. Don't scan the live for moments and don't make a candidates reel.
 
 ## 0. Make sure it's over
 

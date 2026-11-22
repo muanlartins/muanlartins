@@ -5,17 +5,21 @@ file, made from the games' own sounds, which never leave public/stream/privado/ 
   python3 scripts/filtros_sons.py phoenix-   # the cues starting with that
 
 Its inputs are the extractions, re-run after a patch (Valorant closed, Luan not live):
-  ~/.local/share/valorant-extract/run.sh phoenix|sova|sage   the agents' models and effects
-  ~/.local/share/valorant-extract/sons.sh phoenix|sova|sage  their Wwise events: privado/valorant/<agent>/sons/wwiser/txtp/
+  ~/.local/share/valorant-extract/run.sh <agent>   the agents' models and effects
+  ~/.local/share/valorant-extract/sons.sh <agent>  their Wwise events: privado/valorant/<agent>/sons/wwiser/txtp/
   ~/.local/share/rl-extract/run.sh                      Rocket League's: privado/rocket-league/sons/<event>/NN.wav
+A game made with FMOD (Celeste) needs no extraction: its installed banks are read as they are (FMOD_GAMES).
 
 A Valorant cue renders the game's own event (its .txtp, written by wwiser from the event's bank) with vgmstream, so
 its layers play together at the game's volumes; a random container gives one file per pick (up to MAX_ALTS), which
 the page draws from. Loops come straight from the looped sound (sons/wav/), to loop seamlessly in the page.
+An FMOD cue decodes one stream of the game's bank by its name (privado/<game>/<bank>-nomes.tsv lists every stream's
+index and name; made here, ~2 min, when it's missing); a name with * gives one file per stream it matches.
 Each file is brought to a common loudness (TARGET, quieter for loops), cut where the cue says, faded, and written as
 Opus to privado/sons/<cue>/NN.ogg, with privado/sons/index.json listing them. Never deletes anything.
 """
 
+import fnmatch
 import json
 import re
 import shutil
@@ -25,7 +29,8 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-PRIVADO = ROOT / "public/stream/privado"
+# Resolved: a worktree's is a link to the shared checkout's (whose git says it's ignored).
+PRIVADO = (ROOT / "public/stream/privado").resolve()
 if not (PRIVADO / "valorant").exists():
     # A worktree has no private folder: the shared checkout's is the one the page is served from.
     PRIVADO = Path.home() / "repos/muanlartins/public/stream/privado"
@@ -51,86 +56,41 @@ def RL(event, gain=0.0, delay=0.0):
     return {"kind": "rl", "event": event, "gain": gain, "delay": delay}
 
 
-# Each cue: its parts (played together, each from `delay` seconds, `gain` dB), `cut` (seconds kept, faded out over
-# the last `fade`), `loop` (made to loop in the page).
-CUES = {
-    # Phoenix's Curveball (BANG in filtros.html: 1 s in the hand, 0.65 s flying, then the glare).
-    "phoenix-flash-equip": {"parts": [V("phoenix", f"Play_Phoenix_AbilE_Equip {FP}")], "cut": 1.2},
-    "phoenix-flash-throw": {"parts": [V("phoenix", "Play_Phoenix_AbilE_BuildFlash"), V("phoenix", "Play_Phoenix_AbilE_Projectile", -2)]},
-    "phoenix-flash-pop": {"parts": [V("phoenix", "Play_Phoenix_AbilE_FlashWorld")]},
-    # What a flashed player hears: the camera's glare blinds whoever watches.
-    "phoenix-flash-blind": {"parts": [V("phoenix", "Play_Phoenix_AbilE_FlashPlayer")]},
-    # Hot Hands (HH: 0.7 s in the hand, 0.55 s flying, 4 s burning).
-    "phoenix-molotov-equip": {"parts": [V("phoenix", f"Play_Phoenix_Abil4_Equip {FP}")], "cut": 1.0},
-    "phoenix-molotov-throw": {"parts": [V("phoenix", f"Play_Phoenix_Abil4_Cast {FP}"), V("phoenix", "Play_Phoenix_Abil4_Projectile", -3)]},
-    "phoenix-molotov-explode": {"parts": [V("phoenix", "Play_Phoenix_Abil4_Explode")]},
-    "phoenix-molotov-burn": {"parts": [W("phoenix", "Play_Phoenix_Abil4_Loop/00_Phoenix_Molotov_Loop_TP (SFX).wav")], "loop": True},
-    "phoenix-molotov-end": {"parts": [V("phoenix", "Play_Phoenix_Abil4_ZoneDecay")]},
-    # Blaze (BZ: 0.8 s in the hand, the wall running 0.75 s, burning 6 s).
-    "phoenix-blaze-equip": {"parts": [V("phoenix", f"Play_Phoenix_AbilQ_Equip {FP}"), V("phoenix", "Play_Phoenix_Wall_Equip_Jacket_FP")], "cut": 1.1},
-    "phoenix-blaze-run": {"parts": [V("phoenix", "Play_Phoenix_AbilQ_Projectile"), W("phoenix", "Play_Phoenix_AbilQ_WallLoop/02_Phoenix_Wall_Form_TP_V2_A (SFX).wav", -4), W("phoenix", "Play_Phoenix_AbilQ_WallLoop/00_Phoenix_Wall_Form_TP_V2_B (SFX).wav")]},
-    "phoenix-blaze-burn": {"parts": [W("phoenix", "Play_Phoenix_AbilQ_WallLoop/01_Phoenix_Wall_Loop_TP (SFX).wav")], "loop": True},
-    "phoenix-blaze-end": {"parts": [V("phoenix", "Play_Phoenix_AbilQ_WallDecay")]},
-    # Run It Back (RB: 0.8 s cast, 10 s on fire, then back).
-    "phoenix-ult-cast": {"parts": [V("phoenix", f"Play_Phoenix_AbilX_Cast {FP}")]},
-    # The rise towards the comeback, 9 s: the page starts it so it ends as he comes back.
-    "phoenix-ult-rise": {"parts": [W("phoenix", "Play_Phoenix_AbilX_LoopAtLocation/01_Phoenix_Ultimate_LoopAtLocation_WRise_FP_01 (SFX).wav")]},
-    "phoenix-ult-return": {"parts": [V("phoenix", f"Play_Phoenix_AbilX_FormReturn {FP}")]},
-    # Fire held between the palms, and his shoulders burning in the ultimate.
-    "phoenix-fire": {"parts": [W("phoenix", "Play_Abil_Fire_Med_Lp/00_fire_crackle_med_lp (SFX).wav")], "loop": True},
-    # Sova's bow: out for the Recon Bolt, drawing (its level ticks), let go, folded unshot.
-    "sova-recon-equip": {"parts": [V("sova", "Play_Hunter_S0_AB_Q_SonarBolt_Equip_Bow_Mvt_C"), V("sova", "Play_Hunter_S0_AB_Q_SonarBolt_Equip_Elec_A", -2), V("sova", "Play_Hunter_S0_AB_Q_SonarBolt_Equip_Circle", -2, 0.05)]},
-    "sova-recon-charge": {"parts": [V("sova", f"Play_Hunter_AbilQ_Charge {FP}")], "cut": 1.0},
-    "sova-charge-hum": {"parts": [W("sova", "Play_Hunter_AbilQ_Charge/03_Hunter_AbilQ_Charge_Loop (SFX).wav")], "loop": True},
-    "sova-charge-level": {"parts": [V("sova", "Play_Hunter_AbilQ_ChargeLevelReached_00")]},
-    "sova-bow-release": {"parts": [V("sova", f"Play_Hunter_AbilQ_Cast {FP}"), V("sova", "Play_Hunter_AbilQ_Missile_3P_upd", -6)], "cut": 1.6},
-    "sova-bow-fold": {"parts": [V("sova", "Play_Hunter_S0_AB_Q_SonarBolt_Cancel_Bow_Mvt"), V("sova", "Play_Hunter_S0_AB_Q_SonarBolt_Cancel_Zap")]},
-    # The Recon Bolt landing, sitting there (4.2 s, DART_LIFE), its two pings, breaking.
-    "sova-recon-hit": {"parts": [V("sova", "Play_Hunter_AbilQ_Hit_3P")]},
-    "sova-recon-deployed": {"parts": [V("sova", "Play_Hunter_Abil4_Deployed_Start"), W("sova", "Play_Hunter_Abil4_Deployed_Loop_upd/02_Hunter_S0_AB_Q_Deployed_Ally_Swt_Loop (SFX).wav", -8)], "cut": 4.4, "fade": 0.5},
-    "sova-recon-ping": {"parts": [V("sova", f"Play_Hunter_Abil_SonarBolt_SonarPing_upd {FP}")]},
-    "sova-recon-end": {"parts": [V("sova", "Play_Hunter_AbilQ_Destroyed")]},
-    # The Shock Bolt: out, drawing, the bounce off the top, the burst.
-    "sova-shock-equip": {"parts": [V("sova", "Play_Hunter_Abil4_Equip_Bow_Mvt_A"), V("sova", "Play_Hunter_Abil4_Equip_Elec_B", -2)]},
-    "sova-shock-charge": {"parts": [V("sova", f"Play_Hunter_Abil4_Charge {FP}")], "cut": 1.0},
-    "sova-shock-hum": {"parts": [W("sova", "Play_Hunter_Abil4_Equipped_Hum_Loops/00_Hunter_S0_AB_4_ShockBolt_Equipped_Hum_Loop (SFX).wav")], "loop": True},
-    "sova-shock-ricochet": {"parts": [V("sova", "Play_Hunter_AbilGrenade_Ricochet_3P")]},
-    "sova-shock-explode": {"parts": [V("sova", "Play_Hunter_Abil4_ShockBolt_Explode")]},
-    # The Owl Drone (DRONE: opens 0.5 s, flies up, darts him at 3 s, leaves at 5.6 s).
-    "sova-drone-open": {"parts": [V("sova", f"Play_Hunter_AbilE_Equip {FP}"), V("sova", f"Play_Hunter_AbilE_Deploy {FP}", 0, 0.15)]},
-    "sova-drone-idle": {"parts": [W("sova", "Play_Abil_Hunter_E_Drone_Idle/02_Hunter_Drone_Idle_Propellor_3P (SFX).wav")], "loop": True},
-    "sova-drone-dart": {"parts": [V("sova", f"Play_Hunter_AbilE_Missile {TP}")]},
-    "sova-drone-tag": {"parts": [V("sova", "Play_Hunter_AbilE_Dart_V2_HitConfirm_1P")]},
-    "sova-drone-pulse": {"parts": [V("sova", f"Play_Hunter_AbilE_Dart_Complete {TP}")]},
-    # Hunter's Fury (ULT: three shots at 1.2, 2.5 and 3.8 s, each charged 0.9 s; over at 4.6 s).
-    "sova-ult-equip": {"parts": [V("sova", "Play_Hunter_AbilX_Equip_Energy"), V("sova", "Play_Hunter_AbilX_Equip_BowMvt_A", -2)]},
-    "sova-ult-hum": {"parts": [W("sova", "Play_Hunter_AbilX_Equipped_Loops/01_Hunter_S0_AB_X_SuperBolt_Equipped_Arc_Loop (SFX).wav")], "loop": True},
-    "sova-ult-charge": {"parts": [V("sova", f"Play_Hunter_AbilX_Channel {FP}")]},
-    "sova-ult-fire": {"parts": [V("sova", f"Play_Hunter_AbilX_Fire {FP} {{s}}=(1296359092=2967106803)")]},
-    "sova-ult-end": {"parts": [V("sova", "Play_Hunter_S0_AB_X_SuperBolt_Cancel_Bow_Mvt_D")]},
-    # Sage's Barrier Orb (SG in filtros.html: 0.8 s in the hand, then the wall erupts, stands 6 s and crumbles).
-    "sage-barreira-equip": {"parts": [V("sage", f"Play_Thorne_AbilE_Equip {FP}")], "cut": 1.0},
-    "sage-barreira-cast": {"parts": [V("sage", f"Play_Thorne_AbilE_Cast {FP}")]},
-    "sage-barreira-erupt": {"parts": [V("sage", "Play_Thorne_AbilE_Erupt"), V("sage", "Play_Thorne_AbilE_Harden_Oneshot", -3, 0.6)]},
-    "sage-barreira-crumble": {"parts": [V("sage", "Play_Thorne_AbilE_WallCrumble")]},
-    # Slow Orb (0.8 s in the hand, 0.45 s flying, the field 5.5 s).
-    "sage-lentidao-equip": {"parts": [V("sage", f"Play_Thorne_Abil4_Equip {FP}")], "cut": 1.0},
-    "sage-lentidao-throw": {"parts": [V("sage", f"Play_Thorne_Abil4_Cast {FP}"), V("sage", "Play_Thorne_Abil4_Projectile", -3)], "cut": 1.2},
-    "sage-lentidao-explode": {"parts": [V("sage", "Play_Thorne_Abil4_Explode"), V("sage", "Play_Thorne_Abil4_SlowFieldForm", 0, 0.05)]},
-    "sage-lentidao-loop": {"parts": [W("sage", "Play_Thorne_Abil4_GroundLoop/00_thorne_abil4_slowfield_loop_01 (SFX).wav")], "loop": True},
-    "sage-lentidao-end": {"parts": [V("sage", "Play_Thorne_Abil4_SlowFieldDecay")]},
-    # Healing Orb on herself (0.6 s in the hand, then 5 s healing).
-    "sage-cura-equip": {"parts": [V("sage", f"Play_Thorne_AbilQ_Equip {FP}")], "cut": 0.8},
-    "sage-cura-cast": {"parts": [V("sage", f"Play_Thorne_AbilQ_Cast_Self {FP}")]},
-    "sage-cura-loop": {"parts": [W("sage", "Play_Thorne_AbilQ_Heal_Loop/01_Thorne_AbilQ_Heal_Loop_1P_01 (SFX).wav")], "loop": True},
-    # Resurrection (1.3 s of glowing hands, then the light).
-    "sage-ult-equip": {"parts": [V("sage", f"Play_Thorne_AbilX_Equip {FP}")], "cut": 1.5},
-    "sage-ult-res": {"parts": [V("sage", f"Play_Thorne_AbilX_Rez {FP}")], "cut": 4.6, "fade": 0.8},
-    # Rocket League's cars: the flip (a jump, then the dodge) and the demolition.
-    "carro-pulo": {"parts": [RL("Play_Car_Movement_Jump")], "cut": 0.9},
-    "carro-flip": {"parts": [RL("Play_Car_Movement_Dodge")], "cut": 1.2},
-    "carro-demo": {"parts": [RL("Play_Impact_Car_Explode")]},
-}
+# The FMOD games' banks, read where the game is installed (read-only; nothing is copied but the cues).
+FMOD_GAMES = {"celeste": Path("/mnt/c/Program Files (x86)/Steam/steamapps/common/Celeste/Content/FMOD/Desktop")}
+
+
+def F(name, bank="sfx", game="celeste", gain=0.0, delay=0.0):
+    """One stream of an FMOD game's bank by its name (with * one per stream matched, as random picks)."""
+    return {"kind": "fmod", "name": name, "bank": bank, "game": game, "gain": gain, "delay": delay}
+
+
+# Each cue, from each filter's folder (public/stream/filtros/<folder>/sons.json, one cue a line): its parts, played
+# together, each from `delay` seconds and `gain` dB (a Valorant event by its .txtp's name up to the variant, where
+# {FP} is the caster's version and {TP} the others', with the agent's extraction it comes from, `agente`; a looped
+# sound as it is, `wav`, under that agent's sons/wav/; a Rocket League event, `rl`; a stream of an FMOD game's bank by
+# its name, `fmod`, with its `banco`, "sfx" by default, and `jogo`, "celeste"), `cut` (seconds kept, faded out over the
+# last `fade`), `loop` (made to loop in the page).
+def load_cues():
+    cues = {}
+    for path in sorted((ROOT / "public/stream/filtros").glob("*/sons.json")):
+        for name, cue in json.loads(path.read_text()).items():
+            parts = []
+            for p in cue["parts"]:
+                gain, delay = p.get("gain", 0.0), p.get("delay", 0.0)
+                if "evento" in p:
+                    parts.append(V(p["agente"], p["evento"].replace("{FP}", FP).replace("{TP}", TP), gain, delay))
+                elif "wav" in p:
+                    parts.append(W(p["agente"], p["wav"], gain, delay))
+                elif "fmod" in p:
+                    parts.append(F(p["fmod"], p.get("banco", "sfx"), p.get("jogo", "celeste"), gain, delay))
+                else:
+                    parts.append(RL(p["rl"], gain, delay))
+            cues[name] = {**cue, "parts": parts}
+    return cues
+
+
+CUES = load_cues()
 
 
 def run(cmd):
@@ -148,6 +108,29 @@ def event_txtp(agent, event):
     return found[0]
 
 
+def fmod_streams(part):
+    """The bank and the indices of an FMOD part's streams, by name from the bank's listing (made when missing)."""
+    bank = FMOD_GAMES[part["game"]] / f"{part['bank']}.bank"
+    listing = PRIVADO / part["game"] / f"{part['bank']}-nomes.tsv"
+    if not listing.exists():
+        meta = lambda i: run(["vgmstream-cli", "-m", "-s", str(i), str(bank)]).stdout
+        count = int(re.search(r"stream count: (\d+)", meta(1)).group(1))
+        rows = []
+        for i in range(1, count + 1):
+            name = re.search(r"stream name: (.*)", meta(i))
+            rows.append(f"{i}\t{name.group(1).strip() if name else ''}\t\n")
+        listing.parent.mkdir(parents=True, exist_ok=True)
+        listing.write_text("".join(rows))
+    names = {}
+    for line in listing.read_text().splitlines():
+        i, name = line.split("\t")[:2]
+        names.setdefault(name, int(i))
+    found = sorted(n for n in names if fnmatch.fnmatchcase(n, part["name"]))
+    if not found:
+        raise SystemExit(f"{part['game']} {part['bank']}: no stream named {part['name']!r}")
+    return bank, [names[n] for n in found]
+
+
 def alternatives(part):
     """How many random picks a part has."""
     if part["kind"] == "event":
@@ -156,6 +139,8 @@ def alternatives(part):
         return max(picks, default=1)
     if part["kind"] == "rl":
         return len(sorted((PRIVADO / "rocket-league/sons" / part["event"]).glob("*.wav")))
+    if part["kind"] == "fmod":
+        return len(fmod_streams(part)[1])
     return 1
 
 
@@ -175,6 +160,10 @@ def render(part, k, work):
     elif part["kind"] == "rl":
         files = sorted((PRIVADO / "rocket-league/sons" / part["event"]).glob("*.wav"))
         shutil.copy(files[k % len(files)], out)
+    elif part["kind"] == "fmod":
+        bank, streams = fmod_streams(part)
+        # -i: once through (a stream with loop points would play twice and fade).
+        run(["vgmstream-cli", "-i", "-s", str(streams[k % len(streams)]), "-o", str(out), str(bank)])
     else:
         shutil.copy(part["path"], out)
     return out

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The Celeste link (README.md beside this file): an Everest code mod that changes nothing in the game and only reports
+    it, over server-sent events on 127.0.0.1:8797. Built in WSL by construir.sh against the installed game's own
+    assemblies (CelestePath), none of them copied: Everest gives them to the mod when it loads.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>MuanlartinsLink</AssemblyName>
+    <RootNamespace>Celeste.Mod.MuanlartinsLink</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <DebugType>portable</DebugType>
+    <CelestePath Condition="'$(CelestePath)' == ''">/mnt/c/Program Files (x86)/Steam/steamapps/common/Celeste</CelestePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Celeste" HintPath="$(CelestePath)/Celeste.dll" Private="false" />
+    <Reference Include="MMHOOK_Celeste" HintPath="$(CelestePath)/MMHOOK_Celeste.dll" Private="false" />
+    <Reference Include="FNA" HintPath="$(CelestePath)/FNA.dll" Private="false" />
+    <Reference Include="MonoMod.RuntimeDetour" HintPath="$(CelestePath)/MonoMod.RuntimeDetour.dll" Private="false" />
+    <Reference Include="MonoMod.Utils" HintPath="$(CelestePath)/MonoMod.Utils.dll" Private="false" />
+    <Reference Include="YamlDotNet" HintPath="$(CelestePath)/YamlDotNet.dll" Private="false" />
+  </ItemGroup>
+</Project>

@@ -3,7 +3,8 @@
 // life are theirs; sizes in centimetres, our axes (x right, y up, z towards the camera). Where the game's
 // material does something a sprite can't (flow maps, fresnel on a mesh), the nearest sprite stands in, noted.
 // The systems are scaled where they're spawned: in-hand effects about as in first person, the ones out in the
-// world (explosions, the fire on the ground, the wall) shrunk to the camera box.
+// world (explosions, the fire on the ground, the wall) shrunk to the camera box. Its textures are vfx.js's own
+// (its TEX: Phoenix's were the first, so nothing to import), and Curveball's orb is vfx.orb().
 
 const bell = [0, 0.516, 0.968, 0.452, 0] // the game's fade in and out over life (its 32-key AlphaScaleOverLife)
 const fade = [1, 0]

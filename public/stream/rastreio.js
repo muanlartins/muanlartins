@@ -13,6 +13,8 @@ self.importScripts = (...urls) => {
   }
 }
 
+import { semCadeira } from "./tronco.js"
+import { SEGURA } from "./quadro.js"
 import { FilesetResolver, GestureRecognizer, HandLandmarker, ImageSegmenter, FaceLandmarker, PoseLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.2/vision_bundle.mjs"
 
 const MODELS = "https://storage.googleapis.com/mediapipe-models/"
@@ -22,6 +24,10 @@ let delegate = ""
 let small = null
 let smallCtx = null
 let MH = 144
+// His shoulders' joints in the newest answer that had them, for `quer.tronco` (they're tracked in the body mask's
+// worker): one answer without them doesn't bring the chair back.
+let juntas = null
+let juntasEm = -Infinity
 
 async function load({ cpu, which, gestos }) {
   const files = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.2/wasm")
@@ -79,6 +85,11 @@ function track({ bitmap, t, quer }) {
     if (quer.ombros && tasks.ombros) {
       time("ombros", () => {
         const r = tasks.ombros.detectForVideo(bitmap, t)
+        const lm = r.landmarks?.[0]
+        if (lm && lm[11].visibility > 0.4 && lm[12].visibility > 0.4) {
+          juntas = [lm[11], lm[12]].map((p) => [p.x, p.y])
+          juntasEm = t
+        } else if (t - juntasEm > SEGURA.ombros) juntas = null
         return { landmarks: r.landmarks?.[0] || null, world: r.worldLandmarks?.[0] || null }
       })
     }
@@ -98,8 +109,11 @@ function track({ bitmap, t, quer }) {
           const mask = new Uint8Array(MW * MH)
           for (let i = 0; i < f.length; i++) mask[i] = (f[i] * 255) | 0
           res = { mask, w: MW, h: MH }
+          const px = quer.tronco && juntas ? smallCtx.getImageData(0, 0, MW, MH).data : null
+          // His torso without the chair behind him (tronco.js), for a look that's painted on his clothes.
+          if (px) res.tronco = semCadeira(mask, px, MW, MH, ...juntas.map(([x, y]) => [x * MW, y * MH]))
           // The frame's top half, small, for checking the background plate against it (the page asks now and then).
-          if (quer.fundo) res.topo = smallCtx.getImageData(0, 0, MW, MH >> 1).data
+          if (quer.fundo) res.topo = px ? px.slice(0, MW * (MH >> 1) * 4) : smallCtx.getImageData(0, 0, MW, MH >> 1).data
         }
         r.close()
         return res
@@ -108,10 +122,14 @@ function track({ bitmap, t, quer }) {
   } catch (e) {
     out.erro = `${e?.name || ""} ${e?.message || e}`
   }
-  bitmap.close()
+  // The frame goes back with its mask when what's behind him is learnt from it: the two must be the same frame.
+  const volta = !!(quer.quadro && out.corpo)
+  if (volta) out.quadro = bitmap
+  else bitmap.close()
   out.t1 = performance.timeOrigin + performance.now()
-  const transfer = []
+  const transfer = volta ? [bitmap] : []
   if (out.corpo?.mask) transfer.push(out.corpo.mask.buffer)
+  if (out.corpo?.tronco) transfer.push(out.corpo.tronco.buffer)
   if (out.corpo?.topo) transfer.push(out.corpo.topo.buffer)
   postMessage(out, transfer)
 }

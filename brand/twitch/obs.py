@@ -131,6 +131,8 @@ valorant = capture("Captura · Valorant", VALORANT)
 # or record on the camera's frame (jogo.html?placar=0) and a stand that cheers no goals or rounds (?jogo=diversos).
 # Its capture takes whatever game is fullscreen or borderless in front, so a new game needs no setup (a windowed one
 # is picked in the capture's properties). The camera and the chat sit where Rocket League has them.
+# Celeste needs nothing more here: its overlay (jogo=diversos) shows the chapter and its numbers by itself while the
+# game's mod is connected (celeste.js, scripts/celeste-mod/), and the Filtros dock's "Celeste" follows the game.
 various = capture("Captura · Diversos")
 # Stays on between scenes, so switching to one with the camera doesn't wait for it to start. Off the air it's off
 # altogether since 2026-11-20: the Efeitos dock presses its Activate/Deactivate button as the stream and the recording
@@ -167,6 +169,16 @@ def stand(name, page):
 crowd = stand("Torcida", "torcida.html")
 valorant_crowd = stand("Torcida · Valorant", "torcida.html?jogo=valorant")
 various_crowd = stand("Torcida · Diversos", "torcida.html?jogo=diversos")
+# Celeste's own scene (Luan, 2026-11-22, made during its first live): nothing over the game, which is 1600×900 at
+# (320, 0), five pixels to each of its own; celeste.html is the column and the band around it. Its name keeps
+# "Diversos" on purpose: that's how the Efeitos dock knows it for F2, F4, F8 and the game's recording, with
+# Diversos' Lance ruim and VAR and the same capture and stand.
+CELESTE = "Celeste + chat · Diversos"
+celeste_overlay = browser("Overlay · Celeste + chat", "celeste.html")
+# In Diversos + chat and its Lance ruim (the same day): the stand clear of Celeste's numbers beside the camera, and
+# Pix under where Celeste's dialogue opens.
+various_stand_at = {"pos": (184, 0)}
+various_pix_at = {"pos": (0, 304)}
 # Live Pix: the band and the goal, over everything; its sound is the Pix voices, like the crowd's. One source in
 # every scene that has the game or the talk, so an alert never plays twice: in Conversa (where a Pix "entre partidas"
 # usually plays) it's cropped to the band and set on the camera's lower third, shrunk to its width (1024 since
@@ -194,6 +206,7 @@ alerts = ALERTS and source("browser_source", "Alertas", {"url": ALERTS, "width":
 # In the game, centred under the scoreboard; in Conversa, on the camera's top third, shrunk to its width (under the
 # camera until 2026-11-20, where the topic and the minigames are now), clear of the Pix band on its lower third.
 alerts_in_game = [(alerts, {"pos": (410, 130), "bounds": ALERTS_SIZE})] if alerts else []
+alerts_in_celeste = [(alerts, {"pos": (570, 130), "bounds": ALERTS_SIZE})] if alerts else []
 alerts_in_talk = [(alerts, {"pos": (64, 70), "bounds": (1024, 186)})] if alerts else []
 # In Terapia, centred at the bottom (over the step's word while one plays), like its Pix band.
 alerts_in_calm = [(alerts, {"pos": (410, 830), "bounds": ALERTS_SIZE})] if alerts else []
@@ -310,13 +323,15 @@ filters["settings"]["reroute_audio"] = True
 filters.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_rocket_league = {"pos": (44, 740), "bounds": (480, 270)}
 in_valorant = {"pos": (44, 44), "bounds": (480, 270)}
+# As tall as in the other game scenes, so Luan is as big, cropped at the sides.
+in_celeste = {"pos": (16, 774), "bounds": (288, 270)}
 in_talk = {"pos": (64, 64), "bounds": (1024, 576)}
 # The end credits keep Conversa's old camera, 1280×720 (creditos.html is laid out round it).
 in_end = {"pos": (64, 64), "bounds": (1280, 720)}
 in_calm = {"pos": (336, 76), "bounds": (1248, 702)}
 # The filters over the camera, shrunk with OBS's Area filter (made for scaling down: the 3D's edges stay smooth).
 filters_at = {name: {**box, "scale_filter": "area"} for name, box in
-              {"rl": in_rocket_league, "valorant": in_valorant, "talk": in_talk, "end": in_end,
+              {"rl": in_rocket_league, "valorant": in_valorant, "celeste": in_celeste, "talk": in_talk, "end": in_end,
                "calm": in_calm}.items()}
 scenes = [
     scene("Começando", (starting, {})),
@@ -325,14 +340,16 @@ scenes = [
     scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, filters_at["valorant"]),
           (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
     scene("Diversos + chat", (various, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
-          (various_chat_overlay, {}), (various_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
+          (various_chat_overlay, {}), (various_crowd, various_stand_at), *alerts_in_game, (pix, various_pix_at), (booth, {})),
+    scene(CELESTE, (various, {"pos": (320, 0), "bounds": (1600, 900)}), (camera, in_celeste), (filters, filters_at["celeste"]),
+          (celeste_overlay, {}), (various_crowd, {"pos": (348, 0)}), *alerts_in_celeste, (pix, {}), (booth, {})),
     scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
     scene("Lance ruim · RL", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
           (camera, in_rocket_league), (bad_play, {})),
     scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
           *alerts_in_game, (pix, {}), (camera, in_valorant), (bad_play, {})),
-    scene("Lance ruim · Diversos", (various, {"bounds": (1920, 1080)}), (various_chat_overlay, {}), (various_crowd, {}),
-          *alerts_in_game, (pix, {}), (camera, in_rocket_league), (bad_play, {})),
+    scene("Lance ruim · Diversos", (various, {"bounds": (1920, 1080)}), (various_chat_overlay, {}),
+          (various_crowd, various_stand_at), *alerts_in_game, (pix, various_pix_at), (camera, in_rocket_league), (bad_play, {})),
     scene("VAR · Rocket League", (camera, in_var_camera), (booth, {}), (crowd, {}), *alerts_in_game, (pix, {})),
     scene("VAR · Valorant", (camera, in_var_camera), (booth, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {})),
     scene("VAR · Diversos", (camera, in_var_camera), (booth, {}), (various_crowd, {}), *alerts_in_game, (pix, {})),
@@ -347,6 +364,7 @@ HIDDEN = {"RL + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"},
           "Lance ruim · RL": {"Discord", "Navegador"}, "Terapia": {"Discord"},
           "Valorant + chat": {"Discord", "Navegador"}, "Lance ruim · Valorant": {"Discord", "Navegador"},
           "VAR · Rocket League": {"Discord", "Navegador"}, "VAR · Valorant": {"Discord", "Navegador"},
+          CELESTE: {"Discord", "Navegador"},
           "Diversos + chat": {"Discord", "Navegador"}, "Lance ruim · Diversos": {"Discord", "Navegador"},
           "VAR · Diversos": {"Discord", "Navegador"}}
 BREAKS = {"Começando", "Já volto", "Fim"}
@@ -387,7 +405,7 @@ collection = {
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
     "sources": scenes + [game, valorant, various, camera, filters, game_chat_overlay, valorant_chat_overlay,
-                         various_chat_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm, booth] + apps + sounds
+                         various_chat_overlay, celeste_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm, booth] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,

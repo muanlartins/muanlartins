@@ -117,6 +117,7 @@ function GoalBar({ title, done, total, large = false }: { title: string; done: n
 /** /conteudo/diversos/<game>: its numbers, its goal's checklist, its lives and notes. */
 export function DiversosGamePage({ game, played }: { game: OtherGame; played: Played }) {
   const last = played.lives[0]?.live.date
+  const published = new Set(played.lives.map(({ live }) => live.date))
   const line = lineOf(game)
   const description = line ?? T.mine(game.name)
   const stats = [
@@ -161,7 +162,7 @@ export function DiversosGamePage({ game, played }: { game: OtherGame; played: Pl
                   <ul className="flex flex-wrap gap-1.5">
                     {group.items.map((item) => (
                       <li key={item.text}>
-                        <GoalChip item={item} />
+                        <GoalChip item={item} published={published} />
                       </li>
                     ))}
                   </ul>
@@ -201,8 +202,9 @@ export function DiversosGamePage({ game, played }: { game: OtherGame; played: Pl
   )
 }
 
-/** One thing of a goal, as a square chip: Klein once done (a link to the live it was done in, when known). */
-function GoalChip({ item }: { item: GoalItem }) {
+/** One thing of a goal, as a square chip: Klein once done (a link to the live it was done in, when known and
+ * published: a live held back until its videos are out has no page yet). */
+function GoalChip({ item, published }: { item: GoalItem; published: Set<string> }) {
   const inner = (
     <>
       <span aria-hidden className={cn("grid h-3.5 w-3.5 shrink-0 place-items-center border", item.done ? "border-paper/80" : "border-line-strong")}>
@@ -213,7 +215,7 @@ function GoalChip({ item }: { item: GoalItem }) {
     </>
   )
   const className = cn("inline-flex items-center gap-1.5 px-2 py-1 text-[14px]", item.done ? "bg-klein text-paper" : "bg-klein/[0.06] text-ink")
-  if (!item.live) {
+  if (!item.live || !published.has(item.live)) {
     return (
       <span className={className} title={item.date ? `Feito ${T.doneOn(item.date)}` : undefined}>
         {inner}

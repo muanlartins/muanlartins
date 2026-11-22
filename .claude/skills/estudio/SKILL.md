@@ -19,6 +19,9 @@ description: Making Luan's shorts and commented-match videos from a live's mater
 
 ## Two kinds of short (Luan, 2026-11-11)
 
+Celeste has only the second kind (Luan, 2026-11-22): he records shorts of its concepts by hand. No highlights, no
+candidates reel from a Celeste live.
+
 Keep them apart: they're found, chosen and edited differently.
 
 | | **Highlights da live** | **Intencionais (de conteúdo)** |
@@ -27,7 +30,7 @@ Keep them apart: they're found, chosen and edited differently.
 | Who chooses | Claude finds candidates (transcript, kills, the camera box scan), sends a numbered candidates reel, **Luan picks by number**, before any edit | Luan: he decides the subject and records the take; his line is the hook |
 | Shape | **One situation per short**, played almost whole (40-57 s), camera on top and game below, hard cuts only, the live's own sound: the stream-clip style of fcyacr's reels, Luan's model (11-11) | One take, one short |
 | Tool | `scripts/destaque.py` (the edit turned up, Luan's ask of 11-12) or `scripts/clipe.py` (the plain stream clip), each with a JSON roteiro (the sections below) | `edicao.py` from a roteiro over his take ("Edição caprichada"), or the `short-editing` skill (Melvynx's engine, made for talking heads); `shorts.py`'s straight cut only for a first look or when he asks |
-| Material | Live.mp4 (the clock, his camera with the filters), Jogo.mp4, Câmera.mkv (sharp camera) | The take in `Videos\Shorts` (studio's Shorts profile or the Navegador scene) |
+| Material | Live.mp4 (the clock, his camera with the filters), Jogo.mp4, Câmera.mkv (sharp camera, never any filter: on a day the filter is his costume, not publishable as it is) | The take in `Videos\Shorts` (studio's Shorts profile or the Navegador scene) |
 
 Luan (11-11) wants the editing, visuals and sound raised across the board. For the highlights that first meant
 less: the effects-heavy reel (`cortes.py`, below) was "horrível... edição caótica, efeitos visuais cafonas", and his

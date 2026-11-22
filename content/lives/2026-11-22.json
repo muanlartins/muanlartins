@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-22",
+  "game": "celeste",
+  "video": "lMnh_p_N9Uc",
+  "length": "1:58:44",
+  "summary": {
+    "pt": "Comecei Celeste do zero: Prólogo e os três primeiros capítulos, 39 morangos, o coração de cristal do capítulo 1 e a fita cassete do 3, em 107 mortes.",
+    "en": "I started Celeste from zero: the Prologue and the first three chapters, 39 strawberries, chapter 1's crystal heart and chapter 3's cassette, in 107 deaths."
+  },
+  "youtube": {
+    "title": "Conheci a minha versão do mal | Celeste ao vivo",
+    "thumb": {
+      "quadro": "72.5",
+      "segundo": 72.5,
+      "texto": "A VERSÃO|DO MAL",
+      "emblema": false,
+      "fundo": "1:02:40",
+      "recorte": [
+        80,
+        82,
+        994,
+        540
+      ]
+    },
+    "publish_at": "2026-11-25T12:00:00-03:00"
+  },
+  "chapters": [
+    { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
+    { "at": "6:56", "title": { "pt": "A live começa", "en": "The stream begins" } },
+    { "at": "18:54", "title": { "pt": "O plano pra Celeste", "en": "The plan for Celeste" } },
+    { "at": "26:35", "title": { "pt": "Prólogo", "en": "Prologue" } },
+    { "at": "29:40", "title": { "pt": "Capítulo 1: Forsaken City", "en": "Chapter 1: Forsaken City" } },
+    { "at": "51:24", "title": { "pt": "Capítulo 2: Old Site", "en": "Chapter 2: Old Site" } },
+    { "at": "1:14:23", "title": { "pt": "Capítulo 3: Celestial Resort", "en": "Chapter 3: Celestial Resort" } },
+    { "at": "1:57:33", "title": { "pt": "Fim", "en": "End" } }
+  ]
+}
