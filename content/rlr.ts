@@ -5,7 +5,7 @@ export const rlr = {
   id: "rlr",
   name: { pt: "RLR", en: "RLR" },
   summary: {
-    pt: "Ferramenta para visualização de replays e aprendizado de Rocket League.",
+    pt: "Ferramenta pra rever replays e aprender Rocket League.",
     en: "A tool for viewing replays and learning Rocket League.",
   },
   href: "/rlr/",

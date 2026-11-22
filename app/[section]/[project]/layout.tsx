@@ -2,8 +2,10 @@ import { ChannelMenu } from "@/components/site/channel/channel-menu"
 import { AgentBackdrop } from "@/components/site/game/agent-backdrop"
 import { GameMenu } from "@/components/site/game/game-menu"
 import { games } from "@/content/projects"
+import assets from "@/content/valorant-assets.json"
 import { DIVERSOS, diversos, diversosPath } from "@/lib/diversos"
 import { gamePath, type Game } from "@/lib/game"
+import { valorantSessions } from "@/lib/matches"
 import { localize, sectionFromSlug } from "@/lib/site"
 
 const LABELS = localize({
@@ -11,6 +13,15 @@ const LABELS = localize({
   fundamentals: { pt: "Fundamentos", en: "Fundamentals" },
   all: { pt: "Todos", en: "All" },
 })
+
+/** The agent of Luan's latest ranked match (any match before the first ranked), by its art's id: Valorant's backdrop. */
+function latestAgent() {
+  const matches = valorantSessions()
+    .flatMap((session) => session.matches)
+    .sort((a, b) => b.at.localeCompare(a.at))
+  const name = (matches.find((match) => match.queue === "competitive") ?? matches[0])?.agent
+  return assets.agents.find((agent) => agent.name === name && agent.portrait)?.id
+}
 
 /** Every page of a game shares its menu: home, roadmap, ranked record, links elsewhere, and the other games. The channel's have its own. */
 export default async function GameLayout({ children, params }: LayoutProps<"/[section]/[project]">) {
@@ -65,7 +76,7 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
 
   return (
     <div className="relative">
-      {game.id === "valorant" && <AgentBackdrop />}
+      {game.id === "valorant" && <AgentBackdrop agent={latestAgent()} />}
       <GameMenu title={localize(game.title)} home={gamePath(game)} items={items} look={game.id} games={others} />
       {children}
     </div>

@@ -1,3 +1,4 @@
+import { EPIC_NOTICE } from "@/content/notices"
 import type { Project } from "@/content/projects"
 import rocketLeague from "@/content/rocket-league"
 import { rlr } from "@/content/rlr"
@@ -37,13 +38,13 @@ export default game({
   ranked: {
     title: { pt: "Ranqueadas", en: "Ranked" },
     description: {
-      pt: "Meu ranque, meus pontos e cada partida ranqueada das lives, em 1v1, 2v2 e 3v3.",
-      en: "My rank, my points and every ranked match from the streams, in 1v1, 2v2 and 3v3.",
+      pt: "Meu rank, meus pontos e cada partida ranqueada em 1v1, 2v2 e 3v3, nas lives e fora delas.",
+      en: "My rank, my points and every ranked match in 1v1, 2v2 and 3v3, on stream and off it.",
     },
   },
   links: [rlr, commented],
   credits: {
-    pt: "Rocket League e os emblemas de rank são da Psyonix/Epic Games; este site não é oficial nem afiliado. Modelos 3D do Octane e da bola por Jako (CC BY 4.0).",
-    en: "Rocket League and its rank emblems belong to Psyonix/Epic Games; this site is unofficial and not affiliated. Octane and ball 3D models by Jako (CC BY 4.0).",
+    pt: `Rocket League e os emblemas de rank são da Psyonix/Epic Games; este site não é oficial nem afiliado. Modelos 3D do Octane e da bola por Jako (CC BY 4.0). ${EPIC_NOTICE}`,
+    en: `Rocket League and its rank emblems belong to Psyonix/Epic Games; this site is unofficial and not affiliated. Octane and ball 3D models by Jako (CC BY 4.0). ${EPIC_NOTICE}`,
   },
 })

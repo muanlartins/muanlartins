@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils"
  * A dialog (brand/interface.md, "Components"): the native <dialog> opened with showModal, so Escape and focus come
  * free; cut at 45° like a card, a 16 px gutter on phones, the `inventory-dialog` entrance; its button, Escape or a click
  * on the backdrop close it. What's inside is drawn only while it's open, so a player in it stops when it closes.
- * `width` is its widest, in rem.
+ * `width` is its widest, in rem. `flush` drops the body's padding and its scrolling for content that lays itself out
+ * (a picture edge to edge, a list that scrolls under a fixed search).
  */
 export function Dialog({
   open,
@@ -16,6 +17,7 @@ export function Dialog({
   title,
   closeLabel = "Fechar",
   width = 36,
+  flush = false,
   className,
   children,
 }: {
@@ -24,6 +26,7 @@ export function Dialog({
   title: ReactNode
   closeLabel?: string
   width?: number
+  flush?: boolean
   className?: string
   children: ReactNode
 }) {
@@ -47,8 +50,8 @@ export function Dialog({
       {open && (
         // The cut clips a box shadow: the shadow follows the shape from this wrapper.
         <div className="drop-shadow-[0_8px_24px_rgb(0_20_71/0.16)]">
-          <div className={cn("cut max-h-[calc(100dvh-2rem)] overflow-y-auto bg-paper", className)}>
-            <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
+          <div className={cn("cut max-h-[calc(100dvh-2rem)] bg-paper", flush ? "flex flex-col overflow-hidden" : "overflow-y-auto", className)}>
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-5 py-3">
               <h2 id={id} className="min-w-0 text-[17px] font-medium tracking-[-0.01em] text-klein">
                 {title}
               </h2>
@@ -56,7 +59,7 @@ export function Dialog({
                 <X aria-hidden className="h-4 w-4" />
               </button>
             </div>
-            <div className="p-5">{children}</div>
+            {flush ? children : <div className="p-5">{children}</div>}
           </div>
         </div>
       )}

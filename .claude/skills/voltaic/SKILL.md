@@ -12,9 +12,10 @@ every Sunday (Novice for now: Aimlabs playlist `3266803489`). The page `/conteud
 semana, e também a rotina de treino, pra gente poder acompanhar a jornada"): every Sunday, once he's played the
 benchmark, the week goes on the site, both halves of it, and the page already draws both from the same files:
 
-- **the benchmark**: rank, energy, the change since last Sunday, the radar, each scenario's best through its ranks;
-- **the routine**: each day of the week in the "Treino" calendar, which opens every task played that day with how
-  many times and its best score (Voltaic's routine changes the tasks day by day).
+- **the benchmark**: rank, energy, the change since last Sunday and the weakest subcategory in the card at the top;
+  the radar, the energy by Sunday and each scenario's best through its ranks in "O benchmark"'s tabs;
+- **the routine**: each day of the week in that section's "Dias de treino" calendar, which opens every task played
+  that day with how many times and its best score (Voltaic's routine changes the tasks day by day).
 
 Nothing to write by hand: run the steps below, and the page follows.
 
@@ -47,13 +48,16 @@ Everything is deterministic: a script copies, the site computes.
   day) and scores them with Voltaic S3's formula, ported line by line from aimlab-stats.com: energy per scenario,
   the best per subcategory, the harmonic mean of the nine, "Complete" when every scenario reached the rank.
 - `content/voltaic-s3.json` is the benchmark itself: each level's scenario ids, names, subcategories and thresholds.
-- **How the aim moves** ("Como a mira se move" on the page, the roadmap's aim analysis, 2026-11-17): `scripts/mira.py`
+- **How the aim moves** (the training's side of "Do treino pro jogo" on the page, the roadmap's aim analysis,
+  2026-11-17): `scripts/mira.py`
   reads the replays themselves (`Replay\<play>.avro`, only the click scenarios: Frogshot, Popshot, Angleshot,
   Floatshot, Quadshot, Wideshot…; tracking and switching fire nonstop and are left out) and writes
   `content/mira/<date>.json`: per play, the flicks that stop short of the target and that go past it, how much of the
   way the first movement covers (and a histogram of where it ends), the corrections, clicking while still moving
-  and the hits each way, the shake in the 150 ms before the click, why the misses missed, and the median flick as a
-  curve. `lib/mira.ts` sums the latest 14 days. The format isn't public: the script's docstring has what was worked
+  and the hits each way, the shake in the 150 ms before the click, why the misses missed, the median flick as a
+  curve and, since 2026-11-21, the flicks one by one (`cada_flick`: each one's way to the target, for the page's
+  replay and its target; the whole way for 10 flicks a play, only the click for the rest). `lib/mira.ts` sums the
+  latest 14 days. The format isn't public: the script's docstring has what was worked
   out, and every play is checked against its header's shots, targets and hits, so a replay it can't read is skipped
   with the reason, never guessed. **Only the last 50 plays have replays**: run it at least every two or three days of
   training, or those plays' flicks are lost for good (their scores aren't: they're in the database).
@@ -96,7 +100,8 @@ live): once Aimlabs closes after new plays it runs `voltaic.py` and `mira.py` ov
 what changed in one commit (`valorant.py`'s log, `~/.cache/muanlartins/valorant.log`, says "mira publicada"). So the
 flicks are no longer lost to Aimlabs' 50-replay limit, and steps 2, 4 and 5 below are only for a day it failed (the
 log says why). The week's report (step 3) is still for when he asks. His Valorant matches go the same way into
-`content/mira-ranked/` (`mira_ranked.py`, "No treino e nas partidas" on the page).
+`content/mira-ranked/` (`mira_ranked.py`: "Do treino pro jogo" and "Na partida" on the page, each match's every
+flick replayable).
 
 1. Check he isn't live (`node scripts/obs.mjs`); the script is light, the builds aren't.
 2. `git pull --ff-only`, then `python3 scripts/voltaic.py` shows the days that change, then

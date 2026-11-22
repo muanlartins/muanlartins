@@ -1,7 +1,8 @@
 "use client"
 
-import { Check, Play, Plus, Search, X } from "lucide-react"
-import { useDeferredValue, useEffect, useRef, useState } from "react"
+import { Check, Play, Plus, Search } from "lucide-react"
+import { useDeferredValue, useState } from "react"
+import { Button, Choice, Dialog, EmptyState, ErrorLine, Input, Skeleton } from "@/components/site/ui"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import { renderOf, skinName, skinOf, skinsOf, weaponName, type Catalog, type CatalogWeapon } from "@/lib/valorant-catalog"
@@ -12,16 +13,18 @@ const T = localize({
   done: { pt: "Pronto", en: "Done" },
   clear: { pt: "Deixar em aberto", en: "Leave it open" },
   search: { pt: "Buscar skin ou coleção", en: "Search a skin or collection" },
+  rarities: { pt: "Raridade", en: "Rarity" },
   all: { pt: "Todas", en: "All" },
   loading: { pt: "Carregando todas as skins…", en: "Loading every skin…" },
-  failed: { pt: "Não deu pra carregar todas as skins. Recarregue a página.", en: "Couldn't load every skin. Reload the page." },
-  none: { pt: "Nenhuma skin com esse nome.", en: "No skin by that name." },
-  pickOne: { pt: "Escolha uma skin abaixo.", en: "Pick a skin below." },
+  failed: { pt: "Não deu pra carregar todas as skins.", en: "Couldn't load every skin." },
+  retry: { pt: "Tentar de novo", en: "Try again" },
+  none: { pt: "Nenhuma skin com esse nome. Tenta outra palavra ou o nome da coleção.", en: "No skin by that name. Try another word or the collection's name." },
+  pickOne: { pt: "Escolhe uma skin abaixo.", en: "Pick a skin below." },
   variants: { pt: "Variantes", en: "Variants" },
   preferred: { pt: "Preferida", en: "Preferred" },
   alternative: { pt: "Também usaria", en: "Would use too" },
   addAlternative: { pt: "Marcar como alternativa", en: "Mark as an alternative" },
-  showcase: { pt: "Ver em jogo", en: "See it in game" },
+  showcase: { pt: "Assistir em jogo", en: "Watch it in game" },
   stopShowcase: { pt: "Ver a imagem", en: "See the image" },
   collection: { pt: "Coleção", en: "Collection" },
   applyTheme: { pt: "Usar em todas as armas da coleção", en: "Use it on every weapon of the collection" },
@@ -42,6 +45,7 @@ export function SkinPicker({
   pick,
   onPick,
   onTheme,
+  onRetry,
   onClose,
 }: {
   catalog: Catalog
@@ -52,28 +56,23 @@ export function SkinPicker({
   onPick: (pick: Pick | null) => void
   /** Puts this collection's skin on every weapon that has one, in the variant of this name where it exists. */
   onTheme: (theme: string, variant: string) => void
+  /** Asks for the whole catalogue again. */
+  onRetry: () => void
   onClose: () => void
 }) {
-  const dialog = useRef<HTMLDialogElement>(null)
   const [shown, setShown] = useState<CatalogWeapon>()
   const [query, setQuery] = useState("")
   const [tier, setTier] = useState<string>()
   const [playing, setPlaying] = useState(false)
   const deferred = useDeferredValue(query)
 
-  // The dialog keeps its weapon while it closes; a new one starts with an empty search.
+  // A new weapon starts with an empty search.
   if (weapon && weapon !== shown) {
     setShown(weapon)
     setQuery("")
     setTier(undefined)
     setPlaying(false)
   }
-
-  useEffect(() => {
-    const element = dialog.current
-    if (weapon && !element?.open) element?.showModal()
-    if (!weapon && element?.open) element.close()
-  }, [weapon])
 
   const skin = skinOf(catalog, pick?.skin)
   const preferred = skin?.chromas.find((chroma) => chroma.id === pick?.chromas[0]) ?? skin?.chromas[0]
@@ -116,12 +115,7 @@ export function SkinPicker({
   }
 
   return (
-    <dialog
-      ref={dialog}
-      onClose={onClose}
-      onClick={(event) => event.target === dialog.current && onClose()}
-      className="m-auto flex w-[min(60rem,calc(100vw-1rem))] max-h-[calc(100dvh-1rem)] flex-col overflow-hidden rounded-md border border-line bg-paper p-0 text-ink backdrop:bg-navy/55 backdrop:backdrop-blur-[2px] open:motion-safe:animate-[inventory-dialog_0.22s_ease-out] [&:not([open])]:hidden"
-    >
+    <Dialog open={!!weapon} onClose={onClose} title={shown ? weaponName(shown) : ""} closeLabel={T.close} width={60} flush>
       {shown && (
         <>
           <div className="grid shrink-0 border-b border-line sm:grid-cols-[1.15fr_1fr]">
@@ -135,82 +129,41 @@ export function SkinPicker({
                   key={preferred.id}
                   src={preferred.image}
                   alt={`${skin!.name} · ${preferred.name}`}
-                  className="absolute inset-0 m-auto max-h-[78%] max-w-[86%] object-contain drop-shadow-[0_10px_30px_rgba(133,167,255,0.3)] motion-safe:animate-[inventory-in_0.3s_ease-out]"
+                  className="absolute inset-0 m-auto max-h-[78%] max-w-[86%] object-contain drop-shadow-[0_10px_30px_color-mix(in_oklab,var(--color-klein-claro)_30%,transparent)] motion-safe:animate-[inventory-in_0.3s_cubic-bezier(0.65,0,0.35,1)]"
                 />
               ) : (
-                <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-[14px] text-klein-claro">{T.pickOne}</p>
+                <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-[15px] text-klein-claro">{T.pickOne}</p>
               )}
-              {preferred?.video && (
-                <button
-                  type="button"
-                  onClick={() => setPlaying(!playing)}
-                  className={cn(
-                    "absolute left-3 flex items-center gap-1.5 rounded-md bg-paper/10 px-2.5 py-1.5 text-[13px] font-medium text-paper outline-none backdrop-blur-sm transition-colors hover:bg-paper/20 focus-visible:ring-2 focus-visible:ring-klein-claro",
-                    playing ? "top-3" : "bottom-3",
-                  )}
-                >
-                  {!playing && <Play aria-hidden className="h-3.5 w-3.5 fill-current" />}
-                  {playing ? T.stopShowcase : T.showcase}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label={T.close}
-                className="absolute right-3 top-3 rounded-md p-1.5 text-paper/80 outline-none transition-colors hover:bg-paper/10 hover:text-paper focus-visible:ring-2 focus-visible:ring-klein-claro sm:hidden"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              {preferred?.video && <ShowcaseButton playing={playing} onClick={() => setPlaying(!playing)} />}
             </div>
 
-            <div className="space-y-3 p-4 sm:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[13px] text-muted">{weaponName(shown)}</p>
-                  <h3 className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xl font-medium tracking-[-0.02em] text-klein">
-                    {skin ? skin.name : <span className="text-[15px] font-normal tracking-normal text-muted">{T.pickOne}</span>}
-                    {skin?.tier && (
-                      <span className="flex items-center gap-1.5 rounded-full border border-line px-2 py-0.5 text-[12px] font-medium tracking-normal text-ink">
-                        <span className="h-2 w-2 rounded-full" style={{ background: skin.tier.color }} />
-                        {skin.tier.name}
-                      </span>
-                    )}
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label={T.close}
-                  className={cn("rounded-md p-1.5 text-muted outline-none transition-colors hover:bg-zinc-100 hover:text-ink focus-visible:ring-2 focus-visible:ring-klein", preferred && "hidden sm:block")}
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
+            <div className="space-y-3 p-5">
+              <h3 className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xl font-medium tracking-[-0.02em] text-klein">
+                {skin ? skin.name : <span className="text-[15px] font-normal tracking-normal text-muted">{T.pickOne}</span>}
+                {skin?.tier && <Rarity name={skin.tier.name} color={skin.tier.color} />}
+              </h3>
 
               {skin && skin.chromas.length > 1 && (
                 <div className="space-y-1.5">
-                  <p className="text-[12px] font-medium text-muted">{T.variants}</p>
+                  <p className="text-[13px] font-medium text-muted">{T.variants}</p>
                   <ul className="flex flex-wrap gap-1.5">
                     {skin.chromas.map((chroma) => {
                       const isPreferred = chroma.id === preferred?.id
                       const isAlternative = alternatives.has(chroma.id)
                       return (
-                        <li key={chroma.id} className="flex">
-                          <button
-                            type="button"
-                            aria-pressed={isPreferred}
-                            onClick={() => prefer(chroma.id)}
-                            className={cn(
-                              "flex items-center gap-1.5 rounded-l-md border py-1 pl-1 pr-2 text-left text-[13px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-klein",
-                              isPreferred ? "border-klein bg-klein text-paper" : isAlternative ? "border-klein/50 text-klein" : "border-line text-ink hover:border-klein",
-                              isPreferred && "rounded-r-md",
-                            )}
-                          >
+                        <li
+                          key={chroma.id}
+                          className={cn(
+                            "cut-sm cut-edge relative flex border transition-colors",
+                            isPreferred ? "border-klein bg-klein text-paper" : isAlternative ? "border-klein text-klein" : "border-line-strong text-ink hover:border-klein",
+                          )}
+                        >
+                          <button type="button" aria-pressed={isPreferred} onClick={() => prefer(chroma.id)} className="flex min-h-8 items-center gap-1.5 py-1 pl-1.5 pr-2.5 text-left text-[13px] font-medium">
                             {chroma.swatch ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={chroma.swatch} alt="" className="h-5 w-5 rounded-[3px]" />
+                              <img src={chroma.swatch} alt="" className="h-5 w-5" />
                             ) : (
-                              <span className="h-5 w-5 rounded-[3px] bg-zinc-200" />
+                              <span className="h-5 w-5 bg-zinc-200" />
                             )}
                             {chroma.name}
                           </button>
@@ -221,19 +174,18 @@ export function SkinPicker({
                               title={isAlternative ? T.alternative : T.addAlternative}
                               aria-label={`${T.addAlternative}: ${chroma.name}`}
                               onClick={() => toggleAlternative(chroma.id)}
-                              className={cn(
-                                "rounded-r-md border border-l-0 px-1.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-klein",
-                                isAlternative ? "border-klein/50 bg-klein/10 text-klein" : "border-line text-muted hover:text-klein",
-                              )}
+                              className={cn("grid w-7 place-items-center border-l transition-colors", isAlternative ? "border-klein bg-klein/10" : "border-line-strong text-muted hover:text-klein")}
                             >
-                              {isAlternative ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                              {isAlternative ? <Check aria-hidden className="h-3.5 w-3.5" /> : <Plus aria-hidden className="h-3.5 w-3.5" />}
                             </button>
                           )}
                         </li>
                       )
                     })}
                   </ul>
-                  {alternatives.size > 0 && <p className="text-[12px] text-muted">{`${T.preferred}: ${preferred?.name} · ${T.alternative.toLowerCase()}: ${skin.chromas.filter((c) => alternatives.has(c.id)).map((c) => c.name).join(", ")}`}</p>}
+                  {alternatives.size > 0 && (
+                    <p className="text-[13px] text-muted">{`${T.preferred}: ${preferred?.name} · ${T.alternative.toLowerCase()}: ${skin.chromas.filter((c) => alternatives.has(c.id)).map((c) => c.name).join(", ")}`}</p>
+                  )}
                 </div>
               )}
 
@@ -241,7 +193,7 @@ export function SkinPicker({
                 <button
                   type="button"
                   onClick={() => onTheme(theme.id, catalog.skins[skin!.id].c.find((chroma) => chroma.i === preferred?.id)?.n ?? "Base")}
-                  className="w-full rounded-md border border-klein/40 px-3 py-2 text-left text-[13px] outline-none transition-colors hover:border-klein hover:bg-klein/5 focus-visible:ring-2 focus-visible:ring-klein"
+                  className="cut-sm cut-edge relative block w-full border border-line-strong px-3 py-2 text-left text-[13px] transition-colors hover:border-klein hover:bg-klein/5"
                 >
                   <span className="block font-medium text-klein">
                     {T.collection} {theme.name}
@@ -254,42 +206,25 @@ export function SkinPicker({
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line px-4 py-3 sm:px-5">
+          <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line px-5 py-3">
             <label className="relative min-w-[12rem] flex-1">
-              <Search aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-              <input
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder={T.search}
-                aria-label={T.search}
-                className="w-full rounded-md border border-line bg-paper py-2 pl-8 pr-3 text-[14px] text-ink outline-none placeholder:text-muted focus-visible:border-klein"
-              />
+              <span className="sr-only">{T.search}</span>
+              <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted" />
+              <Input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={T.search} className="pl-9" />
             </label>
-            <div className="flex flex-wrap gap-1.5" role="radiogroup">
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label={T.rarities}>
               {[undefined, ...tiers].map((id) => (
-                <button
-                  key={id ?? "all"}
-                  type="button"
-                  role="radio"
-                  aria-checked={tier === id}
-                  onClick={() => setTier(id)}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-klein",
-                    tier === id ? "border-klein bg-klein text-paper" : "border-line text-ink hover:border-klein",
-                  )}
-                >
-                  {id && <span className="h-2 w-2 rounded-full" style={{ background: catalog.raridades[id].cor }} />}
+                <Choice key={id ?? "all"} size="sm" on={tier === id} onClick={() => setTier(id)} icon={id ? <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: catalog.raridades[id].cor }} /> : undefined}>
                   {id ? catalog.raridades[id].nome : T.all}
-                </button>
+                </Choice>
               ))}
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 sm:px-5">
-            {loaded !== "full" && <p className="mb-3 text-[13px] text-muted">{loaded === "failed" ? T.failed : T.loading}</p>}
-            {list.length === 0 && loaded === "full" && <p className="py-6 text-center text-[14px] text-muted">{T.none}</p>}
-            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+            {loaded === "failed" && <ErrorLine onRetry={onRetry} retryLabel={T.retry} className="mb-3">{T.failed}</ErrorLine>}
+            {list.length === 0 && loaded === "full" && <EmptyState className="text-center">{T.none}</EmptyState>}
+            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4" aria-busy={loaded === "start"}>
               {list.map((id) => {
                 const each = catalog.skins[id]
                 const on = id === pick?.skin
@@ -300,10 +235,7 @@ export function SkinPicker({
                       type="button"
                       aria-pressed={on}
                       onClick={() => choose(id)}
-                      className={cn(
-                        "group flex h-28 w-full flex-col rounded-md border p-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-klein",
-                        on ? "border-navy bg-navy text-paper" : "border-line bg-paper hover:border-klein",
-                      )}
+                      className={cn("cut cut-edge group relative flex h-28 w-full flex-col border p-2 text-left transition-colors", on ? "border-navy bg-navy text-paper" : "border-line bg-paper hover:border-klein")}
                     >
                       <span className="relative block flex-1">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -316,41 +248,68 @@ export function SkinPicker({
                         />
                       </span>
                       <span className="mt-1 flex items-center gap-1.5">
-                        {rarity && <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: rarity.cor }} />}
-                        <span className={cn("truncate text-[12px] font-medium", on ? "text-paper" : "text-ink")}>{skinName(each)}</span>
+                        {rarity && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: rarity.cor }} />}
+                        <span className={cn("truncate text-[13px] font-medium", on ? "text-paper" : "text-ink")}>{skinName(each)}</span>
                       </span>
                     </button>
                   </li>
                 )
               })}
+              {/* While the whole catalogue comes, the rest of the grid is drawn as what's coming. */}
+              {loaded === "start" &&
+                Array.from({ length: 8 }, (_, index) => (
+                  <li key={`loading-${index}`} aria-hidden>
+                    <Skeleton className="cut h-28" />
+                  </li>
+                ))}
             </ul>
+            {loaded === "start" && <p className="sr-only" role="status">{T.loading}</p>}
           </div>
 
-          <div className="flex shrink-0 items-center justify-between gap-3 border-t border-line px-4 py-3 sm:px-5">
-            <span className="text-[12px] text-muted">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-t border-line px-5 py-3">
+            <span className="text-[13px] tabular-nums text-muted">
               {list.length} {T.skins}
             </span>
             <span className="flex gap-2">
               {pick && (
-                <button
-                  type="button"
-                  onClick={() => onPick(null)}
-                  className="rounded-md border border-line px-3 py-1.5 text-[14px] font-medium text-ink outline-none transition-colors hover:border-klein focus-visible:ring-2 focus-visible:ring-klein"
-                >
+                <Button variant="secondary" size="sm" onClick={() => onPick(null)}>
                   {T.clear}
-                </button>
+                </Button>
               )}
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-md bg-klein px-4 py-1.5 text-[14px] font-medium text-paper outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-klein focus-visible:ring-offset-2"
-              >
+              <Button size="sm" onClick={onClose}>
                 {T.done}
-              </button>
+              </Button>
             </span>
           </div>
         </>
       )}
-    </dialog>
+    </Dialog>
+  )
+}
+
+/** A skin's rarity as a square chip with its colour's dot (the game's colour, data from the catalogue). */
+export function Rarity({ name, color }: { name: string; color: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 border border-line-strong px-2 py-0.5 text-[13px] font-medium tracking-normal text-ink">
+      <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: color }} />
+      {name}
+    </span>
+  )
+}
+
+/** Riot's showcase video for a skin, over its picture: play it, or go back to the picture. */
+export function ShowcaseButton({ playing, onClick }: { playing: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "cut-sm absolute left-3 flex min-h-8 items-center gap-1.5 bg-paper/15 px-2.5 py-1.5 text-[13px] font-medium text-paper backdrop-blur-sm transition-colors hover:bg-paper/25 focus-visible:outline-paper",
+        playing ? "top-3" : "bottom-3",
+      )}
+    >
+      {!playing && <Play aria-hidden className="h-3.5 w-3.5 fill-current" />}
+      {playing ? T.stopShowcase : T.showcase}
+    </button>
   )
 }

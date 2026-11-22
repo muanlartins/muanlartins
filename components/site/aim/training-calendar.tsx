@@ -3,6 +3,7 @@
 import { Gauge } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { longDate } from "@/components/site/ranked/format"
+import { Badge } from "@/components/site/ui"
 import { HTML_LANG, LOCALE, localize } from "@/lib/site"
 import type { TrainingDay } from "@/lib/voltaic"
 import { cn } from "@/lib/utils"
@@ -10,13 +11,13 @@ import { cn } from "@/lib/utils"
 const T = localize({
   min: { pt: "min", en: "min" },
   tasks: { pt: "tarefas", en: "tasks" },
-  plays: { pt: "partidas", en: "plays" },
+  plays: { pt: "tentativas", en: "attempts" },
   rest: { pt: "Sem treino", en: "No training" },
   benchmark: { pt: "Benchmark", en: "Benchmark" },
   best: { pt: "melhor", en: "best" },
   paused: { pt: "com pausa", en: "paused" },
   pausedHint: {
-    pt: "Tentativas pausadas não contam para o recorde nem para o benchmark, como na Voltaic.",
+    pt: "Tentativas pausadas não contam pro recorde nem pro benchmark, como na Voltaic.",
     en: "Paused attempts count neither for the best nor for the benchmark, as in Voltaic's.",
   },
   less: { pt: "menos", en: "less" },
@@ -68,8 +69,8 @@ export function TrainingCalendar({ days, today }: { days: TrainingDay[]; today: 
   return (
     <div className="space-y-5">
       <div ref={scroller} className="overflow-x-auto pb-1">
-        <div className="inline-flex gap-[3px]">
-          <div className="mr-1 grid grid-rows-[14px_repeat(7,14px)] gap-[3px] text-[10px] leading-[14px] text-muted">
+        <div className="inline-flex gap-1">
+          <div className="mr-1 grid grid-rows-[16px_repeat(7,20px)] gap-1 text-[12px] leading-[20px] text-muted">
             <span />
             {WEEKDAYS.map((letter, i) => (
               <span key={i} className={i === 0 ? "font-medium text-klein" : undefined}>
@@ -80,8 +81,8 @@ export function TrainingCalendar({ days, today }: { days: TrainingDay[]; today: 
           {weeks.map((week, w) => {
             const month = week.find((d) => d.getUTCDate() === 1)
             return (
-              <div key={w} className="grid grid-rows-[14px_repeat(7,14px)] gap-[3px]">
-                <span className="relative text-[10px] leading-[14px] text-muted">
+              <div key={w} className="grid grid-rows-[16px_repeat(7,20px)] gap-1">
+                <span className="relative text-[12px] leading-4 text-muted">
                   {month && <span className="absolute left-0 whitespace-nowrap">{monthFormat.format(month).replace(".", "")}</span>}
                 </span>
                 {week.map((d) => {
@@ -97,7 +98,7 @@ export function TrainingCalendar({ days, today }: { days: TrainingDay[]; today: 
                       title={trained ? `${longDate(date)} · ${trained.minutes} ${T.min}` : future ? undefined : `${longDate(date)} · ${T.rest}`}
                       aria-label={trained ? `${longDate(date)}: ${trained.minutes} ${T.min}` : longDate(date)}
                       className={cn(
-                        "h-[14px] w-[14px] rounded-[3px] transition-transform",
+                        "h-5 w-5 transition-transform",
                         future ? "bg-transparent" : shade[trained ? level(trained.minutes) : 0],
                         trained && "cursor-pointer hover:scale-125",
                         trained?.benchmark && "ring-2 ring-navy ring-offset-1 ring-offset-ground",
@@ -111,37 +112,37 @@ export function TrainingCalendar({ days, today }: { days: TrainingDay[]; today: 
           })}
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-muted">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-muted">
         <span className="flex items-center gap-1">
           {T.less}
           {shade.map((c) => (
-            <span key={c} className={cn("h-[10px] w-[10px] rounded-[2px]", c)} />
+            <span key={c} className={cn("h-[10px] w-[10px]", c)} />
           ))}
           {T.more}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-[10px] w-[10px] rounded-[2px] bg-klein ring-2 ring-navy ring-offset-1 ring-offset-ground" />
+          <span className="h-[10px] w-[10px] bg-klein ring-2 ring-navy ring-offset-1 ring-offset-ground" />
           {T.benchmark}
         </span>
       </div>
 
       {chosen && (
-        <div className="rounded-md border border-line bg-paper/70 px-4 py-3 backdrop-blur-sm">
+        <div className="cut cut-edge relative border border-line bg-paper/70 p-5">
           <p className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <span className="text-[15px] font-medium text-klein">{longDate(chosen.date)}</span>
             <span className="flex items-center gap-2 text-[13px] tabular-nums text-muted">
               {chosen.benchmark && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-navy px-2 py-0.5 text-[11px] font-medium text-paper">
+                <Badge>
                   <Gauge aria-hidden className="h-3 w-3" />
                   {T.benchmark}
-                </span>
+                </Badge>
               )}
               {chosen.minutes} {T.min} · {chosen.plays} {T.plays}
             </span>
           </p>
           <ul className="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
             {chosen.tasks.map((task) => (
-              <li key={task.name} className="flex items-baseline justify-between gap-3 border-b border-line/60 py-1 text-[13px]">
+              <li key={task.name} className="flex items-baseline justify-between gap-3 border-b border-line/60 py-1.5 text-[15px]">
                 <span className="truncate text-ink">
                   {task.name.replace(/^VT /, "")}
                   {task.plays > 1 && <span className="ml-1.5 text-muted">×{task.plays}</span>}

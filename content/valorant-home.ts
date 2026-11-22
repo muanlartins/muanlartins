@@ -1,3 +1,4 @@
+import { RIOT_NOTICE } from "@/content/notices"
 import valorant from "@/content/valorant"
 import { game } from "@/lib/game"
 
@@ -18,7 +19,7 @@ export default game({
     en: "How I'm learning Valorant, starting from Silver.",
   },
   intro: {
-    pt: "Sou Prata no Valorant. Aqui fica o que estou aprendendo, um conceito de cada vez: as melhores fontes que encontrei para cada um e as dicas que funcionaram para mim. Só o que o jogo não explica em lugar nenhum.",
+    pt: "Sou Prata no Valorant. Aqui fica o que estou aprendendo, um conceito de cada vez: as melhores fontes que encontrei pra cada um e as dicas que funcionaram pra mim. Só o que o jogo não explica em lugar nenhum.",
     en: "I'm Silver at Valorant. Here is what I'm learning, one concept at a time: the best sources I found for each and the tips that worked for me. Only what the game doesn't explain anywhere.",
   },
   roadmaps: [valorant],
@@ -26,27 +27,27 @@ export default game({
   ranked: {
     title: { pt: "Ranqueadas", en: "Ranked" },
     description: {
-      pt: "Meu elo, meu RR e cada partida competitiva das lives.",
-      en: "My rank, my RR and every competitive match from the streams.",
+      pt: "Meu rank, meu RR e cada partida ranqueada, nas lives e fora delas.",
+      en: "My rank, my RR and every ranked match, on stream and off it.",
     },
   },
   aim: {
     title: { pt: "Mira", en: "Aim" },
     description: {
-      pt: "Meu treino de mira com a Voltaic: a rotina no Aimlabs todo dia e o benchmark todo domingo, para ver a mira subir semana a semana.",
-      en: "My aim training with Voltaic: their Aimlabs routine every day and their benchmark every Sunday, to watch my aim climb week by week.",
+      pt: "Meu treino de mira no Aimlabs e a minha mira nas partidas, medidos do mesmo jeito: o treino está chegando no jogo?",
+      en: "My aim training in Aimlabs and my aim in matches, measured the same way: is the training reaching the game?",
     },
   },
   inventory: {
     title: { pt: "Inventário", en: "Inventory" },
     description: {
-      pt: "A skin que uso em cada arma, a coleção que estou montando e o seu loadout dos sonhos: monte com qualquer skin do jogo e exporte numa imagem.",
-      en: "The skin I use on each weapon, the collection I'm building, and your dream loadout: build it from any skin in the game and export it as one image.",
+      pt: "A coleção que estou montando, a skin que uso em cada arma e o seu loadout dos sonhos: monta com qualquer skin do jogo e exporta numa imagem.",
+      en: "The collection I'm building, the skin I use on each weapon, and your dream loadout: build it from any skin in the game and export it as one image.",
     },
   },
   links: [],
   credits: {
-    pt: "muanlartins não é endossado pela Riot Games e não reflete as visões ou opiniões da Riot Games ou de qualquer pessoa oficialmente envolvida na produção ou gestão das propriedades da Riot Games. Riot Games e todas as propriedades associadas são marcas comerciais ou marcas registradas da Riot Games, Inc. Os emblemas de rank são da Riot Games.",
-    en: "muanlartins isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc. The rank emblems belong to Riot Games.",
+    pt: `muanlartins não é endossado pela Riot Games e não reflete as visões ou opiniões da Riot Games ou de qualquer pessoa oficialmente envolvida na produção ou gestão das propriedades da Riot Games. Riot Games e todas as propriedades associadas são marcas comerciais ou marcas registradas da Riot Games, Inc. Os emblemas de rank são da Riot Games. ${RIOT_NOTICE}`,
+    en: `muanlartins isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc. The rank emblems belong to Riot Games. ${RIOT_NOTICE}`,
   },
 })

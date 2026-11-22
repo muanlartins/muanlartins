@@ -1,38 +1,20 @@
 "use client"
 
-import { usePathname } from "next/navigation"
-import { useSyncExternalStore } from "react"
-import { AGENT_PORTRAITS } from "@/lib/ranked-view"
-
-// The agent on screen, kept per page: a new page draws another (never the same twice in a row).
-let shown: { path: string; index: number } = { path: "", index: -1 }
-function agentFor(path: string) {
-  if (shown.path !== path) {
-    let index = Math.floor(Math.random() * AGENT_PORTRAITS.length)
-    if (index === shown.index) index = (index + 1) % AGENT_PORTRAITS.length
-    shown = { path, index }
-  }
-  return shown.index
-}
-const never = () => () => {}
+import { Backdrop } from "@/components/site/game/backdrop"
 
 /**
- * Valorant's answer to Rocket League's ball: an agent behind every Valorant page, out of the bottom-left corner,
- * fading upwards. Each page opened draws another of the agents (public/valorant/agentes, by
- * scripts/valorant_assets.py). Drawn only in the browser, so the prerendered page has none and nothing jumps.
+ * Valorant's backdrop (the game kit's, backdrop.tsx), its answer to Rocket League's ball: the agent of Luan's latest
+ * ranked match, out of the bottom-left corner, fading upwards, redrawn in the brand's ramp so it reads as the site's
+ * drawing, not Riot's poster. The game's layout picks it at build (`latestAgent` in app/[section]/[project]/
+ * layout.tsx), so it changes as he plays and the prerendered page already has it; the home names it under "Meu rank".
+ * The portraits are public/valorant/agentes/<id>-retrato.webp (scripts/valorant_assets.py).
  */
-export function AgentBackdrop() {
-  const path = usePathname()
-  const index = useSyncExternalStore(never, () => agentFor(path), () => -1)
-  const agent = AGENT_PORTRAITS[index]
+export function AgentBackdrop({ agent }: { /** The agent's id, as the art is named ("kayo"); none draws nothing. */ agent?: string }) {
   if (!agent) return null
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none fixed -bottom-[6vmin] -left-[10vmin] -z-10 h-[92vmin] w-[70vmin] opacity-[0.28] [mask-image:linear-gradient(to_top,black_55%,transparent)] motion-safe:animate-[agent-in_0.9s_ease-out]"
-    >
+    <Backdrop drift className="-bottom-[6vmin] -left-[10vmin] h-[92vmin] w-[70vmin] [mask-image:linear-gradient(to_top,black_55%,transparent)]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img key={agent.image} src={agent.image} alt="" className="h-full w-full object-contain object-left-bottom" />
-    </div>
+      <img src={`/valorant/agentes/${agent}-retrato.webp`} alt="" className="h-full w-full object-contain object-left-bottom" />
+    </Backdrop>
   )
 }

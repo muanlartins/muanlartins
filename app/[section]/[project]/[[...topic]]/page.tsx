@@ -12,8 +12,8 @@ import { LivesPage } from "@/components/site/lives/lives-page"
 import { MinigamesPage } from "@/components/site/minigames/minigames-page"
 import { SigmaPage } from "@/components/site/channel/sigma-page"
 import { fullDate } from "@/components/site/ranked/format"
+import { Ladder } from "@/components/site/game/ladder"
 import { RankedPage } from "@/components/site/ranked/ranked-page"
-import { ValorantRankedPage } from "@/components/site/ranked/valorant-ranked-page"
 import { RoadmapPage } from "@/components/site/roadmap/roadmap-page"
 import { TopicPage } from "@/components/site/roadmap/topic-page"
 import { channel } from "@/content/channel"
@@ -22,6 +22,8 @@ import { type ChannelPage } from "@/lib/channel"
 import { DIVERSOS, diversos, lineOf, otherGame, playedOf, type OtherGame } from "@/lib/diversos"
 import { fundamentals, GAME_PAGES, type GamePage } from "@/lib/game"
 import { matchMoments } from "@/lib/lives"
+import { MODES } from "@/lib/ranked"
+import { rocketLeagueView, valorantView } from "@/lib/ranked-view"
 import { lengthOf, lives, transcript } from "@/lib/lives-files"
 import { miraDays, miraRankedDays, sessions, valorantSessions, voltaicDays } from "@/lib/matches"
 import { sectionMetadata } from "@/lib/metadata"
@@ -198,27 +200,22 @@ export default async function SectionSubpage({ params }: Props) {
   }
   // The roadmap's ranks, for each emblem's name and colour.
   const ranks = fundamentals(game).ranks.map((rank) => ({ id: rank.id, name: localize(rank.name), color: rank.color }))
-  if (page === "ranked" && game.ranked && game.id === "valorant") {
-    return (
-      <ValorantRankedPage
-        title={localize(game.ranked.title)}
-        description={localize(game.ranked.description)}
-        sessions={valorantSessions()}
-        ranks={fundamentals(game).ranks}
-        rank={game.rank}
-        credits={localize(game.credits)}
-      />
-    )
-  }
   if (page === "ranked" && game.ranked) {
+    // Both games draw the same record (components/site/ranked/); each game's view is what's its own.
+    const valorant = game.id === "valorant"
+    const rocketLeague = valorant ? [] : sessions()
+    const moments = valorant ? {} : matchMoments(lives().filter((live) => live.game === game.id))
+    const modes = valorant
+      ? [{ id: "competitivo", label: localize(game.ranked.title), view: valorantView(valorantSessions(), fundamentals(game).ranks) }]
+      : MODES.map((mode) => ({ id: mode, label: mode, view: rocketLeagueView(rocketLeague, mode, ranks, moments) }))
     return (
       <RankedPage
+        game={game.id}
         title={localize(game.ranked.title)}
         description={localize(game.ranked.description)}
-        sessions={sessions()}
-        ranks={ranks}
-        moments={matchMoments(lives().filter((live) => live.game === game.id))}
         credits={localize(game.credits)}
+        modes={modes}
+        before={valorant ? <Ladder ranks={fundamentals(game).ranks} current={game.rank} /> : undefined}
       />
     )
   }

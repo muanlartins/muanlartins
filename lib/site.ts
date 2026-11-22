@@ -188,12 +188,12 @@ export const UI = localize({
   completed: { pt: "concluídos", en: "done" },
   /** Above the ranks: what the statuses mean and where they're kept. */
   statusHint: {
-    pt: "Marque cada tópico como Treinando enquanto pratica e Concluído quando já sai natural no jogo. Concluir os tópicos de um rank leva você até o próximo. Fica salvo neste navegador.",
+    pt: "Marca cada tópico como Treinando enquanto pratica e Concluído quando já sai natural no jogo. Concluir os tópicos de um rank leva você pro próximo. Fica salvo neste navegador.",
     en: "Mark each topic Practicing while you drill it and Done once it comes naturally in games. Finishing a rank's topics moves you on to the next one. It's saved in this browser.",
   },
-  rankUp: { pt: "Subiu para", en: "Ranked up to" },
-  clearProgress: { pt: "Apagar progresso", en: "Clear progress" },
-  confirmClear: { pt: "Apagar tudo? Clique de novo", en: "Clear everything? Click again" },
+  rankUp: { pt: "Subiu pra", en: "Ranked up to" },
+  clearProgress: { pt: "Apagar o progresso", en: "Clear progress" },
+  confirmClear: { pt: "Apagar mesmo? Clica de novo", en: "Clear it all? Click again" },
   roadmapDone: { pt: "Roteiro concluído!", en: "Roadmap complete!" },
   video: { pt: "Vídeo", en: "Video" },
   /** Shown when a page's videos and texts are in the other language. */

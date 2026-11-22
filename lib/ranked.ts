@@ -91,28 +91,16 @@ export interface Output {
   file?: string
 }
 
-export interface Day extends DayRecord {
-  /** YYYY-MM-DD in TIME_ZONE. */
-  date: string
-  end?: Standing
-}
-
 export interface Summary {
+  /** Oldest first. */
   matches: Match[]
   wins: number
   losses: number
-  /** Positive: wins in a row at the end; negative: losses. */
-  streak: number
-  bestStreak: number
-  /** Average points per win and per loss. */
-  winPoints?: number
-  lossPoints?: number
   /** The latest rank and the first points on record. */
   standing?: Standing
   first?: { at: string; mmr: number }
-  /** The points line: the total before the first match, then after each one. */
-  series: { at: string; mmr: number; match?: Match }[]
-  days: Day[]
+  /** Every rank on record in the mode, in time order: set in the dock, read off the scoreboard, going into a match. */
+  standings: (Standing & { at: string })[]
   /** Averages per match: mine, and one teammate's. */
   averages?: { me: PlayerStats; mates?: PlayerStats; matches: number }
   /** The viewers who played with me, most matches first. */
@@ -188,41 +176,8 @@ export function summarize(sessions: Session[], mode: Mode): Summary {
   const standing = last && { tier: last.tier, division: last.division, mmr: last.mmr }
   const firstPoints = standings.find((s) => s.mmr != null)
 
-  let streak = 0
-  let bestStreak = 0
-  let run = 0
-  for (const match of matches) {
-    const win = match.result === "win"
-    streak = win ? Math.max(streak, 0) + 1 : Math.min(streak, 0) - 1
-    run = win ? run + 1 : 0
-    bestStreak = Math.max(bestStreak, run)
-  }
-
-  const series: Summary["series"] = []
-  for (const match of matches) {
-    if (match.mmr == null) continue
-    if (series.length === 0 && match.rank?.mmr != null) series.push({ at: match.at, mmr: match.rank.mmr })
-    series.push({ at: match.at, mmr: match.mmr, match })
-  }
-
-  const days: Day[] = []
-  for (const match of matches) {
-    const date = dayOf(match.at)
-    let day = days.at(-1)
-    if (day?.date !== date) days.push((day = { date, wins: 0, losses: 0, points: 0 }))
-    if (match.result === "win") day.wins++
-    else day.losses++
-    day.points += match.points ?? 0
-  }
-  for (const day of days) {
-    const end = standings.filter((s) => dayOf(s.at) <= day.date).at(-1)
-    day.end = end && { tier: end.tier, division: end.division, mmr: end.mmr }
-  }
-
   const tracked = matches.filter((match) => match.me)
   const me = averageStats(tracked.map((match) => match.me!))
-  const pointsOf = (result: Match["result"]) =>
-    mean(matches.filter((m) => m.result === result && m.points != null).map((m) => m.points!))
 
   const byLogin = new Map<string, { matches: Match[]; lines: PlayerStats[] }>()
   for (const match of matches) {
@@ -249,14 +204,9 @@ export function summarize(sessions: Session[], mode: Mode): Summary {
     matches,
     wins: matches.filter((match) => match.result === "win").length,
     losses: matches.filter((match) => match.result === "loss").length,
-    streak,
-    bestStreak,
-    winPoints: pointsOf("win"),
-    lossPoints: pointsOf("loss"),
     standing,
     first: firstPoints && { at: firstPoints.at, mmr: firstPoints.mmr! },
-    series,
-    days,
+    standings,
     averages: me && {
       me,
       mates: averageStats(tracked.flatMap((match) => match.mates ?? [])),

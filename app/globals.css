@@ -13,6 +13,8 @@
  */
 :root {
   --ground: #d6e2ff;
+  /* The one curve for anything moving from one place to another (brand/interface.md, "Motion"). */
+  --ease: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 @theme inline {
@@ -268,17 +270,16 @@
   }
 }
 
-/* The aim page's energy core (components/site/aim/energy-core.tsx): its ring fills to the next rank on arrival. */
-@keyframes energy-ring-fill {
-  from {
-    stroke-dashoffset: var(--ring-length);
-  }
-}
-.energy-ring {
-  animation: energy-ring-fill 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
-}
-@media (prefers-reduced-motion: reduce) {
-  .energy-ring {
-    animation: none;
+/* What can be clicked says so: Tailwind's reset leaves a button with the arrow. In the base layer, so a cursor of its
+   own (grab, crosshair, not-allowed) still wins. */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="tab"]:not([aria-disabled="true"]),
+  summary,
+  select:not(:disabled),
+  input:is([type="checkbox"], [type="radio"], [type="file"], [type="range"], [type="color"]):not(:disabled),
+  label:has(input:is([type="checkbox"], [type="radio"], [type="file"]):not(:disabled)) {
+    cursor: pointer;
   }
 }

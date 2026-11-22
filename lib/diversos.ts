@@ -36,6 +36,8 @@ export interface OtherGame {
   category: string
   /** The Twitch category's id: the agenda's lives match it, and the cover comes from Twitch's CDN by it. */
   categoryId?: string
+  /** Its official wide art, without the logo, for the game kit's card; its cover without one. */
+  art?: string
   /** A line about it, in Luan's words; one still starting with "TODO" isn't shown. */
   line?: string
   /** Read from the game's own save (scripts/celeste.py): which slot, the day it was read and its totals. */

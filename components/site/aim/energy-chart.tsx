@@ -76,7 +76,7 @@ export function EnergyChart({ benchmarks }: { benchmarks: Benchmark[] }) {
         aria-label={`${T.label}: ${energies.join(", ")}`}
         onKeyDown={step}
         onBlur={() => setActive(undefined)}
-        className="relative w-full touch-pan-y rounded-md border border-line bg-paper/60 outline-none focus-visible:ring-2 focus-visible:ring-klein"
+        className="cut cut-edge relative w-full touch-pan-y border border-line bg-paper/70"
         style={{ height: HEIGHT }}
       >
         {width > 0 && (
@@ -98,7 +98,7 @@ export function EnergyChart({ benchmarks }: { benchmarks: Benchmark[] }) {
             })}
 
             {benchmarks.map((b, i) => (
-              <text key={b.date} x={x(i)} y={HEIGHT - 10} textAnchor="middle" className="fill-muted text-[11px] tabular-nums">
+              <text key={b.date} x={x(i)} y={HEIGHT - 10} textAnchor="middle" className="fill-muted text-[12px] tabular-nums">
                 {n <= 12 || i % Math.ceil(n / 12) === 0 ? shortDate(b.date) : ""}
               </text>
             ))}
@@ -118,7 +118,7 @@ export function EnergyChart({ benchmarks }: { benchmarks: Benchmark[] }) {
             ))}
 
             <g transform={`translate(${x(n - 1) + 10}, ${y(last.energy)})`}>
-              <rect x={0} y={-11} width={42} height={22} rx={5} className="fill-klein" />
+              <rect x={0} y={-11} width={42} height={22} className="fill-klein" />
               <text x={21} y={0} dy="0.34em" textAnchor="middle" className="fill-paper text-[12px] font-semibold tabular-nums">
                 {last.energy}
               </text>
@@ -130,10 +130,10 @@ export function EnergyChart({ benchmarks }: { benchmarks: Benchmark[] }) {
 
         {point && (
           <div
-            className="pointer-events-none absolute top-2 z-10 w-max max-w-64 rounded-md border border-line bg-paper px-3 py-2 text-[12px] leading-[1.45] text-muted shadow-[0_8px_24px_rgb(0_20_71/0.16)]"
+            className="pointer-events-none absolute top-2 z-10 w-max max-w-64 border border-line bg-paper px-3 py-2 text-[13px] leading-[1.45] text-muted shadow-float"
             style={{ left: Math.min(Math.max(x(active!) - 90, 4), width - 190) }}
           >
-            <span className="block text-[14px] font-semibold tabular-nums text-ink">
+            <span className="block text-[15px] font-semibold tabular-nums text-ink">
               {point.energy} {T.energy}
               {active! > 0 && (
                 <span className={cn("ml-2", point.energy >= benchmarks[active! - 1].energy ? "text-win" : "text-loss")}>

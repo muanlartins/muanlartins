@@ -28,7 +28,7 @@ export function CollectionGlimpse({ weapons, start, of, collected }: { weapons: 
       </span>
       <span className="flex h-1.5 gap-[2px]" aria-hidden>
         {picks.map((pick, index) => (
-          <span key={index} className={owned.has(pick.skin) ? "flex-1 rounded-full bg-navy" : "flex-1 rounded-full bg-zinc-200"} />
+          <span key={index} className={owned.has(pick.skin) ? "flex-1 bg-navy" : "flex-1 bg-zinc-200"} />
         ))}
       </span>
     </span>
