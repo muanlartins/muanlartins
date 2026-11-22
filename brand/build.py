@@ -454,11 +454,13 @@ LIVES = {
     "2026-11-13": (None, None),
     "2026-11-17": (None, None),
     "2026-11-20": ("champion", 1),
+    "2026-11-22": (None, None),
 }
 # The lives of another game than Rocket League, by date: the game named on the thumbnail.
 LIVE_GAMES = {
     "2026-11-09": "Valorant",
     "2026-11-11": "Valorant",
+    "2026-11-22": "Celeste",
 }
 
 

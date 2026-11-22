@@ -12,7 +12,14 @@
       "art": "https://cdn.cloudflare.steamstatic.com/steam/apps/504230/library_hero.jpg",
       "line": "TODO(Luan): uma linha sobre o Celeste, do seu jeito.",
       "save": {
-        "slot": 1
+        "slot": 1,
+        "start": "2026-11-22",
+        "read": "2026-11-22",
+        "totals": {
+          "strawberries": 39,
+          "deaths": 107,
+          "seconds": 5020
+        }
       },
       "goal": {
         "title": "100%",
@@ -20,9 +27,9 @@
           {
             "title": "Capítulo 1 · Forsaken City",
             "items": [
-              { "text": "Lado A", "save": "1/A", "done": false },
+              { "text": "Lado A", "save": "1/A", "done": true, "date": "2026-11-22", "live": "2026-11-22" },
               { "text": "20 morangos", "save": "1/berries/20", "done": false },
-              { "text": "Coração de cristal", "save": "1/heart", "done": false },
+              { "text": "Coração de cristal", "save": "1/heart", "done": true, "date": "2026-11-22", "live": "2026-11-22" },
               { "text": "Fita cassete", "save": "1/cassette", "done": false },
               { "text": "Lado B", "save": "1/B", "done": false },
               { "text": "Lado C", "save": "1/C", "done": false }
@@ -31,7 +38,7 @@
           {
             "title": "Capítulo 2 · Old Site",
             "items": [
-              { "text": "Lado A", "save": "2/A", "done": false },
+              { "text": "Lado A", "save": "2/A", "done": true, "date": "2026-11-22", "live": "2026-11-22" },
               { "text": "18 morangos", "save": "2/berries/18", "done": false },
               { "text": "Coração de cristal", "save": "2/heart", "done": false },
               { "text": "Fita cassete", "save": "2/cassette", "done": false },
@@ -42,10 +49,10 @@
           {
             "title": "Capítulo 3 · Celestial Resort",
             "items": [
-              { "text": "Lado A", "save": "3/A", "done": false },
+              { "text": "Lado A", "save": "3/A", "done": true, "date": "2026-11-22", "live": "2026-11-22" },
               { "text": "25 morangos", "save": "3/berries/25", "done": false },
               { "text": "Coração de cristal", "save": "3/heart", "done": false },
-              { "text": "Fita cassete", "save": "3/cassette", "done": false },
+              { "text": "Fita cassete", "save": "3/cassette", "done": true, "date": "2026-11-22", "live": "2026-11-22" },
               { "text": "Lado B", "save": "3/B", "done": false },
               { "text": "Lado C", "save": "3/C", "done": false }
             ]
