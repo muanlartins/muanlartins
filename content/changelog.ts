@@ -135,9 +135,10 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-22",
     tag: "site",
     title: "Minha trajetória com Celeste",
-    text: "O meu caminho até a platina e os 202 morangos, marcado pelo save, com as técnicas filmadas no próprio jogo.",
+    text: "O meu caminho até a platina e os 202 morangos, marcado pelo save, com as técnicas filmadas no jogo e a história de cada capítulo.",
     href: "/conteudo/diversos/celeste",
     media: [
+      media("celeste-historia", "A página do Prólogo: as falas da Vovó em português e inglês, e a casa dela filmada no jogo com a caixa de diálogo"),
       media("celeste-roteiro", "O roteiro do Celeste: o próximo passo, a montanha com as oito etapas e os meus números lidos do save"),
       media("celeste-tecnica", "A página do coyote time: a Madeline pula 5 frames depois de sair da beirada, no jogo, e chega no pilar", { video: true }),
     ],

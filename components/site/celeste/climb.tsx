@@ -65,10 +65,26 @@ export interface TopicRow {
 /**
  * The climb: the mountain with where he is, his numbers (`stats`), then the stages on the fundamentals' rail, each
  * with its steps by chapter and what he's learning in it, and the platinum. His save fills all of it, so unlike the
- * fundamentals' nothing here is the visitor's to mark; theirs is only whether spoilers show. What he's learning is the
+ * fundamentals' nothing here is the visitor's to mark; theirs is only whether spoilers show. A chapter he finished links
+ * its page of the story (story-page.tsx). What he's learning is the
  * one thing he can also set by hand (learning-hand.tsx).
  */
-export function Climb({ save, topics, lives, stats, path }: { save: Save; topics: TopicRow[]; lives: Record<string, string>; stats: ReactNode; path: string }) {
+export function Climb({
+  save,
+  topics,
+  lives,
+  chapters,
+  stats,
+  path,
+}: {
+  save: Save
+  topics: TopicRow[]
+  lives: Record<string, string>
+  /** Each finished chapter's page of the story, by its id in the save. */
+  chapters: Record<number, string>
+  stats: ReactNode
+  path: string
+}) {
   const [spoilers, setSpoilers] = useState(false)
   const fills = fillsOf(save)
   const current = currentRank(fills)
@@ -129,6 +145,7 @@ export function Climb({ save, topics, lives, stats, path }: { save: Save; topics
                 save={save}
                 spoilers={spoilers}
                 lives={lives}
+                chapters={chapters}
                 next={next?.step.key}
                 topics={topics.filter((topic) => topic.stage === stage.id)}
               />
@@ -196,7 +213,23 @@ function StageHeader({ stage, n, title, save, ahead }: { stage: Stage; n: number
   )
 }
 
-function StageBody({ stage, save, spoilers, lives, next, topics }: { stage: Stage; save: Save; spoilers: boolean; lives: Record<string, string>; next?: string; topics: TopicRow[] }) {
+function StageBody({
+  stage,
+  save,
+  spoilers,
+  lives,
+  chapters,
+  next,
+  topics,
+}: {
+  stage: Stage
+  save: Save
+  spoilers: boolean
+  lives: Record<string, string>
+  chapters: Record<number, string>
+  next?: string
+  topics: TopicRow[]
+}) {
   const areas = [...new Set(stage.steps.map((step) => step.area))]
   const hearts = save.totals?.hearts ?? 0
   // One look down a stage: the chips under the chapter's name, unless every chapter has only one.
@@ -219,7 +252,13 @@ function StageBody({ stage, save, spoilers, lives, next, topics }: { stage: Stag
           return (
             <li key={area} className={cn("flex gap-x-4 gap-y-2 py-2.5", stacked ? "flex-col items-start" : "flex-wrap items-center justify-between")}>
               <p className="text-[15px] font-medium text-ink">
-                {chapterName(area)}
+                {chapters[area] ? (
+                  <Link href={chapters[area]} className="text-klein underline-offset-4 hover:underline">
+                    {chapterName(area)}
+                  </Link>
+                ) : (
+                  chapterName(area)
+                )}
                 {played.length > 0 && <span className="block text-[13px] font-normal tabular-nums text-muted">{T.deaths(deaths)}</span>}
               </p>
               <ul className="flex flex-wrap gap-1.5">
