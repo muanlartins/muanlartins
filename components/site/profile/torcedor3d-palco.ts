@@ -13,7 +13,7 @@ import { criarBoneco, fotografo, luzes, prepararFonte, type Boneco, type Pose, t
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z)
 const entre = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x))
 const PASSO = 0.05
-const LIMITE = Object.fromEntries(PECA.filter((c) => c.tipo === "num").map((c) => [c.k, c])) as Record<string, Required<Pick<Campo, "min" | "max">>>
+const LIMITE = Object.fromEntries(PECA.filter((c) => c.tipo === "num").map((c) => [c.k, c])) as unknown as Record<string, Required<Pick<Campo, "min" | "max">>>
 /** A piece as the code keeps it: clamped and rounded like any code (esquema.js's validar, through normalizar). */
 const validarPeca = (p: Partial<Peca>): Peca => normalizar({ pecas: [p] }).pecas[0]
 

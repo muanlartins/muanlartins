@@ -121,13 +121,13 @@ export function Controle({ campo: c, valor, mudar, id, foto }: { campo: Campo; v
     <div className="grid gap-2 text-[14px]">
       <span id={rotulo}>{c.nome}</span>
       <div role="group" aria-labelledby={rotulo} className={foto && quadro ? "grid grid-cols-[repeat(auto-fill,minmax(88px,1fr))] gap-2" : "flex flex-wrap items-center gap-1.5"}>
-        {(c.opcoes ?? []).map(([id, nome]) =>
+        {(c.opcoes ?? []).map(([opcao, nome]) =>
           foto && quadro ? (
-            <Ficha key={id} on={v === id} onClick={() => mudar(id)} nome={nome}>
-              <Foto largura={88} altura={100} chave={foto} desenhar={(kit, t) => kit.fotos.pedirOpcao(t, foto, c.k, id, quadro)} />
+            <Ficha key={opcao} on={v === opcao} onClick={() => mudar(opcao)} nome={nome}>
+              <Foto largura={88} altura={100} chave={foto} desenhar={(kit, t) => kit.fotos.pedirOpcao(t, foto, c.k, opcao, quadro)} />
             </Ficha>
           ) : (
-            <Choice key={id} size="sm" on={v === id} onClick={() => mudar(id)}>
+            <Choice key={opcao} size="sm" on={v === opcao} onClick={() => mudar(opcao)}>
               {nome}
             </Choice>
           ),
