@@ -7,7 +7,9 @@ Live.mp4 as the clock.
     scripts/.venv/bin/python scripts/destaque.py scripts/roteiros/<file>.json             # the short, in prontos
 
 The roteiro is JSON and every time in it is a Live.mp4 second:
-- "jogo": "valorant" (default) or "rocket-league": where the game scenes put his camera's box.
+- "jogo": "valorant" (default) or "rocket-league": where the game scenes put his camera's box, until 2026-11-22;
+  from 2026-11-23 every game scene has it at palco.html's (16, 774), 288×270 ("palco" picks it for Celeste's scene of
+  2026-11-22).
 - "trechos": [{"de", "ate", "camera", "baixo", "entrada", "seco"}], played in order, each edge moved onto a pause of
   his mic first (`bordas`: "seco" keeps one as written) and each after the first coming in with its "entrada"
   (`transitions`: "whip", the default, "zoom", "flash" or "seco"). "camera" says which scene the live showed, so
@@ -47,7 +49,8 @@ The roteiro is JSON and every time in it is a Live.mp4 second:
 
 - "arquivos": {"live", "jogo", "camera"} (paths under Videos) for a live not filed yet; "filtro": false for a live
   without the camera filters (the top is Câmera.mkv alone); "camera_recorte": [x, y, w, h], the camera's part (in
-  1280×720, 1080:840 in shape) that fills the top (default clipe.CAM_CROP).
+  1280×720, 1080:840 in shape) that fills the top (default clipe.CAM_CROP; in a framed live's game scene, from
+  2026-11-23, clipe.PALCO_RECORTE, inside the columns its camera box shows).
 - "trecho": k on an impact, zoom, title, label, sticker or blur ({"trecho": k} at the end of a sound): its seconds
   placed in stretch k (0-based). Without it a time goes to the first stretch holding it, so a teaser that replays a
   later stretch's seconds takes everything there (11-20: the laser sticker meant for the end stayed on the whole short).
@@ -87,7 +90,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import clipe  # noqa: E402
-from clipe import BOX, CAM_CROP, CAM_H, CONVERSA, GAME_H, H, W, ffmpeg, hd_camera, part_of  # noqa: E402
+from clipe import CAM_CROP, CAM_H, CONVERSA, GAME_H, H, PALCO, PALCO_RECORTE, W, caixa, ffmpeg, hd_camera, part_of  # noqa: E402
 from cortes import camera_lag, camera_sound, material, offset, picture_lag  # noqa: E402
 from edicao import FPS, SR, WORK, animate, ass_time, ease, pauses, place, plain, snap  # noqa: E402
 from edicao import lowpass, svf_bandpass  # noqa: E402
@@ -103,7 +106,6 @@ TERAPIA_PAGE = (286, 20, 890, 890)  # centred on "Respira." and the breathing ci
 TERAPIA_HIDE = (0, 0, 360, 400)  # in that crop: his camera's box and the site's bar, covered
 TERAPIA_FILL = 1000  # …with the live's background from x 1000 (between the text and the chat)
 LANCE = (476, 0, 1389, 1080)  # Lance ruim's zoomed camera on the live, around his face
-BOXES = {"valorant": BOX, "rocket-league": (44, 740, 480, 270)}  # the game scenes' camera box (brand/twitch/obs.py)
 CONVERSA_BOX = (*CONVERSA, 1280, 720)  # Conversa and Fim
 VAR_BOX = (1344, 136, 512, 288)  # the VAR scenes
 ESCURO = "0x001447"  # the live's dark blue (the booths' fill): behind a part of the live's screen
@@ -345,6 +347,9 @@ def piece(live, game, camera, t, jogo_at, cam_at, box, filtro=True, recorte=CAM_
             if use is not None:
                 graph.append(f"[{label}]{use}")
     if kind != "lance":
+        # in a framed live's game scene the box shows only the camera's middle: the short keeps to it (clipe.py)
+        if kind == "jogo" and box == PALCO and recorte == CAM_CROP:
+            recorte = PALCO_RECORTE
         graph.append(hd_camera(boxes[kind], live="live0", camera="cam0", start=t.get("filtro_de", 0.0),
                                 filtro=filtro, recorte=recorte).rstrip(";"))
     graph.append("[cam][game]vstack,fps=60,format=yuv420p[v]")
@@ -888,7 +893,7 @@ def main():
         return
     print("sincronia (o Live.mp4 é o relógio):")
     at = synced(live, game, camera, table, trechos, work, roteiro.get("camera_lag", CAMERA_LAG))
-    box = BOXES[roteiro.get("jogo", "valorant")]
+    box = caixa(roteiro["live"], roteiro.get("jogo"))  # the game scenes' camera box in that live (brand/twitch/obs.py)
     pieces = []
     for t, (j, c) in zip(trechos, at):
         args = piece(live, game, camera, t, j, c, box, t.get("filtro", roteiro.get("filtro", True)),

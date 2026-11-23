@@ -96,8 +96,10 @@ Banner words (GOOOL!, VAR, FIM DE JOGO) are uppercase and heavy (700); everythin
 
 **The live.** A 1920×1080 stage laid out in pixels (`brand/README.md`, "Stream"): margins of 44 or 64 px, things
 aligned to the lattice's 24 px. The camera frame is `frame()` in `stream.js`; nothing redraws it.
-A game whose whole screen matters (Celeste, 2026-11-22) is framed instead of covered: the game at a size that keeps
-its pixels whole, the overlay's pieces on the Klein ground around it, and only the moments (alerts, banners) over it.
+Games are framed instead of covered (Celeste's scene, 2026-11-22; every game's since 2026-11-23, `palco.html`): the
+game at 1600×900 (Celeste's pixels whole), the overlay's pieces on the Klein ground around it (a column on the left with
+the camera at its foot, a band under the game with its plate and numbers and the stand), and only the moments (alerts,
+banners, balloons) over it. A new piece for the game scenes finds its place on the ground, never over the game.
 
 ## Shape
 

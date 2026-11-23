@@ -6,9 +6,12 @@
     <link rel="stylesheet" href="stream.css" />
     <link rel="stylesheet" href="torcedor.css" />
     <!--
-      OBS: Browser source, 1920×1080, over the game in RL + chat. The
-      crowd: a stand at the bottom centre, clear of the camera frame (bottom
-      left) and Rocket League's boost meter (bottom right; Valorant: see ?jogo), with one fan for
+      OBS: Browser source, 1920×1080, in the game scenes over palco.html, moved
+      348 px right: there its stand (596 to 1556 on the page) is 944 to 1904,
+      in the band under the game, beside the game's plate and numbers, where it
+      covers nothing (since 2026-11-23; until then it stood over the game, at
+      the bottom centre). The VAR's scenes have it where the page puts it. The
+      crowd: one fan for
       each viewer logged in to the chat (Twitch's membership events, as in
       presenca.html: only who has the chat open, about 10 s late), their name
       over them, after their rank's emblem (their Σ in Rocket League's ranks, or Valorant's with ?jogo=valorant). Ten to a row; the channel and then
@@ -21,9 +24,9 @@
       (scripts/valorant.py reads the Riot Client): each round won is a smaller
       party with the score, a round lost a slump, and a match won the full
       party with the win dedicated. The dedication is drawn by Σ, flattened.
-      ?jogo=valorant (the Valorant scene's source) tucks the stand away while a
-      match is being played, where it would cover the HUD's abilities, and
-      brings it up for each round's end and between matches. ?jogo=diversos
+      ?jogo=valorant (the Valorant scene's source) hears the rounds and the
+      Σ in Valorant's ranks; until 2026-11-23, when the stand stood over the
+      game, it tucked the stand away during a match. ?jogo=diversos
       (the scene for any other game, Diversos + chat) reacts to no game at all:
       no goals, saves, rounds or matches, the Σ in the channel's own ranks
       (Rocket League's, as the site shows them); the chat, the arrivals, the
@@ -53,7 +56,7 @@
 
       ?canal= as in the overlays. The channel stands with its viewers. ?demo fills the stand with sample people and
       plays moments on its own; keys: g gol, c gol deles, d defesa, e defesaça, r round nosso, t round deles,
-      w vitória, x derrota, f entra/sai de partida (with ?jogo=valorant, the stand tucks away), a VAR (abre, votos, veredito; de novo fecha),
+      w vitória, x derrota, a VAR (abre, votos, veredito; de novo fecha),
       p pula, n dança, k comemora, h grito, o ola, i uma dica, m mensagem, j chega alguém, s sai alguém,
       l uma legenda de exemplo, v liga/desliga as legendas de verdade (scripts/legenda.py).
     -->
@@ -65,11 +68,6 @@
         width: 960px;
         bottom: 0;
         height: 220px;
-      }
-
-      /* Tucked under the screen's edge (?jogo=valorant, during play): its moments bring it back up. */
-      .torcida.recolhida {
-        transform: translateY(260px);
       }
 
       /* The stand: a Klein band cut at 45° on its ends, lined with the lattice, a Klein claro hairline on top. */
@@ -776,21 +774,8 @@
         }, 2400)
       }
 
-      // Valorant's HUD has the abilities where the stand stands: with ?jogo=valorant it tucks away while a match is
-      // played, and comes up for a moment (a round's end) or when no match is on.
-      const RECOLHE = JOGO === "valorant"
-      let emPartida = false
-      let visivelAte = 0
-      function recolher() {
-        torcida.classList.toggle("recolhida", RECOLHE && emPartida && !varAberto && Date.now() >= visivelAte)
-      }
-      function mostrar(ms) {
-        visivelAte = Date.now() + ms
-        recolher()
-        setTimeout(recolher, ms + 50)
-      }
       // The rounds and the match's end come from scripts/valorant.py on this PC (?valorant= its address).
-      if (RECOLHE && !params.has("demo")) {
+      if (JOGO === "valorant" && !params.has("demo")) {
         const fonte = new EventSource(`${params.get("valorant") ?? "http://127.0.0.1:8792"}/eventos`)
         fonte.onmessage = ({ data }) => {
           const evento = JSON.parse(data)
@@ -889,7 +874,6 @@
         },
         // Valorant, from scripts/valorant.py through the dock. `placar` is ours–theirs, "7–5".
         rodada({ nosso, placar }) {
-          mostrar(12000)
           if (!nosso) {
             soltarStickers("contra")
             return momento("luto", 2400)
@@ -899,7 +883,6 @@
           faixa("ROUND!", placar ?? "")
         },
         partida({ vitoria, placar }) {
-          mostrar(15000)
           if (!vitoria) {
             narrar(voz(pick(DERROTA)))
             soltarStickers("contra")
@@ -915,15 +898,10 @@
           if (JOGO === "valorant") anotarDedicatoria(dedicado, "vitoria", placar)
           narrar(voz(pick(VITORIA)), dedicado && voz(`Essa vitória é do ${falado(dedicado.nome)}!`))
         },
-        // Where the game is: "menu", "selecao" (agent select) or "partida".
-        fase({ fase }) {
-          emPartida = fase === "partida"
-          recolher()
-        },
       }
       // Any other game (?jogo=diversos) has none of these moments: the docks still send Rocket League's and Valorant's
       // to every stand, so this one lets them pass.
-      if (JOGO === "diversos") for (const tipo of ["gol", "defesa", "rodada", "partida", "fase"]) jogo[tipo] = () => {}
+      if (JOGO === "diversos") for (const tipo of ["gol", "defesa", "rodada", "partida"]) jogo[tipo] = () => {}
       addEventListener("muanlartins-torcida", ({ detail }) => jogo[detail?.tipo]?.(detail))
       // A Christmas gift sub drawn on the Pix overlay (pix.html writes it to this site's storage, which OBS's sources
       // share): its winner steps forward like a goal's dedication, if they're in this stand.
@@ -933,7 +911,6 @@
           const { login, em } = JSON.parse(newValue)
           const p = pessoas.get(login)
           if (p?.el && Date.now() - em < 30000) {
-            mostrar(9000)
             confete()
             dedicar(p, (quem) => `Sub de presente pro ${quem}!`)
           }
@@ -958,7 +935,6 @@
       function vestirTodos() {
         torcida.classList.toggle("var", varAberto)
         for (const p of pessoas.values()) vestir(p)
-        recolher()
       }
       async function creditarVar(id, logins) {
         if (!SIGMA_API || !CHAVE || Date.now() > noArAte) return
@@ -1030,7 +1006,7 @@
       let dicaVez = 0
       function dica() {
         const p = pessoas.get(CHANNEL)
-        if (!dicas.length || !p?.el || torcida.matches(".festa, .luto, .var, .recolhida")) return
+        if (!dicas.length || !p?.el || torcida.matches(".festa, .luto, .var")) return
         const c = dicas[dicaVez++ % dicas.length]
         falar(p, c.dica)
         setTimeout(() => comando(CHANNEL, c.comando), 700)
@@ -1139,7 +1115,6 @@
           t: () => jogo.rodada({ nosso: false, placar: `${placar[0]}–${++placar[1]}` }),
           w: () => jogo.partida({ vitoria: true, placar: "13–9" }),
           x: () => jogo.partida({ vitoria: false, placar: "9–13" }),
-          f: () => jogo.fase({ fase: emPartida ? "menu" : "partida" }),
           // The VAR as the dock sends it: opens with votes coming in, then the verdict; again, it closes.
           a: () => {
             const enviar = (v) => dispatchEvent(new CustomEvent("muanlartins-var", { detail: v }))
