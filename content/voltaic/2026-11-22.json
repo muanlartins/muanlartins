@@ -1,0 +1,109 @@
+{
+ "date": "2026-11-22",
+ "plays": [
+  {
+   "at": "2026-11-22T22:48:30Z",
+   "task": "CsLevel.VT Lowgravity56.VT Angle.SGAB0P",
+   "name": "VT Angleshot Novice S3",
+   "score": 677,
+   "accuracy": 65.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T22:54:26Z",
+   "task": "CsLevel.VT Lowgravity56.VT Popsh.SEXRD5",
+   "name": "VT Popshot Novice S3",
+   "score": 149,
+   "accuracy": 32.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T22:58:01Z",
+   "task": "CsLevel.VT Lowgravity56.VT Popsh.SEXRD5",
+   "name": "VT Popshot Novice S3",
+   "score": 168,
+   "accuracy": 41.9,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T23:00:05Z",
+   "task": "CsLevel.VT Lowgravity56.VT Popsh.SEXRD5",
+   "name": "VT Popshot Novice S3",
+   "score": 202,
+   "accuracy": 42.5,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T23:01:20Z",
+   "task": "CsLevel.VT Lowgravity56.VT Popsh.SEXRD5",
+   "name": "VT Popshot Novice S3",
+   "score": 155,
+   "accuracy": 35.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T23:02:29Z",
+   "task": "CsLevel.VT Lowgravity56.VT Popsh.SEXRD5",
+   "name": "VT Popshot Novice S3",
+   "score": 226,
+   "accuracy": 47.1,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T23:04:24Z",
+   "task": "CsLevel.VT Lowgravity56.VT Quads.SEY63N",
+   "name": "VT Quadshot Novice S3",
+   "score": 926,
+   "accuracy": 93.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T23:07:04Z",
+   "task": "CsLevel.VT Lowgravity56.VT Quads.SEY63N",
+   "name": "VT Quadshot Novice S3",
+   "score": 909,
+   "accuracy": 82.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T23:13:37Z",
+   "task": "CsLevel.VT Lowgravity56.VT Quads.SEY63N",
+   "name": "VT Quadshot Novice S3",
+   "score": 946,
+   "accuracy": 93.3,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T23:14:47Z",
+   "task": "CsLevel.VT Lowgravity56.VT Quads.SEY63N",
+   "name": "VT Quadshot Novice S3",
+   "score": 1060,
+   "accuracy": 98.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T23:17:05Z",
+   "task": "CsLevel.VT Lowgravity56.VT Wides.SEY6L3",
+   "name": "VT Wideshot Novice S3",
+   "score": 950,
+   "accuracy": 88.6,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T23:18:17Z",
+   "task": "CsLevel.VT Lowgravity56.VT Wides.SEY6L3",
+   "name": "VT Wideshot Novice S3",
+   "score": 984,
+   "accuracy": 86.2,
+   "seconds": 60
+  },
+  {
+   "at": "2026-11-22T23:20:31Z",
+   "task": "CsLevel.VT Lowgravity56.VT Wides.SEY6L3",
+   "name": "VT Wideshot Novice S3",
+   "score": 962,
+   "accuracy": 87.3,
+   "seconds": 60
+  }
+ ]
+}
