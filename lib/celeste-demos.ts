@@ -24,3 +24,13 @@ export function outsidePicture(name: string) {
   const path = `/celeste/terceiros/${name}`
   return existsSync(join(process.cwd(), "public", path)) ? path : undefined
 }
+
+/**
+ * A picture of the game filmed for a page of the story (components/site/celeste/historia), in
+ * `public/celeste/historia/<chapter>/<name>`, when the build has it: filmed with the TAS like the demonstrations, from
+ * a chapter he has finished.
+ */
+export function storyPicture(chapter: string, name: string) {
+  const path = `/celeste/historia/${chapter}/${name}`
+  return existsSync(join(process.cwd(), "public", path)) ? path : undefined
+}

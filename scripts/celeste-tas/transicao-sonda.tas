@@ -1,0 +1,11 @@
+# Troca de tela, 1A sala 1 -> 2: sondagem (pulo, dash pra cima, atravessa)
+console load 1 264 56
+   1
+
+#Start
+ 120
+  10
+  10,J
+   1,U,X
+  15,U
+  90

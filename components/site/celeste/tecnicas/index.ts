@@ -4,7 +4,9 @@ import { coyoteTime } from "@/components/site/celeste/tecnicas/coyote-time"
 import { espinhosDirecionais } from "@/components/site/celeste/tecnicas/espinhos-direcionais"
 import { liftboost } from "@/components/site/celeste/tecnicas/liftboost"
 import { puloNeutro } from "@/components/site/celeste/tecnicas/pulo-neutro"
+import { superdash } from "@/components/site/celeste/tecnicas/superdash"
 import type { Technique } from "@/components/site/celeste/tecnicas/technique"
+import { transicaoDeTela } from "@/components/site/celeste/tecnicas/transicao-de-tela"
 import { wallboost } from "@/components/site/celeste/tecnicas/wallboost"
 
 /** The fundamentals that have a catalogue page, by id (content/celeste.ts). */
@@ -16,4 +18,6 @@ export const TECHNIQUES: Record<string, () => Technique> = {
   "espinhos-direcionais": espinhosDirecionais,
   "pulo-neutro": puloNeutro,
   wallboost,
+  "transicao-de-tela": transicaoDeTela,
+  superdash,
 }

@@ -1,0 +1,10 @@
+# Superdash, 3A ponte de fora: só o dash, sem pulo
+console load 3 612 120
+   1
+
+#Start
+ 120
+  20
+   1,R,X
+  50,R
+  40

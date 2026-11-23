@@ -1,0 +1,9 @@
+# História: terreno-espelho (still for its story page): walk up to the mirror before it breaks
+console load 2 1704 624
+   1
+
+#Start
+ 120
+  20
+  60,R
+  80

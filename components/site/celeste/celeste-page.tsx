@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { Climb, type TopicRow } from "@/components/site/celeste/climb"
+import { GAME_STORY, chapterStories } from "@/components/site/celeste/historia"
 import { MountainBackdrop } from "@/components/site/celeste/mountain-backdrop"
+import { storyPath } from "@/components/site/celeste/story-page"
 import { DiversosNext } from "@/components/site/diversos/diversos-next"
 import { LiveRow } from "@/components/site/diversos/diversos-page"
 import { PageIntro } from "@/components/site/page-intro"
@@ -32,6 +34,7 @@ const T = {
   unread: "Comecei do zero. Os números entram depois da primeira live.",
   helped: "O save está com modo assistência ou variantes ligados.",
   references: "Referências e como a gente montou o roteiro",
+  story: "Como Celeste foi feito, e a história de cada capítulo que eu terminei",
   deaths: "Onde eu mais morri",
   days: "Mortes por dia",
   lives: "Lives",
@@ -53,6 +56,7 @@ export function CelestePage({ game, played, lives }: { game: OtherGame; played: 
   }))
   // Only the lives on the site: a step credited to one held back has its day, no link.
   const links = Object.fromEntries(played.lives.map(({ live }) => [live.date, livePath(live.date)]))
+  const chapters = Object.fromEntries(chapterStories().map((page) => [page.area!, storyPath(page)]))
 
   const totals = save.totals
   const red = CHAPTERS.reduce((sum, chapter) => sum + (chapter.red ?? 0), 0)
@@ -93,6 +97,7 @@ export function CelestePage({ game, played, lives }: { game: OtherGame; played: 
           save={save}
           topics={topics}
           lives={links}
+          chapters={chapters}
           path={celestePath()}
           stats={
             <div className="mt-8 space-y-4">
@@ -110,6 +115,9 @@ export function CelestePage({ game, played, lives }: { game: OtherGame; played: 
                 <DiversosNext main={games.map((each) => each.id)} categoryId={game.categoryId} name={game.category} prefix={`${T.next}: `} className="block" />
               </div>
               <Fold summary={T.how}>{T.method}</Fold>
+              <Link href={storyPath(GAME_STORY)} className="block text-[14px] font-medium text-klein underline-offset-4 hover:underline">
+                {T.story}
+              </Link>
               <Link href={referencesPath()} className="block text-[14px] font-medium text-klein underline-offset-4 hover:underline">
                 {T.references}
               </Link>

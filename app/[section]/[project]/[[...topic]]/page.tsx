@@ -6,6 +6,8 @@ import { DiversosGamePage, DiversosPage } from "@/components/site/diversos/diver
 import { CELESTE_INTRO, CelestePage } from "@/components/site/celeste/celeste-page"
 import { CelesteReferencesPage, REFERENCES_INTRO } from "@/components/site/celeste/references-page"
 import { CelesteTopicPage } from "@/components/site/celeste/topic-page"
+import { findStory, storyPages, type StoryPage } from "@/components/site/celeste/historia"
+import { StoryPageView } from "@/components/site/celeste/story-page"
 import { ChangelogPage } from "@/components/site/channel/changelog-page"
 import { CommandsPage } from "@/components/site/channel/commands-page"
 import { GameHome } from "@/components/site/game/game-home"
@@ -41,7 +43,7 @@ import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
  * /conteudo/<project>: its home, its roadmap at /fundamentals (an older
  * edition at /fundamentals/v<n>), its ranked record at /ranked, its aim training at /aim, its weapon skins at /inventory, and each
  * topic, of any edition, at /<topic>. The other games ("Jogos diversos", lib/diversos.ts) at /conteudo/diversos, each at
- * /conteudo/diversos/<game> (Celeste's is its roadmap, each fundamental at /conteudo/diversos/celeste/<id>, its bibliography at /conteudo/diversos/celeste/referencias). In the channel, its lives
+ * /conteudo/diversos/<game> (Celeste's is its roadmap, each fundamental at /conteudo/diversos/celeste/<id>, its bibliography at /conteudo/diversos/celeste/referencias, its story's pages at /conteudo/diversos/celeste/<slug>: the game's and each chapter he finished). In the channel, its lives
  * at /canal/lives, each at /canal/lives/<date>, its agenda at /canal/agenda, the chat's commands at /canal/comandos, Σ at
  * /canal/sigma, its
  * minigames at /canal/minijogos, its backstage at
@@ -78,7 +80,10 @@ export function generateStaticParams() {
     ...diversos.games.map((other) => ({ section: content, project: DIVERSOS, topic: [other.id] })),
     { section: content, project: DIVERSOS, topic: [CELESTE, REFERENCES] },
     ...FUNDAMENTALS.map((each) => ({ section: content, project: DIVERSOS, topic: [CELESTE, each.id] })),
+    ...storyPages().map((page) => ({ section: content, project: DIVERSOS, topic: [CELESTE, page.slug] })),
   ]
+  const clash = storyPages().find((page) => page.slug === REFERENCES || FUNDAMENTALS.some((each) => each.id === page.slug))
+  if (clash) throw new Error(`Celeste's story page "${clash.slug}" has the address of another Celeste page; give it another slug.`)
   const section = sectionPath("channel").slice(1)
   const inChannel = [
     { section, project: "lives", topic: [] },
@@ -97,7 +102,7 @@ type Props = PageProps<"/[section]/[project]/[[...topic]]">
 
 type Found =
   | { channel: ChannelPage; live?: ReturnType<typeof lives>[number] }
-  | { diversos: true; other?: OtherGame; fundamental?: Fundamental; references?: true }
+  | { diversos: true; other?: OtherGame; fundamental?: Fundamental; references?: true; story?: StoryPage }
   | { game: (typeof games)[number]; page?: GamePage; roadmap?: Roadmap; entry?: NonNullable<ReturnType<typeof findTopic>> }
 
 async function find(params: Props["params"]): Promise<Found | undefined> {
@@ -114,6 +119,8 @@ async function find(params: Props["params"]): Promise<Found | undefined> {
     const other = otherGame(id)
     if (!other || rest.length === 0) return other && { diversos: true, other }
     if (other.id === CELESTE && rest.length === 1 && rest[0] === REFERENCES) return { diversos: true, other, references: true }
+    const story = other.id === CELESTE && rest.length === 1 ? findStory(rest[0]) : undefined
+    if (story) return { diversos: true, other, story }
     const fundamental = other.id === CELESTE && rest.length === 1 ? findFundamental(rest[0]) : undefined
     return fundamental && { diversos: true, other, fundamental }
   }
@@ -149,7 +156,11 @@ export async function generateMetadata({ params }: Props) {
     return sectionMetadata("channel", channel[found.channel], `/${found.channel}`)
   }
   if ("diversos" in found) {
-    const { other, fundamental } = found
+    const { other, fundamental, story } = found
+    if (story) {
+      const about = { title: `${story.title} · ${CELESTE_INTRO.title}`, description: story.story().lede }
+      return sectionMetadata("content", about, `/${DIVERSOS}/${CELESTE}/${story.slug}`)
+    }
     if (found.references) return sectionMetadata("content", { ...REFERENCES_INTRO, title: `${REFERENCES_INTRO.title} · ${CELESTE_INTRO.title}` }, `/${DIVERSOS}/${CELESTE}/${REFERENCES}`)
     if (fundamental) {
       const about = { title: `${fundamental.title} · ${CELESTE_INTRO.title}`, description: fundamental.what }
@@ -203,6 +214,7 @@ export default async function SectionSubpage({ params }: Props) {
   if ("diversos" in found) {
     const all = lives()
     if (found.references) return <CelesteReferencesPage />
+    if (found.story) return <StoryPageView page={found.story} lives={all} />
     if (found.fundamental) return <CelesteTopicPage topic={found.fundamental} lives={all} />
     if (found.other?.id === CELESTE) return <CelestePage game={found.other} played={playedOf(found.other, all, lengthOf)} lives={all} />
     if (found.other) return <DiversosGamePage game={found.other} played={playedOf(found.other, all, lengthOf)} />

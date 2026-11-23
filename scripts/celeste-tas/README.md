@@ -51,8 +51,23 @@ hold in each take (`expect`). Then:
 It cuts Madeline out of each update by comparing it with the same update drawn without her, and refuses a take that
 skipped a frame, didn't run to its end or stopped showing what `expect` says. The page's captions and frames live in
 `components/site/celeste/tecnicas/<technique>.tsx`. Archive the raw takes losslessly and compare them byte for
-byte (`~/.local/share/muanlartins/celeste-demos/`, the takes of 11-22 in `v3/`), then delete the raw folder with one plain
+byte (`~/.local/share/muanlartins/celeste-demos/arquiva.sh <batch>`, into `~/.local/share/muanlartins/celeste-demos/`: the takes of 11-22 in `v3/`, stage 2's and the story pages' of 11-23 in `etapa2/` and `historia/`), then delete the raw folder with one plain
 `rm -r -- <its literal path>`. To rebuild a demo, decode its takes back to `.rgba` first.
 
 A room for a demonstration comes only from a chapter Luan has played (no spoilers), and is checked in the game before
 its takes are planned: a map can hide what a tile reader doesn't see (3A's `s3` wall has a roof over the door).
+
+## Pictures for the story pages
+
+`historia/` holds the takes that film one scene each for the chapters' pages (`components/site/celeste/historia/`):
+Madeline loaded near the spot (`console load <area> <world x> <world y>`, a few pixels above the floor so she lands on
+it), then held still or walked. Each is filmed with `rodar.ps1` like any take; the chosen update goes to
+`public/celeste/historia/<chapter>/<name>.webp`, scaled 4× with nearest neighbour (or a 160×90 crop scaled 8× for a
+picture shown small), lossless:
+
+    ffmpeg -f rawvideo -pix_fmt rgba -s 320x180 -i quadros.rgba -vf "select=eq(n\,N),scale=1280:720:flags=neighbor" -frames:v 1 -c:v libwebp -lossless 1 out.webp
+
+The copy's language is Brazilian Portuguese, so a scene with text shows the official translation; its save is named
+TAS, which is the name the dialog says. Loading into a room can start its cutscene (the Granny's house, Part of Me's
+introduction), and the text waits on its first box with no input. A room from the dream half of chapter 2 keeps the
+dream's look (the campfire burns green), so its awake rooms need another way in (not found yet).

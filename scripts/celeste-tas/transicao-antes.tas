@@ -1,0 +1,12 @@
+# Troca de tela, 1A sala 1 -> 2: dash de novo ainda na sala 1, sem dash
+console load 1 264 56
+   1
+
+#Start
+ 120
+  10
+  10,J
+   1,U,X
+  10,U
+   1,R,X
+  90

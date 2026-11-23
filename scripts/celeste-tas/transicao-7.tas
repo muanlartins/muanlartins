@@ -1,0 +1,13 @@
+# Troca de tela, 1A sala 1 -> 2: dash pra direita 7 frames depois de a tela parar
+console load 1 264 56
+   1
+
+#Start
+ 120
+  10
+  10,J
+   1,U,X
+  15,U
+  44
+   1,R,X
+  60

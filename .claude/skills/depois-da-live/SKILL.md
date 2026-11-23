@@ -73,6 +73,11 @@ What the first one taught, on top of the list above:
 3. **`celeste.py --apply`, with the page written.** `start` in `content/celeste-save.json` is the day the run began
    from zero, so the first read gets its date and live too. Two days or more after the live, pass `--date <date>`: what's done takes
    its date only once.
+   **A chapter he finished gets its page of the story** (`components/site/celeste/historia/`, AGENTS.md): the build
+   makes it as soon as the save has the chapter's A-side, so write its file before this release, from its dossier in
+   `~/.local/share/muanlartins/celeste-lore/` (research it first, with the dossiers' brief, when there's none yet), and
+   keep the sections about secrets behind `needs`. A heart, cassette or Celeste Classic he found opens its section by
+   itself. The copy is a draft: tell Luan.
 4. **Watch the recording before it goes public** (a live in a game's own window shows more than a match does): a
    sheet of the whole Live.mp4 every 10 s, then closer (every 1–3 s) wherever one of these shows, and give Luan the
    times before he uploads. Covering, cutting or leaving is his call (11-22, the filter's drops and the file
