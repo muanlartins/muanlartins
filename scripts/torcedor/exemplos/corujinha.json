@@ -1,0 +1,81 @@
+{
+ "pele": "#8a5a36",
+ "larg": 1.12,
+ "alt": 0.92,
+ "orelha": "nada",
+ "topo": "careca",
+ "franja": "nada",
+ "pelo": "focinho",
+ "peloC": "#f4e3c8",
+ "olho": "grande",
+ "olhoC": "#ffd23f",
+ "olhoT": 1.45,
+ "olhoX": 0.4,
+ "olhoY": 0.06,
+ "sobr": "angulo",
+ "sobrC": "#33231d",
+ "sobrY": 0.36,
+ "sobrT": 1.2,
+ "nariz": "triangulo",
+ "narizCor": true,
+ "narizC": "#ff9f43",
+ "narizT": 1.5,
+ "narizY": -0.14,
+ "boca": "tres",
+ "bocaC": "#5a3825",
+ "bocaT": 0.55,
+ "bocaY": -0.36,
+ "roupa": "pele",
+ "gola": "nada",
+ "costas": "penas",
+ "costasC": "#5a3825",
+ "costasC2": "#f4e3c8",
+ "pesc": "cachecol",
+ "pescC": "#002fa7",
+ "pescC2": "#f4f5f7",
+ "pecas": [
+  {
+   "f": "cone",
+   "c": "#5a3825",
+   "x": 0.62,
+   "y": 1.0,
+   "z": 0,
+   "sx": 0.26,
+   "sy": 0.5,
+   "sz": 0.14,
+   "rz": -0.45,
+   "onde": "cabeca"
+  }
+ ],
+ "desenhos": [
+  {
+   "f": "arco",
+   "em": "camisa",
+   "c": "#c08b5c",
+   "x": 0.2,
+   "y": -0.08,
+   "t": 0.08,
+   "r": 3.14,
+   "m": true
+  },
+  {
+   "f": "arco",
+   "em": "camisa",
+   "c": "#c08b5c",
+   "x": 0,
+   "y": -0.22,
+   "t": 0.08,
+   "r": 3.14
+  },
+  {
+   "f": "arco",
+   "em": "camisa",
+   "c": "#c08b5c",
+   "x": 0.2,
+   "y": -0.36,
+   "t": 0.08,
+   "r": 3.14,
+   "m": true
+  }
+ ]
+}
