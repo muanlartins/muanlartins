@@ -396,8 +396,10 @@ export function FanEditor({
     const l = abas.current?.querySelector<HTMLElement>("[role=tablist]")
     const t = document.getElementById(`t3-${idAba(aba)}`)
     if (!l || !t) return
-    if (t.offsetLeft < l.scrollLeft + 16) l.scrollLeft = t.offsetLeft - 16
-    else if (t.offsetLeft + t.offsetWidth > l.scrollLeft + l.clientWidth - 16) l.scrollLeft = t.offsetLeft + t.offsetWidth - l.clientWidth + 16
+    // Where the tab sits in the line's visible part.
+    const x = t.getBoundingClientRect().left - l.getBoundingClientRect().left
+    if (x < 16) l.scrollLeft += x - 16
+    else if (x + t.offsetWidth > l.clientWidth - 16) l.scrollLeft += x + t.offsetWidth - l.clientWidth + 16
   }, [aba])
   // The picked piece's panel in view: only the panel scrolls, so on a phone the page stays on the 3D view just tapped.
   const mostrarPeca = useEffectEvent(() => {

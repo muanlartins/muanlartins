@@ -199,7 +199,8 @@ export function criarPalco(tela: HTMLCanvasElement, avisos: Avisos): Palco {
   let escolhidas: Escolha[] = []
   let avisadas = "[]"
   let inicio: { i: number; lado: 0 | 1; g: THREE.Object3D; p: THREE.Vector3; q: THREE.Quaternion; s: THREE.Vector3; mundo: THREE.Vector3 }[] | null = null
-  const caixas: THREE.BoxHelper[] = []
+  // A BoxHelper keeps what it boxes in `object` (pointed at another piece as the pick changes); three's types leave it out.
+  const caixas: (THREE.BoxHelper & { object?: THREE.Object3D })[] = []
   const visto = (o: THREE.Object3D | null) => {
     for (; o; o = o.parent) if (!o.visible) return false
     return true
@@ -219,13 +220,13 @@ export function criarPalco(tela: HTMLCanvasElement, avisos: Avisos): Palco {
       // A box round each picked piece, drawn through the head so a buried piece is still found:
       // Branco round the one holding the gizmo, Klein claro round the others, both reading on the Klein ground.
       if (!caixas[j]) {
-        caixas[j] = new THREE.BoxHelper(undefined, "#f4f5f7")
+        caixas[j] = new THREE.BoxHelper(new THREE.Object3D(), "#f4f5f7")
         Object.assign(caixas[j].material, { depthTest: false, transparent: true, opacity: 0.8 })
         caixas[j].renderOrder = 2
         cena.add(caixas[j])
       }
       ;(caixas[j].material as THREE.LineBasicMaterial).color.set(j ? "#85a7ff" : "#f4f5f7")
-      caixas[j].object = ladoDe(i, lado)?.children[0] as THREE.Object3D
+      caixas[j].object = ladoDe(i, lado)?.children[0]
     })
     caixas.forEach((c, j) => (c.visible = j < escolhidas.length && !!c.object))
     tela.style.touchAction = escolhidas.length ? "none" : ""

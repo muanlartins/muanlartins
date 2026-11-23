@@ -335,6 +335,18 @@ export function ProfilePage() {
     ) : null
   const tabs = TABS.filter((id) => !(isChannel && id === "sigma"))
   const freeSigma = stats?.sigma ?? 0
+  const resetAndErase = (
+    <>
+      <Button variant="quiet" size="sm" onClick={() => change(torcedorDe(null, login))}>
+        {text.reset}
+      </Button>
+      {token && saved && (
+        <Button variant="quiet" size="sm" onClick={erase} className={confirmErase ? "text-loss" : undefined}>
+          {confirmErase ? text.confirmErase : text.erase}
+        </Button>
+      )}
+    </>
+  )
   const saveLine =
     status === "saved"
       ? text.saved
@@ -455,22 +467,15 @@ export function ProfilePage() {
                     twitchButton
                   ))}
                 <p
-                  className={cn("min-w-0 flex-1 basis-48 text-[13px]", status === "error" || status === "expired" || status === "big" ? "text-loss" : "text-muted")}
+                  className={cn("min-w-0 flex-1 basis-40 text-[13px]", status === "error" || status === "expired" || status === "big" ? "text-loss" : "text-muted")}
                   aria-live="polite"
                 >
                   {saveLine}
                 </p>
-                <div className="flex gap-4">
-                  <Button variant="quiet" size="sm" onClick={() => change(torcedorDe(null, login))}>
-                    {text.reset}
-                  </Button>
-                  {token && saved && (
-                    <Button variant="quiet" size="sm" onClick={erase} className={confirmErase ? "text-loss" : undefined}>
-                      {confirmErase ? text.confirmErase : text.erase}
-                    </Button>
-                  )}
-                </div>
+                <div className="hidden gap-4 md:flex">{resetAndErase}</div>
               </div>
+              {/* On a phone the bar that follows the page keeps to one line: the rest comes after it. */}
+              <div className="flex flex-wrap gap-x-4 gap-y-2 px-2 pb-2 pt-1 md:hidden">{resetAndErase}</div>
             </div>
           </TabPanel>
 
