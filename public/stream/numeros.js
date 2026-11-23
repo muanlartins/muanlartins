@@ -35,6 +35,19 @@ const FIM_NA_CONVERSA_MS = 5 * 60_000
 
 const RESULTADO = { win: "Vitória", loss: "Derrota", draw: "Empate" }
 
+/**
+ * The numbers from a "muanlartins-estatisticas" event: the Partidas dock sends them as JSON text in `dados`
+ * (obs-websocket keeps only arrays of objects, so the result's score would arrive empty); ?demo sends them as is.
+ */
+function numerosDe(detail) {
+  if (typeof detail?.dados !== "string") return detail ?? null
+  try {
+    return JSON.parse(detail.dados)
+  } catch {
+    return null
+  }
+}
+
 function placarDaPartida(el, hole, band) {
   el.classList.add("numeros")
   el.innerHTML =
@@ -61,7 +74,8 @@ function placarDaPartida(el, hole, band) {
     const ok = d && d.mostrar !== false && d.jogo === "rocket-league" && Date.now() - ouvido < SILENCIO_MS && (!d.fim || Date.now() - d.fim.em < DEPOIS_DO_FIM_MS)
     el.classList.toggle("visivel", Boolean(ok))
   }
-  addEventListener("muanlartins-estatisticas", ({ detail }) => {
+  addEventListener("muanlartins-estatisticas", (e) => {
+    const detail = numerosDe(e.detail)
     ouvido = Date.now()
     ultimo = detail
     if (detail?.jogo !== "rocket-league") return visivel()
@@ -97,7 +111,7 @@ function fimDePartida(el, { aoMostrar = () => {} } = {}) {
   const pct = (a, b) => (b ? `${Math.round((100 * a) / b)}%` : "–")
   function desenhar(d) {
     const { result, score } = d.fim
-    const placar = score ? ` <span class="placar">${score[0]}<span class="accent">–</span>${score[1]}</span>` : ""
+    const placar = score?.length === 2 && score.every(Number.isFinite) ? ` <span class="placar">${score[0]}<span class="accent">–</span>${score[1]}</span>` : ""
     let titulo = ""
     let tiles = ""
     if (d.jogo === "valorant") {
@@ -129,7 +143,8 @@ function fimDePartida(el, { aoMostrar = () => {} } = {}) {
       aoMostrar(sim)
     }
   }
-  addEventListener("muanlartins-estatisticas", ({ detail }) => {
+  addEventListener("muanlartins-estatisticas", (e) => {
+    const detail = numerosDe(e.detail)
     ouvido = Date.now()
     const novo = detail?.fim && JSON.stringify(detail) !== JSON.stringify(atual)
     atual = detail
