@@ -411,5 +411,50 @@
         [229, "morta", "1"]
       ]
     }
+  },
+  "superdash": {
+    "crop": [0, 52, 320, 90],
+    "from": 138,
+    "to": 196,
+    "cover": ["10", 165],
+    "takes": {
+      "pulo": "superdash-pulo",
+      "4": "superdash-4",
+      "10": "superdash-10"
+    },
+    "expect": {
+      "pulo": [
+        [152, "vx", 130],
+        [152, "teclas", "18"]
+      ],
+      "4": [
+        [146, "vx", 260],
+        [146, "teclas", "18"]
+      ],
+      "10": [
+        [152, "vx", 260],
+        [152, "teclas", "18"]
+      ]
+    }
+  },
+  "transicao": {
+    "crop": [0, 0, 320, 180],
+    "from": 140,
+    "to": 236,
+    "cover": ["11", 212],
+    "takes": {
+      "10": "transicao-10",
+      "11": "transicao-11"
+    },
+    "expect": {
+      "10": [
+        [205, "teclas", "34"],
+        [210, "estado", "0"]
+      ],
+      "11": [
+        [206, "teclas", "34"],
+        [206, "estado", "2"]
+      ]
+    }
   }
 }

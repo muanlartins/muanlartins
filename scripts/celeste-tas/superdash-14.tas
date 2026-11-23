@@ -1,0 +1,12 @@
+# Superdash, 3A ponte de fora (lvl_s2): dash pra direita e pulo no 14º update depois do dash
+console load 3 612 120
+   1
+
+#Start
+ 120
+  20
+   1,R,X
+  13,R
+  20,R,J
+  30,R
+  40

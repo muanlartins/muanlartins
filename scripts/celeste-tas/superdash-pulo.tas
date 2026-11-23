@@ -1,0 +1,11 @@
+# Superdash, 3A ponte de fora: pulo correndo, sem dash, pra comparar
+console load 3 612 120
+   1
+
+#Start
+ 120
+  20
+  10,R
+  20,R,J
+  30,R
+  40
