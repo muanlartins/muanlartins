@@ -118,8 +118,8 @@ export function aparencia(a) {
 // The 3D fan: public/stream/torcedor3d/esquema.js, linked here as ./torcedor3d.mjs, the very normalizar the overlays
 // and the site run, so what's kept is what they draw: only what differs from the default (enxugar). Any object is a
 // look (what it doesn't know falls back to the default); anything else isn't. The biggest look the schema allows is
-// under 8 KB of JSON, so the cap only turns junk away.
-export const T3_MAX = 8192
+// about 8.3 KB of JSON at the very most (every field and list maxed), so the cap only turns junk away.
+export const T3_MAX = 10240
 export function t3(x) {
   if (!x || typeof x !== "object" || Array.isArray(x)) return null
   return enxugar(normalizar(x))
