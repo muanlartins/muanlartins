@@ -131,6 +131,20 @@ export const UPCOMING: Upcoming[] = [
 /** Every feature released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "universo-valorant",
+    date: "2026-11-23",
+    tag: "site",
+    title: "Universo Valorant",
+    text: "Os agentes com a história, as vozes e todas as falas na dublagem e no original, com fonte. Começa pela Raze.",
+    href: "/conteudo/valorant/universo",
+    media: [
+      media("universo-valorant", "A página da Raze: a ficha, a apresentação dela no jogo em português e inglês e o retrato"),
+      media("universo-valorant-falas", "Todas as falas da Raze, filtradas por momento, cada uma pra ouvir na dublagem e no original"),
+      media("universo-valorant-agentes", "Os 30 agentes do Universo Valorant na ordem do Protocolo, com a Raze em destaque"),
+    ],
+    credits: [{ by: "leila_m_30" }],
+  },
+  {
     id: "celeste-roteiro",
     date: "2026-11-22",
     tag: "site",

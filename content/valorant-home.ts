@@ -7,7 +7,7 @@ import { game } from "@/lib/game"
  * nights (content/agenda.json). Its ranked record is content/valorant/, from the Partidas dock's Valorant tab;
  * `rank` is Luan's rank by hand until the first match there tells it. `aim` is the Voltaic page (content/voltaic/,
  * from scripts/voltaic.py). `inventory` is the weapon skins page: the channel's collection and game reading, and anyone's
- * dream loadout (lib/valorant-inventory.ts).
+ * dream loadout (lib/valorant-inventory.ts). `universo` is Universo Valorant (lib/valorant-universo.ts).
  * The credits are Riot's "Legal Jibber Jabber", which fan sites using its art must show.
  */
 export default game({
@@ -43,6 +43,13 @@ export default game({
     description: {
       pt: "A coleção que estou montando, a skin que uso em cada arma e o seu loadout dos sonhos: monta com qualquer skin do jogo e exporta numa imagem.",
       en: "The collection I'm building, the skin I use on each weapon, and your dream loadout: build it from any skin in the game and export it as one image.",
+    },
+  },
+  universo: {
+    title: { pt: "Universo", en: "Universe" },
+    description: {
+      pt: "Os agentes, as vozes, as falas e as curiosidades do mundo de Valorant, tudo com fonte.",
+      en: "The agents, their voices, their lines and the curiosities of Valorant's world, all sourced.",
     },
   },
   links: [],
