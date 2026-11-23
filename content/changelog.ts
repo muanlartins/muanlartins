@@ -536,8 +536,13 @@ export const SHIPPED: Shipped[] = [
     date: "2026-10-24",
     tag: "live",
     title: "Overlays da live",
-    text: "A moldura da câmera com o ranque e o placar do dia, o chat e as cenas.",
-    media: [media("overlays", "A moldura da câmera e a chamada do Pix na tela da live")],
+    text: "O jogo enquadrado, sem nada por cima: em volta, a câmera, o chat, o placar do jogo e a arquibancada.",
+    media: [
+      media(
+        "cenas-enquadradas",
+        "A cena do Celeste: o jogo enquadrado, a chamada do Pix, o chat e a câmera numa coluna à esquerda, o capítulo e a arquibancada embaixo",
+      ),
+    ],
   },
   {
     id: "arte-da-twitch",
