@@ -33,8 +33,8 @@
 // "Clima do capítulo" (the default too) draws an ambient over the box while the game is connected, from the chapter
 // it's in, crossfading over 1.6 s when it changes: shapes and particles of our own and a light grade, never over his
 // face, the far ones behind him when the body mask is there (`AMBIENTES`, `ambMat`); a chapter with its scenery
-// (cenarios.js: Forsaken City so far) has the game's own backgrounds and structures behind him instead, following
-// his rooms. The one-offs stay on the dock.
+// (cenarios.js: every chapter, once the game's pictures are read) has the game's own backgrounds and structures
+// behind him instead, following his rooms. The one-offs stay on the dock.
 // The rest of what the game says (her speed, the wind, her stamina and states, what follows her, who chases her) is
 // reacoes.js's; its rarer moments (the heart, the cassette,
 // a new room, the chapter's end) momentos.js's. The look's long hair and jacket are drawn here (CORTINA, ROUPA), only the fringe and crown a model's.
@@ -1766,27 +1766,33 @@ export async function criar(m) {
   // site (drifting dust, dim violet), 3 the resort (dusty, ghostly greys), 4 the ridge (warm wind in gusts), 5 the
   // temple (crystal glints, teal and purple), 6 the reflection (dark ripples), 7 the summit (wind and snow under a
   // pink-gold sky), 8 the epilogue (soft, warm light), 9 the core hot (embers), 10 Farewell (stars, space), 11 the
-  // core cold (frost); 12 Forsaken City with its own scenery behind him (cenarios.js), once its pictures are in.
+  // core cold (frost); 12 the prologue and Forsaken City with their own scenery behind him (cenarios.js), once its
+  // pictures are in; COM_CENA + an id, that mood over its chapter's scenery (its far particles left to the scene, its
+  // near ones too where the scene has its own).
   const AMBIENTES = {
     "Celeste/0-Intro": 1, "Celeste/1-ForsakenCity": 1, "Celeste/2-OldSite": 2, "Celeste/3-CelestialResort": 3,
     "Celeste/4-GoldenRidge": 4, "Celeste/5-MirrorTemple": 5, "Celeste/6-Reflection": 6, "Celeste/7-Summit": 7,
     "Celeste/8-Epilogue": 8, "Celeste/9-Core": 9, "Celeste/LostLevels": 10,
   }
   const NOMES_AMB = ["neve calma", "noite fria", "poeira violeta", "cinzas do hotel", "vento quente", "cristais", "ondas escuras", "vento e neve rosa", "luz quente", "brasas", "estrelas", "gelo", "cidade abandonada"]
+  const COM_CENA = 20
+  const nomeAmb = (id) => (id >= COM_CENA ? `${NOMES_AMB[id - COM_CENA]} + cenário` : NOMES_AMB[id])
   function ambienteDe(e) {
     if (!e || e.onde === "menu") return 0
     const c = e.capitulo
     if (!c) return null // loading: keep the one on
-    const comCena = cena.clima(e)
-    if (comCena != null) return comCena
     let id = AMBIENTES[c.sid]
     if (id == null && c.colecao === "Celeste") id = [1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10][c.id]
     if (id === 9 && e.nucleo === "frio") id = 11
-    return id ?? 0
+    id ??= 0
+    const comCena = cena.cfg(e)
+    return comCena ? (comCena.clima ?? COM_CENA + id) : id
   }
   const amb = { a: 0, b: 0, k: 1, on: 0, maskOk: 0, cena: 0 }
   const cena = criarCena(m)
-  const climaDeCena = new Set(Object.values(CENARIOS).map((c) => c.clima))
+  // The moods drawn over a scene.
+  const climasDeCena = new Set(Object.values(CENARIOS).map((c) => c.clima).filter((c) => c != null))
+  const comCena = (id) => id >= COM_CENA || climasDeCena.has(id)
   const { uErase, uPlate, uPlateFix, uPlateOk, uMaskShift, uEraseLow, uMem, uKeep } = m.uniforms
   const ambU = {
     uCam, uMask, uCover, uTime, uAspect, uFace, uFaceUp,
@@ -1877,6 +1883,9 @@ export async function criar(m) {
         g = cam;
         ga = 0.0;
         float h, a;
+        // Over its chapter's scenery: the same mood, its far particles left to the scene.
+        bool sobreCena = id >= 20;
+        if (sobreCena) id -= 20;
         if (id == 0) {
           // The menus: a calm snow, the colours softened a little.
           g = mood(cam, vec3(0.9, 0.95, 1.06), vec3(0.98, 1.0, 1.04), 0.85, vec3(0.72, 0.8, 0.95), 0.3);
@@ -1992,7 +2001,7 @@ export async function criar(m) {
           float trail = step(0.0, along) * smoothstep(0.25, 0.0, along) * smoothstep(0.0025, 0.0, across) * step(k, 0.35);
           over(far, vec3(1.0), trail * 0.85);
         } else if (id == 12) {
-          // Forsaken City: its scene draws what's behind him (cena()); him in its cold night light.
+          // The prologue and Forsaken City: their scene draws what's behind him (cena()); him in its cold night light.
           g = mood(cam, vec3(0.72, 0.78, 1.06), vec3(0.9, 0.94, 1.05), 0.75, vec3(0.18, 0.2, 0.46), 0.42);
           ga = 0.3;
         } else {
@@ -2009,6 +2018,7 @@ export async function criar(m) {
           a = drift(P, 0.11, vec2(0.006, -0.02), 0.02, 0.0042, 0.35, 26.0, h);
           over(far, vec3(0.92, 0.97, 1.0), a * 0.5);
         }
+        if (sobreCena) far = vec4(0.0);
       }
       void main() {
         T = uTime;
@@ -2031,6 +2041,8 @@ export async function criar(m) {
           far = mix(far, far2, uAmbK);
           near = mix(near, near2, uAmbK);
         }
+        // A scene with its own particles in front of him takes the mood's place there.
+        near *= 1.0 - uCenaW * uCenaPart;
         // His face (and the hair round it), kept clear: an oval round the face's, a little above it.
         vec2 d = (vUv - uFace.xy) * vec2(uAspect, 1.0);
         d = vec2(dot(d, vec2(uFaceUp.y, -uFaceUp.x)), dot(d, uFaceUp));
@@ -2097,7 +2109,7 @@ export async function criar(m) {
     ambU.uMaskOk.value = amb.maskOk
     // How much of a scene shows: its mood's share of the crossfade, faded with the ambient.
     const K = ambU.uAmbK.value
-    amb.cena = ease(amb.on) * ((climaDeCena.has(amb.a) ? 1 - K : 0) + (climaDeCena.has(amb.b) ? K : 0))
+    amb.cena = ease(amb.on) * ((comCena(amb.a) ? 1 - K : 0) + (comCena(amb.b) ? K : 0))
     cena.atualizar(now, dt, jogo.estado, amb.cena, face().c)
   }
 
@@ -2210,7 +2222,7 @@ export async function criar(m) {
       return (
         `celeste: morango ${s3.ok ? "ok" : s3.failed ? "desenhado" : "…"} · partículas ${parts.length}${cel.dash ? " · dash" : ""}${cel.morte ? " · morte" : ""}${cel.morango ? " · morango" : ""}${cel.pena ? " · pena" : ""}${cel.eco ? " · eco" : ""}${momentos.nome() ? ` · ${momentos.nome()}` : ""}` +
         `${cel.hair.amt > 0.05 ? " · cabelo" : ""}${cel.swipe.note}\n` +
-        `jogo: ${onde} · ${jogo.n} msgs · clima ${NOMES_AMB[amb.b]}${amb.k < 1 ? ` (de ${NOMES_AMB[amb.a]})` : ""}${amb.on < 0.01 ? " (desligado)" : ""}`
+        `jogo: ${onde} · ${jogo.n} msgs · clima ${nomeAmb(amb.b)}${amb.k < 1 ? ` (de ${nomeAmb(amb.a)})` : ""}${amb.on < 0.01 ? " (desligado)" : ""}`
       )
     },
     estado: { cel, s3, hist, jogo, amb, reacoes: reacoes.estado, cena: cena.estado },
