@@ -2,14 +2,16 @@
 
 import { ArrowRight, Shuffle } from "lucide-react"
 import Script from "next/script"
-import { useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { TwitchIcon } from "@/components/site/brand-icons"
 import { GameIcon } from "@/components/site/game/game-icon"
 import { ClassArt, duelKit, type DuelKit } from "@/components/site/minigames/class-art"
 import { Marble, marbleKit, type MarbleKit } from "@/components/site/minigames/marble"
 import { PageIntro } from "@/components/site/page-intro"
 import { DiscordLink } from "@/components/site/profile/discord-link"
-import { FanEditor } from "@/components/site/profile/fan-editor"
+import { FanEditor, linkDoEndereco } from "@/components/site/profile/fan-editor"
+import css from "@/components/site/profile/fan-editor.module.css"
+import { editor } from "@/components/site/profile/fan-editor-text"
 import { FanStage, type Thrown } from "@/components/site/profile/fan-stage"
 import { SigmaPanel } from "@/components/site/profile/sigma-panel"
 import { Button, ButtonLink, cardClass, CardLink, EmptyState, ErrorLine, SignInButton, Skeleton, TabPanel, Tabs } from "@/components/site/ui"
@@ -32,10 +34,12 @@ import {
   takeDraft,
   takeToken,
   type Fan,
+  type SavedFan,
   type Sigma,
   type SigmaStats,
   type Torcedor,
 } from "@/lib/profile"
+import { clube, codigo, enxugar, lerCodigo, normalizar, torcedorDe, type Torcedor3D } from "@/lib/torcedor3d"
 import { localize, sectionPath } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
@@ -43,19 +47,61 @@ import { viewerPath, type Card, type Images, type Look } from "@/lib/viewer"
 
 const text = localize(profile)
 const minigames = localize(channel.minijogos)
-type Status = "idle" | "saving" | "saved" | "erased" | "error" | "expired"
+type Status = "idle" | "saving" | "saved" | "erased" | "error" | "expired" | "big"
 const TABS = ["torcedor", "cartao", "bolinha", "contas", "sigma"] as const
 type Tab = (typeof TABS)[number]
+
+// The 3D fan being built before going to Twitch, kept for the way back (the 2D one follows it).
+const DRAFT_3D = "perfil:rascunho3d"
+function keepDraft(look: Torcedor3D) {
+  try {
+    sessionStorage.setItem(DRAFT_3D, codigo(look))
+  } catch {}
+}
+function takeDraft3D(): Torcedor3D | null {
+  try {
+    const kept = sessionStorage.getItem(DRAFT_3D)
+    sessionStorage.removeItem(DRAFT_3D)
+    return kept ? lerCodigo(kept) : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Their 2D fan, which the profile API still keeps beside the 3D one (`t3`) for what draws the 2D fan: their saved one
+ * with what the 3D fan says of the shirt's colours and number, their team (a club's 2D shirt with it), the celebration,
+ * the arrival shout and the stickers.
+ */
+function fan2D(T: Torcedor, base: Fan, look: Torcedor3D, login: string): Fan {
+  const club = clube(look.time)
+  return T.normalizar(
+    {
+      ...base,
+      cor: look.cor,
+      detalhe: look.detalhe,
+      terceira: look.terceira,
+      numero: look.numero,
+      time: look.time,
+      frase: look.frase,
+      stickers: look.stickers,
+      comemoracao: look.fes,
+      ...(club ? { roupa: club.roupa } : {}),
+    },
+    login,
+  )
+}
 
 /** A dot on a tab with changes not saved yet. */
 const unsavedDot = <span role="img" aria-label={text.unsaved} title={text.unsaved} className="h-1.5 w-1.5 rounded-full bg-klein" />
 
 /**
- * The profile, as an editor: what they're making stays in view beside it (their fan on a bit of the stand, playing its
- * moments, and their card as it shows on their name), and the parts are tabs: Torcedor (look, team, what it does in the
- * live), Cartão (banner, photo, colours, pronouns, about), Bolinha e loadout (picked on their own pages), Contas
- * (Twitch, Discord) and Σ e medalhas. The fan and the card are saved apart (PUT /eu, PUT /eu/cartao); the pictures and
- * Discord at once. Signed in, "Ver minha página" leads to their page (/torcedor/<login>).
+ * The profile, as an editor in tabs: Torcedor (the 3D fan's editor, fan-editor.tsx: the fan turning beside its
+ * controls, with the team, the arrival shout and the stickers), Cartão (banner, photo, colours, pronouns, about),
+ * Bolinha e loadout (picked on their own pages), Contas (Twitch, Discord) and Σ e medalhas; on all but the first, their
+ * fan on a bit of the stand and their card stay in view beside it. The fan and the card are saved apart (PUT /eu with
+ * the 3D fan as `t3`, PUT /eu/cartao); the pictures and Discord at once. Whoever has no 3D fan yet opens with their 2D
+ * one turned 3D (torcedorDe), so nobody starts from scratch. Signed in, "Ver minha página" leads to their page.
  */
 export function ProfilePage() {
   const [T, setT] = useState<Torcedor | null>(null)
@@ -67,6 +113,13 @@ export function ProfilePage() {
   const [token, setToken] = useState<string | null>(null)
   const [login, setLogin] = useState("")
   const [saved, setSaved] = useState<Fan | null>(null)
+  // Their 2D fan as saved, or the default: what the 2D fan they send keeps beyond what the 3D one says.
+  const [base2D, setBase2D] = useState<Fan | null>(null)
+  // The 3D fan being edited, and as saved (or the default one), to know what changed.
+  const [look, setLook] = useState<Torcedor3D | null>(null)
+  const [savedLook, setSavedLook] = useState<Torcedor3D | null>(null)
+  // A fan opened by link (#t=T1:…; null when it didn't open), handed to the editor once.
+  const [link, setLink] = useState<Torcedor3D | null | undefined>(undefined)
   // Their card as saved and as being edited (undefined: their profile hasn't come back).
   const [cardBase, setCardBase] = useState<Card | undefined>(undefined)
   const [cardDraft, setCardDraft] = useState<Card>({})
@@ -75,7 +128,6 @@ export function ProfilePage() {
   const [weapons, setWeapons] = useState<number | null>(null)
   // Their Discord as linked (null: none), once their profile came back.
   const [discord, setDiscord] = useState<Discord | null | undefined>(undefined)
-  const [fan, setFan] = useState<Fan | null>(null)
   const [status, setStatus] = useState<Status>("idle")
   const [loadFailed, setLoadFailed] = useState(false)
   const [confirmErase, setConfirmErase] = useState(false)
@@ -107,12 +159,22 @@ export function ProfilePage() {
       location.replace(back)
       return
     }
-    const draft = takeDraft()
-    setToken(found)
-    if (!found) {
-      setFan(draft ? T.normalizar(draft) : T.padrao())
-      return
+    // A fan shared by link (#t=T1:…, the editor's "Copiar link") opens in the editor.
+    const shared = linkDoEndereco()
+    if (shared !== undefined) {
+      setLink(shared)
+      openTab("torcedor", false)
     }
+    // The 2D draft isn't used any more: the 2D fan follows the 3D one.
+    takeDraft()
+    const draft = takeDraft3D()
+    setToken(found)
+    const nobody = () => {
+      setBase2D(T.padrao())
+      setSavedLook(torcedorDe(null, ""))
+      setLook(draft ?? torcedorDe(null, ""))
+    }
+    if (!found) return nobody()
     setLoadFailed(false)
     loadMine(found)
       .then(({ login, aparencia, cartao, imagens, discord, duelo, loadout }) => {
@@ -128,30 +190,43 @@ export function ProfilePage() {
           .catch(() => setStats(null))
         const mine = aparencia ? T.normalizar(aparencia, login) : null
         setSaved(mine)
-        setFan(draft ? T.normalizar(draft, login) : (mine ?? T.padrao(login)))
+        setBase2D(mine ?? T.padrao(login))
+        // Their 3D fan, or their 2D one turned 3D.
+        const mine3D = torcedorDe(aparencia, login)
+        setSavedLook(mine3D)
+        setLook(draft ?? mine3D)
       })
       .catch((error) => {
         if (error instanceof SignedOut) {
           setToken(null)
           setStatus("expired")
         } else setLoadFailed(true)
-        setFan(draft ? T.normalizar(draft) : T.padrao())
+        nobody()
       })
   }
 
-  const baseline = T && (saved ?? T.padrao(login))
-  const dirty = Boolean(fan && baseline && JSON.stringify(fan) !== JSON.stringify(baseline))
+  const fan = useMemo(() => (T && base2D && look ? fan2D(T, base2D, look, login) : null), [T, base2D, look, login])
+  // What would be saved as `t3` (the shout trimmed as the stand has it), and whether it differs from what is.
+  const t3 = useMemo(() => (look ? enxugar(normalizar(look)) : null), [look])
+  const savedT3 = useMemo(() => (savedLook ? JSON.stringify(enxugar(savedLook)) : null), [savedLook])
+  const dirty = Boolean(t3 && savedT3 !== null && JSON.stringify(t3) !== savedT3)
   const cardDirty = cardBase !== undefined && JSON.stringify(cardDraft) !== JSON.stringify(cardBase)
   const signedIn = Boolean(token && login)
   const isChannel = signedIn && login === CHANNEL
 
-  function change(patch: Partial<Fan>) {
-    setFan((current) => current && T && T.normalizar({ ...current, ...patch }, login))
+  function change(next: Torcedor3D) {
+    setLook(next)
     setStatus("idle")
     setConfirmErase(false)
   }
 
-  function play(kind: "goal" | "against" | "arrive", celebration?: string) {
+  /** To Twitch, keeping a fan they changed for the way back. */
+  function enter() {
+    if (look && dirty) keepDraft(look)
+    signIn(null)
+  }
+
+  function play(kind: "goal" | "against" | "arrive") {
     if (!fan) return
     clearTimeout(moveTimer.current)
     setMove("")
@@ -173,21 +248,23 @@ export function ProfilePage() {
       }
       moveTimer.current = setTimeout(() => (setMove(""), setShout(""), setStickers([])), 3600)
     })
-    if (celebration) change({ comemoracao: celebration })
   }
 
   async function save() {
-    if (!fan) return
-    if (!token) return signIn(fan)
+    if (!fan || !t3) return
+    if (!token) return enter()
     setStatus("saving")
     try {
-      const { login, aparencia } = await saveMine(token, fan)
+      const { login, aparencia } = await saveMine(token, fan, t3)
+      const mine = T!.normalizar(aparencia, login)
       setLogin(login)
-      setSaved(T!.normalizar(aparencia, login))
+      setSaved(mine)
+      setBase2D(mine)
+      setSavedLook(torcedorDe(aparencia, login))
       setStatus("saved")
     } catch (error) {
       if (error instanceof SignedOut) setToken(null)
-      setStatus(error instanceof SignedOut ? "expired" : "error")
+      setStatus(error instanceof SignedOut ? "expired" : error instanceof Error && error.message === "413" ? "big" : "error")
     }
   }
 
@@ -198,7 +275,9 @@ export function ProfilePage() {
     try {
       await eraseMine(token)
       setSaved(null)
-      setFan(T!.padrao(login))
+      setBase2D(T!.padrao(login))
+      setSavedLook(torcedorDe(null, login))
+      setLook(torcedorDe(null, login))
       setStatus("erased")
     } catch (error) {
       setStatus(error instanceof SignedOut ? "expired" : "error")
@@ -217,7 +296,9 @@ export function ProfilePage() {
     setDiscord(undefined)
     setStats(undefined)
     setSaved(null)
-    setFan(T!.padrao())
+    setBase2D(T!.padrao())
+    setSavedLook(torcedorDe(null, ""))
+    setLook(torcedorDe(null, ""))
     setStatus("idle")
   }
 
@@ -227,7 +308,7 @@ export function ProfilePage() {
   }
 
   const twitchButton = canSave ? (
-    <SignInButton platform="twitch" onClick={() => signIn(fan)}>
+    <SignInButton platform="twitch" onClick={enter}>
       {text.signIn}
     </SignInButton>
   ) : null
@@ -238,7 +319,8 @@ export function ProfilePage() {
     </EmptyState>
   )
 
-  const look: Look = { aparencia: fan as unknown as Record<string, unknown>, cartao: null, duelo, imagens: images }
+  // Their fan as the site's other pieces read it: the 2D one with the 3D one being made (`t3`).
+  const viewerLook: Look = { aparencia: fan ? ({ ...fan, t3 } as unknown as SavedFan) : null, cartao: null, duelo, imagens: images }
   const name = login || text.you
   const stage = T && fan ? <FanStage T={T} fan={fan} name={name} move={move} shout={shout} stickers={stickers} play={play} /> : null
   const cardPreview =
@@ -246,13 +328,39 @@ export function ProfilePage() {
       <figure className="space-y-2">
         {/* The cut clips a box shadow: the shadow follows the shape from this wrapper, as the card does over a name. */}
         <div className="drop-shadow-[0_8px_24px_rgb(0_20_71/0.16)]">
-          <ViewerCard login={login} look={look} stats={stats} T={T} S={S} size="pop" preview={cardDraft} />
+          <ViewerCard login={login} look={viewerLook} stats={stats} T={T} S={S} size="pop" preview={cardDraft} />
         </div>
         <figcaption className="text-[13px] text-muted">{text.preview.card}</figcaption>
       </figure>
     ) : null
   const tabs = TABS.filter((id) => !(isChannel && id === "sigma"))
   const freeSigma = stats?.sigma ?? 0
+  const resetAndErase = (
+    <>
+      <Button variant="quiet" size="sm" onClick={() => change(torcedorDe(null, login))}>
+        {text.reset}
+      </Button>
+      {token && saved && (
+        <Button variant="quiet" size="sm" onClick={erase} className={confirmErase ? "text-loss" : undefined}>
+          {confirmErase ? text.confirmErase : text.erase}
+        </Button>
+      )}
+    </>
+  )
+  const saveLine =
+    status === "saved"
+      ? text.saved
+      : status === "erased"
+        ? text.erased
+        : status === "error"
+          ? text.error
+          : status === "big"
+            ? editor.grandeDemais
+            : status === "expired"
+              ? text.expired
+              : dirty && token
+                ? text.unsaved
+                : ""
 
   return (
     <div>
@@ -279,7 +387,7 @@ export function ProfilePage() {
           </>
         ) : signedIn ? (
           <>
-            <ViewerPhoto login={login} look={look} T={T} className="h-10 w-10 shrink-0" />
+            <ViewerPhoto login={login} look={viewerLook} T={T} className="h-10 w-10 shrink-0" />
             <p className="text-[15px] text-ink">
               {text.signedInAs} <b className="font-medium">{login}</b>
             </p>
@@ -311,13 +419,16 @@ export function ProfilePage() {
       )}
       {status === "expired" && !token && <p className="mt-3 text-[15px] text-loss">{text.expired}</p>}
 
-      {!T || !fan ? (
-        <div className="mt-10 grid gap-8 md:grid-cols-[18rem_minmax(0,1fr)]" aria-busy>
-          <Skeleton className="hidden h-64 md:block" />
-          <div className="space-y-6">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-10 w-64" />
-            <Skeleton className="h-40 w-full" />
+      {!T || !fan || !look ? (
+        <div className="mt-10" aria-busy>
+          <Skeleton className="h-8 w-full max-w-[34rem]" />
+          <div className={cn(css.largo, "mt-8 grid gap-4 md:grid-cols-[320px_minmax(0,1fr)] lg:grid-cols-[400px_minmax(0,1fr)]")}>
+            <Skeleton className="cut h-[240px] md:h-[600px]" />
+            <div className="space-y-6">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-64 w-full" />
+            </div>
           </div>
         </div>
       ) : (
@@ -341,7 +452,34 @@ export function ProfilePage() {
                 ),
             }))}
           />
-          <div className="mt-8 grid gap-8 md:grid-cols-[18rem_minmax(0,1fr)]">
+
+          {/* The fan's editor takes the page's width: its own view stays in sight beside its controls. */}
+          <TabPanel idPrefix="perfil" id="torcedor" className={cn("mt-8", tab !== "torcedor" && "hidden")}>
+            <div className={css.largo}>
+              <FanEditor look={look} onChange={change} eu={login} emojis={T.STICKERS} ativo={tab === "torcedor"} link={link} />
+              <div className="sticky bottom-0 z-10 mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ground/90 px-2 py-3 backdrop-blur sm:py-4">
+                {canSave &&
+                  (token ? (
+                    <Button onClick={save} disabled={status === "saving" || !dirty}>
+                      {status === "saving" ? text.saving : text.save}
+                    </Button>
+                  ) : (
+                    twitchButton
+                  ))}
+                <p
+                  className={cn("min-w-0 flex-1 basis-40 text-[13px]", status === "error" || status === "expired" || status === "big" ? "text-loss" : "text-muted")}
+                  aria-live="polite"
+                >
+                  {saveLine}
+                </p>
+                <div className="hidden gap-4 md:flex">{resetAndErase}</div>
+              </div>
+              {/* On a phone the bar that follows the page keeps to one line: the rest comes after it. */}
+              <div className="flex flex-wrap gap-x-4 gap-y-2 px-2 pb-2 pt-1 md:hidden">{resetAndErase}</div>
+            </div>
+          </TabPanel>
+
+          <div className={cn("mt-8 grid gap-8 md:grid-cols-[18rem_minmax(0,1fr)]", tab === "torcedor" && "hidden")}>
             {/* What they're making, in view while they make it. */}
             <aside className="hidden space-y-8 md:sticky md:top-24 md:block md:self-start">
               {/* On the card's tab the card comes first. */}
@@ -359,45 +497,6 @@ export function ProfilePage() {
             </aside>
 
             <div className="min-w-0">
-
-              <TabPanel idPrefix="perfil" id="torcedor" className={cn(tab !== "torcedor" && "hidden")}>
-                {stage && <div className="mb-10 md:hidden">{stage}</div>}
-                <FanEditor T={T} S={S} fan={fan} login={login} sigma={freeSigma} change={change} play={play} />
-                <div className="sticky bottom-0 z-10 -mx-2 mt-12 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-ground/90 px-2 py-4 backdrop-blur">
-                  {canSave &&
-                    (token ? (
-                      <Button onClick={save} disabled={status === "saving" || !dirty}>
-                        {status === "saving" ? text.saving : text.save}
-                      </Button>
-                    ) : (
-                      twitchButton
-                    ))}
-                  <p className={cn("text-[13px]", status === "error" || status === "expired" ? "text-loss" : "text-muted")} aria-live="polite">
-                    {status === "saved"
-                      ? text.saved
-                      : status === "erased"
-                        ? text.erased
-                        : status === "error"
-                          ? text.error
-                          : status === "expired"
-                            ? text.expired
-                            : dirty && token
-                              ? text.unsaved
-                              : ""}
-                  </p>
-                  <div className="ml-auto flex gap-4">
-                    <Button variant="quiet" size="sm" onClick={() => change(T.padrao(login))}>
-                      {text.reset}
-                    </Button>
-                    {token && saved && (
-                      <Button variant="quiet" size="sm" onClick={erase} className={confirmErase ? "text-loss" : undefined}>
-                        {confirmErase ? text.confirmErase : text.erase}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </TabPanel>
-
               <TabPanel idPrefix="perfil" id="cartao" className={cn(tab !== "cartao" && "hidden")}>
                 {signedIn && cardBase !== undefined ? (
                   <>
@@ -408,7 +507,7 @@ export function ProfilePage() {
                       card={cardDraft}
                       base={cardBase}
                       images={images}
-                      look={look}
+                      look={viewerLook}
                       sigma={freeSigma}
                       T={T}
                       S={S}

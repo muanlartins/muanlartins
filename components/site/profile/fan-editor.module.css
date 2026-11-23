@@ -1,0 +1,130 @@
+/*
+ * What the 3D fan editor needs beyond Tailwind's utilities: its width past the reading column, its height, the phone's
+ * sticky view, and the range and checkbox as the prototype drew them (brand/interface.md: Klein, Branco, square).
+ */
+
+/* Wider than the 768 px column on purpose (brand/interface.md, "Layout"): centred with a 16 px gutter, and from 1280 px,
+   where the channel's menu sits in the left margin, from the column's left edge towards the right. */
+.largo {
+  --largura: min(1180px, calc(100vw - 2rem));
+  width: var(--largura);
+  margin-left: calc(50% - var(--largura) / 2);
+}
+@media (min-width: 1280px) {
+  .largo {
+    --largura: min(1180px, calc(50vw + 336px));
+    margin-left: 0;
+  }
+}
+
+/* The fan's view and the panel share one height, the panel scrolling inside. */
+@media (min-width: 768px) {
+  .alto {
+    height: clamp(600px, calc(100svh - 176px), 820px);
+  }
+}
+
+/* Phones: the 3D view sticks under the site's header and the tabs under it, while the controls scroll with the page. */
+.editor {
+  --alto-tela: 240px;
+}
+@media (max-width: 767.98px) {
+  .tela {
+    position: sticky;
+    top: 4rem;
+    z-index: 3;
+    height: var(--alto-tela);
+  }
+  .topoPainel {
+    position: sticky;
+    top: calc(4rem + var(--alto-tela));
+    z-index: 2;
+  }
+}
+
+.faixa {
+  --p: 50%;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  margin: 0;
+  background: transparent;
+}
+.faixa::-webkit-slider-runnable-track {
+  height: 4px;
+  background:
+    linear-gradient(var(--color-klein), var(--color-klein)) 0 / var(--p) 100% no-repeat,
+    var(--color-line);
+}
+.faixa::-moz-range-track {
+  height: 4px;
+  background:
+    linear-gradient(var(--color-klein), var(--color-klein)) 0 / var(--p) 100% no-repeat,
+    var(--color-line);
+}
+.faixa::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 2px solid var(--color-paper);
+  background: var(--color-klein);
+  box-shadow: 0 0 0 1px var(--color-klein);
+}
+.faixa::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-paper);
+  border-radius: 0;
+  background: var(--color-klein);
+  box-shadow: 0 0 0 1px var(--color-klein);
+}
+
+.marca {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  display: grid;
+  place-content: center;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-paper);
+}
+.marca:checked {
+  background: var(--color-klein);
+  border-color: var(--color-klein);
+}
+.marca:checked::after {
+  content: "";
+  width: 10px;
+  height: 5px;
+  border-left: 2px solid var(--color-paper);
+  border-bottom: 2px solid var(--color-paper);
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+/* The free lists' items: a chevron that turns as the item opens. */
+.item > summary {
+  list-style: none;
+}
+.item > summary::-webkit-details-marker {
+  display: none;
+}
+.item > summary::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-left: 4px;
+  border-right: 2px solid var(--color-klein);
+  border-bottom: 2px solid var(--color-klein);
+  transform: rotate(-45deg);
+  transition: transform 150ms var(--ease);
+}
+.item[open] > summary::before {
+  transform: rotate(45deg);
+}
