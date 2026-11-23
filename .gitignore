@@ -64,3 +64,6 @@ video-agent/styles/*/stills/
 # Other people's footage and art on Celeste's technique pages (games' clips, the cartoon): a local preview shows them,
 # nothing here is committed or published until Luan decides on each.
 public/celeste/terceiros/
+
+# The Universo Valorant voice lines (scripts/valorant_falas.py): the release copies them to the bucket, never git.
+public/valorant/falas/

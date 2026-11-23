@@ -21,6 +21,10 @@ import { Ladder } from "@/components/site/game/ladder"
 import { RankedPage } from "@/components/site/ranked/ranked-page"
 import { RoadmapPage } from "@/components/site/roadmap/roadmap-page"
 import { TopicPage } from "@/components/site/roadmap/topic-page"
+import { AgentePage } from "@/components/site/valorant/universo/agente-page"
+import { HISTORIAS } from "@/components/site/valorant/universo/agentes"
+import { REFERENCIAS_INTRO, ReferenciasPage } from "@/components/site/valorant/universo/referencias-page"
+import { UNIVERSO_INTRO, UniversoPage } from "@/components/site/valorant/universo/universo-page"
 import { FUNDAMENTALS, type Fundamental } from "@/content/celeste"
 import { channel } from "@/content/channel"
 import { games } from "@/content/projects"
@@ -37,6 +41,8 @@ import { miraDays, miraRankedDays, sessions, valorantSessions, voltaicDays } fro
 import { sectionMetadata } from "@/lib/metadata"
 import { editionSlug, entries, findTopic, type Roadmap } from "@/lib/roadmap"
 import { hasSection, localize, sectionFromSlug, sectionPath } from "@/lib/site"
+import { falasDe } from "@/lib/valorant-falas-files"
+import { agente, REFERENCIAS as UNIVERSO_REFS, type Agente } from "@/lib/valorant-universo"
 
 /**
  * Pages under a section. In the content section, a game at
@@ -65,8 +71,11 @@ export function generateStaticParams() {
     if (taken) throw new Error(`Topic "${taken}" has the id of one of ${game.id}'s pages; rename it.`)
     const twice = topics.find((id, index) => topics.indexOf(id) !== index)
     if (twice) throw new Error(`Topic "${twice}" is in two of ${game.id}'s editions; give the new one another id.`)
-    const pages: string[] = ["fundamentals", ...(game.ranked ? ["ranked"] : []), ...(game.aim ? ["aim"] : []), ...(game.inventory ? ["inventory"] : [])]
+    const pages: string[] = ["fundamentals", ...(game.ranked ? ["ranked"] : []), ...(game.aim ? ["aim"] : []), ...(game.inventory ? ["inventory"] : []), ...(game.universo ? ["universo"] : [])]
+    // Universo Valorant's agents with a page and its bibliography, under /universo.
+    const universo = game.universo ? [...Object.keys(HISTORIAS), UNIVERSO_REFS].map((id) => ({ section: content, project: game.id, topic: ["universo", id] })) : []
     return [
+      ...universo,
       { section: content, project: game.id, topic: [] },
       ...[...pages, ...topics].map((id) => ({ section: content, project: game.id, topic: [id] })),
       ...game.roadmaps.slice(1).map((roadmap) => ({ section: content, project: game.id, topic: ["fundamentals", editionSlug(roadmap)] })),
@@ -103,7 +112,7 @@ type Props = PageProps<"/[section]/[project]/[[...topic]]">
 type Found =
   | { channel: ChannelPage; live?: ReturnType<typeof lives>[number] }
   | { diversos: true; other?: OtherGame; fundamental?: Fundamental; references?: true; story?: StoryPage }
-  | { game: (typeof games)[number]; page?: GamePage; roadmap?: Roadmap; entry?: NonNullable<ReturnType<typeof findTopic>> }
+  | { game: (typeof games)[number]; page?: GamePage; roadmap?: Roadmap; entry?: NonNullable<ReturnType<typeof findTopic>>; universo?: { agente?: Agente; referencias?: true } }
 
 async function find(params: Props["params"]): Promise<Found | undefined> {
   const { section, project, topic: [id, ...rest] = [] } = await params
@@ -130,12 +139,18 @@ async function find(params: Props["params"]): Promise<Found | undefined> {
     const roadmap = game.roadmaps.slice(1).find((roadmap) => editionSlug(roadmap) === rest[0])
     return roadmap && { game, page: "fundamentals", roadmap }
   }
+  if (id === "universo" && game.universo && rest.length === 1) {
+    if (rest[0] === UNIVERSO_REFS) return { game, page: "universo", universo: { referencias: true } }
+    const found = agente(rest[0])
+    return found && found.id in HISTORIAS ? { game, page: "universo", universo: { agente: found } } : undefined
+  }
   if (rest.length > 0) return undefined
   if (!id) return { game }
   if ((GAME_PAGES as readonly string[]).includes(id)) {
     if (id === "ranked" && !game.ranked) return undefined
     if (id === "aim" && !game.aim) return undefined
     if (id === "inventory" && !game.inventory) return undefined
+    if (id === "universo" && !game.universo) return undefined
     return { game, page: id as GamePage, roadmap: id === "fundamentals" ? fundamentals(game) : undefined }
   }
   for (const roadmap of game.roadmaps) {
@@ -188,6 +203,15 @@ export async function generateMetadata({ params }: Props) {
     const title = `${localize(game.inventory.title)} · ${localize(game.title)}`
     return sectionMetadata("content", { title, description: game.inventory.description }, `/${game.id}/inventory`)
   }
+  if (page === "universo" && game.universo) {
+    const { universo } = found
+    if (universo?.agente) {
+      const { lede } = HISTORIAS[universo.agente.id]({ agente: universo.agente, falas: falasDe(universo.agente.id)?.falas ?? [] })
+      return sectionMetadata("content", { title: `${universo.agente.nome} · ${UNIVERSO_INTRO.title}`, description: lede }, `/${game.id}/universo/${universo.agente.id}`)
+    }
+    if (universo?.referencias) return sectionMetadata("content", { ...REFERENCIAS_INTRO, title: `${REFERENCIAS_INTRO.title} · ${UNIVERSO_INTRO.title}` }, `/${game.id}/universo/${UNIVERSO_REFS}`)
+    return sectionMetadata("content", UNIVERSO_INTRO, `/${game.id}/universo`)
+  }
   if (entry && roadmap) {
     return sectionMetadata(
       "content",
@@ -225,6 +249,12 @@ export default async function SectionSubpage({ params }: Props) {
   if (page === "fundamentals" && roadmap) return <RoadmapPage game={game} roadmap={roadmap} />
   if (page === "aim" && game.aim) {
     return <AimPage title={localize(game.aim.title)} description={localize(game.aim.description)} days={voltaicDays()} mira={miraDays()} ranked={miraRankedDays()} credits={localize(game.credits)} />
+  }
+  if (page === "universo" && game.universo) {
+    const { universo } = found
+    if (universo?.agente) return <AgentePage agente={universo.agente} falas={falasDe(universo.agente.id)?.falas ?? []} />
+    if (universo?.referencias) return <ReferenciasPage />
+    return <UniversoPage />
   }
   if (page === "inventory" && game.inventory) {
     return <InventoryPage title={localize(game.inventory.title)} description={localize(game.inventory.description)} credits={localize(game.credits)} />

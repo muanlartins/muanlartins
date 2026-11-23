@@ -28,6 +28,8 @@ export interface Game {
   aim?: { title: L10n; description: L10n }
   /** The weapon skins page (Valorant's: the channel's collection, the skin on each weapon now, and anyone's dream loadout; lib/valorant-inventory.ts). */
   inventory?: { title: L10n; description: L10n }
+  /** Its world (Valorant's: Universo Valorant, the agents, their voices and lines, with sources; lib/valorant-universo.ts). */
+  universo?: { title: L10n; description: L10n }
   /** Apps and playlists elsewhere, listed in the menu and on the home page. */
   links: Project[]
   /** Whose game it is and whose art the page uses, under its pages. */
@@ -39,7 +41,7 @@ export function game(page: Game) {
 }
 
 /** Pages under a game besides its topics: a topic can't take these ids. */
-export const GAME_PAGES = ["fundamentals", "ranked", "aim", "inventory"] as const
+export const GAME_PAGES = ["fundamentals", "ranked", "aim", "inventory", "universo"] as const
 export type GamePage = (typeof GAME_PAGES)[number]
 
 /** The newest edition of its fundamentals. */

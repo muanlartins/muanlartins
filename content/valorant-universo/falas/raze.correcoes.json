@@ -1,0 +1,95 @@
+{
+ "Breach.RoundEnd.LastKill[Clay]01": {
+  "en": "Sorry, lillsyrran.",
+  "pt": "Foi mal, lillsyrran."
+ },
+ "Clay.AbilityCCast02_alt01": {
+  "en": "Go get 'em."
+ },
+ "Clay.AbilityCMultipleKills01": {
+  "en": "Ha! I didn't expect that!"
+ },
+ "Clay.AbilityCMultipleKills01_alt01": {
+  "en": "I didn't expect that!"
+ },
+ "Clay.BubbleDownAlly[Breach]01": {
+  "en": "Vamos, Breach. Let's go!"
+ },
+ "Clay.E02.Emote.DefuseSpike01": {
+  "en": "Defuse it!"
+ },
+ "Clay.E02.Emote.DefuseSpike01_alt01": {
+  "en": "Defuse it!"
+ },
+ "Clay.E02.Emote.EnemySpotted.A01": {
+  "en": "Enemy spotted A."
+ },
+ "Clay.E02.Emote.EnemySpotted.A01_alt01": {
+  "en": "Enemy spotted A."
+ },
+ "Clay.E02.Modes.Match.RunnerUp03": {
+  "en": "Next time, número um."
+ },
+ "Clay.E02.RoundEnd.LastKill[Breach]01": {
+  "en": "Huh, sorry mano."
+ },
+ "Clay.EmoteGoingA01_alt01": {
+  "en": "Going A."
+ },
+ "Clay.EmoteGoingB01": {
+  "en": "Going B."
+ },
+ "Clay.EmoteNeedDrop01_alt01": {
+  "en": "Can I get a drop?"
+ },
+ "Clay.EmoteNo01_alt01": {
+  "en": "No."
+ },
+ "Clay.EmotePingGunHere01": {
+  "en": "Gun here."
+ },
+ "Clay.EmotePingGunHere01_alt01": {
+  "en": "Gun here."
+ },
+ "Clay.EmoteSpikeRetrieved01": {
+  "en": "I have the spike."
+ },
+ "Clay.EmoteSpikeRetrieved01_alt01": {
+  "en": "I have the spike."
+ },
+ "Clay.Kill04_alt": {
+  "en": "Tchau!"
+ },
+ "Rift.RoundStart.AllyCommend[Clay]01": {
+  "en": "Raze, I love your boom style, my girl!"
+ },
+ "Sprinter.Match.StartConversation[SprinterClay]01": {
+  "en": "Hoy, Raze? Raze! Ugh, 'di bale na."
+ },
+ "Sequoia.Kill.[Clay]01": {
+  "en": "I stopped their Raze."
+ },
+ "Vampire.E02.Kill.[Clay]01": {
+  "en": "Raze dead.",
+  "pt": "Raze morta."
+ },
+ "Vampire.E02.ULT.Kill.[Clay]01": {
+  "en": "Raze dead.",
+  "pt": "Raze morta."
+ },
+ "Clay.RoundStartAlly[Sarge]01": {
+  "pt": "Ô, Brimstone. Não posso mermo brigar com música? Cê tá barreando meu baba."
+ },
+ "Clay.MatchStartAlly[Wushu]01": {
+  "pt": "Jett! Ô, minha linda. Bora botar esse povo pra se bicar!"
+ },
+ "Clay.MatchStart05": {
+  "pt": "Eu tô de volta na briga! Se ligue! Tô cheia de brinquedo barril!"
+ },
+ "Clay.RoundStartGeneric03": {
+  "pt": "Aaah, tá toda família aqui juntinha. Essa a gente leva."
+ },
+ "Breach.E02.RoundStart.AllyCommend[Clay]01": {
+  "en": "Mandou bem, Raze! How's that for pronunciation, huh?"
+ }
+}
