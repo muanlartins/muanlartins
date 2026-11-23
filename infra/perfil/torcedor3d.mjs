@@ -1,0 +1,1 @@
+../../public/stream/torcedor3d/esquema.js

@@ -7,7 +7,7 @@
  * mural (the Pix API), and what the site knows when it's built (/torcedor/dados.json: their ideas on the roadmap and the
  * matches they played with Luan).
  */
-import { loadFans, loadSigmas, PROFILE_API, rememberMe, SIGMA_API, signOut, SignedOut, type Choice, type Sigma, type SigmaStats } from "@/lib/profile"
+import { loadFans, loadSigmas, PROFILE_API, rememberMe, SIGMA_API, signOut, SignedOut, type SavedFan, type Sigma, type SigmaStats } from "@/lib/profile"
 
 /** Where someone's page is: every viewer has one, built or not (a login the build didn't know is drawn by the 404 page). */
 export const VIEWER_SLUG = "torcedor"
@@ -94,7 +94,7 @@ export function cardColors(card: Card | null | undefined, sigma: number, S: Sigm
 
 /** Someone's look on the site: their fan, card, duel ball and pictures, any of them null when never saved. */
 export interface Look {
-  aparencia: Choice | null
+  aparencia: SavedFan | null
   cartao: Card | null
   duelo: { classe?: string; material?: string } | null
   imagens?: Images | null
