@@ -1,0 +1,31 @@
+#!/bin/bash
+# The 3D fan's kit, one door: validar, codigo, esquema, render, servidor. Works from any folder; README.md beside it
+# is the guide (for agents too).
+set -e
+k="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+uso() {
+  cat <<'FIM'
+uso: scripts/torcedor/torcedor <comando> [opções]
+  validar  ENTRADA [--completo] [--json]   confere o look como o editor e mostra avisos, look e código T1
+  codigo   ENTRADA [--completo]            JSON → código T1, ou código T1 → JSON
+  esquema  [chave|palavra ...] [--json]    o esquema: resumo, campos em detalhe, ou o JSON inteiro
+  render   ENTRADA [--angulos frente,tres-quartos,lado,costas|todos] [--poses cima,aceno,...|todas]
+                   [--arquibancada] [--rosto] [--saida folha.png]      folha PNG pra conferir
+  servidor [--porta 8177]                  API local em http://127.0.0.1:8177
+ENTRADA: arquivo .json, código T1:..., link com #t=T1:..., JSON inline '{"topo":"afro"}' ou - (stdin).
+render e servidor não rodam com o OBS ao vivo ou gravando (saem com 3). Cada comando aceita --help.
+FIM
+}
+cmd="${1:-}"
+[ $# -gt 0 ] && shift
+case "$cmd" in
+  validar | codigo | esquema) exec python3 "$k/$cmd.py" "$@" ;;
+  # The browser comes from Playwright (uv brings it); render.py sets up the headless GPU and asks OBS first.
+  render | servidor) exec uv run --no-project -q --with playwright python3 "$k/$cmd.py" "$@" ;;
+  "" | -h | --help | ajuda | help) uso ;;
+  *)
+    echo "comando desconhecido: $cmd" >&2
+    uso >&2
+    exit 2
+    ;;
+esac

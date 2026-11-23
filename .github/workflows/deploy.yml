@@ -30,8 +30,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       # The profile API's routes against a table in memory; the 3D fan's shared module (and its drift from the 2D fan's
-      # torcedor.js); the Pix API (songs above all) against DynamoDB, S3 and Lambda in memory (infra/pix/local) and a fake Google.
-      - run: node --test infra/perfil/index.test.mjs infra/perfil/discord.test.mjs infra/comum/agenda.test.mjs infra/sigma/texto.test.mjs infra/sigma/duelo.test.mjs infra/sigma/dedicatorias.test.mjs infra/sigma/corrida.test.mjs scripts/duelo-motor.test.mjs scripts/corrida-motor.test.mjs scripts/torcedor3d.test.mjs
+      # torcedor.js) and the agents' kit on it (scripts/torcedor, with its Python CLI); the Pix API (songs above all)
+      # against DynamoDB, S3 and Lambda in memory (infra/pix/local) and a fake Google.
+      - run: node --test infra/perfil/index.test.mjs infra/perfil/discord.test.mjs infra/comum/agenda.test.mjs infra/sigma/texto.test.mjs infra/sigma/duelo.test.mjs infra/sigma/dedicatorias.test.mjs infra/sigma/corrida.test.mjs scripts/duelo-motor.test.mjs scripts/corrida-motor.test.mjs scripts/torcedor3d.test.mjs scripts/torcedor/torcedor.test.mjs
       - run: node --import ./infra/pix/local/registrar.mjs --test infra/pix/index.test.mjs
 
       - name: Build
