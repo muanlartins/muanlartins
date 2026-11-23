@@ -417,9 +417,10 @@
       let naArquibancada = new Set()
       function arrumar() {
         const lista = ordem()
-        naArquibancada = new Set(lista.slice(0, stand.capacidade).map((p) => p.login))
+        const sentados = lista.slice(0, stand.capacidade)
+        naArquibancada = new Set(sentados.map((p) => p.login))
         stand.dispor(
-          lista.map((p) => ({
+          sentados.map((p) => ({
             login: p.login,
             nome: nomeDe(p.login),
             aparencia: escolhas.get(p.login) ?? null,
