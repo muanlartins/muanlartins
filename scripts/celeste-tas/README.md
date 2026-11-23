@@ -51,7 +51,7 @@ hold in each take (`expect`). Then:
 It cuts Madeline out of each update by comparing it with the same update drawn without her, and refuses a take that
 skipped a frame, didn't run to its end or stopped showing what `expect` says. The page's captions and frames live in
 `components/site/celeste/tecnicas/<technique>.tsx`. Archive the raw takes losslessly and compare them byte for
-byte (`~/.local/share/muanlartins/celeste-demos/`, the takes of 11-22 in `v3/`), then delete the raw folder with one plain
+byte (`~/.local/share/muanlartins/celeste-demos/arquiva.sh <batch>`, into `~/.local/share/muanlartins/celeste-demos/`: the takes of 11-22 in `v3/`, stage 2's and the story pages' of 11-23 in `etapa2/` and `historia/`), then delete the raw folder with one plain
 `rm -r -- <its literal path>`. To rebuild a demo, decode its takes back to `.rgba` first.
 
 A room for a demonstration comes only from a chapter Luan has played (no spoilers), and is checked in the game before
