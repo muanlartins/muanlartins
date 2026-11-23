@@ -92,7 +92,7 @@ test("codes: every preset goes JSON → T1 → JSON, from a bare code, a link or
   assert.deepEqual(validar(com.codigo).enxuto, com.enxuto)
 })
 
-test("the biggest look the schema allows fits the code; validar says when one passes the profile's cap", () => {
+test("the biggest look the schema allows fits the code and the profile", () => {
   // Every field away from its default with the longest value it takes, every list full, the longest texts.
   const longe = (campos) => Object.fromEntries(campos.map((c) => [c.k, c.tipo === "num" ? (c.passo ? c.max : c.min + (c.max - c.min) * 0.123456) : c.tipo === "cor" ? "#123456" : c.tipo === "sim" ? !c.padrao : c.opcoes.map(([id]) => id).filter((id) => id !== c.padrao).sort((a, b) => b.length - a.length)[0]]))
   const look = {
@@ -102,10 +102,8 @@ test("the biggest look the schema allows fits the code; validar says when one pa
   }
   const r = validar(JSON.stringify(look))
   assert.ok(r.cabe, `${r.caracteres} caracteres`)
+  assert.ok(r.cabePerfil, `${r.bytes} bytes`)
   assert.equal(r.idaVolta, true)
-  // (Every field and list item away from its default goes past T3_MAX by a little; real looks are under 6 KB.)
-  assert.equal(r.cabePerfil, r.bytes <= T3_MAX)
-  assert.equal(validar(JSON.stringify(E.MODELOS[0][1])).cabePerfil, true)
 })
 
 test("the examples are original looks that validate clean", () => {

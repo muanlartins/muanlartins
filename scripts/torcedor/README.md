@@ -53,8 +53,8 @@ one emoji each, up to 3: thrown on a goal and on a goal against). A club's name 
 the club's look from `torcedor esquema clubs`.
 
 The **code** is `"T1:" + base64url(UTF-8 of JSON.stringify(enxugar(normalizar(look))))`, with no `=` at the end, up
-to **12000 characters**; the profile keeps at most **8192 bytes** of the look's JSON (`validar` says when a look
-goes past either; a real one is far under). `normalizar()` cleans any input: an unknown key goes, a wrong type becomes the default, a number out
+to **12000 characters**; the profile keeps at most **10240 bytes** of the look's JSON (a look with every field and
+list maxed out still fits both, and `validar` would say if one didn't). `normalizar()` cleans any input: an unknown key goes, a wrong type becomes the default, a number out
 of range is clamped, a list is cut at its maximum. `enxugar()` keeps only what differs from the default. **Never write
 the code by hand**: `torcedor codigo` and `validar` run the real `esquema.js`.
 
@@ -285,7 +285,7 @@ Read from `boneco.js`, which is what draws.
 
 ## Examples
 
-Three original looks built with the CLI alone, in `scripts/torcedor/exemplos/`:
+Original looks built with the CLI alone, in `scripts/torcedor/exemplos/`:
 
 - `pescadora.json`: an older lady with a grey bun, round glasses, a yellow vest and a fishing rod with a fish, all of
   pieces in the hand.
@@ -293,6 +293,12 @@ Three original looks built with the CLI alone, in `scripts/torcedor/exemplos/`:
   marks drawn on the chest.
 - `skatista.json`: a black bob with cyan tips, a backwards cap, headphones, a pink hoodie, a star sticker on the cheek
   and a skateboard of pieces in the hand.
+- `raposa.json`: a fox from the lists alone (muzzle, animal ears in a darker colour, white muzzle and chest fur, a
+  bushy tail, a neckerchief): no free parts needed.
+- `pirata.json`: a bandana, an eye patch and its strap drawn on the face, a goatee, hoop earrings, a striped shirt
+  with a sash, and a parrot of five pieces on the shoulder (`onde: "corpo"`).
+- `cozinheiro.json`: a chef's hat of two pieces on the head (`onde: "cabeca"`, `m: false`), a moustache, a
+  double-breasted jacket of drawn buttons, and a wooden spoon of two pieces in the hand.
 
 ```bash
 scripts/torcedor/torcedor render scripts/torcedor/exemplos/corujinha.json --arquibancada --rosto
