@@ -54,6 +54,9 @@
 //   rostoPorCima  his face drawn back over the pieces: true over the shoulders' (the default, as the agents'), "tudo"
 //                 over the head's too (a piece that comes down beside his face), false never (one that covers it)
 //   maosPorCima   his hands, the same way
+//   olhos         his irises in the character's colour, { cor: "#e8203a", brilho: 0.6 }: only where his lids leave them
+//                 (blinking closes them), their reflections kept; brilho is the glow round them (0 none), which a
+//                 small camera box still shows
 //   trim, gorro   as above (the hat on the head piece's box: [up, size])
 //
 // Fitting one: filtros.html?modo=<id>&ajuste in a browser with the camera (localhost:8126) shows a panel with each
@@ -76,5 +79,6 @@ const CELESTE64 = {
 }
 export const VISUAIS = {
   celeste: { ...CELESTE64, url: "privado/celeste/player.glb", cores: { Hair: "#db2c00" } },
-  badeline: { ...CELESTE64, url: "privado/celeste/badeline.glb", cores: { Hair: "#9b3fb5" } },
+  // Badeline's eyes are red, glowing a little, as in the game.
+  badeline: { ...CELESTE64, url: "privado/celeste/badeline.glb", cores: { Hair: "#9b3fb5" }, olhos: { cor: "#ff2a40", brilho: 0.7 } },
 }

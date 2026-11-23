@@ -1604,6 +1604,123 @@
       keepFaceMat.fragmentShader = keepMat.fragmentShader.replace("texture2D(uKeep, vUv).g)", "texture2D(uKeep, vUv).g) * (1.0 - smoothstep(0.2, 0.8, texture2D(uKeep, vUv).b))")
       const keepFaceScene = quad(keepFaceMat)
 
+      // A look's eyes (visuais.js's `olhos`): his irises in the character's colour, over his face and under the head
+      // piece, only where his eyelids leave them (a blink closes them too), their light kept (a reflection on his
+      // glasses stays white), with a glow round them that a small camera box still shows. From the face tracker's
+      // own iris points (468–477) and each eye's 16 lid points.
+      const OLHOS = [
+        { palpebra: [33, 246, 161, 160, 159, 158, 157, 173, 133, 155, 154, 153, 145, 144, 163, 7], iris: 468, alto: [159, 145], cantos: [33, 133] },
+        { palpebra: [263, 466, 388, 387, 386, 385, 384, 398, 362, 382, 381, 380, 374, 373, 390, 249], iris: 473, alto: [386, 374], cantos: [263, 362] },
+      ]
+      const olhosU = {
+        ...uniforms,
+        // Each eye's iris: its centre (box uv), radius (box heights) and how open the eye is (0 shut, 1 open).
+        uOlho: { value: [new THREE.Vector4(), new THREE.Vector4()] },
+        uPalpebra: { value: Array.from({ length: 32 }, () => new THREE.Vector2()) },
+        uCorOlho: { value: new THREE.Color() },
+        uBrilhoOlho: { value: 0 },
+        uOlhosAmt: { value: 0 },
+      }
+      const olhosScene = quad(
+        new THREE.ShaderMaterial({
+          uniforms: olhosU,
+          vertexShader: VERT,
+          transparent: true,
+          depthTest: false,
+          depthWrite: false,
+          blending: THREE.CustomBlending,
+          blendSrc: THREE.OneFactor,
+          blendDst: THREE.OneMinusSrcAlphaFactor,
+          fragmentShader: /* glsl */ `
+            ${GLSL_COMMON}
+            uniform vec4 uOlho[2];
+            uniform vec2 uPalpebra[32];
+            uniform vec3 uCorOlho;
+            uniform float uBrilhoOlho, uOlhosAmt;
+            // How far inside eye e's lids p is (box heights, negative outside).
+            float dentro(int e, vec2 p) {
+              bool fora = true;
+              float d = 1e9;
+              vec2 a = uPalpebra[e * 16 + 15] * vec2(uAspect, 1.0);
+              for (int i = 0; i < 16; i++) {
+                vec2 b = uPalpebra[e * 16 + i] * vec2(uAspect, 1.0);
+                if ((b.y > p.y) != (a.y > p.y) && p.x < (a.x - b.x) * (p.y - b.y) / (a.y - b.y) + b.x) fora = !fora;
+                vec2 ab = a - b;
+                d = min(d, length(p - b - ab * clamp(dot(p - b, ab) / max(dot(ab, ab), 1e-9), 0.0, 1.0)));
+                a = b;
+              }
+              return fora ? -d : d;
+            }
+            void main() {
+              vec2 p = vUv * vec2(uAspect, 1.0);
+              vec3 cam = texture2D(uCam, camUv(vUv)).rgb;
+              float l = lum(cam);
+              // The iris in the colour, as light or dark as it is; its brightest bits (reflections) left white.
+              vec3 tinta = mix(uCorOlho * (0.16 + 2.3 * l), vec3(min(1.0, l * 1.15)), smoothstep(0.55, 0.9, l));
+              float k = 0.0;
+              vec3 brilho = vec3(0.0);
+              for (int e = 0; e < 2; e++) {
+                vec4 o = uOlho[e];
+                if (o.z <= 0.0 || o.w <= 0.0) continue;
+                float d = length(p - o.xy * vec2(uAspect, 1.0)) / o.z;
+                if (d > 3.5) continue;
+                float palpebra = smoothstep(-0.6, 1.2, dentro(e, p) * ${H}.0);
+                k = max(k, smoothstep(1.08, 0.86, d) * palpebra * o.w);
+                brilho += uCorOlho * uBrilhoOlho * 0.4 * exp(-d * d * 0.55) * mix(0.45, 1.0, palpebra) * o.w;
+              }
+              float a = k * uOlhosAmt;
+              gl_FragColor = vec4(tinta * a + brilho * uOlhosAmt * (1.0 - a), a);
+            }`,
+        }),
+      )
+      // Each eye's iris against its corners, eased (the tracker's iris points shake a little), and the eye's
+      // openness: what the shader is given.
+      const olhosLiso = OLHOS.map(() => ({ x: 0, y: 0, r: 0, ok: false }))
+      function updateOlhos(look, dt) {
+        const u = olhosU
+        if (!look?.olhos || !headSeen || !faceLm || faceLm.length < 478) {
+          u.uOlhosAmt.value = 0
+          olhosLiso.forEach((s) => (s.ok = false))
+          return
+        }
+        u.uCorOlho.value.set(look.olhos.cor)
+        u.uBrilhoOlho.value = look.olhos.brilho ?? 0.6
+        u.uOlhosAmt.value = Math.min(1, look.amt)
+        const k = 1 - Math.exp(-dt / 0.06)
+        // On screen with the box's aspect taken out, so lengths are the same both ways (box heights).
+        const S = (i) => {
+          const [x, y] = toScreen(faceLm[i].x, faceLm[i].y)
+          return [x * ASPECT, y]
+        }
+        const len = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1])
+        OLHOS.forEach((o, e) => {
+          o.palpebra.forEach((i, j) => {
+            const [x, y] = S(i)
+            u.uPalpebra.value[e * 16 + j].set(x / ASPECT, y)
+          })
+          const a = S(o.cantos[0]), b = S(o.cantos[1])
+          const w = len(a, b)
+          if (!(w > 1e-4)) return u.uOlho.value[e].set(0, 0, 0, 0)
+          // The iris in the eye's own frame (along its corners, and across), in eye widths: that's what's eased.
+          const ex = [(b[0] - a[0]) / w, (b[1] - a[1]) / w], ey = [-ex[1], ex[0]]
+          const c = S(o.iris)
+          const d = [c[0] - a[0], c[1] - a[1]]
+          const rel = [(d[0] * ex[0] + d[1] * ex[1]) / w, (d[0] * ey[0] + d[1] * ey[1]) / w]
+          const r = [1, 2, 3, 4].reduce((s, n) => s + len(S(o.iris + n), c), 0) / 4 / w
+          const s = olhosLiso[e]
+          if (!s.ok) Object.assign(s, { x: rel[0], y: rel[1], r, ok: true })
+          else {
+            s.x += (rel[0] - s.x) * k
+            s.y += (rel[1] - s.y) * k
+            s.r += (r - s.r) * k * 0.5
+          }
+          const open = len(S(o.alto[0]), S(o.alto[1])) / w
+          const px = a[0] + (ex[0] * s.x + ey[0] * s.y) * w
+          const py = a[1] + (ex[1] * s.x + ey[1] * s.y) * w
+          u.uOlho.value[e].set(px / ASPECT, py, s.r * w, THREE.MathUtils.smoothstep(open, 0.09, 0.17))
+        })
+      }
+
       // ---------- the cars on the face: Octane, Fennec ----------
       // Rocket League's cars by Jako (CC BY 4.0, public/models/) as Luan's head, Pixar-style: seen a little from
       // above, turning with the head, his own eyes on the windshield and his mouth on the bumper, cut from the
@@ -2818,6 +2935,10 @@
           } else a.seen = false
         }
         if (ready.length) renderer.render(keepScene, ortho)
+        // His eyes in the look's colour, over his face drawn back and under the head piece.
+        updateOlhos(ready.find((a) => a.olhos), dt)
+        const olhosOn = olhosU.uOlhosAmt.value > 0.003
+        if (olhosOn) renderer.render(olhosScene, ortho)
         for (const a of agentList) {
           a.hair.visible = a.amt > 0
           a.hair.scale.set(1, easeOutBack(a.amt), 1)
@@ -2837,9 +2958,13 @@
           // His face and hands back over the hair whose locks fall beside his face (Sova's, Sage's), or over a head
           // piece placed by numbers that asks for one or both (`rostoPorCima`, `maosPorCima`: "tudo").
           const tudo = (k) => ready.some((a) => a[k] === "tudo")
+          let rostoDeNovo = true
           if (ready.some((a) => a.behind) || (tudo("rostoPorCima") && tudo("maosPorCima"))) renderer.render(keepScene, ortho)
           else if (tudo("maosPorCima")) renderer.render(keepHandsScene, ortho)
           else if (tudo("rostoPorCima")) renderer.render(keepFaceScene, ortho)
+          else rostoDeNovo = false
+          // His face came back over the hair from the camera: the eyes again over it.
+          if (rostoDeNovo && olhosOn) renderer.render(olhosScene, ortho)
         }
         // What a filter puts in his hands, over his clothes and hair (it can draw his hands back over it: Sova's bow,
         // which they hold and pull the string of).
