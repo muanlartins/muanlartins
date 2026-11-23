@@ -3,14 +3,219 @@
   <head>
     <meta charset="utf-8" />
     <title>Celeste · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
     <!--
-      Celeste's scene became every game's on 2026-11-23: palco.html?jogo=celeste. This page only sends an OBS whose
-      source still points here (before obs.py --apply) there, with its own query and fragment.
+      OBS: Browser source, 1920×1080, in "Celeste + chat · Diversos", above the capture and the camera (Luan,
+      2026-11-22: nothing over Celeste's own screen, whose dialogue takes the top and whose play takes every edge).
+      The game is 1600×900 at (320, 0), five screen pixels to each of its 320×180, so its pixels stay whole. The rest
+      is the Klein ground: a column on the left (pix.html's call and goal on top, which move there by the scene's
+      name; the chat; the camera, 288×270 at (16, 774), as tall as in the other game scenes, so Luan is as big) and a
+      band under the game (the chapter and its numbers, celeste.js, from 336 to 928; the stand, torcida.html moved to
+      944–1904 in OBS). The alerts, the stand's balloons and banners and the captions still pass over the game.
+      ?demo fills the chat and plays the stand-in's sequence (?demo=<step> stays on one); ?celeste=<url> listens
+      elsewhere than the game's mod; ?canal= as in the other overlays.
     -->
-    <script>
-      const query = new URLSearchParams(location.search)
-      query.set("jogo", "celeste")
-      location.replace(`palco.html?${query}${location.hash}`)
-    </script>
+    <style>
+      .ground {
+        /* All but the game and the camera. */
+        clip-path: path(evenodd, "M0 0H320V900H1920V1080H0Z M16 774H304V1044H16Z");
+      }
+      .borda {
+        position: absolute;
+        left: 318px;
+        background: var(--klein-claro);
+      }
+      .borda.lado {
+        top: 0;
+        width: 2px;
+        height: 902px;
+      }
+      .borda.baixo {
+        top: 900px;
+        width: 1602px;
+        height: 2px;
+      }
+      .hole {
+        position: absolute;
+        left: 16px;
+        top: 774px;
+        width: 288px;
+        height: 270px;
+      }
+      /* The site on the frame's bottom edge, the plate a size down so it fits the narrower camera. */
+      #site {
+        left: 4px;
+        top: 1036px;
+        height: 40px;
+        gap: 8px;
+        padding: 0 44px 0 10px;
+        clip-path: polygon(0 0, 100% 0, calc(100% - 40px) 100%, 0 100%);
+        font-size: 18px;
+      }
+      #site img {
+        width: 28px;
+        height: 28px;
+      }
+
+      /* The chat, always there: it covers nothing here. In December the goal's tree makes the corner over it taller. */
+      #chat {
+        left: 16px;
+        top: 296px;
+        bottom: 330px;
+        width: 288px;
+        gap: 8px;
+        -webkit-mask: linear-gradient(to bottom, transparent, #000 56px);
+        mask: linear-gradient(to bottom, transparent, #000 56px);
+      }
+      #chat.natal {
+        top: 372px;
+      }
+      #chat .message {
+        padding: 8px 12px 9px;
+        background: rgb(0 20 71 / 0.82);
+        font-size: 19px;
+        line-height: 1.3;
+      }
+      #chat .message .name {
+        font-size: 18px;
+      }
+
+      /* Under the game: the chapter with its clock, then a row for the chapter and one for the file. */
+      #placa.plate.turned {
+        left: 336px;
+        top: 908px;
+        width: 592px;
+        height: 46px;
+        padding: 0 14px 0 10px;
+        background: var(--navy);
+        clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+        animation: none;
+      }
+      #placa .icone {
+        width: 32px;
+        height: 32px;
+        flex: none;
+      }
+      #placa .icone svg {
+        width: 30px;
+        height: 30px;
+      }
+      #placa .rank {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 21px;
+        line-height: 1;
+      }
+      #placa .rank small {
+        font-size: 18px;
+      }
+      #placa .rank .points {
+        display: inline;
+        margin-left: 10px;
+        font-size: 18px;
+      }
+      #placa .line {
+        flex: none;
+        text-align: right;
+      }
+      #numeros.celeste-numeros {
+        left: 336px;
+        top: 958px;
+        width: 592px;
+        height: 118px;
+        padding: 0;
+        justify-content: flex-start;
+        background: rgb(0 20 71 / 0.82);
+        clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+      }
+      #numeros .grupo {
+        flex: none;
+        display: grid;
+        grid-template-columns: 112px 86px 114px 124px 1fr;
+        align-items: center;
+        height: 59px;
+        margin: 0;
+        padding: 0 10px 0 14px;
+      }
+      #numeros .grupo.arquivo {
+        border-top: 1px solid rgb(133 167 255 / 0.3);
+      }
+      #numeros.no-menu .grupo.arquivo {
+        border-top: 0;
+      }
+      #numeros.no-menu .grupo.capitulo {
+        display: none;
+      }
+      #numeros .titulo {
+        max-width: 104px;
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.05;
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--paper);
+      }
+      #numeros .linha {
+        flex-direction: column;
+        align-items: flex-start;
+        margin: 0 4px 0 0;
+        padding: 2px 6px;
+        line-height: 1.05;
+      }
+      #numeros .linha .rotulo {
+        font-size: 18px;
+      }
+      #numeros .linha .valor,
+      #numeros .grupo.arquivo .valor {
+        font-size: 24px;
+      }
+      #numeros .coletas,
+      #numeros .coletas-arquivo {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+      }
+      #numeros .coletas .rotulo {
+        display: none;
+      }
+      #numeros .linha::after {
+        right: 4px;
+        top: 22px;
+      }
+    </style>
   </head>
+  <body>
+    <main class="stage">
+      <div class="ground"></div>
+      <div class="borda lado"></div>
+      <div class="borda baixo"></div>
+      <div class="hole"></div>
+      <div id="site"></div>
+      <div id="chat"></div>
+      <div id="placa"></div>
+      <div id="numeros"></div>
+    </main>
+    <script src="stream.js"></script>
+    <script src="celeste.js"></script>
+    <script>
+      const hole = document.querySelector(".hole")
+      const border = frame(hole, { band: 12, fill: "#001447" })
+      const attention = plate(document.getElementById("site"), `muanlartins<span class="accent">.com.br</span>`)
+      alternate(5, attention, border.glint)
+
+      const box = document.getElementById("chat")
+      box.classList.toggle("natal", NATAL)
+      chat(box, { max: 20 })
+
+      celesteNoJogo({
+        plate: document.getElementById("placa"),
+        column: document.getElementById("numeros"),
+        address: params.get("celeste") || CELESTE_URL,
+        demo: params.has("demo") && (params.get("demo") || true),
+      })
+    </script>
+  </body>
 </html>

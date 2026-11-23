@@ -170,11 +170,9 @@ def picture_lag(live, game, t, shift, length=30.0):
 
 
 # Where the live put Câmera.mkv's picture (OBS's scenes on the 1920×1080 canvas, brand/twitch/obs.py): Valorant's
-# game scenes' box at (44, 44) ×0.375, Rocket League's at (44, 740) ×0.375 (until 2026-11-22), every game scene's since
-# 2026-11-23 at (16, 774) ×0.375 showing its middle from column 256 (palco.html: the whole camera's corner off the
-# screen, at x -80), the camera scenes (Conversa, Fim) at (64, 64) ×1, the VAR scenes' at (1344, 136) ×0.4; and his
-# head in Câmera.mkv (1280×720, framed by OBS's crop).
-CAM_PLACES = ((44, 44, 0.375), (44, 740, 0.375), (-80, 774, 0.375), (64, 64, 1.0), (1344, 136, 0.4))
+# game scenes' box at (44, 44) ×0.375, Rocket League's at (44, 740) ×0.375, the camera scenes (Conversa, Fim) at
+# (64, 64) ×1, the VAR scenes' at (1344, 136) ×0.4; and his head in Câmera.mkv (1280×720, framed by OBS's crop).
+CAM_PLACES = ((44, 44, 0.375), (44, 740, 0.375), (64, 64, 1.0), (1344, 136, 0.4))
 CAM_HEAD = (560, 200, 400, 420)
 
 

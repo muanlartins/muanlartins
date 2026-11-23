@@ -128,9 +128,9 @@ game = capture("Rocket League", ROCKET_LEAGUE)
 # on top, over the minimap (Luan's choice), so its frame is ?altura=cima. Made by hand on 2026-11-08, as here.
 valorant = capture("Captura · Valorant", VALORANT)
 # Any other game (Luan, 2026-11-14): one scene for them all, "Diversos + chat", with nothing of a game's own: no rank
-# or record (palco.html?jogo=diversos) and a stand that cheers no goals or rounds (?jogo=diversos).
+# or record on the camera's frame (jogo.html?placar=0) and a stand that cheers no goals or rounds (?jogo=diversos).
 # Its capture takes whatever game is fullscreen or borderless in front, so a new game needs no setup (a windowed one
-# is picked in the capture's properties).
+# is picked in the capture's properties). The camera and the chat sit where Rocket League has them.
 # Celeste needs nothing more here: its overlay (jogo=diversos) shows the chapter and its numbers by itself while the
 # game's mod is connected (celeste.js, scripts/celeste-mod/), and the Filtros dock's "Celeste" follows the game.
 various = capture("Captura · Diversos")
@@ -149,17 +149,12 @@ camera = source("dshow_input", "Câmera", {"video_device_id": CAMERA, "last_vide
 ])
 # One scene per game, always with the chat (Luan, 2026-11-10: the scenes without it, "Jogo" and "Valorant", are gone,
 # and Rocket League's is "RL + chat"). The overlays' sources keep the names they had.
-# Every game is framed since 2026-11-23, as Celeste's scene was the day before (Luan: "copiar isso pros outros jogos",
-# one layout, and room for the stand): the game shrunk to 1600×900 at (320, 0), and palco.html the Klein ground around
-# it, with a column on the left (Pix's call and goal, the chat, the keyboard and the mouse, the camera) and a band under
-# the game (the game's plate and numbers, the stand). Nothing over the game but the moments. Until then the camera, the
-# chat and the stand sat over the game (jogo.html, which the commented videos keep), Valorant's camera on its minimap.
-# The keyboard and the mouse (?teclas=1, from scripts/teclas.ps1; ErikMD's idea, 2026-11-20) are over the camera;
-# ?jogo= picks the game's keys and its plate.
-game_chat_overlay = browser("Overlay · Jogo + chat", "palco.html?teclas=1")
+# Since 2026-11-20 the keyboard and the mouse sit in the camera's column (?teclas=1, from scripts/teclas.ps1; ErikMD's
+# idea), where the duel was until it went to Conversa; Diversos says so (?jogo=diversos) for its keys.
+game_chat_overlay = browser("Overlay · Jogo + chat", "jogo.html?chat=1&teclas=1")
 chat_overlay = browser("Overlay · Conversa", "conversa.html")
-valorant_chat_overlay = browser("Overlay · Valorant + chat", "palco.html?jogo=valorant&teclas=1")
-various_chat_overlay = browser("Overlay · Diversos + chat", "palco.html?jogo=diversos&teclas=1")
+valorant_chat_overlay = browser("Overlay · Valorant + chat", "jogo.html?chat=1&jogo=valorant&altura=cima&teclas=1")
+various_chat_overlay = browser("Overlay · Diversos + chat", "jogo.html?chat=1&placar=0&jogo=diversos&teclas=1")
 
 
 def stand(name, page):
@@ -174,24 +169,21 @@ def stand(name, page):
 crowd = stand("Torcida", "torcida.html")
 valorant_crowd = stand("Torcida · Valorant", "torcida.html?jogo=valorant")
 various_crowd = stand("Torcida · Diversos", "torcida.html?jogo=diversos")
-# Celeste's own scene (Luan, 2026-11-22, made during its first live), the first framed one: Celeste's 320×180 five
-# screen pixels to each in the 1600×900 (OBS's Area filter keeps them whole from a 1920×1080 window too: six to five).
-# Since every game is framed it's Diversos + chat without the keyboard. Its name keeps "Diversos" on purpose: that's
-# how the Efeitos dock knows it for F2, F4, F8 and the game's recording, with Diversos' Lance ruim and VAR and the same
-# capture and stand.
+# Celeste's own scene (Luan, 2026-11-22, made during its first live): nothing over the game, which is 1600×900 at
+# (320, 0), five pixels to each of its own; celeste.html is the column and the band around it. Its name keeps
+# "Diversos" on purpose: that's how the Efeitos dock knows it for F2, F4, F8 and the game's recording, with
+# Diversos' Lance ruim and VAR and the same capture and stand.
 CELESTE = "Celeste + chat · Diversos"
-celeste_overlay = browser("Overlay · Celeste + chat", "palco.html?jogo=celeste")
-# Where the game scenes put the game, the stand (its page draws it from 596 to 1556: moved 348 px right, it's 944 to
-# 1904, in palco.html's band beside the game's plate and numbers) and the camera, as tall as the old 480×270, so Luan
-# is as big, cropped at the sides.
-GAME_AT = {"pos": (320, 0), "bounds": (1600, 900), "scale_filter": "area"}
-STAND_AT = {"pos": (348, 0)}
-in_frame = {"pos": (16, 774), "bounds": (288, 270)}
+celeste_overlay = browser("Overlay · Celeste + chat", "celeste.html")
+# In Diversos + chat and its Lance ruim (the same day): the stand clear of Celeste's numbers beside the camera, and
+# Pix under where Celeste's dialogue opens.
+various_stand_at = {"pos": (184, 0)}
+various_pix_at = {"pos": (0, 304)}
 # Live Pix: the band and the goal, over everything; its sound is the Pix voices, like the crowd's. One source in
 # every scene that has the game or the talk, so an alert never plays twice: in Conversa (where a Pix "entre partidas"
 # usually plays) it's cropped to the band and set on the camera's lower third, shrunk to its width (1024 since
-# 2026-11-20). In the game scenes the page moves its call and goal into palco.html's column by itself (it knows the
-# scene's name).
+# 2026-11-20). In Valorant's scenes the page moves its
+# call and goal under the camera by itself (it knows the scene's name).
 pix = browser("Pix", "pix.html")
 pix["settings"]["reroute_audio"] = True
 pix.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
@@ -211,11 +203,10 @@ alerts = ALERTS and source("browser_source", "Alertas", {"url": ALERTS, "width":
                                                          "fps_custom": True, "fps": 60, "restart_when_active": False,
                                                          "shutdown": False, "css": "", "reroute_audio": True},
                                                 monitoring_type=MONITOR_AND_OUTPUT)
-# In the game, centred under the scoreboard (the framed game's centre is x 1120); over the VAR's booth, the screen's;
-# in Conversa, on the camera's top third, shrunk to its width (under the camera until 2026-11-20, where the topic and
-# the minigames are now), clear of the Pix band on its lower third.
+# In the game, centred under the scoreboard; in Conversa, on the camera's top third, shrunk to its width (under the
+# camera until 2026-11-20, where the topic and the minigames are now), clear of the Pix band on its lower third.
 alerts_in_game = [(alerts, {"pos": (410, 130), "bounds": ALERTS_SIZE})] if alerts else []
-alerts_in_frame = [(alerts, {"pos": (570, 130), "bounds": ALERTS_SIZE})] if alerts else []
+alerts_in_celeste = [(alerts, {"pos": (570, 130), "bounds": ALERTS_SIZE})] if alerts else []
 alerts_in_talk = [(alerts, {"pos": (64, 70), "bounds": (1024, 186)})] if alerts else []
 # In Terapia, centred at the bottom (over the step's word while one plays), like its Pix band.
 alerts_in_calm = [(alerts, {"pos": (410, 830), "bounds": ALERTS_SIZE})] if alerts else []
@@ -261,8 +252,9 @@ FILTER_SETTINGS[("Câmera", "Gravar câmera")] = ENCODER_LEVE
 # The game overlays' URLs (no key in them): the keyboard and the mouse since 2026-11-20 (the chat under the ball duel,
 # ?duelo=1, from 2026-11-15 until then).
 SOURCE_SETTINGS = {"Efeito · VAR": ({"reroute_audio": True}, {"monitoring_type": MONITOR_AND_OUTPUT}),
-                   **{overlay["name"]: ({"url": overlay["settings"]["url"]}, {}) for overlay in
-                      (game_chat_overlay, various_chat_overlay, valorant_chat_overlay, celeste_overlay)}}
+                   "Overlay · Jogo + chat": ({"url": game_chat_overlay["settings"]["url"]}, {}),
+                   "Overlay · Diversos + chat": ({"url": various_chat_overlay["settings"]["url"]}, {}),
+                   "Overlay · Valorant + chat": ({"url": valorant_chat_overlay["settings"]["url"]}, {})}
 
 
 def trigger(name, key):
@@ -313,7 +305,7 @@ booth["settings"]["reroute_audio"] = True
 booth.update(monitoring_type=MONITOR_AND_OUTPUT)
 in_var_camera = {"pos": (1344, 136), "bounds": (512, 288)}
 
-# Hole positions match palco.html and conversa.html.
+# Hole positions match jogo.html and conversa.html.
 # The camera filters (public/stream/filtros.html): the filtered camera at the camera's own 1280×720, clear while no
 # filter is on, one source just above the camera in every scene with it and placed over it like the camera itself
 # (filters_at), so during a transition each scene shows it in its own box. (Until 2026-11-13 it was full screen and
@@ -329,26 +321,35 @@ filters["settings"].update(url="http://localhost:8126/stream/filtros.html", widt
 # The abilities' sounds (sfx.js) go through OBS, to the stream and Luan's headphones like the Sons source's.
 filters["settings"]["reroute_audio"] = True
 filters.update(monitoring_type=MONITOR_AND_OUTPUT)
+in_rocket_league = {"pos": (44, 740), "bounds": (480, 270)}
+in_valorant = {"pos": (44, 44), "bounds": (480, 270)}
+# As tall as in the other game scenes, so Luan is as big, cropped at the sides.
+in_celeste = {"pos": (16, 774), "bounds": (288, 270)}
 in_talk = {"pos": (64, 64), "bounds": (1024, 576)}
 # The end credits keep Conversa's old camera, 1280×720 (creditos.html is laid out round it).
 in_end = {"pos": (64, 64), "bounds": (1280, 720)}
 in_calm = {"pos": (336, 76), "bounds": (1248, 702)}
 # The filters over the camera, shrunk with OBS's Area filter (made for scaling down: the 3D's edges stay smooth).
 filters_at = {name: {**box, "scale_filter": "area"} for name, box in
-              {"game": in_frame, "talk": in_talk, "end": in_end, "calm": in_calm}.items()}
-# The game scenes and their Lance ruim, each with its capture, its overlay (palco.html for its game) and its stand.
-GAMES = {"RL + chat": (game, game_chat_overlay, crowd), "Valorant + chat": (valorant, valorant_chat_overlay, valorant_crowd),
-         "Diversos + chat": (various, various_chat_overlay, various_crowd), CELESTE: (various, celeste_overlay, various_crowd)}
-BAD_PLAYS = {"Lance ruim · RL": GAMES["RL + chat"], "Lance ruim · Valorant": GAMES["Valorant + chat"],
-             "Lance ruim · Diversos": GAMES["Diversos + chat"]}
+              {"rl": in_rocket_league, "valorant": in_valorant, "celeste": in_celeste, "talk": in_talk, "end": in_end,
+               "calm": in_calm}.items()}
 scenes = [
     scene("Começando", (starting, {})),
-    *[scene(name, (capture_, GAME_AT), (camera, in_frame), (filters, filters_at["game"]), (overlay, {}), (stand_, STAND_AT),
-            *alerts_in_frame, (pix, {}), (booth, {})) for name, (capture_, overlay, stand_) in GAMES.items()],
+    scene("RL + chat", (game, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
+          (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
+    scene("Valorant + chat", (valorant, {"bounds": (1920, 1080)}), (camera, in_valorant), (filters, filters_at["valorant"]),
+          (valorant_chat_overlay, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {}), (booth, {})),
+    scene("Diversos + chat", (various, {"bounds": (1920, 1080)}), (camera, in_rocket_league), (filters, filters_at["rl"]),
+          (various_chat_overlay, {}), (various_crowd, various_stand_at), *alerts_in_game, (pix, various_pix_at), (booth, {})),
+    scene(CELESTE, (various, {"pos": (320, 0), "bounds": (1600, 900)}), (camera, in_celeste), (filters, filters_at["celeste"]),
+          (celeste_overlay, {}), (various_crowd, {"pos": (348, 0)}), *alerts_in_celeste, (pix, {}), (booth, {})),
     scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
-    # Lance ruim: the game's scene, with the camera on top for the Efeitos dock to zoom.
-    *[scene(name, (capture_, GAME_AT), (overlay, {}), (stand_, STAND_AT), *alerts_in_frame, (pix, {}), (camera, in_frame),
-            (bad_play, {})) for name, (capture_, overlay, stand_) in BAD_PLAYS.items()],
+    scene("Lance ruim · RL", (game, {"bounds": (1920, 1080)}), (game_chat_overlay, {}), (crowd, {}), *alerts_in_game, (pix, {}),
+          (camera, in_rocket_league), (bad_play, {})),
+    scene("Lance ruim · Valorant", (valorant, {"bounds": (1920, 1080)}), (valorant_chat_overlay, {}), (valorant_crowd, {}),
+          *alerts_in_game, (pix, {}), (camera, in_valorant), (bad_play, {})),
+    scene("Lance ruim · Diversos", (various, {"bounds": (1920, 1080)}), (various_chat_overlay, {}),
+          (various_crowd, various_stand_at), *alerts_in_game, (pix, various_pix_at), (camera, in_rocket_league), (bad_play, {})),
     scene("VAR · Rocket League", (camera, in_var_camera), (booth, {}), (crowd, {}), *alerts_in_game, (pix, {})),
     scene("VAR · Valorant", (camera, in_var_camera), (booth, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {})),
     scene("VAR · Diversos", (camera, in_var_camera), (booth, {}), (various_crowd, {}), *alerts_in_game, (pix, {})),
@@ -439,12 +440,9 @@ RETIRED_DOCKS = ["Ads"]
 SYNC = {"Filtros": {"settings": ["reroute_audio", "width", "height"], "fields": ["monitoring_type"]}}
 # Scene items OBS already has whose place `--apply` brings up to date: by name in every scene, or (scene, name) in
 # one. The camera filters over each scene's camera (2026-11-13; full screen before); Terapia laid out around the
-# middle (2026-11-14); Conversa's smaller camera with the minigames under it (2026-11-20); the game scenes framed
-# (2026-11-23): the game, the camera, the stand, Pix and the alerts.
+# middle (2026-11-14); Conversa's smaller camera with the minigames under it (2026-11-20).
 PLACED = {"Filtros", ("Terapia", "Câmera"), ("Terapia", "Pix"), ("Terapia", "Alertas"), ("Conversa", "Câmera"),
-          ("Conversa", "Pix"), ("Conversa", "Alertas")} | {
-    (name, item_name) for name, (capture_, _, stand_) in {**GAMES, **BAD_PLAYS}.items()
-    for item_name in (capture_["name"], "Câmera", stand_["name"], "Pix", "Alertas")}
+          ("Conversa", "Pix"), ("Conversa", "Alertas")}
 PLACE_FIELDS = ["pos", "pos_rel", "scale", "scale_rel", "scale_ref", "align", "bounds_type", "bounds_align",
                 "bounds_crop", "bounds", "bounds_rel", "crop_left", "crop_top", "crop_right", "crop_bottom", "rot",
                 "scale_filter"]

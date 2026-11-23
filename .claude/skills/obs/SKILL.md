@@ -155,24 +155,17 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   apliquem"): "Diversos + chat", with "Lance ruim · Diversos" and "VAR · Diversos" for F2 and F8 (the Efeitos dock's
   `div`). Its capture, "Captura · Diversos", is OBS's "any fullscreen application", so a new game needs no setup as
   long as it runs fullscreen or borderless (a windowed one: pick its window in the capture's properties); it has
-  "Gravar jogo" with the VAR's replay buffer like the others. Framed like every game scene (below);
-  `palco.html?jogo=diversos` (no rank or record; Celeste's numbers while its mod is connected) and `torcida.html?jogo=diversos`
+  "Gravar jogo" with the VAR's replay buffer like the others. The camera, the filters and the chat sit where Rocket
+  League has them; `jogo.html?chat=1&placar=0` (the frame without rank or record) and `torcida.html?jogo=diversos`
   (the stand cheers no goals, saves, rounds or matches; Σ in Rocket League's ranks, as the site shows them; the chat,
   arrivals, captions and the VAR as ever). The Partidas dock never cuts away from it (no matches to follow) and the
   Anúncios dock treats it as play. `obs.py --apply` copies the stand's `#chave=` from "Torcida" into the new
   source, never printing it.
-- Celeste has a scene of its own (2026-11-22, made live): "Celeste + chat · Diversos", over Diversos' own capture
-  and stand. Keep "Diversos" in its name: the Efeitos dock finds the game by it, for F2, F4, F8 and "Gravar jogo"; its
-  Lance ruim and VAR are Diversos'. Since every game is framed it's Diversos + chat without the keyboard.
-- **Every game scene is framed** (Luan, 2026-11-23, after Celeste's: one layout, room for the stand, nothing over the
-  game): RL + chat, Valorant + chat, Diversos + chat, Celeste's and the three Lance ruim (`GAMES`, `BAD_PLAYS` in
-  `obs.py`). The capture 1600×900 at (320, 0) with OBS's Area filter, the camera and Filtros 288×270 at (16, 774), the
-  overlay `palco.html?jogo=…` (the sources keep their names: "Overlay · Jogo + chat" is Rocket League's), the stand
-  moved to (348, 0), Pix at (0, 0) (`pix.html` puts its call in the column by the scene's name: a new game scene goes
-  in its `PALCO` list) and the alerts at (570, 130). `--apply` puts all of them in place (`PLACED`) and the overlays'
-  URLs (`SOURCE_SETTINGS`); a scene laid out by hand goes back to this on the next `--apply`. Until that day the camera
-  sat over the game at (44, 740), Valorant's at (44, 44) over the minimap, with `jogo.html` (the commented videos'
-  frame still).
+- Celeste has a scene of its own (2026-11-22, made live): "Celeste + chat · Diversos", the game shrunk to 1600×900
+  with nothing over it (`celeste.html` around it, `pix.html` moving into its column by the scene's name), over
+  Diversos' own capture and stand. Keep "Diversos" in its name: the Efeitos dock finds the game by it, for F2, F4, F8
+  and "Gravar jogo"; its Lance ruim and VAR are Diversos'. In "Diversos + chat" and its Lance ruim the stand is at
+  x 184 and Pix at y 304 since that day (`various_stand_at`, `various_pix_at`); `--apply` doesn't move those back.
 - Effects (2026-11-07): scenes "Lance ruim" (cut in; the Efeitos dock zooms the camera and returns) and "Terapia"
   (fade in), and the sounds: the browser source "Sons" (`public/stream/tocador.html`) plays them when the dock hears a
   hotkey restart its trigger, a media source "Som · …" with `gatilho.webm`, no sound at all (media sources play once when OBS loads, so
@@ -184,8 +177,8 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   ever fired by hand. OBS's log lists every switch ("User switched to scene"), the dock's too: the place to see what
   F2/F4 did during a live.
 - Valorant (2026-11-08): scenes "Valorant + chat" and "Lance ruim · Valorant", Rocket League's with their
-  own capture "Captura · Valorant" (with "Gravar jogo"), "Overlay · Valorant + chat" and "Torcida · Valorant". Pix is
-  the same source; pix.html moves its corner by the scene's name. `obs.py --apply` refuses a key OBS already uses. OBS's own
+  own capture "Captura · Valorant" (with "Gravar jogo"), "Overlay · Valorant [+ chat]" and "Torcida · Valorant"; the
+  camera at (44, 44), over the minimap. Pix is the same source; pix.html moves its corner by the scene's name. `obs.py --apply` refuses a key OBS already uses. OBS's own
   cut and fade have names in its language ("Cortar", "Esmaecer"); the dock finds them by kind.
   `brand/twitch/obs.py --apply [--dry-run]` adds what's missing to the live collection without touching the rest.
 - Changes made by hand or by websocket should also land in `brand/twitch/obs.py`, which generates the scene

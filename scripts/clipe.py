@@ -35,15 +35,7 @@ from windows import VIDEOS  # noqa: E402
 
 W, H, CAM_H, GAME_H = 1080, 1920, 840, 1080
 CAM_CROP = (270, 0, 870, 676)  # in Câmera.mkv's 1280×720: around his head and the costume, above the box's site bar
-BOX = (44, 44, 480, 270)  # Valorant's game scenes' camera box on the live until 2026-11-22 (the whole camera at ×0.375)
-# Since 2026-11-23 every game scene frames the game (palco.html, brand/twitch/obs.py; Celeste's from 2026-11-22): the
-# camera 288×270 at (16, 774), as tall as before (×0.375) and cropped at the sides, the box showing the camera's middle
-# 768 columns (256 to 1024 of 1280).
-PALCO = (16, 774, 288, 270)
-PALCO_DESDE = "2026-11-23"
-# Its camera in the short: inside the columns the box shows (and under the frame's cut corner), 1080:840 in shape, so a
-# filter that paints his background (Celeste's scenery) leaves no seam of the bare camera at the sides.
-PALCO_RECORTE = (272, 56, 736, 572)
+BOX = (44, 44, 480, 270)  # the game scenes' camera box on the live (the whole camera at ×0.375)
 CONVERSA = (64, 64)  # the camera scenes: the whole camera at ×1
 PLATE = 72  # the box's rank plate over the camera's top rows (in camera pixels): never taken from the box
 
@@ -114,14 +106,6 @@ def caption(text, out, y):
     img.save(out)
 
 
-def caixa(live, jogo=None):
-    """The game scenes' camera box in the live of that date: palco.html's since PALCO_DESDE, else `jogo`'s
-    ("valorant" at the top left, "rocket-league" at the bottom left; "palco" for Celeste's scene of 2026-11-22)."""
-    if live >= PALCO_DESDE or jogo == "palco":
-        return PALCO
-    return (44, 740, 480, 270) if jogo == "rocket-league" else BOX
-
-
 def hd_camera(box, live="0:v", camera="2:v", start=0.0, filtro=True, recorte=CAM_CROP):
     """The filter from the live (its camera in `box`, at a small size, with the filter's costume and flashes) and
     Câmera.mkv (1280×720, sharp, without them) to [cam], 1080×840: the box blown up to the camera's size; where it
@@ -130,35 +114,25 @@ def hd_camera(box, live="0:v", camera="2:v", start=0.0, filtro=True, recorte=CAM
     it whole (2026-11-12; 38 and 5 left holes). `start`: seconds before the box is in place (a scene sliding in): until then, only Câmera.mkv.
     Câmera.mkv is taken at 1280×720 whatever it came at (854×480 since 11-13: OBS crops it before recording). `filtro=False` (a live without the camera
     filters, 11-18): Câmera.mkv alone, the live's box left out (the overlay's edges and compression would show through
-    the mask). `recorte`: the part of the camera (in 1280×720) that fills the top, 1080:840 in shape. A box narrower
-    than 16:9 (PALCO) shows the camera's middle: blown up to the camera's 720 rows it goes over those columns, and
-    the sides (and 16 px inside them, the frame's edge) are Câmera.mkv alone."""
+    the mask). `recorte`: the part of the camera (in 1280×720) that fills the top, 1080:840 in shape."""
     bx, by, bw, bh = box
     x, y, w, h = recorte
-    vw = round(720 * bw / bh / 2) * 2
-    left = (1280 - vw) // 2
-    place = f"scale={vw}:720,pad=1280:720:{left}:0" if left else "scale=1280:720"
-    edge = left + 16
-    sides = (f"drawbox=x=0:y=0:w={edge}:h=720:color=black:t=fill,"
-             f"drawbox=x={1280 - edge}:y=0:w={edge}:h=720:color=black:t=fill,") if left else ""
-    outside = f"+lt(X\\,{edge})+gte(X\\,{1280 - edge})" if left else ""
     hd = f"[{camera}]scale=1280:720:flags=lanczos,format=yuv420p"
     if not filtro:
         return f"[{live}]nullsink;{hd},crop={w}:{h}:{x}:{y},scale={W}:{CAM_H}:flags=lanczos[cam];"
     enable = f":enable='gte(t\\,{start})'" if start else ""
-    return (f"[{live}]crop={bw}:{bh}:{bx}:{by},{place},format=yuv420p,split[box1][box2];"
+    return (f"[{live}]crop={bw}:{bh}:{bx}:{by},scale=1280:720,format=yuv420p,split[box1][box2];"
             f"{hd},split[hd1][hd2];"
             f"[box1][hd1]blend=all_mode=difference,format=gray,lut=y='if(gt(val\\,22)\\,255\\,0)',"
-            f"drawbox=x=0:y=0:w=1280:h={PLATE}:color=black:t=fill,{sides}gblur=sigma=12,"
+            f"drawbox=x=0:y=0:w=1280:h={PLATE}:color=black:t=fill,gblur=sigma=12,"
             f"lut=y='if(lt(val\\,12)\\,0\\,min(255\\,val*5))',"  # drawbox's black is 16, not 0
-            # the blur creeps back up into the plate (and into the sides)
-            f"geq=lum='if(lt(Y\\,{PLATE - 16}){outside}\\,0\\,lum(X\\,Y))'[mask];"
+            f"geq=lum='if(lt(Y\\,{PLATE - 16})\\,0\\,lum(X\\,Y))'[mask];"  # the blur creeps back up into the plate
             f"[box2][mask]alphamerge[fx];[hd2][fx]overlay=format=auto{enable},"
             f"crop={w}:{h}:{x}:{y},scale={W}:{CAM_H}:flags=lanczos[cam];")
 
 
-def piece(live, game, camera, out, t, jogo_at, cam_at, box=BOX):
-    """One stretch, video only, 1080×1920; `box` is the game scenes' camera box (caixa())."""
+def piece(live, game, camera, out, t, jogo_at, cam_at):
+    """One stretch, video only, 1080×1920."""
     a, b, kind = t["de"], t["ate"], t["camera"]
     n = b - a
     inputs = ["-ss", f"{a:.3f}", "-t", f"{n:.3f}", "-i", str(live),
@@ -166,7 +140,7 @@ def piece(live, game, camera, out, t, jogo_at, cam_at, box=BOX):
     x, y, w, h = CAM_CROP
     if kind == "jogo":
         inputs += ["-ss", f"{cam_at:.3f}", "-t", f"{n:.3f}", "-i", str(camera)]
-        cam = hd_camera(box, recorte=PALCO_RECORTE if box == PALCO else CAM_CROP)
+        cam = hd_camera(BOX)
     else:
         cx, cy = CONVERSA
         cam = f"[0:v]crop={w}:{h}:{x + cx}:{y + cy},scale={W}:{CAM_H}:flags=lanczos[cam];"
@@ -200,7 +174,7 @@ def main():
     pieces = []
     for i, t in enumerate(trechos):
         out = work / f"{i:02d}.mp4"
-        piece(live, game, camera, out, t, *at[i], caixa(roteiro["live"], roteiro.get("jogo")))
+        piece(live, game, camera, out, t, *at[i])
         pieces.append(out)
     (work / "lista.txt").write_text("".join(f"file '{p.name}'\n" for p in pieces))
     ffmpeg("-f", "concat", "-safe", "0", "-i", "lista.txt", "-c", "copy", "video.mp4", cwd=work)

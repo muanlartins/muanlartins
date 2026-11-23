@@ -319,11 +319,8 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
   around "Respira." and the breathing circle, with the box covered by the page's own background from the right.
 - **Caches** are named by their recipe (a changed stretch or filter is a new file): never delete to redo; the
   folder goes with the live's material once Luan approves the short.
-- **Any scene, any game (11-12, for the Sova and Diamante destaques):** the game scenes' camera box comes from the
-  live's date (`clipe.caixa`): from 2026-11-23 every game scene frames the game (`palco.html`) and the box is
-  (16, 774, 288, 270), the camera's middle 768 columns, so a "jogo" stretch keeps to them (`clipe.PALCO_RECORTE`,
-  `"camera_recorte"` overrides it); before, the roteiro's `"jogo"` picks it (Valorant's at (44, 44), Rocket League's
-  at (44, 740), `"palco"` for Celeste's scene of 11-22); a stretch's `"camera"` is the scene the
+- **Any scene, any game (11-12, for the Sova and Diamante destaques):** the roteiro's `"jogo"` picks the game
+  scenes' camera box (Valorant's at (44, 44), Rocket League's at (44, 740)); a stretch's `"camera"` is the scene the
   live showed (`jogo`, `conversa` for Conversa and Fim, `terapia`, `var`, `lance`) and its `"baixo"` the lower half:
   `jogo` (Jogo.mp4's square), `palco` (the live's Klein with its lattice, for moments with no game: the
   filters' showcase, a bit in Conversa, with `"rotulos"` naming what happens: "FLECHA DE CHOQUE", "BANG") or a part of

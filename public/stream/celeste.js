@@ -1,4 +1,4 @@
-// Celeste's numbers on the game scene (palco.html), from the game itself: the MuanlartinsLink mod in Luan's Celeste
+// Celeste's numbers on the game scene (jogo.html), from the game itself: the MuanlartinsLink mod in Luan's Celeste
 // (scripts/celeste-mod/) serves server-sent events on 127.0.0.1:8797, and its `estado` says where he is (menus, a
 // chapter and its side), his deaths, strawberries, hearts and cassettes in the chapter and in the file, and both
 // clocks. In the same places and look as the other games' (stream.css): the plate on the camera frame's top edge,
@@ -9,7 +9,7 @@
 //
 //   celesteNoJogo({ plate, column, hole, band, address, demo })
 //     plate, column   the two elements      hole, band   the camera frame and its band, as jogo.html's; without a
-//                                                         hole the page places both (palco.html)
+//                                                         hole the page places both (celeste.html)
 //     address         the mod's /eventos    demo         plays public/stream/celeste-sequencia.json (the stand-in's)
 //                                                         without a server, over and over; a step's name (a string)
 //                                                         plays up to it at once and stays there (screenshots)

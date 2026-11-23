@@ -226,7 +226,6 @@ const hasDivisions = (tier) => tier !== "unranked" && tier !== "supersonic-legen
  * points (MMR) under it, and the day's wins and losses in that mode, on the frame's top edge, flush right, the name plate turned 180°.
  * It shows what the "Partidas" dock (partidas.html) sends through OBS
  * (obs-browser's emit_event), and hides when nothing has come for a minute.
- * Without a `hole` the page places it (palco.html, in the band under the game).
  */
 function recordPlate(el, hole, band) {
   el.classList.add("plate", "turned")
@@ -234,7 +233,6 @@ function recordPlate(el, hole, band) {
   el.innerHTML = `<img alt=""><span class="rank"></span><span class="line"></span>`
   const [emblem, rank, line] = el.children
   const place = () => {
-    if (!hole) return
     el.style.left = `${hole.offsetLeft + hole.offsetWidth + band - el.offsetWidth}px`
     el.style.top = `${hole.offsetTop - band - 26}px`
   }
@@ -290,10 +288,10 @@ const VALORANT_MAPS = { Ascent: "Ascent", Bonsai: "Split", Canyon: "Fracture", D
   HURM_HighTide: "Glitch", HURM_Yard: "Piazza" } // Riot's code names (valorant-api.com/v1/maps)
 
 /**
- * The record plate in Valorant's scene (palco.html?jogo=valorant), the same plate as Rocket League's: Luan's rank,
+ * The record plate in Valorant's scene (jogo.html?jogo=valorant), the same plate as Rocket League's: Luan's rank,
  * the queue and the map, and the day's wins and losses in competitive, or the score while a match is on. It hears
  * scripts/valorant.py on this PC (`address`), which reads the Riot Client. The day's record is kept in this source's
- * storage, so reloading the scene keeps it. Without a `hole` the page places it, as recordPlate's.
+ * storage, so reloading the scene keeps it.
  */
 function valorantPlate(el, hole, band, address) {
   el.classList.add("plate", "turned")
@@ -301,7 +299,6 @@ function valorantPlate(el, hole, band, address) {
   el.innerHTML = `<img alt=""><span class="rank"></span><span class="line"></span>`
   const [emblem, rank, line] = el.children
   const place = () => {
-    if (!hole) return
     el.style.left = `${hole.offsetLeft + hole.offsetWidth + band - el.offsetWidth}px`
     el.style.top = `${hole.offsetTop - band - 26}px`
   }
