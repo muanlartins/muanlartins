@@ -3,8 +3,7 @@
 import { Crown } from "lucide-react"
 import { useAgenda } from "@/components/site/agenda/agenda-context"
 import { useNow } from "@/components/site/lives/agenda"
-import { useTorcedor } from "@/components/site/channel/fan-stand"
-import { FanView } from "@/components/site/profile/fan-view"
+import { Torcedor3D } from "@/components/site/fan/torcedor-3d"
 import { Skeleton } from "@/components/site/ui"
 import { channel } from "@/content/channel"
 import { clock, daysFrom, weekdayOf } from "@/lib/agenda"
@@ -60,7 +59,6 @@ const PLACES = [
  * them where there's room. From the build (`topFans`); without it, the steps alone.
  */
 export function Podium({ top }: { top: TopFan[] }) {
-  const kit = useTorcedor()
   return (
     <ol className="absolute inset-x-6 bottom-0 grid grid-cols-3 items-end gap-2 sm:inset-x-10 sm:gap-3">
       {PLACES.map(({ at, step }) => {
@@ -73,7 +71,7 @@ export function Podium({ top }: { top: TopFan[] }) {
                 <span className="truncate">{p.login}</span>
               </span>
             )}
-            <div className="h-[45px] w-[30px]">{p && kit && <FanView T={kit} fan={kit.normalizar(p.fan, p.login)} className="h-full w-full" />}</div>
+            <div className="h-[45px] w-[30px]">{p && <Torcedor3D aparencia={p.fan} login={p.login} className="h-full w-full" />}</div>
             <span className={cn("flex w-full justify-center bg-paper pt-1 text-[15px] font-semibold leading-none text-klein tabular-nums", step)}>{at + 1}</span>
           </li>
         )

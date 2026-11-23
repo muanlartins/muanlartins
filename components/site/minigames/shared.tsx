@@ -1,9 +1,9 @@
 "use client"
 
-import { FanView } from "@/components/site/profile/fan-view"
+import { Torcedor3D } from "@/components/site/fan/torcedor-3d"
 import { shortDate, time } from "@/components/site/ranked/format"
 import { ViewerName } from "@/components/site/viewer/viewer-name"
-import type { Choice, Torcedor } from "@/lib/profile"
+import type { SavedFan } from "@/lib/profile"
 import { HTML_LANG, LOCALE } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 
@@ -21,12 +21,7 @@ export function Name({ login, children, className }: { login: string; children: 
   return login === CHANNEL ? <span className={className}>{children}</span> : <ViewerName login={login} className={className}>{children}</ViewerName>
 }
 
-/** Their fan from the stand, filling the box it's put in; their initial while the drawing loads. */
-export function FanFigure({ T, fans, login, name }: { T: Torcedor | null; fans: Record<string, Choice> | null; login: string; name: string }) {
-  if (T && fans) return <FanView T={T} fan={T.normalizar(fans[login] ?? null, login)} className="h-full w-full" />
-  return (
-    <span className="flex h-full w-full items-end justify-center pb-1">
-      <span className="grid h-7 w-7 place-items-center rounded-full bg-klein/15 text-[13px] font-medium text-klein">{(name || "?").charAt(0).toUpperCase()}</span>
-    </span>
-  )
+/** Their fan from the stand, filling the box it's put in; the stand's silhouette while their profiles load. */
+export function FanFigure({ fans, login }: { fans: Record<string, SavedFan> | null; login: string }) {
+  return <Torcedor3D aparencia={fans?.[login] ?? null} login={login} aguardando={!fans} className="h-full w-full" />
 }

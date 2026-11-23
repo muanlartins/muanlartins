@@ -10,7 +10,8 @@ import { shortDate } from "@/components/site/ranked/format"
 import { channel } from "@/content/channel"
 import { demoRaceUrl, RACE_ASPECT, raceUrl, type Race, type Races } from "@/lib/corrida"
 import { MATERIALS } from "@/lib/duelo"
-import type { Sigma, Torcedor } from "@/lib/profile"
+import type { Sigma } from "@/lib/profile"
+import { padrao2D } from "@/lib/torcedor2d"
 import { LOCALE, localize, profileSlug } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
@@ -30,7 +31,6 @@ const LATEST = 4
  * ranking is the page's Ranking section.
  */
 export function RaceSection({
-  T,
   S,
   kit,
   races,
@@ -39,7 +39,6 @@ export function RaceSection({
   sigma,
   skinOf,
 }: {
-  T: Torcedor | null
   S: Sigma | null
   kit: MarbleKit | null
   races: Races | null | "error"
@@ -79,7 +78,7 @@ export function RaceSection({
             <p className="mt-2 text-[13px] text-paper/70">{latest ? fill(R.player.replay, { n: latest.logins.length, d: shortDate(latest.em) }) : R.player.demo}</p>
           </div>
           <div className="grid items-center gap-5 border-t border-paper/10 p-5 sm:grid-cols-[auto_1fr]">
-            <div className="grid min-h-[132px] place-items-center">{T && <Marble kit={kit} fan={fan ?? (T.padrao(login || "eu") as unknown as Record<string, unknown>)} rankId={rank?.id} size={132} />}</div>
+            <div className="grid min-h-[132px] place-items-center"><Marble kit={kit} fan={fan ?? (padrao2D(login || "eu") as unknown as Record<string, unknown>)} rankId={rank?.id} size={132} /></div>
             <div className="space-y-3">
               <div>
                 <p className="eyebrow text-ouro">{R.yours.title}</p>

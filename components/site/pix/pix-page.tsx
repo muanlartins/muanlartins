@@ -9,7 +9,7 @@ import { PageIntro } from "@/components/site/page-intro"
 import { PresentPicker, PresentView } from "@/components/site/pix/christmas"
 import { GoalBar } from "@/components/site/pix/goal-bar"
 import { VoicePicker } from "@/components/site/pix/voice-picker"
-import { FanView } from "@/components/site/profile/fan-view"
+import { Torcedor3D } from "@/components/site/fan/torcedor-3d"
 import { Button, Card, CardLink, Choice, Choices, ErrorLine, Field, Input, Skeleton, Textarea, buttonClass } from "@/components/site/ui"
 import { mural as muralCopy, pix, STYLES, VOICES } from "@/content/pix"
 import {
@@ -32,7 +32,7 @@ import {
   type Reservation,
   type SongStatus,
 } from "@/lib/pix"
-import { canSave, keptToken, loadMine, signIn, signOut, SignedOut, type Choice as Look, type Torcedor } from "@/lib/profile"
+import { canSave, keptToken, loadMine, signIn, signOut, SignedOut, type SavedFan as Look } from "@/lib/profile"
 import { localize, MURAL_SLUG, PIX_SLUG } from "@/lib/site"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
@@ -162,7 +162,6 @@ export function PixPage() {
   const [goal, setGoal] = useState<Goal | null>(null)
   // The goal on /pix is a nicety: a skeleton while it loads, nothing if it can't (the form is what the page is for).
   const [goalLoaded, setGoalLoaded] = useState(false)
-  const [T, setT] = useState<Torcedor | null>(null)
   const [look, setLook] = useState<Look | null>(null)
   const [P, setP] = useState<PresentKit | null>(null)
   const recorder = useRef<MediaRecorder | null>(null)
@@ -377,10 +376,6 @@ export function PixPage() {
 
   return (
     <div>
-      {/* The fan from the stream's crowd, for the mural's preview; React hoists the stylesheet into the head. */}
-      {/* eslint-disable-next-line @next/next/no-css-tags */}
-      <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
-      <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />
       {natal && (
         <Script
           src="/stream/presente.js"
@@ -568,8 +563,8 @@ export function PixPage() {
               <div className="space-y-3">
                 <Card className="flex items-start gap-4">
                   <span className="flex w-12 shrink-0 justify-center">
-                    {T && login ? (
-                      <FanView T={T} fan={T.normalizar(look, login)} className="h-[72px] w-12" />
+                    {login ? (
+                      <Torcedor3D aparencia={look} login={login} className="h-[72px] w-12" />
                     ) : (
                       <span aria-hidden className="mt-0.5 grid h-12 w-12 place-items-center rounded-full bg-klein/10 text-xl font-medium text-klein">
                         {(draft.nome || "?").trim().charAt(0).toUpperCase() || "?"}

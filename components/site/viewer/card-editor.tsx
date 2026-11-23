@@ -7,7 +7,7 @@ import { ImageCropper } from "@/components/site/viewer/image-cropper"
 import { ViewerPhoto } from "@/components/site/viewer/viewer-card"
 import { Button, Field, Input, Select, Textarea } from "@/components/site/ui"
 import { profile } from "@/content/profile"
-import { SignedOut, type Sigma, type Torcedor } from "@/lib/profile"
+import { SignedOut, type Sigma } from "@/lib/profile"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import {
@@ -47,7 +47,6 @@ export function CardEditor({
   images,
   look,
   sigma,
-  T,
   S,
   onChange,
   onSaved,
@@ -63,7 +62,8 @@ export function CardEditor({
   /** Their look as the preview draws it (fan and pictures), for the photo here. */
   look: Look
   sigma: number
-  T: Torcedor
+  /** The 2D fan's kit: no longer needed (the photo's fan is 3D), still taken so /perfil keeps compiling. */
+  T?: unknown
   S: Sigma | null
   onChange: (patch: Partial<Card>) => void
   onSaved: (card: Card) => void
@@ -175,7 +175,7 @@ export function CardEditor({
       <fieldset className="space-y-3">
         <legend className="text-[13px] font-medium text-muted">{text.photo}</legend>
         <div className="flex items-center gap-4">
-          <ViewerPhoto login={login} look={look} T={T} className="h-16 w-16 shrink-0" />
+          <ViewerPhoto login={login} look={look} className="h-16 w-16 shrink-0" />
           <div className="space-y-1.5">
             {pictureButtons("foto")}
             {pictureLine("foto")}
