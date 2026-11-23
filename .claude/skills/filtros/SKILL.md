@@ -33,9 +33,11 @@ copy.
 - Check with `scripts/filtros_teste.py <id>` (seeded, so before/after runs compare), look at the contact sheet, and
   tell Luan nobody has seen it live until he tries it in OBS.
 - A look's eyes in the character's colour are one line in its entry (`olhos`, visuais.js; Badeline's red). A
-  Celeste chapter's scenery behind him is `scripts/celeste_arte.py <map>` (read-only from the installed game, into
-  `privado/celeste/fases/`) and its entry in `filtros/celeste/cenarios.js` (structures placed where the background
-  shows round him); test it with the game's stand-in walking its rooms, on the webcam's whole picture.
+  Celeste chapter's scenery behind him is `scripts/celeste_arte.py <map>` (`--todos` for every map; read-only from
+  the installed game, into `privado/celeste/fases/`) and its entry in `filtros/celeste/cenarios.js` (structures
+  placed where the background shows round him); the map's own room lists, tints and fades are followed as they are,
+  and a styleground effect it doesn't draw yet goes in its `FX`. Test it with the game's stand-in walking its rooms
+  (a room of each part of the chapter), on the webcam's whole picture.
 - A filter can follow its game when a reader on the PC reports it (README.md, "A game that talks to the filter"):
   Celeste's is the MuanlartinsLink mod (`scripts/celeste-mod/`, 127.0.0.1:8797), tried without the game through its
   stand-in (`filtros_teste.py celeste --jogo=celeste @entra:1 @dash:0.2 …`). The address goes in `?<game>-jogo=`,
