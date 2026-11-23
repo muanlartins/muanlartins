@@ -32,13 +32,16 @@
 // blue with them spent, red where she has none at all, the refill's sparkle when they come back), which keeps the body mask on while he's in a level.
 // "Clima do capítulo" (the default too) draws an ambient over the box while the game is connected, from the chapter
 // it's in, crossfading over 1.6 s when it changes: shapes and particles of our own and a light grade, never over his
-// face, the far ones behind him when the body mask is there (`AMBIENTES`, `ambMat`). The one-offs stay on the dock.
+// face, the far ones behind him when the body mask is there (`AMBIENTES`, `ambMat`); a chapter with its scenery
+// (cenarios.js: Forsaken City so far) has the game's own backgrounds and structures behind him instead, following
+// his rooms. The one-offs stay on the dock.
 // The rest of what the game says (her speed, the wind, her stamina and states, what follows her, who chases her) is
 // reacoes.js's; its rarer moments (the heart, the cassette,
 // a new room, the chapter's end) momentos.js's. The look's long hair and jacket are drawn here (CORTINA, ROUPA), only the fringe and crown a model's.
 
 import { criarMomentos } from "./momentos.js"
 import { criarReacoes } from "./reacoes.js"
+import { CENARIOS, GLSL_CENA, criarCena } from "./cenarios.js"
 
 // Two entries, the same filter with each look on him (visuais.js: Celeste 64's Madeline and Badeline).
 const ENTRADA = {
@@ -1763,27 +1766,32 @@ export async function criar(m) {
   // site (drifting dust, dim violet), 3 the resort (dusty, ghostly greys), 4 the ridge (warm wind in gusts), 5 the
   // temple (crystal glints, teal and purple), 6 the reflection (dark ripples), 7 the summit (wind and snow under a
   // pink-gold sky), 8 the epilogue (soft, warm light), 9 the core hot (embers), 10 Farewell (stars, space), 11 the
-  // core cold (frost).
+  // core cold (frost); 12 Forsaken City with its own scenery behind him (cenarios.js), once its pictures are in.
   const AMBIENTES = {
     "Celeste/0-Intro": 1, "Celeste/1-ForsakenCity": 1, "Celeste/2-OldSite": 2, "Celeste/3-CelestialResort": 3,
     "Celeste/4-GoldenRidge": 4, "Celeste/5-MirrorTemple": 5, "Celeste/6-Reflection": 6, "Celeste/7-Summit": 7,
     "Celeste/8-Epilogue": 8, "Celeste/9-Core": 9, "Celeste/LostLevels": 10,
   }
-  const NOMES_AMB = ["neve calma", "noite fria", "poeira violeta", "cinzas do hotel", "vento quente", "cristais", "ondas escuras", "vento e neve rosa", "luz quente", "brasas", "estrelas", "gelo"]
+  const NOMES_AMB = ["neve calma", "noite fria", "poeira violeta", "cinzas do hotel", "vento quente", "cristais", "ondas escuras", "vento e neve rosa", "luz quente", "brasas", "estrelas", "gelo", "cidade abandonada"]
   function ambienteDe(e) {
     if (!e || e.onde === "menu") return 0
     const c = e.capitulo
     if (!c) return null // loading: keep the one on
+    const comCena = cena.clima(e)
+    if (comCena != null) return comCena
     let id = AMBIENTES[c.sid]
     if (id == null && c.colecao === "Celeste") id = [1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10][c.id]
     if (id === 9 && e.nucleo === "frio") id = 11
     return id ?? 0
   }
-  const amb = { a: 0, b: 0, k: 1, on: 0, maskOk: 0 }
+  const amb = { a: 0, b: 0, k: 1, on: 0, maskOk: 0, cena: 0 }
+  const cena = criarCena(m)
+  const climaDeCena = new Set(Object.values(CENARIOS).map((c) => c.clima))
   const { uErase, uPlate, uPlateFix, uPlateOk, uMaskShift, uEraseLow, uMem, uKeep } = m.uniforms
   const ambU = {
     uCam, uMask, uCover, uTime, uAspect, uFace, uFaceUp,
     uErase, uPlate, uPlateFix, uPlateOk, uMaskShift, uEraseLow, uMem, uKeep,
+    ...cena.uniforms,
     uAmbA: { value: 0 }, uAmbB: { value: 0 }, uAmbK: { value: 1 }, uAmbOn: { value: 0 }, uMaskOk: { value: 0 },
   }
   const ambMat = new THREE.ShaderMaterial({
@@ -1793,6 +1801,7 @@ export async function criar(m) {
     fragmentShader: /* glsl */ `
       ${GLSL_COMMON}
       ${GLSL_APAGAR}
+      ${GLSL_CENA}
       uniform int uAmbA, uAmbB;
       uniform float uAmbK, uAmbOn, uMaskOk;
       float T;
@@ -1982,6 +1991,10 @@ export async function criar(m) {
           float along = dot(rel, -dir), across = abs(dot(rel, vec2(-dir.y, dir.x)));
           float trail = step(0.0, along) * smoothstep(0.25, 0.0, along) * smoothstep(0.0025, 0.0, across) * step(k, 0.35);
           over(far, vec3(1.0), trail * 0.85);
+        } else if (id == 12) {
+          // Forsaken City: its scene draws what's behind him (cena()); him in its cold night light.
+          g = mood(cam, vec3(0.72, 0.78, 1.06), vec3(0.9, 0.94, 1.05), 0.75, vec3(0.18, 0.2, 0.46), 0.42);
+          ga = 0.3;
         } else {
           // The core, cold: icy blue, a thin frost in from the edges, ice glinting.
           g = mood(cam, vec3(0.8, 0.92, 1.06), vec3(0.94, 1.0, 1.05), 0.6, vec3(0.62, 0.82, 0.98), 0.38);
@@ -2033,6 +2046,31 @@ export async function criar(m) {
         float back = (1.0 - body) * (1.0 - faceK * (1.0 - uMaskOk));
         c = c * (1.0 - far.a * back) + far.rgb * back;
         float front = 1.0 - faceK;
+        if (uCenaW > 0.001) {
+          vec3 fundo, soma;
+          vec4 frente;
+          cena(fundo, soma, frente);
+          // Where he isn't: out of the body mask (only well out of it when Broadcast's background is there to say
+          // more), and, sharper, wherever the camera shows that background (his erased hair too); never his face.
+          float mk = maskAt(vUv, 0.0);
+          float ok = uPlateOk;
+          vec3 placa = texture2D(uPlate, camUv(vUv)).rgb;
+          float dif = length(cam - (placa + uPlateFix));
+          float foraM = 1.0 - smoothstep(mix(0.25, 0.06, ok), mix(0.6, 0.3, ok), mk);
+          float chave = ok * (1.0 - smoothstep(0.08, 0.2, dif)) * (1.0 - smoothstep(0.92, 1.0, mk));
+          // (His hair, erased, is background whatever the mask says: it's the mask's own him.)
+          float bg = max(max(foraM, chave) * (1.0 - smoothstep(0.2, 0.8, texture2D(uKeep, vUv).r)), apagada.a);
+          // His logo in that background stays, as the camera shows it.
+          bg *= 1.0 - ok * smoothstep(0.42, 0.68, lum(placa));
+          // Broadcast's blue left on his outline, where he meets the scene.
+          float azul = ok * (1.0 - smoothstep(0.12, 0.5, dif)) * (1.0 - bg) * uCenaW;
+          c.b = mix(c.b, min(c.b, max(c.r, c.g) * 1.05), azul);
+          c = mix(c, fundo + soma, bg * uCenaW);
+          // The sunset's light on him too, a little; what falls in front of him, never on his face.
+          c += soma * (1.0 - bg) * 0.35 * uCenaW;
+          float fr = front * uCenaW;
+          c = c * (1.0 - frente.a * fr) + frente.rgb * fr;
+        }
         c = c * (1.0 - near.a * front) + near.rgb * front;
         gl_FragColor = vec4(c * uAmbOn, uAmbOn);
       }`,
@@ -2057,6 +2095,10 @@ export async function criar(m) {
     ambU.uAmbK.value = amb.k >= 1 ? 0 : amb.k
     ambU.uAmbOn.value = ease(amb.on)
     ambU.uMaskOk.value = amb.maskOk
+    // How much of a scene shows: its mood's share of the crossfade, faded with the ambient.
+    const K = ambU.uAmbK.value
+    amb.cena = ease(amb.on) * ((climaDeCena.has(amb.a) ? 1 - K : 0) + (climaDeCena.has(amb.b) ? K : 0))
+    cena.atualizar(now, dt, jogo.estado, amb.cena, face().c)
   }
 
   // ---------- the module ----------
@@ -2080,8 +2122,9 @@ export async function criar(m) {
     cel.filaMorango.length = 0
     berryGold(false)
     momentos.limpa()
-    amb.on = 0
+    amb.on = amb.cena = 0
     ambU.uAmbOn.value = 0
+    cena.uniforms.uCenaW.value = 0
   }
   const busy = () => !!(momentos.ocupado() || cel.dash || cel.morte || cel.morango || cel.popup || cel.pena || cel.eco || performance.now() - cel.hair.usedAt < DASH.REFILL * 1000 + 400)
   const backOn = () => backU.uFreeze.value > 0 || backU.uEchoA.value > 0.003 || backU.uHair.value > 0.003 || backU.uHairFlash.value > 0.003 || [0, 1, 2, 3].some((i) => backU[`uAA${i}`].value > 0.003)
@@ -2105,7 +2148,7 @@ export async function criar(m) {
     },
     // The face (where he is, his hair), the hands (the dash's gesture) unless the game is driving, and the body mask
     // while something on him or his cutout needs it, or his hair follows the game.
-    quer: (now) => ({ maos: !seguindo(), rosto: true, tronco: ct.on, corpo: now < cel.maskUntil || (seguindo() && cel.opts.cabelo) || ct.on || reacoes.querCorpo() || momentos.querCorpo() }),
+    quer: (now) => ({ maos: !seguindo(), rosto: true, tronco: ct.on, corpo: now < cel.maskUntil || (seguindo() && cel.opts.cabelo) || ct.on || amb.cena > 0 || reacoes.querCorpo() || momentos.querCorpo() }),
     atualizar(now, dt) {
       lerJogo(now)
       momentos.atualizar(now)
@@ -2170,6 +2213,6 @@ export async function criar(m) {
         `jogo: ${onde} · ${jogo.n} msgs · clima ${NOMES_AMB[amb.b]}${amb.k < 1 ? ` (de ${NOMES_AMB[amb.a]})` : ""}${amb.on < 0.01 ? " (desligado)" : ""}`
       )
     },
-    estado: { cel, s3, hist, jogo, amb, reacoes: reacoes.estado },
+    estado: { cel, s3, hist, jogo, amb, reacoes: reacoes.estado, cena: cena.estado },
   }
 }
