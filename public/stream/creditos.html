@@ -881,7 +881,7 @@
         nomesDemo.slice(0, quantos).forEach((n, i) => {
           const login = loginDe(n)
           // A third made their 3D fan on the site, a third kept their 2D one, the rest never made one.
-          if (i % 3 === 0) escolhas.set(login, { t3: { ...(i % 6 === 0 ? MODELOS[(i / 6) % MODELOS.length][1] : dado(7919 * i + 13)), fes: FES[i % 6], frase: "bora Luan!" } })
+          if (i % 3 === 0) escolhas.set(login, { t3: { ...(i % 6 === 0 ? MODELOS[(i / 6) % MODELOS.length][1] : dado(7919 * i + 13)), fes: FES[(i / 3) % 6], frase: "bora Luan!" } })
           else if (i % 3 === 1)
             escolhas.set(login, { cabeca: ["losango", "redonda", "quadrada", "hexagono", "triangulo"][i % 5], roupa: ["lisa", "listra", "faixa", "meio", "numero", "gola", "listras", "listrado", "tricolor", "faixa-dupla"][i % 10],
               acessorio: ["nenhum", "bone", "cachecol", "bandeira", "coroa", "oculos", "fone", "cartola"][i % 8], comemoracao: ["pula", "danca", "gira", "acena", "bananeira"][i % 5], frase: um(["chegueeei", "hoje sobe!"]) })

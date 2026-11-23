@@ -256,14 +256,14 @@
         clearTimeout(pedido)
         pedido = setTimeout(async () => {
           const logins = [...pessoas.keys()]
-          if (!API || !logins.length) return
+          // The demo's people are made up: nobody is asked about them.
+          if (!API || !logins.length || params.has("demo")) return
           try {
             for (let i = 0; i < logins.length; i += 100) {
               const lote = logins.slice(i, i + 100)
               const [resposta, pontos] = await Promise.all([
                 fetch(`${API}/torcedores?logins=${lote.join(",")}`),
-                // The demo's people have made-up Σ: they aren't asked about.
-                SIGMA_API && !params.has("demo") ? fetch(`${SIGMA_API}/sigmas?logins=${lote.join(",")}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : null,
+                SIGMA_API ? fetch(`${SIGMA_API}/sigmas?logins=${lote.join(",")}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : null,
               ])
               if (pontos) for (const login of lote) pontos[login] ? sigmas.set(login, pontos[login]) : sigmas.delete(login)
               if (resposta.ok) {
@@ -698,7 +698,7 @@
           const extra = { frase: FRASES_GRITO[i % 3], stickers: { gol: [STK[i % 6], STK[(i + 2) % 6]], contra: [STK[6 + (i % 4)]] } }
           if (i % 3 === 0) {
             const t3 = i % 6 === 0 ? { ...MODELOS[(i / 6) % MODELOS.length][1] } : dado(7919 * i + 13)
-            escolhas.set(login, { t3: { ...t3, ...extra, fes: FES[i % FES.length] } })
+            escolhas.set(login, { t3: { ...t3, ...extra, fes: FES[(i / 3) % FES.length] } })
           } else if (i % 3 === 1)
             escolhas.set(login, { cabeca: ANTIGOS.cabeca[i % 5], roupa: ANTIGOS.roupa[i % 10], acessorio: ANTIGOS.acessorio[i % 8], comemoracao: ["pula", "danca", "gira", "acena", "bananeira"][i % 5], ...extra })
         })

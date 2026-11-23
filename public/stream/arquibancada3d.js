@@ -91,6 +91,14 @@ export function criarArquibancada(tela, opcoes = {}) {
   let ultimo = performance.now()
   // desenho: ms to draw a frame (smoothed) and the longest; bytes: the pictures held.
   const medidas = { desenho: 0, desenhoMax: 0, piscadas: 0, bytes: 0, fans: 0 }
+  // Names are cut to fit once, measured in the overlays' face: once it's in, they're measured again.
+  document.fonts
+    .load(NOME)
+    .then(() => document.fonts.load(FORTE))
+    .catch(() => {})
+    .finally(() => {
+      for (const f of todas.values()) f.corte = null
+    })
   const conjunto = () => (varAberto ? "arbitro" : "normal")
   const lookPara = (f, conj) => vestir(f.base, { arbitro: conj === "arbitro", natal: comTouca })
 

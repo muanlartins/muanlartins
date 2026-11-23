@@ -67,7 +67,17 @@ export function fonte(proximo, nota = 0) {
   }
 }
 
+// The shirt's number is painted in the overlays' face (stream.css's "Space Grotesk"): no fan is baked before it loads
+// (3 s at most, then whatever there is).
+let fonte3d = false
+document.fonts
+  .load('700 20px "Space Grotesk"')
+  .catch(() => {})
+  .finally(() => (fonte3d = true))
+setTimeout(() => (fonte3d = true), 3000)
+
 function comecar() {
+  if (!fonte3d) return null
   // A copy: a source may take itself out when it has nothing left.
   for (const f of [...fontes]) {
     const job = f.proximo()
