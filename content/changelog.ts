@@ -131,6 +131,19 @@ export const UPCOMING: Upcoming[] = [
 /** Every feature released, newest first. */
 export const SHIPPED: Shipped[] = [
   {
+    id: "torcedor-3d",
+    date: "2026-11-23",
+    tag: "live",
+    title: "Torcedor 3D e arquibancada nova",
+    text: "Monta o seu torcedor em 3D, de um modelo ou do zero, mudando cada detalhe, e ele torce na arquibancada nova.",
+    href: "/perfil",
+    media: [
+      media("torcedor-3d", "Três fileiras de torcedores em 3D comemorando um gol: os modelos do editor e torcedores originais, como uma raposa, um pirata com papagaio e um cozinheiro"),
+      media("torcedor-3d-angulos", "Uma raposa montada no editor, de frente, de três quartos, de lado, de costas e comemorando com os braços pra cima"),
+      media("torcedor-3d-modelos", "Os 14 modelos do editor: Organizada, Veterana, Gamer, Black power, Punk, Tiozão, Rainha, Barbudo, Festeira, Robô, De outro planeta, Elfa maga, Caramelo e Dragão"),
+    ],
+  },
+  {
     id: "celeste-roteiro",
     date: "2026-11-22",
     tag: "site",
