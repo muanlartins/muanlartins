@@ -319,6 +319,7 @@ export const SHIPPED: Shipped[] = [
     credits: [{ by: "woody_fdp" }, { by: "ccamara", about: "Pintura e decalques nos carros" }],
     media: [
       media("filtros-celeste", "Luan de Madeline na câmera, com o cabelo azul e o rastro vermelho do dash do Celeste"),
+      media("filtros-celeste-cidade", "Luan de Badeline com os olhos vermelhos, na frente da Cidade Abandonada do Celeste nevando"),
       media("filtros-phoenix", "Luan com o cabelo e a jaqueta do Phoenix na câmera da live", { video: true }),
       media("filtros-sova-habilidades", "Luan de Sova com as habilidades do jogo: o arco puxado com a flecha de reconhecimento, a flecha de choque, o drone coruja e a Fúria do Caçador"),
       media("filtros-60fps", "Luan acenando com a cara de Octane na câmera", { video: true }),
