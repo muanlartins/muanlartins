@@ -1,11 +1,11 @@
 """Celeste's chapters on the camera filter (public/stream/filtros/celeste/cenarios.js): a chapter's own scenery, read
 from the installed game as it is, into public/stream/privado/celeste/fases/ (gitignored: never committed or published).
 
-  uv run --no-project --with pillow python3 scripts/celeste_arte.py 1-ForsakenCity [<decals' folder>]
+  uv run --no-project --with pillow python3 scripts/celeste_arte.py 1-ForsakenCity [<map>…]   (or --todos)
 
 For the map named (Content/Maps/<map>.bin), it writes:
   <map>.png   every texture its stylegrounds draw (the parallax backgrounds behind the level and the layers over it)
-              and every decal of the chapter's folder (decals/<map in lower case>, or the one given), each whole
+              and every decal of the chapter's folders (PASTAS; a B or C side has its A side's), each whole
               (its frame, padding included, so it sits where the game puts it), packed with straight alpha
   <map>.json  where each is in it (`pecas`: name → [x, y, w, h]), the stylegrounds in the game's order (`fundos`
               behind, `frentes` over: each parallax's attributes as the map has them, an effect by its name) and
@@ -32,6 +32,21 @@ if not PRIVADO.exists():
     PRIVADO = Path.home() / "repos/muanlartins/public/stream/privado"
 OUT = PRIVADO / "celeste/fases"
 LARGURA = 1024  # the packed PNG's width
+ATLAS = {}  # each atlas page as it's read, kept for the next map
+# Each chapter's decals (Gameplay's decals/<folder>/), by its A side's map.
+PASTAS = {
+    "0-Intro": ["0-prologue"],
+    "1-ForsakenCity": ["1-forsakencity"],
+    "2-OldSite": ["2-oldsite"],
+    "3-CelestialResort": ["3-resort"],
+    "4-GoldenRidge": ["4-cliffside"],
+    "5-MirrorTemple": ["5-temple", "5-temple-dark"],
+    "6-Reflection": ["6-reflection"],
+    "7-Summit": ["7-summit"],
+    "8-Epilogue": ["8-epilogue", "0-prologue"],
+    "9-Core": ["9-core"],
+    "LostLevels": ["10-farewell"],
+}
 
 
 class Leitor:
@@ -156,11 +171,10 @@ def empacotar(pecas):
     return onde, y + alto
 
 
-def main():
-    if len(sys.argv) < 2:
-        sys.exit(__doc__)
-    nome = sys.argv[1]
-    pasta = sys.argv[2] if len(sys.argv) > 2 else nome.lower()
+def extrair(nome, jogo):
+    # 1H-ForsakenCity, 1X-ForsakenCity: the B and C sides of 1-ForsakenCity.
+    a = nome[0] + nome[2:] if nome[1:2] in ("H", "X") else nome
+    pastas = PASTAS.get(a, [])
     m = mapa(nome)
     estilo = filho(m, "Style")
     fundos, frentes = estilos(filho(estilo, "Backgrounds")), estilos(filho(estilo, "Foregrounds"))
@@ -169,18 +183,16 @@ def main():
         a = s["a"]
         salas[a["name"].removeprefix("lvl_")] = [a["x"], a["y"], a["width"], a["height"]]
 
-    jogo = indice("Gameplay")
     pedidas = {e["texture"] for e in fundos + frentes if e["tipo"] == "parallax"}
-    pedidas |= {k for k in jogo if k.startswith(f"decals/{pasta}/")}
-    atlas = {}
+    pedidas |= {k for k in jogo if any(k.startswith(f"decals/{p}/") for p in pastas)}
     pecas = {}
     for k in sorted(pedidas):
         if k in jogo:
             data, x, y, w, h, fx, fy, fw, fh = jogo[k]
-            if data not in atlas:
-                atlas[data] = imagem(ATLASES / f"{data}.data")
+            if data not in ATLAS:
+                ATLAS[data] = imagem(ATLASES / f"{data}.data")
             inteira = Image.new("RGBA", (fw, fh))
-            inteira.paste(atlas[data].crop((x, y, x + w, y + h)), (-fx, -fy))
+            inteira.paste(ATLAS[data].crop((x, y, x + w, y + h)), (-fx, -fy))
             pecas[k] = inteira
         elif (ATLASES / f"Misc/{k}.data").exists():
             pecas[k] = imagem(ATLASES / f"Misc/{k}.data")
@@ -203,6 +215,17 @@ def main():
     }
     (OUT / f"{nome}.json").write_text(json.dumps(indice_json, ensure_ascii=False, indent=1) + "\n")
     print(f"{OUT / nome}.png: {len(pecas)} peças em {LARGURA}×{altura}, {len(salas)} salas, {len(fundos)} fundos, {len(frentes)} frentes")
+
+
+def main():
+    nomes = sys.argv[1:]
+    if nomes == ["--todos"]:
+        nomes = sorted(p.stem for p in (CELESTE / "Maps").glob("*.bin"))
+    if not nomes:
+        sys.exit(__doc__)
+    jogo = indice("Gameplay")
+    for nome in nomes:
+        extrair(nome, jogo)
 
 
 if __name__ == "__main__":
