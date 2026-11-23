@@ -21,7 +21,8 @@
       videos show it; nothing crosses its wall. With the columns (the site's player, or ?completo), the arena sits in
       the middle of a wider box with each fighter in a column by it (their fan, life, class, what its ability has
       grown to and what it does). Either way every ability shows on the balls themselves (the poison's bubbles, the
-      stun's stars, the katana's slices, the Punho's trail, the Martelo's glowing head). Each ball wears its viewer's colours from their fan (/perfil) and fights with the class they picked on
+      stun's stars, the katana's slices, the Punho's trail, the Martelo's glowing head). Each ball wears its viewer's
+      shirt from their 3D fan (/perfil; fas3d.js's camisaPlana, any colour since the 3D fan) and fights with the class they picked on
       /canal/minijogos (the profile API's /duelistas), or one drawn each duel if they didn't. Its weapon's material is
       their Σ rank, or a lower one they picked there: Σ never makes a ball stronger, only better looking.
 
@@ -51,6 +52,13 @@
       alone on a navy page of 660×390, scaled to the frame's width.
       Copy is a draft for Luan.
     -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js"
+        }
+      }
+    </script>
     <style>
       :root {
         --esquerda: #85a7ff;
@@ -178,10 +186,11 @@
       .lado.direita .quem {
         flex-direction: row-reverse;
       }
+      /* The fans are 3D pictures (fas3d.js), whose whole frame is 4.5 × 5.3. */
       .lado .fa {
         position: relative;
         flex: none;
-        width: 36px;
+        width: 46px;
         height: 54px;
       }
       .lado .nome {
@@ -324,7 +333,7 @@
       }
       .cartao .lutador .fa {
         position: relative;
-        width: 64px;
+        width: 82px;
         height: 96px;
       }
       .cartao .lutador strong {
@@ -384,7 +393,7 @@
       }
       .cartao .vitoria .fa {
         position: relative;
-        width: 72px;
+        width: 92px;
         height: 108px;
         margin-bottom: 4px;
       }
@@ -523,7 +532,7 @@
         width: calc(var(--arena) / 2 - 22px);
       }
       body.compacto .cartao .lutador .fa {
-        width: 40px;
+        width: 51px;
         height: 60px;
       }
       body.compacto .cartao .lutador strong {
@@ -553,7 +562,7 @@
         line-height: 1.3;
       }
       body.compacto .cartao .vitoria .fa {
-        width: 56px;
+        width: 71px;
         height: 84px;
       }
     </style>
@@ -594,11 +603,13 @@
       </div>
     </div>
     <script src="stream.js"></script>
-    <script src="torcedor.js"></script>
     <script src="sigma.js"></script>
     <script src="duelo-motor.js"></script>
     <script src="duelo-arte.js"></script>
-    <script>
+    <script type="module">
+      import { camisaPlana, lookDe, poseDaFesta, retrato } from "./fas3d.js"
+      import { MODELOS, sortear as dado } from "./torcedor3d/esquema.js"
+
       const caixa = document.querySelector(".caixa")
       const canvas = document.querySelector("canvas")
       const ctx = canvas.getContext("2d")
@@ -695,12 +706,9 @@
       setInterval(() => pedir([...presentes.keys()].slice(0, 100)), 120000)
 
       const sigma = (login) => (login === CHANNEL ? Sigma.RL.at(-1)[0] : sigmas.get(login) ?? 0)
-      // In December (or with ?natal) they wear Santa's hat, as in the stand and the credits.
-      function aparencia(login) {
-        const a = Torcedor.normalizar(escolhas.get(login), login)
-        const propria = login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
-        return Torcedor.natal() || params.has("natal") ? { ...propria, touca: true } : propria
-      }
+      // Their 3D fan (their look from /perfil, or their 2D one turned 3D; in December, or with ?natal, Santa's hat, as
+      // in the stand and the credits), and its shirt flat for the ball.
+      const fa = (login) => lookDe(escolhas.get(login) ?? null, login)
 
       const MATERIAIS = DueloArte.MATERIAIS
       const tier = (id) => id.replace(/-\d$/, "")
@@ -755,7 +763,7 @@
       const RESULTADO_MS = 4500
       const PAUSA_MS = 1500
       let luta = null // the fight going on
-      let lutadores = null // [{ login, nome, classe, sorteada, aparencia, material }]
+      let lutadores = null // [{ login, nome, classe, sorteada, look, aparencia (the ball's shirt), material }]
       let fase = "vazio" // "apresenta" | "luta" | "resultado" | "vazio"
       let faseAte = 0
       let varAberto = false
@@ -799,7 +807,8 @@
           nome: (TREINO && nomes[i]) || (presentes.get(login) ?? (login === CHANNEL ? "muanlartins" : login)),
           classe: classes[i],
           sorteada: !escolhidas[i],
-          aparencia: aparencia(login),
+          look: fa(login),
+          aparencia: camisaPlana(fa(login)),
           materialId: materialDe(login, i),
           ranque: Sigma.ranque(sigma(login)),
         }))
@@ -814,10 +823,17 @@
         rastros = [[], []]
       }
 
+      // The fans' pictures now on the page, closed when the next ones come.
+      let noPlacar = []
+      let noCartao = []
+      const largar = (lista) => lista.forEach((r) => r.largar())
       function vestirPlacar() {
+        largar(noPlacar)
+        noPlacar = []
         lutadores.forEach((l, i) => {
           const lado = lados[i]
-          lado.querySelector(".fa").innerHTML = Torcedor.figura(l.aparencia)
+          // The columns' fans (hidden in the live's compact box: nothing baked for them there).
+          if (!COMPACTO) noPlacar.push(retrato(lado.querySelector(".fa"), l.look, { altura: 54 }))
           lado.querySelector(".nome span").textContent = l.nome
           const img = lado.querySelector(".nome img")
           img.hidden = l.login === CHANNEL
@@ -847,12 +863,14 @@
       const texto = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c])
       function mostrarApresentacao() {
         const lutador = (l, i) => `<div class="lutador ${i ? "direita" : "esquerda"}">
-          <div class="fa torcedor">${Torcedor.figura(l.aparencia)}</div>
+          <div class="fa torcedor"></div>
           <strong>${texto(l.nome)}</strong>
           <span>${Duelo.CLASSES[l.classe].nome}${l.sorteada ? " <em>sorteada</em>" : ""}</span>
           <small>${Duelo.CLASSES[l.classe].resumo}</small>
         </div>`
         cartao.innerHTML = `${lutador(lutadores[0], 0)}<div class="x">×</div>${lutador(lutadores[1], 1)}`
+        largar(noCartao)
+        noCartao = [...cartao.querySelectorAll(".lutador .fa")].map((el, i) => retrato(el, lutadores[i].look, { altura: COMPACTO ? 60 : 96 }))
         cartao.classList.remove("entra")
         void cartao.offsetWidth
         cartao.classList.add("visivel", "entra")
@@ -863,10 +881,14 @@
         const s = Math.round(fim.t)
         const como = fim.motivo === "nocaute" ? `nocaute em ${s}\u00a0s` : fim.motivo === "tempo" ? `no tempo, com ${Math.ceil(luta.bolas[fim.vencedor].hp)}\u00a0de vida` : "no sorteio, empatados"
         cartao.innerHTML = `<div class="vitoria ${fim.vencedor ? "direita" : "esquerda"}">
-          <div class="fa torcedor comemora" data-comemoracao="${l.aparencia.comemoracao}"><div class="pose">${Torcedor.figura(l.aparencia)}</div></div>
+          <div class="fa torcedor comemora" data-comemoracao="${l.look.fes}"><div class="pose"></div></div>
           <strong>${texto(l.nome)} venceu!</strong>
           <small>${Duelo.CLASSES[l.classe].nome} contra ${Duelo.CLASSES[outro.classe].nome}, ${como}</small>
         </div>`
+        largar(noCartao)
+        const festa = retrato(cartao.querySelector(".vitoria .fa"), l.look, { altura: COMPACTO ? 84 : 108, poses: ["parado", poseDaFesta(l.look.fes), "cima", "palmas"] })
+        festa.festa(Infinity)
+        noCartao = [festa]
         cartao.classList.remove("entra")
         cartao.classList.add("visivel")
       }
@@ -1278,14 +1300,19 @@
         // The site's player: no chat, and no VAR. Given the same login twice it shows nothing, never the live's chat.
       } else if (!DEMO) irc(apply, { membership: true })
       else {
-        const nomes = ["rafa", "Giovana_GC", "tiago.mendes", "marinamarina", "lucas_s", "bia.lima", "DuduSantos", "ceci", "otto", "jujuba"]
+        // Invented people.
+        const nomes = ["Bia", "torcedor_da_madrugada_10", "Duda", "Tobias", "Nina", "Raul", "Malu", "capivara_cansada", "Teca", "Breno"]
         const um_ = (lista) => lista[Math.floor(Math.random() * lista.length)]
         const quantos = params.get("demo") === "1v1" ? 1 : nomes.length
         nomes.slice(0, quantos).forEach((n, i) => {
           const login = n.toLowerCase()
           presentes.set(login, n)
-          // Half chose their fan; Σ from a newcomer to a regular of a year, so every material shows up.
-          if (i % 2) escolhas.set(login, { cor: um_(Torcedor.CORES), detalhe: um_(Torcedor.CORES), roupa: um_(Torcedor.ROUPAS), cabeca: um_(Torcedor.CABECAS), comemoracao: um_(Torcedor.COMEMORACOES) })
+          // A third made their 3D fan, a third kept their 2D one; Σ from a newcomer to a regular of a year, so every
+          // material shows up.
+          if (i % 3 === 0) escolhas.set(login, { t3: { ...(i % 6 === 0 ? MODELOS[i % MODELOS.length][1] : dado(7919 * i + 13)), fes: um_(["pula", "danca", "gira", "acena", "palmas", "bananeira"]) } })
+          else if (i % 3 === 1)
+            escolhas.set(login, { cor: um_(["#85a7ff", "#3ddc97", "#ffd23f", "#ff6b57", "#c792ea"]), detalhe: um_(["#f4f5f7", "#2b2f38", "#4dd4ff"]), roupa: um_(["listra", "faixa", "meio", "numero", "gola", "listras", "listrado", "tricolor"]),
+              cabeca: um_(["losango", "redonda", "quadrada", "hexagono", "triangulo"]), comemoracao: um_(["pula", "danca", "gira", "acena", "bananeira"]) })
           sigmas.set(login, [0, 40, 150, 420, 1000, 2200, 4800, 10000, 16000, 21000][i])
         })
         presentes.set(CHANNEL, CHANNEL)

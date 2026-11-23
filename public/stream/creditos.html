@@ -9,8 +9,11 @@
       OBS: Browser source, 1920×1080, above the camera, in the "Fim" scene; it starts over each time the scene goes on
       air. The end of the live as a film's end: the camera where Conversa has it (1280×720 at 64, 64), the credits
       rolling up the right-hand column where Conversa has the chat, and under the camera the stand with everyone who
-      watched today, each as their fan (torcedor.js, their look from /perfil). As a name rolls past the middle of the
-      column, its fan in the stand celebrates (their own celebration), so the stand ripples along with the list.
+      watched today, each as their 3D fan (torcedor3d/, their look from /perfil, or their 2D one turned 3D), on
+      arquibancada3d.js's stand, 1280×270 (12 to a row, then 16; 64 at most), the channel and who watched longest in
+      front. As a name rolls past the middle of the column, its fan in the stand celebrates (their own celebration), so
+      the stand ripples along with the list; the little fan by each name is the stand's picture (or, past its last seat,
+      one of its own).
 
       The credits, each section only when it has someone:
         Estrelando · O placar de hoje (Rocket League from the Partidas dock's "muanlartins-partidas", Valorant from
@@ -27,11 +30,18 @@
       goes on air). The page waits ?espera= seconds (default 4) on its title for all of it, then rolls at
       ?velocidade= px/s (default 55).
 
-      The chat still talks: what a viewer says shows in a balloon over their fan, whoever comes into the chat
+      The chat still talks: whoever says something comes forward to the stand's rail with it, whoever comes into the chat
       joins the stand, and the stand's commands move their fan as in the live (!pula, !danca, !comemora, !grito,
       !ola: comandos.js). With ?demo, keys p, n, k, h, o send them from someone at random. ?api=, ?sigma=, ?pix= point at stand-ins for the profile, Σ and Pix APIs; ?canal= as in the
       overlays; ?demo fills everything with sample people.
     -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js"
+        }
+      }
+    </script>
     <style>
       .ground {
         /* Everything but the camera's hole, as in conversa.html. */
@@ -111,11 +121,16 @@
         min-height: 58px;
         margin: 0 0 10px;
       }
+      /* The 3D fan's whole frame is 4.5 × 5.3. */
       .mini {
         position: relative;
         flex: none;
-        width: 28px;
+        width: 36px;
         height: 42px;
+      }
+      .mini .pose {
+        position: absolute;
+        inset: 0;
       }
       .pessoa .quem {
         min-width: 0;
@@ -279,167 +294,19 @@
         }
       }
 
-      /* --- The stand under the camera: torcida.html's, wider ------------------------------------------ */
+      /* --- The stand under the camera: torcida.html's (arquibancada3d.js), wider ---------------------------- */
       .torcida {
         position: absolute;
         left: 64px;
         width: 1280px;
         bottom: 0;
-        height: 270px;
+        height: 300px;
+        pointer-events: none;
       }
-      .arquibancada {
+      .torcida canvas {
         position: absolute;
         left: 0;
-        right: 0;
         bottom: 0;
-        height: 34px;
-        background: var(--navy);
-        clip-path: polygon(34px 0, calc(100% - 34px) 0, 100% 100%, 0 100%);
-        overflow: hidden;
-      }
-      .arquibancada::before {
-        content: "";
-        position: absolute;
-        inset: -48px;
-        background:
-          repeating-linear-gradient(45deg, transparent 0 calc(var(--unit) * 0.7071 - 1px), var(--lattice-line) 0 calc(var(--unit) * 0.7071)),
-          repeating-linear-gradient(-45deg, transparent 0 calc(var(--unit) * 0.7071 - 1px), var(--lattice-line) 0 calc(var(--unit) * 0.7071));
-        animation: drift 12s linear infinite;
-      }
-      .arquibancada::after {
-        content: "";
-        position: absolute;
-        left: 34px;
-        right: 34px;
-        top: 0;
-        height: 2px;
-        background: var(--klein-claro);
-      }
-      .fa {
-        --s: 1;
-        position: absolute;
-        width: calc(40px * var(--s));
-        height: calc(60px * var(--s));
-        margin-left: calc(-20px * var(--s));
-        transition:
-          left 0.8s var(--ease),
-          bottom 0.8s var(--ease),
-          width 0.8s var(--ease),
-          height 0.8s var(--ease),
-          margin 0.8s var(--ease);
-      }
-      .pose {
-        position: absolute;
-        inset: 0;
-        transform-origin: 50% 100%;
-      }
-      .vivo {
-        position: absolute;
-        inset: 0;
-        animation: respira 3.2s ease-in-out infinite;
-        animation-delay: var(--atraso, 0s);
-      }
-      @keyframes respira {
-        50% {
-          transform: translateY(-1.5px);
-        }
-      }
-      .nome {
-        position: absolute;
-        z-index: 1;
-        left: 50%;
-        bottom: calc(100% + 9px * var(--s));
-        translate: -50% 0;
-        max-width: calc(84px * max(1, var(--s)));
-        padding: 1px 5px 2px;
-        background: rgb(0 20 71 / 0.78);
-        font-size: max(11px, 13px * var(--s));
-        font-weight: 600;
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .nome img {
-        height: 1.2em;
-        margin-right: 0.25em;
-        vertical-align: -0.25em;
-      }
-      .fa.atras .nome {
-        color: var(--klein-claro);
-        font-weight: 500;
-      }
-      .fa.foco {
-        z-index: 40 !important;
-      }
-      .fa.foco .nome {
-        max-width: none;
-        font-size: max(11px, 13px * var(--s)) !important;
-        background: var(--paper);
-        color: var(--klein);
-      }
-      .fa.chegando {
-        animation: chega 1.1s var(--ease) both;
-      }
-      @keyframes chega {
-        0% {
-          transform: translateX(var(--de, 400px));
-          opacity: 0;
-        }
-        60% {
-          transform: translateX(0);
-          opacity: 1;
-        }
-        75% {
-          transform: translateY(-10px);
-        }
-      }
-      /* What a fan says in the chat, as in torcida.html. */
-      .fala {
-        position: absolute;
-        z-index: 55;
-        width: max-content;
-        max-width: 280px;
-        padding: 6px 12px 8px;
-        background: var(--paper);
-        color: var(--klein);
-        font-size: 17px;
-        font-weight: 500;
-        line-height: 1.25;
-        overflow-wrap: anywhere;
-        animation: fala-entra 0.35s var(--ease) both;
-      }
-      .fala::after {
-        content: "";
-        position: absolute;
-        left: var(--ponta, 50%);
-        top: 100%;
-        width: 12px;
-        height: 8px;
-        translate: -50% 0;
-        background: var(--paper);
-        clip-path: polygon(0 0, 100% 0, 50% 100%);
-      }
-      .fala.some {
-        animation: fala-sai 0.4s var(--ease) both;
-      }
-      @keyframes fala-entra {
-        from {
-          opacity: 0;
-          transform: translateY(8px) scale(0.9);
-        }
-      }
-      @keyframes fala-sai {
-        to {
-          opacity: 0;
-          transform: translateY(-6px);
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .vivo,
-        .arquibancada::before {
-          animation: none;
-        }
       }
     </style>
   </head>
@@ -448,7 +315,7 @@
       <div class="ground"></div>
       <div class="hole"></div>
       <section class="torcida" id="torcida" aria-label="A torcida de hoje">
-        <div class="arquibancada"></div>
+        <canvas id="arquibancada"></canvas>
       </section>
       <div id="plate"></div>
       <aside class="side">
@@ -459,10 +326,14 @@
       </aside>
     </main>
     <script src="stream.js"></script>
-    <script src="torcedor.js"></script>
     <script src="sigma.js"></script>
     <script src="comandos.js"></script>
-    <script>
+    <script type="module">
+      import { criarArquibancada } from "./arquibancada3d.js"
+      import { FOTO, lookDe, natal as dezembro, poseDaFesta, retrato } from "./fas3d.js"
+      import { torcedorDe } from "./torcedor3d/antigo.js"
+      import { MODELOS, sortear as dado } from "./torcedor3d/esquema.js"
+
       const $ = (id) => document.getElementById(id)
       const DEMO = params.has("demo")
       const API = params.get("api") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
@@ -487,12 +358,8 @@
       const nomeDe = (login) => nomes.get(login) ?? gente.get(login)?.nome ?? login
       const sigma = (login) => gente.get(login)?.sigma ?? 0
       let JOGO = "rocket-league"
-      const aparencia = (login) => {
-        const a = Torcedor.normalizar(escolhas.get(login), login)
-        const propria = login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
-        // December: Santa's hat, as in the stand (torcedor.js).
-        return Torcedor.natal() || params.has("natal") ? { ...propria, touca: true } : propria
-      }
+      // Their fan, undressed: its celebration (fes) and arrival shout (frase).
+      const fa = (login) => torcedorDe(escolhas.get(login) ?? null, login)
 
       /** Someone to the stand (once): `dados` adds what's known about them. */
       function pessoa(login, dados = {}) {
@@ -510,190 +377,88 @@
       }
 
       // Their looks and Σ, for everyone at once, again when people arrive.
+      // Asked while the title holds, so the stand bakes each fan once, in their own look.
       let pedido
+      let escolhasProntas = false
       function pedirEscolhas() {
         clearTimeout(pedido)
         pedido = setTimeout(async () => {
           const logins = [...gente.keys()].filter((l) => !escolhas.has(l))
-          if (DEMO || !API || !logins.length) return
           try {
+            if (DEMO || !API || !logins.length) return
             for (let i = 0; i < logins.length; i += 100) {
               const r = await fetch(`${API}/torcedores?logins=${logins.slice(i, i + 100).join(",")}`)
               if (!r.ok) return
               const achadas = await r.json()
               for (const [login, escolha] of Object.entries(achadas)) if (escolha) escolhas.set(login, escolha)
             }
-            gente.forEach(vestir)
+            if (montada) arrumar()
           } catch {
             // Offline: everyone keeps the look their login gives.
+          } finally {
+            escolhasProntas = true
           }
         }, 300)
       }
 
       // --- The stand ---------------------------------------------------------------------------------------
       const torcida = $("torcida")
-      const LARGURA = 1280
-      const MARGEM = 60
-      // Bigger than torcida.html's, twelve to a row: the stand has the screen's bottom to itself here.
-      const POR_FILEIRA = 12
-      const FILEIRAS = [
-        { s: 1.2, base: 24 },
-        { s: 0.95, base: 86 },
-        { s: 0.78, base: 138 },
-        { s: 0.64, base: 180 },
-      ]
+      // Bigger than torcida.html's, twelve to a row (then sixteen): the stand has the screen's bottom to itself here.
+      const stand = criarArquibancada($("arquibancada"), { largura: 1280, altura: 270, acima: 30, porFila: [12, 16] })
+      stand.natal(dezembro())
       let montada = false
-
-      function desenhar(p, chegando) {
-        const el = document.createElement("div")
-        el.className = "fa torcedor" + (chegando ? " chegando" : "")
-        el.innerHTML = `<span class="nome"></span><div class="pose"><div class="vivo"></div></div>`
-        el.querySelector(".vivo").style.setProperty("--atraso", `${-Math.random() * 3}s`)
-        el.addEventListener("animationend", (e) => {
-          if (e.target === el) el.classList.remove("chegando")
-          // A move ended (a command, or their celebration as their name rolled by): standing again, the name unlit
-          // unless they're talking.
-          else if (e.target.classList.contains("pose")) {
-            Comandos.fim(el)
-            if (!falas.some((f) => f.p.el === el)) el.classList.remove("foco")
-          }
-        })
-        torcida.append(el)
-        p.el = el
-        vestir(p)
-        return el
-      }
-      function vestir(p) {
-        if (!p?.el) return
-        const a = aparencia(p.login)
-        p.el.dataset.comemoracao = a.comemoracao
-        p.el.querySelector(".vivo").innerHTML = Torcedor.figura(a)
-        const nome = p.el.querySelector(".nome")
-        const src = p.login !== CHANNEL ? Sigma.ranque(p.sigma, "pt", JOGO).emblema : null
-        const emblema = document.createElement("img")
-        emblema.alt = ""
-        if (src) emblema.src = src
-        nome.replaceChildren(...(src ? [emblema] : []), nomeDe(p.login))
-        caber(nome)
-      }
-      // A long name gets smaller before it gets cut: down to 10px, then the ellipsis.
-      function caber(nome) {
-        nome.style.fontSize = ""
-        const cabe = (nome.clientWidth - 10) / (nome.scrollWidth - 10)
-        if (cabe < 1) nome.style.fontSize = `${Math.max(10, Math.floor(parseFloat(getComputedStyle(nome).fontSize) * cabe * 2) / 2)}px`
-      }
+      let montouEm = 0
 
       // The channel in front, then who watched longest today, then Σ; past the last row, no place.
       const ordem = () =>
         [...gente.values()].sort(
           (a, b) => (b.login === CHANNEL) - (a.login === CHANNEL) || b.minutos - a.minutos || b.sigma - a.sigma || (a.login < b.login ? -1 : 1),
         )
+      let naArquibancada = new Set()
       function arrumar() {
         const lista = ordem()
-        lista.forEach((p, i) => {
-          const fila = Math.floor(i / POR_FILEIRA)
-          if (fila >= FILEIRAS.length) {
-            p.el?.remove()
-            p.el = null
-            return
-          }
-          const { s, base } = FILEIRAS[fila]
-          const naFila = Math.min(POR_FILEIRA, lista.length - fila * POR_FILEIRA)
-          const passo = (LARGURA - 2 * MARGEM) / POR_FILEIRA
-          const x = LARGURA / 2 + (i % POR_FILEIRA - (naFila - 1) / 2) * passo + (fila % 2 ? passo / 2 : 0)
-          p.el ??= desenhar(p, montada)
-          p.el.style.left = `${x}px`
-          p.el.style.bottom = `${base}px`
-          p.el.style.zIndex = 30 - fila
-          p.el.style.setProperty("--s", s)
-          p.el.style.setProperty("--x", Math.round(x))
-          p.el.classList.toggle("atras", fila > 0)
-          caber(p.el.querySelector(".nome"))
-        })
+        naArquibancada = new Set(lista.slice(0, stand.capacidade).map((p) => p.login))
+        stand.dispor(
+          lista.map((p) => ({
+            login: p.login,
+            nome: nomeDe(p.login),
+            aparencia: escolhas.get(p.login) ?? null,
+            emblema: p.login !== CHANNEL ? Sigma.ranque(p.sigma, "pt", JOGO).emblema : null,
+            canal: p.login === CHANNEL,
+          })),
+          { animar: montada },
+        )
         const quantos = lista.filter((p) => p.login !== CHANNEL).length
         placa(quantos ? `A torcida de hoje <span class="accent">· ${quantos}</span>` : `muanlartins<span class="accent">.com.br</span>`)
       }
 
       /** A fan celebrates their own way, their name lit, as their line rolls by. */
       function comemorar(login) {
-        const el = gente.get(login)?.el
-        if (!el) return
-        el.classList.remove("comemora")
-        void el.offsetWidth
-        el.classList.add("comemora", "foco")
-        clearTimeout(el.festa)
-        el.festa = setTimeout(() => el.classList.remove("comemora", "foco"), 2800)
+        stand.mover(login, "comemora")
       }
 
-      // --- The chat: balloons over the fans, and whoever arrives joins ------------------------------------
-      const FALA_MS = 5000
-      const FALAS = 3
-      const FALA_MAX = 80
-      const falas = []
+      // --- The chat: whoever talks comes forward to the rail, and whoever arrives joins ----------------------
       function falar(p, texto) {
-        if (!p?.el) return
-        falas.filter((f) => f.p === p).forEach(calar)
-        const el = document.createElement("span")
-        el.className = "fala"
-        const chars = Array.from(texto.trim())
-        el.textContent = chars.length > FALA_MAX ? chars.slice(0, FALA_MAX - 1).join("") + "…" : chars.join("")
-        torcida.append(el)
-        const fileiras = Math.min(FILEIRAS.length, Math.ceil(gente.size / POR_FILEIRA))
-        const { s, base } = FILEIRAS[Math.max(0, fileiras - 1)]
-        const x = Number(p.el.style.getPropertyValue("--x"))
-        const w = el.offsetWidth
-        const left = Math.min(Math.max(x - w / 2, 0), LARGURA - w)
-        const chao = base + 60 * s + 30
-        let bottom = chao
-        for (const outra of falas.filter((f) => !f.saindo)) {
-          const o = outra.el
-          if (left < o.offsetLeft + o.offsetWidth + 6 && o.offsetLeft < left + w + 6) bottom = Math.max(bottom, parseFloat(o.style.bottom) + o.offsetHeight + 12)
-        }
-        // The stand's own height is the ceiling (the camera's frame is above it): past that, the balloons in the way
-        // go and this one takes the lowest place.
-        if (bottom + el.offsetHeight > 262) {
-          for (const outra of falas.filter((f) => !f.saindo)) {
-            const o = outra.el
-            if (left < o.offsetLeft + o.offsetWidth + 6 && o.offsetLeft < left + w + 6) calar(outra)
-          }
-          bottom = chao
-        }
-        el.style.left = `${left}px`
-        el.style.bottom = `${bottom}px`
-        el.style.setProperty("--ponta", `${x - left}px`)
-        p.el.classList.add("foco")
-        const fala = { el, p }
-        falas.push(fala)
-        const ativas = falas.filter((f) => !f.saindo)
-        if (ativas.length > FALAS) calar(ativas[0])
-        setTimeout(() => calar(fala), FALA_MS)
-      }
-      function calar(fala) {
-        if (fala.saindo) return
-        fala.saindo = true
-        fala.el.classList.add("some")
-        setTimeout(() => {
-          fala.el.remove()
-          falas.splice(falas.indexOf(fala), 1)
-          if (!falas.some((f) => f.p === fala.p) && !fala.p.el?.classList.contains("comemora")) fala.p.el?.classList.remove("foco")
-        }, 400)
+        if (!p || !naArquibancada.has(p.login)) return
+        stand.falar(p.login, texto)
       }
       function chegar(login, nome) {
         const novo = !gente.has(login?.toLowerCase())
         const p = pessoa(login, nome ? { nome } : {})
         if (!p) return null
         if (novo) {
-          arrumar()
+          if (montada) arrumar()
           pedirEscolhas()
-        } else if (nome) vestir(p)
+        } else if (nome && montada) arrumar()
         return p
       }
       // The stand's commands, as in the live (comandos.js).
       const comando = Comandos.criar({
-        pessoa: (login) => gente.get(login.toLowerCase()),
-        todos: () => gente.values(),
+        pessoa: (login) => (naArquibancada.has(login.toLowerCase()) ? gente.get(login.toLowerCase()) : null),
         falar: (p, texto) => falar(p, texto),
-        frase: (p) => aparencia(p.login).frase,
+        frase: (p) => fa(p.login).frase,
+        mover: (p, move) => stand.mover(p.login, move),
+        ola: (p) => stand.evento("ola", { de: p.login }),
       })
       function aplicar(line) {
         const { tags, prefix, command, trailing } = parseIrc(line)
@@ -791,10 +556,7 @@
         const row = el("div", "pessoa")
         if (login) {
           row.dataset.login = login
-          const a = aparencia(login)
-          const mini = el("div", "mini torcedor", `<div class="pose">${Torcedor.figura(a)}</div>`)
-          mini.dataset.comemoracao = a.comemoracao
-          row.append(mini)
+          row.append(mini(login))
         }
         const quem = el("div", "quem")
         const n = el("span", "nome-c")
@@ -809,6 +571,60 @@
         if (det) quem.append(el("span", "det", det))
         row.append(quem)
         return row
+      }
+
+      // The little fan by a name: the stand's own picture of them, shrunk (no second bake); whoever is past the stand's
+      // last seat gets one of their own. They move as the 2D's did (torcedor.css's .comemora), arms up.
+      const minis = [] // { login, box, tela, feito, retrato }
+      function mini(login) {
+        const box = el("div", "mini torcedor", `<div class="pose"><canvas></canvas></div>`)
+        const tela = box.querySelector("canvas")
+        const dpr = Math.min(2, devicePixelRatio || 1)
+        const q = FOTO.inteiro
+        tela.height = Math.round(42 * dpr)
+        tela.width = Math.round((tela.height * q.w) / q.h)
+        Object.assign(tela.style, { position: "absolute", inset: "0", width: "100%", height: "100%" })
+        minis.push({ login, box, tela, feito: false, retrato: null })
+        return box
+      }
+      function pintarMini(m, pose) {
+        if (m.retrato) return pose === "parado" ? m.retrato.pose("parado") : m.retrato.festa(2600)
+        const fotos = stand.fotos(m.login)
+        const f = fotos?.[pose] ?? fotos?.parado
+        if (!f) return false
+        const g = m.tela.getContext("2d")
+        const { width: W, height: H } = m.tela
+        g.clearRect(0, 0, W, H)
+        g.imageSmoothingQuality = "high"
+        g.drawImage(f.img, (f.x * W) / f.W, (f.y * H) / f.H, (f.img.width * W) / f.W, (f.img.height * H) / f.H)
+        return true
+      }
+      // Each little fan as soon as their stand picture is there (or, past the last seat, their own baked).
+      setInterval(() => {
+        if (!montada) return
+        for (const m of minis) {
+          if (m.feito) continue
+          if (naArquibancada.has(m.login)) m.feito = pintarMini(m, "parado")
+          else if (escolhasProntas || Date.now() - montouEm > 3000) {
+            m.retrato = retrato(m.box, lookDe(escolhas.get(m.login) ?? null, m.login), { altura: 42, poses: ["parado", poseDaFesta(fa(m.login).fes), "cima", "palmas"] })
+            m.feito = true
+          }
+        }
+      }, 200)
+      function festejarMini(m) {
+        m.box.dataset.comemoracao = fa(m.login).fes
+        m.box.classList.remove("comemora")
+        void m.box.offsetWidth
+        m.box.classList.add("comemora")
+        const pose = poseDaFesta(fa(m.login).fes)
+        pintarMini(m, pose)
+        let n = 0
+        const palmas = fa(m.login).fes === "palmas" && !m.retrato ? setInterval(() => pintarMini(m, n++ % 2 ? "palmas" : "cima"), 170) : 0
+        setTimeout(() => {
+          clearInterval(palmas)
+          m.box.classList.remove("comemora")
+          pintarMini(m, "parado")
+        }, 2600)
       }
 
       function abertura() {
@@ -963,11 +779,8 @@
           if (centro > meio) break
           vistos.add(row)
           if (row.dataset.login) comemorar(row.dataset.login)
-          const mini = row.querySelector(".mini")
-          if (mini) {
-            mini.classList.add("comemora")
-            setTimeout(() => mini.classList.remove("comemora"), 2600)
-          }
+          const m = minis.find((x) => x.box === row.querySelector(".mini"))
+          if (m) festejarMini(m)
         }
         requestAnimationFrame(rolar)
       }
@@ -990,7 +803,8 @@
         pessoa(CHANNEL, { nome: "muanlartins" })
         for (const k of ["seguidores", "inscritos", "presentes", "bits", "raids"]) for (const x of dia.twitch?.[k] ?? []) pessoa(x.login, { nome: x.nome })
         for (const p of dia.pix) pessoa(p.login)
-        gente.forEach(vestir)
+        montada = true
+        montouEm = Date.now()
         arrumar()
         pedirEscolhas()
 
@@ -1002,16 +816,6 @@
           lista.append(b)
         }
         desenharMarca($("marca-fim"))
-        montada = true
-        // The looks arrive a moment later: redress the little fans in the list too.
-        setTimeout(() => {
-          for (const row of lista.querySelectorAll(".pessoa[data-login]")) {
-            const a = aparencia(row.dataset.login)
-            const mini = row.querySelector(".mini")
-            mini.dataset.comemoracao = a.comemoracao
-            mini.querySelector(".pose").innerHTML = Torcedor.figura(a)
-          }
-        }, 2500)
         inicio = y
         requestAnimationFrame((t) => {
           rolando = t
@@ -1060,16 +864,27 @@
       if (DEMO) demo()
       else {
         irc(aplicar, { membership: true })
-        Promise.all([buscar(), new Promise((r) => setTimeout(r, ESPERA_MS))]).then(montar)
+        Promise.all([buscar().then(pedirEscolhas), new Promise((r) => setTimeout(r, ESPERA_MS))]).then(montar)
       }
 
       function demo() {
-        const nomesDemo = ["rafa", "Giovana_GC", "tiago.mendes", "marinamarina", "lucas_s", "bia.lima", "DuduSantos",
-          "kingkong", "ceci", "manomenezes", "zezinho", "Ana_Clara", "otto", "jujuba", "PedroH", "luiza.f", "caio_br", "nandinha"]
+        // Invented people; ?pessoas= how many watched (18 by default), to fill the stand.
+        const nomesDemo = ["Bia", "torcedor_da_madrugada_10", "Duda", "Tobias", "Nina", "Raul", "Lívia", "a_lenda_do_rank_ferro_br1", "Malu",
+          "Igor", "Sol", "capivara_cansada", "Teca", "Breno", "Iara", "Otto", "Lola", "Enzo", "Cida", "Nando", "Pipa", "mira_de_pao_de_queijo",
+          "Aline", "Gui", "Rafa", "Mari", "Juca", "Kika", "Leo", "Val", "Tuca", "Fe", "Bento", "Olga", "Dico", "Manu", "Yuri", "Tina", "Gael",
+          "Ivo", "Lara", "Noe", "Jade", "Beto", "Susi", "Ciro", "Pati", "Ravi", "Lucio", "Mel", "Hugo", "Dani", "Tom", "Ester", "Quim", "Rita",
+          "Zeca", "Vivi", "Caco", "Dora", "Fabi", "Guto", "Hana", "Jonas", "Kaio", "Luma", "Mauro", "Nara", "Oto", "Paula"]
+        const loginDe = (n) => n.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "")
+        const quantos = Math.max(2, Math.min(nomesDemo.length, Number(params.get("pessoas")) || 18))
         const um = (l) => l[Math.floor(Math.random() * l.length)]
-        nomesDemo.forEach((n, i) => {
-          const login = n.toLowerCase()
-          if (i % 2) escolhas.set(login, { cabeca: um(Torcedor.CABECAS), roupa: um(Torcedor.ROUPAS), acessorio: um(Torcedor.ACESSORIOS), comemoracao: um(Torcedor.COMEMORACOES), frase: um(["bora Luan!", "chegueeei", "hoje sobe!"]) })
+        const FES = ["pula", "danca", "gira", "acena", "palmas", "bananeira"]
+        nomesDemo.slice(0, quantos).forEach((n, i) => {
+          const login = loginDe(n)
+          // A third made their 3D fan on the site, a third kept their 2D one, the rest never made one.
+          if (i % 3 === 0) escolhas.set(login, { t3: { ...(i % 6 === 0 ? MODELOS[(i / 6) % MODELOS.length][1] : dado(7919 * i + 13)), fes: FES[i % 6], frase: "bora Luan!" } })
+          else if (i % 3 === 1)
+            escolhas.set(login, { cabeca: ["losango", "redonda", "quadrada", "hexagono", "triangulo"][i % 5], roupa: ["lisa", "listra", "faixa", "meio", "numero", "gola", "listras", "listrado", "tricolor", "faixa-dupla"][i % 10],
+              acessorio: ["nenhum", "bone", "cachecol", "bandeira", "coroa", "oculos", "fone", "cartola"][i % 8], comemoracao: ["pula", "danca", "gira", "acena", "bananeira"][i % 5], frase: um(["chegueeei", "hoje sobe!"]) })
           pessoa(login, { nome: n, minutos: Math.max(4, Math.round(150 * Math.random() ** 0.7)), sigma: Math.round(20000 * Math.random() ** 3), sequencia: i % 4 === 0 ? 2 + (i % 5) : 0, primeira: i === 6 || i === 15 ? HOJE : undefined })
         })
         dia.partidas = { mode: "2v2", tier: "diamond-2", division: 3, wins: 6, losses: 3, streak: 3, points: 41 }
@@ -1079,13 +894,13 @@
         }
         dia.twitch = {
           dia: HOJE,
-          seguidores: [{ login: "luiza.f", nome: "luiza.f" }, { login: "caio_br", nome: "caio_br" }, { login: "nandinha", nome: "nandinha" }],
-          inscritos: [{ login: "otto", nome: "otto", tier: 1, meses: 3 }, { login: "jujuba", nome: "jujuba", tier: 1, meses: 1, presente: true }],
-          presentes: [{ login: "kingkong", nome: "kingkong", total: 5 }],
-          bits: [{ login: "zezinho", nome: "zezinho", bits: 500 }],
-          raids: [{ login: "manomenezes", nome: "manomenezes", viewers: 12 }],
+          seguidores: [{ login: "malu", nome: "Malu" }, { login: "igor", nome: "Igor" }, { login: "sol", nome: "Sol" }],
+          inscritos: [{ login: "tobias", nome: "Tobias", tier: 1, meses: 3 }, { login: "nina", nome: "Nina", tier: 1, meses: 1, presente: true }],
+          presentes: [{ login: "duda", nome: "Duda", total: 5 }],
+          bits: [{ login: "raul", nome: "Raul", bits: 500 }],
+          raids: [{ login: "capivara_cansada", nome: "capivara_cansada", viewers: 12 }],
         }
-        dia.pix = [{ login: "bia.lima", nome: "Bia", centavos: 1000 }, { nome: "Anônimo de Floripa", centavos: 500 }]
+        dia.pix = [{ login: "bia", nome: "Bia", centavos: 1000 }, { nome: "Anônimo de Floripa", centavos: 500 }]
         const amanha = new Date(Date.now() + 86_400e3)
         dia.agenda = {
           proximas: [
@@ -1093,19 +908,24 @@
             { data: dataEm(amanha), inicio: amanha.toISOString(), start: "21:00", jogo: "valorant", nome: "Valorant", titulo: "Aprendendo Valorant" },
           ],
         }
+        escolhasProntas = true
         setTimeout(montar, ESPERA_MS)
         const FRASES = ["gg!!", "valeu pela live", "tchau Luan", "até quinta!", "que live", "boa noite pessoal", "ganhamos hoje 🔥"]
-        setInterval(() => {
-          const p = um([...gente.values()].filter((x) => x.el && x.login !== CHANNEL))
-          if (p) falar(p, um(FRASES))
-        }, 2600)
+        const alguem = () => um([...naArquibancada].filter((l) => l !== CHANNEL))
+        if (params.get("demo") !== "parado")
+          setInterval(() => {
+            const login = alguem()
+            if (login) falar(gente.get(login), um(FRASES))
+          }, 2600)
         // The stand's commands, from someone at random.
         const COMANDO_DE = { p: "!pula", n: "!dança", k: "!comemora", h: "!grito", o: "!ola" }
         addEventListener("keydown", (e) => {
-          const p = um([...gente.values()].filter((x) => x.el && x.login !== CHANNEL))
-          if (p && COMANDO_DE[e.key]) comando(p.login, COMANDO_DE[e.key])
+          const login = alguem()
+          if (login && COMANDO_DE[e.key]) comando(login, COMANDO_DE[e.key])
         })
       }
+      // For headless checks: the stand's numbers.
+      window.estadoCreditos = () => ({ ...stand.medidas, esperando: stand.esperando(), minis: minis.length, minisFeitos: minis.filter((m) => m.feito).length })
     </script>
   </body>
 </html>
