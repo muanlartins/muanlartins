@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Palco · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: Browser source, 1920×1080, in every game scene (RL + chat, Valorant + chat, Diversos + chat, Celeste +
+      chat · Diversos and their Lance ruim), above the capture and the camera. The game is framed, never covered:
+      Celeste's scene first (Luan, 2026-11-22: nothing over its screen, whose dialogue takes the top and whose play
+      takes every edge), then every game's (2026-11-23: "copiar isso pros outros jogos", for one layout and a stand
+      with room of its own; until then the camera, the chat, the record and the stand sat over Rocket League's and
+      Valorant's screens, the camera on Valorant's minimap and the stand tucked away during its matches).
+      The game is 1600×900 at (320, 0): Celeste's 320×180 five screen pixels to each, so its pixels stay whole;
+      Rocket League and Valorant shrunk from 1920×1080. The rest is the Klein ground:
+      - a column on the left, 288 wide from x 16: pix.html's call and goal on top (they move there by the scene's
+        name), the chat, the keyboard and the mouse (?teclas=1, teclas.js, shrunk to the column), and the camera,
+        288×270 at (16, 774), with the site on its plate;
+      - a band under the game: the game's plate and numbers from 336 to 928, and the stand from 944 to 1904
+        (torcida.html, moved 348 px right in OBS), with room for its four rows.
+      Only the moments pass over the game: alerts, the stand's balloons, banners and captions, the VAR's mini player.
+
+      ?jogo= says whose plate and numbers the band has, as in jogo.html:
+        (none) or rocket-league   the rank and the day's record from the Partidas dock (recordPlate), and Luan's
+                                  numbers in the match under it while one is on (numeros.js)
+        valorant                  the rank, the queue, the map and the day's record or the score, from
+                                  scripts/valorant.py (valorantPlate; ?valorant= its address)
+        diversos, celeste         Celeste's chapter and its numbers while the game's mod is connected (celeste.js;
+                                  ?celeste=<url> listens elsewhere, ?celeste=0 leaves it out); any other game, nothing
+      ?placar=0 leaves the plate and the numbers out, ?numeros=0 only the numbers. ?demo fills the chat and plays the
+      game's own: a match of Rocket League's numbers, or Celeste's stand-in sequence (?jogo=celeste&demo=<step> stays
+      on one step); ?canal= as in the other overlays.
+    -->
+    <style>
+      .ground {
+        /* All but the game and the camera. */
+        clip-path: path(evenodd, "M0 0H320V900H1920V1080H0Z M16 774H304V1044H16Z");
+      }
+      .borda {
+        position: absolute;
+        left: 318px;
+        background: var(--klein-claro);
+      }
+      .borda.lado {
+        top: 0;
+        width: 2px;
+        height: 902px;
+      }
+      .borda.baixo {
+        top: 900px;
+        width: 1602px;
+        height: 2px;
+      }
+      .hole {
+        position: absolute;
+        left: 16px;
+        top: 774px;
+        width: 288px;
+        height: 270px;
+      }
+      /* The site on the frame's bottom edge, the plate a size down so it fits the narrower camera. */
+      #site {
+        left: 4px;
+        top: 1036px;
+        height: 40px;
+        gap: 8px;
+        padding: 0 44px 0 10px;
+        clip-path: polygon(0 0, 100% 0, calc(100% - 40px) 100%, 0 100%);
+        font-size: 18px;
+      }
+      #site img {
+        width: 28px;
+        height: 28px;
+      }
+
+      /* The chat, always there: it covers nothing here. In December the goal's tree makes the corner over it taller;
+         with the keyboard, it ends over it. */
+      #chat {
+        left: 16px;
+        top: 296px;
+        bottom: 330px;
+        width: 288px;
+        gap: 8px;
+        -webkit-mask: linear-gradient(to bottom, transparent, #000 56px);
+        mask: linear-gradient(to bottom, transparent, #000 56px);
+      }
+      #chat.natal {
+        top: 372px;
+      }
+      .com-teclas #chat {
+        bottom: 491px;
+      }
+      #chat .message {
+        padding: 8px 12px 9px;
+        background: rgb(0 20 71 / 0.82);
+        font-size: 19px;
+        line-height: 1.3;
+      }
+      #chat .message .name {
+        font-size: 18px;
+      }
+
+      /* The keyboard and the mouse (393×193 for every game's keys), shrunk to the column, 16 px over the camera's frame. */
+      #teclas {
+        left: 16px;
+        top: 605px;
+        transform: scale(0.733);
+        transform-origin: 0 0;
+      }
+
+      /* Under the game: the game's plate (its name or rank with its clock or record), then its numbers. */
+      #placa.plate.turned {
+        left: 336px;
+        top: 908px;
+        width: 592px;
+        height: 46px;
+        padding: 0 14px 0 10px;
+        background: var(--navy);
+        clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+        animation: none;
+      }
+      #placa .icone,
+      #placa img {
+        width: 32px;
+        height: 32px;
+        flex: none;
+      }
+      #placa .icone svg {
+        width: 30px;
+        height: 30px;
+      }
+      #placa .rank {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 21px;
+        line-height: 1;
+      }
+      #placa .rank small {
+        font-size: 18px;
+      }
+      #placa .rank .points {
+        display: inline;
+        margin-left: 10px;
+        font-size: 18px;
+      }
+      #placa .line {
+        flex: none;
+        text-align: right;
+      }
+      #numeros.numeros {
+        left: 336px;
+        top: 958px;
+        width: 592px;
+        height: 118px;
+        padding: 0;
+        background: rgb(0 20 71 / 0.82);
+        clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+      }
+      #numeros .titulo {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.05;
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--paper);
+      }
+      #numeros .linha {
+        flex-direction: column;
+        align-items: flex-start;
+        margin: 0 4px 0 0;
+        padding: 2px 6px;
+        line-height: 1.05;
+      }
+      #numeros .linha .rotulo {
+        font-size: 18px;
+      }
+      #numeros .linha .valor {
+        font-size: 24px;
+      }
+      #numeros .linha::after {
+        right: 4px;
+        top: 22px;
+      }
+
+      /* Rocket League's match: the title, then its eight numbers in two rows of four. */
+      #numeros.numeros:not(.celeste-numeros) {
+        display: grid;
+        grid-template-columns: 112px repeat(4, 1fr);
+        grid-template-rows: 1fr 1fr;
+        align-items: center;
+        padding: 0 10px 0 14px;
+      }
+      #numeros:not(.celeste-numeros) .titulo {
+        grid-row: span 2;
+        max-width: 96px;
+      }
+
+      /* Celeste: a row for the chapter and one for the file. */
+      #numeros.celeste-numeros {
+        justify-content: flex-start;
+      }
+      #numeros .grupo {
+        flex: none;
+        display: grid;
+        grid-template-columns: 112px 86px 114px 124px 1fr;
+        align-items: center;
+        height: 59px;
+        margin: 0;
+        padding: 0 10px 0 14px;
+      }
+      #numeros .grupo .titulo {
+        max-width: 104px;
+      }
+      #numeros .grupo.arquivo {
+        border-top: 1px solid rgb(133 167 255 / 0.3);
+      }
+      #numeros.no-menu .grupo.arquivo {
+        border-top: 0;
+      }
+      #numeros.no-menu .grupo.capitulo {
+        display: none;
+      }
+      #numeros .grupo.arquivo .valor {
+        font-size: 24px;
+      }
+      #numeros .coletas,
+      #numeros .coletas-arquivo {
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+      }
+      #numeros .coletas .rotulo {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <div class="ground"></div>
+      <div class="borda lado"></div>
+      <div class="borda baixo"></div>
+      <div class="hole"></div>
+      <div id="site"></div>
+      <div id="chat"></div>
+      <div id="teclas" hidden></div>
+      <div id="placa"></div>
+      <div id="numeros"></div>
+    </main>
+    <script src="stream.js"></script>
+    <script src="teclas.js"></script>
+    <script src="numeros.js"></script>
+    <script src="celeste.js"></script>
+    <script>
+      const JOGO = params.get("jogo") || "rocket-league"
+      const DEMO = params.has("demo")
+
+      const hole = document.querySelector(".hole")
+      const border = frame(hole, { band: 12, fill: "#001447" })
+      const attention = plate(document.getElementById("site"), `muanlartins<span class="accent">.com.br</span>`)
+      alternate(5, attention, border.glint)
+
+      const box = document.getElementById("chat")
+      box.classList.toggle("natal", NATAL)
+      chat(box, { max: 20 })
+
+      // The game's plate and numbers, in the band under it.
+      const placa = document.getElementById("placa")
+      const numeros = document.getElementById("numeros")
+      if (params.get("placar") !== "0") {
+        if (JOGO === "valorant") valorantPlate(placa, null, 0, params.get("valorant") ?? "http://127.0.0.1:8792")
+        else if (JOGO === "rocket-league") {
+          recordPlate(placa, null, 0)
+          if (params.get("numeros") !== "0") {
+            placarDaPartida(numeros, null, 0)
+            if (DEMO) demoDosNumeros()
+          }
+        } else if (["celeste", "diversos"].includes(JOGO) && params.get("celeste") !== "0")
+          celesteNoJogo({
+            plate: placa,
+            column: numeros,
+            address: params.get("celeste") || CELESTE_URL,
+            demo: DEMO && JOGO === "celeste" && (params.get("demo") || true),
+          })
+      }
+
+      // The keyboard and the mouse (?teclas=1), over the camera; the chat ends above them.
+      const qualTeclado = params.get("teclas")
+      if (qualTeclado) {
+        const teclado = document.getElementById("teclas")
+        teclado.hidden = false
+        document.querySelector(".stage").classList.add("com-teclas")
+        const jogo = qualTeclado !== "1" ? qualTeclado : { valorant: "valorant", "rocket-league": "rocket-league" }[JOGO] ?? "outro"
+        teclas(teclado, { jogo, demo: DEMO })
+      }
+    </script>
+  </body>
+</html>
