@@ -62,3 +62,17 @@ export const criarBoneco = B.criarBoneco as unknown as (look: Torcedor3D, opcoes
 export const luzes = B.luzes as (cena: Scene) => void
 /** One WebGL canvas for every picture on the page. */
 export const fotografo = B.fotografo as unknown as Fotografo
+
+let fonte: Promise<void> | null = null
+/**
+ * The shirt's number is painted with a face literally named "Space Grotesk"; next/font serves it under another name, so
+ * the site loads the overlays' own file under that name once. Await it before the first fan or picture of a page.
+ */
+export function prepararFonte(): Promise<void> {
+  if (typeof document === "undefined") return Promise.resolve()
+  fonte ??= new FontFace("Space Grotesk", "url(/stream/space-grotesk.ttf)", { weight: "300 700" })
+    .load()
+    .then((f) => void document.fonts.add(f))
+    .catch(() => {})
+  return fonte
+}
