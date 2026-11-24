@@ -15,8 +15,8 @@
     [9400, "grand-champion-1"], [12100, "grand-champion-2"], [15500, "grand-champion-3"],
     [20000, "supersonic-legend"],
   ]
-  // Valorant's for the same totals: its 25 steps over the same year, Gold 1 where Rocket League's Gold I is (370 Σ,
-  // where free colours unlock), Radiant at the top like Supersonic Legend.
+  // Valorant's for the same totals: its 25 steps over the same year, Gold 1 where Rocket League's Gold I is (370 Σ),
+  // Radiant at the top like Supersonic Legend.
   const VALORANT = [
     [0, "iron-1"], [15, "iron-2"], [35, "iron-3"],
     [60, "bronze-1"], [90, "bronze-2"], [125, "bronze-3"],
@@ -72,9 +72,8 @@
   // (0 Σ weighs 1, 100 Σ weighs 5.6, 20,000 Σ weighs 10.9).
   const peso = (sigma = 0) => 1 + Math.log(1 + sigma)
 
-  // From Ouro I on, free colours unlock (the viewer's card on the site). A fan's own colours no longer wait for it: since
-  // the 3D fan (2026-11-23, Luan's call) the overlays draw any colour a viewer picked, whatever their Σ.
-  const COR_LIVRE = 370
+  // Σ locks nothing (Luan, 2026-11-23: "Não queremos Sigma bloqueando nada por agora"): any colour on the fan and the
+  // card is everyone's, whatever their Σ. Exclusive items may come later; none is decided.
 
   // Badges: what a viewer has done, each in eight levels, past any rank. Watching (hours, lives), coming back
   // (their longest run of lives in a row, Duolingo-style; the run going now is `sequencia`) and Pix sent
@@ -101,5 +100,5 @@
     })
   }
 
-  window.Sigma = { RL, VALORANT, ranque, peso, COR_LIVRE, MEDALHAS, medalhas }
+  window.Sigma = { RL, VALORANT, ranque, peso, MEDALHAS, medalhas }
 })()

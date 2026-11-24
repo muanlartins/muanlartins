@@ -97,7 +97,6 @@ export interface Sigma {
   peso(sigma?: number): number
   /** Rocket League's ranks: [the Σ each starts at, its emblem's id], lowest first. */
   RL: [number, string][]
-  COR_LIVRE: number
   medalhas(stats: Partial<SigmaStats>, lingua?: "pt" | "en"): Badge[]
 }
 
@@ -157,7 +156,6 @@ export interface Torcedor {
   STICKERS_MAX: number
   padrao(login?: string): Fan
   normalizar(choice: Choice | Fan | null | undefined, login?: string): Fan
-  soPaleta(fan: Fan, login?: string): Fan
   figura(fan: Fan): string
   umEmoji(text: string): boolean
 }

@@ -3,7 +3,7 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
 import { CANAL, rotas, T3_MAX } from "./rotas.mjs"
-import { CAMPOS, DESENHO, enxugar, MECHA, normalizar, PECA } from "./torcedor3d.mjs"
+import { CAMPOS, DESENHO, enxugar, MECHA, normalizar, PALETAS, PECA } from "./torcedor3d.mjs"
 
 const VANDAL = "18609205-4edb-5966-cff8-0fba0230ba1e"
 const AZUL = "6fb459fa-4368-7d20-106a-629db9825a2b"
@@ -187,6 +187,18 @@ test("the card: its theme, free colours, a filtered text, pronouns and the game;
   await chamar("DELETE", "/eu/cartao", { token: "bom" })
   assert.equal((await chamar("GET", "/eu", { token: "bom" })).body.cartao, null)
   assert.equal((await chamar("PUT", "/eu/cartao", { corpo: {} })).status, 401)
+})
+
+// Σ locks nothing (Luan, 2026-11-23): the API never asks the Σ API, so a viewer with none keeps any colour they pick.
+test("any colour for anyone: off the palettes on the fan, the 3D fan and the card, kept and public, with no Σ at all", async () => {
+  const { chamar } = montar()
+  const [fora, outra] = ["#123456", "#abcdef"]
+  for (const p of Object.values(PALETAS)) assert.ok(!p.includes(fora) && !p.includes(outra))
+  assert.equal((await chamar("PUT", "/eu", { token: "bom", corpo: { cor: fora, detalhe: outra, t3: { cor: fora, cabC: outra } } })).status, 200)
+  assert.equal((await chamar("PUT", "/eu/cartao", { token: "bom", corpo: { tema: "livre", cores: [fora, outra] } })).status, 200)
+  const { fulano } = (await chamar("GET", "/cartoes", { query: { logins: "fulano" } })).body
+  assert.deepEqual([fulano.aparencia.cor, fulano.aparencia.detalhe, fulano.aparencia.t3.cor, fulano.aparencia.t3.cabC], [fora, outra, fora, outra])
+  assert.deepEqual(fulano.cartao, { tema: "livre", cores: [fora, outra] })
 })
 
 // A tiny WebP: "RIFF", its size, "WEBP" and padding past the 200 bytes the API asks for at least.

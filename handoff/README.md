@@ -222,7 +222,8 @@ from the start (plus two plain TTS voices and the viewer's own recorded voice).
 **Built 11-04 (the first version):** 1 Σ a minute logged in to the chat while the stream is on, +10 each live,
 +5 for each live in a row up to +50; test streams count. Rocket League ranks from 0 to 20,000 Σ (the top in about
 a year of lives); the stand orders by Σ with emblems; the dedication is weighed by a log of Σ; the profile shows
-Σ, rank and progress; any colour unlocks at Ouro I. Lifetime total only, seasons later. See AGENTS.md.
+Σ, rank and progress; any colour unlocks at Ouro I (dropped 2026-11-23: Σ locks nothing now). Lifetime total only,
+seasons later. See AGENTS.md.
 
 **Built 11-05:** badges for hours watched, lives watched, the longest run of lives in a row and reais sent by Pix
 (that one seen only by its owner), each in eight levels, with the current run shown Duolingo-style; on the profile and

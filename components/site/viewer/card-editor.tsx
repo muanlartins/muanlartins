@@ -2,12 +2,12 @@
 
 import { ImagePlus, Trash2 } from "lucide-react"
 import { useRef, useState } from "react"
-import { LockedSwatch, Swatch } from "@/components/site/profile/swatches"
+import { Swatch } from "@/components/site/profile/swatches"
 import { ImageCropper } from "@/components/site/viewer/image-cropper"
 import { ViewerPhoto } from "@/components/site/viewer/viewer-card"
 import { Button, Field, Input, Select, Textarea } from "@/components/site/ui"
 import { profile } from "@/content/profile"
-import { SignedOut, type Sigma } from "@/lib/profile"
+import { SignedOut } from "@/lib/profile"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import {
@@ -35,7 +35,7 @@ const DEFAULT_FREE: [string, string] = ["#002fa7", "#ff8a3d"]
 
 /**
  * The Cartão tab on /perfil, Discord-style: the banner and the photo (pictures of their own, framed here and sent at
- * once), the colours (a theme, or two of their own once their Σ unlocks free colours), pronouns, what they say about
+ * once), the colours (a theme, or any two of their own: everyone's, Σ locks nothing), pronouns, what they say about
  * themselves and their game. The card being edited lives in the profile page, so its preview beside the tabs follows
  * every change; the text and colours are saved together (PUT /eu/cartao), apart from the fan and from the pictures.
  */
@@ -46,8 +46,6 @@ export function CardEditor({
   base,
   images,
   look,
-  sigma,
-  S,
   onChange,
   onSaved,
   onImages,
@@ -61,10 +59,8 @@ export function CardEditor({
   images: Images | null
   /** Their look as the preview draws it (fan and pictures), for the photo here. */
   look: Look
-  sigma: number
   /** The 2D fan's kit: no longer needed (the photo's fan is 3D), still taken so /perfil keeps compiling. */
   T?: unknown
-  S: Sigma | null
   onChange: (patch: Partial<Card>) => void
   onSaved: (card: Card) => void
   onImages: (images: Images | null) => void
@@ -74,10 +70,9 @@ export function CardEditor({
   const [framing, setFraming] = useState<{ kind: ImageKind; image: HTMLImageElement } | null>(null)
   const [picture, setPicture] = useState<{ kind: ImageKind; state: "sending" | "error" | "big" } | null>(null)
   const files = { banner: useRef<HTMLInputElement>(null), foto: useRef<HTMLInputElement>(null) }
-  const freeUnlocked = Boolean(S && sigma >= S.COR_LIVRE)
   const free = card.cores ?? DEFAULT_FREE
   const dirty = JSON.stringify(card) !== JSON.stringify(base)
-  const [from, to] = cardColors(card, sigma, S)
+  const [from, to] = cardColors(card)
 
   const change = (patch: Partial<Card>) => {
     onChange(patch)
@@ -195,31 +190,26 @@ export function CardEditor({
               onClick={() => change({ tema: theme.id, cores: undefined })}
             />
           ))}
-          {S &&
-            (freeUnlocked ? (
-              <span className={cn("inline-flex h-8 items-center gap-1.5 border pl-2 pr-1 text-[13px] text-ink", card.tema === FREE_THEME ? "border-klein" : "border-line-strong")}>
-                {text.free}
-                {[0, 1].map((i) => (
-                  <label key={i} className="relative h-6 w-6 cursor-pointer border border-navy/20 focus-within:outline-2 focus-within:outline-klein" style={{ background: free[i] }}>
-                    <span className="sr-only">
-                      {text.free} {i + 1}
-                    </span>
-                    <input
-                      type="color"
-                      value={free[i]}
-                      onChange={(e) => {
-                        const cores: [string, string] = [free[0], free[1]]
-                        cores[i] = e.target.value
-                        change({ tema: FREE_THEME, cores })
-                      }}
-                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                    />
-                  </label>
-                ))}
-              </span>
-            ) : (
-              <LockedSwatch S={S} at={S.COR_LIVRE} background={`linear-gradient(135deg, ${DEFAULT_FREE[0]} 50%, ${DEFAULT_FREE[1]} 50%)`} label={text.free} />
+          <span className={cn("inline-flex h-8 items-center gap-1.5 border pl-2 pr-1 text-[13px] text-ink", card.tema === FREE_THEME ? "border-klein" : "border-line-strong")}>
+            {text.free}
+            {[0, 1].map((i) => (
+              <label key={i} className="relative h-6 w-6 cursor-pointer border border-navy/20 focus-within:outline-2 focus-within:outline-klein" style={{ background: free[i] }}>
+                <span className="sr-only">
+                  {text.free} {i + 1}
+                </span>
+                <input
+                  type="color"
+                  value={free[i]}
+                  onChange={(e) => {
+                    const cores: [string, string] = [free[0], free[1]]
+                    cores[i] = e.target.value
+                    change({ tema: FREE_THEME, cores })
+                  }}
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                />
+              </label>
             ))}
+          </span>
         </div>
       </fieldset>
 

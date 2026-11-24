@@ -82,8 +82,6 @@ export const profile = {
     otherEmoji: { pt: "Outro emoji", en: "Other emoji" },
   },
 
-  /** A swatch or option the viewer's Σ hasn't reached: "{rank}" and "{n}" are where it unlocks. */
-  locked: { pt: "Libera no {rank} ({n} Σ)", en: "Unlocks at {rank} ({n} Σ)" },
   freeColor: { pt: "Qualquer cor", en: "Any colour" },
 
   /** The card (lib/viewer.ts): the same everywhere on the site and on top of their page. */
@@ -162,9 +160,10 @@ export const profile = {
       en: "Σ, the site's points, come from watching the lives in the chat. They're never spent or lost.",
     },
     how: { pt: "Como funciona", en: "How it works" },
+    /** Σ lock nothing (Luan, 2026-11-23); what may come later stays unnamed. */
     howText: {
-      pt: "1 Σ por minuto no chat durante a live, mais 10 por live e 5 por live seguida (até 50). Os seus Σ viram um rank, e quem tem mais fica mais na frente da arquibancada. No {rank} ({n} Σ), qualquer cor libera no torcedor e no cartão.",
-      en: "1 Σ a minute in the chat during the live, plus 10 per live and 5 per live in a row (up to 50). Your Σ become a rank, and whoever has more stands further in front. At {rank} ({n} Σ), any colour unlocks on your fan and card.",
+      pt: "1 Σ por minuto no chat com a live no ar, mais 10 por live e 5 por live seguida (até 50). Acertar o VAR e mandar Pix também dá Σ. Eles viram o seu rank, com o emblema do lado do seu nome, e a sua ordem na arquibancada e no ranking da torcida: quem tem mais fica mais na frente e, com mais de 20 pessoas no chat, garante lugar. Montar o torcedor e o cartão, com qualquer cor, é pra todo mundo, sem precisar de Σ. Mais pra frente, eles podem liberar umas coisas exclusivas.",
+      en: "1 Σ a minute in the chat while the live is on, plus 10 per live and 5 per live in a row (up to 50). Getting the VAR right and sending a Pix give Σ too. They become your rank, with its emblem by your name, and your order in the stand and in the crowd's ranking: whoever has more stands further in front and, with more than 20 people in the chat, gets a place. Building your fan and card, in any colour, is for everyone, no Σ needed. Later on, they may unlock a few exclusive things.",
     },
     signIn: { pt: "Pra ver os seus Σ, o seu rank e as suas medalhas.", en: "To see your Σ, your rank and your medals." },
     none: { pt: "Ainda nada: os seus Σ começam na próxima live em que você estiver no chat.", en: "Nothing yet: your Σ start in the next live you're in the chat for." },
