@@ -31,16 +31,18 @@ export async function criar(m) {
   // Handles, at most.
   const N = 24
   // The jaw's handles, by landmark (image left, image right): how far out (face widths) and down (face heights) it
-  // goes, and its reach (face heights). The corners furthest out and the line to the chin straight: a square jaw.
+  // goes, and its reach (face heights). Gigachad's is the lower face longer and its chin broad and square, the cheeks
+  // left where they are: pushed out under the ears (the first version, 2026-11-24), the jaw read as mumps ("parece
+  // mais que eu tô com caxumba", Luan).
   const QUEIXO = [
-    [152, 152, 0, 0.08, 0.24],
-    [148, 377, 0.06, 0.08, 0.19],
-    [176, 400, 0.11, 0.08, 0.2],
-    [149, 378, 0.145, 0.075, 0.23],
-    [150, 379, 0.165, 0.055, 0.25],
-    [136, 365, 0.175, 0.04, 0.27],
-    [172, 397, 0.155, 0.015, 0.27],
-    [58, 288, 0.08, 0, 0.24],
+    [152, 152, 0, 0.11, 0.22],
+    [148, 377, 0.07, 0.11, 0.17],
+    [176, 400, 0.11, 0.11, 0.18],
+    [149, 378, 0.14, 0.1, 0.2],
+    [150, 379, 0.14, 0.08, 0.21],
+    [136, 365, 0.09, 0.05, 0.21],
+    [172, 397, 0.03, 0.02, 0.19],
+    [58, 288, 0, 0, 0.2],
   ]
 
   // The jaw's line, by landmark: the corner, round the chin, to the other corner.
@@ -146,10 +148,15 @@ export async function criar(m) {
         vec2 qs = q.x * R + q.y * UP;
         float r2 = dot(q, q);
         vec3 nf = normalize(vec3(qs, sqrt(max(0.0, 1.0 - min(r2, 1.0))) + 0.05));
-        float bx = clamp((p.x - uCorpo.x) / uCorpo.z, -1.0, 1.0);
+        float bx0 = (p.x - uCorpo.x) / uCorpo.z;
+        float bx = clamp(bx0, -1.0, 1.0);
         vec3 nb = normalize(vec3(bx, 0.2, sqrt(1.0 - bx * bx) + 0.08));
         vec3 n = normalize(mix(nb, nf, smoothstep(1.2, 0.85, sqrt(r2))));
         float luz = smoothstep(-0.15, 0.4, dot(n, normalize(vec3(-0.8, 0.35, 0.5))));
+        // Only on him: his face, and his body under his chin between his shoulders; the room round him keeps an even,
+        // dim light (lit from the left everywhere, half the screen went black with the camera on all of it).
+        float nele = max(smoothstep(1.3, 0.95, sqrt(r2)), (1.0 - smoothstep(0.9, 1.2, abs(bx0))) * smoothstep(uQueixo.y + 0.08, uQueixo.y - 0.06, p.y));
+        luz = mix(0.55, luz, nele);
         // Deep-set eyes under a heavy brow (their sockets in shadow, the brow's ridge lit), and the shadow his jaw
         // casts on his neck, where his jaw now is (in the camera's place: what's under the jaw there).
         float sombra = 0.0;
@@ -175,7 +182,7 @@ export async function criar(m) {
         // The vignette, round a point between the box's middle and his face.
         vec2 vc = mix(vec2(0.5 * uAspect, 0.5), uRosto.xy, 0.5);
         float dv = length((p - vc) / vec2(0.5 * uAspect, 0.5)) * 0.7071;
-        v *= mix(1.0, 0.12, smoothstep(0.3, 1.0, dv));
+        v *= mix(1.0, 0.45, smoothstep(0.45, 1.0, dv));
         // The grain, a new one every 24th of a second, most in the middle tones.
         vec2 g = floor(gl_FragCoord.xy / 1.5) + mod(floor(uTime * 24.0), 61.0) * vec2(17.0, 29.0);
         v += (hash2(g) + hash2(g + vec2(0.5, 0.25)) - 1.0) * 0.075 * (0.3 + 2.8 * v * (1.0 - v));
@@ -271,7 +278,7 @@ export async function criar(m) {
       // His neck, thicker: its sides below the jaw pushed out.
       const chin = U.uQueixo.value
       for (const s of [-1, 1])
-        for (const [abaixo, fora] of [[0.28, 0.15], [0.6, 0.17]])
+        for (const [abaixo, fora] of [[0.32, 0.06], [0.6, 0.09]])
           doRosto.push({ c: chin.clone().addScaledVector(R, s * 0.3 * fw).addScaledVector(up, -abaixo * fh), d: R.clone().multiplyScalar(s * fora * fw), r: 0.3 * fh })
     }
     if (st.achado > 0) for (const h of doRosto) hand(h.c, h.d, h.r, st.achado)
