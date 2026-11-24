@@ -84,13 +84,9 @@ sound (`gatilho.webm`, see the `obs` skill). It only ever goes up within a sessi
   `C:\Program Files\Epic Games\rocketleague\TAGame\Config\DefaultStatsAPI.ini`. Game updates reset it to 0
   (11-05), and then the dock sees no match. `node scripts/obs.mjs` warns when it's off; fix it, then restart the
   game (it reads the file at start).
-- The "Efeitos" dock open, for the VAR above all: its "Replays" line must say the local server is on
-  (`scripts/replay.py` on 127.0.0.1:8794, started at Windows login by "Replay muanlartins.vbs" in Startup; log
-  `~/.cache/muanlartins/replay.log`; restart it with `wscript.exe` on that file): without it the VAR doesn't open.
-  The clip it plays is the game alone, from Source Record's replay buffer on the capture's "Gravar jogo"
-  (`brand/twitch/obs.py` turns it on), which only runs once the game has been on screen since OBS opened; OBS's own
-  Replay Buffer (the dock starts it with the stream or the recording; its line says when it's off in Settings →
-  Output → Replay Buffer, ~20 s) is the fallback, with the overlays. Without the dock, F8 does nothing.
+- The "Efeitos" dock open: without it F2 (Lance ruim), F4 and the sounds do nothing. Lance ruim's Sigma comes from
+  the "Filtros" source (localhost:8126, `scripts/servidor_filtros.py`), so that server must be up too. The VAR (F8)
+  and OBS's replay buffers were retired on 2026-11-24: nothing to check for them.
 - **Open in "Começando"** and stay until its clock ends (about 4 min): Twitch runs the live's opening ad break a
   minute in, and the "Anúncios" dock warns (and beeps) if the stream starts in another scene. That dock open and
   connected to Twitch (its first sign-in: Conectar, then the code at twitch.tv/activate) runs the hour's break between
@@ -113,6 +109,8 @@ sound (`gatilho.webm`, see the `obs` skill). It only ever goes up within a sessi
   whatever game is fullscreen or borderless in front) before going live. Valorant is archived (the `obs` skill). `brand/twitch/obs.py` generates the scene
   collection; anything added by hand in OBS (like the Spotify source) should also go there.
 - The sources Luan must hear (Alertas, Sons, Pix, Filtros) are on "Monitorar e enviar" (`monitoring_type` 2):
-  Alertas was found off on 11-10 and again on 11-19, so he missed the follows' and subs' sounds. Check it
-  (`scripts/obs.mjs`) before a live.
+  Alertas was found off on 11-10, 11-19 and 11-24 (every OBS log from 11-18 to 11-24 loads it without
+  monitoring), so he missed the follows' and subs' sounds while the live had them. Check it
+  (`scripts/obs.mjs '[["GetInputAudioMonitorType", {"inputName": "Alertas"}]]'`) before a live; OBS saves a change
+  made through obs-websocket when it closes, so confirm `monitoring_type` 2 in `Live.json` after the next restart.
 - See the `obs` skill for talking to OBS from WSL.

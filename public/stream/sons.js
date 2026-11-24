@@ -1,5 +1,5 @@
 // The stream's synthesized sound effects (no samples, so no rights to clear: they may go into the recording and the
-// YouTube VOD): the bad play's sting, the crowd's "uuuh", the drum roll and the VAR's whistle. Each recipe plays into any AudioContext,
+// YouTube VOD): the bad play's phonk hit, the crowd's "uuuh", the drum roll and the VAR's whistle. Each recipe plays into any AudioContext,
 // live or offline; brand/twitch/sons.mjs renders them to WAV files in public/stream/sons/, which tocador.html plays
 // (the applause there is a public-domain recording instead: see brand/README.md). Plain script, no build: sets
 // window.Sons.
@@ -66,37 +66,6 @@
     osc.start(t)
     osc.stop(t + seconds + 0.05)
     if (click) burst(ctx, out, t, { seconds: 0.03, type: "highpass", frequency: 2500, peak: click })
-  }
-
-  /** A brass note: detuned saws through a filter that opens on the attack. */
-  function brass(ctx, out, t, f, seconds, { peak = 0.22, vibrato = 0 } = {}) {
-    const filter = ctx.createBiquadFilter()
-    filter.type = "lowpass"
-    filter.Q.value = 2
-    filter.frequency.setValueAtTime(250, t)
-    filter.frequency.exponentialRampToValueAtTime(2600, t + 0.06)
-    filter.frequency.exponentialRampToValueAtTime(1100, t + 0.3)
-    const g = envelope(ctx, t, { attack: 0.025, hold: Math.max(0, seconds - 0.25), release: 0.25, peak })
-    filter.connect(g).connect(out)
-    for (const [detune, type, octave] of [[-8, "sawtooth", 1], [0, "sawtooth", 1], [7, "sawtooth", 1], [0, "square", 0.5]]) {
-      const osc = ctx.createOscillator()
-      osc.type = type
-      osc.frequency.value = f * octave
-      osc.detune.value = detune
-      if (vibrato) {
-        const lfo = ctx.createOscillator()
-        const depth = ctx.createGain()
-        lfo.frequency.value = 5.5
-        depth.gain.setValueAtTime(0, t)
-        depth.gain.linearRampToValueAtTime(vibrato, t + seconds * 0.6)
-        lfo.connect(depth).connect(osc.detune)
-        lfo.start(t)
-        lfo.stop(t + seconds + 0.3)
-      }
-      osc.connect(filter)
-      osc.start(t)
-      osc.stop(t + seconds + 0.3)
-    }
   }
 
   /** A struck bell: a few sine partials, the upper ones dying first. */
@@ -171,15 +140,85 @@
       drop(ctx, r, 0.98, 340, { peak: 0.7 })
     } },
 
-    // The bad play: dun, dun, duuun (D, D, B♭, the last one held, over timpani).
-    lance: { seconds: 3.2, play(ctx, out) {
-      const r = room(ctx, out, { seconds: 2.2, wet: 0.35 })
-      const D3 = 146.83
-      ;[[0, D3, 0.26], [0.36, D3, 0.26], [0.72, semitone(D3, -4), 1.7]].forEach(([t, f, s], i) => {
-        brass(ctx, r, t, f, s, { vibrato: i === 2 ? 18 : 0 })
-        brass(ctx, r, t, f * 2, s, { peak: 0.08 })
-        drum(ctx, r, t, { from: 110, to: 55, seconds: i === 2 ? 1.2 : 0.4, peak: 0.8, click: 0.15 })
-      })
+    // The bad play, since 2026-11-24 the camera's Sigma moment: a phonk hit. An 808 boom with a clap, a short
+    // cowbell figure of our own over it (the 808 drum machine's: two square waves a fifth-ish apart through a
+    // band-pass), distorted, then a second boom sliding down that rings out. A short reversed swell leads into it
+    // (and lets the master compressor settle: a hit at 0 came out swelling in).
+    lance: { seconds: 2.5, play(ctx, out) {
+      const r = room(ctx, out, { seconds: 1.5, wet: 0.2, decay: 3.5 })
+      // Soft clipping, `k` how hard.
+      const drive = (k) => {
+        const ws = ctx.createWaveShaper()
+        const curve = new Float32Array(2048)
+        for (let i = 0; i < curve.length; i++) curve[i] = Math.tanh(k * ((i / (curve.length - 1)) * 2 - 1)) / Math.tanh(k)
+        ws.curve = curve
+        ws.oversample = "4x"
+        return ws
+      }
+      const filter = (type, frequency, q = 0.7) => {
+        const f = ctx.createBiquadFilter()
+        f.type = type
+        f.frequency.value = frequency
+        f.Q.value = q
+        return f
+      }
+      // The cowbells, crushed and darkened a little; the 808 through its own drive, mostly dry.
+      const bells = ctx.createGain()
+      bells.gain.value = 0.55
+      bells.connect(drive(6)).connect(filter("highpass", 380)).connect(filter("lowpass", 4200)).connect(r)
+      const sub = ctx.createGain()
+      sub.gain.value = 0.9
+      const subOut = sub.connect(drive(2.4)).connect(filter("lowpass", 1100))
+      subOut.connect(out)
+      subOut.connect(r)
+      const cowbell = (t, f, seconds = 0.16, peak = 0.5) => {
+        const bp = filter("bandpass", f * 1.3, 1.3)
+        bp.connect(envelope(ctx, t, { attack: 0.001, release: seconds, peak })).connect(bells)
+        for (const k of [1, 1.4815]) {
+          const osc = ctx.createOscillator()
+          osc.type = "square"
+          osc.frequency.value = f * k
+          osc.connect(bp)
+          osc.start(t)
+          osc.stop(t + seconds + 0.05)
+        }
+      }
+      // An 808: a sine that kicks down onto its note (or slides down to it from `from`), held and dying away.
+      const boom = (t, f, seconds, { from = f * 3, slide = 0.05, peak = 1 } = {}) => {
+        const osc = ctx.createOscillator()
+        osc.frequency.setValueAtTime(from, t)
+        osc.frequency.exponentialRampToValueAtTime(f, t + slide)
+        const g = ctx.createGain()
+        g.gain.setValueAtTime(0, t)
+        g.gain.linearRampToValueAtTime(peak, t + 0.004)
+        g.gain.setValueAtTime(peak, t + seconds * 0.25)
+        g.gain.exponentialRampToValueAtTime(0.0001, t + seconds)
+        osc.connect(g).connect(sub)
+        osc.start(t)
+        osc.stop(t + seconds + 0.05)
+        burst(ctx, out, t, { seconds: 0.025, type: "highpass", frequency: 3000, peak: 0.35 })
+      }
+      const clap = (t) => {
+        for (const d of [0, 0.012, 0.024]) burst(ctx, r, t + d, { seconds: d ? 0.03 : 0.16, frequency: 1400, q: 1.2, peak: 0.5 })
+      }
+      const T = 0.15
+      const swell = ctx.createBufferSource()
+      swell.buffer = noise(ctx, T)
+      const sweep = filter("bandpass", 700, 0.9)
+      sweep.frequency.exponentialRampToValueAtTime(5000, T)
+      const rise = ctx.createGain()
+      rise.gain.setValueAtTime(0.0001, 0)
+      rise.gain.exponentialRampToValueAtTime(0.3, T - 0.005)
+      rise.gain.linearRampToValueAtTime(0, T)
+      swell.connect(sweep).connect(rise).connect(r)
+      swell.start(0)
+      const BELL = 540
+      boom(T, 55, 0.75)
+      clap(T)
+      ;[[0, 0], [0.15, 0], [0.3, 3], [0.4, 0], [0.55, -2], [0.7, 5, 0.38]].forEach(([t, n, s]) => cowbell(T + t, semitone(BELL, n), s))
+      for (let t = 0.05; t < 0.66; t += 0.1) burst(ctx, r, T + t, { seconds: 0.03, type: "highpass", frequency: 8000, peak: 0.1 })
+      boom(T + 0.7, 55, 1.6, { from: 98, slide: 0.32, peak: 1.1 })
+      clap(T + 0.7)
     } },
 
     // The crowd's "uuuh": voices on an "u", sliding down together.
@@ -233,41 +272,6 @@
         drum(ctx, r, t, { from: 220, to: 170, seconds: 0.06, peak: level * 0.3, click: 0 })
       }
       drum(ctx, r, 1.75, { from: 90, to: 45, seconds: 0.9, peak: 1 })
-    } },
-
-    // The referee's whistle for the VAR: two short blasts and a long one. A pea whistle: a high tone the pea
-    // trills (wobbling its pitch and level ~30 times a second), with breath under it.
-    apito: { seconds: 1.9, play(ctx, out) {
-      const r = room(ctx, out, { seconds: 0.9, wet: 0.18, decay: 4 })
-      for (const [t, s] of [[0, 0.13], [0.22, 0.13], [0.46, 1.05]]) {
-        const g = envelope(ctx, t, { attack: 0.012, hold: s, release: 0.06, peak: 0.5 })
-        g.connect(r)
-        const trill = ctx.createOscillator()
-        trill.frequency.value = 27 + Math.random() * 8
-        const pitch = ctx.createGain()
-        pitch.gain.value = 110
-        const level = ctx.createGain()
-        level.gain.value = 0.35
-        const am = ctx.createGain()
-        am.gain.value = 0.65
-        trill.connect(pitch)
-        trill.connect(level).connect(am.gain)
-        am.connect(g)
-        for (const [f, peak] of [[2950, 1], [5900, 0.12]]) {
-          const osc = ctx.createOscillator()
-          osc.frequency.setValueAtTime(f * 0.97, t)
-          osc.frequency.linearRampToValueAtTime(f, t + 0.03)
-          pitch.connect(osc.frequency)
-          const k = ctx.createGain()
-          k.gain.value = peak
-          osc.connect(k).connect(am)
-          osc.start(t)
-          osc.stop(t + s + 0.1)
-        }
-        trill.start(t)
-        trill.stop(t + s + 0.1)
-        burst(ctx, g, t, { seconds: s + 0.05, frequency: 3000, q: 1.5, peak: 0.12, attack: 0.01 })
-      }
     } },
   }
 

@@ -9,9 +9,8 @@
       OBS: Browser source, 1920×1080, in the game scenes over palco.html, moved
       348 px right: there its stand (596 to 1556 on the page, at the bottom, 178 px tall) is 944 to 1904, in the
       band under the game (y 902 to 1080, under palco's line on the game's edge), beside the game's plate and numbers,
-      where it covers nothing (since 2026-11-23; until then it stood over the game, at the bottom centre). The VAR's
-      scenes have it where the page puts it, under the booth's monitor and vote. ?altura= (178; 120 to 380), ?x= and
-      ?largura= (640 to 1280) move and size it. Only its moments pass over the game: the balloons by the talker's face,
+      where it covers nothing (since 2026-11-23; until then it stood over the game, at the bottom centre). ?altura=
+      (178; 120 to 380), ?x= and ?largura= (640 to 1280) move and size it. Only its moments pass over the game: the balloons by the talker's face,
       the banners, the captions, confetti, a jump. The crowd: one fan
       for each viewer logged in to the chat (Twitch's membership events, as in
       presenca.html: only who has the chat open, about 10 s late), their name
@@ -39,8 +38,8 @@
       game, it tucked the stand away during a match. ?jogo=diversos
       (the scene for any other game, Diversos + chat) reacts to no game at all:
       no goals, saves, rounds or matches, the Σ in the channel's own ranks
-      (Rocket League's, as the site shows them); the chat, the arrivals, the
-      captions and the VAR stay. What
+      (Rocket League's, as the site shows them); the chat, the arrivals and the
+      captions stay. What
       a viewer says in the chat: their fan comes forward to the rail with the line in a balloon by their face for a few
       seconds (three wait at most); they move their own fan with !pula,
       !danca, !comemora, !grito, !ola (comandos.js), and every ?dicas= minutes (6; 0 for none) the channel's own fan
@@ -58,17 +57,10 @@
       While the stream is on, it credits Σ to whoever is in the chat, once a
       minute: ?sigma= the Σ API, and #chave= its key, set only in OBS.
 
-      The VAR (the Efeitos dock's "muanlartins-var" events; var.html draws the rest): while it's open everyone wears
-      the referee's kit (torcedor3d/vestir.js, baked again fan by fan, their own look kept for when it closes) and the
-      rail goes referee yellow; who votes in the
-      chat (!1, !2, !3, counted by the dock) holds up a card with their number. On the verdict, who voted for it
-      celebrates and the rest slump, and, on air and with the key, the Σ API credits each one who got it right
-      (POST /var, a little Σ, once per VAR however many sources send it).
-
       ?canal= as in the overlays. The channel stands with its viewers. ?demo fills the stand with sample people and
       plays moments on its own (?demo=parado: only the keys; ?pessoas= how many, 13 by default); keys: g gol, c gol
       deles, d defesa, e defesaça, r round nosso, t round deles,
-      w vitória, x derrota, a VAR (abre, votos, veredito; de novo fecha),
+      w vitória, x derrota,
       p pula, n dança, k comemora, b bananeira, h grito, o ola, i uma dica, m mensagem, u mensagem de quem está fora
       (com mais de 20), j chega alguém, s sai alguém, q 8/18/36/56 pessoas, l uma legenda de exemplo, v liga/desliga as
       legendas de verdade (scripts/legenda.py).
@@ -226,7 +218,6 @@
       const escolhas = new Map() // login → what the profile API has for them
       // Their fan, undressed: what it does (fes), shouts (frase) and throws (stickers) on the stand.
       const fa = (login) => torcedorDe(escolhas.get(login) ?? null, login)
-      let varAberto = false
       // December puts Santa's hat on everyone (?natal to see it any day), checked now and then since the source stays
       // open for days.
       stand.natal(dezembro())
@@ -589,59 +580,6 @@
         } catch {}
       })
 
-      // --- The VAR (efeitos.html sends its whole state with every change; var.html draws the booth) ----------
-      let varId = null
-      let varVeredito = null
-      function cartao(login, numero) {
-        stand.cartao(login, numero)
-      }
-      async function creditarVar(id, logins) {
-        if (!SIGMA_API || !CHAVE || Date.now() > noArAte) return
-        const certos = logins.filter((login) => login !== CHANNEL)
-        for (let i = 0; i < certos.length; i += 100) {
-          try {
-            await fetch(`${SIGMA_API}/var`, {
-              method: "POST",
-              headers: { "content-type": "application/json", "x-chave": CHAVE },
-              body: JSON.stringify({ id, logins: certos.slice(i, i + 100) }),
-            })
-          } catch {
-            // The API down: this VAR's Σ is lost, like a minute's.
-          }
-        }
-      }
-      addEventListener("muanlartins-var", ({ detail }) => {
-        const v = varDe(detail)
-        if (!v) return
-        const aberto = v.fase !== "fechado"
-        if (aberto !== varAberto) {
-          varAberto = aberto
-          stand.arbitro(aberto)
-        }
-        if (!aberto) {
-          varId = varVeredito = null
-          for (const login of pessoas.keys()) cartao(login, 0)
-          return
-        }
-        if (v.id !== varId) {
-          varId = v.id
-          varVeredito = null
-          for (const login of pessoas.keys()) cartao(login, 0)
-        }
-        const votos = v.votantes ?? {}
-        for (const [login, opcao] of Object.entries(votos)) {
-          if (!pessoas.has(login)) chegar(login)
-          // A first vote is acting: it brings them to the stand.
-          if (!stand.cartao(login)) ativar(login)
-          cartao(login, opcao + 1)
-        }
-        if (v.fase === "veredito" && varVeredito === null) {
-          varVeredito = v.vencedora
-          for (const [login, opcao] of Object.entries(votos)) stand.mover(login, opcao === v.vencedora ? "comemora" : "lamenta", { acende: false })
-          creditarVar(v.id, Object.keys(votos).filter((login) => votos[login] === v.vencedora))
-        }
-      })
-
       // --- From the chat ---------------------------------------------------------------------------------------
       // !pula, !danca, !comemora, !grito and !ola (comandos.js), waiting while a goal's party or mourning is on.
       const comando = Comandos.criar({
@@ -655,13 +593,13 @@
 
       // Tips: every ?dicas= minutes (6; 0 for none) the channel's own fan says one of the chat's commands at the rail,
       // in turn, from comandos.json's `dica`, and does it when it's one of the stand's. Not while the stand is busy (a
-      // goal, the VAR).
+      // goal's party or mourning).
       const DICA_MS = Number(params.get("dicas") ?? 6) * 60000
       let dicas = []
       let dicaVez = 0
       function dica() {
         const p = pessoas.get(CHANNEL)
-        if (!dicas.length || !p || !naArquibancada.has(CHANNEL) || stand.ocupada() || varAberto) return
+        if (!dicas.length || !p || !naArquibancada.has(CHANNEL) || stand.ocupada()) return
         const c = dicas[dicaVez++ % dicas.length]
         falar(p, c.dica)
         setTimeout(() => comando(CHANNEL, c.comando), 700)
@@ -765,20 +703,6 @@
           t: () => jogo.rodada({ nosso: false, placar: `${placar[0]}–${++placar[1]}` }),
           w: () => jogo.partida({ vitoria: true, placar: "13–9" }),
           x: () => jogo.partida({ vitoria: false, placar: "9–13" }),
-          // The VAR as the dock sends it: opens with votes coming in, then the verdict; again, it closes.
-          a: () => {
-            const enviar = (v) => dispatchEvent(new CustomEvent("muanlartins-var", { detail: v }))
-            if (varAberto) return enviar({ fase: "fechado" })
-            const id = String(Date.now())
-            const votantes = {}
-            enviar({ fase: "votacao", id, votantes })
-            const logins = [...naArquibancada].filter((l) => l !== CHANNEL)
-            logins.forEach((login, i) => setTimeout(() => {
-              votantes[login] = Math.random() < 0.65 ? 0 : 1
-              enviar({ fase: "votacao", id, votantes: { ...votantes } })
-            }, 600 + i * 350))
-            setTimeout(() => enviar({ fase: "veredito", id, votantes, vencedora: 0 }), 1200 + logins.length * 350)
-          },
           p: () => say(random(), "!pula"),
           n: () => say(random(), "!dança"),
           o: () => say(random(), "!ola"),

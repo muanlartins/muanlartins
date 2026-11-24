@@ -5,7 +5,7 @@ list of every way to take part in the live from the chat (the site's /canal/coma
     python3 scripts/comandos.py --apply    # create what's missing, update what differs
     python3 scripts/comandos.py --painel   # the "Comandos" panel's text, to paste under its picture on Twitch
 
-Only the list's commands with a `resposta` are the bot's (the stand's and the VAR's are the overlays'). Each becomes
+Only the list's commands with a `resposta` are the bot's (the stand's are the overlay's). Each becomes
 a StreamElements custom command: its name and `apelidos` without the "!", the answer as it is (${...} are
 StreamElements' variables: customapi shows the Σ and profile APIs' plain-text answers, GET /sigma.txt and
 GET /agenda.txt), open to everyone, `espera` as the cooldowns [per person, for everyone] in seconds. A command

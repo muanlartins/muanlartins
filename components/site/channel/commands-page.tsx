@@ -15,7 +15,7 @@ const TERM = "14rem"
 /**
  * /canal/comandos, a documentation page: every way to take part in the live from the chat, from
  * public/stream/comandos.json (the same list the stand's tips, the chat bot and the Twitch panel come from): the
- * stand's commands, tried on sample fans; the VAR's vote; the chat bot's; the rewards for Twitch's channel points;
+ * stand's commands, tried on sample fans; the chat bot's; the rewards for Twitch's channel points;
  * and the way to Σ's own page.
  */
 export function CommandsPage() {

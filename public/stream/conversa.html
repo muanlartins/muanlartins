@@ -256,15 +256,13 @@
         try {
           window.obsstudio?.getCurrentScene?.((cena) => cena?.name === "Conversa" && noArAgora(true))
         } catch {}
-        // OBS's events (the stream on, the VAR) reach only this page: pass them on to the games.
-        for (const tipo of ["muanlartins-torcida", "muanlartins-var"]) {
-          addEventListener(tipo, ({ detail }) => {
-            for (const el of Object.values(jogos)) {
-              const w = el.contentWindow
-              if (w) w.dispatchEvent(new w.CustomEvent(tipo, { detail }))
-            }
-          })
-        }
+        // OBS's events (the stream on) reach only this page: pass them on to the games.
+        addEventListener("muanlartins-torcida", ({ detail }) => {
+          for (const el of Object.values(jogos)) {
+            const w = el.contentWindow
+            if (w) w.dispatchEvent(new w.CustomEvent("muanlartins-torcida", { detail }))
+          }
+        })
       }
     </script>
   </body>

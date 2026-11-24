@@ -219,7 +219,7 @@ function Points() {
       <Lattice />
       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[64px] font-medium leading-none text-paper max-sm:left-1/2 max-sm:-translate-x-1/2">Σ</span>
       <ul className="absolute inset-y-0 right-4 flex flex-col items-end justify-center gap-1.5 text-[12px] font-medium max-sm:hidden">
-        {["+1 por minuto", "+10 por live", "+3 no VAR"].map((chip) => (
+        {["+1 por minuto", "+10 por live"].map((chip) => (
           <li key={chip} className="bg-paper px-1.5 py-0.5 text-klein">
             {chip}
           </li>

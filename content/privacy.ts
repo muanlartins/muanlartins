@@ -14,7 +14,7 @@ export const privacy = {
     en: "What this site, the live and the channel's tools do with data.",
   },
   /** The day this policy last changed (YYYY-MM-DD). */
-  updated: "2026-11-21",
+  updated: "2026-11-24",
   meta: {
     updated: { pt: "Atualizada em", en: "Updated" },
     covers: { pt: "Vale para", en: "Covers" },
@@ -76,8 +76,8 @@ export const privacy = {
       title: { pt: "Na live: presença e Σ", en: "On the live: presence and Σ" },
       paragraphs: [
         {
-          pt: "Quem está no chat durante a live, logado na Twitch, é contado pelo nome de usuário: os minutos e as lives assistidas, as lives seguidas e os Σ que isso dá, os votos no VAR que acertaram, os duelos, as corridas e os gols dedicados. Não precisa entrar no site para isso.",
-          en: "Whoever is in the chat during the live, logged in to Twitch, is counted by their username: minutes and lives watched, lives in a row and the Σ they earn, VAR votes that got it right, duels, races and goals dedicated to them. It doesn't take signing in on the site.",
+          pt: "Quem está no chat durante a live, logado na Twitch, é contado pelo nome de usuário: os minutos e as lives assistidas, as lives seguidas e os Σ que isso dá, os duelos, as corridas e os gols dedicados. Não precisa entrar no site para isso.",
+          en: "Whoever is in the chat during the live, logged in to Twitch, is counted by their username: minutes and lives watched, lives in a row and the Σ they earn, duels, races and goals dedicated to them. It doesn't take signing in on the site.",
         },
         {
           pt: "Isso é público: aparece na arquibancada e nos créditos da live, no mural, nos minijogos e numa página sua no site, em muanlartins.com.br/torcedor/ e o seu nome de usuário. Fica guardado na Amazon Web Services; para apagar, fale comigo (abaixo).",

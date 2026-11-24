@@ -12,7 +12,7 @@ import { test } from "node:test"
 import vm from "node:vm"
 import * as E from "../public/stream/torcedor3d/esquema.js"
 import { doAntigo, normalizar2D, padrao2D, torcedorDe } from "../public/stream/torcedor3d/antigo.js"
-import { ARBITRO, camisa2D, clube, comTime, natal, TIMES, TOUCA, vestir } from "../public/stream/torcedor3d/vestir.js"
+import { camisa2D, clube, comTime, natal, TIMES, TOUCA, vestir } from "../public/stream/torcedor3d/vestir.js"
 
 const { normalizar, enxugar, codigo, lerCodigo, sortear, MODELOS, CAMPOS } = E
 const sha = (linhas) => createHash("sha256").update(linhas.join("\n")).digest("hex")
@@ -179,23 +179,17 @@ test("the club: picked, its shirt goes on and stays theirs to change; any other 
   assert.deepEqual(camisa2D({ roupa: "listra", cor: "#ffffff", detalhe: "#000000" }), { cor: "#ffffff", detalhe: "#000000", terceira: "#ffffff", golaC: "#000000", roupa: "peito" })
 })
 
-test("vestir: the referee's kit and Santa's hat go on when drawn, and no profile can keep them", () => {
+test("vestir: Santa's hat goes on when drawn, and no profile can keep it", () => {
   const look = normalizar({
     ...MODELOS[0][1], capuz: "levantado", desenhos: [{ f: "estrela", em: "camisa" }, { f: "coracao", em: "rosto" }],
   })
   assert.deepEqual(vestir(look), look)
-  const juiz = vestir(look, { arbitro: true })
-  for (const [k, v] of Object.entries(ARBITRO)) assert.equal(juiz[k], v, k)
-  assert.deepEqual(juiz.desenhos.map((d) => d.em), ["rosto"])
-  assert.deepEqual([juiz.pele, juiz.chapeu, juiz.mao], [look.pele, look.chapeu, look.mao])
   const natalino = vestir(look, { natal: true })
   for (const [k, v] of Object.entries(TOUCA)) assert.equal(natalino[k], v, k)
   assert.equal(natalino.capuz, "abaixado")
   // What vestir adds isn't an option: saved or put in a code, it's gone.
   assert.equal(normalizar(natalino).chapeu, "nada")
   assert.equal(lerCodigo(codigo(natalino)).chapeu, "nada")
-  const ambos = vestir(look, { arbitro: true, natal: true })
-  assert.deepEqual([ambos.cor, ambos.chapeu, ambos.capuz], ["#ffd23f", "touca", "nada"])
   // A saved (enxuto) look is enough.
   assert.equal(vestir({ topo: "afro" }, { natal: true }).topo, "afro")
   assert.equal(look.chapeu, "bone")

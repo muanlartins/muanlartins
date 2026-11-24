@@ -16,7 +16,7 @@ if (stage) {
 /**
  * December's Christmas on the overlays (2026-11-15, with the Christmas goal): lights twinkling round every camera
  * frame and snow falling on the Klein ground of the screens that have it (Começando, Já volto, Fim, Conversa,
- * Anúncios, Terapia, the credits; not the VAR's). By São Paulo's calendar; ?natal shows it any day, ?natal=0 hides it.
+ * Anúncios, Terapia, the credits). By São Paulo's calendar; ?natal shows it any day, ?natal=0 hides it.
  */
 const NATAL =
   params.get("natal") === "0" ? false
@@ -189,7 +189,7 @@ function neve(el, { flocos = 140 } = {}) {
   }
   requestAnimationFrame(cair)
 }
-if (NATAL) for (const g of document.querySelectorAll(".ground:not([data-sem-neve])")) neve(g)
+if (NATAL) for (const g of document.querySelectorAll(".ground")) neve(g)
 
 /**
  * The name plate: the small mark and a line of text, on the frame's bottom
@@ -598,76 +598,3 @@ function demo(show) {
 
 // What the pages call.
 Object.assign(window, { params, frame, plate, recordPlate, valorantPlate, RANKS, DIVISIONS, rankName, hasDivisions, alternate, mark, drawCopy, chat, BOTS, irc, parseIrc })
-
-/**
- * The VAR's state from a "muanlartins-var" event: the Efeitos dock sends it as JSON text in `estado` (obs-websocket
- * keeps only arrays of objects, so the options and votes would arrive empty); a page's own ?demo sends it as is.
- */
-function varDe(detail) {
-  if (typeof detail?.estado !== "string") return detail ?? null
-  try {
-    return JSON.parse(detail.estado)
-  } catch {
-    return null
-  }
-}
-
-/**
- * The VAR's replay, the same in var.html (the clip on stream) and the Efeitos dock (its preview). An instant replay:
- * the clip's last seconds, with no looking for the play (Luan, 2026-11-12). It plays on its own, by the script the dock
- * sends (Luan doesn't steer it live): after `espera` s for the clip to load, the stretch once at full speed, again at
- * `lenta` (Valorant zooms by `zoom` on the crosshair, the screen's middle, meanwhile), again both if there's time; for
- * the vote's last `telaFim` s the closing screen, the clip frozen on the stretch's last frame while the last votes come
- * in. The stretch is as long as the two passes that fit in the vote. r.roteiro = { de, ate } in clip seconds, { inicio,
- * fim } in epoch ms; null once Luan touches the dock's player, which then keeps the clock as { t, em, tocando, base }.
- */
-const ROTEIRO = { espera: 1, lenta: 0.5, telaFim: 8, rampa: 0.4, zoom: 1.35 }
-
-/** The script for a VAR opening `agora` with a vote of `votoMs`, over a clip of `duracao` s. */
-function roteiroPara(duracao, votoMs, agora = Date.now()) {
-  const ate = Math.max(0.5, duracao - 0.05)
-  const livre = votoMs / 1000 - ROTEIRO.espera - ROTEIRO.telaFim
-  const w = Math.min(ate, Math.max(3, livre / (1 + 1 / ROTEIRO.lenta)))
-  return {
-    de: Math.round((ate - w) * 100) / 100, ate: Math.round(ate * 100) / 100,
-    inicio: agora + ROTEIRO.espera * 1000, fim: agora + votoMs - ROTEIRO.telaFim * 1000,
-  }
-}
-
-/**
- * Where the script is at `agora`: { fase: "espera" | "normal" | "lenta" | "fim", t (clip s), taxa, tocando, peso (0–1,
- * how far into the slow pass, eased: the picture's slow-motion look and Valorant's zoom) }, or null without a script.
- */
-function roteiroAgora(r, agora = Date.now()) {
-  const s = r?.roteiro
-  if (!s) return null
-  if (agora >= s.fim) return { fase: "fim", t: s.ate, taxa: 1, tocando: false, peso: 0 }
-  if (agora < s.inicio) return { fase: "espera", t: s.de, taxa: 1, tocando: false, peso: 0 }
-  const w = Math.max(0.5, s.ate - s.de)
-  const lenta = w / ROTEIRO.lenta
-  const e = ((agora - s.inicio) / 1000) % (w + lenta)
-  if (e < w) return { fase: "normal", t: s.de + e, taxa: 1, tocando: true, peso: 0 }
-  const x = e - w
-  const suave = (v) => (v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v))
-  const peso = suave(x / ROTEIRO.rampa) * suave((lenta - x) / ROTEIRO.rampa)
-  return { fase: "lenta", t: s.de + x * ROTEIRO.lenta, taxa: ROTEIRO.lenta, tocando: true, peso }
-}
-
-/** Whether the replay is playing now: the script's pass, or the dock's play/pause once Luan took over. */
-function replayTocando(r, agora = Date.now()) {
-  const s = roteiroAgora(r, agora)
-  return s ? s.tocando : !!r?.tocando
-}
-
-/**
- * Where the replay should be now: the script's place, or the dock's last snapshot (clip time `t` at epoch ms `em`)
- * carried forward at its speed `base`, looping. Both sides compute it the same way, so a page only seeks when it drifts.
- */
-function replayPosicao(r, agora = Date.now()) {
-  const s = roteiroAgora(r, agora)
-  if (s) return s.t
-  if (!r || r.t == null) return 0
-  if (!r.tocando) return r.t
-  const t = r.t + (Math.max(0, agora - r.em) / 1000) * (r.base ?? 1)
-  return r.duracao ? t % r.duracao : t
-}

@@ -42,11 +42,10 @@ export interface Quem {
   look?: Torcedor3DSalvo | null
   modelo?: string
   natal?: boolean
-  arbitro?: boolean
 }
 const vestidos = new Map<string, { look: Look; codigo: string }>()
 /**
- * The look as drawn (dressed for December or the VAR, never saved) and its code, the cache's key. `chave` is `q` as
+ * The look as drawn (dressed for December, never saved) and its code, the cache's key. `chave` is `q` as
  * JSON: the same person shown twice on a page is worked out once.
  */
 export async function vestido(chave: string): Promise<{ look: Look; codigo: string }> {
@@ -56,7 +55,7 @@ export async function vestido(chave: string): Promise<{ look: Look; codigo: stri
     const q = JSON.parse(chave) as Quem
     const preset = q.modelo ? T.MODELOS.find(([nome]) => nome === q.modelo)?.[1] : undefined
     const base = q.look ?? preset ?? T.torcedorDe(q.aparencia, q.login ?? "")
-    const look = T.vestir(base, { natal: q.natal, arbitro: q.arbitro })
+    const look = T.vestir(base, { natal: q.natal })
     v = { look, codigo: T.codigo(look) }
     if (vestidos.size > 1000) vestidos.clear()
     vestidos.set(chave, v)

@@ -1,7 +1,7 @@
-// What a fan wears, as the 2D fan has it (public/stream/torcedor.js: TIMES, ARBITRO, natal). Their club: picking one
-// of TIMES puts its shirt on the look (comTime), which is saved, and they may change it after, as today. The referee's
-// kit while the VAR is open and Santa's hat in December are put on only when it's drawn and never saved: the last step
-// before drawing is criarBoneco(vestir(look, { arbitro, natal })). Pure, like esquema.js.
+// What a fan wears, as the 2D fan has it (public/stream/torcedor.js: TIMES, natal). Their club: picking one of TIMES
+// puts its shirt on the look (comTime), which is saved, and they may change it after, as today. Santa's hat in December
+// is put on only when it's drawn and never saved: the last step before drawing is criarBoneco(vestir(look, { natal })).
+// Pure, like esquema.js.
 import { normalizar } from "./esquema.js"
 
 // Black is a dark grey: pure black vanishes against the navy outline and the darker arenas.
@@ -60,28 +60,17 @@ export function comTime(look, nome) {
   return { ...look, time: nome, ...(time ? camisa2D(time) : {}) }
 }
 
-// While the VAR is open, everyone in the referee's kit over their own look: a yellow shirt with a black collar and
-// cuffs, the whistle on its cord, nothing over the shirt. The head stays theirs.
-export const ARBITRO = {
-  roupa: "lisa", cor: "#ffd23f", detalhe: PRETO, terceira: PRETO, gola: "polo", golaC: PRETO, numOn: false, manga: "curta", punho: true,
-  pesc: "apito", pescC: BRANCO, pescC2: "#c9ced8", sobre: "nada", golaA: "nada", capuz: "nada", ombreira: "nada", cinto: "nada",
-}
 // December's Santa hat (boneco.js draws "touca", which is no option in ESQUEMA: no profile can keep it).
 export const TOUCA = { chapeu: "touca", chapC: "#e03131", chapC2: BRANCO, chapY: 0, chapR: 0, chapT: 1 }
 /** Whether it's December in Brasília, when the stand wears Santa's hat: torcedor.js's natal(). */
 export const natal = (agora = Date.now()) => new Date(agora).toLocaleDateString("en-US", { timeZone: "America/Sao_Paulo", month: "numeric" }) === "12"
 
 /**
- * The look to draw: the referee's kit with `arbitro` (the shirt's drawings go with their shirt), then Santa's hat with
- * `natal` (over any hat; a raised hood comes down for it). Takes a saved look or a whole one and gives a whole one;
- * never save what it returns.
+ * The look to draw: Santa's hat with `natal` (over any hat; a raised hood comes down for it). Takes a saved look or a
+ * whole one and gives a whole one; never save what it returns.
  */
-export function vestir(look, { arbitro = false, natal: comTouca = false } = {}) {
+export function vestir(look, { natal: comTouca = false } = {}) {
   const a = normalizar(look)
-  if (arbitro) {
-    Object.assign(a, ARBITRO)
-    a.desenhos = a.desenhos.filter((d) => d.em !== "camisa")
-  }
   if (comTouca) Object.assign(a, TOUCA, a.capuz === "levantado" ? { capuz: "abaixado" } : {})
   return a
 }

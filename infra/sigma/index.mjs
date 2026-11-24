@@ -15,8 +15,7 @@
 // GET /eu with the viewer's Twitch token: their own, with what they sent. POST /presenca comes from the crowd
 // overlay once a minute while the stream is on, with who's in the chat and the key: each gets 1 Σ a minute
 // (once, however many calls), and on their first minute of a live 10 Σ plus 5 for each live in a row before
-// it, up to 50. A live is a day, in Luan's time. POST /var comes from the crowd overlay too, with the key, when the
-// chat's verdict on a VAR comes out: who voted for it gets VAR_SIGMA, once per VAR (its id), however many calls.
+// it, up to 50. A live is a day, in Luan's time.
 // GET /presentes, with the key, is who's in the chat right now (credited by POST /presenca in the last PRESENTE
 // minutes) with their Σ: the Pix API draws the Christmas gift subs from them.
 // GET /sigma.txt?login=a&nome=A is public, plain text: someone's Σ, rank and lives in a line of chat (texto.mjs), the
@@ -46,8 +45,6 @@ const db = DynamoDBDocumentClient.from(new DynamoDBClient({}))
 const T = process.env.TABLE
 const CANAL = "#canal"
 const DONO = "muanlartins" // the channel itself: in its own stand, but it neither earns Σ nor shows any
-// Getting the VAR right: very little, three minutes of watching (Luan's call, 2026-11-09).
-const VAR_SIGMA = 3
 // The crowd overlay credits the chat once a minute: whoever got one of the last few is still there.
 const PRESENTE = 2
 const MINIJOGOS = "muanlartins.com.br/canal/minijogos"
@@ -147,43 +144,6 @@ async function presenca(event) {
               ":um": 1,
               ":l": nova ? 1 : 0,
             },
-          }),
-        )
-        creditados++
-      } catch (e) {
-        if (e.name !== "ConditionalCheckFailedException") throw e
-      }
-    }),
-  )
-  return out(200, { creditados })
-}
-
-// Who voted for the chat's verdict on VAR `id` (the dock's, a timestamp): VAR_SIGMA each. `ultimoVar` keeps the
-// last one credited, so a second call (the two crowd sources both send it) changes nothing.
-async function acertouVar(event) {
-  if (!daLive(event)) return out(401, {})
-  let corpo = event.body || "{}"
-  if (event.isBase64Encoded) corpo = Buffer.from(corpo, "base64").toString()
-  let id, logins
-  try {
-    const dados = JSON.parse(corpo)
-    id = String(dados.id ?? "")
-    logins = lista(dados.logins || []).filter((l) => l !== DONO && l !== CANAL)
-  } catch {
-    return out(400, {})
-  }
-  if (!/^\d{1,15}$/.test(id)) return out(400, {})
-  let creditados = 0
-  await Promise.all(
-    logins.map(async (login) => {
-      try {
-        await db.send(
-          new UpdateCommand({
-            TableName: T,
-            Key: { login },
-            ConditionExpression: "attribute_not_exists(ultimoVar) OR ultimoVar <> :v",
-            UpdateExpression: "SET ultimoVar = :v ADD sigma :g",
-            ExpressionAttributeValues: { ":v": id, ":g": VAR_SIGMA },
           }),
         )
         creditados++
@@ -378,7 +338,6 @@ export async function handler(event) {
   if (metodo === "POST" && caminho === "/duelo") return duelo(event)
   if (metodo === "POST" && caminho === "/presenca") return presenca(event)
   if (metodo === "GET" && caminho === "/presentes") return presentes(event)
-  if (metodo === "POST" && caminho === "/var") return acertouVar(event)
   if (metodo === "POST" && caminho === "/dedicatoria") return dedicada(event)
   return out(404, {})
 }

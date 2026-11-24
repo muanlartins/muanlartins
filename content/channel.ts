@@ -155,8 +155,8 @@ export const channel = {
   comandos: {
     title: { pt: "Comandos", en: "Commands" },
     description: {
-      pt: "Tudo o que dá pra fazer na live pelo chat: mexer o seu torcedor, votar no VAR, perguntar pro bot e trocar os pontos do canal da Twitch.",
-      en: "Everything you can do on the stream from the chat: move your fan, vote on the VAR, ask the bot and spend Twitch's channel points.",
+      pt: "Tudo o que dá pra fazer na live pelo chat: mexer o seu torcedor, perguntar pro bot e trocar os pontos do canal da Twitch.",
+      en: "Everything you can do on the stream from the chat: move your fan, ask the bot and spend Twitch's channel points.",
     },
     /** The facts under the title. */
     meta: {
@@ -192,8 +192,8 @@ export const channel = {
     sigma: {
       title: { pt: "Σ, os pontos do site", en: "Σ, the site's points" },
       text: {
-        pt: "Você ganha assistindo, acertando o VAR e mandando Pix. Como ganhar, os ranks e pra que servem estão na página deles.",
-        en: "You earn them by watching, getting the VAR right and sending Pix. How to earn them, the ranks and what they're for are on their page.",
+        pt: "Você ganha assistindo e mandando Pix. Como ganhar, os ranks e pra que servem estão na página deles.",
+        en: "You earn them by watching and sending Pix. How to earn them, the ranks and what they're for are on their page.",
       },
       cta: { pt: "Ver os Σ", en: "See Σ" },
     },
