@@ -1,0 +1,6540 @@
+{
+ "agente": "raze",
+ "codinome": "Clay",
+ "falas": [
+  {
+   "id": "bountyhunter-roundstart-ally-clay-01",
+   "jogo": "BountyHunter.RoundStart.Ally[Clay]01",
+   "quem": "fade",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_BountyHunter_E04_RoundStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, você não tem medo do caos que provoca. É impressionante.",
+   "en": "Raze, you do not fear the chaos you inflict. I'm impressed.",
+   "segundos": {
+    "en": 4.71,
+    "pt": 4.85
+   }
+  },
+  {
+   "id": "breach-e02-bubbledown-ally-clay-01",
+   "jogo": "Breach.E02.BubbleDown.Ally[Clay]01",
+   "quem": "breach",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Breach_E02_BubbleDownAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Eu e você, Raze.",
+   "en": "It's you and me, Raze.",
+   "segundos": {
+    "en": 1.19,
+    "pt": 1.2
+   }
+  },
+  {
+   "id": "breach-e02-match-startally-clay-01",
+   "jogo": "Breach.E02.Match.StartAlly[Clay]01",
+   "quem": "breach",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Breach_E02_MatchStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze! Tamo junto de novo e nem tamo fazendo nada ilegal.",
+   "en": "Raze! Huh, together again and we're not even breaking the law!",
+   "segundos": {
+    "en": 4.0,
+    "pt": 3.94
+   }
+  },
+  {
+   "id": "breach-e02-match-startconversation-claybreach-01",
+   "jogo": "Breach.E02.Match.StartConversation[ClayBreach]01",
+   "quem": "breach",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Breach_E02_MatchSrt_Chat_ClayBreach"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Oh, que tragédia, hein? Seria uma pena.",
+   "en": "Oh man, just awful. A tragedy.",
+   "segundos": {
+    "en": 3.47,
+    "pt": 3.19
+   }
+  },
+  {
+   "id": "breach-e02-roundstart-allycommend-clay-01",
+   "jogo": "Breach.E02.RoundStart.AllyCommend[Clay]01",
+   "quem": "breach",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Breach_E02_RoundStartAllyCommend_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, aí tu brocô! É assim que falam lá na Bahia?",
+   "en": "Mandou bem, Raze! How's that for pronunciation, huh?",
+   "segundos": {
+    "en": 4.92,
+    "pt": 5.36
+   }
+  },
+  {
+   "id": "breach-e02-roundstart-ally-clay-01",
+   "jogo": "Breach.E02.RoundStart.Ally[Clay]01",
+   "quem": "breach",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Breach_E02_RoundStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, não sai explodindo tudo sozinha. Deixa um pouquinho pra mim também.",
+   "en": "Raze, don't wreck this place all on your own! Hehe, save some demo for me!",
+   "segundos": {
+    "en": 4.46,
+    "pt": 3.83
+   }
+  },
+  {
+   "id": "breach-roundend-lastkill-clay-01",
+   "jogo": "Breach.RoundEnd.LastKill[Clay]01",
+   "quem": "breach",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Breach_E08_LastKill_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Foi mal, lillsyrran.",
+   "en": "Sorry, lillsyrran.",
+   "segundos": {
+    "en": 0.95,
+    "pt": 1.17
+   }
+  },
+  {
+   "id": "cashew-roundstart-ally-clay-01",
+   "jogo": "Cashew.RoundStart.Ally[Clay]01",
+   "quem": "tejo",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Cashew_RoundStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Senhora Alves, dá uma segurada nos explosivos. Desse jeito vai me deixar sem emprego.",
+   "en": "Señora [[Raze|Alves]], don't get too eager out there with explosives. You'll put me out of a job.",
+   "segundos": {
+    "en": 5.33,
+    "pt": 5.23
+   }
+  },
+  {
+   "id": "clay-abilityccast01",
+   "jogo": "Clay.AbilityCCast01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCCast"
+   ],
+   "pt": "Bombinho já foi.",
+   "en": "Bomb buddy out.",
+   "segundos": {
+    "en": 0.85,
+    "pt": 1.12
+   }
+  },
+  {
+   "id": "clay-abilityccast01-alt01",
+   "jogo": "Clay.AbilityCCast01_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCCast"
+   ],
+   "pt": "Bombinho já foi!",
+   "en": "Bomb buddy out.",
+   "segundos": {
+    "en": 0.88,
+    "pt": 1.05
+   }
+  },
+  {
+   "id": "clay-abilityccast02",
+   "jogo": "Clay.AbilityCCast02",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCCast"
+   ],
+   "pt": "Pega eles!",
+   "en": "Go get 'em.",
+   "segundos": {
+    "en": 0.73,
+    "pt": 0.82
+   }
+  },
+  {
+   "id": "clay-abilityccast02-alt01",
+   "jogo": "Clay.AbilityCCast02_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCCast"
+   ],
+   "pt": "Pega eles!",
+   "en": "Go get 'em.",
+   "segundos": {
+    "en": 0.64,
+    "pt": 0.79
+   }
+  },
+  {
+   "id": "clay-abilityckill01",
+   "jogo": "Clay.AbilityCKill01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCKill"
+   ],
+   "pt": "Ha! Lerdeza!",
+   "en": "Too slow.",
+   "segundos": {
+    "en": 1.51,
+    "pt": 1.56
+   }
+  },
+  {
+   "id": "clay-abilityckill01-alt01",
+   "jogo": "Clay.AbilityCKill01_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCKill"
+   ],
+   "pt": "Vacilou.",
+   "en": "Too slow.",
+   "segundos": {
+    "en": 0.59,
+    "pt": 0.76
+   }
+  },
+  {
+   "id": "clay-abilityckill02",
+   "jogo": "Clay.AbilityCKill02",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCKill"
+   ],
+   "pt": "Ssss, ai",
+   "en": "Ouch!",
+   "segundos": {
+    "en": 1.54,
+    "pt": 1.08
+   }
+  },
+  {
+   "id": "clay-abilityckill02-alt01",
+   "jogo": "Clay.AbilityCKill02_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCKill"
+   ],
+   "pt": "Ai!",
+   "en": "Ouch!",
+   "segundos": {
+    "en": 1.23,
+    "pt": 0.72
+   }
+  },
+  {
+   "id": "clay-abilitycmultiplekills01",
+   "jogo": "Clay.AbilityCMultipleKills01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCMultipleKills"
+   ],
+   "pt": "Ha! Não esperava isso, não.",
+   "en": "Ha! I didn't expect that!",
+   "segundos": {
+    "en": 2.22,
+    "pt": 1.49
+   }
+  },
+  {
+   "id": "clay-abilitycmultiplekills01-alt01",
+   "jogo": "Clay.AbilityCMultipleKills01_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCMultipleKills"
+   ],
+   "pt": "Não esperava essa não.",
+   "en": "I didn't expect that!",
+   "segundos": {
+    "en": 2.38,
+    "pt": 1.71
+   }
+  },
+  {
+   "id": "clay-abilitycmultiplekills02",
+   "jogo": "Clay.AbilityCMultipleKills02",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCMultipleKills"
+   ],
+   "pt": "Ficaram parados!",
+   "en": "They didn't move?!",
+   "segundos": {
+    "en": 1.37,
+    "pt": 1.44
+   }
+  },
+  {
+   "id": "clay-abilitycmultiplekills02-alt01",
+   "jogo": "Clay.AbilityCMultipleKills02_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityCMultipleKills"
+   ],
+   "pt": "Ficaram parados?",
+   "en": "They didn't move?!",
+   "segundos": {
+    "en": 0.99,
+    "pt": 1.23
+   }
+  },
+  {
+   "id": "clay-abilityecast02",
+   "jogo": "Clay.AbilityECast02",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityECast"
+   ],
+   "pt": "Granada!",
+   "en": "Grenade!",
+   "segundos": {
+    "en": 0.68,
+    "pt": 0.9
+   }
+  },
+  {
+   "id": "clay-abilityecast02-alt01",
+   "jogo": "Clay.AbilityECast02_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityECast"
+   ],
+   "pt": "Granada!",
+   "en": "Grenade!",
+   "segundos": {
+    "en": 0.63,
+    "pt": 0.82
+   }
+  },
+  {
+   "id": "clay-abilityecast02-alt02",
+   "jogo": "Clay.AbilityECast02_alt02",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityECast"
+   ],
+   "pt": "Granada!",
+   "en": "Grenade!",
+   "segundos": {
+    "en": 0.53,
+    "pt": 0.66
+   }
+  },
+  {
+   "id": "clay-abilityekill01",
+   "jogo": "Clay.AbilityEKill01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityEKill"
+   ],
+   "pt": "A arte mais linda.",
+   "en": "Colorful kill!",
+   "segundos": {
+    "en": 1.0,
+    "pt": 1.43
+   }
+  },
+  {
+   "id": "clay-abilityekill01-alt01",
+   "jogo": "Clay.AbilityEKill01_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityEKill"
+   ],
+   "pt": "Abate mais lindo!",
+   "en": "Colorful kill!",
+   "segundos": {
+    "en": 1.15,
+    "pt": 1.46
+   }
+  },
+  {
+   "id": "clay-abilityekill02",
+   "jogo": "Clay.AbilityEKill02",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityEKill"
+   ],
+   "pt": "Boom!",
+   "en": "Boom!",
+   "segundos": {
+    "en": 0.56,
+    "pt": 0.66
+   }
+  },
+  {
+   "id": "clay-abilityekill02-alt01",
+   "jogo": "Clay.AbilityEKill02_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityEKill"
+   ],
+   "pt": "Boom!",
+   "en": "Boom!",
+   "segundos": {
+    "en": 0.54,
+    "pt": 0.62
+   }
+  },
+  {
+   "id": "clay-abilityemultiplekills01",
+   "jogo": "Clay.AbilityEMultipleKills01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityEMultipleKills"
+   ],
+   "pt": "Botei pra fuder!",
+   "en": "Money, baby! This is money!",
+   "segundos": {
+    "en": 2.19,
+    "pt": 1.31
+   }
+  },
+  {
+   "id": "clay-abilityemultiplekills01-alt01",
+   "jogo": "Clay.AbilityEMultipleKills01_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityEMultipleKills"
+   ],
+   "pt": "Botei pra fuder!",
+   "en": "Money, baby! This is money!",
+   "segundos": {
+    "en": 2.3,
+    "pt": 1.4
+   }
+  },
+  {
+   "id": "clay-abilityemultiplekills02",
+   "jogo": "Clay.AbilityEMultipleKills02",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityEMultipleKills"
+   ],
+   "pt": "Oxe!",
+   "en": "Holy shit!",
+   "segundos": {
+    "en": 0.93,
+    "pt": 0.55
+   }
+  },
+  {
+   "id": "clay-abilityemultiplekills02-alt01",
+   "jogo": "Clay.AbilityEMultipleKills02_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityEMultipleKills"
+   ],
+   "pt": "Oxe!",
+   "en": "Holy shit!",
+   "segundos": {
+    "en": 1.06,
+    "pt": 0.8
+   }
+  },
+  {
+   "id": "clay-abilityqcast01",
+   "jogo": "Clay.AbilityQCast01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityQCast"
+   ],
+   "pt": "Lá vai, carga!",
+   "en": "Satchel out.",
+   "segundos": {
+    "en": 0.66,
+    "pt": 0.79
+   }
+  },
+  {
+   "id": "clay-abilityqcast01-alt01",
+   "jogo": "Clay.AbilityQCast01_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityQCast"
+   ],
+   "pt": "Lá vai, carga!",
+   "en": "Satchel out.",
+   "segundos": {
+    "en": 0.77,
+    "pt": 0.92
+   }
+  },
+  {
+   "id": "clay-abilityqkill01",
+   "jogo": "Clay.AbilityQKill01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityQKill"
+   ],
+   "pt": "Surpresa!",
+   "en": "Surprise!",
+   "segundos": {
+    "en": 0.95,
+    "pt": 1.18
+   }
+  },
+  {
+   "id": "clay-abilityqkill01-alt01",
+   "jogo": "Clay.AbilityQKill01_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityQKill"
+   ],
+   "pt": "Surpresa!",
+   "en": "Surprise!",
+   "segundos": {
+    "en": 0.92,
+    "pt": 1.17
+   }
+  },
+  {
+   "id": "clay-abilityxcast01",
+   "jogo": "Clay.AbilityXCast01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXCast"
+   ],
+   "pt": "Ah!",
+   "en": "Here comes the party!",
+   "segundos": {
+    "en": 0.36,
+    "pt": 0.5
+   }
+  },
+  {
+   "id": "clay-abilityxcast01-alt01",
+   "jogo": "Clay.AbilityXCast01_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXCast"
+   ],
+   "pt": "Ah!",
+   "en": "Ugh!",
+   "segundos": {
+    "en": 0.29,
+    "pt": 0.37
+   }
+  },
+  {
+   "id": "clay-abilityxcast01-alt02",
+   "jogo": "Clay.AbilityXCast01_alt02",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXCast"
+   ],
+   "pt": "Grr!",
+   "en": "Here comes the party!",
+   "segundos": {
+    "en": 0.36,
+    "pt": 0.46
+   }
+  },
+  {
+   "id": "clay-abilityxequipallies03",
+   "jogo": "Clay.AbilityXEquipAllies03",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXEquip"
+   ],
+   "pt": "Chegou, reggae!",
+   "en": "Here comes the party!",
+   "segundos": {
+    "en": 1.58,
+    "pt": 1.45
+   }
+  },
+  {
+   "id": "clay-abilityxequipenemies01",
+   "jogo": "Clay.AbilityXEquipEnemies01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXEquip"
+   ],
+   "pt": "Lá vai fogo!",
+   "en": "Fire in the hole!",
+   "segundos": {
+    "en": 1.4,
+    "pt": 1.3
+   }
+  },
+  {
+   "id": "clay-abilityxkill01",
+   "jogo": "Clay.AbilityXKill01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXKill"
+   ],
+   "pt": "Boom!",
+   "en": "Boom!",
+   "segundos": {
+    "en": 0.6,
+    "pt": 0.74
+   }
+  },
+  {
+   "id": "clay-abilityxkill01-alt01",
+   "jogo": "Clay.AbilityXKill01_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXKill"
+   ],
+   "pt": "Boom!",
+   "en": "Boom!",
+   "segundos": {
+    "en": 0.69,
+    "pt": 0.71
+   }
+  },
+  {
+   "id": "clay-abilityxkill02",
+   "jogo": "Clay.AbilityXKill02",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXKill"
+   ],
+   "pt": "Obliterei!",
+   "en": "Obliterated!",
+   "segundos": {
+    "en": 2.02,
+    "pt": 1.32
+   }
+  },
+  {
+   "id": "clay-abilityxkill03",
+   "jogo": "Clay.AbilityXKill03",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXKill"
+   ],
+   "pt": "Te explodi!",
+   "en": "I blew you up!",
+   "segundos": {
+    "en": 1.27,
+    "pt": 1.31
+   }
+  },
+  {
+   "id": "clay-abilityxmultiplekills01",
+   "jogo": "Clay.AbilityXMultipleKills01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXMultipleKills"
+   ],
+   "pt": "Ha! Você viu essa?",
+   "en": "Ha, you see that?",
+   "segundos": {
+    "en": 1.43,
+    "pt": 1.13
+   }
+  },
+  {
+   "id": "clay-abilityxmultiplekills01-alt01",
+   "jogo": "Clay.AbilityXMultipleKills01_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXMultipleKills"
+   ],
+   "pt": "Viu só?!",
+   "en": "You see that?!",
+   "segundos": {
+    "en": 0.66,
+    "pt": 0.5
+   }
+  },
+  {
+   "id": "clay-abilityxmultiplekills02",
+   "jogo": "Clay.AbilityXMultipleKills02",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXMultipleKills"
+   ],
+   "pt": "Ah! Pô, é lindo demais!",
+   "en": "Hoh, that worked great!",
+   "segundos": {
+    "en": 2.4,
+    "pt": 1.8
+   }
+  },
+  {
+   "id": "clay-abilityxmultiplekills02-alt01",
+   "jogo": "Clay.AbilityXMultipleKills02_alt01",
+   "quem": "raze",
+   "quando": "abate-habilidade",
+   "eventos": [
+    "Play_VO_Clay_AbilityXMultipleKills"
+   ],
+   "pt": "Pô, é lindo demais!",
+   "en": "Hoh, that worked great!",
+   "segundos": {
+    "en": 2.6,
+    "pt": 1.83
+   }
+  },
+  {
+   "id": "clay-barelysurvived01",
+   "jogo": "Clay.BarelySurvived01",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_BarelySurvived"
+   ],
+   "pt": "Ai, ainda tô aqui, cumpade.",
+   "en": "Ugh, I'm still here, amigo.",
+   "segundos": {
+    "en": 2.38,
+    "pt": 2.88
+   }
+  },
+  {
+   "id": "clay-bubbledown-ally-sprinter-01",
+   "jogo": "Clay.BubbleDown.Ally[Sprinter]01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_E04_BubbleDownAlly_Sprinter"
+   ],
+   "com": [
+    "neon"
+   ],
+   "lado": "aliado",
+   "pt": "Neon! Bora, bora, bora!",
+   "en": "Neon, let's go, go, go!",
+   "segundos": {
+    "en": 1.57,
+    "pt": 1.27
+   }
+  },
+  {
+   "id": "clay-bubbledown-enemy-stealthboi-01",
+   "jogo": "Clay.BubbleDown.Enemy[Stealthboi]01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_E04_BubbleDownEnemy_Stealthboi"
+   ],
+   "com": [
+    "yoru"
+   ],
+   "lado": "inimigo",
+   "pt": "Hora de explodir o ego daquele Yoru.",
+   "en": "Time to blow up that Yoru's ego!",
+   "segundos": {
+    "en": 2.25,
+    "pt": 2.35
+   }
+  },
+  {
+   "id": "clay-bubbledownally-breach-01",
+   "jogo": "Clay.BubbleDownAlly[Breach]01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDownAlly_Breach"
+   ],
+   "com": [
+    "breach"
+   ],
+   "lado": "aliado",
+   "pt": "Bora, Breach! Te pique!",
+   "en": "Vamos, Breach. Let's go!",
+   "segundos": {
+    "en": 1.61,
+    "pt": 1.65
+   }
+  },
+  {
+   "id": "clay-bubbledownally-wushu-01",
+   "jogo": "Clay.BubbleDownAlly[Wushu]01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDownAlly_Wushu"
+   ],
+   "com": [
+    "jett"
+   ],
+   "lado": "aliado",
+   "pt": "Jun, bora explodir tudo.",
+   "en": "Joon-Hee, let's do what we do.",
+   "segundos": {
+    "en": 1.92,
+    "pt": 1.82
+   }
+  },
+  {
+   "id": "clay-bubbledownattackerdoinggreat01",
+   "jogo": "Clay.BubbleDownAttackerDoingGreat01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "Bora nessa! Pé na tábua!",
+   "en": "Let's go, keep it up!",
+   "segundos": {
+    "en": 1.0,
+    "pt": 1.54
+   }
+  },
+  {
+   "id": "clay-bubbledownattackerdoinggreat02",
+   "jogo": "Clay.BubbleDownAttackerDoingGreat02",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "Destrói tudo!",
+   "en": "Tear them down.",
+   "segundos": {
+    "en": 1.03,
+    "pt": 1.38
+   }
+  },
+  {
+   "id": "clay-bubbledownattackerdoingpoorly01",
+   "jogo": "Clay.BubbleDownAttackerDoingPoorly01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "Tem que ter axé.",
+   "en": "Gotta find that rhythm.",
+   "segundos": {
+    "en": 1.31,
+    "pt": 1.61
+   }
+  },
+  {
+   "id": "clay-bubbledownattackerdoingpoorly02",
+   "jogo": "Clay.BubbleDownAttackerDoingPoorly02",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "A batida é nossa, não deles.",
+   "en": "We set the tempo, not them.",
+   "segundos": {
+    "en": 1.95,
+    "pt": 1.92
+   }
+  },
+  {
+   "id": "clay-bubbledownattackereven01",
+   "jogo": "Clay.BubbleDownAttackerEven01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "Larga o dedo!",
+   "en": "Just let loose.",
+   "segundos": {
+    "en": 0.95,
+    "pt": 1.04
+   }
+  },
+  {
+   "id": "clay-bubbledownattackereven02",
+   "jogo": "Clay.BubbleDownAttackerEven02",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "Dá um sacode neles!",
+   "en": "Shake them up.",
+   "segundos": {
+    "en": 0.88,
+    "pt": 1.32
+   }
+  },
+  {
+   "id": "clay-bubbledowndefenderdoinggreat01",
+   "jogo": "Clay.BubbleDownDefenderDoingGreat01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "Não fizeram nem risco!",
+   "en": "They can't even make a dent!",
+   "segundos": {
+    "en": 1.58,
+    "pt": 1.67
+   }
+  },
+  {
+   "id": "clay-bubbledowndefenderdoinggreat02",
+   "jogo": "Clay.BubbleDownDefenderDoingGreat02",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "Eles têm nem chance.",
+   "en": "Ha! They don't have a chance.",
+   "segundos": {
+    "en": 2.11,
+    "pt": 2.36
+   }
+  },
+  {
+   "id": "clay-bubbledowndefenderdoingpoorly01",
+   "jogo": "Clay.BubbleDownDefenderDoingPoorly01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "A gente vai virar, eu sei.",
+   "en": "We'll come back. I can feel it.",
+   "segundos": {
+    "en": 2.43,
+    "pt": 1.89
+   }
+  },
+  {
+   "id": "clay-bubbledowndefenderdoingpoorly02",
+   "jogo": "Clay.BubbleDownDefenderDoingPoorly02",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "Vamos virar!",
+   "en": "We'll bring it back.",
+   "segundos": {
+    "en": 1.02,
+    "pt": 0.91
+   }
+  },
+  {
+   "id": "clay-bubbledowndefendertied01",
+   "jogo": "Clay.BubbleDownDefenderTied01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "Sai da minha casa!",
+   "en": "Stay out of my home.",
+   "segundos": {
+    "en": 1.25,
+    "pt": 1.54
+   }
+  },
+  {
+   "id": "clay-bubbledowndefendertied02",
+   "jogo": "Clay.BubbleDownDefenderTied02",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDown"
+   ],
+   "pt": "Vamos, gente!",
+   "en": "Vamos, gente!",
+   "segundos": {
+    "en": 0.89,
+    "pt": 0.76
+   }
+  },
+  {
+   "id": "clay-bubbledownenemy-clay-01",
+   "jogo": "Clay.BubbleDownEnemy[Clay]01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDownEnemy_Clay"
+   ],
+   "lado": "inimigo",
+   "pt": "Eita, Raze ruim!",
+   "en": "That Raze sucks!",
+   "segundos": {
+    "en": 1.1,
+    "pt": 1.92
+   }
+  },
+  {
+   "id": "clay-bubbledownenemy-thorne-01",
+   "jogo": "Clay.BubbleDownEnemy[Thorne]01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDownEnemy_Thorne"
+   ],
+   "com": [
+    "sage"
+   ],
+   "lado": "inimigo",
+   "pt": "As paredes da Sage estão indo abaixo!",
+   "en": "Sage's walls are coming down!",
+   "segundos": {
+    "en": 1.81,
+    "pt": 2.14
+   }
+  },
+  {
+   "id": "clay-bubbledowngeneric01",
+   "jogo": "Clay.BubbleDownGeneric01",
+   "quem": "raze",
+   "quando": "maestria",
+   "eventos": [
+    "Play_Bloomline_Clay_VO1",
+    "Play_VO_Clay_BubbleDownGeneric"
+   ],
+   "pt": "Quero explodir alguma coisa.",
+   "en": "I need to blow something up.",
+   "segundos": {
+    "en": 1.54,
+    "pt": 1.62
+   }
+  },
+  {
+   "id": "clay-bubbledowngeneric02",
+   "jogo": "Clay.BubbleDownGeneric02",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDownGeneric"
+   ],
+   "pt": "Cola em mim, mesma! Vaza!",
+   "en": "Come on, let's go!",
+   "segundos": {
+    "en": 0.88,
+    "pt": 1.46
+   }
+  },
+  {
+   "id": "clay-bubbledowngeneric03",
+   "jogo": "Clay.BubbleDownGeneric03",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDownGeneric"
+   ],
+   "pt": "Bora tocar um rebô!",
+   "en": "Let's make some chaos.",
+   "segundos": {
+    "en": 1.54,
+    "pt": 1.63
+   }
+  },
+  {
+   "id": "clay-bubbledowngeneric04",
+   "jogo": "Clay.BubbleDownGeneric04",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDownGeneric"
+   ],
+   "pt": "Bora botar eles pra correr!",
+   "en": "Let's flush them out.",
+   "segundos": {
+    "en": 1.18,
+    "pt": 1.56
+   }
+  },
+  {
+   "id": "clay-bubbledowngeneric05",
+   "jogo": "Clay.BubbleDownGeneric05",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDownGeneric"
+   ],
+   "pt": "Hora de explodir!",
+   "en": "Time to explode.",
+   "segundos": {
+    "en": 1.16,
+    "pt": 1.53
+   }
+  },
+  {
+   "id": "clay-bubbledowngeneric06",
+   "jogo": "Clay.BubbleDownGeneric06",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_BubbleDownGeneric"
+   ],
+   "pt": "Vai todo mundo dançar!",
+   "en": "Let's make 'em dance!",
+   "segundos": {
+    "en": 1.32,
+    "pt": 1.61
+   }
+  },
+  {
+   "id": "clay-bubbledowngeneric07",
+   "jogo": "Clay.BubbleDownGeneric07",
+   "quem": "raze",
+   "quando": "maestria",
+   "eventos": [
+    "Play_Bloomline_Clay_VO2",
+    "Play_VO_Clay_BubbleDownGeneric"
+   ],
+   "pt": "E vai rolar a festa!",
+   "en": "Let's start this party.",
+   "segundos": {
+    "en": 1.67,
+    "pt": 1.72
+   }
+  },
+  {
+   "id": "clay-cantuseabilitycharges01",
+   "jogo": "Clay.CantUseAbilityCharges01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_CantUse_NoCharges"
+   ],
+   "pt": "Sem carga.",
+   "en": "Out of charges.",
+   "segundos": {
+    "en": 0.81,
+    "pt": 0.65
+   }
+  },
+  {
+   "id": "clay-cantuseabilitycharges01-alt01",
+   "jogo": "Clay.CantUseAbilityCharges01_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_CantUse_NoCharges"
+   ],
+   "pt": "Sem carga.",
+   "en": "Out of charges.",
+   "segundos": {
+    "en": 0.84,
+    "pt": 0.75
+   }
+  },
+  {
+   "id": "clay-cantuseabilitycooldown01",
+   "jogo": "Clay.CantUseAbilityCooldown01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_CantUse_OnCooldown"
+   ],
+   "pt": "Não tá pronto.",
+   "en": "Not ready yet.",
+   "segundos": {
+    "en": 0.85,
+    "pt": 0.69
+   }
+  },
+  {
+   "id": "clay-cantuseabilitycooldown01-alt01",
+   "jogo": "Clay.CantUseAbilityCooldown01_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_CantUse_OnCooldown"
+   ],
+   "pt": "Não tá pronto.",
+   "en": "Not ready yet.",
+   "segundos": {
+    "en": 0.91,
+    "pt": 0.72
+   }
+  },
+  {
+   "id": "clay-cantuseabilitygeneric01",
+   "jogo": "Clay.CantUseAbilityGeneric01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_CantUse"
+   ],
+   "pt": "Não dá pra usar.",
+   "en": "Can't use that.",
+   "segundos": {
+    "en": 0.82,
+    "pt": 0.77
+   }
+  },
+  {
+   "id": "clay-cantuseabilitygeneric01-alt01",
+   "jogo": "Clay.CantUseAbilityGeneric01_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_CantUse"
+   ],
+   "pt": "Não dá pra usar.",
+   "en": "Can't use that.",
+   "segundos": {
+    "en": 0.78,
+    "pt": 0.81
+   }
+  },
+  {
+   "id": "clay-clutchplay01",
+   "jogo": "Clay.ClutchPlay01",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_ClutchPlay"
+   ],
+   "pt": "Ha ha! Pó parar não!",
+   "en": "Haha! Let's keep it going!",
+   "segundos": {
+    "en": 3.24,
+    "pt": 2.45
+   }
+  },
+  {
+   "id": "clay-clutchplay02",
+   "jogo": "Clay.ClutchPlay02",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_ClutchPlay"
+   ],
+   "pt": "Não mexa com essa baiana!",
+   "en": "Don't mess with this Baiana.",
+   "segundos": {
+    "en": 1.89,
+    "pt": 1.86
+   }
+  },
+  {
+   "id": "clay-clutchplay03",
+   "jogo": "Clay.ClutchPlay03",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_ClutchPlay"
+   ],
+   "pt": "Eu venci o dobro disso aí!",
+   "en": "Ha! I could've beaten twice the number!",
+   "segundos": {
+    "en": 2.88,
+    "pt": 2.74
+   }
+  },
+  {
+   "id": "clay-defuseoutoftime01",
+   "jogo": "Clay.DefuseOutofTime01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_DefuseOutofTime"
+   ],
+   "pt": "Desarmo isso dormindo.",
+   "en": "I defuse things in my sleep.",
+   "segundos": {
+    "en": 1.71,
+    "pt": 1.01
+   }
+  },
+  {
+   "id": "clay-defuseoutoftime01-alt01",
+   "jogo": "Clay.DefuseOutofTime01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_DefuseOutofTime"
+   ],
+   "pt": "Desarma isso dormindo.",
+   "en": "I defuse things in my sleep.",
+   "segundos": {
+    "en": 1.57,
+    "pt": 1.13
+   }
+  },
+  {
+   "id": "clay-defuseoutoftime02",
+   "jogo": "Clay.DefuseOutofTime02",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_DefuseOutofTime"
+   ],
+   "pt": "Só na Fiação!",
+   "en": "Impressive wiring.",
+   "segundos": {
+    "en": 1.25,
+    "pt": 1.27
+   }
+  },
+  {
+   "id": "clay-defuseoutoftime02-alt01",
+   "jogo": "Clay.DefuseOutofTime02_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_DefuseOutofTime"
+   ],
+   "pt": "Só na fiação!",
+   "en": "Impressive wiring.",
+   "segundos": {
+    "en": 1.32,
+    "pt": 1.22
+   }
+  },
+  {
+   "id": "clay-defusedobjective01",
+   "jogo": "Clay.DefusedObjective01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_DefusedObjective"
+   ],
+   "pt": "Ó, dó. Amo explosão.",
+   "en": "Ah, shame, I love explosions.",
+   "segundos": {
+    "en": 2.92,
+    "pt": 2.46
+   }
+  },
+  {
+   "id": "clay-e02-bubbledown-ally-killjoy-01",
+   "jogo": "Clay.E02.BubbleDown.Ally[Killjoy]01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_E02_BubbleDownAlly_Killjoy"
+   ],
+   "com": [
+    "killjoy"
+   ],
+   "lado": "aliado",
+   "pt": "Killjoy, você e eu até o fim.",
+   "en": "Killjoy. You and me until the end.",
+   "segundos": {
+    "en": 2.74,
+    "pt": 2.32
+   }
+  },
+  {
+   "id": "clay-e02-bubbledown-ally-pandemic-01",
+   "jogo": "Clay.E02.BubbleDown.Ally[Pandemic]01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_E02_BubbleDownAlly_Pandemic"
+   ],
+   "com": [
+    "viper"
+   ],
+   "lado": "aliado",
+   "pt": "Simbora, Viper.",
+   "en": "Let's go, Viper.",
+   "segundos": {
+    "en": 0.93,
+    "pt": 0.94
+   }
+  },
+  {
+   "id": "clay-e02-bubbledown-enemy-sarge-01",
+   "jogo": "Clay.E02.BubbleDown.Enemy[Sarge]01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_E02_BubbleDownEnemy_Sarge"
+   ],
+   "com": [
+    "brimstone"
+   ],
+   "lado": "inimigo",
+   "pt": "Esse Brimstone é só faisquinha.",
+   "en": "That Brimstone's just sparks!",
+   "segundos": {
+    "en": 2.08,
+    "pt": 1.55
+   }
+  },
+  {
+   "id": "clay-e02-bubbledown-enemy-wraith-01",
+   "jogo": "Clay.E02.BubbleDown.Enemy[Wraith]01",
+   "quem": "raze",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Clay_E02_BubbleDownEnemy_Wraith"
+   ],
+   "com": [
+    "omen"
+   ],
+   "lado": "inimigo",
+   "pt": "Catei o Omen!",
+   "en": "I got their Omen.",
+   "segundos": {
+    "en": 1.03,
+    "pt": 1.15
+   }
+  },
+  {
+   "id": "clay-e02-emote-defusespike01",
+   "jogo": "Clay.E02.Emote.DefuseSpike01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_DefuseSpike"
+   ],
+   "pt": "Desarma!",
+   "en": "Defuse it!",
+   "segundos": {
+    "en": 0.67,
+    "pt": 0.65
+   }
+  },
+  {
+   "id": "clay-e02-emote-defusespike01-alt01",
+   "jogo": "Clay.E02.Emote.DefuseSpike01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_DefuseSpike"
+   ],
+   "pt": "Desarma!",
+   "en": "Defuse it!",
+   "segundos": {
+    "en": 0.66,
+    "pt": 0.65
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-a01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.A01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_A"
+   ],
+   "pt": "Uma galera no A.",
+   "en": "Multiple enemies A!",
+   "segundos": {
+    "en": 1.28,
+    "pt": 1.1
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-a01-alt01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.A01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_A"
+   ],
+   "pt": "Uma galera no A.",
+   "en": "Multiple enemies A!",
+   "segundos": {
+    "en": 1.16,
+    "pt": 1.04
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-atkspawn01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.AtkSpawn01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_AtkSpawn"
+   ],
+   "pt": "Inimigos no lado atacante!",
+   "en": "Enemies in Attacker Spawn!",
+   "segundos": {
+    "en": 1.39,
+    "pt": 1.34
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-atkspawn01-alt01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.AtkSpawn01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_AtkSpawn"
+   ],
+   "pt": "Inimigos no lado atacante!",
+   "en": "Enemies in Attacker Spawn!",
+   "segundos": {
+    "en": 1.19,
+    "pt": 1.47
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-b01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.B01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_B"
+   ],
+   "pt": "Uma galera no B.",
+   "en": "Multiple enemies B!",
+   "segundos": {
+    "en": 1.19,
+    "pt": 1.06
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-b01-alt01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.B01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_B"
+   ],
+   "pt": "Uma galera no B.",
+   "en": "Multiple enemies B!",
+   "segundos": {
+    "en": 1.23,
+    "pt": 1.04
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-c01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.C01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_C"
+   ],
+   "pt": "Uma galera no C.",
+   "en": "Multiple enemies A!",
+   "segundos": {
+    "en": 1.24,
+    "pt": 1.04
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-c01-alt01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.C01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_C"
+   ],
+   "pt": "Uma galera no C.",
+   "en": "Multiple enemies A!",
+   "segundos": {
+    "en": 1.08,
+    "pt": 1.2
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-defspawn01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.DefSpawn01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_DefSpawn"
+   ],
+   "pt": "Inimigos no lado defensor!",
+   "en": "Enemies in Defender Spawn!",
+   "segundos": {
+    "en": 1.42,
+    "pt": 1.48
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-defspawn01-alt01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.DefSpawn01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_DefSpawn"
+   ],
+   "pt": "Inimigos no lado defensor!",
+   "en": "Enemies in Defender Spawn!",
+   "segundos": {
+    "en": 1.36,
+    "pt": 1.53
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-mid01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.Mid01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_Mid"
+   ],
+   "pt": "Uma galera no meio.",
+   "en": "Multiple enemies Mid!",
+   "segundos": {
+    "en": 1.16,
+    "pt": 1.03
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemiesspotted-mid01-alt01",
+   "jogo": "Clay.E02.Emote.EnemiesSpotted.Mid01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemiesSpotted_Mid"
+   ],
+   "pt": "Uma galera no meio.",
+   "en": "Multiple enemies Mid!",
+   "segundos": {
+    "en": 1.3,
+    "pt": 1.0
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyclose01",
+   "jogo": "Clay.E02.Emote.EnemyClose01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemyClose"
+   ],
+   "lado": "inimigo",
+   "pt": "Inimigos perto!",
+   "en": "Enemies nearby.",
+   "segundos": {
+    "en": 0.98,
+    "pt": 0.97
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyclose01-alt01",
+   "jogo": "Clay.E02.Emote.EnemyClose01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemyClose"
+   ],
+   "lado": "inimigo",
+   "pt": "Inimigos perto!",
+   "en": "Enemies nearby.",
+   "segundos": {
+    "en": 0.84,
+    "pt": 0.91
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-a01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.A01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_A"
+   ],
+   "lado": "inimigo",
+   "pt": "Inimigo no A.",
+   "en": "Enemy spotted A.",
+   "segundos": {
+    "en": 1.09,
+    "pt": 0.83
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-a01-alt01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.A01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_A"
+   ],
+   "lado": "inimigo",
+   "pt": "Inimigo no A!",
+   "en": "Enemy spotted A.",
+   "segundos": {
+    "en": 0.98,
+    "pt": 0.93
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-atkspawn01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.AtkSpawn01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_AtkSpawn"
+   ],
+   "lado": "inimigo",
+   "pt": "Otário no lado atacante!",
+   "en": "Someone's in Attacker Spawn.",
+   "segundos": {
+    "en": 1.27,
+    "pt": 1.4
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-atkspawn01-alt01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.AtkSpawn01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_AtkSpawn"
+   ],
+   "lado": "inimigo",
+   "pt": "Otário no lado atacante!",
+   "en": "Someone's in Attacker Spawn.",
+   "segundos": {
+    "en": 1.25,
+    "pt": 1.41
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-b01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.B01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_B"
+   ],
+   "lado": "inimigo",
+   "pt": "Inimigo no B.",
+   "en": "Enemy spotted B.",
+   "segundos": {
+    "en": 1.01,
+    "pt": 0.96
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-b01-alt01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.B01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_B"
+   ],
+   "lado": "inimigo",
+   "pt": "Inimigo no B!",
+   "en": "Enemy spotted B.",
+   "segundos": {
+    "en": 0.96,
+    "pt": 0.96
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-c01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.C01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_C"
+   ],
+   "lado": "inimigo",
+   "pt": "Inimigo no C!",
+   "en": "Enemy spotted C.",
+   "segundos": {
+    "en": 1.03,
+    "pt": 1.01
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-c01-alt01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.C01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_C"
+   ],
+   "lado": "inimigo",
+   "pt": "Inimigo no C!",
+   "en": "Enemy spotted C.",
+   "segundos": {
+    "en": 1.03,
+    "pt": 0.91
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-defspawn01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.DefSpawn01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_DefSpawn"
+   ],
+   "lado": "inimigo",
+   "pt": "Otário no lado defensor.",
+   "en": "Someone's in Defender Spawn.",
+   "segundos": {
+    "en": 1.32,
+    "pt": 1.41
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-defspawn01-alt01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.DefSpawn01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_DefSpawn"
+   ],
+   "lado": "inimigo",
+   "pt": "Otário no lado defensor!",
+   "en": "Someone's in Defender Spawn.",
+   "segundos": {
+    "en": 1.25,
+    "pt": 1.36
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-mid01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.Mid01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_Mid"
+   ],
+   "lado": "inimigo",
+   "pt": "Inimigo no meio!",
+   "en": "Enemy spotted Mid.",
+   "segundos": {
+    "en": 0.99,
+    "pt": 0.86
+   }
+  },
+  {
+   "id": "clay-e02-emote-enemyspotted-mid01-alt01",
+   "jogo": "Clay.E02.Emote.EnemySpotted.Mid01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_EnemySpotted_Mid"
+   ],
+   "lado": "inimigo",
+   "pt": "Inimigo no meio!",
+   "en": "Enemy spotted Mid.",
+   "segundos": {
+    "en": 1.13,
+    "pt": 0.8
+   }
+  },
+  {
+   "id": "clay-e02-emote-plantspike01",
+   "jogo": "Clay.E02.Emote.PlantSpike01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_PlantSpike"
+   ],
+   "pt": "Planta Spike.",
+   "en": "Plant the spike!",
+   "segundos": {
+    "en": 0.79,
+    "pt": 0.79
+   }
+  },
+  {
+   "id": "clay-e02-emote-plantspike01-alt01",
+   "jogo": "Clay.E02.Emote.PlantSpike01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_PlantSpike"
+   ],
+   "pt": "Plantar Spike!",
+   "en": "Plant the spike!",
+   "segundos": {
+    "en": 0.86,
+    "pt": 0.82
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-a01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.A01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_A"
+   ],
+   "pt": "Spike no A!",
+   "en": "Spike spotted A.",
+   "segundos": {
+    "en": 0.97,
+    "pt": 0.86
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-a01-alt01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.A01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_A"
+   ],
+   "pt": "Spike no A.",
+   "en": "Spike spotted A.",
+   "segundos": {
+    "en": 0.92,
+    "pt": 0.78
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-atkspawn01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.AtkSpawn01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_AtkSpawn"
+   ],
+   "pt": "Spike no lado atacante.",
+   "en": "Spike's in Attacker Spawn.",
+   "segundos": {
+    "en": 1.21,
+    "pt": 1.29
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-atkspawn01-alt01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.AtkSpawn01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_AtkSpawn"
+   ],
+   "pt": "Spike no lado atacante.",
+   "en": "Spike's in Attacker Spawn.",
+   "segundos": {
+    "en": 1.31,
+    "pt": 1.29
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-b01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.B01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_B"
+   ],
+   "pt": "Spike no B.",
+   "en": "Spike spotted B.",
+   "segundos": {
+    "en": 0.95,
+    "pt": 0.82
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-b01-alt01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.B01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_B"
+   ],
+   "pt": "Spike no B.",
+   "en": "Spike spotted B.",
+   "segundos": {
+    "en": 0.89,
+    "pt": 0.84
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-c01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.C01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_C"
+   ],
+   "pt": "Spike no C.",
+   "en": "Spike spotted C.",
+   "segundos": {
+    "en": 1.01,
+    "pt": 0.86
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-c01-alt01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.C01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_C"
+   ],
+   "pt": "Spike no C.",
+   "en": "Spike spotted C.",
+   "segundos": {
+    "en": 0.95,
+    "pt": 0.87
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-defspawn01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.DefSpawn01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_DefSpawn"
+   ],
+   "pt": "Spike no lado defensor.",
+   "en": "Spike's in Defender Spawn.",
+   "segundos": {
+    "en": 1.25,
+    "pt": 1.33
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-defspawn01-alt01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.DefSpawn01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_DefSpawn"
+   ],
+   "pt": "Spike no lado defensor.",
+   "en": "Spike's in Defender Spawn.",
+   "segundos": {
+    "en": 1.22,
+    "pt": 1.48
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-mid01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.Mid01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_Mid"
+   ],
+   "pt": "Spike no meio.",
+   "en": "Spike spotted Mid.",
+   "segundos": {
+    "en": 1.02,
+    "pt": 0.8
+   }
+  },
+  {
+   "id": "clay-e02-emote-spikespotted-mid01-alt01",
+   "jogo": "Clay.E02.Emote.SpikeSpotted.Mid01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_E02_Emote_SpikeSpotted_Mid"
+   ],
+   "pt": "Spike no meio.",
+   "en": "Spike spotted Mid.",
+   "segundos": {
+    "en": 0.99,
+    "pt": 0.84
+   }
+  },
+  {
+   "id": "clay-e02-kill-headshot05",
+   "jogo": "Clay.E02.Kill.Headshot05",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_HeadshotKill"
+   ],
+   "pt": "Dormiu!",
+   "en": "Dropped.",
+   "segundos": {
+    "en": 0.51,
+    "pt": 0.65
+   }
+  },
+  {
+   "id": "clay-e02-kill-headshot06",
+   "jogo": "Clay.E02.Kill.Headshot06",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_HeadshotKill"
+   ],
+   "pt": "Ai!",
+   "en": "Ouch!",
+   "segundos": {
+    "en": 0.65,
+    "pt": 0.51
+   }
+  },
+  {
+   "id": "clay-e02-kill-kill09",
+   "jogo": "Clay.E02.Kill.Kill09",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill"
+   ],
+   "pt": "Até mais!",
+   "en": "See ya!",
+   "segundos": {
+    "en": 0.55,
+    "pt": 0.74
+   }
+  },
+  {
+   "id": "clay-e02-kill-kill10",
+   "jogo": "Clay.E02.Kill.Kill10",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill"
+   ],
+   "pt": "Peguei!",
+   "en": "Got 'em.",
+   "segundos": {
+    "en": 0.45,
+    "pt": 0.57
+   }
+  },
+  {
+   "id": "clay-e02-kill-guide-01",
+   "jogo": "Clay.E02.Kill.[Guide]01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill_Guide"
+   ],
+   "com": [
+    "skye"
+   ],
+   "pt": "Skye tombou!",
+   "en": "Skye's out.",
+   "segundos": {
+    "en": 0.79,
+    "pt": 1.09
+   }
+  },
+  {
+   "id": "clay-e02-kill-killjoy-01",
+   "jogo": "Clay.E02.Kill.[Killjoy]01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill_Killjoy"
+   ],
+   "com": [
+    "killjoy"
+   ],
+   "pt": "Engenheira rodou!",
+   "en": "Engineer killed.",
+   "segundos": {
+    "en": 1.01,
+    "pt": 1.07
+   }
+  },
+  {
+   "id": "clay-e02-kill-wraith-01",
+   "jogo": "Clay.E02.Kill.[Wraith]01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill_Wraith"
+   ],
+   "com": [
+    "omen"
+   ],
+   "pt": "O pesadelo já foi.",
+   "en": "Nightmare's over.",
+   "segundos": {
+    "en": 1.14,
+    "pt": 1.38
+   }
+  },
+  {
+   "id": "clay-e02-kill-wushu-01",
+   "jogo": "Clay.E02.Kill.[Wushu]01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill_Wushu"
+   ],
+   "com": [
+    "jett"
+   ],
+   "pt": "Jett foi pro saco!",
+   "en": "Jett's grounded.",
+   "segundos": {
+    "en": 0.95,
+    "pt": 1.42
+   }
+  },
+  {
+   "id": "clay-e02-match-start07",
+   "jogo": "Clay.E02.Match.Start07",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStart"
+   ],
+   "pt": "Ó, se ligue na minha. Se tiver na área das minhas explosões, se pique!",
+   "en": "I shouldn't have to say this because, you know, my vibe, but, stay clear of my explosions, okay?",
+   "segundos": {
+    "en": 5.77,
+    "pt": 3.89
+   }
+  },
+  {
+   "id": "clay-e02-match-startally-hunter-01",
+   "jogo": "Clay.E02.Match.StartAlly[Hunter]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStartAlly_Hunter"
+   ],
+   "com": [
+    "sova"
+   ],
+   "lado": "aliado",
+   "pt": "Sova, você ouve uns baticuns estranhos, né? Cheio de tonts, tonts, tonts, tonts, tonts. Nem rola uma quebradeira.",
+   "en": "Sova, you listen to the weirdest music. Lots of duntz-duntz-duntz-duntz-duntz. How do you dance to it?",
+   "segundos": {
+    "en": 6.73,
+    "pt": 6.14
+   }
+  },
+  {
+   "id": "clay-e02-match-startally-killjoy-01",
+   "jogo": "Clay.E02.Match.StartAlly[Killjoy]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStartAlly_Killjoy"
+   ],
+   "com": [
+    "killjoy"
+   ],
+   "lado": "aliado",
+   "pt": "KJ, valeu pelo Alarma-bot, véi. É tão melhor com as explosões, por que você nunca fez isso antes?",
+   "en": "Killjoy! Thanks for letting me borrow your Alarmbot. It's so much better with explosions! Why did you never try that?",
+   "segundos": {
+    "en": 6.69,
+    "pt": 6.3
+   }
+  },
+  {
+   "id": "clay-e02-match-startally-sarge-01",
+   "jogo": "Clay.E02.Match.StartAlly[Sarge]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStartAlly_Sarge"
+   ],
+   "com": [
+    "brimstone"
+   ],
+   "lado": "aliado",
+   "pt": "Brimstone, esse troço aí dá acesso ao computador da Kingdom? Um amigo queria saber.",
+   "en": "Brimstone, that bracer has access to the Kingdom mainframe, yeah? Just asking for a friend.",
+   "segundos": {
+    "en": 6.24,
+    "pt": 5.23
+   }
+  },
+  {
+   "id": "clay-e02-match-startconversation-claybreach-01",
+   "jogo": "Clay.E02.Match.StartConversation[ClayBreach]01",
+   "quem": "raze",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchSrt_Chat_ClayBreach"
+   ],
+   "com": [
+    "breach"
+   ],
+   "pt": "Ô, Breach, ia ser uma pena se uns treco sumisse no meio dessas tretas todas, você não acha?",
+   "en": "You know, Breachy, in all this chaos it would be terrible if some equipment just, got lost, you know?",
+   "segundos": {
+    "en": 8.06,
+    "pt": 7.1
+   }
+  },
+  {
+   "id": "clay-e02-match-startconversation-claykilljoy-01",
+   "jogo": "Clay.E02.Match.StartConversation[ClayKilljoy]01",
+   "quem": "raze",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchSrt_Chat_ClayKilljoy"
+   ],
+   "com": [
+    "killjoy"
+   ],
+   "pt": "KJ, bora lá revirar uns bagulho?",
+   "en": "Killjoy, after this you wanna do some tinkering?",
+   "segundos": {
+    "en": 4.15,
+    "pt": 3.59
+   }
+  },
+  {
+   "id": "clay-e02-match-startenemy-breach-01",
+   "jogo": "Clay.E02.Match.StartEnemy[Breach]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStartEnemy_Breach"
+   ],
+   "com": [
+    "breach"
+   ],
+   "lado": "inimigo",
+   "pt": "Eu que não sou amiga desse Breach falso aí, não. Vou meter pipoco nele.",
+   "en": "I don't have any history with that fake Breachy. Screw him. I'll put him down.",
+   "segundos": {
+    "en": 5.12,
+    "pt": 3.96
+   }
+  },
+  {
+   "id": "clay-e02-match-startenemy-wushu-01",
+   "jogo": "Clay.E02.Match.StartEnemy[Wushu]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStartEnemy_Wushu"
+   ],
+   "com": [
+    "jett"
+   ],
+   "lado": "inimigo",
+   "pt": "Aquela Jett não dá nem pro cheiro. Bora destroçar essa cópia.",
+   "en": "Their Jett is nothing compared to ours. Let's crush that copy.",
+   "segundos": {
+    "en": 3.92,
+    "pt": 4.13
+   }
+  },
+  {
+   "id": "clay-e02-modes-kill-onekillremaining01",
+   "jogo": "Clay.E02.Modes.Kill.OneKillRemaining01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Modes_Kill_OneKillRemaining"
+   ],
+   "pt": "Vou meter dança.",
+   "en": "Let's dance!",
+   "segundos": {
+    "en": 1.41,
+    "pt": 1.22
+   }
+  },
+  {
+   "id": "clay-e02-modes-kill-onekillremaining01-alt01",
+   "jogo": "Clay.E02.Modes.Kill.OneKillRemaining01_alt01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Modes_Kill_OneKillRemaining"
+   ],
+   "pt": "Hora da dança!",
+   "en": "Let's dance!",
+   "segundos": {
+    "en": 1.12,
+    "pt": 1.1
+   }
+  },
+  {
+   "id": "clay-e02-modes-match-runnerup01",
+   "jogo": "Clay.E02.Modes.Match.RunnerUp01",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E02_Modes_Match_RunnerUp"
+   ],
+   "pt": "Já tá ótimo.",
+   "en": "Hey, I'll take it.",
+   "segundos": {
+    "en": 1.38,
+    "pt": 1.23
+   }
+  },
+  {
+   "id": "clay-e02-modes-match-runnerup02",
+   "jogo": "Clay.E02.Modes.Match.RunnerUp02",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E02_Modes_Match_RunnerUp"
+   ],
+   "pt": "Ainda ganho troféu, né?",
+   "en": "I still get a trophy, right?",
+   "segundos": {
+    "en": 1.64,
+    "pt": 1.24
+   }
+  },
+  {
+   "id": "clay-e02-modes-match-runnerup03",
+   "jogo": "Clay.E02.Modes.Match.RunnerUp03",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E02_Modes_Match_RunnerUp"
+   ],
+   "pt": "Na próxima é número 1.",
+   "en": "Next time, número um.",
+   "segundos": {
+    "en": 1.61,
+    "pt": 2.25
+   }
+  },
+  {
+   "id": "clay-e02-roundend-lastkill04",
+   "jogo": "Clay.E02.RoundEnd.LastKill04",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_LastKill"
+   ],
+   "pt": "Bora comer?",
+   "en": "Okay! Who's got the snacks?",
+   "segundos": {
+    "en": 2.3,
+    "pt": 0.75
+   }
+  },
+  {
+   "id": "clay-e02-roundend-lastkill05",
+   "jogo": "Clay.E02.RoundEnd.LastKill05",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_LastKill"
+   ],
+   "pt": "Dorme aí!",
+   "en": "Okay, done!",
+   "segundos": {
+    "en": 1.17,
+    "pt": 0.69
+   }
+  },
+  {
+   "id": "clay-e02-roundend-lastkill-breach-01",
+   "jogo": "Clay.E02.RoundEnd.LastKill[Breach]01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_LastKill_Breach"
+   ],
+   "com": [
+    "breach"
+   ],
+   "pt": "Breach, foi mal.",
+   "en": "Huh, sorry mano.",
+   "segundos": {
+    "en": 1.59,
+    "pt": 1.4
+   }
+  },
+  {
+   "id": "clay-e02-roundend-lastkill-hunter-01",
+   "jogo": "Clay.E02.RoundEnd.LastKill[Hunter]01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_LastKill_Hunter"
+   ],
+   "com": [
+    "sova"
+   ],
+   "pt": "Se leou.",
+   "en": "Hunter hunted! Ha!",
+   "segundos": {
+    "en": 1.89,
+    "pt": 1.55
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-allycommend-phoenix-01",
+   "jogo": "Clay.E02.RoundStart.AllyCommend[Phoenix]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartAllyCommend_Phoenix"
+   ],
+   "com": [
+    "phoenix"
+   ],
+   "lado": "aliado",
+   "pt": "Mas tu é fogo mesmo, hein? Se ligou? Tá, parei.",
+   "en": "Phoenix, you're a star! Get it? Haha! ... Okay, I'm sorry.",
+   "segundos": {
+    "en": 5.25,
+    "pt": 4.47
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-allycommend-thorne-01",
+   "jogo": "Clay.E02.RoundStart.AllyCommend[Thorne]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartAllyCommend_Thorne"
+   ],
+   "com": [
+    "sage"
+   ],
+   "lado": "aliado",
+   "pt": "Eita, Sage faz tudo por aqui. A gente veio pra que mesmo?",
+   "en": "Damn, Sage, you do everything. Why are the rest of us even here?",
+   "segundos": {
+    "en": 4.18,
+    "pt": 3.86
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-allycommend-vampire-01",
+   "jogo": "Clay.E02.RoundStart.AllyCommend[Vampire]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartAllyCommend_Vampire"
+   ],
+   "com": [
+    "reyna"
+   ],
+   "lado": "aliado",
+   "pt": "Reyna, meu amor, o que foi, nê? Quem mexeu com você?",
+   "en": "Reyna, meu amor. What happened? Who hurt you?",
+   "segundos": {
+    "en": 4.36,
+    "pt": 3.16
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-allycommend-wraith-01",
+   "jogo": "Clay.E02.RoundStart.AllyCommend[Wraith]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartAllyCommend_Wraith"
+   ],
+   "com": [
+    "omen"
+   ],
+   "lado": "aliado",
+   "pt": "Omen, que bom que você tá desse lado. Você é o bichão mesmo, hein, doido?",
+   "en": "Omen, thank goodness you're on our side! Ai, great work, amigo!",
+   "segundos": {
+    "en": 4.73,
+    "pt": 4.66
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-ally-pandemic-01",
+   "jogo": "Clay.E02.RoundStart.Ally[Pandemic]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartAlly_Pandemic"
+   ],
+   "com": [
+    "viper"
+   ],
+   "lado": "aliado",
+   "pt": "Relaxa aí, Viper. Vamos pra balada, só as garotas. Uh-uh!",
+   "en": "Viper, you gotta let loose! Let's go out after this! Girls night, woop-woop!",
+   "segundos": {
+    "en": 6.77,
+    "pt": 6.0
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-enemy-phoenix-01",
+   "jogo": "Clay.E02.RoundStart.Enemy[Phoenix]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartEnemy_Phoenix"
+   ],
+   "com": [
+    "phoenix"
+   ],
+   "lado": "inimigo",
+   "pt": "Vou mostrar para aquele Phoenix o que é fogo de verdade.",
+   "en": "I'll burn brighter than their Phoenix. Just watch me.",
+   "segundos": {
+    "en": 3.03,
+    "pt": 2.95
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-enemy-sarge-01",
+   "jogo": "Clay.E02.RoundStart.Enemy[Sarge]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartEnemy_Sarge"
+   ],
+   "com": [
+    "brimstone"
+   ],
+   "lado": "inimigo",
+   "pt": "Alguém derruba esse Brimstone. Tem que acabar com o chefão.",
+   "en": "Someone track down their Brimstone. Cut off the head of the snake.",
+   "segundos": {
+    "en": 3.4,
+    "pt": 3.27
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-enemy-vampire-01",
+   "jogo": "Clay.E02.RoundStart.Enemy[Vampire]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartEnemy_Vampire"
+   ],
+   "com": [
+    "reyna"
+   ],
+   "lado": "inimigo",
+   "pt": "Quando a Reyna começa, não tem quem pare. Não quero ver isso, não.",
+   "en": "When Reyna gets started it's hard to stop her. I'd like to avoid that, please.",
+   "segundos": {
+    "en": 4.09,
+    "pt": 3.79
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-generic09",
+   "jogo": "Clay.E02.RoundStart.Generic09",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric"
+   ],
+   "pt": "Tá, sobrou só umas 78 granadas. Tomara que dê.",
+   "en": "Okay, I only have, like, seventy-eight grenades left? Hopefully that's enough.",
+   "segundos": {
+    "en": 5.04,
+    "pt": 3.77
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-generic10",
+   "jogo": "Clay.E02.RoundStart.Generic10",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric"
+   ],
+   "pt": "Alguém tem um curativo? Acho que eu estourei um dedo, ou dois, ou mais.",
+   "en": "Anyone have any splints? I may have jammed my fingers, multiple fingers.",
+   "segundos": {
+    "en": 4.86,
+    "pt": 5.01
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-generic11",
+   "jogo": "Clay.E02.RoundStart.Generic11",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric"
+   ],
+   "pt": "Eles vão vazar por causa das minhas paradas. Aí é fácil de mirar.",
+   "en": "They're going to scatter from my stuff. Super easy to pick off.",
+   "segundos": {
+    "en": 3.42,
+    "pt": 3.65
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-woncomingback03",
+   "jogo": "Clay.E02.RoundStart.WonComingBack03",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E02_WonComingBack"
+   ],
+   "pt": "Eles tentaram, agora é com a gente.",
+   "en": "Okay, they tried. Now it's our turn.",
+   "segundos": {
+    "en": 3.09,
+    "pt": 2.15
+   }
+  },
+  {
+   "id": "clay-e02-roundstart-wongeneric04",
+   "jogo": "Clay.E02.RoundStart.WonGeneric04",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E02_WonGeneric"
+   ],
+   "pt": "Ha! Solta o som e vamos que vamos!",
+   "en": "Ha! We dancing now! Let's keep it up!",
+   "segundos": {
+    "en": 3.5,
+    "pt": 3.19
+   }
+  },
+  {
+   "id": "clay-emotebuying01",
+   "jogo": "Clay.EmoteBuying01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_Buying"
+   ],
+   "pt": "Comprando!",
+   "en": "I'm buying.",
+   "segundos": {
+    "en": 0.65,
+    "pt": 0.68
+   }
+  },
+  {
+   "id": "clay-emotebuying01-alt01",
+   "jogo": "Clay.EmoteBuying01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_Buying"
+   ],
+   "pt": "Comprando!",
+   "en": "I'm buying.",
+   "segundos": {
+    "en": 0.59,
+    "pt": 0.66
+   }
+  },
+  {
+   "id": "clay-emotecommend01",
+   "jogo": "Clay.EmoteCommend01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteCommend"
+   ],
+   "pt": "Aí, tu brocou.",
+   "en": "Hey, nice work!",
+   "segundos": {
+    "en": 0.96,
+    "pt": 0.99
+   }
+  },
+  {
+   "id": "clay-emotecommend01-alt01",
+   "jogo": "Clay.EmoteCommend01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteCommend"
+   ],
+   "pt": "Aí, tu brocou!",
+   "en": "Hey, nice work!",
+   "segundos": {
+    "en": 1.14,
+    "pt": 1.42
+   }
+  },
+  {
+   "id": "clay-emotecommend01-alt02",
+   "jogo": "Clay.EmoteCommend01_alt02",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteCommend"
+   ],
+   "pt": "Aí, tu brocou!",
+   "en": "Hey, nice work!",
+   "segundos": {
+    "en": 1.21,
+    "pt": 1.67
+   }
+  },
+  {
+   "id": "clay-emotefallback",
+   "jogo": "Clay.EmoteFallBack",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_FallBack"
+   ],
+   "pt": "Se pica!",
+   "en": "Fall back.",
+   "segundos": {
+    "en": 0.58,
+    "pt": 0.6
+   }
+  },
+  {
+   "id": "clay-emotefallback01-alt01",
+   "jogo": "Clay.EmoteFallBack01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_FallBack"
+   ],
+   "pt": "Se pica.",
+   "en": "Fall back.",
+   "segundos": {
+    "en": 0.64,
+    "pt": 0.52
+   }
+  },
+  {
+   "id": "clay-emotegoinga01",
+   "jogo": "Clay.EmoteGoingA01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_GoingA"
+   ],
+   "pt": "Vou no A.",
+   "en": "Going A.",
+   "segundos": {
+    "en": 0.72,
+    "pt": 0.49
+   }
+  },
+  {
+   "id": "clay-emotegoinga01-alt01",
+   "jogo": "Clay.EmoteGoingA01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_GoingA"
+   ],
+   "pt": "Vou no A!",
+   "en": "Going A.",
+   "segundos": {
+    "en": 0.76,
+    "pt": 0.49
+   }
+  },
+  {
+   "id": "clay-emotegoingb01",
+   "jogo": "Clay.EmoteGoingB01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_GoingB"
+   ],
+   "pt": "Vou no B.",
+   "en": "Going B.",
+   "segundos": {
+    "en": 0.52,
+    "pt": 0.55
+   }
+  },
+  {
+   "id": "clay-emotegoingb01-alt01",
+   "jogo": "Clay.EmoteGoingB01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_GoingB"
+   ],
+   "pt": "Vou no B.",
+   "en": "Going B.",
+   "segundos": {
+    "en": 0.54,
+    "pt": 0.49
+   }
+  },
+  {
+   "id": "clay-emotegoingc01",
+   "jogo": "Clay.EmoteGoingC01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_GoingC"
+   ],
+   "pt": "Vou no C.",
+   "en": "Going C.",
+   "segundos": {
+    "en": 0.59,
+    "pt": 0.62
+   }
+  },
+  {
+   "id": "clay-emotegoingc01-alt01",
+   "jogo": "Clay.EmoteGoingC01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_GoingC"
+   ],
+   "pt": "Vão no C.",
+   "en": "Going C.",
+   "segundos": {
+    "en": 0.56,
+    "pt": 0.53
+   }
+  },
+  {
+   "id": "clay-emotegoingmid01",
+   "jogo": "Clay.EmoteGoingMid01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_GoingMid"
+   ],
+   "pt": "Vou no meio.",
+   "en": "Going Mid.",
+   "segundos": {
+    "en": 0.52,
+    "pt": 0.6
+   }
+  },
+  {
+   "id": "clay-emotegoingmid01-alt01",
+   "jogo": "Clay.EmoteGoingMid01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_GoingMid"
+   ],
+   "pt": "Vou no meio.",
+   "en": "Going Mid.",
+   "segundos": {
+    "en": 0.64,
+    "pt": 0.56
+   }
+  },
+  {
+   "id": "clay-emotehello01",
+   "jogo": "Clay.EmoteHello01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteHello"
+   ],
+   "pt": "É.",
+   "en": "Hello.",
+   "segundos": {
+    "en": 0.45,
+    "pt": 0.37
+   }
+  },
+  {
+   "id": "clay-emotehello01-alt01",
+   "jogo": "Clay.EmoteHello01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteHello"
+   ],
+   "pt": "E aí, ó.",
+   "en": "Hello.",
+   "segundos": {
+    "en": 0.43,
+    "pt": 0.55
+   }
+  },
+  {
+   "id": "clay-emotehello01-alt02",
+   "jogo": "Clay.EmoteHello01_alt02",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteHello"
+   ],
+   "pt": "E aí, ó.",
+   "en": "Hello.",
+   "segundos": {
+    "en": 0.44,
+    "pt": 0.48
+   }
+  },
+  {
+   "id": "clay-emotehelp01",
+   "jogo": "Clay.EmoteHelp01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteHelp"
+   ],
+   "pt": "Me ajude aí.",
+   "en": "Need help.",
+   "segundos": {
+    "en": 0.57,
+    "pt": 0.59
+   }
+  },
+  {
+   "id": "clay-emotehelp01-alt01",
+   "jogo": "Clay.EmoteHelp01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteHelp"
+   ],
+   "pt": "Me ajude aí.",
+   "en": "Need help.",
+   "segundos": {
+    "en": 0.56,
+    "pt": 0.71
+   }
+  },
+  {
+   "id": "clay-emotehelp01-alt02",
+   "jogo": "Clay.EmoteHelp01_alt02",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteHelp"
+   ],
+   "pt": "Me ajude aí.",
+   "en": "Need help.",
+   "segundos": {
+    "en": 0.68,
+    "pt": 0.6
+   }
+  },
+  {
+   "id": "clay-emoteihavemoney01",
+   "jogo": "Clay.EmoteIHaveMoney01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_IHaveMoney"
+   ],
+   "pt": "Alguém tá precisando?",
+   "en": "Anyone need something?",
+   "segundos": {
+    "en": 1.1,
+    "pt": 0.96
+   }
+  },
+  {
+   "id": "clay-emoteihavemoney01-alt01",
+   "jogo": "Clay.EmoteIHaveMoney01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_IHaveMoney"
+   ],
+   "pt": "Alguém tá precisando?",
+   "en": "Anyone need something?",
+   "segundos": {
+    "en": 0.9,
+    "pt": 1.11
+   }
+  },
+  {
+   "id": "clay-emoteneeddrop01",
+   "jogo": "Clay.EmoteNeedDrop01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_NeedDrop"
+   ],
+   "pt": "Larga pra mim!",
+   "en": "Can I get a drop?",
+   "segundos": {
+    "en": 0.93,
+    "pt": 0.69
+   }
+  },
+  {
+   "id": "clay-emoteneeddrop01-alt01",
+   "jogo": "Clay.EmoteNeedDrop01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_NeedDrop"
+   ],
+   "pt": "Larga pra mim?",
+   "en": "Can I get a drop?",
+   "segundos": {
+    "en": 0.88,
+    "pt": 0.71
+   }
+  },
+  {
+   "id": "clay-emoteneedhealing01",
+   "jogo": "Clay.EmoteNeedHealing01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_NeedHealing"
+   ],
+   "pt": "Médico!",
+   "en": "Medic!",
+   "segundos": {
+    "en": 0.5,
+    "pt": 0.65
+   }
+  },
+  {
+   "id": "clay-emoteneedhealing01-alt01",
+   "jogo": "Clay.EmoteNeedHealing01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_NeedHealing"
+   ],
+   "pt": "MÉDICO!",
+   "en": "Medic!",
+   "segundos": {
+    "en": 0.52,
+    "pt": 0.66
+   }
+  },
+  {
+   "id": "clay-emoteno01",
+   "jogo": "Clay.EmoteNo01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteNo"
+   ],
+   "pt": "Nem.",
+   "en": "No.",
+   "segundos": {
+    "en": 0.3,
+    "pt": 0.47
+   }
+  },
+  {
+   "id": "clay-emoteno01-alt01",
+   "jogo": "Clay.EmoteNo01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteNo"
+   ],
+   "pt": "Nem.",
+   "en": "No.",
+   "segundos": {
+    "en": 0.3,
+    "pt": 0.54
+   }
+  },
+  {
+   "id": "clay-emoteno01-alt02",
+   "jogo": "Clay.EmoteNo01_alt02",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteNo"
+   ],
+   "pt": "Ném.",
+   "en": "No.",
+   "segundos": {
+    "en": 0.42,
+    "pt": 0.55
+   }
+  },
+  {
+   "id": "clay-emoteonmyway01",
+   "jogo": "Clay.EmoteOnMyWay01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_OnMyWay"
+   ],
+   "pt": "Tô indo.",
+   "en": "On my way.",
+   "segundos": {
+    "en": 0.6,
+    "pt": 0.57
+   }
+  },
+  {
+   "id": "clay-emoteonmyway01-alt01",
+   "jogo": "Clay.EmoteOnMyWay01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_OnMyWay"
+   ],
+   "pt": "Tô indo.",
+   "en": "On my way.",
+   "segundos": {
+    "en": 0.6,
+    "pt": 0.56
+   }
+  },
+  {
+   "id": "clay-emoteourcarrierkilled01",
+   "jogo": "Clay.EmoteOurCarrierKilled01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_OurCarrierKilled"
+   ],
+   "pt": "Porta Spike tombou.",
+   "en": "Spike carrier's down.",
+   "segundos": {
+    "en": 1.21,
+    "pt": 1.02
+   }
+  },
+  {
+   "id": "clay-emoteourcarrierkilled01-alt01",
+   "jogo": "Clay.EmoteOurCarrierKilled01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_OurCarrierKilled"
+   ],
+   "pt": "Porta Spike tombou!",
+   "en": "Spike carrier's down.",
+   "segundos": {
+    "en": 1.12,
+    "pt": 1.04
+   }
+  },
+  {
+   "id": "clay-emotepingcaution01",
+   "jogo": "Clay.EmotePingCaution01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmotePingCaution"
+   ],
+   "pt": "Cuidado aqui.",
+   "en": "Caution here.",
+   "segundos": {
+    "en": 0.85,
+    "pt": 0.63
+   }
+  },
+  {
+   "id": "clay-emotepingcaution01-alt01",
+   "jogo": "Clay.EmotePingCaution01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmotePingCaution"
+   ],
+   "pt": "Cuidado aqui.",
+   "en": "Caution here.",
+   "segundos": {
+    "en": 0.72,
+    "pt": 0.65
+   }
+  },
+  {
+   "id": "clay-emotepinggeneral01",
+   "jogo": "Clay.EmotePingGeneral01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmotePingGeneral"
+   ],
+   "pt": "Ali!",
+   "en": "There.",
+   "segundos": {
+    "en": 0.4,
+    "pt": 0.53
+   }
+  },
+  {
+   "id": "clay-emotepinggeneral01-alt01",
+   "jogo": "Clay.EmotePingGeneral01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmotePingGeneral"
+   ],
+   "pt": "Ali!",
+   "en": "There.",
+   "segundos": {
+    "en": 0.32,
+    "pt": 0.5
+   }
+  },
+  {
+   "id": "clay-emotepinggunhere01",
+   "jogo": "Clay.EmotePingGunHere01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmotePingGunHere"
+   ],
+   "pt": "Arma aqui.",
+   "en": "Gun here.",
+   "segundos": {
+    "en": 0.52,
+    "pt": 0.54
+   }
+  },
+  {
+   "id": "clay-emotepinggunhere01-alt01",
+   "jogo": "Clay.EmotePingGunHere01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmotePingGunHere"
+   ],
+   "pt": "Arma aqui.",
+   "en": "Gun here.",
+   "segundos": {
+    "en": 0.62,
+    "pt": 0.56
+   }
+  },
+  {
+   "id": "clay-emotepingmarkspike01",
+   "jogo": "Clay.EmotePingMarkSpike01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_EmotePingMarkSpike"
+   ],
+   "pt": "Spike aqui.",
+   "en": "Spike's there.",
+   "segundos": {
+    "en": 0.73,
+    "pt": 0.7
+   }
+  },
+  {
+   "id": "clay-emotepingmarkspike01-alt01",
+   "jogo": "Clay.EmotePingMarkSpike01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_EmotePingMarkSpike"
+   ],
+   "pt": "Spike aqui.",
+   "en": "Spike's there.",
+   "segundos": {
+    "en": 0.64,
+    "pt": 0.82
+   }
+  },
+  {
+   "id": "clay-emotepingonmymark01",
+   "jogo": "Clay.EmotePingOnMyMark01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmotePingOnMyMark"
+   ],
+   "pt": "Quando eu mandar.",
+   "en": "On my mark.",
+   "segundos": {
+    "en": 0.85,
+    "pt": 0.66
+   }
+  },
+  {
+   "id": "clay-emotepingonmymark01-alt01",
+   "jogo": "Clay.EmotePingOnMyMark01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmotePingOnMyMark"
+   ],
+   "pt": "Quando eu mandar.",
+   "en": "On my mark.",
+   "segundos": {
+    "en": 0.66,
+    "pt": 0.67
+   }
+  },
+  {
+   "id": "clay-emotepingwatching01",
+   "jogo": "Clay.EmotePingWatching01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmotePingWatching"
+   ],
+   "pt": "Tô de olho aqui.",
+   "en": "Watching here.",
+   "segundos": {
+    "en": 0.93,
+    "pt": 0.86
+   }
+  },
+  {
+   "id": "clay-emotepingwatching01-alt01",
+   "jogo": "Clay.EmotePingWatching01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmotePingWatching"
+   ],
+   "pt": "Tô de olho aqui.",
+   "en": "Watching here.",
+   "segundos": {
+    "en": 0.72,
+    "pt": 0.87
+   }
+  },
+  {
+   "id": "clay-emotereloading01",
+   "jogo": "Clay.EmoteReloading01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_Reloading"
+   ],
+   "pt": "Recarregando.",
+   "en": "Reloading.",
+   "segundos": {
+    "en": 0.61,
+    "pt": 0.72
+   }
+  },
+  {
+   "id": "clay-emotereloading01-alt01",
+   "jogo": "Clay.EmoteReloading01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_Reloading"
+   ],
+   "pt": "Recarregando.",
+   "en": "Reloading.",
+   "segundos": {
+    "en": 0.7,
+    "pt": 0.7
+   }
+  },
+  {
+   "id": "clay-emoterushthem01",
+   "jogo": "Clay.EmoteRushThem01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_RushThem"
+   ],
+   "pt": "Vamos ruxar!",
+   "en": "Let's rush.",
+   "segundos": {
+    "en": 0.7,
+    "pt": 0.72
+   }
+  },
+  {
+   "id": "clay-emoterushthem01-alt01",
+   "jogo": "Clay.EmoteRushThem01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_RushThem"
+   ],
+   "pt": "Vamos ruxar.",
+   "en": "Let's rush.",
+   "segundos": {
+    "en": 0.65,
+    "pt": 0.64
+   }
+  },
+  {
+   "id": "clay-emotesaving01",
+   "jogo": "Clay.EmoteSaving01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_Saving"
+   ],
+   "pt": "Guardando.",
+   "en": "I'm saving.",
+   "segundos": {
+    "en": 0.65,
+    "pt": 0.65
+   }
+  },
+  {
+   "id": "clay-emotesaving01-alt01",
+   "jogo": "Clay.EmoteSaving01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_Saving"
+   ],
+   "pt": "Guardando.",
+   "en": "I'm saving.",
+   "segundos": {
+    "en": 0.55,
+    "pt": 0.51
+   }
+  },
+  {
+   "id": "clay-emotesorry01",
+   "jogo": "Clay.EmoteSorry01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteSorry"
+   ],
+   "pt": "Foi mal.",
+   "en": "My bad.",
+   "segundos": {
+    "en": 0.51,
+    "pt": 0.59
+   }
+  },
+  {
+   "id": "clay-emotesorry01-alt01",
+   "jogo": "Clay.EmoteSorry01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteSorry"
+   ],
+   "pt": "Foi mal.",
+   "en": "My bad.",
+   "segundos": {
+    "en": 0.6,
+    "pt": 0.57
+   }
+  },
+  {
+   "id": "clay-emotesorry01-alt02",
+   "jogo": "Clay.EmoteSorry01_alt02",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteSorry"
+   ],
+   "pt": "Foi mal.",
+   "en": "My bad.",
+   "segundos": {
+    "en": 0.46,
+    "pt": 0.41
+   }
+  },
+  {
+   "id": "clay-emotespikedropped01",
+   "jogo": "Clay.EmoteSpikeDropped01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_SpikeDropped"
+   ],
+   "pt": "Larguei a Spike.",
+   "en": "I dropped the spike.",
+   "segundos": {
+    "en": 0.77,
+    "pt": 0.76
+   }
+  },
+  {
+   "id": "clay-emotespikedropped01-alt01",
+   "jogo": "Clay.EmoteSpikeDropped01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_SpikeDropped"
+   ],
+   "pt": "Larguei a Spike.",
+   "en": "I dropped the spike.",
+   "segundos": {
+    "en": 0.75,
+    "pt": 0.84
+   }
+  },
+  {
+   "id": "clay-emotespikeplanted01",
+   "jogo": "Clay.EmoteSpikePlanted01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_SpikePlanted"
+   ],
+   "pt": "Spike plantado.",
+   "en": "Spike planted.",
+   "segundos": {
+    "en": 0.89,
+    "pt": 0.86
+   }
+  },
+  {
+   "id": "clay-emotespikeplanted01-alt01",
+   "jogo": "Clay.EmoteSpikePlanted01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_SpikePlanted"
+   ],
+   "pt": "Spike plantada.",
+   "en": "Spike planted.",
+   "segundos": {
+    "en": 0.95,
+    "pt": 0.83
+   }
+  },
+  {
+   "id": "clay-emotespikeretrieved01",
+   "jogo": "Clay.EmoteSpikeRetrieved01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_SpikeRetrieved"
+   ],
+   "pt": "Tô com a Spike.",
+   "en": "I have the spike.",
+   "segundos": {
+    "en": 0.76,
+    "pt": 0.58
+   }
+  },
+  {
+   "id": "clay-emotespikeretrieved01-alt01",
+   "jogo": "Clay.EmoteSpikeRetrieved01_alt01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_SpikeRetrieved"
+   ],
+   "pt": "Tô com a Spike.",
+   "en": "I have the spike.",
+   "segundos": {
+    "en": 0.83,
+    "pt": 0.62
+   }
+  },
+  {
+   "id": "clay-emotetakepoint01",
+   "jogo": "Clay.EmoteTakePoint01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_TakePoint"
+   ],
+   "pt": "Tô na frente.",
+   "en": "Taking point.",
+   "segundos": {
+    "en": 0.67,
+    "pt": 0.66
+   }
+  },
+  {
+   "id": "clay-emotetakepoint01-alt01",
+   "jogo": "Clay.EmoteTakePoint01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_TakePoint"
+   ],
+   "pt": "Tô na frente.",
+   "en": "Taking point.",
+   "segundos": {
+    "en": 0.83,
+    "pt": 0.7
+   }
+  },
+  {
+   "id": "clay-emotethanks01",
+   "jogo": "Clay.EmoteThanks01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteThanks"
+   ],
+   "pt": "Valeu!",
+   "en": "Thanks.",
+   "segundos": {
+    "en": 0.47,
+    "pt": 0.6
+   }
+  },
+  {
+   "id": "clay-emotethanks01-alt01",
+   "jogo": "Clay.EmoteThanks01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteThanks"
+   ],
+   "pt": "Valeu.",
+   "en": "Thanks.",
+   "segundos": {
+    "en": 0.46,
+    "pt": 0.64
+   }
+  },
+  {
+   "id": "clay-emotethanks01-alt02",
+   "jogo": "Clay.EmoteThanks01_alt02",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteThanks"
+   ],
+   "pt": "Valeu!",
+   "en": "Thanks.",
+   "segundos": {
+    "en": 0.4,
+    "pt": 0.54
+   }
+  },
+  {
+   "id": "clay-emoteultalmostready01",
+   "jogo": "Clay.EmoteUltAlmostReady01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_UltAlmostReady"
+   ],
+   "pt": "Ulti quase pronta.",
+   "en": "My ult's almost ready.",
+   "segundos": {
+    "en": 1.21,
+    "pt": 1.06
+   }
+  },
+  {
+   "id": "clay-emoteultalmostready01-alt01",
+   "jogo": "Clay.EmoteUltAlmostReady01_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_UltAlmostReady"
+   ],
+   "pt": "Ult quase pronta!",
+   "en": "My ult's almost ready.",
+   "segundos": {
+    "en": 1.12,
+    "pt": 1.03
+   }
+  },
+  {
+   "id": "clay-emoteultnotready01",
+   "jogo": "Clay.EmoteUltNotReady01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_UltNotReady"
+   ],
+   "pt": "A ult não está pronta.",
+   "en": "My ult's not ready.",
+   "segundos": {
+    "en": 1.04,
+    "pt": 1.09
+   }
+  },
+  {
+   "id": "clay-emoteultnotready01-alt01",
+   "jogo": "Clay.EmoteUltNotReady01_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_UltNotReady"
+   ],
+   "pt": "A ult não tá pronta.",
+   "en": "My ult's not ready.",
+   "segundos": {
+    "en": 0.91,
+    "pt": 1.16
+   }
+  },
+  {
+   "id": "clay-emoteultready01",
+   "jogo": "Clay.EmoteUltReady01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_UltReady"
+   ],
+   "pt": "Ult pronta!",
+   "en": "My ult's ready.",
+   "segundos": {
+    "en": 0.78,
+    "pt": 0.72
+   }
+  },
+  {
+   "id": "clay-emoteultready01-alt01",
+   "jogo": "Clay.EmoteUltReady01_alt01",
+   "quem": "raze",
+   "quando": "habilidade",
+   "eventos": [
+    "Play_VO_Clay_UltReady"
+   ],
+   "pt": "Ult pronta.",
+   "en": "My ult's ready.",
+   "segundos": {
+    "en": 0.81,
+    "pt": 0.79
+   }
+  },
+  {
+   "id": "clay-emoteyes01",
+   "jogo": "Clay.EmoteYes01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteYes"
+   ],
+   "pt": "Isso.",
+   "en": "Yes.",
+   "segundos": {
+    "en": 0.39,
+    "pt": 0.45
+   }
+  },
+  {
+   "id": "clay-emoteyes01-alt01",
+   "jogo": "Clay.EmoteYes01_alt01",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteYes"
+   ],
+   "pt": "Isso!",
+   "en": "Yes.",
+   "segundos": {
+    "en": 0.37,
+    "pt": 0.43
+   }
+  },
+  {
+   "id": "clay-emoteyes01-alt02",
+   "jogo": "Clay.EmoteYes01_alt02",
+   "quem": "raze",
+   "quando": "comando",
+   "eventos": [
+    "Play_VO_Clay_EmoteYes"
+   ],
+   "pt": "Isso.",
+   "en": "Yes.",
+   "segundos": {
+    "en": 0.46,
+    "pt": 0.37
+   }
+  },
+  {
+   "id": "clay-flawless01",
+   "jogo": "Clay.Flawless01",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_Flawless"
+   ],
+   "pt": "Ah, mas que obra de arte!",
+   "en": "Ah, now that was a work of art!",
+   "segundos": {
+    "en": 2.63,
+    "pt": 2.38
+   }
+  },
+  {
+   "id": "clay-flawless02",
+   "jogo": "Clay.Flawless02",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_Flawless"
+   ],
+   "pt": "Ah, curti demais. Será que eles curtiram também?",
+   "en": "Ah, that was fun! Do you think they had fun?",
+   "segundos": {
+    "en": 3.53,
+    "pt": 3.23
+   }
+  },
+  {
+   "id": "clay-flawless03",
+   "jogo": "Clay.Flawless03",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_Flawless"
+   ],
+   "pt": "Ah, meus amores, tamo vivo!",
+   "en": "Ah, meus amores, we live another day!",
+   "segundos": {
+    "en": 3.16,
+    "pt": 2.47
+   }
+  },
+  {
+   "id": "clay-headshotkill01",
+   "jogo": "Clay.HeadshotKill01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_HeadshotKill"
+   ],
+   "pt": "Oxe, relaxe.",
+   "en": "Loosen up!",
+   "segundos": {
+    "en": 0.74,
+    "pt": 1.29
+   }
+  },
+  {
+   "id": "clay-headshotkill02",
+   "jogo": "Clay.HeadshotKill02",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_HeadshotKill"
+   ],
+   "pt": "Headshot.",
+   "en": "Headshot.",
+   "segundos": {
+    "en": 0.56,
+    "pt": 0.69
+   }
+  },
+  {
+   "id": "clay-headshotkill03",
+   "jogo": "Clay.HeadshotKill03",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_HeadshotKill"
+   ],
+   "pt": "De precisão.",
+   "en": "Precision kill.",
+   "segundos": {
+    "en": 1.06,
+    "pt": 1.13
+   }
+  },
+  {
+   "id": "clay-headshotkill04",
+   "jogo": "Clay.HeadshotKill04",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_HeadshotKill"
+   ],
+   "pt": "Na mosca.",
+   "en": "Nailed it.",
+   "segundos": {
+    "en": 0.69,
+    "pt": 0.75
+   }
+  },
+  {
+   "id": "clay-kill01",
+   "jogo": "Clay.Kill01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill"
+   ],
+   "pt": "Boom!",
+   "en": "Boom!",
+   "segundos": {
+    "en": 0.57,
+    "pt": 0.56
+   }
+  },
+  {
+   "id": "clay-kill02",
+   "jogo": "Clay.Kill02",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill"
+   ],
+   "pt": "Menos um.",
+   "en": "One down.",
+   "segundos": {
+    "en": 0.79,
+    "pt": 0.8
+   }
+  },
+  {
+   "id": "clay-kill03",
+   "jogo": "Clay.Kill03",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill"
+   ],
+   "pt": "Ha! Morreu!",
+   "en": "Ha! Got one!",
+   "segundos": {
+    "en": 1.19,
+    "pt": 1.06
+   }
+  },
+  {
+   "id": "clay-kill04-alt",
+   "jogo": "Clay.Kill04_alt",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill"
+   ],
+   "pt": "Tchau!",
+   "en": "Tchau!",
+   "segundos": {
+    "en": 0.56,
+    "pt": 0.73
+   }
+  },
+  {
+   "id": "clay-kill05",
+   "jogo": "Clay.Kill05",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill"
+   ],
+   "pt": "Se foi!",
+   "en": "Snuffed out.",
+   "segundos": {
+    "en": 1.06,
+    "pt": 0.57
+   }
+  },
+  {
+   "id": "clay-kill06",
+   "jogo": "Clay.Kill06",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill"
+   ],
+   "pt": "Próximo!",
+   "en": "Next.",
+   "segundos": {
+    "en": 0.47,
+    "pt": 0.79
+   }
+  },
+  {
+   "id": "clay-kill07",
+   "jogo": "Clay.Kill07",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill"
+   ],
+   "pt": "Se pica daqui!",
+   "en": "Get out of here!",
+   "segundos": {
+    "en": 0.99,
+    "pt": 1.35
+   }
+  },
+  {
+   "id": "clay-kill08",
+   "jogo": "Clay.Kill08",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_Kill"
+   ],
+   "pt": "Woo!",
+   "en": "Woo!",
+   "segundos": {
+    "en": 0.24,
+    "pt": 0.51
+   }
+  },
+  {
+   "id": "clay-kill-clay-01",
+   "jogo": "Clay.Kill[Clay]01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_Kill_Clay"
+   ],
+   "pt": "Matei a cópia.",
+   "en": "Killed my copy.",
+   "segundos": {
+    "en": 0.99,
+    "pt": 1.23
+   }
+  },
+  {
+   "id": "clay-lastdefuseresumption01",
+   "jogo": "Clay.LastDefuseResumption01",
+   "quem": "raze",
+   "quando": "maestria",
+   "eventos": [
+    "Play_Bloomline_Clay_VO3",
+    "Play_VO_Clay_LastDefuseResumption"
+   ],
+   "pt": "Aonde que você me para?",
+   "en": "Pfft, like you could stop me.",
+   "segundos": {
+    "en": 1.77,
+    "pt": 1.26
+   }
+  },
+  {
+   "id": "clay-lastkill01",
+   "jogo": "Clay.LastKill01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_LastKill"
+   ],
+   "pt": "Último infeliz morto.",
+   "en": "Last bogey killed.",
+   "segundos": {
+    "en": 1.42,
+    "pt": 1.49
+   }
+  },
+  {
+   "id": "clay-lastkill02",
+   "jogo": "Clay.LastKill02",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_LastKill"
+   ],
+   "pt": "Acho que já foi.",
+   "en": "I think that's it.",
+   "segundos": {
+    "en": 1.0,
+    "pt": 0.86
+   }
+  },
+  {
+   "id": "clay-lastkill03",
+   "jogo": "Clay.LastKill03",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E02_LastKill"
+   ],
+   "pt": "Uh! Massa! Hora da folga, pessoal!",
+   "en": "Woo! Okay, take a break guys!",
+   "segundos": {
+    "en": 2.26,
+    "pt": 2.35
+   }
+  },
+  {
+   "id": "clay-lastkill-clay-01",
+   "jogo": "Clay.LastKill[Clay]01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_LastKill_Clay"
+   ],
+   "pt": "Eu faço esse barulho todo?",
+   "en": "Am I really that loud?",
+   "segundos": {
+    "en": 1.09,
+    "pt": 1.46
+   }
+  },
+  {
+   "id": "clay-lastkill-clay-02",
+   "jogo": "Clay.LastKill[Clay]02",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_LastKill_Clay"
+   ],
+   "pt": "Dorme bem, amorzinho.",
+   "en": "Sleep well, meu amorzinho.",
+   "segundos": {
+    "en": 1.78,
+    "pt": 1.68
+   }
+  },
+  {
+   "id": "clay-lastroundofhalfasattackers01",
+   "jogo": "Clay.LastRoundofHalfasAttackers01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_LastRoundofHalfasAttackers"
+   ],
+   "pt": "Sem miséria com os créditos, viu?",
+   "en": "Spend those creds before we lose them.",
+   "segundos": {
+    "en": 1.68,
+    "pt": 1.56
+   }
+  },
+  {
+   "id": "clay-lastroundofhalfasdefenders01",
+   "jogo": "Clay.LastRoundofHalfasDefenders01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_LastRoundofHalfasDefenders"
+   ],
+   "pt": "Sem miséria com os créditos, viu?",
+   "en": "Spend those creds before we lose them.",
+   "segundos": {
+    "en": 1.69,
+    "pt": 1.69
+   }
+  },
+  {
+   "id": "clay-match-startally-killjoy-01",
+   "jogo": "Clay.Match.StartAlly[Killjoy]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStartAlly_Killjoy"
+   ],
+   "com": [
+    "killjoy"
+   ],
+   "lado": "aliado",
+   "pt": "KJ, gatinha, minha companheira preferida de luta e de dança também.",
+   "en": "Killjoy, gatinha, there's no one else I'd rather fight beside, or dance with.",
+   "segundos": {
+    "en": 5.34,
+    "pt": 6.6
+   }
+  },
+  {
+   "id": "clay-match-startattacker01",
+   "jogo": "Clay.Match.StartAttacker01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E04_MatchStart_Attacker"
+   ],
+   "pt": "Oxi, a gente entrou no mundo deles? Ou eles no nosso? Não, é o deles. Saquei. Barril esse negócio de universo.",
+   "en": "Oxe, are we in their world now, or they in ours? No, it's theirs. I got it. This universe stuff, it's complicated.",
+   "segundos": {
+    "en": 8.68,
+    "pt": 8.06
+   }
+  },
+  {
+   "id": "clay-match-startattacker02",
+   "jogo": "Clay.Match.StartAttacker02",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E04_MatchStart_Attacker"
+   ],
+   "pt": "Depois que a gente pegar a radianita, dá pra guardar um pouquinho pro Bumbinho? Não tem problema não, né? Dá nada não.",
+   "en": "Once we get their radianite, can I keep a little extra for my boom bot-i? Would that be cool? Honestly, I don't think anybody minds!",
+   "segundos": {
+    "en": 7.15,
+    "pt": 6.59
+   }
+  },
+  {
+   "id": "clay-match-startconversation-claygrenadier-01",
+   "jogo": "Clay.Match.StartConversation[ClayGrenadier]01",
+   "quem": "raze",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Clay_E04_MatchS_Chat_ClayGrenadier"
+   ],
+   "com": [
+    "kayo"
+   ],
+   "pt": "KAY/O, menino? Me conta um negócio. Tem alguma coisa que você não faz?",
+   "en": "KAY/O, level with me. Is there anything you can't do out here?",
+   "segundos": {
+    "en": 4.19,
+    "pt": 4.57
+   }
+  },
+  {
+   "id": "clay-match-startconversation-claysarge-01",
+   "jogo": "Clay.Match.StartConversation[ClaySarge]01",
+   "quem": "raze",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Clay_E04_MatchS_Chat_ClaySarge"
+   ],
+   "com": [
+    "brimstone"
+   ],
+   "pt": "Brimstone, chefinho! Valeu pelas tintas! Gostei demais!",
+   "en": "Brimstone, chefinho! Thanks for the paint canisters, ha, best gift ever!",
+   "segundos": {
+    "en": 6.28,
+    "pt": 7.15
+   }
+  },
+  {
+   "id": "clay-match-startconversation-sequoiaclay-01",
+   "jogo": "Clay.Match.StartConversation[SequoiaClay]01",
+   "quem": "raze",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Clay_MatchS_Chat_SequoiaClay"
+   ],
+   "com": [
+    "iso"
+   ],
+   "pt": "Só batuque do bom, meu véio.",
+   "en": "Anything with a beat, irmão.",
+   "segundos": {
+    "en": 2.03,
+    "pt": 3.26
+   }
+  },
+  {
+   "id": "clay-match-startconversation-sprinterclay-01",
+   "jogo": "Clay.Match.StartConversation[SprinterClay]01",
+   "quem": "raze",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Clay_E04_MatchS_Chat_SprinterClay"
+   ],
+   "com": [
+    "neon"
+   ],
+   "pt": "É o quê? Tô ouvindo música, deixa só eu... Você disse alguma coisa? O que ela falou?",
+   "en": "Wait, what? I'm listening to music, let me just- you say something? What did she say?",
+   "segundos": {
+    "en": 5.14,
+    "pt": 5.18
+   }
+  },
+  {
+   "id": "clay-match-startdefender01",
+   "jogo": "Clay.Match.StartDefender01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E04_MatchStart_Defender"
+   ],
+   "pt": "Ou estão achando que podem desfilar no meu território? Minha granada aqui discorda.",
+   "en": "They think they can walk all over my turf?! I've got a grenade that says otherwise.",
+   "segundos": {
+    "en": 4.71,
+    "pt": 4.49
+   }
+  },
+  {
+   "id": "clay-match-startenemy-rift-01",
+   "jogo": "Clay.Match.StartEnemy[Rift]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E04_MatchStartEnemy_Rift"
+   ],
+   "com": [
+    "astra"
+   ],
+   "lado": "inimigo",
+   "pt": "Aquela Astra deles acha que só a mãe dela faz filha esperta. Bora trazê-la de volta pra Terra.",
+   "en": "That enemy Astra thinks she knows everything. Let's bring her back down to Earth.",
+   "segundos": {
+    "en": 4.36,
+    "pt": 5.07
+   }
+  },
+  {
+   "id": "clay-match-start-pitt-01",
+   "jogo": "Clay.Match.Start[Pitt]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E04_MatchStartMap_Pitt"
+   ],
+   "com": [
+    "mapa:Pearl"
+   ],
+   "pt": "E assim, aquele vidro não quebra não, né? Alguém já tacou granada nele? É só pra... só pra saber mesmo.",
+   "en": "Hey, uh, that glass is shatter-proof, né? Anyone test grenades on it yet? I'm just thinking out loud.",
+   "segundos": {
+    "en": 6.77,
+    "pt": 6.91
+   }
+  },
+  {
+   "id": "clay-match-win04",
+   "jogo": "Clay.Match.Win04",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_MatchWin"
+   ],
+   "pt": "Gente, chegamos estarrando!",
+   "en": "Gente! As colorful as Carnaval!",
+   "segundos": {
+    "en": 2.66,
+    "pt": 2.2
+   }
+  },
+  {
+   "id": "clay-match-win-pitt-01",
+   "jogo": "Clay.Match.Win[Pitt]01",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E04_MatchWinMap_Pitt"
+   ],
+   "com": [
+    "mapa:Pearl"
+   ],
+   "pt": "Aí sim, brocamo! Mas na moral, quando é que vai rolar aquele reggae, hein?",
+   "en": "Aí sim, we rock! But seriously, when can we hit up the club here?",
+   "segundos": {
+    "en": 4.52,
+    "pt": 4.08
+   }
+  },
+  {
+   "id": "clay-matchstart01",
+   "jogo": "Clay.MatchStart01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStart"
+   ],
+   "pt": "Massa, família linda! Deixa os fogos de artifício comigo! Vou fazer barulho pra geral curtir!",
+   "en": "Okay, minha família. Leave the fireworks to me. Should be plenty loud for you to have some fun.",
+   "segundos": {
+    "en": 6.58,
+    "pt": 6.25
+   }
+  },
+  {
+   "id": "clay-matchstart02",
+   "jogo": "Clay.MatchStart02",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStart"
+   ],
+   "pt": "Se eu morrer, vai ser um estouro. Quero ver todo mundo dançando no meu velório, viu?",
+   "en": "Even if I go out, I'll go out with a bang! Just promise you'll dance at my funeral, okay?",
+   "segundos": {
+    "en": 6.4,
+    "pt": 4.24
+   }
+  },
+  {
+   "id": "clay-matchstart03",
+   "jogo": "Clay.MatchStart03",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStart"
+   ],
+   "pt": "Você pode até tirar a garota de Salvador, mas nunca pode tirar Salvador da garota. Não, pera.",
+   "en": "You can take the girl out of Salvador, but you'll never take the girl out of Salvador. Wait...",
+   "segundos": {
+    "en": 6.5,
+    "pt": 4.69
+   }
+  },
+  {
+   "id": "clay-matchstart04",
+   "jogo": "Clay.MatchStart04",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStart"
+   ],
+   "pt": "Só eu, meu squadzinho e um montão de dinamite. O reggae hoje vai ser bom.",
+   "en": "Just me, my squad-zinho, and a few tons of dynamite. There's nothing we can't do!",
+   "segundos": {
+    "en": 6.55,
+    "pt": 6.84
+   }
+  },
+  {
+   "id": "clay-matchstart05",
+   "jogo": "Clay.MatchStart05",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStart"
+   ],
+   "pt": "Eu tô de volta na briga! Se ligue! Tô cheia de brinquedo barril!",
+   "en": "Finally back out in the field! Let's go, there's so many new toys I want to try out!",
+   "segundos": {
+    "en": 6.23,
+    "pt": 4.77
+   }
+  },
+  {
+   "id": "clay-matchstart06",
+   "jogo": "Clay.MatchStart06",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_E02_MatchStart"
+   ],
+   "pt": "Juro que vou pegar eles. Pode ser que eu derrube um quarteirão junto, mas vitória é vitória, oxe.",
+   "en": "I promise I'll get 'em. Might take down a city block along the way but hey, a win's a win.",
+   "segundos": {
+    "en": 6.09,
+    "pt": 5.78
+   }
+  },
+  {
+   "id": "clay-matchstartally-breach-01",
+   "jogo": "Clay.MatchStartAlly[Breach]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_MatchStartAlly_Breach"
+   ],
+   "com": [
+    "breach"
+   ],
+   "lado": "aliado",
+   "pt": "Breach! Obinho! Rapaz, teus braços estão brocando. Vai, garibada, aí.",
+   "en": "Breach! Lindo! Your arms are looking great! You need a tuneup?",
+   "segundos": {
+    "en": 5.26,
+    "pt": 6.44
+   }
+  },
+  {
+   "id": "clay-matchstartally-wushu-01",
+   "jogo": "Clay.MatchStartAlly[Wushu]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_MatchStartAlly_Wushu"
+   ],
+   "com": [
+    "jett"
+   ],
+   "lado": "aliado",
+   "pt": "Jett! Ô, minha linda. Bora botar esse povo pra se bicar!",
+   "en": "Jett! My sister from another mister. Let's have some fun, yeah?",
+   "segundos": {
+    "en": 4.81,
+    "pt": 4.58
+   }
+  },
+  {
+   "id": "clay-matchstartenemy-clay-01",
+   "jogo": "Clay.MatchStartEnemy[Clay]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_MatchStartEnemy_Clay"
+   ],
+   "lado": "inimigo",
+   "pt": "Outra Raze? Deve ser massa ela. Bom, vou matar assim mesmo. Claro.",
+   "en": "Another Raze?! Ha! I bet she's fun! I mean, I'll still kill her, obviously.",
+   "segundos": {
+    "en": 6.26,
+    "pt": 5.71
+   }
+  },
+  {
+   "id": "clay-matchstartenemy-pandemic-01",
+   "jogo": "Clay.MatchStartEnemy[Pandemic]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_MatchStartEnemy_Pandemic"
+   ],
+   "com": [
+    "viper"
+   ],
+   "lado": "inimigo",
+   "pt": "Essa menina veneno aí é pra me pocar! Aqui tem jararaca, fia!",
+   "en": "That snake lady is a joke. Brazil has real vipers. She's dumb.",
+   "segundos": {
+    "en": 4.7,
+    "pt": 3.9
+   }
+  },
+  {
+   "id": "clay-matchstartenemy-thorne-01",
+   "jogo": "Clay.MatchStartEnemy[Thorne]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_MatchStartEnemy_Thorne"
+   ],
+   "com": [
+    "sage"
+   ],
+   "lado": "inimigo",
+   "pt": "Olha essa Sage. Ela bota a parede e eu derrubo tudo. Sem drama.",
+   "en": "I got their Sage. She builds walls, I tear them down. No problem.",
+   "segundos": {
+    "en": 4.59,
+    "pt": 4.09
+   }
+  },
+  {
+   "id": "clay-matchstart-bonsai-01",
+   "jogo": "Clay.MatchStart[Bonsai]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_MatchStartMap_Bonsai"
+   ],
+   "com": [
+    "mapa:Split"
+   ],
+   "pt": "Eita, outra infestação da Kingdom. Fique de boa. Só vou cuidar de fazer mais dano colateral no meu dano colateral.",
+   "en": "Ugh, another Kingdom infestation. Well fine. I'll just make sure to be extra collateral with my collateral damage.",
+   "segundos": {
+    "en": 7.85,
+    "pt": 6.28
+   }
+  },
+  {
+   "id": "clay-matchstart-triad-01",
+   "jogo": "Clay.MatchStart[Triad]01",
+   "quem": "raze",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Clay_MatchStartMap_Triad"
+   ],
+   "com": [
+    "mapa:Haven"
+   ],
+   "pt": "Tadinho do lugar. Já foi tão bonito. Mas não pega ar não, viu? Vou te despachar num cabum.",
+   "en": "This poor place. You used to be so beautiful. Don't worry. I'll send you off with a bang.",
+   "segundos": {
+    "en": 6.86,
+    "pt": 6.06
+   }
+  },
+  {
+   "id": "clay-matchwin01",
+   "jogo": "Clay.MatchWin01",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_MatchWin"
+   ],
+   "pt": "Aí sim! Botamo pa fuder!",
+   "en": "There we go! Nice work, everyone!",
+   "segundos": {
+    "en": 2.85,
+    "pt": 3.26
+   }
+  },
+  {
+   "id": "clay-matchwin02",
+   "jogo": "Clay.MatchWin02",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_MatchWin"
+   ],
+   "pt": "Olha essa destruição! Tô tão orgulhosa!",
+   "en": "Ha! Look at this wreckage! I'm so proud!",
+   "segundos": {
+    "en": 3.74,
+    "pt": 3.45
+   }
+  },
+  {
+   "id": "clay-matchwin03",
+   "jogo": "Clay.MatchWin03",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_MatchWin"
+   ],
+   "pt": "Ah, que cheirinho de vitória e pólvora.",
+   "en": "Ah, smells like victory, and gunpowder.",
+   "segundos": {
+    "en": 3.52,
+    "pt": 3.45
+   }
+  },
+  {
+   "id": "clay-matchwinmvp01",
+   "jogo": "Clay.MatchWinMVP01",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_MatchWinMVP"
+   ],
+   "pt": "Aê, eu sou o orgulho da Bahia!",
+   "en": "Woohoo! I'm the pride of Bahia!",
+   "segundos": {
+    "en": 3.49,
+    "pt": 2.44
+   }
+  },
+  {
+   "id": "clay-matchwinmvp02",
+   "jogo": "Clay.MatchWinMVP02",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_MatchWinMVP"
+   ],
+   "pt": "Gente, chegamos estarrando!",
+   "en": "Gente! As colorful as Carnaval!",
+   "segundos": {
+    "en": 2.66,
+    "pt": 2.2
+   }
+  },
+  {
+   "id": "clay-matchwin-bonsai-01",
+   "jogo": "Clay.MatchWin[Bonsai]01",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_MatchWinMap_Bonsai"
+   ],
+   "com": [
+    "mapa:Split"
+   ],
+   "pt": "A cidade tá salva! Assim, o que sobrou dela. Eu não sou perfeita, né?",
+   "en": "The city is safe! Or, you know, what's left of it. Never said I was perfect.",
+   "segundos": {
+    "en": 5.26,
+    "pt": 5.23
+   }
+  },
+  {
+   "id": "clay-meleekill01",
+   "jogo": "Clay.MeleeKill01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_MeleeKill"
+   ],
+   "pt": "Vai dormir!",
+   "en": "Take a nap.",
+   "segundos": {
+    "en": 0.56,
+    "pt": 0.62
+   }
+  },
+  {
+   "id": "clay-meleekill02",
+   "jogo": "Clay.MeleeKill02",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_MeleeKill"
+   ],
+   "pt": "Nem gastei bala.",
+   "en": "Didn't waste my ammo.",
+   "segundos": {
+    "en": 1.06,
+    "pt": 1.24
+   }
+  },
+  {
+   "id": "clay-meleekilllastkill01",
+   "jogo": "Clay.MeleeKillLastKill01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_MeleeLastKill"
+   ],
+   "pt": "Eu tô só de miguê.",
+   "en": "I'm as quiet as a mouse.",
+   "segundos": {
+    "en": 1.64,
+    "pt": 1.34
+   }
+  },
+  {
+   "id": "clay-nobodygrabbedspike01",
+   "jogo": "Clay.NobodyGrabbedSpike01",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_NobodyGrabbedSpike"
+   ],
+   "pt": "Acho que tá faltando Spike.",
+   "en": "I think we need the spike.",
+   "segundos": {
+    "en": 1.16,
+    "pt": 1.42
+   }
+  },
+  {
+   "id": "clay-nobodygrabbedspike02",
+   "jogo": "Clay.NobodyGrabbedSpike02",
+   "quem": "raze",
+   "quando": "spike",
+   "eventos": [
+    "Play_VO_Clay_NobodyGrabbedSpike"
+   ],
+   "pt": "Oxente, cadê Spike?",
+   "en": "Uh, where's the spike?",
+   "segundos": {
+    "en": 1.08,
+    "pt": 1.37
+   }
+  },
+  {
+   "id": "clay-pentakill01",
+   "jogo": "Clay.Pentakill01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_Pentakill"
+   ],
+   "pt": "Opa, esse dano colateral!",
+   "en": "Talk about collateral damage! Ha!",
+   "segundos": {
+    "en": 2.51,
+    "pt": 2.77
+   }
+  },
+  {
+   "id": "clay-pentakill02",
+   "jogo": "Clay.Pentakill02",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_Pentakill"
+   ],
+   "pt": "Vambora! Sou eu contra o mundo!",
+   "en": "Bring it! Me against the world!",
+   "segundos": {
+    "en": 2.43,
+    "pt": 3.03
+   }
+  },
+  {
+   "id": "clay-pickme01",
+   "jogo": "Clay.PickMe01",
+   "quem": "raze",
+   "quando": "selecao",
+   "eventos": [
+    "Play_VO_Clay_PickMe"
+   ],
+   "pt": "Massa, vou brocar!",
+   "en": "Yes, I'm pumped!",
+   "segundos": {
+    "en": 2.86,
+    "pt": 3.39
+   }
+  },
+  {
+   "id": "clay-quadrakill01",
+   "jogo": "Clay.QuadraKill01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_QuadraKill"
+   ],
+   "pt": "Ha! Quatro!",
+   "en": "Ha, four.",
+   "segundos": {
+    "en": 0.99,
+    "pt": 1.26
+   }
+  },
+  {
+   "id": "clay-quadrakill01-alt01",
+   "jogo": "Clay.QuadraKill01_alt01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_QuadraKill"
+   ],
+   "pt": "Ha! Quatro!",
+   "en": "Ha, four.",
+   "segundos": {
+    "en": 1.13,
+    "pt": 1.33
+   }
+  },
+  {
+   "id": "clay-relief01",
+   "jogo": "Clay.Relief01",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_Relief"
+   ],
+   "pt": "Ah.",
+   "en": "Ah.",
+   "segundos": {
+    "en": 0.74,
+    "pt": 0.66
+   }
+  },
+  {
+   "id": "clay-relief01-alt01",
+   "jogo": "Clay.Relief01_alt01",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_Relief"
+   ],
+   "pt": "Ah!",
+   "en": "Ah.",
+   "segundos": {
+    "en": 0.62,
+    "pt": 0.54
+   }
+  },
+  {
+   "id": "clay-relief01-alt02",
+   "jogo": "Clay.Relief01_alt02",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_Relief"
+   ],
+   "pt": "Ah.",
+   "en": "Sigh.",
+   "segundos": {
+    "en": 0.64,
+    "pt": 0.53
+   }
+  },
+  {
+   "id": "clay-resurrect01",
+   "jogo": "Clay.Resurrect01",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_Ressurect"
+   ],
+   "pt": "O que eu perdi?",
+   "en": "Ah, so what'd I miss?",
+   "segundos": {
+    "en": 1.78,
+    "pt": 1.81
+   }
+  },
+  {
+   "id": "clay-roundend-clutchplay04",
+   "jogo": "Clay.RoundEnd.ClutchPlay04",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_ClutchPlay"
+   ],
+   "pt": "Aê, eu sou a chama da Bahia!",
+   "en": "Woohoo! I'm the pride of Bahia!",
+   "segundos": {
+    "en": 3.49,
+    "pt": 2.44
+   }
+  },
+  {
+   "id": "clay-roundend-lastkill-deadeye-01",
+   "jogo": "Clay.RoundEnd.LastKill[Deadeye]01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_E04_LastKill_Deadeye"
+   ],
+   "com": [
+    "chamber"
+   ],
+   "pt": "Vá voltar com um negócio maior!",
+   "en": "Come back with a bigger gun.",
+   "segundos": {
+    "en": 1.78,
+    "pt": 1.87
+   }
+  },
+  {
+   "id": "clay-roundend-lastkill-grenadier-01",
+   "jogo": "Clay.RoundEnd.LastKill[Grenadier]01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_LastKill_Grenadier"
+   ],
+   "com": [
+    "kayo"
+   ],
+   "pt": "Tá se achando muito, morre rapidinho.",
+   "en": "The bigger they are, the harder they fall.",
+   "segundos": {
+    "en": 2.58,
+    "pt": 2.53
+   }
+  },
+  {
+   "id": "clay-roundstart-allycommend-rift-01",
+   "jogo": "Clay.RoundStart.AllyCommend[Rift]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E04_RoundStartAllyCommend_Rift"
+   ],
+   "com": [
+    "astra"
+   ],
+   "lado": "aliado",
+   "pt": "Astra, como é que você fez isso? Mulher, podia me dar umas aulas.",
+   "en": "Astra, how did you even do that?! Man, where do I sign up for lessons?",
+   "segundos": {
+    "en": 4.49,
+    "pt": 3.96
+   }
+  },
+  {
+   "id": "clay-roundstart-allycommend-sprinter-01",
+   "jogo": "Clay.RoundStart.AllyCommend[Sprinter]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E04_RoundStartAllyCommend_Sprinter"
+   ],
+   "com": [
+    "neon"
+   ],
+   "lado": "aliado",
+   "pt": "Neon, que isso! Gente, vocês viram isso? A ginga da gata!",
+   "en": "Neon, holy shit, you guys see that?! Gata can move!",
+   "segundos": {
+    "en": 4.34,
+    "pt": 4.33
+   }
+  },
+  {
+   "id": "clay-roundstart-ally-deadeye-01",
+   "jogo": "Clay.RoundStart.Ally[Deadeye]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E04_RoundStartAlly_Deadeye"
+   ],
+   "com": [
+    "chamber"
+   ],
+   "lado": "aliado",
+   "pt": "Chamber, presta uma arma pra mim, por favor. Ah, miséria, por favor. Ô, deixa de ser ruim, eu pedi na moral.",
+   "en": "Chamber, let me borrow one of your guns! Please? Ah, come on man, please? I said please.",
+   "segundos": {
+    "en": 6.9,
+    "pt": 7.47
+   }
+  },
+  {
+   "id": "clay-roundstart-ally-killjoy-01",
+   "jogo": "Clay.RoundStart.Ally[Killjoy]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E04_RoundStartAlly_Killjoy"
+   ],
+   "com": [
+    "killjoy"
+   ],
+   "lado": "aliado",
+   "pt": "Killjoy, para de pensar tanto. Às vezes só precisa tacar uma bomba neles.",
+   "en": "Killjoy, don't overthink it! Sometimes, you just need to hit them with explosives.",
+   "segundos": {
+    "en": 4.96,
+    "pt": 4.13
+   }
+  },
+  {
+   "id": "clay-roundstart-enemy-grenadier-01",
+   "jogo": "Clay.RoundStart.Enemy[Grenadier]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E04_RoundStartEnemy_Grenadier"
+   ],
+   "com": [
+    "kayo"
+   ],
+   "lado": "inimigo",
+   "pt": "Aí, ô! Outro KAY/O! Oxi, bota uma camisa!",
+   "en": "Hey, other KAY/O, put a shirt on!",
+   "segundos": {
+    "en": 2.96,
+    "pt": 3.06
+   }
+  },
+  {
+   "id": "clay-roundstartallycommend-breach-01",
+   "jogo": "Clay.RoundStartAllyCommend[Breach]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_RoundStartAllyCommend_Breach"
+   ],
+   "com": [
+    "breach"
+   ],
+   "lado": "aliado",
+   "pt": "Cês viram lá o Breach? O cara é louco!",
+   "en": "Did you see Breach back there? That's how it's done.",
+   "segundos": {
+    "en": 3.13,
+    "pt": 3.31
+   }
+  },
+  {
+   "id": "clay-roundstartallycommend-breach-02",
+   "jogo": "Clay.RoundStartAllyCommend[Breach]02",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_RoundStartAllyCommend_Breach"
+   ],
+   "com": [
+    "breach"
+   ],
+   "lado": "aliado",
+   "pt": "Breach! Brad Jobate! Eu falei direito? Jobate, bate, Jobate, Jobate?",
+   "en": "Breach! Bra jobbatch! Did I say that right?",
+   "segundos": {
+    "en": 6.41,
+    "pt": 6.18
+   }
+  },
+  {
+   "id": "clay-roundstartallycommend-wushu-01",
+   "jogo": "Clay.RoundStartAllyCommend[Wushu]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_RoundStartAllyCommend_Wushu"
+   ],
+   "com": [
+    "jett"
+   ],
+   "lado": "aliado",
+   "pt": "Porra, Jett! Agora eu vi!",
+   "en": "Damn Jett! You're kicking ass!",
+   "segundos": {
+    "en": 2.15,
+    "pt": 1.76
+   }
+  },
+  {
+   "id": "clay-roundstartally-breach-01",
+   "jogo": "Clay.RoundStartAlly[Breach]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_RoundStartAlly_Breach"
+   ],
+   "com": [
+    "breach"
+   ],
+   "lado": "aliado",
+   "pt": "Oxente, Breach, você está quase dançando. Já quer lutar, lindão?",
+   "en": "Breach, you're practically dancing! You ready to go, lindo?",
+   "segundos": {
+    "en": 3.66,
+    "pt": 3.78
+   }
+  },
+  {
+   "id": "clay-roundstartally-sarge-01",
+   "jogo": "Clay.RoundStartAlly[Sarge]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_RoundStartAlly_Sarge"
+   ],
+   "com": [
+    "brimstone"
+   ],
+   "lado": "aliado",
+   "pt": "Ô, Brimstone. Não posso mermo brigar com música? Cê tá barreando meu baba.",
+   "en": "Brimstone-zinho, you sure I can't listen to music? You're really bringing me down here, man!",
+   "segundos": {
+    "en": 5.97,
+    "pt": 5.01
+   }
+  },
+  {
+   "id": "clay-roundstartally-wushu-01",
+   "jogo": "Clay.RoundStartAlly[Wushu]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_RoundStartAlly_Wushu"
+   ],
+   "com": [
+    "jett"
+   ],
+   "lado": "aliado",
+   "pt": "Cola em mim, Jett. Quero te ver correndo pra cima dos otários.",
+   "en": "Olha, Jett, I can't wait for you to run circles around them!",
+   "segundos": {
+    "en": 3.19,
+    "pt": 3.24
+   }
+  },
+  {
+   "id": "clay-roundstartenemy-clay-01",
+   "jogo": "Clay.RoundStartEnemy[Clay]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_RoundStartEnemy_Clay"
+   ],
+   "lado": "inimigo",
+   "pt": "Aquela Raze está cheia das invenções. Eu quero é desmontar tudo.",
+   "en": "That Raze has some good invenções. Would love to pick them apart.",
+   "segundos": {
+    "en": 4.35,
+    "pt": 5.42
+   }
+  },
+  {
+   "id": "clay-roundstartenemy-gumshoe-01",
+   "jogo": "Clay.RoundStartEnemy[Gumshoe]01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_RoundStartEnemy_Gumshoe"
+   ],
+   "com": [
+    "cypher"
+   ],
+   "lado": "inimigo",
+   "pt": "Tem Cypher de olho na gente? Pode deixar. A gente não fica de quequê.",
+   "en": "That Cypher wants to watch us? Let him, we don't hide!",
+   "segundos": {
+    "en": 3.4,
+    "pt": 4.25
+   }
+  },
+  {
+   "id": "clay-roundstartgamepointwin01",
+   "jogo": "Clay.RoundStartGamePointWin01",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_GamePointWin"
+   ],
+   "pt": "Última luta, meu povo! A gente consegue!",
+   "en": "One last fight, everyone. We can do it!",
+   "segundos": {
+    "en": 2.61,
+    "pt": 3.12
+   }
+  },
+  {
+   "id": "clay-roundstartgamepointwin02",
+   "jogo": "Clay.RoundStartGamePointWin02",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_GamePointWin"
+   ],
+   "pt": "Acabou o reggae! Partiu todo mundo!",
+   "en": "Party's over. Let's show them out!",
+   "segundos": {
+    "en": 2.35,
+    "pt": 2.34
+   }
+  },
+  {
+   "id": "clay-roundstartgeneric01",
+   "jogo": "Clay.RoundStartGeneric01",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric",
+    "Play_VO_Clay_RoundStartGeneric"
+   ],
+   "pt": "Quê? Você falou alguma coisa? Ah, meus ouvidos estão zunindo.",
+   "en": "You- you say something? Ha, sorry. Ears still ringing.",
+   "segundos": {
+    "en": 3.62,
+    "pt": 3.81
+   }
+  },
+  {
+   "id": "clay-roundstartgeneric02",
+   "jogo": "Clay.RoundStartGeneric02",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric",
+    "Play_VO_Clay_RoundStartGeneric"
+   ],
+   "pt": "Querem dançar? Deixa que eu canto.",
+   "en": "They want to dance? Ha! I'll lead.",
+   "segundos": {
+    "en": 2.95,
+    "pt": 3.3
+   }
+  },
+  {
+   "id": "clay-roundstartgeneric03",
+   "jogo": "Clay.RoundStartGeneric03",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric",
+    "Play_VO_Clay_RoundStartGeneric"
+   ],
+   "pt": "Aaah, tá toda família aqui juntinha. Essa a gente leva.",
+   "en": "Ah, surrounded by minha família. We won't lose!",
+   "segundos": {
+    "en": 4.46,
+    "pt": 4.83
+   }
+  },
+  {
+   "id": "clay-roundstartgeneric04",
+   "jogo": "Clay.RoundStartGeneric04",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric",
+    "Play_VO_Clay_RoundStartGeneric"
+   ],
+   "pt": "Tinta? Confere. Carga? Confere. Freio? Nem cheiro.",
+   "en": "Paint? Check. Charges? Check. Brakes? *''chuckles''* Nowhere in sight.",
+   "segundos": {
+    "en": 5.4,
+    "pt": 4.12
+   }
+  },
+  {
+   "id": "clay-roundstartgeneric05",
+   "jogo": "Clay.RoundStartGeneric05",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric",
+    "Play_VO_Clay_RoundStartGeneric"
+   ],
+   "pt": "Se arma, se prepara, vamos voltar.",
+   "en": "Gear up, stay safe, we're going back in.",
+   "segundos": {
+    "en": 3.2,
+    "pt": 3.05
+   }
+  },
+  {
+   "id": "clay-roundstartgeneric06",
+   "jogo": "Clay.RoundStartGeneric06",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric",
+    "Play_VO_Clay_RoundStartGeneric"
+   ],
+   "pt": "Quer poder de fogo? Já comigo!",
+   "en": "No one beats my firepower, I got this!",
+   "segundos": {
+    "en": 3.14,
+    "pt": 2.51
+   }
+  },
+  {
+   "id": "clay-roundstartgeneric07",
+   "jogo": "Clay.RoundStartGeneric07",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric",
+    "Play_VO_Clay_RoundStartGeneric"
+   ],
+   "pt": "Estamos aqui porque somos os melhores. Não te esqueça disso.",
+   "en": "We're here, because we're the best! Don't any of you forget that!",
+   "segundos": {
+    "en": 4.41,
+    "pt": 3.71
+   }
+  },
+  {
+   "id": "clay-roundstartgeneric08",
+   "jogo": "Clay.RoundStartGeneric08",
+   "quem": "raze",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Clay_E02_RoundStartGeneric",
+    "Play_VO_Clay_RoundStartGeneric"
+   ],
+   "pt": "Nenhum dos meus trecos deu pau ainda. Bora comemorar?",
+   "en": "None of my stuff has malfunctioned yet! Can we celebrate that?",
+   "segundos": {
+    "en": 4.08,
+    "pt": 3.17
+   }
+  },
+  {
+   "id": "clay-roundstartwoncomingback01",
+   "jogo": "Clay.RoundStartWonComingBack01",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E02_WonComingBack",
+    "Play_VO_Clay_WonComingBack"
+   ],
+   "pt": "O reggae só começou!",
+   "en": "This party's just begun.",
+   "segundos": {
+    "en": 1.81,
+    "pt": 1.71
+   }
+  },
+  {
+   "id": "clay-roundstartwoncomingback02",
+   "jogo": "Clay.RoundStartWonComingBack02",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E02_WonComingBack",
+    "Play_VO_Clay_WonComingBack"
+   ],
+   "pt": "Viu? É tudo teimoso. E arregão.",
+   "en": "See? They're stubborn, they'll break.",
+   "segundos": {
+    "en": 2.77,
+    "pt": 3.12
+   }
+  },
+  {
+   "id": "clay-roundstartwondoinggreat01",
+   "jogo": "Clay.RoundStartWonDoingGreat01",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_WonDoingGreat"
+   ],
+   "pt": "Quem falou que não ia ser divertido? Tá demais!",
+   "en": "Who said this wouldn't be fun. I'm having a blast!",
+   "segundos": {
+    "en": 3.61,
+    "pt": 3.14
+   }
+  },
+  {
+   "id": "clay-roundstartwondoinggreat02",
+   "jogo": "Clay.RoundStartWonDoingGreat02",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_WonDoingGreat"
+   ],
+   "pt": "Eu já sabia. Bora bater mais!",
+   "en": "Never had a doubt. Let's keep it going!",
+   "segundos": {
+    "en": 2.27,
+    "pt": 2.3
+   }
+  },
+  {
+   "id": "clay-roundstartwondoinggreat03",
+   "jogo": "Clay.RoundStartWonDoingGreat03",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_WonDoingGreat"
+   ],
+   "pt": "Tô tentando ficar séria aqui, mas tá engraçado demais.",
+   "en": "Ha! I try to stay serious here, but this is just so much fun.",
+   "segundos": {
+    "en": 4.47,
+    "pt": 4.67
+   }
+  },
+  {
+   "id": "clay-roundstartwongeneric01",
+   "jogo": "Clay.RoundStartWonGeneric01",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E02_WonGeneric",
+    "Play_VO_Clay_WonGeneric"
+   ],
+   "pt": "Bora mais uma!",
+   "en": "Let's do it again!",
+   "segundos": {
+    "en": 0.98,
+    "pt": 0.95
+   }
+  },
+  {
+   "id": "clay-roundstartwongeneric02",
+   "jogo": "Clay.RoundStartWonGeneric02",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E02_WonGeneric",
+    "Play_VO_Clay_WonGeneric"
+   ],
+   "pt": "Tão achando que vai ser fácil? Vai nada!",
+   "en": "Ha, they think we wouldn't fight back? Dead wrong.",
+   "segundos": {
+    "en": 3.59,
+    "pt": 2.86
+   }
+  },
+  {
+   "id": "clay-roundstartwongeneric03",
+   "jogo": "Clay.RoundStartWonGeneric03",
+   "quem": "raze",
+   "quando": "vitoria",
+   "eventos": [
+    "Play_VO_Clay_E02_WonGeneric",
+    "Play_VO_Clay_WonGeneric"
+   ],
+   "pt": "Comigo é assim.",
+   "en": "And that's how we do it.",
+   "segundos": {
+    "en": 1.64,
+    "pt": 1.23
+   }
+  },
+  {
+   "id": "clay-thrifty01",
+   "jogo": "Clay.Thrifty01",
+   "quem": "raze",
+   "quando": "jogada",
+   "eventos": [
+    "Play_VO_Clay_Thrifty"
+   ],
+   "pt": "Só preciso de Sucata.",
+   "en": "All I need is spare parts.",
+   "segundos": {
+    "en": 1.62,
+    "pt": 1.61
+   }
+  },
+  {
+   "id": "clay-triplekill01",
+   "jogo": "Clay.TripleKill01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_TripleKill"
+   ],
+   "pt": "Três para mim!",
+   "en": "Three for me.",
+   "segundos": {
+    "en": 0.77,
+    "pt": 0.82
+   }
+  },
+  {
+   "id": "clay-triplekill01-alt01",
+   "jogo": "Clay.TripleKill01_alt01",
+   "quem": "raze",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Clay_TripleKill"
+   ],
+   "pt": "Três para mim!",
+   "en": "Three for me.",
+   "segundos": {
+    "en": 0.67,
+    "pt": 0.82
+   }
+  },
+  {
+   "id": "grenadier-bubbledown-ally-clay-01",
+   "jogo": "Grenadier.BubbleDown.Ally[Clay]01",
+   "quem": "kayo",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Grenadier_E02_BubbleDownAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Explosivos prontos, Raze.",
+   "en": "Explosives ready, Raze!",
+   "segundos": {
+    "en": 1.52,
+    "pt": 1.66
+   }
+  },
+  {
+   "id": "grenadier-match-startconversation-claygrenadier-01",
+   "jogo": "Grenadier.Match.StartConversation[ClayGrenadier]01",
+   "quem": "kayo",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Grenadier_E02_MatchS_Chat_ClayGrenadier"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Uh, passar por um detector de metais, é a primeira coisa que me vem na mente.",
+   "en": "Uh, sneak past a metal detector. First thing that comes to mind.",
+   "segundos": {
+    "en": 3.7,
+    "pt": 4.16
+   }
+  },
+  {
+   "id": "grenadier-roundstart-allycommend-clay-01",
+   "jogo": "Grenadier.RoundStart.AllyCommend[Clay]01",
+   "quem": "kayo",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Grenadier_E02_RndStartAllyCmnd_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, você é incrível. Parabéns, amiga.",
+   "en": "Raze, you are incredible. Well done, friend.",
+   "segundos": {
+    "en": 2.63,
+    "pt": 3.23
+   }
+  },
+  {
+   "id": "grenadier-roundstart-ally-clay-01",
+   "jogo": "Grenadier.RoundStart.Ally[Clay]01",
+   "quem": "kayo",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Grenadier_E02_RoundStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Certo, Raze. Suas tintas. Minhas granadas. Explosão total.",
+   "en": "Okay, Raze. Your paint shells, my fragments, maximum damage.",
+   "segundos": {
+    "en": 4.67,
+    "pt": 5.1
+   }
+  },
+  {
+   "id": "guide-e02-bubbledown-enemy-clay-01",
+   "jogo": "Guide.E02.BubbleDown.Enemy[Clay]01",
+   "quem": "skye",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Guide_E02_BubbleDownEnemy_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "inimigo",
+   "pt": "Se essa Raze quebrar mais alguma coisa!",
+   "en": "If that Raze breaks one more thing...",
+   "segundos": {
+    "en": 2.48,
+    "pt": 2.49
+   }
+  },
+  {
+   "id": "guide-e02-roundstart-allycommend-clay-01",
+   "jogo": "Guide.E02.RoundStart.AllyCommend[Clay]01",
+   "quem": "skye",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Guide_E02_RoundStartAllyCommend_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Arrasou na destruição, Raze. Mas faz só pra cima deles, beleza?",
+   "en": "Raze, I love the destruction! Just keep it on their side, yeah?",
+   "segundos": {
+    "en": 3.54,
+    "pt": 4.11
+   }
+  },
+  {
+   "id": "gumshoe-e02-bubbledown-ally-clay-01",
+   "jogo": "Gumshoe.E02.BubbleDown.Ally[Clay]01",
+   "quem": "cypher",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Gumshoe_E02_BubbleDownAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Exploda tudo, Raze!",
+   "en": "Blow them away, Raze.",
+   "segundos": {
+    "en": 1.6,
+    "pt": 1.92
+   }
+  },
+  {
+   "id": "gumshoe-e02-match-startally-clay-01",
+   "jogo": "Gumshoe.E02.Match.StartAlly[Clay]01",
+   "quem": "cypher",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Gumshoe_E02_MatchStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Ah, Raze, não mexa com meus aparelhos. Não preciso de câmeras explosivas de novo. Ah, limpar isso aqui não é nada fácil.",
+   "en": "Ah Raze, don't tinker with my gadgets! I don't need exploding cameras again! The cleanup was so messy.",
+   "segundos": {
+    "en": 7.71,
+    "pt": 8.23
+   }
+  },
+  {
+   "id": "gumshoe-e02-roundstart-allycommend-clay-01",
+   "jogo": "Gumshoe.E02.RoundStart.AllyCommend[Clay]01",
+   "quem": "cypher",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Gumshoe_E02_RoundStartAllyCommend_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, você é um verdadeiro estouro.",
+   "en": "Raze, you powder keg. Nice work!",
+   "segundos": {
+    "en": 2.95,
+    "pt": 2.7
+   }
+  },
+  {
+   "id": "hunter-e02-kill-clay-01",
+   "jogo": "Hunter.E02.Kill.[Clay]01",
+   "quem": "sova",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Hunter_E02_Kill_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Shhh.",
+   "en": "Quiet now.",
+   "segundos": {
+    "en": 0.68,
+    "pt": 0.72
+   }
+  },
+  {
+   "id": "iris-bubbledown-ally-clay-01",
+   "jogo": "Iris.BubbleDown.Ally[Clay]01",
+   "quem": "miks",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Iris_BubbleDownAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Arrebenta, Raze!",
+   "en": "Blast off, Raze!",
+   "segundos": {
+    "en": 1.58,
+    "pt": 1.6
+   }
+  },
+  {
+   "id": "iris-bubbledown-enemy-clay-01",
+   "jogo": "Iris.BubbleDown.Enemy[Clay]01",
+   "quem": "miks",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Iris_BubbleDownEnemy_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "inimigo",
+   "pt": "Bora abafar a Raze deles.",
+   "en": "Drown out enemy Raze.",
+   "segundos": {
+    "en": 1.64,
+    "pt": 1.69
+   }
+  },
+  {
+   "id": "iris-roundstart-allycommend-clay-01",
+   "jogo": "Iris.RoundStart.AllyCommend[Clay]01",
+   "quem": "miks",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Iris_RoundStartAllyCommend_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Čovječe, Raze! Você arrasa nas tretas e nas festas!",
+   "en": "Čovječe, Raze! You fight as hard as you party.",
+   "segundos": {
+    "en": 4.63,
+    "pt": 4.97
+   }
+  },
+  {
+   "id": "killjoy-e02-match-startconversation-claykilljoy-01",
+   "jogo": "Killjoy.E02.Match.StartConversation[ClayKilljoy]01",
+   "quem": "killjoy",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Killjoy_E02_MatchSrt_Chat_ClayKJ"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Tá, mas se explodir de novo, você conta pro Brim.",
+   "en": "Sure, but if anything explodes again, you are telling [[Brimstone|Brim]].",
+   "segundos": {
+    "en": 4.19,
+    "pt": 3.81
+   }
+  },
+  {
+   "id": "killjoy-e02-match-startenemy-clay-01",
+   "jogo": "Killjoy.E02.Match.StartEnemy[Clay]01",
+   "quem": "killjoy",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Killjoy_E02_MatchStartEnemy_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "inimigo",
+   "pt": "A tecnologia da outra Raze é só lata velha colada com fita. Como ela ainda não se explodiu?",
+   "en": "The enemy Raze's tech is just spare parts and duct tape. It's a wonder she hasn't blown herself up.",
+   "segundos": {
+    "en": 6.4,
+    "pt": 5.81
+   }
+  },
+  {
+   "id": "killjoy-e02-roundstart-ally-clay-01",
+   "jogo": "Killjoy.E02.RoundStart.Ally[Clay]01",
+   "quem": "killjoy",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Killjoy_E02_RoundStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Tire eles do sério, Raze! Você é ótima nisso.",
+   "en": "Drive them crazy, Raze! You're good at that.",
+   "segundos": {
+    "en": 2.99,
+    "pt": 4.16
+   }
+  },
+  {
+   "id": "mage-roundstart-enemy-clay-01",
+   "jogo": "Mage.RoundStart.Enemy[Clay]01",
+   "quem": "harbor",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Mage_E05_RoundStartEnemy_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "inimigo",
+   "pt": "Como é que a Raze carrega esse arsenal por aí? Que saco!",
+   "en": "How much ordnance does that Raze carry around? Give me a break.",
+   "segundos": {
+    "en": 3.7,
+    "pt": 3.26
+   }
+  },
+  {
+   "id": "nox-roundstart-ally-clay-01",
+   "jogo": "Nox.RoundStart.Ally[Clay]01",
+   "quem": "vyse",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Nox_RoundStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Então, você usa o impulso dos seus explosivos, Raze. Que criativo. Até que gosto.",
+   "en": "So, you use explosives to propel yourself, Raze. That's... that's creative. I think I like it.",
+   "segundos": {
+    "en": 8.23,
+    "pt": 6.84
+   }
+  },
+  {
+   "id": "pandemic-e02-bubbledown-enemy-clay-01",
+   "jogo": "Pandemic.E02.BubbleDown.Enemy[Clay]01",
+   "quem": "viper",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Pandemic_E02_BubbleDownEnemy_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "inimigo",
+   "pt": "Vou calar essa Raze!",
+   "en": "I'll shut that Raze up.",
+   "segundos": {
+    "en": 1.57,
+    "pt": 1.85
+   }
+  },
+  {
+   "id": "pandemic-e02-roundstart-ally-clay-01",
+   "jogo": "Pandemic.E02.RoundStart.Ally[Clay]01",
+   "quem": "viper",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Pandemic_E02_RoundStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, suas invenções têm seu valor. Se alguém perguntar, eu nunca disse isso.",
+   "en": "Raze, I will deny that I said this but your inventions are... valuable. Keep tinkering.",
+   "segundos": {
+    "en": 6.48,
+    "pt": 7.33
+   }
+  },
+  {
+   "id": "phoenix-e02-match-startenemy-clay-01",
+   "jogo": "Phoenix.E02.Match.StartEnemy[Clay]01",
+   "quem": "phoenix",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Phoenix_E02_MatchStartEnemy_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "inimigo",
+   "pt": "Pô, pena que vou ter que acabar com aquela Raze. Ela é a alma da festa.",
+   "en": "Aww it's a shame I gotta take out their Raze. That girl's a one-woman party.",
+   "segundos": {
+    "en": 4.43,
+    "pt": 4.21
+   }
+  },
+  {
+   "id": "phoenix-e02-roundstart-ally-clay-01",
+   "jogo": "Phoenix.E02.RoundStart.Ally[Clay]01",
+   "quem": "phoenix",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Phoenix_E02_RoundStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, chama no som aí que eu sei que tu manja dos Paranauê.",
+   "en": "Raze, plug me into the tunes, yeah, I know you got the good stuff.",
+   "segundos": {
+    "en": 3.4,
+    "pt": 3.58
+   }
+  },
+  {
+   "id": "phoenix-e02-roundstart-enemy-clay-01",
+   "jogo": "Phoenix.E02.RoundStart.Enemy[Clay]01",
+   "quem": "phoenix",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Phoenix_E02_RoundStartEnemy_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "inimigo",
+   "pt": "Cuidado com a Raze. Eu não quero ninguém explodindo.",
+   "en": "Look out for that Raze, fam. Can't have you blowing up.",
+   "segundos": {
+    "en": 2.96,
+    "pt": 2.82
+   }
+  },
+  {
+   "id": "rift-bubbledown-ally-clay-01",
+   "jogo": "Rift.BubbleDown.Ally[Clay]01",
+   "quem": "astra",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Rift_BubbleDownAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, é dedo na granada e gritaria, mulher!",
+   "en": "Raze, it's time to get cray-cray, my girl!",
+   "segundos": {
+    "en": 2.05,
+    "pt": 2.48
+   }
+  },
+  {
+   "id": "rift-match-startally-clay-01",
+   "jogo": "Rift.Match.StartAlly[Clay]01",
+   "quem": "astra",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Rift_MatchStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Ei, Raze, e aí, minha rainha? Vamos mostrar como se faz, mulher.",
+   "en": "Ayy, Raze, waddup my queen! Make we go show them how it's done, girl!",
+   "segundos": {
+    "en": 4.23,
+    "pt": 4.51
+   }
+  },
+  {
+   "id": "rift-roundstart-allycommend-clay-01",
+   "jogo": "Rift.RoundStart.AllyCommend[Clay]01",
+   "quem": "astra",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Rift_RoundStartAllyCommend_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Isso, Raze! Esse é o estilo boom dessa mulher!",
+   "en": "Raze, I love your boom style, my girl!",
+   "segundos": {
+    "en": 3.27,
+    "pt": 3.86
+   }
+  },
+  {
+   "id": "rift-roundstart-ally-clay-01",
+   "jogo": "Rift.RoundStart.Ally[Clay]01",
+   "quem": "astra",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Rift_RoundStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze! Eu amo esse seu estilo boom, mulher!",
+   "en": "Raze, I love your boom style, my girl!",
+   "segundos": {
+    "en": 2.55,
+    "pt": 3.43
+   }
+  },
+  {
+   "id": "sarge-bubbledownally-clay",
+   "jogo": "Sarge.BubbleDownAlly[Clay]",
+   "quem": "brimstone",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Sarge_BubbleDownAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, detona!",
+   "en": "Raze, give 'em hell!",
+   "segundos": {
+    "en": 1.28,
+    "pt": 1.26
+   }
+  },
+  {
+   "id": "sarge-e02-match-startenemy-clay-01",
+   "jogo": "Sarge.E02.Match.StartEnemy[Clay]01",
+   "quem": "brimstone",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Sarge_E02_MatchStartEnemy_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "inimigo",
+   "pt": "Ah, que ótimo. Uma Raze inimiga. Acabem com ela antes que detone tudo em cima da gente.",
+   "en": "Oh, perfect, a hostile Raze. Kill her before she brings this whole place down on top of us.",
+   "segundos": {
+    "en": 5.89,
+    "pt": 6.69
+   }
+  },
+  {
+   "id": "sarge-match-startconversation-claysarge-01",
+   "jogo": "Sarge.Match.StartConversation[ClaySarge]01",
+   "quem": "brimstone",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Sarge_E05_MatchS_Chat_ClaySarge"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Opa, só não vai usar tudo de uma vez, hein?",
+   "en": "You bet, and don't use them all in one day.",
+   "segundos": {
+    "en": 2.48,
+    "pt": 2.58
+   }
+  },
+  {
+   "id": "sequoia-bubbledown-ally-clay-01",
+   "jogo": "Sequoia.BubbleDown.Ally[Clay]01",
+   "quem": "iso",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Sequoia_BubbleDownAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze. Vamos lá.",
+   "en": "Raze, let's go.",
+   "segundos": {
+    "en": 1.21,
+    "pt": 1.07
+   }
+  },
+  {
+   "id": "sequoia-kill-clay-01",
+   "jogo": "Sequoia.Kill.[Clay]01",
+   "quem": "iso",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Sequoia_Kill_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Parei a Raze deles.",
+   "en": "I stopped their Raze.",
+   "segundos": {
+    "en": 1.04,
+    "pt": 1.16
+   }
+  },
+  {
+   "id": "sequoia-match-startconversation-sequoiaclay-01",
+   "jogo": "Sequoia.Match.StartConversation[SequoiaClay]01",
+   "quem": "iso",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Sequoia_MatchS_Chat_SequoiaClay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "E aí, Raze, tá ouvindo o quê hoje?",
+   "en": "Hey Raze, what's on the playlist today?",
+   "segundos": {
+    "en": 3.3,
+    "pt": 2.87
+   }
+  },
+  {
+   "id": "sequoia-roundstart-allycommend-clay-01",
+   "jogo": "Sequoia.RoundStart.AllyCommend[Clay]01",
+   "quem": "iso",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Sequoia_RoundStartAllyCommend_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Uma briga boa é quase uma dança. E ninguém dança como a Raze.",
+   "en": "A good fight is like a dance, and no one dances harder than Raze.",
+   "segundos": {
+    "en": 4.02,
+    "pt": 3.75
+   }
+  },
+  {
+   "id": "sprinter-match-startally-clay-01",
+   "jogo": "Sprinter.Match.StartAlly[Clay]01",
+   "quem": "neon",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Sprinter_E04_MatchStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "E aí, Raze, algum plano? Ou você só vai fazer o mesmo de sempre?",
+   "en": "So Raze, you got a plan? Or are you gonna... y'know... do what you always do?",
+   "segundos": {
+    "en": 4.78,
+    "pt": 4.03
+   }
+  },
+  {
+   "id": "sprinter-match-startconversation-sprinterclay-01",
+   "jogo": "Sprinter.Match.StartConversation[SprinterClay]01",
+   "quem": "neon",
+   "quando": "conversa",
+   "eventos": [
+    "Play_VO_Sprinter_E04_MatchS_Chat_SprinterClay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Oh, Raze! Raze! Ah, de balena!",
+   "en": "Hoy, Raze? Raze! Ugh, 'di bale na.",
+   "segundos": {
+    "en": 4.61,
+    "pt": 4.38
+   }
+  },
+  {
+   "id": "sprinter-roundstart-allycommend-clay-01",
+   "jogo": "Sprinter.RoundStart.AllyCommend[Clay]01",
+   "quem": "neon",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Sprinter_E04_RoundStartAllyCommend_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Boa, Raze. Sutil.",
+   "en": "Nice Raze, subtle!",
+   "segundos": {
+    "en": 1.77,
+    "pt": 1.81
+   }
+  },
+  {
+   "id": "sprinter-roundstart-ally-clay-01",
+   "jogo": "Sprinter.RoundStart.Ally[Clay]01",
+   "quem": "neon",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Sprinter_E04_RoundStartAlly_Clay_01"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Ô, Raze, o plano é... Deixa quieto, explode eles aí, vai.",
+   "en": "Raze, the plan is-... never mind, just keep blowing them up.",
+   "segundos": {
+    "en": 3.41,
+    "pt": 3.37
+   }
+  },
+  {
+   "id": "stealthboi-match-startally-clay-01",
+   "jogo": "Stealthboi.Match.StartAlly[Clay]01",
+   "quem": "yoru",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Stealth_MatchStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, lembra que essa é uma missão secreta. Pelo menos tenta ser discreta.",
+   "en": "Raze, remember this is a covert mission. At least try not to give us away.",
+   "segundos": {
+    "en": 4.99,
+    "pt": 4.57
+   }
+  },
+  {
+   "id": "terra-bubbledown-ally-clay-01",
+   "jogo": "Terra.BubbleDown.Ally[Clay]01",
+   "quem": "waylay",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Terra_BubbleDownAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze! É com você!",
+   "en": "Raze, you're up!",
+   "segundos": {
+    "en": 1.36,
+    "pt": 1.46
+   }
+  },
+  {
+   "id": "terra-roundstart-allycommend-clay-01",
+   "jogo": "Terra.RoundStart.AllyCommend[Clay]01",
+   "quem": "waylay",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Terra_RoundStartAllyCommend_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Caramba, Raze! Nota 10 em tudo, mana! Zero só na delicadeza.",
+   "en": "Oh-ho, Raze! Ten out of ten for results, lady, and zero for subtlety!",
+   "segundos": {
+    "en": 6.24,
+    "pt": 6.44
+   }
+  },
+  {
+   "id": "thorne-e02-bubbledown-ally-clay-01",
+   "jogo": "Thorne.E02.BubbleDown.Ally[Clay]01",
+   "quem": "sage",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Thorne_E02_BubbleDownAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Explode tudo, Raze.",
+   "en": "Ignite this place, Raze.",
+   "segundos": {
+    "en": 1.45,
+    "pt": 1.37
+   }
+  },
+  {
+   "id": "thorne-e02-match-startally-clay-01",
+   "jogo": "Thorne.E02.Match.StartAlly[Clay]01",
+   "quem": "sage",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Thorne_E02_MatchStartAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Lembrem do plano, pessoal. E sem improvisar, tá? Tô falando com você, Raze.",
+   "en": "Remember the plan, everyone. And please, please, stick to it. I'm talking to you, Raze.",
+   "segundos": {
+    "en": 6.29,
+    "pt": 5.54
+   }
+  },
+  {
+   "id": "thorne-e02-match-startenemy-clay-01",
+   "jogo": "Thorne.E02.Match.StartEnemy[Clay]01",
+   "quem": "sage",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Thorne_E02_MatchStartEnemy_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "inimigo",
+   "pt": "A Raze não tem paciência. Espera ela explodir tudo e aí vai pra cima.",
+   "en": "Raze has no patience. Wait out her explosions and strike when she's empty.",
+   "segundos": {
+    "en": 4.23,
+    "pt": 4.57
+   }
+  },
+  {
+   "id": "vampire-e02-kill-clay-01",
+   "jogo": "Vampire.E02.Kill.[Clay]01",
+   "quem": "reyna",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Vampire_E02_Kill_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Raze morta.",
+   "en": "Raze dead.",
+   "segundos": {
+    "en": 0.78,
+    "pt": 1.2
+   }
+  },
+  {
+   "id": "vampire-e02-roundstart-allycommend-clay-01",
+   "jogo": "Vampire.E02.RoundStart.AllyCommend[Clay]01",
+   "quem": "reyna",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Vampire_E02_RoundSAllyCom_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, bom, nunca perca essa sua energia.",
+   "en": "Raze? Good. Never lose your voice.",
+   "segundos": {
+    "en": 3.72,
+    "pt": 3.84
+   }
+  },
+  {
+   "id": "vampire-e02-ult-kill-clay-01",
+   "jogo": "Vampire.E02.ULT.Kill.[Clay]01",
+   "quem": "reyna",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Vampire_ULT_E02_Kill_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Raze morta.",
+   "en": "Raze dead.",
+   "segundos": {
+    "en": 0.78,
+    "pt": 1.45
+   }
+  },
+  {
+   "id": "wraith-bubbledownally-clay-01",
+   "jogo": "Wraith.BubbleDownAlly[Clay]01",
+   "quem": "omen",
+   "quando": "morte",
+   "eventos": [
+    "Play_VO_Wraith_BubbleDownAlly_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Raze, semee o caos.",
+   "en": "Raze, sow your chaos.",
+   "segundos": {
+    "en": 2.43,
+    "pt": 2.33
+   }
+  },
+  {
+   "id": "wraith-e02-match-startenemy-clay-01",
+   "jogo": "Wraith.E02.Match.StartEnemy[Clay]01",
+   "quem": "omen",
+   "quando": "inicio-partida",
+   "eventos": [
+    "Play_VO_Wraith_E02_MatchStartEnemy_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "inimigo",
+   "pt": "Sinto uma risada... é de uma Raze... Queria rir de novo...",
+   "en": "There is a Raze. I sense her laughter. Hmm, to laugh again.",
+   "segundos": {
+    "en": 5.54,
+    "pt": 7.56
+   }
+  },
+  {
+   "id": "wushu-e02-kill-clay-01",
+   "jogo": "Wushu.E02.Kill.[Clay]01",
+   "quem": "jett",
+   "quando": "abate",
+   "eventos": [
+    "Play_VO_Wushu_E02_Kill_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "pt": "Acabou o reggae.",
+   "en": "Party's over.",
+   "segundos": {
+    "en": 0.95,
+    "pt": 1.26
+   }
+  },
+  {
+   "id": "wushu-e02-roundstart-allycommend-clay-01",
+   "jogo": "Wushu.E02.RoundStart.AllyCommend[Clay]01",
+   "quem": "jett",
+   "quando": "inicio-rodada",
+   "eventos": [
+    "Play_VO_Wushu_E02_RoundStartAllyCommend_Clay"
+   ],
+   "com": [
+    "raze"
+   ],
+   "lado": "aliado",
+   "pt": "Vai que é tua, Biribinha! Detona eles!",
+   "en": "There's my bombshell! Crushed it, girl.",
+   "segundos": {
+    "en": 2.68,
+    "pt": 3.12
+   }
+  }
+ ]
+}

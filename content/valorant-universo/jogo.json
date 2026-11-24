@@ -1,0 +1,2004 @@
+{
+ "versao": "13.10.00.5893614",
+ "agentes": [
+  {
+   "id": "astra",
+   "nome": "Astra",
+   "codinome": "Rift",
+   "funcao": {
+    "pt": "Controlador",
+    "en": "Controller"
+   },
+   "bio": {
+    "pt": "Astra, a Agente ganense, utiliza energias cósmicas para moldar o campo de batalha a seu bel-prazer. Com total domínio da sua forma astral e um talento estratégico nato, ela está sempre anos-luz à frente dos inimigos.",
+    "en": "Ghanaian Agent Astra harnesses the energies of the cosmos to reshape battlefields to her whim. With full command of her astral form and a talent for deep strategic foresight, she's always eons ahead of her enemy's next move."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Poço Gravitacional",
+      "texto": "ATIVE uma <whitebold>Estrela</> para criar uma zona que <debuffred>puxa</> todos os jogadores para o centro, explodindo e aplicando <debuffred>Vulnerável</> a todos eles."
+     },
+     "en": {
+      "nome": "Gravity Well",
+      "texto": "ACTIVATE a <whitebold>Star</> to create a zone that <debuffred>pulls</> all players to the center, exploding and applying <debuffred>vulnerable</> to all players."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Pulso Nova",
+      "texto": "ATIVE uma <whitebold>Estrela</> para detoná-la, causando <debuffred>Concussão</> a todos os jogadores atingidos."
+     },
+     "en": {
+      "nome": "Nova Pulse",
+      "texto": "ACTIVATE a <whitebold>Star</> to detonate it, <debuffred>concussing</> all players hit."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Nebulosa",
+      "texto": "ATIVE uma <whitebold>Estrela</> para transformá-la em uma fumaça."
+     },
+     "en": {
+      "nome": "Nebula",
+      "texto": "ACTIVATE a <whitebold>Star</> to transform it into a smoke."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Divisa Cósmica",
+      "texto": "ENTRE na <whitebold>Forma Astral</>. Use o DISPARO ALTERNATIVO para EQUIPAR <whitebold>Divisa Cósmica</>. DISPARE para posicionar, gire e DISPARE novamente para criar uma parede indestrutível que bloqueia o som."
+     },
+     "en": {
+      "nome": "Cosmic Divide",
+      "texto": "ENTER <whitebold>Astral Form</>. ALT FIRE to EQUIP <whitebold>Cosmic Divide</>. FIRE to set, pivot and FIRE again to create an indestructible wall that blocks audio."
+     }
+    },
+    {
+     "tecla": "Passiva",
+     "pt": {
+      "nome": "Forma Astral",
+      "texto": "ATIVE A ULTIMATE para ENTRAR na <whitebold>Forma Astral</>. DISPARE para conjurar <whitebold>Estrelas</>. \r\n\r\nINTERAJA para recuperar uma <whitebold>Estrela</>. Ao recuperar uma <whitebold>Estrela</>, uma breve fumaça é formada."
+     },
+     "en": {
+      "nome": "Astral Form",
+      "texto": "ACTIVATE ULTIMATE to ENTER <whitebold>Astral Form</>. FIRE to cast <whitebold>Stars</>. \r\n\r\nINTERACT to recall a <whitebold>Star</>. Recalling a <whitebold>Star</> forms a brief smoke."
+     }
+    }
+   ]
+  },
+  {
+   "id": "breach",
+   "nome": "Breach",
+   "codinome": "Breach",
+   "funcao": {
+    "pt": "Iniciador",
+    "en": "Initiator"
+   },
+   "bio": {
+    "pt": "Breach, o homem-biônico sueco, dispara poderosos jatos cinéticos para forçar a abertura de um caminho pelo território inimigo. O dano e a interrupção que ele causa garantem que nenhuma luta seja justa.",
+    "en": "The bionic Swede Breach fires powerful, targeted kinetic blasts to aggressively clear a path through enemy ground. The damage and disruption he inflicts ensures no fight is ever fair."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Pós-choque",
+      "texto": "EQUIPE <whitebold>Pós-choque</>. DISPARE para lançar uma zona através de uma parede que explode e causa <debuffred>dano</> repetidamente a todos os jogadores."
+     },
+     "en": {
+      "nome": "Aftershock",
+      "texto": "EQUIP <whitebold>Aftershock</>. FIRE to send a zone through a wall, exploding to repeatedly deal <debuffred>damage</> to all players."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Estopim",
+      "texto": "EQUIPE um <whitebold>Estopim</>. DISPARE para lançar através de uma parede. Ele explodirá e <debuffred>cegará</> quem estiver olhando."
+     },
+     "en": {
+      "nome": "Flashpoint",
+      "texto": "EQUIP a <whitebold>Flashpoint</>. FIRE to send it through a wall, exploding to <debuffred>flash</> all players looking at it."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Falha Tectônica",
+      "texto": "EQUIPE <whitebold>Falha Tectônica</>. SEGURE O DISPARO para aumentar a distância. SOLTE para detonar uma zona que causa <debuffred>Concussão</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Fault Line",
+      "texto": "EQUIP <whitebold>Fault Line</>. HOLD FIRE to increase distance. RELEASE to detonate a zone that <debuffred>concusses</> all players."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Onda Trovejante",
+      "texto": "EQUIPE <whitebold>Onda Trovejante</>. DISPARE para lançar uma onda que causa <debuffred>Concussão</> e <debuffred>lança ao ar</> todos os jogadores."
+     },
+     "en": {
+      "nome": "Rolling Thunder",
+      "texto": "EQUIP <whitebold>Rolling Thunder</>. FIRE to send forward a wave that <debuffred>concusses</> and <debuffred>knocks up</> all players."
+     }
+    }
+   ]
+  },
+  {
+   "id": "brimstone",
+   "nome": "Brimstone",
+   "codinome": "Sarge",
+   "funcao": {
+    "pt": "Controlador",
+    "en": "Controller"
+   },
+   "bio": {
+    "pt": "Vindo diretamente dos EUA, o arsenal orbital do Brimstone garante que o esquadrão dele sempre esteja em vantagem. Sua capacidade de oferecer utilitários com precisão e segurança faz dele um comandante inigualável na linha de frente.",
+    "en": "Joining from the U.S.A., Brimstone's orbital arsenal ensures his squad always has the advantage. His ability to deliver utility precisely and safely make him the unmatched boots-on-the-ground commander."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Sinalizador Estimulante",
+      "texto": "ARREMESSE um <whitebold>Sinalizador Estimulante</> INSTANTANEAMENTE. Ao aterrissar, cria uma zona que concede <teal>Estimulante de Combate</> e <teal>aceleração</> a aliados."
+     },
+     "en": {
+      "nome": "Stim Beacon",
+      "texto": "INSTANTLY throw a <whitebold>Stim Beacon</>. On landing, create a zone that grants <teal>combat stim</> and <teal>haste</> to allies."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Incendiário",
+      "texto": "EQUIPE <whitebold>Incendiário</>. DISPARE para lançar. Ao aterrissar, cria uma zona que causa <debuffred>dano</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Incendiary",
+      "texto": "EQUIP <whitebold>Incendiary</>. FIRE to launch. On landing, create a zone that deals <debuffred>damage</> to all players."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Fumaça Celeste",
+      "texto": "EQUIPE um mapa tático. DISPARE para definir os pontos da fumaça. Use o DISPARO ALTERNATIVO para conjurar fumaças."
+     },
+     "en": {
+      "nome": "Sky Smoke",
+      "texto": "EQUIP a tactical map. FIRE to set smoke locations. ALT FIRE to cast smokes."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Ataque Orbital",
+      "texto": "EQUIPE um mapa tático. DISPARE para lançar um <whitebold>Ataque Orbital</> em um local, causando alto <debuffred>dano</> ao longo do tempo a todos os jogadores."
+     },
+     "en": {
+      "nome": "Orbital Strike",
+      "texto": "EQUIP a tactical map. FIRE to cast an <whitebold>Orbital Strike</> at a location, dealing high <debuffred>damage</> over time to all players."
+     }
+    }
+   ]
+  },
+  {
+   "id": "chamber",
+   "nome": "Chamber",
+   "codinome": "Deadeye",
+   "funcao": {
+    "pt": "Sentinela",
+    "en": "Sentinel"
+   },
+   "bio": {
+    "pt": "Bem-vestido e armado até os dentes, o criador de armas francês Chamber coloca os inimigos para correr com precisão mortal. Use e abuse do arsenal personalizado dele para segurar posições e abater inimigos de longe, criando a defesa perfeita para qualquer plano.",
+    "en": "Well-dressed and well-armed, French weapons designer Chamber expels aggressors with deadly precision. He leverages his custom arsenal to hold the line and pick off enemies from afar, with a contingency built for every plan."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Marca Registrada",
+      "texto": "EQUIPE uma <whitebold>Marca Registrada</> destrutível. DISPARE para posicionar. Ela é ativada por inimigos visíveis no alcance, criando uma zona que causa <debuffred>Lentidão</> a todos os jogadores.\r\n\r\nPode ser recuperada."
+     },
+     "en": {
+      "nome": "Trademark",
+      "texto": "EQUIP a destructible <whitebold>Trademark</>. FIRE to place. Triggers on nearby visible enemies in range, creating a zone that <debuffred>slows</> all players.\r\n\r\nCan be recalled."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Caçador de Cabeças",
+      "texto": "EQUIPE <whitebold>Caçador de Cabeças</>. DISPARE para atirar. Use o DISPARO ALTERNATIVO para mirar."
+     },
+     "en": {
+      "nome": "Headhunter",
+      "texto": "EQUIP <whitebold>Headhunter</>. FIRE to shoot. ALT FIRE to aim down sights."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Rendezvous",
+      "texto": "EQUIPE um <whitebold>Rendezvous</> destrutível. DISPARE para posicionar. Enquanto estiver no alcance, REATIVE para se teleportar instantaneamente até o local.\r\n\r\nPode ser recuperado."
+     },
+     "en": {
+      "nome": "Rendezvous",
+      "texto": "EQUIP a destructible <whitebold>Rendezvous</>. FIRE to place. While in range, REACTIVATE to instantly teleport to it.\r\n\r\nCan be recalled."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Tour de Force",
+      "texto": "ATIVE para acessar um Fuzil de Precisão que causa <debuffred>dano letal</> com acertos diretos na parte superior do corpo.\r\n\r\nDISPARE para atirar. Use o DISPARO ALTERNATIVO para mirar. Ao realizar abates, cria uma zona que <debuffred>causa Lentidão</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Tour De Force",
+      "texto": "ACTIVATE to access a sniper rifle that deals <debuffred>lethal damage</> with direct hits to the upper body.\r\n\r\nFIRE to shoot. ALT FIRE to aim down sights. On kills, create a zone that <debuffred>slows</> all players."
+     }
+    }
+   ]
+  },
+  {
+   "id": "clove",
+   "nome": "Clove",
+   "codinome": "Smonk",
+   "funcao": {
+    "pt": "Controlador",
+    "en": "Controller"
+   },
+   "bio": {
+    "pt": "Clove, ume encrenqueire da Escócia, vai desorientar os inimigos tanto no calor do combate quanto no frio da morte. Jovem e imortal, elu mantém os inimigos confusos até do além-túmulo: momentos após a morte, elu retorna à vida.",
+    "en": "Scottish troublemaker Clove makes mischief for enemies in both the heat of combat and the cold of death. The young immortal keeps foes guessing, even from beyond the grave, their return to the living only ever a moment away."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Revitalizar",
+      "texto": "ATIVE em um inimigo morto que tenha sido abatido ou sofrido dano seu para receber <teal>aceleração</> e <teal>Sobrecura</>."
+     },
+     "en": {
+      "nome": "Pick-me-up",
+      "texto": "ACTIVATE on a targeted dead enemy that you damaged or killed to gain <teal>haste</> and <teal>overheal</>."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Desvitalização",
+      "texto": "EQUIPE <whitebold>Desvitalização</>. DISPARE para lançar. Explode ao aterrissar, <debuffred>deteriorando</> todos os jogadores."
+     },
+     "en": {
+      "nome": "Meddle",
+      "texto": "EQUIP <whitebold>Meddle</>. FIRE to throw. Explodes on landing, <debuffred>decaying</> all players."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Artimanha",
+      "texto": "EQUIPE um mapa tático. DISPARE para definir os pontos da fumaça. Use o DISPARO ALTERNATIVO para conjurar fumaças.\r\n\r\nDurante a morte, Clove pode usar <whitebold>Artimanha</> para lançar fumaças breves."
+     },
+     "en": {
+      "nome": "Ruse",
+      "texto": "EQUIP a tactical map. FIRE to set smoke locations. ALT FIRE to cast smokes.\r\n\r\nWhile dead, Clove can access <whitebold>Ruse</> to cast brief smokes."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Ainda Não Morri",
+      "texto": "Ao morrer, ATIVE para canalizar uma <teal>autorressurreição</>. Durante a canalização, Clove fica <teal>intangível</>. REATIVE para encerrar a canalização antes. Depois de ressuscitar, garanta um abate ou uma assistência de dano para continuar com vida."
+     },
+     "en": {
+      "nome": "Not Dead Yet",
+      "texto": "On death, ACTIVATE to channel a <teal>self-resurrect</>. During the channel, Clove is <teal>intangible</>. REACTIVATE to end the channel early. Once resurrected, secure a kill or damaging assist to stay alive."
+     }
+    }
+   ]
+  },
+  {
+   "id": "cypher",
+   "nome": "Cypher",
+   "codinome": "Gumshoe",
+   "funcao": {
+    "pt": "Sentinela",
+    "en": "Sentinel"
+   },
+   "bio": {
+    "pt": "Cypher, um vendedor de informações do Marrocos, é uma verdadeira rede de vigilância de um homem só que fica de olho em cada movimento dos inimigos. Nenhum segredo está a salvo. Nenhuma manobra passa despercebida. Cypher está sempre vigiando.",
+    "en": "The Moroccan information broker, Cypher is a one-man surveillance network who keeps tabs on the enemy's every move. No secret is safe. No maneuver goes unseen. Cypher is always watching."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Fio-armadilha",
+      "texto": "EQUIPE um <whitebold>Fio-Armadilha</> destrutível. DISPARE para posicionar um fio entre superfícies. O <whitebold>Fio-Armadilha</> entra em <teal>furtividade</> após ser posicionado. Ele é acionado quando inimigos entram em contato, <debuffred>prendendo-os</> e, após um breve intervalo, <debuffred>revelando-os</> se o <whitebold>Fio-Armadilha</> não for destruído.\r\n\r\nPode ser recolhido."
+     },
+     "en": {
+      "nome": "Trapwire",
+      "texto": "EQUIP a destructible <whitebold>Trapwire</>. FIRE to place a wire between surfaces. <whitebold>Trapwire</> <teal>stealths</> after placement. Triggers when enemies come in contact, <debuffred>tethering</> enemies, and after a delay, <debuffred>revealing</> them if <whitebold>Trapwire</> is not destroyed.\r\n\r\nCan be picked up."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Jaula Cibernética",
+      "texto": "Arremesse INSTANTANEAMENTE uma <whitebold>Jaula Cibernética</>. INTERAJA para criar um cilindro que bloqueia a visão e emite um sinal sonoro quando inimigos entram em contato.\r\n\r\nPode ser recolhida durante a FASE DE COMPRA."
+     },
+     "en": {
+      "nome": "Cyber Cage",
+      "texto": "INSTANTLY throw a <whitebold>Cyber Cage</>. INTERACT to create a vision-blocking cylinder that plays an audio cue when enemies come in contact.\r\n\r\nCan be picked up during BUY PHASE."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Câmera de Vigilância",
+      "texto": "EQUIPE uma <whitebold>Câmera de Vigilância</> destrutível. DISPARE para posicionar. A <whitebold>Câmera de Vigilância</> entra em <teal>furtividade</> após ser posicionada. REATIVE para controlá-la. DISPARE para lançar um dardo que <debuffred>marca</> os inimigos atingidos até que eles o removam.\r\n\r\nPode ser recolhida."
+     },
+     "en": {
+      "nome": "Spycam",
+      "texto": "EQUIP a destructible <whitebold>Spycam</>. FIRE to place. <whitebold>Spycam</> <teal>stealths</> after placement. REACTIVATE to control it. FIRE to shoot a dart that <debuffred>snapshots</> enemies hit until they remove it.\r\n\r\nCan be picked up."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Assalto Neural",
+      "texto": "ATIVE em um inimigo morto. Após um tempo, <debuffred>captura a imagem</> de inimigos vivos duas vezes."
+     },
+     "en": {
+      "nome": "Neural Theft",
+      "texto": "ACTIVATE on a targeted dead enemy. After a delay, <debuffred>snapshot</> living enemies twice."
+     }
+    }
+   ]
+  },
+  {
+   "id": "deadlock",
+   "nome": "Deadlock",
+   "codinome": "Cable",
+   "funcao": {
+    "pt": "Sentinela",
+    "en": "Sentinel"
+   },
+   "bio": {
+    "pt": "A agente norueguesa Deadlock posiciona uma gama de nanofios de alta tecnologia para proteger o campo de batalha até mesmo do ataque mais letal. Ninguém escapa do seu olhar vigilante. Ninguém sobrevive à sua ferocidade implacável.",
+    "en": "Norwegian operative Deadlock deploys an array of cutting-edge nanowire to secure the battlefield from even the most lethal assault. No one escapes her vigilant watch, nor survives her unyielding ferocity."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Barreira de Contenção",
+      "texto": "EQUIPE <whitebold>Barreira de Contenção</>. DISPARE para lançar. Ao aterrissar, cria marcadores destrutíveis que se fortificam após um intervalo. Esses marcadores formam barreiras que bloqueiam o movimento de jogadores."
+     },
+     "en": {
+      "nome": "Barrier Mesh",
+      "texto": "EQUIP <whitebold>Barrier Mesh</>. FIRE to throw. On landing, create destructible markers that fortify after a delay. These markers form barriers that block player movement."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Sensor Sônico",
+      "texto": "EQUIPE um <whitebold>Sensor Sônico</> destrutível. DISPARE para posicionar. Ele é ativado por ruído inimigo detectado nas proximidades, criando uma zona que causa <debuffred>Concussão</> a todos os jogadores. O <whitebold>Sensor Sônico</> entra em <teal>furtividade</> após ser posicionado.\r\n\r\nPode ser recolhido."
+     },
+     "en": {
+      "nome": "Sonic Sensor",
+      "texto": "EQUIP a destructible <whitebold>Sonic Sensor</>. FIRE to place. Triggers on nearby detected enemy noise, creating a zone that <debuffred>concusses</> all players. <whitebold>Sonic Sensor</> <teal>stealths</> after placement.\r\n\r\nCan be picked up."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "GravNet",
+      "texto": "EQUIPE <whitebold>GravNet</>. DISPARE para lançar. Use o DISPARO ALTERNATIVO para arremessar a curta distância. Explode ao aterrissar, forçando todos os jogadores a se <debuffred>agacharem</> e se moverem <debuffred>lentamente</> até removerem a rede."
+     },
+     "en": {
+      "nome": "GravNet",
+      "texto": "EQUIP <whitebold>GravNet</>. FIRE to throw. ALT FIRE to lob. Explodes on landing, forcing all players to <debuffred>crouch</> and move <debuffred>slowly</> until they remove the net."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Aniquilação",
+      "texto": "EQUIPE <whitebold>Aniquilação</>. DISPARE para lançar uma zona que força o primeiro inimigo atingido a entrar em um casulo destrutível, puxando-o por um caminho e causando <debuffred>dano letal</>, a menos que o casulo seja destruído."
+     },
+     "en": {
+      "nome": "Annihilation",
+      "texto": "EQUIP <whitebold>Annihilation</>. FIRE to launch a zone, forcing the first enemy caught into a destructible cocoon that pulls them along a path for <debuffred>lethal damage</> unless the cocoon is destroyed."
+     }
+    }
+   ]
+  },
+  {
+   "id": "fade",
+   "nome": "Fade",
+   "codinome": "BountyHunter",
+   "funcao": {
+    "pt": "Iniciador",
+    "en": "Initiator"
+   },
+   "bio": {
+    "pt": "Fade, uma caçadora de recompensas turca, usa o poder dos pesadelos para capturar os segredos dos inimigos. Personificando o próprio terror, ela persegue os alvos e revela seus medos mais profundos para, depois, destruí-los na escuridão.",
+    "en": "Turkish bounty hunter Fade unleashes the power of raw nightmare to seize enemy secrets. Attuned with terror itself, she hunts down targets and reveals their deepest fears - before crushing them in the dark."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Espreitador",
+      "texto": "EQUIPE um <whitebold>Espreitador</> destrutível. DISPARE para lançar. SEGURE O DISPARO para guiar em direção à sua retícula. <debuffred>Persegue</> o primeiro inimigo ou <whitebold>rastros sinistros</> que vê, causando <debuffred>Visão Turva</> no impacto."
+     },
+     "en": {
+      "nome": "Prowler",
+      "texto": "EQUIP a destructible <whitebold>Prowler</>. FIRE to send it forward. HOLD FIRE to steer towards your crosshair. <debuffred>Chases</> the first enemy or <whitebold>Terror Trail</> it sees, <debuffred>nearsighting</> on impact."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Clausura",
+      "texto": "EQUIPE <whitebold>Clausura</>. DISPARE para lançar. REATIVE para fazer cair antes. Ao aterrissar, <debuffred>ensurdece</>, <debuffred>deteriora</> e <debuffred>prende</> os inimigos."
+     },
+     "en": {
+      "nome": "Seize",
+      "texto": "EQUIP <whitebold>Seize</>. FIRE to throw. REACTIVATE to drop early. On landing, <debuffred>deafen</>, <debuffred>decay</>, and <debuffred>tether</> enemies."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Assombrar",
+      "texto": "EQUIPE um <whitebold>Assombrar</> destrutível. DISPARE para lançar. REATIVE para fazer cair antes. Ao aterrissar, <debuffred>marca</> e <debuffred>revela</> inimigos no alcance e na linha de visão."
+     },
+     "en": {
+      "nome": "Haunt",
+      "texto": "EQUIP a destructible <whitebold>Haunt</>. FIRE to throw. REACTIVATE to drop early. On landing, <debuffred>mark</> and <debuffred>reveal</> enemies in range and line of sight."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Véu da Noite",
+      "texto": "EQUIPE <whitebold>Véu da Noite</>. DISPARE para enviar uma onda que <debuffred>ensurdece</>, <debuffred>deteriora</> e <debuffred>marca</> os inimigos."
+     },
+     "en": {
+      "nome": "Nightfall",
+      "texto": "EQUIP <whitebold>Nightfall</>. FIRE to send forward a wave that <debuffred>deafens</>, <debuffred>decays</>, and <debuffred>marks</> enemies."
+     }
+    },
+    {
+     "tecla": "Passiva",
+     "pt": {
+      "nome": "Rastros Sinistros",
+      "texto": "Inimigos <debuffred>marcados</> têm a localização rastreada por <whitebold>rastros sinistros</>."
+     },
+     "en": {
+      "nome": "Terror Trails",
+      "texto": "<debuffred>Marked</> enemies have their location tracked by <whitebold>Terror Trails</>."
+     }
+    }
+   ]
+  },
+  {
+   "id": "gekko",
+   "nome": "Gekko",
+   "codinome": "Aggrobot",
+   "funcao": {
+    "pt": "Iniciador",
+    "en": "Initiator"
+   },
+   "bio": {
+    "pt": "Gekko, de Los Angeles, lidera um grupo muito unido de criaturas caóticas. Seus amigos atropelam tudo, tirando os inimigos do caminho. Depois, Gekko corre atrás deles para reagrupá-los e reiniciar o processo.",
+    "en": "Gekko the Angeleno leads a tight-knit crew of calamitous creatures. His buddies bound forward, scattering enemies out of the way, with Gekko chasing them down to regroup and go again."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Mosh Pit",
+      "texto": "EQUIPE <whitebold>Mosh</>. DISPARE para lançar. Use o DISPARO ALTERNATIVO para arremessar a curta distância. Ao aterrissar, cria uma zona que causa pouco <debuffred>dano</> ao longo do tempo e depois explode, causando muito <debuffred>dano</> a todos os jogadores.\r\n\r\nDepois, transforma-se em um <whitebold>Glóbulo</>."
+     },
+     "en": {
+      "nome": "Mosh Pit",
+      "texto": "EQUIP <whitebold>Mosh</>. FIRE to throw. ALT FIRE to lob. On landing, create a zone that deals low <debuffred>damage</> over time before exploding, dealing high <debuffred>damage</> to all players.\r\n\r\nReverts to a <whitebold>Globule</>."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Wingman",
+      "texto": "EQUIPE um <whitebold>Wingman</> destrutível. DISPARE para lançar. <debuffred>Persegue</> o primeiro inimigo que vê, <debuffred>causando Concussão</> no impacto. Use o DISPARO ALTERNATIVO para que o <whitebold>Wingman</> plante ou desarme em um Ponto de Spike direcionado.\r\n\r\nDepois, transforma-se em um <whitebold>Glóbulo</>."
+     },
+     "en": {
+      "nome": "Wingman",
+      "texto": "EQUIP a destructible <whitebold>Wingman</>. FIRE to send it forward. <debuffred>Chases</> the first enemy it sees, <debuffred>concussing</> on impact. ALT FIRE to have <whitebold>Wingman</> plant or defuse at a targeted bomb site.\r\n\r\nReverts to a <whitebold>Globule</>."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Dizzy",
+      "texto": "EQUIPE uma <whitebold>Dizzy</> destrutível. DISPARE para lançar. Dispara plasma contra inimigos na linha de visão, <debuffred>cegando</>-os.\r\n\r\nDepois, transforma-se em um <whitebold>Glóbulo</>."
+     },
+     "en": {
+      "nome": "Dizzy",
+      "texto": "EQUIP a destructible <whitebold>Dizzy</>. FIRE to throw. Fires plasma at enemies in line of sight, <debuffred>blinding</> them.\r\n\r\nReverts to a <whitebold>Globule</>."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Thrash",
+      "texto": "EQUIPE uma <whitebold>Thrash</> destrutível. DISPARE para assumir o controle. DISPARE novamente para avançar e explodir, <debuffred>detendo</> todos os jogadores pegos. DISPARE durante o avanço para explodir mais cedo.\r\n\r\nTransforma-se em um <whitebold>Glóbulo</> apenas uma vez."
+     },
+     "en": {
+      "nome": "Thrash",
+      "texto": "EQUIP a destructible <whitebold>Thrash</>. FIRE to take control. FIRE again to lunge and explode, <debuffred>detaining</> all players. FIRE while lunging to explode early.\r\n\r\nReverts to a <whitebold>Globule</> only once."
+     }
+    },
+    {
+     "tecla": "Passiva",
+     "pt": {
+      "nome": "Glóbulo",
+      "texto": "As habilidades de Gekko se transformam em um <whitebold>Glóbulo</> após o uso.\r\n\r\nINTERAJA para recuperar <whitebold>Glóbulos</> próximos e ganhar outra carga após um curto Tempo de Recarga."
+     },
+     "en": {
+      "nome": "Globule",
+      "texto": "Gekko’s abilities transform into a <whitebold>Globule</> after use.\r\n\r\nINTERACT to reclaim nearby <whitebold>Globules</> to gain another charge after a short cooldown."
+     }
+    }
+   ]
+  },
+  {
+   "id": "harbor",
+   "nome": "Harbor",
+   "codinome": "Mage",
+   "funcao": {
+    "pt": "Controlador",
+    "en": "Controller"
+   },
+   "bio": {
+    "pt": "Vindo do litoral indiano, Harbor entra em campo com a força da tormenta, empunhando tecnologia ancestral com domínio sobre a água. Ele libera corredeiras espumantes e ondas esmagadoras para proteger seus aliados ou atacar aqueles que se opõem a ele.",
+    "en": "Hailing from India’s coast, Harbor storms the field wielding ancient technology with dominion over water. He unleashes frothing rapids and crushing waves to shield his allies, or pummel those that oppose him."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Temporal",
+      "texto": "EQUIPE um <whitebold>Temporal</>. DISPARE para lançar. Explode ao aterrissar, causando <debuffred>Visão Turva</> e <debuffred>Lentidão</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Storm Surge",
+      "texto": "EQUIP <whitebold>Storm Surge</>. FIRE to throw. Explodes on landing, <debuffred>nearsighting</> and <debuffred>slowing</> all players."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Maré Alta",
+      "texto": "EQUIPE <whitebold>Maré Alta</>. DISPARE para lançar uma parede à frente que bloqueia a visão e <debuffred>causa Lentidão</> a quem entrar em contato com ela. SEGURE O DISPARO para guiar em direção à sua retícula. Use o DISPARO ALTERNATIVO para parar antes."
+     },
+     "en": {
+      "nome": "High Tide",
+      "texto": "EQUIP <whitebold>High Tide</>. FIRE to send forward a vision-blocking wall that <debuffred>slows</> all players who come in contact. HOLD FIRE to steer towards your crosshair. ALT FIRE to stop early."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Enseada",
+      "texto": "ENTRE nas Profundezas. REATIVE para lançar uma fumaça. SEGURE o DISPARO/DISPARO ALTERNATIVO para ajustar a distância. RECARREGUE para alternar a visão. Após conjurar, REATIVE para transformar a fumaça em um escudo destrutível."
+     },
+     "en": {
+      "nome": "Cove",
+      "texto": "ENTER The Deep. REACTIVATE to cast a smoke. HOLD FIRE/ALT FIRE to adjust distance. RELOAD to toggle view. After casting, REACTIVATE to transform the smoke into a destructible shield."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Acerto de Contas",
+      "texto": "EQUIPE <whitebold>Acerto de Contas</>. DISPARE para lançar uma parede à frente que bloqueia a visão e causa <debuffred>Visão Turva</> e <debuffred>Lentidão</> a quem entrar em contato com ela. REATIVE para interromper a parede antes."
+     },
+     "en": {
+      "nome": "Reckoning",
+      "texto": "EQUIP <whitebold>Reckoning</>. FIRE to push forward a vision-blocking wall that <debuffred>nearsights</> and <debuffred>slows</> all players who come in contact. REACTIVATE to stop the wall early."
+     }
+    }
+   ]
+  },
+  {
+   "id": "hush",
+   "nome": "Hush",
+   "codinome": "Paprika",
+   "funcao": {
+    "pt": "Duelista",
+    "en": "Duelist"
+   },
+   "bio": {
+    "pt": "A Agente chinesa Hush usa sua telecinese para resolver os casos mais confidenciais. Lutando com precisão e elegância, ela redireciona seus utilitários de combate no ar para desestabilizar e deslocar a equipe inimiga antes de suspendê-la para o golpe final.",
+    "en": "Chinese operative Hush uses her telekinesis to close the most classified cases. Fighting with precision and finesse, she redirects her combat utility in midair to disrupt and displace the enemy team before suspending them helplessly for the killing blow."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Fluxo",
+      "texto": "Crie INSTANTANEAMENTE uma âncora. Se Hush estiver no ar, levita brevemente no lugar. Após um intervalo, se lança na direção da âncora."
+     },
+     "en": {
+      "nome": "Flow",
+      "texto": "INSTANTLY create an anchor. If Hush is in the air, briefly levitate in place. After a delay, propel towards it."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Lampejo",
+      "texto": "EQUIPE <whitebold>Lampejo</>. DISPARE para lançar ou use o DISPARO ALTERNATIVO para preparar. REATIVE para direcionar para a sua retícula. Explode em qualquer superfície ou após um tempo, <debuffred>cegando</> quem estiver olhando."
+     },
+     "en": {
+      "nome": "Flashbulb",
+      "texto": "EQUIP <whitebold>Flashbulb</>. FIRE to throw. ALT FIRE to prepare it instead. REACTIVATE to direct it towards your crosshair. Explodes on any surface or after a delay, <debuffred>flashing</> all players looking at it."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Deslocamento",
+      "texto": "EQUIPE <whitebold>Deslocamento</>. DISPARE para lançar ou use o DISPARO ALTERNATIVO para preparar. REATIVE para direcionar para a sua retícula. Explode em qualquer superfície ou após um tempo, <debuffred>puxando</> todos os jogadores em direção ao centro e causando <debuffred>Concussão</> se colidirem com uma superfície ou com outro jogador.\r\n\r\nA habilidade é redefinida a cada dois abates."
+     },
+     "en": {
+      "nome": "Displacement",
+      "texto": "EQUIP <whitebold>Displacement</>. FIRE to throw. ALT FIRE to prepare it instead. REACTIVATE to direct it towards your crosshair. Explodes on any surface or after a delay, <debuffred>pulling</> all players towards the center and <debuffred>concussing</> them if they collide with any surface or another player.\r\n\r\nResets every two kills."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Suspensão",
+      "texto": "Prepare <whitebold>Suspensão</> INSTANTANEAMENTE. DISPARE para lançar à frente, guiando com sua retícula. REATIVE ou DISPARE novamente para detonar, fazendo todos os jogadores <debuffred>levitarem</>."
+     },
+     "en": {
+      "nome": "Suspension",
+      "texto": "INSTANTLY prepare <whitebold>Suspension</>. FIRE to send it forward, steering with your crosshair. REACTIVATE or press FIRE again to detonate, <debuffred>levitating</> all players."
+     }
+    },
+    {
+     "tecla": "Passiva",
+     "pt": {
+      "nome": "Telecinese",
+      "texto": "Hush pode coletar armas, a Spike e INTERAGIR com interruptores de uma distância maior."
+     },
+     "en": {
+      "nome": "Telekinesis",
+      "texto": "Hush can pick up weapons, the Spike, and INTERACT with switches from an increased range."
+     }
+    }
+   ]
+  },
+  {
+   "id": "iso",
+   "nome": "Iso",
+   "codinome": "Sequoia",
+   "funcao": {
+    "pt": "Duelista",
+    "en": "Duelist"
+   },
+   "bio": {
+    "pt": "Iso é um mercenário chinês que entra em estado de fluxo para desmantelar os oponentes. Ele reconfigura a energia do ambiente para se proteger de balas e avança totalmente focado em direção ao próximo duelo até a morte.",
+    "en": "Chinese fixer for hire Iso falls into a flow state to dismantle the opposition. Reconfiguring ambient energy into bulletproof protection, he advances with focus towards his next duel to the death."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Contingência",
+      "texto": "EQUIPE <whitebold>Contingência</>. DISPARE para lançar uma muralha indestrutível que bloqueia a visão. Use o DISPARO ALTERNATIVO para lançar uma parede mais lenta."
+     },
+     "en": {
+      "nome": "Contingency",
+      "texto": "EQUIP <whitebold>Contingency</>. FIRE to push forward an indestructible vision-blocking wall. ALT FIRE for a slower wall."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Centelha Debilitante",
+      "texto": "EQUIPE <whitebold>Centelha Debilitante</>. DISPARE para lançar. Aplica <debuffred>Supressão</> e <debuffred>Vulnerável</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Undercut",
+      "texto": "EQUIP <whitebold>Undercut</>. FIRE to send it forward. Applies <debuffred>suppress</> and <debuffred>vulnerable</> to all players."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Fluxo Protetor",
+      "texto": "Canalize <whitebold>Foco</> INSTANTANEAMENTE. Receba um escudo que bloqueia uma instância de dano."
+     },
+     "en": {
+      "nome": "Double Tap",
+      "texto": "INSTANTLY channel <whitebold>Focus</>. Gain a shield that blocks one instance of damage."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Contrato de Abate",
+      "texto": "EQUIPE <whitebold>Contrato de Abate</>. DISPARE para lançar uma zona que puxa você e o primeiro inimigo atingido para um duelo.\r\n\r\nCanaliza <whitebold>Foco</> no início de um duelo."
+     },
+     "en": {
+      "nome": "Kill Contract",
+      "texto": "EQUIP <whitebold>Kill Contract</>. FIRE to send forward a zone that pulls you and the first enemy hit into a duel.\r\n\r\nChannel <whitebold>Focus</> at the start of a duel."
+     }
+    },
+    {
+     "tecla": "Passiva",
+     "pt": {
+      "nome": "Foco",
+      "texto": "Enquanto estiver com <whitebold>Foco</>, recarregará mais rápido e criará orbes de energia destrutíveis a partir de inimigos que sofrerem dano de Iso ou forem abatidos por ele.\r\n\r\nAo destruir um orbe de energia, recebe um escudo que bloqueia uma instância de dano e renova o <whitebold>Foco</>."
+     },
+     "en": {
+      "nome": "Focus",
+      "texto": "While <whitebold>Focused</>, reload faster and spawn destructible energy orbs from dead enemies Iso has damaged or killed.\r\n\r\nWhen an energy orb is shot, grant a shield that blocks one instance of damage and refresh <whitebold>Focus</>."
+     }
+    }
+   ]
+  },
+  {
+   "id": "jett",
+   "nome": "Jett",
+   "codinome": "Wushu",
+   "funcao": {
+    "pt": "Duelista",
+    "en": "Duelist"
+   },
+   "bio": {
+    "pt": "Representando a Coreia do Sul, sua terra natal, Jett tem um estilo de luta ágil e evasivo que permite que ela assuma riscos como ninguém. Ela corre em meio a qualquer confronto, cortando os inimigos antes mesmo que eles percebam quem ou o que os atingiu.",
+    "en": "Representing her home country of South Korea, Jett's agile and evasive fighting style lets her take risks no one else can. She runs circles around every skirmish, cutting enemies up before they even know what hit them."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Erupção das Brumas",
+      "texto": "Arremesse uma nuvem INSTANTANEAMENTE. Forma uma fumaça breve em qualquer superfície ou após um intervalo. SEGURE ATIVAR para guiar em direção à sua retícula."
+     },
+     "en": {
+      "nome": "Cloudburst",
+      "texto": "INSTANTLY throw a cloud. Forms into a brief smoke on any surface or after a delay. HOLD ACTIVATE to steer towards your crosshair."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Corrente Ascendente",
+      "texto": "Lance-se INSTANTANEAMENTE bem alto no ar."
+     },
+     "en": {
+      "nome": "Updraft",
+      "texto": "INSTANTLY propel high into the air."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Brisa de Impulso",
+      "texto": "Prepare um avanço INSTANTANEAMENTE. REATIVE para se deslocar para a frente ou na direção da sua movimentação.\r\n\r\nA habilidade é redefinida a cada dois abates."
+     },
+     "en": {
+      "nome": "Tailwind",
+      "texto": "INSTANTLY prepare a dash. REACTIVATE to dash forward or in your movement direction.\r\n\r\nResets every two kills."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Tormenta de Aço",
+      "texto": "Acesse INSTANTANEAMENTE cinco facas de arremesso precisas que causam <debuffred>dano letal</> com acertos diretos na cabeça.\r\n\r\nDISPARE para atirar. Ao realizar abates, suas facas são redefinidas. Use o DISPARO ALTERNATIVO para lançar todas as facas restantes sem redefinir."
+     },
+     "en": {
+      "nome": "Blade Storm",
+      "texto": "INSTANTLY access five accurate throwing knives that deal <debuffred>lethal damage</> with direct hits to the head.\r\n\r\nFIRE to shoot. On kills, refresh your knives. ALT FIRE to throw all remaining knives without a refresh."
+     }
+    },
+    {
+     "tecla": "Passiva",
+     "pt": {
+      "nome": "Deriva",
+      "texto": "SEGURE PULAR enquanto está caindo para <teal>planar</>."
+     },
+     "en": {
+      "nome": "Drift",
+      "texto": "HOLD JUMP while falling to <teal>glide</>."
+     }
+    }
+   ]
+  },
+  {
+   "id": "kayo",
+   "nome": "KAY/O",
+   "codinome": "Grenadier",
+   "funcao": {
+    "pt": "Iniciador",
+    "en": "Initiator"
+   },
+   "bio": {
+    "pt": "KAY/O é uma máquina de guerra construída com um único propósito: neutralizar Radiantes. Ele é capaz de Suprimir habilidades inimigas, anulando a capacidade de contra-ataque dos adversários e dando a si próprio e a seus aliados uma vantagem essencial em combate.",
+    "en": "KAY/O is a machine of war built for a single purpose: neutralizing radiants. His power to Suppress enemy abilities dismantles his opponents' capacity to fight back, securing him and his allies the ultimate edge."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "FRAG/mento",
+      "texto": "EQUIPE <whitebold>FRAG/mento</>. DISPARE para lançar. Use o DISPARO ALTERNATIVO para arremessar a curta distância. Explode ao aterrissar, causando pulsos de <debuffred>dano</> repetidamente a todos os jogadores."
+     },
+     "en": {
+      "nome": "FRAG/ment",
+      "texto": "EQUIP <whitebold>FRAG/ment</>. FIRE to throw. ALT FIRE to lob. Explodes on landing, repeatedly dealing pulses of <debuffred>damage</> to all players."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "GRANADA/clarão",
+      "texto": "EQUIPE uma <whitebold>GRANADA/clarão</>. DISPARE para lançar. Use o DISPARO ALTERNATIVO para arremessar a curta distância. Após um intervalo, explode, <debuffred>cegando</> quem estiver olhando."
+     },
+     "en": {
+      "nome": "FLASH/drive",
+      "texto": "EQUIP a <whitebold>FLASH/drive</>. FIRE to throw. ALT FIRE to lob. After a delay, explode, <debuffred>flashing</> all players looking at it."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "PONTO/zero",
+      "texto": "EQUIPE um <whitebold>PONTO/zero</> destrutível. DISPARE para lançar. Pulsa em qualquer superfície, <debuffred>suprimindo</> inimigos dentro do alcance."
+     },
+     "en": {
+      "nome": "ZERO/point",
+      "texto": "EQUIP a destructible <whitebold>ZERO/point</>. FIRE to throw. Pulses on any surface, <debuffred>suppressing</> enemies within range."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "ANULAR/cmd",
+      "texto": "Receba <teal>Sobrecarga</> INSTANTANEAMENTE e emita pulsos repetidos que <debuffred>suprimem</> inimigos no alcance.\r\n\r\n<teal>Sobrecarga</> concede <teal>Estimulante de Combate</>. Ao sofrer <debuffred>dano letal</>, KAY/O é derrubado e pode ser reestabilizado."
+     },
+     "en": {
+      "nome": "NULL/cmd",
+      "texto": "INSTANTLY gain <teal>overloaded</> and repeatedly send out a pulse that <debuffred>suppresses</> enemies within range.\r\n\r\n<teal>Overloaded</> grants <teal>combat stim</>. Upon taking <debuffred>lethal damage</>, KAY/O is downed and can be re-stabilized."
+     }
+    }
+   ]
+  },
+  {
+   "id": "killjoy",
+   "nome": "Killjoy",
+   "codinome": "Killjoy",
+   "funcao": {
+    "pt": "Sentinela",
+    "en": "Sentinel"
+   },
+   "bio": {
+    "pt": "Killjoy, uma alemã genial, defende posições-chave no campo de batalha facilmente com seu arsenal de invenções. Se o dano causado por seu equipamento não der cabo dos inimigos, os efeitos negativos de seus queridos robôs dão conta do recado.",
+    "en": "The genius of Germany, Killjoy effortlessly secures key battlefield positions with her arsenal of inventions. If their damage doesn't take her enemies out, the debuff her robots provide will make short work of them."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Nanoenxame",
+      "texto": "EQUIPE um <whitebold>Nanoenxame</> destrutível. DISPARE para lançar. Use o DISPARO ALTERNATIVO para arremessar a curta distância. O <whitebold>Nanoenxame</> entra em <teal>furtividade</> após aterrissar. INTERAJA para criar uma zona que causa <debuffred>dano</> a todos os jogadores.\r\n\r\nPode ser recolhido durante a FASE DE COMPRA."
+     },
+     "en": {
+      "nome": "Nanoswarm",
+      "texto": "EQUIP a destructible <whitebold>Nanoswarm</>. FIRE to throw. ALT FIRE to lob. <whitebold>Nanoswarm</> <teal>stealths</> after landing. INTERACT to create a zone that deals <debuffred>damage</> to all players.\r\n\r\nCan be picked up during BUY PHASE."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Robô de Alarme",
+      "texto": "EQUIPE um <whitebold>Robô de Alarme</> destrutível. DISPARE para posicionar. O <whitebold>Robô de Alarme</> entra em <teal>furtividade</> após ser posicionado. Ele é ativado por inimigos visíveis próximos no alcance. <debuffred>Persegue</> o primeiro inimigo que vê, explodindo e aplicando <debuffred>Vulnerável</>.\r\n\r\nPode ser recuperado."
+     },
+     "en": {
+      "nome": "ALARMBOT",
+      "texto": "EQUIP a destructible <whitebold>Alarmbot</>. FIRE to place. <whitebold>Alarmbot</> <teal>stealths</> after placement. Triggers on nearby visible enemies in range. <debuffred>Chases</> the first enemy it sees, exploding and applying <debuffred>vulnerable</>.\r\n\r\nCan be recalled."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Torreta",
+      "texto": "EQUIPE uma <whitebold>Torreta</> destrutível. Enquanto estiver equipada, REATIVE para inverter a direção ou SEGURE o DISPARO ALTERNATIVO para girar. DISPARE para posicionar. Atira em inimigos na linha de visão.\r\n\r\nPode ser recuperada."
+     },
+     "en": {
+      "nome": "TURRET",
+      "texto": "EQUIP a destructible <whitebold>Turret</>. While equipped, REACTIVATE to flip the direction or HOLD ALT FIRE to rotate. FIRE to place. Shoots at enemies in line of sight.\r\n\r\nCan be recalled."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Confinamento",
+      "texto": "EQUIPE um <whitebold>Confinamento</> destrutível. DISPARE para preparar uma zona. Após um intervalo, <debuffred>detém</> inimigos no alcance."
+     },
+     "en": {
+      "nome": "Lockdown",
+      "texto": "EQUIP a destructible <whitebold>Lockdown</>. FIRE to prepare a zone. After a delay, <debuffred>detain</> enemies within range."
+     }
+    }
+   ]
+  },
+  {
+   "id": "miks",
+   "nome": "Miks",
+   "codinome": "Iris",
+   "funcao": {
+    "pt": "Controlador",
+    "en": "Controller"
+   },
+   "bio": {
+    "pt": "Diretamente da Croácia, Miks sobe ao palco canalizando pura energia sonora. Com sua paixão contagiante e seus poderes sônicos, ele coordena o esquadrão para que todos se movam em sincronia, ditando juntos o ritmo do campo de batalha.",
+    "en": "Straight from Croatia, Miks takes the stage channeling pure sound energy. With his infectious passion and sonic powers, he rallies his squad to move as one as they set the tempo on the battlefield together."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Pulso M",
+      "texto": "EQUIPE um <whitebold>Pulso M</> destrutível. Use o DISPARO ALTERNATIVO para alternar entre <debuffred>Concussão</> e <teal>cura</>. DISPARE para lançar. Pulsa repetidamente ao aterrissar, aplicando o efeito selecionado a todos os jogadores na área de alcance."
+     },
+     "en": {
+      "nome": "M-pulse",
+      "texto": "EQUIP a destructible <whitebold>M-Pulse</>. ALT FIRE to toggle between <debuffred>concuss</> or <teal>heal</>. FIRE to throw. Repeatedly pulses on landing, applying the selected effect on all players within range."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Harmonia",
+      "texto": "EQUIPE <whitebold>Harmonia</>. DISPARE em um aliado para conceder <teal>Estimulante de Combate</> e <teal>aceleração</> a vocês. Ao obter abates enquanto o efeito está ativo, o <teal>fortalecimento</> é redefinido se ambas as pessoas <whitebold>Harmonizadas</> ainda estiverem vivas. Use o DISPARO ALTERNATIVO para autoconjurar sem redefinição."
+     },
+     "en": {
+      "nome": "Harmonize",
+      "texto": "EQUIP <whitebold>Harmonize</>. FIRE on a targeted ally to grant <teal>combat stim</> and <teal>haste</> to them and yourself. On kills while active, refresh the <teal>buff</> if both <whitebold>Harmonized</> players are still alive. ALT FIRE to self-cast with no refresh."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Ressonância",
+      "texto": "EQUIPE um mapa tático. DISPARE para definir os pontos da fumaça. Use o DISPARO ALTERNATIVO para conjurar fumaças."
+     },
+     "en": {
+      "nome": "Waveform",
+      "texto": "EQUIP a tactical map. FIRE to set smoke locations. ALT FIRE to cast smokes."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Melodia Sísmica",
+      "texto": "EQUIPE <whitebold>Melodia Sísmica</>. DISPARE para enviar uma zona que <debuffred>ensurdece</>, <debuffred>empurra para trás</> e causa <debuffred>Lentidão</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Bassquake",
+      "texto": "EQUIP <whitebold>Bassquake</>. FIRE to send forward a zone that <debuffred>deafens</>, <debuffred>knocks back</>, and <debuffred>slows</> all players."
+     }
+    }
+   ]
+  },
+  {
+   "id": "neon",
+   "nome": "Neon",
+   "codinome": "Sprinter",
+   "funcao": {
+    "pt": "Duelista",
+    "en": "Duelist"
+   },
+   "bio": {
+    "pt": "Neon, nossa Agente filipina, avança em velocidades incríveis, descarregando surtos de radiância bioelétrica tão rapidamente quanto seu corpo consegue gerá-los. Ela corre à frente para pegar os inimigos de surpresa, abatendo-os mais rápido do que um raio.",
+    "en": "Filipino Agent Neon surges forward at shocking speeds, discharging bursts of bioelectric radiance as fast as her body generates it. She races ahead to catch enemies off guard then strikes them down quicker than lightning."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Via Expressa",
+      "texto": "Lance INSTANTANEAMENTE duas paredes que bloqueiam a visão e se estendem até atingirem uma superfície."
+     },
+     "en": {
+      "nome": "Fast Lane",
+      "texto": "INSTANTLY launch two vision-blocking walls that extend until they hit a surface."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Ricochete Elétrico",
+      "texto": "Solte INSTANTANEAMENTE um raio que ricocheteia uma vez. Ele explode em cada superfície, causando <debuffred>Concussão</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Relay Bolt",
+      "texto": "INSTANTLY throw a bolt that bounces once. Explodes on each surface, <debuffred>concussing</> all players."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Equipamento Voltaico",
+      "texto": "Consuma combustível INSTANTANEAMENTE para receber <teal>aceleração</>. REATIVE para cancelar. Use o DISPARO ALTERNATIVO para deslizar para a frente ou na direção do seu movimento.\r\n\r\nO deslize é redefinido a cada dois abates."
+     },
+     "en": {
+      "nome": "High Gear",
+      "texto": "INSTANTLY consume fuel to gain <teal>haste</>. REACTIVATE to cancel. ALT FIRE to slide forward or in your movement direction.\r\n\r\nSlide resets every two kills."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Sobrecarga",
+      "texto": "Redefine INSTANTANEAMENTE o <whitebold>Equipamento Voltaico</>. Concede acesso a um raio preciso que pode ser usado durante a ativação do <whitebold>Equipamento Voltaico</>.\r\n\r\nDISPARE para atirar. Ao realizar abates, recarrega totalmente o combustível."
+     },
+     "en": {
+      "nome": "Overdrive",
+      "texto": "INSTANTLY refresh <whitebold>High Gear</>. Access an accurate lightning beam that can be used while activating <whitebold>High Gear</>.\r\n\r\nFIRE to shoot. On kills, fully recharge fuel."
+     }
+    },
+    {
+     "tecla": "Passiva",
+     "pt": {
+      "nome": "Bateria",
+      "texto": "Recarrega combustível passivamente ao longo do tempo."
+     },
+     "en": {
+      "nome": "Battery",
+      "texto": "Passively recharge fuel over time."
+     }
+    }
+   ]
+  },
+  {
+   "id": "omen",
+   "nome": "Omen",
+   "codinome": "Wraith",
+   "funcao": {
+    "pt": "Controlador",
+    "en": "Controller"
+   },
+   "bio": {
+    "pt": "Omen, uma lembrança fantasmagórica, caça nas sombras. Ele cega os inimigos, teleporta-se pelo campo e deixa a paranoia assumir o controle enquanto o adversário tenta descobrir de onde virá seu próximo ataque.",
+    "en": "A phantom of a memory, Omen hunts in the shadows. He renders enemies blind, teleports across the field, then lets paranoia take hold as his foe scrambles to uncover where he might strike next."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Passos Tenebrosos",
+      "texto": "EQUIPE <whitebold>Passos Tenebrosos</>. DISPARE para canalizar brevemente e, então, se teleportar para o local direcionado."
+     },
+     "en": {
+      "nome": "Shrouded Step",
+      "texto": "EQUIP a <whitebold>Shrouded Step</>. FIRE to briefly channel, then teleport to a targeted location."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Paranoia",
+      "texto": "EQUIPE <whitebold>Paranoia</>. DISPARE para lançar. Aplica <debuffred>Visão Turva</> e <debuffred>ensurdece</> todos os jogadores."
+     },
+     "en": {
+      "nome": "Paranoia",
+      "texto": "EQUIP <whitebold>Paranoia</>. FIRE to send it forward. Applies <debuffred>nearsight</> and <debuffred>deafens</> all players."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Manto Sombrio",
+      "texto": "ENTRE na Visão Sombria. REATIVE para lançar uma fumaça. SEGURE o DISPARO/DISPARO ALTERNATIVO para ajustar a distância. RECARREGUE para alternar a visão."
+     },
+     "en": {
+      "nome": "Dark Cover",
+      "texto": "ENTER Shadow Vision. REACTIVATE to cast a smoke. HOLD FIRE/ALT FIRE to adjust distance. RELOAD to toggle view."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Salto das Sombras",
+      "texto": "EQUIPE um mapa tático. DISPARE para começar um teleporte para o local selecionado. Enquanto se teleporta, Omen aparece como uma sombra destrutível no local de destino. REATIVE para cancelar."
+     },
+     "en": {
+      "nome": "From the Shadows",
+      "texto": "EQUIP a tactical map. FIRE to begin a teleport to a selected location. While teleporting, Omen appears as a destructible shade at the destination. REACTIVATE to cancel."
+     }
+    }
+   ]
+  },
+  {
+   "id": "phoenix",
+   "nome": "Phoenix",
+   "codinome": "Phoenix",
+   "funcao": {
+    "pt": "Duelista",
+    "en": "Duelist"
+   },
+   "bio": {
+    "pt": "Chegando com tudo diretamente do Reino Unido, o poder estelar de Phoenix reluz em seu estilo de luta, incendiando o campo de batalha com luz e estilo. Tendo ajuda ou não, ele entra na luta como e quando achar que deve.",
+    "en": "Hailing from the U.K., Phoenix's star power shines through in his fighting style, igniting the battlefield with flash and flare. Whether he's got backup or not, he's rushing in to fight on his own terms."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Labareda",
+      "texto": "EQUIPE <whitebold>Labareda</>. DISPARE para lançar uma parede de <whitebold>fogo</> que bloqueia a visão e causa <debuffred>dano</> a todos os jogadores. SEGURE O DISPARO para guiar em direção à sua retícula."
+     },
+     "en": {
+      "nome": "Blaze",
+      "texto": "EQUIP <whitebold>Blaze</>. FIRE to send forward a vision-blocking <whitebold>fire</> wall that deals <debuffred>damage</> to all players. HOLD FIRE to steer towards your crosshair."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Mãos Quentes",
+      "texto": "EQUIPE <whitebold>Mãos Quentes</>. DISPARE para lançar. Use o DISPARO ALTERNATIVO para arremessar a curta distância. Ao aterrissar, cria uma zona de <whitebold>fogo</> que causa <debuffred>dano</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Hot Hands",
+      "texto": "EQUIP <whitebold>Hot Hands</>. FIRE to throw. ALT FIRE to lob. On landing, create a <whitebold>fire</> zone that deals <debuffred>damage</> to all players."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Bola Curva",
+      "texto": "EQUIPE uma <whitebold>Bola Curva</>. DISPARE para fazer curva à esquerda ou use o DISPARO ALTERNATIVO para fazer curva à direita. Após um intervalo, explode, <debuffred>cegando</> quem estiver olhando.\r\n\r\nA habilidade é redefinida a cada dois abates."
+     },
+     "en": {
+      "nome": "Curveball",
+      "texto": "EQUIP a <whitebold>Curveball</>. FIRE to curve left, ALT FIRE to curve right. After a delay, explode, <debuffred>flashing</> all players looking at it.\r\n\r\nResets every two kills."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Renascimento",
+      "texto": "Posicione INSTANTANEAMENTE um marcador no seu local. Ao sofrer <debuffred>dano letal</> ou quando o <whitebold>Renascimento</> expira, você retorna ao marcador com a Vida cheia e a mesma quantidade de armadura que tinha quando a habilidade foi ativada."
+     },
+     "en": {
+      "nome": "Run it Back",
+      "texto": "INSTANTLY place a marker at your location. Upon taking <debuffred>lethal damage</> or when <whitebold>Run it Back</> expires, return to the marker with full health and the amount of armor you had when the ability was activated."
+     }
+    },
+    {
+     "tecla": "Passiva",
+     "pt": {
+      "nome": "Fogo Interior",
+      "texto": "Phoenix <teal>se cura</> em vez de sofrer dano ao permanecer em seu próprio <whitebold>fogo</>."
+     },
+     "en": {
+      "nome": "Inner Fire",
+      "texto": "Phoenix <teal>heals</> while standing in his own <whitebold>fire</> instead of taking damage."
+     }
+    }
+   ]
+  },
+  {
+   "id": "raze",
+   "nome": "Raze",
+   "codinome": "Clay",
+   "funcao": {
+    "pt": "Duelista",
+    "en": "Duelist"
+   },
+   "bio": {
+    "pt": "Raze chega do Brasil com uma explosão de carisma e armas enormes. Com seu estilo de jogo \"porradeiro\", ela é craque em desentocar inimigos entrincheirados e limpar espaços apertados com uma bela dose de BUUUM!",
+    "en": "Raze explodes out of Brazil with her big personality and big guns. With her blunt-force-trauma playstyle, she excels at flushing entrenched enemies and clearing tight spaces with a generous dose of \"boom.\""
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Bumba",
+      "texto": "EQUIPE um <whitebold>Bumba</> destrutível. DISPARE para lançar. <debuffred>Persegue</> o primeiro inimigo que vê, explodindo e causando <debuffred>dano</> aos inimigos no impacto."
+     },
+     "en": {
+      "nome": "Boom Bot",
+      "texto": "EQUIP a destructible <whitebold>Boom Bot</>. FIRE to send it forward. <debuffred>Chases</> the first enemy it sees, exploding and dealing <debuffred>damage</> to enemies on impact."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Carga de Explosivos",
+      "texto": "ARREMESSE INSTANTANEAMENTE uma <whitebold>Carga de Explosivos</> destrutível que adere a superfícies e se arma completamente após um intervalo. REATIVE para detonar, <debuffred>arremessando</> tudo o que for atingido.\r\n\r\nSe estiver totalmente armada, a <whitebold>Carga de Explosivos</> também causará <debuffred>dano</> aos inimigos."
+     },
+     "en": {
+      "nome": "Blast Pack",
+      "texto": "INSTANTLY throw a destructible <whitebold>Blast Pack</> that sticks to surfaces that fully arms after a delay. REACTIVATE to detonate, <debuffred>knocking away</> anything hit.\r\n\r\nIf fully armed, <whitebold>Blast Pack</> will also deal <debuffred>damage</> to enemies."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Cartuchos de Tinta",
+      "texto": "EQUIPE <whitebold>Cartuchos de Tinta</>. DISPARE para lançar. Use o DISPARO ALTERNATIVO para arremessar a curta distância. Após um intervalo, explode, causando <debuffred>dano</> e criando submunições. Cada uma delas também causa <debuffred>dano</> a todos os jogadores.\r\n\r\nA habilidade é redefinida a cada dois abates."
+     },
+     "en": {
+      "nome": "Paint Shells",
+      "texto": "EQUIP <whitebold>Paint Shells</>. FIRE to throw. ALT FIRE to lob. After a delay, explode, dealing <debuffred>damage</> and creating sub-munitions, each also dealing <debuffred>damage</> to all players.\r\n\r\nResets every two kills."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Estraga-prazeres",
+      "texto": "Prepare INSTANTANEAMENTE o <whitebold>Estraga-Prazeres</>. DISPARE para lançar. Explode em qualquer superfície, causando alto <debuffred>dano</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Showstopper",
+      "texto": "INSTANTLY prepare <whitebold>Showstopper</>. FIRE to launch. Explodes on any surface, dealing high <debuffred>damage</> to all players."
+     }
+    }
+   ]
+  },
+  {
+   "id": "reyna",
+   "nome": "Reyna",
+   "codinome": "Vampire",
+   "funcao": {
+    "pt": "Duelista",
+    "en": "Duelist"
+   },
+   "bio": {
+    "pt": "Criada no coração do México, Reyna domina o combate individual e se destaca a cada abate efetuado. Sua capacidade só é limitada pela própria perícia, o que a torna bastante dependente de desempenho. ",
+    "en": "Forged in the heart of Mexico, Reyna dominates single combat, popping off with each kill she scores. Her capability is only limited by her raw skill, making her sharply dependent on performance. "
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Olhar Voraz",
+      "texto": "EQUIPE um <whitebold>Olhar Voraz</> destrutível. DISPARE para lançar. Forma-se após um intervalo, causando <debuffred>Visão Turva</> aos inimigos que estiverem olhando."
+     },
+     "en": {
+      "nome": "Leer",
+      "texto": "EQUIP a destructible <whitebold>Leer</>. FIRE to send. After a delay, form, <debuffred>nearsighting</> enemies looking at it."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Devorar",
+      "texto": "Consuma INSTANTANEAMENTE um <whitebold>Orbe de Alma</> para <teal>se curar</>. A cura excedente é convertida em <teal>Sobrecura</>.\r\n\r\nEnquanto a ULTIMATE está ativa, <whitebold>Devorar</> é conjurada automaticamente."
+     },
+     "en": {
+      "nome": "Devour",
+      "texto": "INSTANTLY consume a <whitebold>Soul Orb</> to <teal>heal</>. Excess healing is converted into <teal>overheal</>.\r\n\r\nWhile ULTIMATE is active, <whitebold>Devour</> auto-casts."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Dispensar",
+      "texto": "Consuma INSTANTANEAMENTE um <whitebold>Orbe de Alma</> para se tornar <teal>intangível</> por um curto período. REATIVE para cancelar mais cedo.\r\n\r\nEnquanto a ULTIMATE está ativa, você também recebe <teal>invisibilidade</>."
+     },
+     "en": {
+      "nome": "Dismiss",
+      "texto": "INSTANTLY consume a <whitebold>Soul Orb</> to briefly become <teal>intangible</>. REACTIVATE to cancel early.\r\n\r\nWhile ULTIMATE is active, also gain <teal>invisibility</>."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Imperatriz",
+      "texto": "Receba <teal>Imperatriz</> INSTANTANEAMENTE.\r\n\r\n<teal>Imperatriz</> concede <teal>Estimulante de Combate</>, consumo infinito de <whitebold>Orbes de Alma</> e <teal>Sobrecura</> permanente."
+     },
+     "en": {
+      "nome": "Empress",
+      "texto": "INSTANTLY gain <teal>empress</>.\r\n\r\n<teal>Empress</> grants <teal>combat stim</>, endless <whitebold>Soul Orb</> consumption, and permanent <teal>overheal</>."
+     }
+    },
+    {
+     "tecla": "Passiva",
+     "pt": {
+      "nome": "Vitalidade",
+      "texto": "Gera um <whitebold>Orbe de Alma</> a partir de inimigos mortos que sofreram dano de Reyna ou foram abatidos por ela."
+     },
+     "en": {
+      "nome": "Vitality",
+      "texto": "Spawn a <whitebold>Soul Orb</> from dead enemies Reyna has damaged or killed."
+     }
+    }
+   ]
+  },
+  {
+   "id": "sage",
+   "nome": "Sage",
+   "codinome": "Thorne",
+   "funcao": {
+    "pt": "Sentinela",
+    "en": "Sentinel"
+   },
+   "bio": {
+    "pt": "Como uma verdadeira fortaleza chinesa, Sage traz segurança para si mesma e para a equipe aonde quer que vá. Capaz de reviver aliados e rechaçar investidas agressivas, ela oferece um centro de calmaria em meio ao caos da batalha.",
+    "en": "The bastion of China, Sage creates safety for herself and her team wherever she goes. Able to revive fallen friends and stave off forceful assaults, she provides a calm center to a hellish battlefield."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Orbe de Barreira",
+      "texto": "EQUIPE um <whitebold>Orbe de Barreira</> destrutível. Enquanto estiver equipado, REATIVE para rotacionar a barreira ou SEGURE o DISPARO ALTERNATIVO para girar. DISPARE para posicionar uma parede destrutível que se fortifica após um intervalo."
+     },
+     "en": {
+      "nome": "Barrier Orb",
+      "texto": "EQUIP a destructible <whitebold>Barrier Orb</>. While equipped, REACTIVATE to pivot the wall or HOLD ALT FIRE to rotate. FIRE to place a destructible wall that fortifies after a delay."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Orbe de Lentidão",
+      "texto": "EQUIPE um <whitebold>Orbe de Lentidão</>. DISPARE para lançar. Ao aterrissar, cria uma zona que causa <debuffred>Lentidão</> a todos os jogadores e toca um sinal sonoro quando inimigos passam por ela."
+     },
+     "en": {
+      "nome": "Slow Orb",
+      "texto": "EQUIP a <whitebold>Slow Orb</>. FIRE to throw. On landing, create a zone that <debuffred>slows</> all players and plays an audio cue when enemies run through it."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Orbe Curativo",
+      "texto": "EQUIPE um <whitebold>Orbe Curativo</>. DISPARE em um aliado ferido para conceder <teal>cura</>. Use o DISPARO ALTERNATIVO para autoconjurar."
+     },
+     "en": {
+      "nome": "Healing Orb",
+      "texto": "EQUIP <whitebold>Healing Orb</>. FIRE on a damaged ally to grant <teal>healing</>. ALT FIRE to self-cast."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Ressurreição",
+      "texto": "EQUIPE <whitebold>Ressurreição</>. DISPARE em um aliado abatido para <teal>ressuscitá-lo</>."
+     },
+     "en": {
+      "nome": "Resurrection",
+      "texto": "EQUIP <whitebold>Resurrection</>. FIRE on a targeted dead ally to <teal>resurrect</> them."
+     }
+    }
+   ]
+  },
+  {
+   "id": "skye",
+   "nome": "Skye",
+   "codinome": "Guide",
+   "funcao": {
+    "pt": "Iniciador",
+    "en": "Initiator"
+   },
+   "bio": {
+    "pt": "Mandando um salve direto da Austrália, Skye e sua equipe de feras desbravam territórios hostis. Com seus poderes de cura e suas criações que partem pra cima dos inimigos, qualquer equipe ficará mais forte e mais segura tendo Skye como aliada.",
+    "en": "Hailing from Australia, Skye and her band of beasts trailblaze the way through hostile territory. With her creations hampering the enemy, and her power to heal others, the team is strongest and safest by Skye's side."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Reflorescer",
+      "texto": "EQUIPE <whitebold>Reflorescer</>. SEGURE o DISPARO para <teal>curar</> aliados no alcance e na sua linha de visão. Usa uma reserva de cura limitada.\r\n\r\nNão pode curar a si."
+     },
+     "en": {
+      "nome": "Regrowth",
+      "texto": "EQUIP <whitebold>Regrowth</>. HOLD FIRE to <teal>heal</> allies in range and line of sight. Uses a limited healing pool.\r\n\r\nCannot heal self."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Predador Explosivo",
+      "texto": "EQUIPE um <whitebold>Predador Explosivo</> destrutível. DISPARE para assumir o controle. DISPARE novamente para avançar e explodir, causando <debuffred>Concussão</> a todos os jogadores e <debuffred>dano</> a inimigos atingidos diretamente."
+     },
+     "en": {
+      "nome": "Trailblazer",
+      "texto": "EQUIP a destructible <whitebold>Trailblazer</>. FIRE to take control. FIRE again to lunge and explode, <debuffred>concussing</> all players and dealing <debuffred>damage</> to enemies on direct hits."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Luz Desbravadora",
+      "texto": "EQUIPE uma <whitebold>Luz Desbravadora</>. DISPARE para lançar. SEGURE O DISPARO para guiar em direção à sua retícula. REATIVE para detonar, <debuffred>cegando</> quem estiver olhando."
+     },
+     "en": {
+      "nome": "Guiding Light",
+      "texto": "EQUIP a <whitebold>Guiding Light</>. FIRE to send it forward. HOLD FIRE to steer towards your crosshair. REACTIVATE to detonate, <debuffred>flashing</> all players looking at it."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Rastreadores",
+      "texto": "EQUIPE <whitebold>Rastreadores</> destrutíveis. DISPARE para lançar até três <whitebold>Rastreadores</>. <debuffred>Persegue</> os três inimigos mais próximos, causando <debuffred>Visão Turva</> e <debuffred>Lentidão</> no impacto."
+     },
+     "en": {
+      "nome": "Seekers",
+      "texto": "EQUIP destructible <whitebold>Seekers</>. FIRE to send out up to three <whitebold>Seekers</>. <debuffred>Chases</> the three closest enemies, <debuffred>nearsighting</> and <debuffred>slowing</> on impact."
+     }
+    }
+   ]
+  },
+  {
+   "id": "sova",
+   "nome": "Sova",
+   "codinome": "Hunter",
+   "funcao": {
+    "pt": "Iniciador",
+    "en": "Initiator"
+   },
+   "bio": {
+    "pt": "Nascido sob o eterno inverno das tundras russas, Sova rastreia, encontra e elimina inimigos com eficiência e precisão implacáveis. Seu arco personalizado e suas habilidades inigualáveis de reconhecimento garantem que nenhuma presa escape. ",
+    "en": "Born from the eternal winter of Russia's tundra, Sova tracks, finds, and eliminates enemies with ruthless efficiency and precision. His custom bow and incredible scouting abilities ensure that even if you run, you cannot hide. "
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Drone Coruja",
+      "texto": "EQUIPE um <whitebold>Drone Coruja</> destrutível. DISPARE para assumir o controle. DISPARE novamente para atirar um dardo que <debuffred>revela</> os inimigos repetidamente."
+     },
+     "en": {
+      "nome": "Owl Drone",
+      "texto": "EQUIP a destructible <whitebold>Owl Drone</>. FIRE to take control. FIRE again to shoot a dart that repeatedly <debuffred>reveals</> enemies."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Flecha de Choque",
+      "texto": "EQUIPE uma <whitebold>Flecha de Choque</>. DISPARE para lançar uma flecha que explode em qualquer superfície, causando <debuffred>dano</> a todos os jogadores. SEGURE O DISPARO para aumentar a velocidade da flecha. Use o DISPARO ALTERNATIVO para adicionar até dois ricochetes à flecha."
+     },
+     "en": {
+      "nome": "Shock Bolt",
+      "texto": "EQUIP a <whitebold>Shock Bolt</>. FIRE to shoot a bolt that explodes on any surface, dealing <debuffred>damage</> to all players. HOLD FIRE to increase the bolt’s velocity. ALT FIRE to add up to two bounces."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Flecha Rastreadora",
+      "texto": "EQUIPE uma <whitebold>Flecha Rastreadora</> destrutível. DISPARE para atirar uma flecha que <debuffred>revela</> inimigos no alcance e na linha de visão repetidamente. SEGURE O DISPARO para aumentar a velocidade da flecha. Use o DISPARO ALTERNATIVO para adicionar até dois ricochetes à flecha."
+     },
+     "en": {
+      "nome": "Recon Bolt",
+      "texto": "EQUIP a destructible <whitebold>Recon Bolt</>. FIRE to shoot a bolt that repeatedly <debuffred>reveals</> nearby enemies in range and line of sight. HOLD FIRE to increase the bolt’s velocity. ALT FIRE to add up to two bounces."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Fúria do Caçador",
+      "texto": "EQUIPE <whitebold>Fúria do Caçador</>. DISPARE para lançar uma zona que causa <debuffred>dano</>. Pode ser disparada mais duas vezes.\r\n\r\nInimigos atingidos são <debuffred>revelados</> para Sova."
+     },
+     "en": {
+      "nome": "Hunter's Fury",
+      "texto": "EQUIP <whitebold>Hunter’s Fury</>. FIRE to shoot a zone that deals <debuffred>damage</>. Can be fired up to two more times.\r\n\r\nEnemies hit are <debuffred>revealed</> to Sova."
+     }
+    }
+   ]
+  },
+  {
+   "id": "tejo",
+   "nome": "Tejo",
+   "codinome": "Cashew",
+   "funcao": {
+    "pt": "Iniciador",
+    "en": "Initiator"
+   },
+   "bio": {
+    "pt": "Consultor de inteligência veterano da Colômbia, Tejo conta com um sistema de orientação balística que força o inimigo a abrir mão da posição — ou da própria vida. Os ataques precisos dele mantêm os oponentes desestabilizados e sob seu controle.",
+    "en": "A veteran intelligence consultant from Colombia, Tejo’s ballistic guidance system pressures the enemy to relinquish their ground - or their lives. His targeted strikes keep opponents off balance and under his heel."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Drone Furtivo",
+      "texto": "EQUIPE um <whitebold>Drone Furtivo</> destrutível. DISPARE para assumir o controle. DISPARE novamente para <debuffred>revelar</> e <debuffred>suprimir</> inimigos no alcance e na linha de visão."
+     },
+     "en": {
+      "nome": "Stealth Drone",
+      "texto": "EQUIP a destructible <whitebold>Stealth Drone</>. FIRE to take control. FIRE again to <debuffred>reveal</> and <debuffred>suppress</> nearby enemies in range and line of sight."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Entrega Especial",
+      "texto": "EQUIPE <whitebold>Entrega Especial</>. DISPARE para lançar. Use o DISPARO ALTERNATIVO para lançar com um ricochete. Explode em qualquer superfície, causando <debuffred>Concussão</> e <debuffred>dano</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Special Delivery",
+      "texto": "EQUIP <whitebold>Special Delivery</>. FIRE to launch. ALT FIRE to launch with a bounce. Explodes on any surface, <debuffred>concussing</> and <debuffred>damaging</> all players."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Rajada Guiada",
+      "texto": "EQUIPE um mapa tático. DISPARE para definir os locais. Use o DISPARO ALTERNATIVO para lançar mísseis que avançam e pulsam repetidamente, causando <debuffred>dano</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Guided Salvo",
+      "texto": "EQUIP a tactical map. FIRE to set locations. ALT FIRE to launch missiles that travel to and repeatedly pulse, dealing <debuffred>damage</> to all players."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Armagedom",
+      "texto": "EQUIPE um mapa tático. DISPARE para posicionar, gire e DISPARE novamente para lançar uma onda que causa alto <debuffred>dano</> a todos os jogadores. Use o DISPARO ALTERNATIVO para cancelar a mira."
+     },
+     "en": {
+      "nome": "Armageddon",
+      "texto": "EQUIP a tactical map. FIRE to set, pivot and FIRE again to cast a wave that deals high <debuffred>damage</> to all players. ALT FIRE to cancel targeting."
+     }
+    }
+   ]
+  },
+  {
+   "id": "veto",
+   "nome": "Veto",
+   "codinome": "Pine",
+   "funcao": {
+    "pt": "Sentinela",
+    "en": "Sentinel"
+   },
+   "bio": {
+    "pt": "Portador de uma mutação genética avassaladora, o implacável Agente senegalês Veto desafia as regras do combate, anulando os poderes e as tecnologias de seus oponentes. No campo de batalha do Veto, a troca de tiros é sua melhor opção.",
+    "en": "Empowered by an unstoppable DNA mutation, Senegalese enforcer Veto defies the rules of engagement by nullifying his opponent's powers and technology. On Veto's battlefield, gunplay is your only guarantee."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Travessia",
+      "texto": "EQUIPE uma <whitebold>Travessia</> destrutível. DISPARE para posicionar. Enquanto estiver no alcance, INTERAJA para se teleportar até o local.\r\n\r\nPode ser recuperada durante a FASE DE COMPRA."
+     },
+     "en": {
+      "nome": "Crosscut",
+      "texto": "EQUIP a destructible <whitebold>Crosscut</>. FIRE to place. While in range, INTERACT to teleport to it.\r\n\r\nCan be recalled during BUY PHASE."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Imobilidade",
+      "texto": "EQUIPE uma <whitebold>Imobilidade</> destrutível. DISPARE para lançar. A <whitebold>Imobilidade</> entra em <teal>furtividade</> após aterrissar. Ela é ativada por inimigos visíveis no alcance, <debuffred>ensurdecendo</>, <debuffred>deteriorando</> e <debuffred>prendendo</>-os.\r\n\r\nPode ser recuperada durante a FASE DE COMPRA."
+     },
+     "en": {
+      "nome": "Chokehold",
+      "texto": "EQUIP a destructible <whitebold>Chokehold</>. FIRE to throw. <whitebold>Chokehold</> <teal>stealths</> after landing. Triggers on nearby visible enemies in range, <debuffred>deafening</>, <debuffred>decaying</>, and <debuffred>tethering</> enemies.\r\n\r\nCan be recalled during BUY PHASE."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Interceptador",
+      "texto": "EQUIPE um <whitebold>Interceptador</> destrutível. DISPARE para posicionar. REATIVE para ativar. Enquanto estiver ativo, destrói qualquer utilitário inimigo que possa ser alvejado ou que ricochetearia em jogadores no alcance e na linha de visão.\r\n\r\nPode ser recuperado."
+     },
+     "en": {
+      "nome": "Interceptor",
+      "texto": "EQUIP a destructible <whitebold>Interceptor</>. FIRE to place. REACTIVATE to activate. While active, destroy any enemy utility that can be shot or would bounce off players in range and line of sight.\r\n\r\nCan be recalled."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Evolução",
+      "texto": "Receba <teal>Evolução</> INSTANTANEAMENTE.\r\n\r\n<teal>Evolução</> concede <teal>Estimulante de Combate</>, <teal>cura</> contínua e <teal>imunidade</> a todos os efeitos negativos e dano, exceto de armas."
+     },
+     "en": {
+      "nome": "Evolution",
+      "texto": "INSTANTLY gain <teal>evolution</>.\r\n\r\n<teal>Evolution</> grants <teal>combat stim</>, continuous <teal>healing</>, and <teal>immunity</> to all debuffs and damage, except weapons."
+     }
+    }
+   ]
+  },
+  {
+   "id": "viper",
+   "nome": "Viper",
+   "codinome": "Pandemic",
+   "funcao": {
+    "pt": "Controlador",
+    "en": "Controller"
+   },
+   "bio": {
+    "pt": "Viper, a química dos Estados Unidos, emprega uma variedade de dispositivos químicos venenosos para controlar o campo de batalha e prejudicar a visão do inimigo. Se as toxinas não matarem a presa, seus jogos mentais certamente o farão.",
+    "en": "The American Chemist, Viper deploys an array of poisonous chemical devices to control the battlefield and choke the enemy's vision. If the toxins don't kill her prey, her mindgames surely will."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Veneno de Cobra",
+      "texto": "EQUIPE <whitebold>Veneno de Cobra</>. DISPARE para lançar. Ao aterrissar, cria uma zona que aplica <debuffred>Vulnerável</> e causa baixo <debuffred>dano</> a todos os jogadores."
+     },
+     "en": {
+      "nome": "Snake Bite",
+      "texto": "EQUIP <whitebold>Snake Bite</>. FIRE to launch. On landing, create a zone that grants <debuffred>vulnerable</> and deals low <debuffred>damage</> to all players."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Nuvem Venenosa",
+      "texto": "EQUIPE <whitebold>Nuvem Venenosa</>. DISPARE para lançar. Use o DISPARO ALTERNATIVO para arremessar a curta distância. REATIVE para consumir combustível e criar uma fumaça <whitebold>tóxica</> que <debuffred>deteriora</> os inimigos.\r\n\r\nPode ser recolhida durante a FASE DE COMPRA."
+     },
+     "en": {
+      "nome": "Poison Cloud",
+      "texto": "EQUIP <whitebold>Poison Cloud</>. FIRE to throw. ALT FIRE to lob. REACTIVATE to consume fuel to create a <whitebold>toxic</> smoke that <debuffred>decays</> enemies.\r\n\r\nCan be picked up during BUY PHASE."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Cortina Tóxica",
+      "texto": "EQUIPE <whitebold>Cortina Tóxica</>. DISPARE para lançar e posicionar uma linha de emissores. REATIVE para consumir combustível e criar uma muralha <whitebold>tóxica</> que bloqueia a visão e <debuffred>deteriora</> os inimigos."
+     },
+     "en": {
+      "nome": "Toxic Screen",
+      "texto": "EQUIP <whitebold>Toxic Screen</>. FIRE to send forward and place a line of emitters. REACTIVATE to consume fuel to create a <whitebold>toxic</> vision-blocking wall that <debuffred>decays</> enemies."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Poço Peçonhento",
+      "texto": "EQUIPE <whitebold>Poço Peçonhento</>. DISPARE para formar uma grande nuvem <whitebold>tóxica</> que bloqueia a visão e <debuffred>deteriora</> os inimigos dentro dela.\r\n\r\nSEGURE ATIVAR para cancelar a nuvem."
+     },
+     "en": {
+      "nome": "Viper's Pit",
+      "texto": "EQUIP <whitebold>Viper’s Pit</>. FIRE to form a large <whitebold>toxic</> vision-blocking cloud that <debuffred>decays</> enemies inside.\r\n\r\nHOLD ACTIVATE to cancel the cloud."
+     }
+    },
+    {
+     "tecla": "Passiva",
+     "pt": {
+      "nome": "Toxina",
+      "texto": "A <whitebold>Toxina</> da Viper inflige <debuffred>deterioração</> contínua quando inimigos entram em contato. Recarrega combustível passivamente ao longo do tempo."
+     },
+     "en": {
+      "nome": "Toxin",
+      "texto": "Viper’s <whitebold>Toxin</> continuously inflicts <debuffred>decay</> when enemies come in contact. Passively recharge fuel over time."
+     }
+    }
+   ]
+  },
+  {
+   "id": "vyse",
+   "nome": "Vyse",
+   "codinome": "Nox",
+   "funcao": {
+    "pt": "Sentinela",
+    "en": "Sentinel"
+   },
+   "bio": {
+    "pt": "A mestre dos metais Vyse usa metal líquido para isolar, prender e desarmar os inimigos. Com astúcia e manipulação, ela faz todos os adversários que a enfrentam temerem o próprio campo de batalha.",
+    "en": "Metallic mastermind Vyse unleashes liquid metal to isolate, trap, and disarm her enemies. Through cunning and manipulation, she forces all who oppose her to fear the battlefield itself."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Espinheiro Cortante",
+      "texto": "EQUIPE um <whitebold>Espinheiro Cortante</> destrutível. DISPARE para lançar. O <whitebold>Espinheiro Cortante</> entra em <teal>furtividade</> após aterrissar. INTERAJA para criar uma zona que causa <debuffred>Lentidão</> e <debuffred>dano</> quando alguém se move sobre ela.\r\n\r\nPode ser recuperado durante a FASE DE COMPRA."
+     },
+     "en": {
+      "nome": "Razorvine",
+      "texto": "EQUIP a destructible <whitebold>Razorvine</>. FIRE to throw. <whitebold>Razorvine</> <teal>stealths</> after landing. INTERACT to create a zone that <debuffred>slows</> and deals <debuffred>damage</> when players move through it.\r\n\r\nCan be recalled during BUY PHASE."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Cerca-Viva",
+      "texto": "EQUIPE <whitebold>Cerca-Viva</>. DISPARE para posicionar. A <whitebold>Cerca-Viva</> entra em <teal>furtividade</> após ser posicionada. Ela é acionada quando inimigos pisam nela e, após um intervalo, cria uma breve parede indestrutível.\r\n\r\nPode ser recuperada durante a FASE DE COMPRA."
+     },
+     "en": {
+      "nome": "Shear",
+      "texto": "EQUIP <whitebold>Shear</>. FIRE to place. <whitebold>Shear</> <teal>stealths</> after placement. Triggers when enemies walk on it, and after a delay, create a brief indestructible wall.\r\n\r\nCan be recalled during BUY PHASE."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Rosa Arcana",
+      "texto": "EQUIPE uma <whitebold>Rosa Arcana</> destrutível. DISPARE para posicionar. Use o DISPARO ALTERNATIVO para posicionar através de uma parede. REATIVE para <debuffred>cegar</> quem estiver olhando.\r\n\r\nPode ser recuperada."
+     },
+     "en": {
+      "nome": "Arc Rose",
+      "texto": "EQUIP a destructible <whitebold>Arc Rose</>. FIRE to place. ALT FIRE to place it through a wall. REACTIVATE to <debuffred>flash</> all players looking at it. \r\n\r\nCan be recalled."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Jardim de Aço",
+      "texto": "EQUIPE <whitebold>Jardim de Aço</>. DISPARE para preparar uma zona. Após um intervalo, <debuffred>trave</> as armas primárias de inimigos no alcance."
+     },
+     "en": {
+      "nome": "Steel Garden",
+      "texto": "EQUIP <whitebold>Steel Garden</>. FIRE to prepare a zone. After a delay, <debuffred>jam</> enemy primary weapons within range."
+     }
+    }
+   ]
+  },
+  {
+   "id": "waylay",
+   "nome": "Waylay",
+   "codinome": "Terra",
+   "funcao": {
+    "pt": "Duelista",
+    "en": "Duelist"
+   },
+   "bio": {
+    "pt": "Waylay, a Radiante prismática da Tailândia, se transforma em pura luz e atravessa o campo de batalha abatendo os alvos com estilhaços luminosos antes de recuar. Tudo em um piscar de olhos.",
+    "en": "Thailand's prismatic radiant Waylay transforms into light itself as she darts across the battlefield, striking down her targets through shards of light before flitting back to safety, all in the blink of an eye."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Saturação",
+      "texto": "EQUIPE <whitebold>Saturação</>. DISPARE para lançar Explode ao aterrissar, <debuffred>retendo</> todo mundo."
+     },
+     "en": {
+      "nome": "Saturate",
+      "texto": "EQUIP <whitebold>Saturate</>. FIRE to throw. Explodes on landing, <debuffred>hindering</> all players."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Velocidade da Luz",
+      "texto": "EQUIPE <whitebold>Velocidade da Luz</>. DISPARE para avançar duas vezes. Use o DISPARO ALTERNATIVO para avançar uma vez.\r\n\r\nApenas o primeiro avanço pode arremessar você para o alto."
+     },
+     "en": {
+      "nome": "Lightspeed",
+      "texto": "EQUIP <whitebold>Lightspeed</>. FIRE to dash forward twice. ALT FIRE to dash forward once.\r\n\r\nOnly the first dash can launch upward."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Refração",
+      "texto": "Posicione INSTANTANEAMENTE um marcador no seu local. REATIVE para viajar até ele. Ao se deslocar, Waylay fica <teal>imune</>, mas não consegue ver inimigos.\r\n\r\nA habilidade é redefinida a cada dois abates."
+     },
+     "en": {
+      "nome": "Refract",
+      "texto": "INSTANTLY place a marker at your location. REACTIVATE to travel to it. While traveling, Waylay is <teal>immune</> but cannot see enemies.\r\n\r\nResets every two kills."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Caminhos Convergentes",
+      "texto": "EQUIPE <whitebold>Caminhos Convergentes</>. DISPARE para receber <teal>aceleração</> e lançar uma zona que <debuffred>retém</> todos os jogadores."
+     },
+     "en": {
+      "nome": "Convergent Paths",
+      "texto": "EQUIP <whitebold>Convergent Paths</>. FIRE to gain <teal>haste</> and send forward a zone that <debuffred>hinders</> all players."
+     }
+    }
+   ]
+  },
+  {
+   "id": "yoru",
+   "nome": "Yoru",
+   "codinome": "Stealth",
+   "funcao": {
+    "pt": "Duelista",
+    "en": "Duelist"
+   },
+   "bio": {
+    "pt": "Yoru, nativo do Japão, abre fendas na realidade para infiltrar as linhas inimigas sem ser visto. Ele usa tanto artimanhas quanto táticas agressivas, e os alvos são abatidos sem saber de onde o ataque veio.",
+    "en": "Japanese native Yoru rips holes straight through reality to infiltrate enemy lines unseen. Using deception and aggression in equal measure, he gets the drop on each target before they know where to look."
+   },
+   "habilidades": [
+    {
+     "tecla": "C",
+     "pt": {
+      "nome": "Distração",
+      "texto": "EQUIPE <whitebold>Distração</>. DISPARE para lançar um clone destrutível à frente. Use o DISPARO ALTERNATIVO para colocar um marcador na sua localização. INTERAJA para transformar o marcador em um clone.\r\n\r\nO clone anda continuamente para a frente e se vira na direção do primeiro inimigo que atirar nele, <debuffred>cegando</> quem estiver olhando para ele."
+     },
+     "en": {
+      "nome": "FAKEOUT",
+      "texto": "EQUIP <whitebold>Fakeout</>. FIRE to send a destructible clone forward. ALT FIRE to place a marker at your location. INTERACT to transform the marker into a clone.\r\n\r\nClones continuously walk forward and will turn toward the first enemy that shoots it, <debuffred>flashing</> all players looking at it."
+     }
+    },
+    {
+     "tecla": "Q",
+     "pt": {
+      "nome": "Ponto Cego",
+      "texto": "EQUIPE <whitebold>Ponto Cego</>. DISPARE para lançar. Depois de ricochetear em uma superfície, explode, <debuffred>cegando</> quem estiver olhando."
+     },
+     "en": {
+      "nome": "BLINDSIDE",
+      "texto": "EQUIP <whitebold>Blindside</>. FIRE to throw. After bouncing off a surface, explode, <debuffred>flashing</> all players looking at it."
+     }
+    },
+    {
+     "tecla": "E",
+     "pt": {
+      "nome": "Passagem Dimensional",
+      "texto": "EQUIPE uma <whitebold>Passagem Dimensional</>. DISPARE para lançar. Use o DISPARO ALTERNATIVO para posicionar. REATIVE para se teleportar até o local. INTERAJA para fingir um teleporte.\r\n\r\nA habilidade é redefinida a cada dois abates."
+     },
+     "en": {
+      "nome": "GATECRASH",
+      "texto": "EQUIP a <whitebold>Gatecrash</>. FIRE to send it forward. ALT FIRE to place. REACTIVATE to teleport to it. INTERACT to fake a teleport.\r\n\r\nResets every two kills."
+     }
+    },
+    {
+     "tecla": "X",
+     "pt": {
+      "nome": "Espionagem Dimensional",
+      "texto": "EQUIPE <whitebold>Espionagem Dimensional</>. DISPARE para ficar <teal>intangível</> e <teal>invisível</>. A <whitebold>Passagem Dimensional</> fica acessível nesse estado. REATIVE para encerrar antes."
+     },
+     "en": {
+      "nome": "DIMENSIONAL DRIFT",
+      "texto": "EQUIP <whitebold>Dimensional Drift</>. FIRE to become <teal>intangible</> and <teal>invisible</>. <whitebold>Gatecrash</> is accessible during this state. REACTIVATE to exit early."
+     }
+    }
+   ]
+  }
+ ],
+ "mapas": [
+  {
+   "id": "abyss",
+   "nome": {
+    "pt": "Abyss",
+    "en": "Abyss"
+   },
+   "codinome": "Infinity",
+   "coordenadas": "70° 50' AJ\" N, 9° 00' VX\" W"
+  },
+  {
+   "id": "ascent",
+   "nome": {
+    "pt": "Ascent",
+    "en": "Ascent"
+   },
+   "codinome": "Ascent",
+   "coordenadas": "45°26'BF'N,12°20'Q'E"
+  },
+  {
+   "id": "bind",
+   "nome": {
+    "pt": "Bind",
+    "en": "Bind"
+   },
+   "codinome": "Duality",
+   "coordenadas": "34°2'A'N,6°51'Z'W"
+  },
+  {
+   "id": "breeze",
+   "nome": {
+    "pt": "Breeze",
+    "en": "Breeze"
+   },
+   "codinome": "Foxtrot",
+   "coordenadas": "26°11'AG\"N 71°10'WY\"W"
+  },
+  {
+   "id": "corrode",
+   "nome": {
+    "pt": "Corrode",
+    "en": "Corrode"
+   },
+   "codinome": "Rook",
+   "coordenadas": "48° 38' FH\" N8, 1° 33' YV\" W8"
+  },
+  {
+   "id": "fracture",
+   "nome": {
+    "pt": "Fracture",
+    "en": "Fracture"
+   },
+   "codinome": "Canyon",
+   "coordenadas": "35°48'BI\"N 106°08'YQ\"W"
+  },
+  {
+   "id": "haven",
+   "nome": {
+    "pt": "Haven",
+    "en": "Haven"
+   },
+   "codinome": "Triad",
+   "coordenadas": "27°28'A'N,89°38'WZ'E"
+  },
+  {
+   "id": "icebox",
+   "nome": {
+    "pt": "Icebox",
+    "en": "Icebox"
+   },
+   "codinome": "Port",
+   "coordenadas": "76°44' A\"N 149°30' Z\"E"
+  },
+  {
+   "id": "lotus",
+   "nome": {
+    "pt": "Lotus",
+    "en": "Lotus"
+   },
+   "codinome": "Jam",
+   "coordenadas": "14°07'AD.4\"N8 74°53'XY\"E8"
+  },
+  {
+   "id": "pearl",
+   "nome": {
+    "pt": "Pearl",
+    "en": "Pearl"
+   },
+   "codinome": "Pitt",
+   "coordenadas": "38°42'ED\"N8 9°08'XS\"W8"
+  },
+  {
+   "id": "split",
+   "nome": {
+    "pt": "Split",
+    "en": "Split"
+   },
+   "codinome": "Bonsai",
+   "coordenadas": "35°41'CD'N,139°41'WX'E"
+  },
+  {
+   "id": "summit",
+   "nome": {
+    "pt": "Summit",
+    "en": "Summit"
+   },
+   "codinome": "Plummet",
+   "coordenadas": "29° 18' FC\" N, 110° 25' ZQ\" E"
+  },
+  {
+   "id": "sunset",
+   "nome": {
+    "pt": "Sunset",
+    "en": "Sunset"
+   },
+   "codinome": "Juliett",
+   "coordenadas": "34° 2′ C″ N, 118° 12′ YT″ W"
+  }
+ ]
+}

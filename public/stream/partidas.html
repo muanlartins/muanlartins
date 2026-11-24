@@ -553,7 +553,7 @@
         // A match that just ended goes to Conversa's end card, as Valorant's own end screen.
         if (Date.now() - Date.parse(match.at) < 10 * 60_000) {
           naTela = { jogo: "valorant", partida: match.id, modo: QUEUES[match.queue] ?? null, mapa: match.map, agente: match.agent, rodadas: match.rounds, me: match.me, fim: { result: match.result, score: match.score, em: Date.now() } }
-          emit("muanlartins-estatisticas", { ...naTela, mostrar: state.estatisticas })
+          emitirNaTela()
         }
         session.dirty = true
         save()
@@ -798,7 +798,7 @@
           mvp: Boolean(match.mvp),
           fim: fim ?? (naTela?.partida === match.guid ? naTela.fim : null),
         }
-        if (JSON.stringify(naTela) !== antes) emit("muanlartins-estatisticas", { ...naTela, mostrar: state.estatisticas })
+        if (JSON.stringify(naTela) !== antes) emitirNaTela()
       }
       function fimDaPartida() {
         const m = current().matches.find((x) => x.id === match.guid)
@@ -1079,7 +1079,7 @@
         const emPartida = Boolean(match?.started && !finished.has(match.guid)) || valorant.fase === "partida"
         const detail = { show: state.show, mode: state.mode, tier: rank?.tier ?? null, division: rank?.division ?? null, mmr: rank?.mmr ?? null, emPartida, ...record(current(), state.mode) }
         emit("muanlartins-partidas", detail)
-        if (naTela) emit("muanlartins-estatisticas", { ...naTela, mostrar: state.estatisticas })
+        if (naTela) emitirNaTela()
         emit("muanlartins-numeros", numerosDaLive())
         emit("muanlartins-torcida", { tipo: "narrador", ligado: state.narrador })
         emit("muanlartins-torcida", { tipo: "legenda", ligado: state.legenda, fala: state.legendaFala, em: state.legendaEm })
@@ -1091,6 +1091,14 @@
       /** An event for the overlays: obs-browser dispatches it on every browser source's window. */
       function emit(name, detail) {
         request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: name, event_data: detail } })
+      }
+      /**
+       * The match on screen for numeros.js, as JSON text in `dados`: obs-websocket turns event_data into OBS's own
+       * data, which keeps only arrays of objects, so the result's score ([3, 1]) reached Conversa empty and its end
+       * card read "undefined–undefined" (11-23), as the VAR's options once did.
+       */
+      function emitirNaTela() {
+        emit("muanlartins-estatisticas", { dados: JSON.stringify({ ...naTela, mostrar: state.estatisticas }) })
       }
       // Overlays that load later (a scene switch, OBS starting) get the state within a few seconds.
       setInterval(broadcast, 5000)

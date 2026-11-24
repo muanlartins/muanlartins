@@ -4,9 +4,10 @@
 // emit_event) as his numbers change and every 5 s: { jogo, partida, modo, me, mvp, fim, mostrar }, where `fim` is the
 // result once the match is over ({ result, score, em }); Valorant's comes from its summary, a little after the end.
 //
-//   placarDaPartida(el, hole, band)  jogo.html: a column beside the camera frame, his numbers in this Rocket League
-//                                    match as they change (a +1 lights its line), from the first countdown to a
-//                                    minute and a half after the end
+//   placarDaPartida(el, hole, band)  the game scene: his numbers in this Rocket League match as they change (a +1
+//                                    lights its line), from the first countdown to a minute and a half after the
+//                                    end; beside the camera frame `hole` (jogo.html), or with no hole where the page
+//                                    puts them (palco.html, under the game)
 //   fimDePartida(el, { aoMostrar })  conversa.html: the match that just ended, as the games' own end screens, until
 //                                    the next one starts (five minutes at most); `aoMostrar(sim)` says when it comes
 //                                    and goes, so the page can give it the topic's place
@@ -34,14 +35,29 @@ const FIM_NA_CONVERSA_MS = 5 * 60_000
 
 const RESULTADO = { win: "Vitória", loss: "Derrota", draw: "Empate" }
 
+/**
+ * The numbers from a "muanlartins-estatisticas" event: the Partidas dock sends them as JSON text in `dados`
+ * (obs-websocket keeps only arrays of objects, so the result's score would arrive empty); ?demo sends them as is.
+ */
+function numerosDe(detail) {
+  if (typeof detail?.dados !== "string") return detail ?? null
+  try {
+    return JSON.parse(detail.dados)
+  } catch {
+    return null
+  }
+}
+
 function placarDaPartida(el, hole, band) {
   el.classList.add("numeros")
   el.innerHTML =
     `<p class="titulo">Nesta partida</p>` +
     NUMEROS_RL.map(([k, nome]) => `<div class="linha" data-k="${k}"><span class="rotulo">${CURTO[k] ?? nome}</span><span class="valor">0</span></div>`).join("")
   const linhas = Object.fromEntries([...el.querySelectorAll(".linha")].map((l) => [l.dataset.k, l]))
-  // Beside the frame, on the side away from the screen's edge, as tall as the frame and level with it.
+  // Beside the frame, on the side away from the screen's edge, as tall as the frame and level with it; without a
+  // hole, where the page puts it (palco.html: in the band under the game).
   const lugar = () => {
+    if (!hole) return
     const direita = hole.classList.contains("right")
     const alto = hole.offsetHeight + 2 * band
     el.style.height = `${alto}px`
@@ -58,7 +74,8 @@ function placarDaPartida(el, hole, band) {
     const ok = d && d.mostrar !== false && d.jogo === "rocket-league" && Date.now() - ouvido < SILENCIO_MS && (!d.fim || Date.now() - d.fim.em < DEPOIS_DO_FIM_MS)
     el.classList.toggle("visivel", Boolean(ok))
   }
-  addEventListener("muanlartins-estatisticas", ({ detail }) => {
+  addEventListener("muanlartins-estatisticas", (e) => {
+    const detail = numerosDe(e.detail)
     ouvido = Date.now()
     ultimo = detail
     if (detail?.jogo !== "rocket-league") return visivel()
@@ -94,7 +111,7 @@ function fimDePartida(el, { aoMostrar = () => {} } = {}) {
   const pct = (a, b) => (b ? `${Math.round((100 * a) / b)}%` : "–")
   function desenhar(d) {
     const { result, score } = d.fim
-    const placar = score ? ` <span class="placar">${score[0]}<span class="accent">–</span>${score[1]}</span>` : ""
+    const placar = score?.length === 2 && score.every(Number.isFinite) ? ` <span class="placar">${score[0]}<span class="accent">–</span>${score[1]}</span>` : ""
     let titulo = ""
     let tiles = ""
     if (d.jogo === "valorant") {
@@ -126,7 +143,8 @@ function fimDePartida(el, { aoMostrar = () => {} } = {}) {
       aoMostrar(sim)
     }
   }
-  addEventListener("muanlartins-estatisticas", ({ detail }) => {
+  addEventListener("muanlartins-estatisticas", (e) => {
+    const detail = numerosDe(e.detail)
     ouvido = Date.now()
     const novo = detail?.fim && JSON.stringify(detail) !== JSON.stringify(atual)
     atual = detail

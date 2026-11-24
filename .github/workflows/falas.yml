@@ -1,0 +1,65 @@
+name: Falas
+
+# An agent's voice lines on Universo Valorant (/valorant/falas/<agent>/<line>.<pt|en>.m4a): scripts/valorant_falas.py
+# <agent> --publicar uploads them as one zip to the prerelease falas-<agent> (not git: ~15 MB an agent), and this
+# copies them to the site's bucket under pt/valorant/falas/<agent>/. deploy.yml's sync leaves that folder alone.
+#
+# The deploy role trusts only main (infra/site.yml), and a release's run is on its tag, so publishing or editing a
+# falas-* release only asks for a run on main, which does the copy. By hand: gh workflow run falas.yml -f tag=falas-raze
+on:
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "The release's tag, falas-<agent>"
+        required: true
+
+concurrency:
+  group: falas-${{ github.event_name }}-${{ inputs.tag || github.event.release.tag_name }}
+
+jobs:
+  on-main:
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'falas-') && !github.event.release.draft
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh workflow run falas.yml --repo "$GITHUB_REPOSITORY" --ref main -f tag="$TAG"
+
+  copy:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TAG: ${{ inputs.tag }}
+    steps:
+      - name: Download the release's lines
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! [[ "$TAG" =~ ^falas-[a-z0-9]+$ ]]; then echo "::error::not a falas-<agent> tag: $TAG"; exit 1; fi
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.zip' --dir zip
+          mkdir falas && unzip -q zip/*.zip -d falas
+          ls falas | wc -l
+
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      # A line keeps its name (the game's), so it's cached for a day and CloudFront forgets the agent's folder after
+      # each copy (a line fixed after a patch shows at once).
+      - name: Copy them to the site
+        env:
+          BUCKET: ${{ vars.SITE_BUCKET }}
+        run: |
+          agent="${TAG#falas-}"
+          aws s3 sync falas "s3://$BUCKET/pt/valorant/falas/$agent/" --delete \
+            --content-type audio/mp4 --cache-control "public, max-age=86400"
+          aws cloudfront create-invalidation --distribution-id "${{ vars.DISTRIBUTION_PT }}" --paths "/valorant/falas/$agent/*"

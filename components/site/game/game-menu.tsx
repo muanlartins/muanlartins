@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowUpRight, CalendarDays, Clapperboard, Gamepad2, Heart, House, MessagesSquare, Milestone, QrCode, Route, Sigma, Swords, Target, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
+import { ArrowUpRight, CalendarDays, Clapperboard, Gamepad2, Heart, House, MessagesSquare, Milestone, Orbit, QrCode, Route, Sigma, Swords, Target, Trophy, UserRound, Wrench, type LucideIcon } from "lucide-react"
 import { animate, motion, useMotionValue } from "motion/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -27,6 +27,7 @@ const ICONS = {
   ranked: Trophy,
   aim: Target,
   inventory: Swords,
+  universo: Orbit,
   lives: Clapperboard,
   agenda: CalendarDays,
   commands: MessagesSquare,

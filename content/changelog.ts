@@ -144,6 +144,20 @@ export const SHIPPED: Shipped[] = [
     ],
   },
   {
+    id: "universo-valorant",
+    date: "2026-11-23",
+    tag: "site",
+    title: "Universo Valorant",
+    text: "Os agentes com a história, as vozes e todas as falas na dublagem e no original, com fonte. Começa pela Raze.",
+    href: "/conteudo/valorant/universo",
+    media: [
+      media("universo-valorant", "A página da Raze: a ficha, a apresentação dela no jogo em português e inglês e o retrato"),
+      media("universo-valorant-falas", "Todas as falas da Raze, filtradas por momento, cada uma pra ouvir na dublagem e no original"),
+      media("universo-valorant-agentes", "Os 30 agentes do Universo Valorant na ordem do Protocolo, com a Raze em destaque"),
+    ],
+    credits: [{ by: "leila_m_30" }],
+  },
+  {
     id: "celeste-roteiro",
     date: "2026-11-22",
     tag: "site",
@@ -549,8 +563,13 @@ export const SHIPPED: Shipped[] = [
     date: "2026-10-24",
     tag: "live",
     title: "Overlays da live",
-    text: "A moldura da câmera com o ranque e o placar do dia, o chat e as cenas.",
-    media: [media("overlays", "A moldura da câmera e a chamada do Pix na tela da live")],
+    text: "O jogo enquadrado, sem nada por cima: em volta, a câmera, o chat, o placar do jogo e a arquibancada.",
+    media: [
+      media(
+        "cenas-enquadradas",
+        "A cena do Celeste: o jogo enquadrado, a chamada do Pix, o chat e a câmera numa coluna à esquerda, o capítulo e a arquibancada embaixo",
+      ),
+    ],
   },
   {
     id: "arte-da-twitch",
