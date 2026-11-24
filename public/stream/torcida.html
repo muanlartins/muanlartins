@@ -6,17 +6,21 @@
     <link rel="stylesheet" href="stream.css" />
     <link rel="stylesheet" href="torcedor.css" />
     <!--
-      OBS: Browser source, 1920×1080, over the game in RL + chat. The
-      crowd: a stand at the bottom centre (596 to 1556, ?altura= px tall: 300, or 220 as before the 3D fan; ?x= and
-      ?largura= move and narrow it), clear of the camera frame (bottom left) and Rocket League's boost meter (bottom
-      right; Valorant: see ?jogo), with one fan
+      OBS: Browser source, 1920×1080, in the game scenes over palco.html, moved
+      348 px right: there its stand (596 to 1556 on the page, at the bottom, 178 px tall) is 944 to 1904, in the
+      band under the game (y 902 to 1080, under palco's line on the game's edge), beside the game's plate and numbers,
+      where it covers nothing (since 2026-11-23; until then it stood over the game, at the bottom centre). The VAR's
+      scenes have it where the page puts it, under the booth's monitor and vote. ?altura= (178; 120 to 380), ?x= and
+      ?largura= (640 to 1280) move and size it. Only its moments pass over the game: the balloons by the talker's face,
+      the banners, the captions, confetti, a jump. The crowd: one fan
       for each viewer logged in to the chat (Twitch's membership events, as in
       presenca.html: only who has the chat open, about 10 s late), their name
       on their row's riser and their rank's emblem pinned on their shirt (their Σ in Rocket League's ranks, or
       Valorant's with ?jogo=valorant). Twenty seats at most, in two rows of ten, spread over the stand's width (Luan, 2026-11-23: room for
-      the names; "realisticamente só precisamos de um espaço pra 20 pessoas"); with more in the chat, the 20 who did
-      something last (came in, talked, used a command, voted) are on it, and whoever talks or acts takes the place of
-      the one quiet longest. Among them, the channel and then who has the most Σ stand in front (sigma.js). Every name
+      the names; "realisticamente só precisamos de um espaço pra 20 pessoas"). Σ is a perk there, never a lock (Luan,
+      2026-11-23): the channel and then the most Σ (sigma.js) stand at the front row's centre and outwards, then the row
+      behind; with more in the chat the top 20 by Σ sit, and whoever talks or acts without a seat borrows the
+      lowest-Σ quiet fan's while they keep at it (arrumar(), below). Every name
       is always up under its fan, cut to its first 8 characters (6 when 8 don't fit the seat at 18 px); the talker's
       balloon has it whole.
 
@@ -30,9 +34,9 @@
       (scripts/valorant.py reads the Riot Client): each round won is a smaller
       party with the score, a round lost a slump, and a match won the full
       party with the win dedicated. The dedication is drawn by Σ, flattened.
-      ?jogo=valorant (the Valorant scene's source) tucks the stand away while a
-      match is being played, where it would cover the HUD's abilities, and
-      brings it up for each round's end and between matches. ?jogo=diversos
+      ?jogo=valorant (the Valorant scene's source) hears the rounds and the
+      Σ in Valorant's ranks; until 2026-11-23, when the stand stood over the
+      game, it tucked the stand away during a match. ?jogo=diversos
       (the scene for any other game, Diversos + chat) reacts to no game at all:
       no goals, saves, rounds or matches, the Σ in the channel's own ranks
       (Rocket League's, as the site shows them); the chat, the arrivals, the
@@ -55,8 +59,8 @@
       minute: ?sigma= the Σ API, and #chave= its key, set only in OBS.
 
       The VAR (the Efeitos dock's "muanlartins-var" events; var.html draws the rest): while it's open everyone wears
-      the referee's kit (torcedor3d/vestir.js, baked again fan by fan, their own look kept for when it closes), the rail
-      goes referee yellow and the stand comes up even in a Valorant match; who votes in the
+      the referee's kit (torcedor3d/vestir.js, baked again fan by fan, their own look kept for when it closes) and the
+      rail goes referee yellow; who votes in the
       chat (!1, !2, !3, counted by the dock) holds up a card with their number. On the verdict, who voted for it
       celebrates and the rest slump, and, on air and with the key, the Σ API credits each one who got it right
       (POST /var, a little Σ, once per VAR however many sources send it).
@@ -64,7 +68,7 @@
       ?canal= as in the overlays. The channel stands with its viewers. ?demo fills the stand with sample people and
       plays moments on its own (?demo=parado: only the keys; ?pessoas= how many, 13 by default); keys: g gol, c gol
       deles, d defesa, e defesaça, r round nosso, t round deles,
-      w vitória, x derrota, f entra/sai de partida (with ?jogo=valorant, the stand tucks away), a VAR (abre, votos, veredito; de novo fecha),
+      w vitória, x derrota, a VAR (abre, votos, veredito; de novo fecha),
       p pula, n dança, k comemora, b bananeira, h grito, o ola, i uma dica, m mensagem, u mensagem de quem está fora
       (com mais de 20), j chega alguém, s sai alguém, q 8/18/36/56 pessoas, l uma legenda de exemplo, v liga/desliga as
       legendas de verdade (scripts/legenda.py).
@@ -78,7 +82,7 @@
     </script>
     <style>
       :root {
-        --altura: 300px;
+        --altura: 178px;
         --meio: 1076px;
       }
       /* The stand's canvas: the stand at its bottom, room above it for the confetti. */
@@ -95,11 +99,6 @@
         position: absolute;
         left: 0;
         bottom: 0;
-      }
-
-      /* Tucked under the screen's edge (?jogo=valorant, during play): its moments bring it back up. */
-      .torcida.recolhida {
-        transform: translateY(100%);
       }
 
       /* The banner over the stand: the stream's plate, Klein, cut at 45°. */
@@ -202,21 +201,20 @@
       import { MODELOS, sortear as dado } from "./torcedor3d/esquema.js"
 
       const torcida = document.getElementById("torcida")
-      // 300 px tall since the 3D fan (Luan, 2026-11-22), 220 as before with ?altura=220.
-      const ALTURA = Math.round(Math.min(380, Math.max(180, Number(params.get("altura")) || 300)))
+      // 178 px: the band under the game in the game scenes (y 902 to 1080, under palco.html's line on the game's edge).
+      const ALTURA = Math.round(Math.min(380, Math.max(120, Number(params.get("altura")) || 178)))
       // Where it stands: from x 596, 960 wide (?x=, ?largura= from 640 to 1280, to clear what a scene has beside it).
       const X = Math.round(Number(params.get("x")) || 596)
       const LARGURA = Math.round(Math.min(1280, Math.max(640, Number(params.get("largura")) || 960)))
       document.documentElement.style.setProperty("--altura", `${ALTURA}px`)
       document.documentElement.style.setProperty("--meio", `${X + LARGURA / 2}px`)
       Object.assign(torcida.style, { left: `${X}px`, width: `${LARGURA}px` })
-      const stand = criarArquibancada(document.getElementById("arquibancada"), { largura: LARGURA, altura: ALTURA, lugares: 20, porFila: [10, 10], espalhar: true, nomesCurtos: true })
+      const stand = criarArquibancada(document.getElementById("arquibancada"), { largura: LARGURA, altura: ALTURA, lugares: 20, porFila: [10, 10], espalhar: true, doCentro: true, nomesCurtos: true, trilho: "#001447" })
       // Twitch sends who was already there as JOINs over the first seconds; they all arrive at once, unanimated.
       const ASSENTANDO_MS = 15000
 
-      const pessoas = new Map() // login → { login, nome, desde, ativo, chegou, gritou }
-      // Who has a place on the stand (the channel and the most recently active, up to its 20 seats); the rest wait for
-      // one, which talking or acting gives them.
+      const pessoas = new Map() // login → { login, nome, desde, sigmaOrdem, sigmaVisto, agiu, chegou, gritou }
+      // Who has a place on the stand (the channel and the most Σ, up to its 20 seats, and whoever borrowed one by talking).
       let naArquibancada = new Set()
       let conectouEm = 0
       let vistos = new Set()
@@ -278,7 +276,13 @@
                 fetch(`${API}/torcedores?logins=${lote.join(",")}`),
                 SIGMA_API ? fetch(`${SIGMA_API}/sigmas?logins=${lote.join(",")}`).then((r) => (r.ok ? r.json() : null)).catch(() => null) : null,
               ])
-              if (pontos) for (const login of lote) pontos[login] ? sigmas.set(login, pontos[login]) : sigmas.delete(login)
+              if (pontos)
+                for (const login of lote) {
+                  pontos[login] ? sigmas.set(login, pontos[login]) : sigmas.delete(login)
+                  // Their first Σ places them; after that, only the checkpoints.
+                  const p = pessoas.get(login)
+                  if (p && !p.sigmaVisto && pontos[login]) Object.assign(p, { sigmaOrdem: sigma(login), sigmaVisto: true })
+                }
               if (resposta.ok) {
                 const achadas = await resposta.json()
                 for (const login of lote) achadas[login] ? escolhas.set(login, achadas[login]) : escolhas.delete(login)
@@ -331,22 +335,42 @@
       // --- The stand -------------------------------------------------------------------------------------------
       // The rank's emblem by the name; the channel's name alone, so it fits.
       const emblemaDe = (login) => (login !== CHANNEL && (SIGMA_API || params.has("demo")) ? Sigma.ranque(sigma(login), "pt", JOGO).emblema : null)
-      // On the stand: the channel and whoever did something last, up to its seats. Among them, the channel in front, then
-      // who has the most Σ, then who has been here longest; each takes the next place. Whoever loses their seat to
-      // someone who just talked sinks away.
+      // Σ decides who sits and where (Luan, 2026-11-23: a perk, never a lock). The channel, then the most Σ, at the front
+      // row's centre and outwards, then the row behind; ties by who came first. With more than the 20 seats' worth in
+      // the chat, the top 20 by Σ sit; whoever talks or acts without a seat borrows the one of the lowest-Σ fan who has
+      // been quiet, for as long as they keep at it (ATIVO_MS since the last thing they did), then gives it back. The
+      // order goes by each one's Σ as of a checkpoint (when they come in, when the Σ API first answers for them, and every
+      // REORDENA_MS), so Σ ticking up minute by minute never reshuffles the stand; whoever loses their seat sinks away.
+      const ATIVO_MS = 90000
+      const REORDENA_MS = 10 * 60000
+      const ordem = (a, b) => (b.login === CHANNEL) - (a.login === CHANNEL) || b.sigmaOrdem - a.sigmaOrdem || a.desde - b.desde
+      const agindo = (p, agora) => agora - (p.agiu ?? 0) < ATIVO_MS
       function arrumar() {
-        const ativos = [...pessoas.values()].sort((a, b) => (b.login === CHANNEL) - (a.login === CHANNEL) || b.ativo - a.ativo)
-        const sentados = ativos
-          .slice(0, stand.capacidade)
-          .sort((a, b) => (b.login === CHANNEL) - (a.login === CHANNEL) || sigma(b.login) - sigma(a.login) || a.desde - b.desde)
-        const agora = new Set(sentados.map((p) => p.login))
-        for (const login of naArquibancada) if (!agora.has(login) && pessoas.has(login)) stand.sair(login)
-        naArquibancada = agora
+        const agora = Date.now()
+        const todos = [...pessoas.values()].sort(ordem)
+        const sentados = todos.slice(0, stand.capacidade)
+        // Who talked or acted without a seat, the most recent first, each in the seat of the lowest-Σ quiet one.
+        for (const c of todos.slice(stand.capacidade).filter((p) => agindo(p, agora)).sort((a, b) => b.agiu - a.agiu)) {
+          const quieto = sentados.findLast((p) => p.login !== CHANNEL && !agindo(p, agora))
+          if (!quieto) break
+          sentados[sentados.indexOf(quieto)] = c
+        }
+        sentados.sort(ordem)
+        const ficam = new Set(sentados.map((p) => p.login))
+        for (const login of naArquibancada) if (!ficam.has(login) && pessoas.has(login)) stand.sair(login)
+        naArquibancada = ficam
         stand.dispor(
           sentados.map((p) => ({ login: p.login, nome: p.nome, aparencia: escolhas.get(p.login) ?? null, emblema: emblemaDe(p.login), canal: p.login === CHANNEL })),
           { animar: Date.now() - conectouEm > ASSENTANDO_MS },
         )
       }
+      // A borrowed seat goes back once its guest has been quiet ATIVO_MS.
+      setInterval(() => pessoas.size > stand.capacidade && arrumar(), 5000)
+      // The checkpoint: everyone's Σ as it is now.
+      setInterval(() => {
+        for (const p of pessoas.values()) p.sigmaOrdem = sigma(p.login)
+        arrumar()
+      }, REORDENA_MS)
       document.fonts.ready.then(arrumar)
 
       function chegar(login, nome = login) {
@@ -360,15 +384,15 @@
           }
           return
         }
-        pessoas.set(login, { login, nome, desde: Date.now(), ativo: Date.now(), chegou: Date.now() - conectouEm > ASSENTANDO_MS ? Date.now() : 0 })
+        pessoas.set(login, { login, nome, desde: Date.now(), sigmaOrdem: sigma(login), sigmaVisto: sigmas.has(login), chegou: Date.now() - conectouEm > ASSENTANDO_MS ? Date.now() : 0 })
         arrumar()
         pedirEscolhas()
       }
-      // Someone talked or acted: they're the most recently active, so they get a seat if they had none.
+      // Someone talked or acted: without a seat, they borrow one while they keep at it.
       function ativar(login) {
         const p = pessoas.get(login)
         if (!p) return
-        p.ativo = Date.now()
+        p.agiu = Date.now()
         if (!naArquibancada.has(login)) arrumar()
       }
 
@@ -424,21 +448,8 @@
         }, 2400)
       }
 
-      // Valorant's HUD has the abilities where the stand stands: with ?jogo=valorant it tucks away while a match is
-      // played, and comes up for a moment (a round's end) or when no match is on.
-      const RECOLHE = JOGO === "valorant"
-      let emPartida = false
-      let visivelAte = 0
-      function recolher() {
-        torcida.classList.toggle("recolhida", RECOLHE && emPartida && !varAberto && Date.now() >= visivelAte)
-      }
-      function mostrar(ms) {
-        visivelAte = Date.now() + ms
-        recolher()
-        setTimeout(recolher, ms + 50)
-      }
       // The rounds and the match's end come from scripts/valorant.py on this PC (?valorant= its address).
-      if (RECOLHE && !params.has("demo")) {
+      if (JOGO === "valorant" && !params.has("demo")) {
         const fonte = new EventSource(`${params.get("valorant") ?? "http://127.0.0.1:8792"}/eventos`)
         fonte.onmessage = ({ data }) => {
           const evento = JSON.parse(data)
@@ -536,7 +547,6 @@
         },
         // Valorant, from scripts/valorant.py through the dock. `placar` is ours–theirs, "7–5".
         rodada({ nosso, placar }) {
-          mostrar(12000)
           if (!nosso) {
             soltarStickers("contra")
             return stand.evento("deles", { ms: 2400 })
@@ -546,7 +556,6 @@
           faixa("ROUND!", placar ?? "")
         },
         partida({ vitoria, placar }) {
-          mostrar(15000)
           if (!vitoria) {
             narrar(voz(pick(DERROTA)))
             soltarStickers("contra")
@@ -561,15 +570,10 @@
           if (JOGO === "valorant") anotarDedicatoria(dedicado, "vitoria", placar)
           narrar(voz(pick(VITORIA)), dedicado && voz(`Essa vitória é do ${falado(dedicado.nome)}!`))
         },
-        // Where the game is: "menu", "selecao" (agent select) or "partida".
-        fase({ fase }) {
-          emPartida = fase === "partida"
-          recolher()
-        },
       }
       // Any other game (?jogo=diversos) has none of these moments: the docks still send Rocket League's and Valorant's
       // to every stand, so this one lets them pass.
-      if (JOGO === "diversos") for (const tipo of ["gol", "defesa", "rodada", "partida", "fase"]) jogo[tipo] = () => {}
+      if (JOGO === "diversos") for (const tipo of ["gol", "defesa", "rodada", "partida"]) jogo[tipo] = () => {}
       addEventListener("muanlartins-torcida", ({ detail }) => jogo[detail?.tipo]?.(detail))
       // A Christmas gift sub drawn on the Pix overlay (pix.html writes it to this site's storage, which OBS's sources
       // share): its winner steps forward like a goal's dedication, if they're in this stand.
@@ -579,7 +583,6 @@
           const { login, em } = JSON.parse(newValue)
           const p = pessoas.get(login)
           if (p && naArquibancada.has(login) && Date.now() - em < 30000) {
-            mostrar(9000)
             stand.confete()
             dedicar(p, (quem) => `Sub de presente pro ${quem}!`)
           }
@@ -614,7 +617,6 @@
         if (aberto !== varAberto) {
           varAberto = aberto
           stand.arbitro(aberto)
-          recolher()
         }
         if (!aberto) {
           varId = varVeredito = null
@@ -653,13 +655,13 @@
 
       // Tips: every ?dicas= minutes (6; 0 for none) the channel's own fan says one of the chat's commands at the rail,
       // in turn, from comandos.json's `dica`, and does it when it's one of the stand's. Not while the stand is busy (a
-      // goal, the VAR) or tucked away.
+      // goal, the VAR).
       const DICA_MS = Number(params.get("dicas") ?? 6) * 60000
       let dicas = []
       let dicaVez = 0
       function dica() {
         const p = pessoas.get(CHANNEL)
-        if (!dicas.length || !p || !naArquibancada.has(CHANNEL) || stand.ocupada() || varAberto || torcida.classList.contains("recolhida")) return
+        if (!dicas.length || !p || !naArquibancada.has(CHANNEL) || stand.ocupada() || varAberto) return
         const c = dicas[dicaVez++ % dicas.length]
         falar(p, c.dica)
         setTimeout(() => comando(CHANNEL, c.comando), 700)
@@ -763,7 +765,6 @@
           t: () => jogo.rodada({ nosso: false, placar: `${placar[0]}–${++placar[1]}` }),
           w: () => jogo.partida({ vitoria: true, placar: "13–9" }),
           x: () => jogo.partida({ vitoria: false, placar: "9–13" }),
-          f: () => jogo.fase({ fase: emPartida ? "menu" : "partida" }),
           // The VAR as the dock sends it: opens with votes coming in, then the verdict; again, it closes.
           a: () => {
             const enviar = (v) => dispatchEvent(new CustomEvent("muanlartins-var", { detail: v }))
@@ -807,7 +808,13 @@
           l: () => Legenda.mostrar(pick(["Olha essa jogada, eu achei que não ia dar", "Que lance, meu Deus do céu, que lance!",
             "Aqui eu devia ter esperado o meu time, entrei sozinho e fiquei no meio do caminho"]), Math.random() < 0.5),
         }
-        window.demoTorcida = { keys, povoar: (n) => povoar((quantos = n)), say, stand }
+        // For headless checks: who sits and who's outside, with their Σ.
+        const comSigma = (logins) => logins.map((l) => [l, sigma(l)])
+        window.demoTorcida = {
+          keys, povoar: (n) => povoar((quantos = n)), say, stand,
+          sentados: () => comSigma([...naArquibancada]),
+          fora: () => comSigma([...pessoas.keys()].filter((l) => !naArquibancada.has(l))),
+        }
         addEventListener("keydown", (e) => keys[e.key]?.())
         if (params.get("demo") === "parado") return
         const roteiro = "gmpjmnomdcmsgejmpn"

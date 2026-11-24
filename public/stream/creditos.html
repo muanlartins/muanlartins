@@ -10,8 +10,10 @@
       air. The end of the live as a film's end: the camera where Conversa has it (1280×720 at 64, 64), the credits
       rolling up the right-hand column where Conversa has the chat, and under the camera the stand with everyone who
       watched today, each as their 3D fan (torcedor3d/, their look from /perfil, or their 2D one turned 3D), on
-      arquibancada3d.js's stand, 1280×270 (12 to a row, then 16; 64 at most), the channel and who watched longest in
-      front. As a name rolls past the middle of the column, its fan in the stand celebrates (their own celebration), so
+      arquibancada3d.js's stand, 1280×270: 30 seats (Luan, 2026-11-23), up to three rows of ten spread over the width,
+      every name always up at 18 px under its fan (its first 8 characters, 6 when 8 don't fit) and the rank's emblem
+      on a badge on the shirt, as the live's stand; the channel and who watched longest in front, the rest only in the
+      list. As a name rolls past the middle of the column, its fan in the stand celebrates (their own celebration), so
       the stand ripples along with the list; the little fan by each name is the stand's picture (or, past its last seat,
       one of its own).
 
@@ -403,8 +405,11 @@
 
       // --- The stand ---------------------------------------------------------------------------------------
       const torcida = $("torcida")
-      // Bigger than torcida.html's, twelve to a row (then sixteen): the stand has the screen's bottom to itself here.
-      const stand = criarArquibancada($("arquibancada"), { largura: 1280, altura: 270, acima: 30, porFila: [12, 16], bandeira: "#001447" })
+      // The live's stand, wider: 30 seats in up to three rows of ten, names always up, no flags (the plate sits on the
+      // stand's top left).
+      const stand = criarArquibancada($("arquibancada"), {
+        largura: 1280, altura: 270, acima: 30, porFila: [10, 10], lugares: 30, espalhar: true, doCentro: true, nomesCurtos: true, bandeiras: false, trilho: "#001447",
+      })
       stand.natal(dezembro())
       let montada = false
       let montouEm = 0

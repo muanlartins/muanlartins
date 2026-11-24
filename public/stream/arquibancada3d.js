@@ -7,7 +7,8 @@
 // criarArquibancada(canvas, { largura, altura, acima, porFila, lugares, espalhar, nomesCurtos, marca, convite, bandeira })
 //   → the stand. porFila: seats a row (up to two rows, then from the third); lugares: how many stand at most (4 rows of
 //   the second); espalhar: the seats spread over the whole width, as many to a row as there are people (6 at least),
-//   instead of fixed seats; nomesCurtos: every name always up, cut to its first 8 characters (6 when 8 don't fit the
+//   instead of fixed seats; doCentro: each row filled from its middle outwards, so the first of the list stands at the
+//   front row's centre; nomesCurtos: every name always up, cut to its first 8 characters (6 when 8 don't fit the
 //   seat at 18 px), instead of taking turns, the rank's emblem on their shirt as a pin so the name has the whole seat.
 //   dispor(lista, { animar })  who stands where: [{ login, nome, aparencia, emblema, canal }] in order (the front row
 //                              first, left to right), at most `capacidade`; aparencia is the profile API's (the 3D
@@ -41,6 +42,9 @@ const FALAS = 3
 const FALA_MS = 5000
 const FALA_MIN_MS = 2200
 const NAVY = "#001447"
+// The rank's badge on a fan's shirt (short names): from 20 px on the smallest fans to 28 on the biggest.
+const SELO_MIN = 20
+const SELO_MAX = 28
 const KLEIN = "#002fa7"
 const CLARO = "#85a7ff"
 const PAPEL = "#f4f5f7"
@@ -67,10 +71,16 @@ export function criarArquibancada(tela, opcoes = {}) {
   const [POR1, POR2] = opcoes.porFila ?? [10, 14]
   const MARCA = opcoes.marca ?? "TORCIDA MUANLARTINS"
   const CONVITE = opcoes.convite ?? "Entre no chat e apareça aqui"
-  // The flags' cloth: Klein over a game, navy on the screens whose ground is Klein (the end credits).
+  // The flags' cloth: Klein over a game, navy on the screens whose ground is Klein (the end credits). A stand under
+  // 220 px tall (the live's band) has none: their place goes to the seats.
   const PANO = opcoes.bandeira ?? KLEIN
+  const BANDEIRAS = opcoes.bandeiras ?? altura >= 220
+  // The front rail: Klein over a game; navy where the ground is Klein already (the live's band, the credits).
+  const TRILHO = opcoes.trilho ?? KLEIN
   const CAPACIDADE = opcoes.lugares ?? 4 * POR2
   const ESPALHAR = !!opcoes.espalhar
+  // From the centre: each row fills from its middle outwards (the first in the list at the front row's centre).
+  const DO_CENTRO = !!opcoes.doCentro
   const CURTOS = !!opcoes.nomesCurtos
   const g = tela.getContext("2d")
   const dpr = Math.min(2, window.devicePixelRatio || 1)
@@ -115,19 +125,24 @@ export function criarArquibancada(tela, opcoes = {}) {
   // For whoever is in, and how big a fan shows (k px a unit; the talker's K). Every row the same size: the stand keeps
   // its steps however few have come, and a fan changing rows keeps its pictures.
   function fileiras(total) {
-    const R = total <= POR1 ? 1 : total <= 2 * POR1 ? 2 : total <= 3 * POR2 ? 3 : 4
-    // Spread: the rows share whoever is there evenly, over the width but a margin (six seats at least, so one or two
-    // people don't stand a screen apart).
+    // Spread: as many rows of POR1 as it takes, up to the seats' (the live's two, the credits' three); otherwise rows of
+    // POR1 up to two, then of POR2.
+    const R = ESPALHAR ? entre(Math.ceil(total / POR1), 1, Math.ceil(CAPACIDADE / POR1)) : total <= POR1 ? 1 : total <= 2 * POR1 ? 2 : total <= 3 * POR2 ? 3 : 4
+    // Spread: the rows share whoever is there evenly, over the width but a margin (the flags', when there are flags; six
+    // seats at least, so one or two people don't stand a screen apart).
     const porFila = ESPALHAR ? Math.max(6, Math.ceil(total / R)) : R < 3 ? POR1 : POR2
     const frente = 26
-    const passoX = (W - (ESPALHAR ? 60 : 140)) / porFila
-    const livre = altura - 14 - frente
+    const passoX = (W - (!ESPALHAR ? 140 : BANDEIRAS ? 180 : 24)) / porFila
+    const livre = altura - (BANDEIRAS ? 14 : 4) - frente
     // An 18 px name needs a 24 px riser. When rows are tight, only the front row keeps one, and the others shrink to
-    // 10 px so the faces get the room back.
-    const nomeEmTodas = livre / R >= 80
+    // 10 px so the faces get the room back; with short names every row keeps its own.
+    const nomeEmTodas = CURTOS || livre / R >= 80
     const faixas = Array.from({ length: R }, (_, f) => (f === 0 || nomeEmTodas ? 24 : 10))
     const banda = Math.min(R === 1 ? 134 : 102, (livre - faixas.reduce((s, v) => s + v, 0)) / R)
-    const k = Math.min((banda + 4) / 4.05, passoX / 2.6)
+    // Nobody taller than the stand: the back row's heads (and hats) stay under its top edge, which in the live's band is
+    // the game's.
+    const cimaDoFundo = frente + faixas.reduce((s, v) => s + v, 0) + banda * (R - 1)
+    const k = Math.min((banda + 4) / 4.05, passoX / 2.6, (altura - cimaDoFundo) / 4.6)
     // The talker: at least 30 (so a tiny back-row face reads) and never taller than the stand.
     const K = entre(1.7 * k, Math.max(30, 1.2 * k), Math.min(38, (altura - 8) / 4.7))
     const baixos = []
@@ -136,15 +151,25 @@ export function criarArquibancada(tela, opcoes = {}) {
       baixos.push(y0)
       y0 -= faixa + banda
     }
-    return { R, porFila, frente, passoX, faixas, banda, k, K, baixos, topo: y0 - 14, px: k * dpr, foco: K * dpr }
+    return { R, porFila, frente, passoX, faixas, banda, k, K, baixos, topo: y0 - (BANDEIRAS ? 14 : 4), px: k * dpr, foco: K * dpr }
   }
   function lugar(i, n) {
     const { R, porFila, passoX, faixas, baixos, k } = arranjo
     const f = Math.floor(i / porFila)
     const naFila = Math.min(porFila, n - f * porFila)
     const desloca = R > 1 ? (f % 2 ? passoX / 4 : -passoX / 4) : 0
-    const x = W / 2 + desloca + ((i % porFila) - (naFila - 1) / 2) * passoX
+    const coluna = DO_CENTRO ? doMeio(naFila)[i % porFila] : i % porFila
+    const x = W / 2 + desloca + (coluna - (naFila - 1) / 2) * passoX
     return { f, x, pe: baixos[f] - faixas[f] + 0.1 * k }
+  }
+  // A row's seats from its middle outwards, the left one first on a tie.
+  const meios = new Map()
+  function doMeio(n) {
+    if (!meios.has(n)) {
+      const meio = (n - 1) / 2
+      meios.set(n, [...Array(n).keys()].sort((a, b) => Math.abs(a - meio) - Math.abs(b - meio) || a - b))
+    }
+    return meios.get(n)
   }
   function rearrumar() {
     arranjo = fileiras(sentados.length)
@@ -202,19 +227,43 @@ export function criarArquibancada(tela, opcoes = {}) {
     medidas.fans = todas.size
   }
 
-  // The rank emblems, shrunk once to the names' 18 px.
+  // The rank emblems, shrunk once to the names' 18 px, and (short names) on their badge: navy, a Klein claro edge, cut
+  // at 45° on two opposite corners like the live's plates, the emblem filling it but a 4 px border. Drawn once per rank.
   const emblemas = new Map()
   function emblema(src) {
     if (emblemas.has(src)) return emblemas.get(src)
-    const e = { img: null }
+    const e = { img: null, selo: null }
     emblemas.set(src, e)
     const i = new Image()
     i.onload = () =>
       createImageBitmap(i, { resizeWidth: 18 * dpr, resizeHeight: 18 * dpr, resizeQuality: "high" })
-        .then((b) => (e.img = b))
+        .then((b) => {
+          e.img = b
+          e.selo = selo(i)
+        })
         .catch(() => {})
     i.src = src
     return e
+  }
+  function selo(img) {
+    // Drawn at the biggest size, shrunk on the small fans.
+    const SELO = SELO_MAX
+    const c = document.createElement("canvas")
+    c.width = c.height = Math.round(SELO * dpr)
+    const s = c.getContext("2d")
+    s.scale(dpr, dpr)
+    const corte = (x, w, k, cor) => {
+      s.beginPath()
+      for (const [a, b] of [[x + k, x], [x + w, x], [x + w, x + w - k], [x + w - k, x + w], [x, x + w], [x, x + k]]) s.lineTo(a, b)
+      s.closePath()
+      s.fillStyle = cor
+      s.fill()
+    }
+    corte(0, SELO, 8, CLARO)
+    corte(1.5, SELO - 3, 7, NAVY)
+    s.imageSmoothingQuality = "high"
+    s.drawImage(img, 4, 4, SELO - 8, SELO - 8)
+    return c
   }
 
   // --- Baking (fas3d.js's queue asks what's next) -----------------------------------------------------------------
@@ -587,8 +636,10 @@ export function criarArquibancada(tela, opcoes = {}) {
 
   function nova(agora) {
     const { R, frente, passoX, faixas, banda, k, K, baixos, topo } = arranjo
-    bandeirao(26, topo, 1, agora)
-    bandeirao(W - 26, topo, -1, agora)
+    if (BANDEIRAS) {
+      bandeirao(26, topo, 1, agora)
+      bandeirao(W - 26, topo, -1, agora)
+    }
 
     // Whoever is at the rail: 0 → 1 as they come forward, back to 0 as they return (no travel with reduced motion).
     const fala = !foco ? 0 : menos ? Number(agora < foco.ate) : Math.min(suave(0, 320, agora - foco.em), suave(0, 360, foco.ate - agora))
@@ -631,11 +682,13 @@ export function criarArquibancada(tela, opcoes = {}) {
         // The talker's neighbours step back a little: the nearer, the darker (only near ones, filters cost).
         if (fala && foco) m.luz = 1 - fala * 0.42 * entre(1 - Math.hypot((f.x - foco.x) / passoX, (r - foco.r) * 1.4) / 3.5, 0, 1)
         desenharFoto(fotos[m.pose] ?? fotos.parado, f.x + m.dx, f.pe, k, m)
-        // Short names: the rank's emblem as a pin on the left shoulder (clear of a shirt's number), riding the moves
-        // but turns.
-        if (CURTOS && f.emblema?.img && Math.abs(m.rot) < 0.35) {
+        // Short names: the rank's emblem as a pin on the shirt, low on the left (clear of a shirt's number), on a navy
+        // badge so it reads on any shirt, riding the moves but turns.
+        if (CURTOS && f.emblema?.selo && Math.abs(m.rot) < 0.35) {
+          // On the bust's lower left edge, over the riser's line, so a small fan's face and shirt stay clear.
+          const t = entre(Math.round(1.1 * k + 8), SELO_MIN, SELO_MAX)
           g.globalAlpha = Math.max(0, m.alpha)
-          g.drawImage(f.emblema.img, f.x + m.dx - 1.2 * k - 9, f.pe + m.dy - 1.62 * k - 9, 18, 18)
+          g.drawImage(f.emblema.selo, f.x + m.dx - 1.34 * k - t * 0.2 - t / 2, f.pe + m.dy - 0.75 * k - t / 2, t, t)
           g.globalAlpha = 1
         }
         if (f.cartao) desenharCartao(f, f.x + m.dx, f.pe, k, m)
@@ -684,7 +737,7 @@ export function criarArquibancada(tela, opcoes = {}) {
 
     // The front: rail, the fans' cloth and the drum.
     const y = H - frente
-    poligono([[0, H], [frente, y], [W - frente, y], [W, H]], KLEIN)
+    poligono([[0, H], [frente, y], [W - frente, y], [W, H]], TRILHO)
     g.save()
     g.clip()
     g.strokeStyle = "rgba(133,167,255,.22)"
