@@ -16,8 +16,8 @@
         dock turns on "Lance ruim", a nested scene hidden at the top of Jogo (brand/twitch/obs.py): the camera and its
         filters, set first where Jogo has them, and lance.html's speed lines. It zooms that camera from its frame to the
         whole screen, shakes it a little, holds 4 s, shrinks it back and turns the layer off: the game goes on under it
-        and no scene changes. Meanwhile the camera filters turn him into "Sigma" (filtros/sigma/: the Gigachad meme, in
-        black and white), as a visit (filtros.html's visita) that ends as the camera shrinks (`ate`, epoch ms), and
+        and no scene changes. Meanwhile the camera filters turn him into "Sigma" (filtros/sigma/: in black and white,
+        his face morphing into a portrait of himself as the Gigachad meme), as a visit (filtros.html's visita) that ends as the camera shrinks (`ate`, epoch ms), and
         tocador.html plays its sting. Only by hand (Luan's choice, 2026-11-08): nothing fires it on its own. Until
         2026-11-24 it was a scene the dock cut to and back from, one per game.
       - Terapia (F3): the calm scene (terapia.html), on its own stinger, "Água" (transicao-terapia.webm; a fade until
@@ -519,11 +519,14 @@
 
       /**
        * Sigma on the camera while it's big: a visit (filtros.html) that ends as the camera shrinks back, `ate` in
-       * epoch ms. The page takes one visit at a time, so a viewer's ability on the camera waits for the next one.
+       * epoch ms, with `desde` the moment's start (the page's camera may take a moment to open, and its transformation
+       * keeps to the sting's time). The page takes one visit at a time, so a viewer's ability on the camera waits for
+       * the next one.
        */
       function sigma(ate) {
         cameraLivre = Math.max(cameraLivre, ate + 2000)
-        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-filtro", event_data: { visita: { filtro: "sigma", acao: "lance", ate } } } })
+        const visita = { filtro: "sigma", acao: "lance", ate, desde: Date.now() }
+        request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-filtro", event_data: { visita } } })
       }
 
       // Lance ruim (see the header): in a game scene, the layer on with the camera from its frame to the whole screen,

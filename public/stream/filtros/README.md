@@ -51,7 +51,7 @@ and returns an object; every part is optional, and the engine calls each only wh
 |---|---|
 | `ligar(id)` | it comes on: `vfx.preload(EFEITOS)` |
 | `desligar()` | another comes on: stop everything (clear its particles, stop its loops, hide its meshes) |
-| `acao(id, now, extra)` | a one-off from the dock, a key or a visit (`visita`: a viewer's channel points, the Lance ruim); a visit's other fields come in `extra`: `ate`, when its moment ends (Date.now()'s epoch ms; Sigma's Lance ruim snaps in and is back to his plain picture by then, a late one still ends then, one after it does nothing) |
+| `acao(id, now, extra)` | a one-off from the dock, a key or a visit (`visita`: a viewer's channel points, the Lance ruim); a visit's other fields come in `extra`: `ate`, when its moment ends (Date.now()'s epoch ms; Sigma's Lance ruim is back to his plain picture by then, a late one still ends then, one after it does nothing), and `desde`, when it began (Sigma keeps its transformation to the sting's time from it) |
 | `opcoes(o)` | the dock's switches, every few seconds, whether it's on or not (so they're there when it comes on) |
 | `tecla(k)` | a key the entry doesn't map |
 | `quer(now)` | what it needs tracked this frame: `{ maos, rosto, ombros, corpo, tronco }` (`ombros: "sempre"` every frame, else ~15/s; `corpo` the body mask, only while an effect on his body needs it; a look on him has his face, hands and shoulders tracked anyway; `tronco` with `corpo`: also the mask without the chair behind him, in `uniforms.uTronco`, for what's painted on his clothes) |

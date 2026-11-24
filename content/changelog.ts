@@ -422,7 +422,7 @@ export const SHIPPED: Shipped[] = [
     title: "Efeitos na live",
     text: "No Lance ruim a câmera toma a tela e eu viro Sigma, a Terapia acalma com respiração guiada, e os sons saem com os pontos do canal.",
     media: [
-      media("lance-ruim-sigma", "Luan de Sigma no Lance ruim: em preto e branco, com o queixo quadrado, o pescoço largo e luz dura de lado"),
+      media("lance-ruim-sigma", "Luan virando Sigma no Lance ruim: em preto e branco, o rosto dele vira o retrato de Gigachad, que toma a tela", { video: true }),
       media("terapia-repaginada", "A cena da Terapia: Luan no meio do círculo de respiração, com os passos de um lado e o chat do outro", { video: true }),
     ],
   },

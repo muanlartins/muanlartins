@@ -5,13 +5,14 @@
     <title>Lance ruim · muanlartins</title>
     <link rel="stylesheet" href="stream.css" />
     <!--
-      OBS: Browser source, 1920×1080, on top of the "Lance ruim" scene, "Restart when the source becomes active",
-      so its moment plays from the start each time the scene goes live. The scene is the game's, with the camera on
-      top: the "Efeitos" dock (efeitos.html) zooms the camera from its frame to the whole screen and, after
-      ?segundos= (default 4), back, and returns to the scene before. This page is the shock around it, as in anime:
-      a flash, then black speed lines rushing in from the edges toward the middle, redrawn a dozen times a second so
-      they shiver, leaving the face clear. No words. Its sound, "dun dun duuun", is the scene's own media source
-      (sons.js, lance). ?demo replays it every 6 s.
+      OBS: Browser source, 1920×1080, on top of the "Lance ruim" layer, "Restart when the source becomes active",
+      so its moment plays from the start each time the layer comes on: the "Efeitos" dock (efeitos.html) zooms the
+      camera from its frame to the whole screen for 4 s while the camera filters turn Luan into Sigma. This page is
+      the shock at its start, as in anime: a flash, then black speed lines rushing in from the edges toward the
+      middle, redrawn a dozen times a second so they shiver, leaving the face clear. They rush out again just before
+      the sound's drop (?linhas=, seconds, default 0.75), when Sigma's portrait slams up to fill the screen (lines
+      held over it for the whole moment read as black smudges). No words. Its sound is the Efeitos dock's (sons.js,
+      lance). ?demo replays it every 6 s.
     -->
     <style>
       canvas,
@@ -45,7 +46,7 @@
     </main>
     <script src="stream.js"></script>
     <script>
-      const SECONDS = Number(params.get("segundos")) || 4
+      const SECONDS = Number(params.get("linhas")) || 0.75
       const W = 1920
       const H = 1080
       const el = document.getElementById("stage")
@@ -90,7 +91,7 @@
       function play() {
         const id = ++run
         const start = performance.now()
-        const end = start + (SECONDS - 0.35) * 1000
+        const end = start + SECONDS * 1000
         let shuffled = 0
         el.classList.remove("on")
         requestAnimationFrame(() => el.classList.add("on"))

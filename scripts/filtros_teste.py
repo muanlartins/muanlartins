@@ -16,7 +16,7 @@ given with --video= (Y4M or MJPEG: `ffmpeg -ss 1500 -i "<live>/… Câmera.mkv" 
 the agents' looks, gestures and the body mask; a live's Câmera.mkv is already framed, so add --params=zoom=1
 (--params= adds anything to the page's URL: zoom=1&fundo=…).
 
---visita=<s> sends each one-off as the Efeitos dock's visit does ({ visita: { filtro, acao, ate } }, `ate` s seconds
+--visita=<s> sends each one-off as the Efeitos dock's visit does ({ visita: { filtro, acao, ate, desde } }, `ate` s seconds
 after it's sent, as the Lance ruim's: `sigma lance:0.2,1,3,4.5 --visita=4`), and --escolha=<id> sets the Filtros dock's
 choice first (`nenhum`, as during a live with no filter on: the visit then opens the camera itself); Date.now follows
 the virtual clock too.
@@ -209,7 +209,7 @@ async def run(filtro, plan, video, params, seed, jogo=None, visita=None, escolha
                 t0 = await page.evaluate("performance.now()")
             elif visita is not None:
                 # As the Efeitos dock sends it (obs-browser's emit_event), with the moment's end.
-                v = f"{{ filtro: {json.dumps(filtro)}, acao: {json.dumps(acao)}, ate: Date.now() + {visita * 1000} }}"
+                v = f"{{ filtro: {json.dumps(filtro)}, acao: {json.dumps(acao)}, ate: Date.now() + {visita * 1000}, desde: Date.now() }}"
                 t0 = await page.evaluate(f"(() => {{ dispatchEvent(new CustomEvent('muanlartins-filtro', {{ detail: {{ visita: {v} }} }})); return performance.now() }})()")
             else:
                 t0 = await page.evaluate(f"(() => {{ window.filtros.acao({json.dumps(acao)}); return performance.now() }})()")
