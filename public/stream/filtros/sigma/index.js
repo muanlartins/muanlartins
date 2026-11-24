@@ -157,25 +157,19 @@ export async function criar(m) {
         // dim light (lit from the left everywhere, half the screen went black with the camera on all of it).
         float nele = max(smoothstep(1.3, 0.95, sqrt(r2)), (1.0 - smoothstep(0.9, 1.2, abs(bx0))) * smoothstep(uQueixo.y + 0.08, uQueixo.y - 0.06, p.y));
         luz = mix(0.55, luz, nele);
-        // Deep-set eyes under a heavy brow (their sockets in shadow, the brow's ridge lit), and the shadow his jaw
-        // casts on his neck, where his jaw now is (in the camera's place: what's under the jaw there).
+        // Deep-set eyes under a heavy brow (their sockets a little in shadow, the brow's ridge lit) and hollow cheeks,
+        // lightly: drawn strong, with a black band under the new jaw for its shadow on his neck, they read as black
+        // smudges on the camera (Luan, 2026-11-24: "não tô entendendo essa sombra preta").
         float sombra = 0.0;
         for (int i = 0; i < 2; i++) {
-          sombra = max(sombra, smoothstep(1.0, 0.35, elipse(p, uOlhos[i] + UP * 0.03 * fh, vec2(0.16 * fw, 0.07 * fh))) * 0.5);
-          sombra = max(sombra, smoothstep(1.0, 0.2, elipse(p, uCovas[i], vec2(0.08 * fw, 0.09 * fh))) * 0.3);
+          sombra = max(sombra, smoothstep(1.0, 0.35, elipse(p, uOlhos[i] + UP * 0.03 * fh, vec2(0.16 * fw, 0.07 * fh))) * 0.18);
+          sombra = max(sombra, smoothstep(1.0, 0.2, elipse(p, uCovas[i], vec2(0.08 * fw, 0.09 * fh))) * 0.12);
           y += 0.08 * smoothstep(1.0, 0.3, elipse(p, uOlhos[i] + UP * 0.11 * fh, vec2(0.17 * fw, 0.04 * fh))) * luz * uFeicoes;
         }
-        vec2 lj = local(p, uMand[${(MAND.length - 1) / 2}]);
-        float sob = -1.0;
-        for (int i = 0; i < ${MAND.length - 1}; i++) {
-          vec2 a = local(uMand[i], uMand[${(MAND.length - 1) / 2}]), c = local(uMand[i + 1], uMand[${(MAND.length - 1) / 2}]);
-          if (lj.x >= min(a.x, c.x) && lj.x <= max(a.x, c.x) && abs(c.x - a.x) > 1e-5) sob = (mix(a.y, c.y, (lj.x - a.x) / (c.x - a.x)) - lj.y) / fh;
-        }
-        sombra = max(sombra, smoothstep(0.0, 0.02, sob) * (1.0 - smoothstep(0.05, 0.17, sob)) * 0.75);
         y *= 1.0 - sombra * uFeicoes;
         // His chin's knob catching the light.
         y += 0.1 * smoothstep(1.0, 0.2, elipse(p, uMand[${(MAND.length - 1) / 2}] + UP * 0.07 * fh, vec2(0.14 * fw, 0.06 * fh))) * (0.4 + 0.6 * luz) * uFeicoes;
-        float v = y * 1.1 * mix(0.32, 1.35, luz);
+        float v = y * 1.1 * mix(0.62, 1.25, luz);
         // The S-curve: blacks crushed, the lights bright.
         v = smoothstep(0.03, 0.97, pow(v, 1.1));
         v = mix(v, v * v * (3.0 - 2.0 * v), 0.45);
