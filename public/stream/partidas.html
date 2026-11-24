@@ -378,7 +378,7 @@
       const STALE_MS = 12 * 3600 * 1000
       const onAir = (session) => session?.outputs?.some((o) => !o.end && Date.now() - Date.parse(o.start) < STALE_MS)
       // OBS scenes: where a match is played (Rocket League's, Valorant's), and where the talk between matches happens.
-      const GAME_SCENES = ["RL + chat", "Valorant + chat"]
+      const GAME_SCENES = ["Jogo", "RL + chat", "Valorant + chat"] // "Jogo" since 2026-11-24 (efeitos.html), the rest the archived collection's
       const TALK_SCENE = "Conversa"
       // Seconds of the end screen the stream sees before cutting to the talk.
       const CUT_AFTER_S = 6

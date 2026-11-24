@@ -8,6 +8,9 @@
       OBS: Custom browser dock (Docks → Custom Browser Docks), off stream; keep it docked where it stays visible,
       since a hidden dock's timers slow down. It drives the stream's effects through obs-websocket, like Partidas:
 
+      Since 2026-11-24 the game scenes are one of each for every game: "Jogo" (the game picked under "Jogo na cena", or by
+      the eyes of its items in OBS: Rocket League, Celeste or another game), "Lance ruim" (Jogo inside it) and "VAR". The
+      per-game names below are the archived collection's ("Valorant (arquivo)"), which this dock still drives.
       - Lance ruim (F2): this dock cuts to the game's "Lance ruim" scene ("Lance ruim · RL" from Rocket League, "Lance ruim · Valorant" from a Valorant
         scene, "Lance ruim · Diversos" from Diversos + chat, the scene for any other game: the game's, with the camera
         on top, its sting and lance.html's speed lines), zooms the camera from its frame to the whole screen, shakes it a little, holds 4 s, shrinks it back and cuts to the scene it came from.
@@ -405,6 +408,10 @@
       <button id="voltar">Voltar <kbd>F4</kbd></button>
     </div>
     <p class="note" id="volta"></p>
+    <div id="jogo-na-cena" style="display: none; margin-top: 8px">
+      <p class="note" style="margin: 0 0 4px">Jogo na cena</p>
+      <div class="segmentos" id="jogos"></div>
+    </div>
 
     <h2>VAR</h2>
     <p class="status" id="servidor-replay">Replays: procurando o servidor local</p>
@@ -419,10 +426,11 @@
       <span>Rocket League</span>
       <div class="segmentos" data-jogo="rl" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
       <div class="segmentos" data-jogo="rl" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
-      <span>Valorant</span>
-      <div class="segmentos" data-jogo="val" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
-      <div class="segmentos" data-jogo="val" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
-      <span>Diversos</span>
+      <!-- Valorant: archived on 2026-11-24, its settings kept. -->
+      <span style="display: none">Valorant</span>
+      <div class="segmentos" data-jogo="val" data-campo="layout" style="display: none"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
+      <div class="segmentos" data-jogo="val" data-campo="voto" style="display: none"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
+      <span>Celeste e outros</span>
       <div class="segmentos" data-jogo="div" data-campo="layout"><button data-valor="mini">Mini</button><button data-valor="cabine">Cabine</button></div>
       <div class="segmentos" data-jogo="div" data-campo="voto"><button data-valor="30">30s</button><button data-valor="40">40s</button><button data-valor="60">60s</button><button data-valor="90">90s</button></div>
     </div>
@@ -510,15 +518,34 @@
         val: { main: "Valorant + chat", scenes: ["Valorant + chat"], lance: "Lance ruim · Valorant", var: "VAR · Valorant" },
         div: { main: "Diversos + chat", scenes: ["Diversos + chat"], lance: "Lance ruim · Diversos", var: "VAR · Diversos" },
       }
-      const LANCES = Object.values(GAMES).map((g) => g.lance)
-      const VARS = Object.values(GAMES).map((g) => g.var)
+      // Since 2026-11-24 (Luan: "organiza as cenas", Valorant archived) the game scenes are one of each for every game:
+      // "Jogo", "Lance ruim" (Jogo inside it, under the camera that zooms) and "VAR". The game in Jogo is which of
+      // its items are on (JOGOS), picked in this dock ("Jogo na cena") or with the eyes in OBS, and read back from
+      // OBS, never remembered. GAMES' scenes above stay for the archived collection ("Valorant (arquivo)").
+      const JUNTAS = { main: "Jogo", scenes: ["Jogo"], lance: "Lance ruim", var: "VAR" }
+      // What each choice turns on in Jogo (the others' items off), the game it counts as (the VAR's settings, the
+      // capture recorded): Celeste and any other game share Diversos' capture.
+      const JOGOS = {
+        rl: { nome: "Rocket League", jogo: "rl", itens: ["Rocket League", "Overlay · Jogo + chat"] },
+        celeste: { nome: "Celeste", jogo: "div", itens: ["Captura · Diversos", "Overlay · Celeste + chat"] },
+        outro: { nome: "Outro jogo", jogo: "div", itens: ["Captura · Diversos", "Overlay · Diversos + chat"] },
+      }
+      const ITENS_DO_JOGO = [...new Set(Object.values(JOGOS).flatMap((j) => j.itens))]
+      let noJogo = null // the choice whose overlay is on in Jogo, as OBS last said
+      const juntas = (scene) => [JUNTAS.main, JUNTAS.lance, JUNTAS.var].includes(scene)
+      const LANCES = [...Object.values(GAMES).map((g) => g.lance), JUNTAS.lance]
+      const VARS = [...Object.values(GAMES).map((g) => g.var), JUNTAS.var]
       const BREAKS = ["Começando", "Já volto", "Fim"] // the scenes without the sounds (brand/twitch/obs.py)
       const EFFECTS = [TERAPIA, ...LANCES, ...VARS]
       // A scene's game, by the tables above, else by its name (a scene renamed in OBS still finds its game).
       const gameOf = (scene) =>
-        Object.keys(GAMES).find((g) => GAMES[g].scenes.includes(scene) || GAMES[g].lance === scene || GAMES[g].var === scene) ??
-        (/valorant/i.test(scene ?? "") ? "val" : /^RL\b|rocket league/i.test(scene ?? "") ? "rl" : /diversos/i.test(scene ?? "") ? "div" : undefined)
+        juntas(scene)
+          ? JOGOS[noJogo ?? "rl"].jogo
+          : (Object.keys(GAMES).find((g) => GAMES[g].scenes.includes(scene) || GAMES[g].lance === scene || GAMES[g].var === scene) ??
+            (/valorant/i.test(scene ?? "") ? "val" : /^RL\b|rocket league/i.test(scene ?? "") ? "rl" : /diversos/i.test(scene ?? "") ? "div" : undefined))
       const isGameScene = (scene) => !!gameOf(scene) && !EFFECTS.includes(scene)
+      // A game scene's set of scenes: the joined ones, or (the archived collection) its game's.
+      const cenasDe = (scene) => (juntas(scene) ? JUNTAS : gameOf(scene) ? GAMES[gameOf(scene)] : null)
       // F2, F4 and F8: silent media sources, like the sounds', so the dock picks the game's scene.
       const GATILHOS = { "Gatilho · Lance ruim": () => lance(), "Gatilho · Voltar ao jogo": () => voltar(), "Gatilho · VAR": () => chamarVar() }
       const CAMERA = "Câmera"
@@ -558,6 +585,7 @@
       const TRANSITIONS = 1 << 4
       const OUTPUTS = 1 << 6
       const MEDIA = 1 << 8
+      const SCENE_ITEMS = 1 << 7
       const sha256 = async (text) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))))
       function connect() {
         const ws = new WebSocket("ws://127.0.0.1:4455")
@@ -565,7 +593,7 @@
         ws.onmessage = async ({ data }) => {
           const { op, d } = JSON.parse(data)
           if (op === 0) {
-            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES | TRANSITIONS | OUTPUTS | MEDIA }
+            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES | TRANSITIONS | OUTPUTS | MEDIA | SCENE_ITEMS }
             if (d.authentication) {
               const { challenge, salt } = d.authentication
               identify.authentication = await sha256((await sha256(state.obsPassword + salt)) + challenge)
@@ -575,6 +603,7 @@
             ready = true
             status()
             await setup()
+            await lerJogo()
             const scene = await request("GetCurrentProgramScene")
             if (scene) changed(scene.sceneName)
             const stream = await request("GetStreamStatus")
@@ -588,6 +617,7 @@
             enviarVar()
           } else if (op === 5) {
             if (d.eventType === "CurrentProgramSceneChanged") changed(d.eventData.sceneName)
+            if (d.eventType === "SceneItemEnableStateChanged" && d.eventData.sceneName === JUNTAS.main) lerJogo()
             if (d.eventType === "SceneTransitionStarted") transitionStarted()
             if (d.eventType === "SceneTransitionEnded") transitionEnded()
             if (d.eventType === "MediaInputActionTriggered" && d.eventData.mediaAction.endsWith("RESTART")) triggered(d.eventData.inputName)
@@ -659,8 +689,12 @@
       function jogoAgora() {
         return gameOf(current) ?? gameOf(before) ?? gameOf(cenas.findLast(isGameScene))
       }
+      /** The scenes of the game on screen, found the same way. */
+      function cenasAgora() {
+        return cenasDe([current, before, cenas.findLast(isGameScene)].find((s) => gameOf(s)))
+      }
       /** The scene an effect goes back to: the one it came from, else (the dock opened during it) its game's. */
-      const volta = (effect) => before ?? (gameOf(effect) ? GAMES[gameOf(effect)].main : null)
+      const volta = (effect) => before ?? cenasDe(effect)?.main ?? null
       /** Where F4 goes (see the header), or null to stay. */
       function anterior() {
         if (EFFECTS.includes(current)) return volta(current)
@@ -796,8 +830,8 @@
       /** The Lance ruim of the game on screen; none outside a game. */
       function lance() {
         whenFree(() => {
-          const jogo = jogoAgora()
-          if (jogo && current && !LANCES.includes(current)) request("SetCurrentProgramScene", { sceneName: GAMES[jogo].lance })
+          const suas = cenasAgora()
+          if (suas && current && !LANCES.includes(current)) request("SetCurrentProgramScene", { sceneName: suas.lance })
         })
       }
       // Decided once free: pressed during the fade into Terapia, it leaves Terapia for the scene before.
@@ -809,6 +843,35 @@
           if (current === TERAPIA && transitions.agua) switchWith("agua", to, 1100)
           else switchWith("fade", to, 1500)
         })
+      }
+
+      // --- The game in "Jogo" -------------------------------------------------------------------------------------
+      /** Which choice is on in Jogo, from OBS (none when the collection has no Jogo: the archived one). */
+      async function lerJogo() {
+        const lista = await request("GetSceneItemList", { sceneName: JUNTAS.main })
+        const itens = lista?.sceneItems ?? []
+        const ligado = (nome) => itens.some((i) => i.sourceName === nome && i.sceneItemEnabled)
+        noJogo = Object.keys(JOGOS).find((k) => ligado(JOGOS[k].itens.at(-1))) ?? null
+        $("jogo-na-cena").style.display = lista ? "" : "none"
+        for (const b of $("jogos").children) b.classList.toggle("active", b.dataset.valor === noJogo)
+        gravarSoOJogo()
+      }
+      /** Puts a game in Jogo (and so in Lance ruim, which shows Jogo): the others' items off first, then its own on. */
+      async function porJogo(k) {
+        const lista = await request("GetSceneItemList", { sceneName: JUNTAS.main })
+        if (!lista) return
+        const quer = new Set(JOGOS[k].itens)
+        const set = (i, on) => request("SetSceneItemEnabled", { sceneName: JUNTAS.main, sceneItemId: i.sceneItemId, sceneItemEnabled: on })
+        for (const i of lista.sceneItems) if (ITENS_DO_JOGO.includes(i.sourceName) && !quer.has(i.sourceName) && i.sceneItemEnabled) await set(i, false)
+        for (const i of lista.sceneItems) if (quer.has(i.sourceName) && !i.sceneItemEnabled) await set(i, true)
+        await lerJogo()
+      }
+      for (const [k, j] of Object.entries(JOGOS)) {
+        const b = document.createElement("button")
+        b.dataset.valor = k
+        b.textContent = j.nome
+        b.onclick = () => porJogo(k)
+        $("jogos").append(b)
       }
 
       $("lance").onclick = lance
@@ -1078,8 +1141,8 @@
         if (layout === "mini") v.replay.som = false
         trocandoCena = true
         setTimeout(() => (trocandoCena = false), 3000)
-        if (layout === "cabine" && !VARS.includes(current)) whenFree(() => switchWith("var", GAMES[v.jogo].var, 1300))
-        if (layout === "mini" && VARS.includes(current)) whenFree(() => switchWith("var", volta(current) ?? GAMES[v.jogo].main, 1300))
+        if (layout === "cabine" && !VARS.includes(current)) whenFree(() => switchWith("var", (cenasAgora() ?? GAMES[v.jogo]).var, 1300))
+        if (layout === "mini" && VARS.includes(current)) whenFree(() => switchWith("var", volta(current) ?? (cenasAgora() ?? GAMES[v.jogo]).main, 1300))
         enviarVar()
       }
 
