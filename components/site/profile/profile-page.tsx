@@ -322,7 +322,7 @@ export function ProfilePage() {
   // Their fan as the site's other pieces read it: the 2D one with the 3D one being made (`t3`).
   const viewerLook: Look = { aparencia: fan ? ({ ...fan, t3 } as unknown as SavedFan) : null, cartao: null, duelo, imagens: images }
   const name = login || text.you
-  const stage = T && fan ? <FanStage T={T} fan={fan} name={name} move={move} shout={shout} stickers={stickers} play={play} /> : null
+  const stage = T && fan ? <FanStage T={T} fan={fan} look={look} name={name} move={move} shout={shout} stickers={stickers} play={play} /> : null
   const cardPreview =
     signedIn && T ? (
       <figure className="space-y-2">
