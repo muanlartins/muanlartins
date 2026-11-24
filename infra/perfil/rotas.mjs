@@ -136,8 +136,8 @@ export function duelo(d) {
 }
 
 // Their card: { tema, cores, sobre, pronomes, jogo }, any left out for the default. tema is one of the site's themes
-// (lib/viewer.ts) or "livre" with cores, two colours of their own, which the site draws only once their Σ unlocks free
-// colours (as the fan's); sobre is what they say about themselves and pronomes their pronouns, both through the word
+// (lib/viewer.ts) or "livre" with cores, any two colours of their own, whatever their Σ (Σ locks nothing, Luan,
+// 2026-11-23); sobre is what they say about themselves and pronomes their pronouns, both through the word
 // filter; jogo is their game, by the site's id. The banner and the photo aren't in it: they're saved apart (imagens).
 export function cartao(c) {
   const o = {}

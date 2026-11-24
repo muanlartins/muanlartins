@@ -508,9 +508,7 @@ export function ProfilePage() {
                       base={cardBase}
                       images={images}
                       look={viewerLook}
-                      sigma={freeSigma}
                       T={T}
-                      S={S}
                       onChange={(patch) => setCardDraft((c) => ({ ...c, ...patch }))}
                       onSaved={(card) => {
                         setCardBase(card)

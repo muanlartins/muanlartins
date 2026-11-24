@@ -9,16 +9,15 @@ import { LOCALE, localize } from "@/lib/site"
 const text = localize(profile.sigma)
 const number = (n: number) => n.toLocaleString(LOCALE === "pt" ? "pt-BR" : "en")
 
-/** How Σ come, folded: the explanation is for whoever asks. */
-export function SigmaHow({ S }: { S: Sigma }) {
-  const unlock = S.ranque(S.COR_LIVRE, LOCALE)
+/** How Σ come and what they're for, folded: the explanation is for whoever asks. */
+export function SigmaHow() {
   return (
     <details className="group text-[15px]">
       <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 font-medium text-klein [&::-webkit-details-marker]:hidden">
         {text.how}
         <ChevronDown aria-hidden className="h-4 w-4 transition-transform group-open:rotate-180" />
       </summary>
-      <p className="mt-2 max-w-[38rem] leading-[1.6] text-muted">{text.howText.replace("{rank}", unlock.nome).replace("{n}", number(S.COR_LIVRE))}</p>
+      <p className="mt-2 max-w-[38rem] leading-[1.6] text-muted">{text.howText}</p>
     </details>
   )
 }
@@ -46,7 +45,7 @@ export function SigmaPanel({ S, stats, signIn }: { S: Sigma | null; stats: Sigma
       ) : (
         <Ranked S={S} stats={stats} />
       )}
-      {S && <SigmaHow S={S} />}
+      <SigmaHow />
     </div>
   )
 }

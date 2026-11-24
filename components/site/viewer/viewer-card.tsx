@@ -160,7 +160,7 @@ export function ViewerCard({
 }) {
   const card = preview ?? look?.cartao ?? null
   const sigma = stats?.sigma ?? 0
-  const palette = cardPalette(...cardColors(card, sigma, S))
+  const palette = cardPalette(...cardColors(card))
   const game = CARD_GAMES.find((g) => g.id === card?.jogo)
   const page = size === "page"
   const streak = stats?.sequencia ?? 0

@@ -109,7 +109,7 @@ export function Controle({ campo: c, valor, mudar, id, foto }: { campo: Campo; v
           {paleta.map((hex) => (
             <Swatch key={hex} background={hex} label={nomeCor(hex)} on={v === hex} onClick={() => mudar(hex)} />
           ))}
-          {/* Colours are free for everyone (Luan, 2026-11-23): Σ will only lock prestige items. */}
+          {/* Any colour, for everyone: Σ locks nothing (Luan, 2026-11-23). */}
           <FreeSwatch value={v} on={!daPaleta} label={`${c.nome}: ${text.outraCor.toLowerCase()}`} onChange={(hex) => mudar(hex)} />
         </div>
       </div>

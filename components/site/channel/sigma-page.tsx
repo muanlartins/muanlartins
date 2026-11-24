@@ -25,16 +25,17 @@ function To({ href, children }: { href: string; children: React.ReactNode }) {
 
 /**
  * /canal/sigma, a documentation page: Σ, the site's points. How they come (comandos.json's `sigma`, the same list the
- * commands page had), the ranks they make and what they unlock (public/stream/sigma.js, read at build time), and where
- * to see your own. Linked from the commands page and, for the profile's area, from /perfil.
+ * commands page had), the ranks they make (public/stream/sigma.js, read at build time), what they're for (they lock
+ * nothing: Luan, 2026-11-23) and where to see your own. Linked from the commands page and, for the profile's area, from
+ * /perfil.
  */
 export function SigmaPage() {
   const { ganhos } = commands().sigma
-  const { tiers, valorantGold, freeColours, freeColoursRank } = sigmaRules()
+  const { tiers, valorantGold } = sigmaRules()
   const toc = [
     { id: "como-ganhar", title: S.earn.title },
     { id: "ranks", title: S.ranks.title },
-    { id: "o-que-liberam", title: S.unlocks.title },
+    { id: "pra-que-servem", title: S.uses.title },
     { id: "onde-ver", title: S.where.title },
   ]
   const term = (text: string) => <span className="text-[15px] font-medium text-ink">{text}</span>
@@ -84,32 +85,36 @@ export function SigmaPage() {
         {valorantGold != null && <p className="mt-4 max-w-[38rem] text-[13px] leading-[1.5] text-muted">{S.ranks.valorant.replace("{n}", number.format(valorantGold)).replace(" Σ", "\u00a0Σ")}</p>}
       </DocSection>
 
-      <DocSection id="o-que-liberam" n={3} title={S.unlocks.title}>
+      <DocSection id="pra-que-servem" n={3} title={S.uses.title}>
         <DefList
           items={[
-            { key: "stand", term: term(S.unlocks.stand.term), detail: S.unlocks.stand.text },
+            { key: "rank", term: term(S.uses.rank.term), detail: S.uses.rank.text },
+            { key: "stand", term: term(S.uses.stand.term), detail: S.uses.stand.text },
             {
-              key: "colors",
-              term: term(S.unlocks.colors.term),
+              key: "ranking",
+              term: term(S.uses.ranking.term),
               detail: (
                 <>
-                  {S.unlocks.colors.text.replace("{rank}", freeColoursRank).replace("{n}", number.format(freeColours)).replace(" Σ", "\u00a0Σ")} <To href={`/${profileSlug()}`}>{T.comandos.profile.cta}</To>
+                  {S.uses.ranking.text} <To href={`/${MURAL_SLUG}#torcida`}>{S.where.mural.term}</To>
                 </>
               ),
             },
             {
               key: "games",
-              term: term(S.unlocks.games.term),
+              term: term(S.uses.games.term),
               detail: (
                 <>
-                  {S.unlocks.games.text} <To href={channelPath("minijogos")}>{T.minijogos.title}</To>
+                  {S.uses.games.text} <To href={channelPath("minijogos")}>{T.minijogos.title}</To>
                 </>
               ),
             },
-            { key: "dedication", term: term(S.unlocks.dedication.term), detail: S.unlocks.dedication.text },
-            { key: "discord", term: term(S.unlocks.discord.term), detail: S.unlocks.discord.text },
+            { key: "dedication", term: term(S.uses.dedication.term), detail: S.uses.dedication.text },
+            { key: "discord", term: term(S.uses.discord.term), detail: S.uses.discord.text },
           ]}
         />
+        <Callout className="mt-6">
+          {S.uses.free} <To href={`/${profileSlug()}`}>{T.comandos.profile.cta}</To>
+        </Callout>
       </DocSection>
 
       <DocSection id="onde-ver" n={4} title={S.where.title}>
