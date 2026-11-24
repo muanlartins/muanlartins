@@ -4,10 +4,12 @@
 // over torcedor3d/ (the fan's schema, model and clothes, shared with the site): the page needs the import map that
 // maps "three" to jsDelivr's three@0.182.0, as corrida.html has.
 //
-// The budget: a picture is baked one small step at a time (boneco.js's fotografo.sessao: building the fan, then one
-// pose a step), and the queue takes at most ORCAMENTO ms of steps a frame. Building a fan is the one big step, so it
-// only starts at the top of a frame, alone. Pictures are ImageBitmaps cut to the fan; whoever asked for them closes
-// them (soltar) when the fan goes.
+// The budget: the fans are baked in a worker (fas3d-forno.js, the same boneco.js on an OffscreenCanvas), one at a
+// time, so the page's frames pay nothing but a message each way. Where a worker can't (no OffscreenCanvas WebGL, or it
+// fails to start in 10 s; ?forno=0 forces it), they're baked here one small step at a time (boneco.js's
+// fotografo.sessao: building the fan, then one pose a step), at most ORCAMENTO ms of steps a frame, building a fan (the
+// one big step, 5 to 80 ms) alone at the top of a frame. Pictures are ImageBitmaps cut to the fan; whoever asked for
+// them closes them (soltar) when the fan goes.
 import { FOTO, fotografo } from "./torcedor3d/boneco.js"
 import { torcedorDe } from "./torcedor3d/antigo.js"
 import { natal as dezembro, vestir } from "./torcedor3d/vestir.js"
@@ -52,8 +54,9 @@ const fontes = []
 let obra = null
 let passoMedio = 1.5
 let rodando = false
-/** Each fan's baking ms (all its steps), each frame's baking ms, and the steps over 8 ms ([step, ms]). */
-export const medidas = { fans: [], quadros: [], lentos: [] }
+/** Each fan's baking ms (all its steps), each frame's baking ms, each build step's ms (the one step that can't be
+    split: criarBoneco), and the steps over 8 ms ([step, ms]). */
+export const medidas = { fans: [], quadros: [], montagens: [], lentos: [] }
 
 /** A source of work; `nota` orders the sources (lower first). Returns what removes it. */
 export function fonte(proximo, nota = 0) {
@@ -76,18 +79,72 @@ document.fonts
   .finally(() => (fonte3d = true))
 setTimeout(() => (fonte3d = true), 3000)
 
-function comecar() {
-  if (!fonte3d) return null
+function proximoJob() {
   // A copy: a source may take itself out when it has nothing left.
   for (const f of [...fontes]) {
     const job = f.proximo()
-    if (job) return { job, ms: 0, passos: 0, s: fotografo.sessao(job.look, job.poses, { px: job.px, quadro: job.quadro ?? "inteiro" }) }
+    if (job) return job
   }
   return null
+}
+function comecar() {
+  if (!fonte3d) return null
+  const job = proximoJob()
+  return job && { job, ms: 0, passos: 0, s: fotografo.sessao(job.look, job.poses, { px: job.px, quadro: job.quadro ?? "inteiro" }) }
+}
+const guardado = (job, fotos) => {
+  if (job.valido()) job.guardar(fotos)
+  else soltar(fotos)
+}
+const anotar = (ms) => {
+  medidas.fans.push(Math.round(ms * 10) / 10)
+  if (medidas.fans.length > 400) medidas.fans.splice(0, 200)
+}
+
+// --- The oven (a worker) ---------------------------------------------------------------------------------------------
+const forno = { w: null, pronto: false, falhou: false, id: 0 }
+/** Where the fans are baked now: "forno" (the worker), "pagina", or "esperando" while the worker warms up. */
+export const onde = () => (forno.falhou ? "pagina" : forno.pronto ? "forno" : "esperando")
+function desistir(porque) {
+  if (forno.falhou) return
+  forno.falhou = true
+  console.warn("fas3d: baking on the page:", porque)
+  forno.w?.terminate()
+  // Whatever was in the oven is asked for again by its source.
+  if (obra?.id) obra = null
+}
+try {
+  if (new URLSearchParams(location.search).get("forno") === "0" || typeof OffscreenCanvas === "undefined" || typeof Worker === "undefined") throw new Error("no worker")
+  forno.w = new Worker(new URL("./fas3d-forno.js", import.meta.url), { type: "module" })
+  forno.w.onmessage = ({ data }) => {
+    if (data.pronto) forno.pronto = true
+    else if (data.falhou) desistir(data.falhou)
+    else if (obra?.id === data.id) {
+      const o = obra
+      obra = null
+      if (data.fotos) {
+        guardado(o.job, data.fotos)
+        anotar(data.ms)
+      } else console.error("fas3d:", data.erro)
+    } else soltar(data.fotos)
+  }
+  forno.w.onerror = (e) => desistir(e.message ?? "error")
+  setTimeout(() => forno.pronto || desistir("not ready in 10 s"), 10000)
+} catch (e) {
+  desistir(e.message)
 }
 
 /** Bakes for at most `ms` this frame; the page's loop calls it (acordar() keeps one going). */
 export function trabalhar(ms = ORCAMENTO) {
+  if (!forno.falhou) {
+    // In the oven: one fan at a time; this frame only hands it the next.
+    if (!forno.pronto || obra) return
+    const job = proximoJob()
+    if (!job) return
+    obra = { id: ++forno.id, job }
+    forno.w.postMessage({ id: obra.id, look: job.look, poses: job.poses, px: job.px, quadro: job.quadro ?? "inteiro" })
+    return
+  }
   const t0 = performance.now()
   for (;;) {
     if (obra && !obra.job.valido()) {
@@ -104,6 +161,7 @@ export function trabalhar(ms = ORCAMENTO) {
     const fim = obra.s.passo()
     const d = performance.now() - t
     if (d > 8) medidas.lentos.push([obra.passos, Math.round(d * 10) / 10])
+    if (montar) medidas.montagens.push(Math.round(d * 10) / 10)
     obra.passos++
     obra.ms += d
     if (!montar) passoMedio += (d - passoMedio) * 0.2
@@ -111,10 +169,8 @@ export function trabalhar(ms = ORCAMENTO) {
       const o = obra
       o.s.pronto
         .then((fotos) => {
-          if (o.job.valido()) o.job.guardar(fotos)
-          else soltar(fotos)
-          medidas.fans.push(Math.round(o.ms * 10) / 10)
-          if (medidas.fans.length > 400) medidas.fans.splice(0, 200)
+          guardado(o.job, fotos)
+          anotar(o.ms)
         })
         // A picture that failed (the GPU's canvas lost, say) never stalls the queue: the source asks again.
         .catch((e) => console.error(e))
@@ -189,7 +245,8 @@ export function retrato(caixa, look, { poses = ["parado"], altura = 0, quadro = 
   const W = Math.round((H * q.w) / q.h)
   tela.width = W
   tela.height = H
-  Object.assign(tela.style, { position: "absolute", bottom: "0", left: "50%", height: "100%", aspectRatio: `${q.w} / ${q.h}`, translate: "-50% 0", pointerEvents: "none" })
+  // Its own size whatever the page's CSS says about canvases.
+  Object.assign(tela.style, { position: "absolute", top: "auto", right: "auto", bottom: "0", left: "50%", width: "auto", height: "100%", maxWidth: "none", aspectRatio: `${q.w} / ${q.h}`, translate: "-50% 0", pointerEvents: "none" })
   const alvo = caixa.querySelector(".pose") ?? caixa
   alvo.replaceChildren(tela)
   const g = tela.getContext("2d")

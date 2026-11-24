@@ -120,8 +120,8 @@
         overflow: visible;
       }
       /* The whole box, so a weapon can reach past the arena's wall as it swings; the arena is the square in the middle
-         (ARENA_X, ARENA_Y below). */
-      canvas {
+         (ARENA_X, ARENA_Y below). The fans' pictures are canvases too (fas3d.js): only the arena's is this one. */
+      .caixa > canvas {
         position: absolute;
         left: 0;
         top: 0;
@@ -446,7 +446,7 @@
       body.compacto .chao {
         clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
       }
-      body.compacto canvas {
+      body.compacto .caixa > canvas {
         top: 50px;
         width: calc(var(--arena) + 12px);
         height: calc(var(--arena) + 12px);

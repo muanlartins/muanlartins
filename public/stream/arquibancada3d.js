@@ -4,7 +4,11 @@
 // the stand's moments. One canvas, drawn each frame from pictures only: the 3D runs once per fan and pose, in small
 // steps (fas3d.js's queue), never per frame. Shared by torcida.html (960 wide, 300 or 220 tall) and creditos.html.
 //
-// criarArquibancada(canvas, { largura, altura, acima, porFila, marca, convite }) → the stand:
+// criarArquibancada(canvas, { largura, altura, acima, porFila, lugares, espalhar, nomesCurtos, marca, convite, bandeira })
+//   → the stand. porFila: seats a row (up to two rows, then from the third); lugares: how many stand at most (4 rows of
+//   the second); espalhar: the seats spread over the whole width, as many to a row as there are people (6 at least),
+//   instead of fixed seats; nomesCurtos: every name always up, cut to its first 8 characters (6 when 8 don't fit the
+//   seat at 18 px), instead of taking turns, the rank's emblem on their shirt as a pin so the name has the whole seat.
 //   dispor(lista, { animar })  who stands where: [{ login, nome, aparencia, emblema, canal }] in order (the front row
 //                              first, left to right), at most `capacidade`; aparencia is the profile API's (the 3D
 //                              look, or the 2D one turned 3D); animar: newcomers run in from the right.
@@ -15,7 +19,7 @@
 //   mover(login, tipo)         "pula", "danca", "comemora" (their own), "lamenta"
 //   falar(login, texto)        comes forward with the line in a balloon (three wait at most)
 //   dedicar(login, ms)         comes forward, arms up (a goal dedicated to them)
-//   cartao(login, n)           the VAR's vote card in their raised hand (0 takes it away)
+//   cartao(login, n)           the VAR's vote card in their raised hand (0 takes it away; without n, the one they hold)
 //   arbitro(aberto)            everyone in the referee's kit (each fan baked again, the usual look kept for after)
 //   natal(sim)                 Santa's hat on everyone
 //   confete()                  confetti without a goal (a Christmas sub)
@@ -63,7 +67,11 @@ export function criarArquibancada(tela, opcoes = {}) {
   const [POR1, POR2] = opcoes.porFila ?? [10, 14]
   const MARCA = opcoes.marca ?? "TORCIDA MUANLARTINS"
   const CONVITE = opcoes.convite ?? "Entre no chat e apareça aqui"
-  const CAPACIDADE = 4 * POR2
+  // The flags' cloth: Klein over a game, navy on the screens whose ground is Klein (the end credits).
+  const PANO = opcoes.bandeira ?? KLEIN
+  const CAPACIDADE = opcoes.lugares ?? 4 * POR2
+  const ESPALHAR = !!opcoes.espalhar
+  const CURTOS = !!opcoes.nomesCurtos
   const g = tela.getContext("2d")
   const dpr = Math.min(2, window.devicePixelRatio || 1)
   let H = 0
@@ -90,14 +98,15 @@ export function criarArquibancada(tela, opcoes = {}) {
   let comTouca = false
   let ultimo = performance.now()
   // desenho: ms to draw a frame (smoothed) and the longest; bytes: the pictures held.
-  const medidas = { desenho: 0, desenhoMax: 0, piscadas: 0, bytes: 0, fans: 0 }
+  // letras: the characters each row's names were cut to (nomesCurtos), front row first.
+  const medidas = { desenho: 0, desenhoMax: 0, piscadas: 0, bytes: 0, fans: 0, letras: [] }
   // Names are cut to fit once, measured in the overlays' face: once it's in, they're measured again.
   document.fonts
     .load(NOME)
     .then(() => document.fonts.load(FORTE))
     .catch(() => {})
     .finally(() => {
-      for (const f of todas.values()) f.corte = null
+      for (const f of todas.values()) f.corte = f.curto = null
     })
   const conjunto = () => (varAberto ? "arbitro" : "normal")
   const lookPara = (f, conj) => vestir(f.base, { arbitro: conj === "arbitro", natal: comTouca })
@@ -107,9 +116,11 @@ export function criarArquibancada(tela, opcoes = {}) {
   // its steps however few have come, and a fan changing rows keeps its pictures.
   function fileiras(total) {
     const R = total <= POR1 ? 1 : total <= 2 * POR1 ? 2 : total <= 3 * POR2 ? 3 : 4
-    const porFila = R < 3 ? POR1 : POR2
+    // Spread: the rows share whoever is there evenly, over the width but a margin (six seats at least, so one or two
+    // people don't stand a screen apart).
+    const porFila = ESPALHAR ? Math.max(6, Math.ceil(total / R)) : R < 3 ? POR1 : POR2
     const frente = 26
-    const passoX = (W - 140) / porFila
+    const passoX = (W - (ESPALHAR ? 60 : 140)) / porFila
     const livre = altura - 14 - frente
     // An 18 px name needs a 24 px riser. When rows are tight, only the front row keeps one, and the others shrink to
     // 10 px so the faces get the room back.
@@ -413,7 +424,7 @@ export function criarArquibancada(tela, opcoes = {}) {
       const y = (k) => (menos ? 0 : Math.sin((agora / 260) * forca - k * 0.5) * (k / 16) * 5 * forca)
       const xa = pe + sentido * (i / 16) * w
       const xb = pe + sentido * ((i + 1) / 16) * w
-      poligono([[xa, topo + 2 + y(i)], [xb, topo + 2 + y(i + 1)], [xb, topo + 2 + h + y(i + 1)], [xa, topo + 2 + h + y(i)]], KLEIN)
+      poligono([[xa, topo + 2 + y(i)], [xb, topo + 2 + y(i + 1)], [xb, topo + 2 + h + y(i + 1)], [xa, topo + 2 + h + y(i)]], PANO)
     }
     const cx = pe + (sentido * w) / 2
     const cy = topo + 2 + h / 2
@@ -431,9 +442,9 @@ export function criarArquibancada(tela, opcoes = {}) {
   function nome(q, y, contorno, aceso) {
     const x0 = q.cx - q.w / 2
     if (aceso) cortado(x0 - 6, y - 12, q.w + 12, 24, 5, PAPEL)
-    const e = q.f.emblema?.img
+    const e = CURTOS ? null : q.f.emblema?.img
     if (e) g.drawImage(e, x0, y - 9.5, 18, 18)
-    const tx = x0 + (q.f.emblema ? 22 : 0)
+    const tx = x0 + (e || (!CURTOS && q.f.emblema) ? 22 : 0)
     if (contorno && !aceso) g.strokeText(q.s, tx, y)
     g.fillStyle = aceso ? KLEIN : q.f.canal ? CLARO : PAPEL
     g.fillText(q.s, tx, y)
@@ -474,24 +485,59 @@ export function criarArquibancada(tela, opcoes = {}) {
       g.lineJoin = "round"
     }
     const acesos = []
+    const aceso = (q) => q.f.mov && agora < q.f.mov.ate && q.f.mov.acende
     for (const q of K > 1 ? visiveis(n) : todos) {
-      if (q.f.mov && agora < q.f.mov.ate && q.f.mov.tipo !== "lamenta") continue
+      if (aceso(q)) continue
       // Only names that come or go fade; the ones staying don't blink.
       g.globalAlpha = K > 1 ? Math.min(antes.includes(q) ? 1 : entre(r / 0.07, 0, 1), depois.includes(q) ? 1 : entre((1 - r) / 0.07, 0, 1)) : 1
       nome(q, y, !!f, false)
     }
     g.globalAlpha = 1
-    for (const q of todos) if (q.f.mov && agora < q.f.mov.ate && q.f.mov.tipo !== "lamenta") acesos.push(q)
+    for (const q of todos) if (aceso(q)) acesos.push(q)
     for (const q of acesos) nome(q, y, false, true)
   }
 
-  // The VAR's card in a raised hand: referee yellow, the option's number.
+  // A name's first `n` characters, with "…" when it's longer (and, should even that be wider than the seat, fewer).
+  function curto(f, n, max) {
+    const com = 0
+    if (f.curto?.nome !== f.nome || f.curto.com !== com || f.curto.max !== max) f.curto = { nome: f.nome, com, max }
+    if (f.curto[n]) return f.curto[n]
+    const cs = Array.from(f.nome)
+    let k = Math.min(n, cs.length)
+    const texto = (k) => (k < cs.length ? `${cs.slice(0, k).join("")}…` : f.nome)
+    while (k > 1 && n === 6 && g.measureText(texto(k)).width + com > max) k--
+    const s = texto(k)
+    return (f.curto[n] = { s, w: g.measureText(s).width + com })
+  }
+  // Every name of a row at once, under its fan: 8 characters when all of the row's fit their seats at 18 px, else 6.
+  function nomesCurtos(lugares, L, D, y, passoX, f, agora) {
+    g.font = NOME
+    g.textAlign = "left"
+    g.textBaseline = "middle"
+    const max = passoX - 8
+    const n = lugares.every(([p]) => curto(p, 8, max).w <= max) ? 8 : 6
+    medidas.letras[f] = n
+    if (f) {
+      g.strokeStyle = NAVY
+      g.lineWidth = 4
+      g.lineJoin = "round"
+    }
+    const qs = lugares.map(([p, x]) => {
+      const c = curto(p, n, max)
+      return { f: p, s: c.s, w: c.w, cx: entre(x, L + 8 + c.w / 2, D - 8 - c.w / 2) }
+    })
+    const aceso = (q) => q.f.mov && agora < q.f.mov.ate && q.f.mov.acende
+    for (const q of qs) if (!aceso(q)) nome(q, y, !!f, false)
+    for (const q of qs) if (aceso(q)) nome(q, y, false, true)
+  }
+
+  // The VAR's card held up by the head, raised hand or not (a slumping voter keeps it up, clear of the names under them):
+  // referee yellow, the option's number.
   function desenharCartao(f, x, pe, k, m) {
-    const alto = m.pose === "aceno" || m.pose === "cima"
     const w = Math.max(22, 0.95 * k)
     const h = w * 1.25
     const cx = x + 1.45 * k
-    const cy = pe + m.dy - 2.93 * k - (alto ? 0.25 * k + h * 0.45 : -1.85 * k + h * 0.2)
+    const cy = pe + m.dy - 2.93 * k - 0.25 * k - h * 0.45
     g.save()
     g.globalAlpha = m.alpha
     g.translate(cx, cy)
@@ -565,7 +611,7 @@ export function criarArquibancada(tela, opcoes = {}) {
       const meio = W / 2 + desloca
       for (let c = 0; c < arranjo.porFila; c++) {
         const x = meio + (c - (arranjo.porFila - 1) / 2) * passoX
-        const w = passoX * 0.8
+        const w = Math.min(passoX * 0.8, 78)
         const h = passo * 0.32
         cortado(x - w / 2, cima - h, w, h, 6, (c + r) % 4 === 0 ? CLARO : KLEIN)
         g.fillStyle = "rgba(0,20,71,.45)"
@@ -585,6 +631,13 @@ export function criarArquibancada(tela, opcoes = {}) {
         // The talker's neighbours step back a little: the nearer, the darker (only near ones, filters cost).
         if (fala && foco) m.luz = 1 - fala * 0.42 * entre(1 - Math.hypot((f.x - foco.x) / passoX, (r - foco.r) * 1.4) / 3.5, 0, 1)
         desenharFoto(fotos[m.pose] ?? fotos.parado, f.x + m.dx, f.pe, k, m)
+        // Short names: the rank's emblem as a pin on the left shoulder (clear of a shirt's number), riding the moves
+        // but turns.
+        if (CURTOS && f.emblema?.img && Math.abs(m.rot) < 0.35) {
+          g.globalAlpha = Math.max(0, m.alpha)
+          g.drawImage(f.emblema.img, f.x + m.dx - 1.2 * k - 9, f.pe + m.dy - 1.62 * k - 9, 18, 18)
+          g.globalAlpha = 1
+        }
         if (f.cartao) desenharCartao(f, f.x + m.dx, f.pe, k, m)
         if (f.saiu == null && (f.chegou == null || agora - f.chegou > (f.animar ? 600 : 0))) lugares.push([f, f.x])
       }
@@ -593,9 +646,10 @@ export function criarArquibancada(tela, opcoes = {}) {
       g.fillStyle = CLARO
       g.fillRect(L, cima, D - L, 2)
       if (faixa >= 24 && lugares.length) rotulos.push([lugares, L, D, cima + faixa / 2 + 1.5, passoX, r, agora])
+      else if (CURTOS) medidas.letras[r] = 0
     }
     // Names after every row, so nothing in front covers them.
-    for (const r of rotulos) nomes(...r)
+    for (const r of rotulos) (CURTOS ? nomesCurtos : nomes)(...r)
 
     // Whoever is at the rail leans on it, drawn before it so the rail cuts the bust.
     if (foco && agora < foco.ate && foco.de) {
@@ -871,12 +925,13 @@ export function criarArquibancada(tela, opcoes = {}) {
       if (tipo === "gol" && confete) soltarConfete()
     },
     confete: soltarConfete,
-    mover(login, tipo) {
+    /** Their name lights up while they move (`acende`: a chat command's, not a crowd's verdict). */
+    mover(login, tipo, { acende = true } = {}) {
       const f = todas.get(login)
       if (!f || f.saiu != null) return
       const agora = performance.now()
       const ms = tipo === "comemora" ? FESTA_MS[f.base.fes] ?? 2400 : DURA[tipo] ?? 2400
-      f.mov = { tipo, em: agora, ate: agora + ms }
+      f.mov = { tipo, em: agora, ate: agora + ms, acende: acende && tipo !== "lamenta" }
     },
     falar(login, texto) {
       const t = Array.from(String(texto).replace(/\s+/g, " ").trim())
@@ -886,8 +941,10 @@ export function criarArquibancada(tela, opcoes = {}) {
     dedicar(login, ms = 5600) {
       aRail(todas.get(login), "", "dedica", ms)
     },
+    /** Their card now (no n), or a new one. */
     cartao(login, n) {
       const f = todas.get(login)
+      if (n === undefined) return f?.cartao ?? 0
       if (f) f.cartao = n || 0
     },
     arbitro(aberto) {

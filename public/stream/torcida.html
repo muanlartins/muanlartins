@@ -12,9 +12,13 @@
       right; Valorant: see ?jogo), with one fan
       for each viewer logged in to the chat (Twitch's membership events, as in
       presenca.html: only who has the chat open, about 10 s late), their name
-      on their row's riser, after their rank's emblem (their Σ in Rocket League's ranks, or Valorant's with
-      ?jogo=valorant). Rows of steps, 10 to a row up to 20 people, then 14 (56 at most; the rest wait off the stand); the
-      channel and then who has the most Σ stand in front (sigma.js).
+      on their row's riser and their rank's emblem pinned on their shirt (their Σ in Rocket League's ranks, or
+      Valorant's with ?jogo=valorant). Twenty seats at most, in two rows of ten, spread over the stand's width (Luan, 2026-11-23: room for
+      the names; "realisticamente só precisamos de um espaço pra 20 pessoas"); with more in the chat, the 20 who did
+      something last (came in, talked, used a command, voted) are on it, and whoever talks or acts takes the place of
+      the one quiet longest. Among them, the channel and then who has the most Σ stand in front (sigma.js). Every name
+      is always up under its fan, cut to its first 8 characters (6 when 8 don't fit the seat at 18 px); the talker's
+      balloon has it whole.
 
       Each fan is their 3D fan (since 2026-11-23: torcedor3d/, their look from /perfil, or their 2D one turned 3D),
       drawn by arquibancada3d.js from pictures baked a few at a time (fas3d.js), never as 3D on every frame.
@@ -61,8 +65,9 @@
       plays moments on its own (?demo=parado: only the keys; ?pessoas= how many, 13 by default); keys: g gol, c gol
       deles, d defesa, e defesaça, r round nosso, t round deles,
       w vitória, x derrota, f entra/sai de partida (with ?jogo=valorant, the stand tucks away), a VAR (abre, votos, veredito; de novo fecha),
-      p pula, n dança, k comemora, b bananeira, h grito, o ola, i uma dica, m mensagem, j chega alguém, s sai alguém,
-      q 8/18/36/56 pessoas, l uma legenda de exemplo, v liga/desliga as legendas de verdade (scripts/legenda.py).
+      p pula, n dança, k comemora, b bananeira, h grito, o ola, i uma dica, m mensagem, u mensagem de quem está fora
+      (com mais de 20), j chega alguém, s sai alguém, q 8/18/36/56 pessoas, l uma legenda de exemplo, v liga/desliga as
+      legendas de verdade (scripts/legenda.py).
     -->
     <script type="importmap">
       {
@@ -192,7 +197,7 @@
     <script src="legenda.js"></script>
     <script type="module">
       import { criarArquibancada } from "./arquibancada3d.js"
-      import { natal as dezembro, medidas as fornada } from "./fas3d.js"
+      import { natal as dezembro, medidas as fornada, onde as ondeAssa } from "./fas3d.js"
       import { torcedorDe } from "./torcedor3d/antigo.js"
       import { MODELOS, sortear as dado } from "./torcedor3d/esquema.js"
 
@@ -205,12 +210,13 @@
       document.documentElement.style.setProperty("--altura", `${ALTURA}px`)
       document.documentElement.style.setProperty("--meio", `${X + LARGURA / 2}px`)
       Object.assign(torcida.style, { left: `${X}px`, width: `${LARGURA}px` })
-      const stand = criarArquibancada(document.getElementById("arquibancada"), { largura: LARGURA, altura: ALTURA })
+      const stand = criarArquibancada(document.getElementById("arquibancada"), { largura: LARGURA, altura: ALTURA, lugares: 20, porFila: [10, 10], espalhar: true, nomesCurtos: true })
       // Twitch sends who was already there as JOINs over the first seconds; they all arrive at once, unanimated.
       const ASSENTANDO_MS = 15000
 
-      const pessoas = new Map() // login → { login, nome, desde, chegou, gritou }
-      // Who has a place on the stand (the first ones in order, up to its capacity); the rest wait for one.
+      const pessoas = new Map() // login → { login, nome, desde, ativo, chegou, gritou }
+      // Who has a place on the stand (the channel and the most recently active, up to its 20 seats); the rest wait for
+      // one, which talking or acting gives them.
       let naArquibancada = new Set()
       let conectouEm = 0
       let vistos = new Set()
@@ -325,13 +331,17 @@
       // --- The stand -------------------------------------------------------------------------------------------
       // The rank's emblem by the name; the channel's name alone, so it fits.
       const emblemaDe = (login) => (login !== CHANNEL && (SIGMA_API || params.has("demo")) ? Sigma.ranque(sigma(login), "pt", JOGO).emblema : null)
-      // The channel in front, then who has the most Σ, then who has been here longest; each takes the next place.
+      // On the stand: the channel and whoever did something last, up to its seats. Among them, the channel in front, then
+      // who has the most Σ, then who has been here longest; each takes the next place. Whoever loses their seat to
+      // someone who just talked sinks away.
       function arrumar() {
-        const lista = [...pessoas.values()].sort(
-          (a, b) => (b.login === CHANNEL) - (a.login === CHANNEL) || sigma(b.login) - sigma(a.login) || a.desde - b.desde,
-        )
-        const sentados = lista.slice(0, stand.capacidade)
-        naArquibancada = new Set(sentados.map((p) => p.login))
+        const ativos = [...pessoas.values()].sort((a, b) => (b.login === CHANNEL) - (a.login === CHANNEL) || b.ativo - a.ativo)
+        const sentados = ativos
+          .slice(0, stand.capacidade)
+          .sort((a, b) => (b.login === CHANNEL) - (a.login === CHANNEL) || sigma(b.login) - sigma(a.login) || a.desde - b.desde)
+        const agora = new Set(sentados.map((p) => p.login))
+        for (const login of naArquibancada) if (!agora.has(login) && pessoas.has(login)) stand.sair(login)
+        naArquibancada = agora
         stand.dispor(
           sentados.map((p) => ({ login: p.login, nome: p.nome, aparencia: escolhas.get(p.login) ?? null, emblema: emblemaDe(p.login), canal: p.login === CHANNEL })),
           { animar: Date.now() - conectouEm > ASSENTANDO_MS },
@@ -350,9 +360,16 @@
           }
           return
         }
-        pessoas.set(login, { login, nome, desde: Date.now(), chegou: Date.now() - conectouEm > ASSENTANDO_MS ? Date.now() : 0 })
+        pessoas.set(login, { login, nome, desde: Date.now(), ativo: Date.now(), chegou: Date.now() - conectouEm > ASSENTANDO_MS ? Date.now() : 0 })
         arrumar()
         pedirEscolhas()
+      }
+      // Someone talked or acted: they're the most recently active, so they get a seat if they had none.
+      function ativar(login) {
+        const p = pessoas.get(login)
+        if (!p) return
+        p.ativo = Date.now()
+        if (!naArquibancada.has(login)) arrumar()
       }
 
       function sair(login) {
@@ -611,12 +628,14 @@
         }
         const votos = v.votantes ?? {}
         for (const [login, opcao] of Object.entries(votos)) {
-          chegar(login)
+          if (!pessoas.has(login)) chegar(login)
+          // A first vote is acting: it brings them to the stand.
+          if (!stand.cartao(login)) ativar(login)
           cartao(login, opcao + 1)
         }
         if (v.fase === "veredito" && varVeredito === null) {
           varVeredito = v.vencedora
-          for (const [login, opcao] of Object.entries(votos)) stand.mover(login, opcao === v.vencedora ? "comemora" : "lamenta")
+          for (const [login, opcao] of Object.entries(votos)) stand.mover(login, opcao === v.vencedora ? "comemora" : "lamenta", { acende: false })
           creditarVar(v.id, Object.keys(votos).filter((login) => votos[login] === v.vencedora))
         }
       })
@@ -666,13 +685,14 @@
         // Someone who talks is there, even before their JOIN arrives; and now we know their display name.
         else if (command === "PRIVMSG") {
           chegar(login, tags["display-name"] || login)
+          ativar(login)
           if (trailing.startsWith("!")) comando(login, trailing)
           else falar(pessoas.get(login), trailing.replace(/^\u0001ACTION (.*)\u0001$/, "$1"))
         } else if (command === "353") trailing.split(" ").forEach((name) => name && chegar(name))
       }
 
       // For headless checks: the stand's numbers (pictures held, drawing and baking times).
-      window.estadoTorcida = () => ({ ...stand.medidas, esperando: stand.esperando(), fornada, pessoas: pessoas.size, naArquibancada: naArquibancada.size })
+      window.estadoTorcida = () => ({ ...stand.medidas, esperando: stand.esperando(), fornada, forno: ondeAssa(), pessoas: pessoas.size, naArquibancada: naArquibancada.size })
 
       if (params.has("demo")) demo()
       else
@@ -717,7 +737,7 @@
           return x - Math.floor(x)
         }
         // The channel too, as on the live, where its own account is in the chat (and says the tips).
-        let quantos = Math.max(1, Math.min(nomes.length, Number(params.get("pessoas")) || 12))
+        let quantos = Math.max(0, Math.min(nomes.length, params.has("pessoas") ? Number(params.get("pessoas")) : 12))
         function povoar(n) {
           const logins = nomes.slice(0, n).map(loginDe)
           for (const login of [...pessoas.keys()]) if (login !== CHANNEL && !logins.includes(login)) sair(login)
@@ -732,6 +752,8 @@
         const placar = [0, 0]
         const say = (login, text) => apply(`@display-name=${login} :${login}!${login}@x PRIVMSG #${CHANNEL} :${text}`)
         const random = () => [...naArquibancada].filter((l) => l !== CHANNEL)[Math.floor(Math.random() * Math.max(1, naArquibancada.size - 1))] ?? CHANNEL
+        // Someone in the chat without a seat (with more than 20 there).
+        const deFora = () => [...pessoas.keys()].find((l) => !naArquibancada.has(l))
         const keys = {
           g: () => jogo.gol({ nosso: true, kmh: 80 + Math.round(Math.random() * 60) }),
           c: () => jogo.gol({ nosso: false }),
@@ -774,6 +796,8 @@
           },
           s: () => sair(random()),
           m: () => say(random(), FRASES[Math.floor(Math.random() * FRASES.length)]),
+          // Someone off the stand talks: they take the seat of whoever has been quiet longest.
+          u: () => deFora() && say(deFora(), FRASES[Math.floor(Math.random() * FRASES.length)]),
           q: () => {
             quantos = { 8: 18, 18: 36, 36: 56 }[quantos] ?? 8
             povoar(quantos)
