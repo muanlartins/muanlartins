@@ -90,7 +90,7 @@ export default async function SectionPage({ params }: PageProps<"/[section]">) {
   const section = sectionFromSlug(slug)
   if (section === "personal") return <TimelinePage content={personal} />
   if (section === "professional") return <TimelinePage content={professional} />
-  if (section === "content") return <GameList page={content.page} games={content.games} />
+  if (section === "content") return <GameList page={content.page} games={content.listedGames} />
   if (section === "channel") return <OfChannel page={<ChannelHome lives={lives()} />} />
   notFound()
 }

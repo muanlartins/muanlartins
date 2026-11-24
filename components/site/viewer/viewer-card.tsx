@@ -7,6 +7,7 @@ import { GameIcon } from "@/components/site/game/game-icon"
 import { Torcedor3D } from "@/components/site/fan/torcedor-3d"
 import { StandStrip } from "@/components/site/ui"
 import { channel } from "@/content/channel"
+import { isArchived } from "@/lib/game"
 import type { Sigma, SigmaStats } from "@/lib/profile"
 import { LOCALE, localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -106,7 +107,8 @@ function Banner({ login, look, palette, className, children }: { login: string; 
 
 /** Their Σ as a rank, with the way to the next one, Steam's level. */
 function RankChip({ S, sigma, game, size }: { S: Sigma; sigma: number; game?: string; size: "page" | "pop" }) {
-  const rank = S.ranque(sigma, LOCALE, game === "valorant" ? "valorant" : "rocket-league")
+  // Valorant's ranks for whoever's game is Valorant, but not while it's archived (lib/game.ts).
+  const rank = S.ranque(sigma, LOCALE, game === "valorant" && !isArchived("valorant") ? "valorant" : "rocket-league")
   const progress = rank.ate ? Math.min(1, (sigma - rank.desde) / (rank.ate - rank.desde)) : 1
   const page = size === "page"
   return (

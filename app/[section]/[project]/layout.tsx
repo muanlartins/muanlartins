@@ -1,11 +1,13 @@
+import { Archive } from "lucide-react"
 import { ChannelMenu } from "@/components/site/channel/channel-menu"
+import { Callout } from "@/components/site/docs"
 import { AgentBackdrop } from "@/components/site/game/agent-backdrop"
 import { GameNotices } from "@/components/site/game-notices"
 import { GameMenu } from "@/components/site/game/game-menu"
-import { games } from "@/content/projects"
+import { games, listedGames } from "@/content/projects"
 import assets from "@/content/valorant-assets.json"
 import { DIVERSOS, diversos, diversosPath } from "@/lib/diversos"
-import { gamePath, type Game } from "@/lib/game"
+import { gamePath, isArchived, type Game } from "@/lib/game"
 import { valorantSessions } from "@/lib/matches"
 import { localize, sectionFromSlug } from "@/lib/site"
 
@@ -24,7 +26,10 @@ function latestAgent() {
   return assets.agents.find((agent) => agent.name === name && agent.portrait)?.id
 }
 
-/** Every page of a game shares its menu: home, roadmap, ranked record, links elsewhere, and the other games. The channel's have its own. */
+/**
+ * Every page of a game shares its menu: home, roadmap, ranked record, links elsewhere, and the other games (the listed
+ * ones: an archived game is never offered, though its own pages still offer the others). The channel's have its own.
+ */
 export default async function GameLayout({ children, params }: LayoutProps<"/[section]/[project]">) {
   const { section, project } = await params
   if (sectionFromSlug(section) === "channel") {
@@ -49,7 +54,7 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
           home={diversosPath()}
           items={items}
           look={DIVERSOS}
-          games={games.map((other) => ({ title: localize(other.title), home: gamePath(other), pages: [] }))}
+          games={listedGames.map((other) => ({ title: localize(other.title), home: gamePath(other), pages: [] }))}
         />
         {children}
       </div>
@@ -71,7 +76,7 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
     ...game.links.flatMap((link) => (link.href ? [{ label: localize(link.name), href: link.href, away: true }] : [])),
   ]
   const others = [
-    ...games
+    ...listedGames
       .filter((other) => other !== game)
       .map((other) => ({ title: localize(other.title), home: gamePath(other), pages: pagesOf(other).map((page) => page.href) })),
     { title: diversos.page.title, home: diversosPath(), pages: [] },
@@ -81,6 +86,11 @@ export default async function GameLayout({ children, params }: LayoutProps<"/[se
     <div className="relative">
       {game.id === "valorant" && <AgentBackdrop agent={latestAgent()} />}
       <GameMenu title={localize(game.title)} home={gamePath(game)} items={items} look={game.id} games={others} />
+      {isArchived(game.id) && game.archivedNote && (
+        <Callout icon={Archive} className="mb-10">
+          {localize(game.archivedNote)}
+        </Callout>
+      )}
       {children}
     </div>
   )
