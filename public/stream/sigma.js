@@ -72,7 +72,8 @@
   // (0 Σ weighs 1, 100 Σ weighs 5.6, 20,000 Σ weighs 10.9).
   const peso = (sigma = 0) => 1 + Math.log(1 + sigma)
 
-  // From Ouro I on, a fan may wear any colour, not only the palette.
+  // From Ouro I on, free colours unlock (the viewer's card on the site). A fan's own colours no longer wait for it: since
+  // the 3D fan (2026-11-23, Luan's call) the overlays draw any colour a viewer picked, whatever their Σ.
   const COR_LIVRE = 370
 
   // Badges: what a viewer has done, each in eight levels, past any rank. Watching (hours, lives), coming back

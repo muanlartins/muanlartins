@@ -13,11 +13,11 @@
 
       The marble race (Lucca's idea, lucca_3098; Luan's rules, 2026-11-17), in 3D since 2026-11-17 (Luan: the point of
       Marbles is the 3D and the mess the maps make): when the scene goes on air, a race starts by itself with everyone in
-      the chat, nobody joining or doing anything, one marble each made from their fan (bolinha.js: the shirt's colours and
-      pattern, the finish their Σ unlocks). The race is corrida-motor.js (deterministic: a seed and how many run, a course
+      the chat, nobody joining or doing anything, one marble each made from their fan (bolinha.js: their 3D fan's shirt,
+      its colours and pattern, flat through fas3d.js's camisaPlana; the finish their Σ unlocks). The race is corrida-motor.js (deterministic: a seed and how many run, a course
       of obstacles built from the seed); this page draws it with three.js in a box where the scene's topic is (the box
       takes its place while a race runs), with a camera following the leaders, the top five on the left, everyone's
-      place on a strip at the bottom and the podium at the end. One race each time the scene comes on; off the air (the
+      place on a strip at the bottom and the podium at the end, the first three as their 3D fans (fas3d.js). One race each time the scene comes on; off the air (the
       scene left before the end) the race is dropped.
 
       The record: OBS's source URL holds the Σ key (#chave=…, as the stand's), and with it every race that ends while
@@ -264,9 +264,10 @@
       .degrau.p1 .nome {
         margin-bottom: 24px;
       }
+      /* A 3D fan's picture (fas3d.js): its whole frame is 4.5 × 5.3. */
       .degrau .fa {
         position: relative;
-        width: 46px;
+        width: 59px;
         height: 70px;
       }
       /* Sized, or the winner's celebration (a transform on .pose) shrinks the drawing to nothing. */
@@ -308,12 +309,13 @@
       </div>
     </div>
     <script src="stream.js"></script>
-    <script src="torcedor.js"></script>
     <script src="sigma.js"></script>
     <script src="corrida-motor.js"></script>
     <script src="bolinha.js"></script>
     <script type="module">
       import * as THREE from "three"
+      import { camisaPlana, lookDe, poseDaFesta, retrato } from "./fas3d.js"
+      import { MODELOS, sortear as dado } from "./torcedor3d/esquema.js"
 
       const caixa = document.querySelector(".caixa")
       const cena = document.querySelector(".cena")
@@ -393,11 +395,8 @@
         }
       }
       const sigma = (login) => (login === CHANNEL ? Sigma.RL.at(-1)[0] : sigmas.get(login) ?? 0)
-      // Their fan, as the stand draws it (free colours only once their Σ unlocks them).
-      function aparencia(login) {
-        const a = Torcedor.normalizar(escolhas.get(login), login)
-        return login === CHANNEL || sigma(login) >= Sigma.COR_LIVRE ? a : Torcedor.soPaleta(a, login)
-      }
+      // Their 3D fan, as the stand draws it (in December with Santa's hat), and its shirt flat for the marble.
+      const fa = (login) => lookDe(escolhas.get(login) ?? null, login)
 
       // --- The 3D scene ---------------------------------------------------------------------------------------------
       const renderer = new THREE.WebGLRenderer({ canvas: cena, antialias: true, alpha: true })
@@ -600,7 +599,7 @@
         if (logins.length < 2) return avisar("vazio")
         await pedir(logins.filter((l) => l !== CHANNEL))
         const nomes = (params.get("nomes") ?? "").split(",")
-        corredores = logins.map((login, i) => ({ login, nome: (REPLAY && nomes[i]?.trim()) || presentes.get(login) || login, aparencia: aparencia(login) }))
+        corredores = logins.map((login, i) => ({ login, nome: (REPLAY && nomes[i]?.trim()) || presentes.get(login) || login, look: fa(login), aparencia: camisaPlana(fa(login)) }))
         corrida = Corrida.criar(semente, corredores.length)
         montarPista(corrida.pista)
         montarBolas(corredores)
@@ -617,13 +616,19 @@
         caixa.classList.remove("escondida")
       }
 
+      // The podium's pictures, closed when it goes.
+      let noPodio = []
       function encerrar() {
         fase = "parada"
         corrida = null
         aviso.textContent = ""
         caixa.classList.add("escondida")
         rotulos.replaceChildren()
-        setTimeout(() => podio.classList.remove("visivel"), 500)
+        setTimeout(() => {
+          podio.classList.remove("visivel")
+          noPodio.forEach((r) => r.largar())
+          noPodio = []
+        }, 500)
         // The site's replay plays again.
         if (REPLAY) setTimeout(largar, 1200)
         avisar("fim")
@@ -642,12 +647,19 @@
           .map(
             ([c, n]) => `<div class="degrau p${n}">
               <div class="nome"></div>
-              <div class="fa torcedor${n === 1 ? " comemora" : ""}" data-comemoracao="${c.aparencia.comemoracao}"><div class="pose">${Torcedor.figura(c.aparencia)}</div></div>
+              <div class="fa torcedor${n === 1 ? " comemora" : ""}" data-comemoracao="${c.look.fes}"><div class="pose"></div></div>
               <div class="base">${n}º</div>
             </div>`,
           )
           .join("")
         podio.querySelectorAll(".degrau .nome").forEach((el, k) => (el.textContent = lugares[k][0].nome))
+        noPodio.forEach((r) => r.largar())
+        noPodio = [...podio.querySelectorAll(".degrau .fa")].map((el, k) => {
+          const [c, n] = lugares[k]
+          const r = retrato(el, c.look, { altura: 70, poses: n === 1 ? ["parado", poseDaFesta(c.look.fes), "cima", "palmas"] : ["parado"] })
+          if (n === 1) r.festa(Infinity)
+          return r
+        })
         podio.classList.add("visivel")
         aviso.textContent = ""
         rotulos.replaceChildren()
@@ -900,7 +912,8 @@
         irc(apply, { membership: true })
         setInterval(() => pedir([...presentes.keys()].slice(0, 100)), 120000)
       } else {
-        const nomes = ["rafa", "Giovana_GC", "tiago.mendes", "marinamarina", "lucas_s", "bia.lima", "DuduSantos", "ceci", "otto", "jujuba"]
+        // Invented people.
+        const nomes = ["Bia", "torcedor_da_madrugada_10", "Duda", "Tobias", "Nina", "Raul", "Malu", "capivara_cansada", "Teca", "Breno"]
         const um_ = (lista) => lista[Math.floor(Math.random() * lista.length)]
         function povoar(n) {
           presentes.clear()
@@ -908,7 +921,11 @@
             const nome = k < nomes.length ? nomes[k] : `pessoa${k}`
             const login = nome.toLowerCase().replace(/[^a-z0-9_]/g, "_")
             presentes.set(login, nome)
-            escolhas.set(login, { cor: um_(Torcedor.CORES), detalhe: um_(Torcedor.CORES), terceira: um_(Torcedor.CORES), roupa: um_(Torcedor.ROUPAS), numero: k, cabeca: um_(Torcedor.CABECAS), comemoracao: um_(Torcedor.COMEMORACOES) })
+            // A third made their 3D fan, the rest kept their 2D one (turned 3D).
+            if (k % 3 === 0) escolhas.set(login, { t3: { ...(k % 6 === 0 ? MODELOS[k % MODELOS.length][1] : dado(7919 * k + 13)), fes: um_(["pula", "danca", "gira", "acena", "palmas", "bananeira"]) } })
+            else
+              escolhas.set(login, { cor: um_(["#85a7ff", "#3ddc97", "#ffd23f", "#ff6b57", "#c792ea", "#4dd4ff"]), detalhe: um_(["#f4f5f7", "#2b2f38", "#ff9f43"]), terceira: um_(["#85a7ff", "#ffd23f", "#f4f5f7"]),
+                roupa: um_(["lisa", "listra", "faixa", "meio", "numero", "gola", "listras", "listrado", "tricolor", "faixa-dupla"]), numero: k, cabeca: um_(["losango", "redonda", "quadrada"]), comemoracao: um_(["pula", "danca", "gira", "acena", "bananeira"]) })
             // A few with a finish, to see them.
             sigmas.set(login, [0, 0, 0, 900, 2600, 6000, 9000, 20000][k % 8])
           }
