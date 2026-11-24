@@ -34,7 +34,20 @@ export interface Game {
   links: Project[]
   /** Whose game it is and whose art the page uses, under its pages. */
   credits: L10n
+  /** The line over its pages while it's archived (ARCHIVED_GAMES). */
+  archivedNote?: L10n
 }
+
+/**
+ * Games put away for now: Valorant since 2026-11-24 (the channel focused on Rocket League, Celeste on the weekends).
+ * An archived game's pages still build and work at their addresses, with its `archivedNote` over them, but nothing
+ * lists or links them (`listedGames` in content/projects.ts) and its features on the viewers' pages hide (the dream
+ * loadout, Σ in its ranks). Its data stays. Taking it out of here brings it all back. Kept here, light, so the
+ * browser's pages can ask without bundling the games' content.
+ */
+export const ARCHIVED_GAMES: readonly string[] = ["valorant"]
+
+export const isArchived = (id: string) => ARCHIVED_GAMES.includes(id)
 
 export function game(page: Game) {
   return page

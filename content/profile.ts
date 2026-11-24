@@ -29,6 +29,8 @@ export const profile = {
     torcedor: { pt: "Torcedor", en: "Fan" },
     cartao: { pt: "Cartão", en: "Card" },
     bolinha: { pt: "Bolinha e loadout", en: "Ball and loadout" },
+    /** The same tab while Valorant is archived (lib/game.ts), with no loadout in it. */
+    bolinhaSo: { pt: "Bolinha", en: "Ball" },
     contas: { pt: "Contas", en: "Accounts" },
     sigma: { pt: "Σ e medalhas", en: "Σ and medals" },
   },
@@ -119,7 +121,7 @@ export const profile = {
     signIn: { pt: "Pra montar o seu cartão: banner, foto, cores e o que você quiser contar.", en: "To make your card: banner, photo, colours and whatever you want to say." },
   },
 
-  /** Their ball in the minigames and their dream loadout: each is picked on its own page. */
+  /** Their ball in the minigames and their dream loadout (hidden while Valorant is archived): each is picked on its own page. */
   extras: {
     duel: { pt: "Duelo de bolinhas", en: "Ball duel" },
     random: { pt: "Classe sorteada a cada duelo", en: "A class drawn each duel" },

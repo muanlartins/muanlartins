@@ -5,6 +5,7 @@ import { cardClass } from "@/components/site/ui"
 import { channel } from "@/content/channel"
 import { channelPath } from "@/lib/channel"
 import { commands } from "@/lib/commands"
+import { isArchived } from "@/lib/game"
 import { sigmaRules } from "@/lib/sigma-rules"
 import { localize, MURAL_SLUG, profileSlug } from "@/lib/site"
 import { cn } from "@/lib/utils"
@@ -82,7 +83,8 @@ export function SigmaPage() {
             </li>
           ))}
         </ol>
-        {valorantGold != null && <p className="mt-4 max-w-[38rem] text-[13px] leading-[1.5] text-muted">{S.ranks.valorant.replace("{n}", number.format(valorantGold)).replace(" Σ", "\u00a0Σ")}</p>}
+        {/* Valorant's scene's ranks, not while the game is archived (lib/game.ts). */}
+        {valorantGold != null && !isArchived("valorant") && <p className="mt-4 max-w-[38rem] text-[13px] leading-[1.5] text-muted">{S.ranks.valorant.replace("{n}", number.format(valorantGold)).replace(" Σ", "\u00a0Σ")}</p>}
       </DocSection>
 
       <DocSection id="pra-que-servem" n={3} title={S.uses.title}>

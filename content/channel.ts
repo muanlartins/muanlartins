@@ -598,8 +598,8 @@ export const channel = {
       sub: { pt: "Ganhou um sub de presente", en: "Won a gift sub" },
       subGoal: { pt: "na meta {goal}", en: "in the goal {goal}" },
       none: {
-        pt: "A cada gol (no Valorant, a cada vitória), a arquibancada sorteia alguém do chat pra dedicar. Os seus aparecem aqui, com os subs de presente que você ganhar.",
-        en: "Each goal (in Valorant, each win) the stand draws someone from the chat to dedicate it to. Yours show here, with the gift subs you win.",
+        pt: "A cada gol, a arquibancada sorteia alguém do chat pra dedicar. Os seus aparecem aqui, com os subs de presente que você ganhar.",
+        en: "Each goal the stand draws someone from the chat to dedicate it to. Yours show here, with the gift subs you win.",
       },
     },
     loadout: {
@@ -823,8 +823,8 @@ export const channel = {
     stream: {
       title: { pt: "A live por dentro", en: "The live from the inside" },
       text: {
-        pt: "Os overlays são páginas deste site, que o OBS abre como fontes de navegador: a moldura da câmera, o chat, a arquibancada, os minijogos.\n\nNo Rocket League, um painel lê as estatísticas pela API do próprio jogo, conta vitórias e derrotas, avisa a arquibancada dos gols e das defesas e corta pra conversa quando a partida acaba. No Valorant, um script lê o cliente da Riot e avisa a arquibancada de cada rodada.",
-        en: "The overlays are pages of this site that OBS opens as browser sources: the camera frame, the chat, the stand, the minigames.\n\nIn Rocket League, a panel reads the stats from the game's own API, counts wins and losses, tells the stand about goals and saves and cuts to the talk when the match ends. In Valorant, a script reads Riot's client and tells the stand about every round.",
+        pt: "Os overlays são páginas deste site, que o OBS abre como fontes de navegador: a moldura da câmera, o chat, a arquibancada, os minijogos.\n\nNo Rocket League, um painel lê as estatísticas pela API do próprio jogo, conta vitórias e derrotas, avisa a arquibancada dos gols e das defesas e corta pra conversa quando a partida acaba.",
+        en: "The overlays are pages of this site that OBS opens as browser sources: the camera frame, the chat, the stand, the minigames.\n\nIn Rocket League, a panel reads the stats from the game's own API, counts wins and losses, tells the stand about goals and saves and cuts to the talk when the match ends.",
       },
     },
     after: {

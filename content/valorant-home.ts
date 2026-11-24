@@ -8,7 +8,8 @@ import { game } from "@/lib/game"
  * `rank` is Luan's rank by hand until the first match there tells it. `aim` is the Voltaic page (content/voltaic/,
  * from scripts/voltaic.py). `inventory` is the weapon skins page: the channel's collection and game reading, and anyone's
  * dream loadout (lib/valorant-inventory.ts). `universo` is Universo Valorant (lib/valorant-universo.ts).
- * The credits are Riot's "Legal Jibber Jabber", which fan sites using its art must show.
+ * The credits are Riot's "Legal Jibber Jabber", which fan sites using its art must show. Archived since 2026-11-24
+ * (ARCHIVED_GAMES in lib/game.ts): its pages stay at their addresses, listed nowhere, with `archivedNote` over them.
  */
 export default game({
   id: "valorant",
@@ -53,6 +54,11 @@ export default game({
     },
   },
   links: [],
+  // TODO(Luan): rascunho, a frase é sua.
+  archivedNote: {
+    pt: "Arquivado: o canal está focado em Rocket League. Tudo do Valorant continua aqui.",
+    en: "Archived: the channel is focused on Rocket League. Everything of Valorant's is still here.",
+  },
   credits: {
     pt: `muanlartins não é endossado pela Riot Games e não reflete as visões ou opiniões da Riot Games ou de qualquer pessoa oficialmente envolvida na produção ou gestão das propriedades da Riot Games. Riot Games e todas as propriedades associadas são marcas comerciais ou marcas registradas da Riot Games, Inc. Os emblemas de rank são da Riot Games. ${RIOT_NOTICE.pt}`,
     en: `muanlartins isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc. The rank emblems belong to Riot Games. ${RIOT_NOTICE.en}`,

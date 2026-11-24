@@ -5,6 +5,9 @@ description: Publishing Luan's aim training (Voltaic's routine and Sunday benchm
 
 # Aim training with Voltaic
 
+> **Archived with Valorant since 2026-11-24** (`AGENTS.md`, "Valorant (arquivado)"): the aim page stays at its
+> address but nothing links it, and `mira_auto.py` no longer runs. Run this only if Luan brings Valorant back.
+
 Luan trains aim every day with Voltaic's Valorant routine in Aimlabs and plays Voltaic's **Season 3 benchmark**
 every Sunday (Novice for now: Aimlabs playlist `3266803489`). The page `/conteudo/valorant/aim` shows it.
 

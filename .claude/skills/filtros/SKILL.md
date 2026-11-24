@@ -5,6 +5,9 @@ description: Making a camera filter for the stream (a Valorant agent's abilities
 
 # A new filter on the camera
 
+> **Valorant is archived since 2026-11-24** (`AGENTS.md`, "Valorant (arquivado)"): its agents (Phoenix, Sova, Sage)
+> and their rewards are put away; what's here about them holds for when it's back.
+
 The procedure is `public/stream/filtros/README.md`: read it first. In short, `public/stream/filtros.html` is the
 engine (camera, trackers, particles, sounds, body effects, drawing) and every filter is a folder under
 `public/stream/filtros/`: its entry (`filtros`, which the dock and the page read), its module (`criar(motor)`: what

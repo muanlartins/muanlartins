@@ -10,7 +10,28 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # muanlartins
 
-Luan Martins' personal site and the home of the muanlartins channel: improving at games with the scientific method, in Brazilian Portuguese. Rocket League in the afternoons, and Valorant, learned from Silver, on Monday and Wednesday nights.
+Luan Martins' personal site and the home of the muanlartins channel: improving at games with the scientific method, in Brazilian Portuguese. Since 2026-11-24 the channel is Rocket League, with Celeste as the weekends' bonus; Valorant, learned from Silver on Monday and Wednesday nights until then, is archived (below).
+
+## Valorant (arquivado)
+
+Luan's call, 2026-11-24: focus on Rocket League, and keep everything of Valorant's, hidden, to bring back someday.
+Nothing was deleted; what's below about Valorant describes it as it was, and stays true for when it returns.
+
+- **The site:** `ARCHIVED_GAMES` in `lib/game.ts` is the one switch. An archived game's pages still build and work at
+  their addresses (`/conteudo/valorant` and its ranked, aim, inventory and universo pages), with its `archivedNote`
+  over them (`content/valorant-home.ts`), but nothing lists or links them: the content page, the channel's home and the
+  games' menus use `listedGames` (`content/projects.ts`), while lookups by id (old lives, the agenda) still find it.
+  The viewers' Valorant features hide: the dream loadout on `/perfil` and on `/torcedor/<login>`, Σ in Valorant's ranks
+  on the card and on `/canal/sigma`. The data (sessions, the loadouts in the profile API, the catalogue) stays.
+- **The chat and Discord:** `!fundamentos` links Rocket League's only; the Phoenix, Sova and Sage rewards are off the
+  commands page (`public/stream/comandos.json`); Discord's #valorant and the 🎯 Valorant voice channel sit read-only in
+  the "📦 Arquivo" category (`scripts/discord.mjs`).
+- **OBS and the PC:** the Valorant scenes live on in OBS's scene collection "Valorant (arquivo)", a copy of the Live
+  collection as it was; `valorant.py` (and with it `mira_auto.py`) no longer starts at login: its
+  `Valorant muanlartins.vbs` moved from Startup to `C:\Users\muanl\Documents\muanlartins-obs\arquivo\`.
+- **Bringing it back:** empty `ARCHIVED_GAMES`, move the two Discord channels back to Conversa and Voz in
+  `scripts/discord.mjs` (and `--apply`), put the `.vbs` back in Startup, the agent rewards back in `comandos.json`,
+  and the Valorant scenes back in OBS from the archived collection.
 
 ## Ground rules
 
@@ -38,7 +59,7 @@ the one that fits before starting): `antes-da-live` (what not to run while he's 
 `depois-da-live` (filing the material, the live's page, the videos of its matches, YouTube, release), `faxina`
 (cleaning the Videos folder), `estudio` (shorts and commented videos with RLR's studio), `agenda` (the lives' schedule on the site and Twitch), `obs` (OBS from WSL,
 `scripts/obs.mjs`), `filtros` (a new agent's abilities on the camera filters: the game's effects and sounds,
-the page, the dock, the headless test), `voltaic` (publishing his aim training to Valorant's aim page) and
+the page, the dock, the headless test), `voltaic` (publishing his aim training to Valorant's aim page; archived with Valorant) and
 `torcedor` (a fan for the stand from a description or a picture, "faça esse torcedor da arquibancada: …": the
 closest preset, `scripts/torcedor/torcedor validar` and `render`, the T1 code he pastes in the profile editor; its
 guide is `scripts/torcedor/README.md`). An agent that doesn't load `.claude/skills/` (Codex) reads the skill's file
