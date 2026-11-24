@@ -1453,9 +1453,10 @@
         { title: "Uuuh", cost: 50, prompt: "O uuuh da torcida.", cooldown: 60, play: () => sound("uuuh") },
         { title: "Tambor", cost: 50, prompt: "Rufem os tambores.", cooldown: 60, play: () => sound("tambor") },
         { title: "Bebe água!", cost: 50, prompt: "Eu paro e bebo água. Saúde!", cooldown: 600, play: () => ready && !BREAKS.includes(current) },
-        { title: "Phoenix na câmera", cost: 100, prompt: "Uma habilidade do Phoenix, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("phoenix", ["blaze", "flash", "molotov", "ult"]) },
-        { title: "Sova na câmera", cost: 100, prompt: "Uma habilidade do Sova, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("sova", ["drone", "choque", "recon", "ult"]) },
-        { title: "Sage na câmera", cost: 100, prompt: "Uma habilidade da Sage, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("sage", ["barreira", "lentidao", "cura", "ult"]) },
+        // Valorant's agents, archived with the game on 2026-11-24: off on Twitch (hidden from viewers), kept here.
+        { title: "Phoenix na câmera", arquivada: true, cost: 100, prompt: "Uma habilidade do Phoenix, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("phoenix", ["blaze", "flash", "molotov", "ult"]) },
+        { title: "Sova na câmera", arquivada: true, cost: 100, prompt: "Uma habilidade do Sova, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("sova", ["drone", "choque", "recon", "ult"]) },
+        { title: "Sage na câmera", arquivada: true, cost: 100, prompt: "Uma habilidade da Sage, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("sage", ["barreira", "lentidao", "cura", "ult"]) },
         { title: "Octane na câmera", cost: 100, prompt: "O Octane na minha cabeça: um flip ou uma demolição.", cooldown: 120, play: () => camera("octane", ["demo", "flip"]) },
       ]
       function sound(som) {
@@ -1577,6 +1578,12 @@
         if (!mine) return
         rewardIds.clear()
         for (const reward of REWARDS) {
+          // An archived one is turned off (gone from the viewers' list) and never made again.
+          if (reward.arquivada) {
+            const old = mine.data.find((r) => r.title === reward.title)
+            if (old?.is_enabled) await helix("PATCH", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}&id=${old.id}`, { is_enabled: false })
+            continue
+          }
           const want = {
             cost: reward.cost,
             prompt: reward.prompt,

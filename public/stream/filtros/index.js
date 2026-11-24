@@ -11,5 +11,9 @@ export async function lista() {
   const mods = await Promise.all(MODULOS.map((nome) => import(`./${nome}/index.js`).then((mod) => ({ nome, mod }))))
   const out = mods.flatMap(({ nome, mod }) => mod.filtros.map((f) => ({ ...f, modulo: nome, visual: VISUAIS[f.id] })))
   for (const [id, v] of Object.entries(VISUAIS)) if (!out.some((f) => f.id === id)) out.push({ id, nome: v.nome || id, jogo: v.jogo || "Outros", rosto: v.rosto, visual: v })
-  return out
+  // An archived game's filters stay working but off the dock (`fora`): Valorant's since 2026-11-24.
+  return out.map((f) => (ARQUIVADOS.includes(f.jogo) ? { ...f, fora: true } : f))
 }
+
+// Games whose filters the dock no longer lists (archived, to come back): their folders stay as they are.
+export const ARQUIVADOS = ["Valorant"]
