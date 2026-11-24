@@ -12,7 +12,6 @@ import {
   TrendingUp,
   UsersRound,
 } from "lucide-react"
-import Script from "next/script"
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react"
 import { FanSpot } from "@/components/site/pix/fan-spot"
 import { decimal, longDay, shortDate, signed, time, weekday } from "@/components/site/ranked/format"
@@ -22,7 +21,7 @@ import { RlrLink } from "@/components/site/ranked/rlr-link"
 import { Badge, Button, ButtonLink, cardClass, EmptyState, Section } from "@/components/site/ui"
 import { ViewerName } from "@/components/site/viewer/viewer-name"
 import { livePath } from "@/lib/channel"
-import { loadFans, type Choice, type Torcedor } from "@/lib/profile"
+import { loadFans, type SavedFan } from "@/lib/profile"
 import { dayOf } from "@/lib/ranked"
 import type { Breakdown, Day, Player, RecordView, Result, Stat, ViewMatch } from "@/lib/ranked-view"
 import { localize } from "@/lib/site"
@@ -360,8 +359,7 @@ function Days({ days, unit }: { days: Day[]; unit: string }) {
 
 function Players({ players, unit }: { players: Player[]; unit: string }) {
   // Their fans, as they built them on their profile (or the one their login gives them).
-  const [torcedor, setTorcedor] = useState<Torcedor | null>(null)
-  const [fans, setFans] = useState<Record<string, Choice> | null>(null)
+  const [fans, setFans] = useState<Record<string, SavedFan> | null>(null)
   const logins = players.map((player) => player.login).join(",")
   useEffect(() => {
     loadFans(logins.split(","))
@@ -381,7 +379,7 @@ function Players({ players, unit }: { players: Player[]; unit: string }) {
             key={player.login}
             className={cn(cardClass, "flex items-center gap-4 px-3 py-3", player.me && "border-klein bg-klein/[0.06]", player.me && wide && "sm:col-span-2")}
           >
-            <FanSpot T={torcedor} fans={fans} login={player.login} name={player.login} size={player.me ? "md" : "sm"} />
+            <FanSpot fans={fans} login={player.login} name={player.login} size={player.me ? "md" : "sm"} />
             <div className="min-w-0 space-y-1 text-[15px] tabular-nums">
               <p className="flex items-center gap-2">
                 {player.login === ME ? (
@@ -408,7 +406,6 @@ function Players({ players, unit }: { players: Player[]; unit: string }) {
           </li>
         ))}
       </ul>
-      <Script src="/stream/torcedor.js" onReady={() => setTorcedor(window.Torcedor ?? null)} />
     </>
   )
 }

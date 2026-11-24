@@ -18,8 +18,9 @@ import { channelPath, livePath } from "@/lib/channel"
 import { loadRacer, loadRaces, RACE_ASPECT, raceUrl, type Race, type Racer } from "@/lib/corrida"
 import { loadDuelist, PLAYER_ASPECT, replayUrl, type Duelist, type Fight } from "@/lib/duelo"
 import { loadMural, type Mural, type MuralPix } from "@/lib/pix"
-import { keptMe, keptMeRaw, keptToken, loadMine, onMeChange, type Sigma, type Torcedor } from "@/lib/profile"
+import { keptMe, keptMeRaw, keptToken, loadMine, onMeChange, type Fan, type Sigma } from "@/lib/profile"
 import { LOCALE, localize, PIX_SLUG, profileSlug, sectionPath } from "@/lib/site"
+import { normalizar2D } from "@/lib/torcedor2d"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
 import { forgetLook, isLogin, loadLook, loadPerson, loadViewerData, takeDownImage, type ImageKind, type Look, type Person, type ViewerData } from "@/lib/viewer"
@@ -119,7 +120,6 @@ function useKeptLogin() {
  */
 export function ViewerPage({ login: given }: { login: string }) {
   const login = given.toLowerCase()
-  const [T, setT] = useState<Torcedor | null>(null)
   const [S, setS] = useState<Sigma | null>(null)
   const [kit, setKit] = useState<DuelKit | null>(null)
   const [mkit, setMkit] = useState<MarbleKit | null>(null)
@@ -195,7 +195,8 @@ export function ViewerPage({ login: given }: { login: string }) {
   const stats = person.state === "ok" ? person.value.stats : null
   const ideas = data?.ideias[login] ?? []
   const matches = data?.partidas[login] ?? []
-  const fan = T ? T.normalizar(look?.aparencia ?? null, login) : null
+  // Their ball and marble wear their fan's colours and shirt, as the live draws them (the 2D fan's fields).
+  const fan = look === undefined ? null : normalizar2D(look?.aparencia ?? null, login)
   const settled = [person, duels, races, mural, loadout].every((s) => s.state !== "loading") && data !== null && look !== undefined
 
   // What each showcase has: "error" and content show to everyone; "empty" only on your own page.
@@ -352,15 +353,12 @@ export function ViewerPage({ login: given }: { login: string }) {
 
   return (
     <div>
-      <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />
       <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />
       <Script src="/stream/duelo-motor.js" onReady={() => setKit(duelKit())} />
       <Script src="/stream/duelo-arte.js" onReady={() => setKit(duelKit())} />
       <Script src="/stream/bolinha.js" onReady={() => setMkit(marbleKit())} />
-      {/* eslint-disable-next-line @next/next/no-css-tags */}
-      <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
 
-      <ViewerCard login={login} look={look} stats={stats} primeira={person.state === "ok" ? person.value.primeira : undefined} T={T} S={S} actions={actions} heading />
+      <ViewerCard login={login} look={look} stats={stats} primeira={person.state === "ok" ? person.value.primeira : undefined} S={S} actions={actions} heading />
       {mine && <p className="mt-3 text-[13px] text-muted">{text.mine}</p>}
 
       <div className="mt-12">
@@ -460,7 +458,7 @@ function DuelShowcase({
   kit: DuelKit | null
   S: Sigma | null
   stats: Person["stats"]
-  fan: ReturnType<Torcedor["normalizar"]> | null
+  fan: Fan | null
   onReplay: OnReplay
 }) {
   const fights = duels?.lutas ?? []
@@ -547,7 +545,7 @@ function RaceShowcase({
   races: Racer | null
   error: ReactNode
   recent: Record<string, Race>
-  fan: ReturnType<Torcedor["normalizar"]> | null
+  fan: Fan | null
   mkit: MarbleKit | null
   rankId?: string
   onReplay: OnReplay

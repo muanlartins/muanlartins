@@ -34,8 +34,9 @@ import {
   type Fight,
   type MaterialId,
 } from "@/lib/duelo"
-import { canSave, keptToken, loadFans, loadMySigma, signIn, signOut, SignedOut, type Choice, type Sigma, type Torcedor } from "@/lib/profile"
+import { canSave, keptToken, loadFans, loadMySigma, signIn, signOut, SignedOut, type Choice, type SavedFan, type Sigma } from "@/lib/profile"
 import { LOCALE, localize } from "@/lib/site"
+import { normalizar2D } from "@/lib/torcedor2d"
 import { CHANNEL } from "@/lib/twitch"
 import { cn } from "@/lib/utils"
 
@@ -48,7 +49,7 @@ const BACK = "/canal/minijogos"
 const IDEA_BY = "lucca_3098"
 // The preview's other ball: a login Twitch can't have (they're 4 characters or more), so it never names anyone.
 const NOBODY = "eu"
-// A fan's colours before torcedor.js loads (Klein claro and Klein, as canvas colours).
+// The class stats' ball, nobody's: Klein claro and Klein, as canvas colours.
 const PLAIN = { cor: "#85a7ff", detalhe: "#002fa7", roupa: "lisa" }
 
 type Status = "idle" | "saving" | "saved" | "error" | "expired"
@@ -98,7 +99,6 @@ const INDEX: { id: string; label: keyof typeof text.index; Icon: LucideIcon }[] 
  * rankings, the best and latest fights with their replays, and the duel's numbers by class.
  */
 export function MinigamesPage() {
-  const [T, setT] = useState<Torcedor | null>(null)
   const [S, setS] = useState<Sigma | null>(null)
   const [kit, setKit] = useState<DuelKit | null>(null)
   const [marbles, setMarbles] = useState<MarbleKit | null>(null)
@@ -112,7 +112,7 @@ export function MinigamesPage() {
   const [duels, setDuels] = useState<Duels | null | "error">(null)
   const [races, setRaces] = useState<Races | null | "error">(null)
   const [me, setMe] = useState<Duelist | null | "error">(null)
-  const [fans, setFans] = useState<Record<string, Choice> | null>(null)
+  const [fans, setFans] = useState<Record<string, SavedFan> | null>(null)
   const [hovered, setHovered] = useState<ClassId | null>(null)
   const [myFan, setMyFan] = useState<Choice | null>(null)
   const [replay, setReplay] = useState<Fight | null>(null)
@@ -171,8 +171,8 @@ export function MinigamesPage() {
   }, [addFans, loadMine])
 
   // Their own fan's colours and shirt on every ball they look at.
-  const fanOf = useCallback((who: string, choice?: Choice | null) => (T ? T.normalizar(choice ?? fans?.[who] ?? null, who) : PLAIN), [T, fans])
-  const mine = T ? T.normalizar(myFan, login || NOBODY) : PLAIN
+  const fanOf = useCallback((who: string, choice?: Choice | null) => normalizar2D(choice ?? fans?.[who] ?? null, who), [fans])
+  const mine = normalizar2D(myFan, login || NOBODY)
 
   // What their Σ has unlocked: the channel, everything.
   const unlocked = useMemo(() => {
@@ -183,8 +183,8 @@ export function MinigamesPage() {
   const startsAt = (id: MaterialId) => S?.RL.find(([, rank]) => tierOf(rank) === id)?.[0] ?? 0
   const materialName = (id: MaterialId) => (S ? S.ranque(startsAt(id), LOCALE).nome.replace(/ (I|II|III)$/, "") : id)
   const skinOf = useCallback(
-    (who: string) => marbleSkin(marbles, (T ? T.normalizar(fans?.[who] ?? null, who) : {}) as unknown as Record<string, unknown>),
-    [marbles, T, fans],
+    (who: string) => marbleSkin(marbles, normalizar2D(fans?.[who] ?? null, who) as unknown as Record<string, unknown>),
+    [marbles, fans],
   )
 
   const dirty = !same(ball, saved)
@@ -236,9 +236,6 @@ export function MinigamesPage() {
 
   return (
     <div>
-      {/* eslint-disable-next-line @next/next/no-css-tags */}
-      <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
-      <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />
       <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />
       <Script
         src="/stream/duelo-motor.js"
@@ -485,9 +482,9 @@ export function MinigamesPage() {
           </div>
         </Section>
 
-        <RaceSection T={T} S={S} kit={marbles} races={races} login={login} fan={login ? (mine as unknown as Record<string, unknown>) : null} sigma={sigma} skinOf={skinOf} />
+        <RaceSection S={S} kit={marbles} races={races} login={login} fan={login ? (mine as unknown as Record<string, unknown>) : null} sigma={sigma} skinOf={skinOf} />
 
-        <RankingSection duels={duels} races={races} T={T} fans={fans} login={login} skinOf={skinOf} />
+        <RankingSection duels={duels} races={races} fans={fans} login={login} skinOf={skinOf} />
 
         <FightsSection fights={list?.lutas ?? null} failed={duels === "error"} kit={kit} versao={versao} fanOf={fanOf} />
 

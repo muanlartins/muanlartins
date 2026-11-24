@@ -2,14 +2,14 @@
 
 import Link from "next/link"
 import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
+import { Torcedor3D } from "@/components/site/fan/torcedor-3d"
 import { BadgeChips } from "@/components/site/profile/badges"
-import { FanView } from "@/components/site/profile/fan-view"
 import { shortDate } from "@/components/site/ranked/format"
 import { BarList, cardClass, EmptyState, ErrorLine, Ranking, Section, Skeleton } from "@/components/site/ui"
 import { ViewerName } from "@/components/site/viewer/viewer-name"
 import { COUNTS, MILESTONES, mural as muralCopy } from "@/content/pix"
 import { livePath } from "@/lib/channel"
-import { loadAudience, loadFans, SIGMA_API, type Choice, type Sigma, type Torcedor, type Viewer } from "@/lib/profile"
+import { loadAudience, loadFans, SIGMA_API, type SavedFan, type Sigma, type Viewer } from "@/lib/profile"
 import { LOCALE, localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
@@ -37,14 +37,13 @@ function fill(template: string, slots: Record<string, ReactNode>) {
 }
 
 interface Look {
-  T: Torcedor | null
   S: Sigma | null
-  fans: Record<string, Choice> | null
+  fans: Record<string, SavedFan> | null
 }
 
-/** Their fan, the one they built on /perfil or the one their login gives them. */
-function Fan({ p, look: { T, fans }, className }: { p: Viewer; look: Look; className?: string }) {
-  return <div className={className}>{T && fans && <FanView T={T} fan={T.normalizar(fans[p.login] ?? null, p.login)} className="h-full w-full" />}</div>
+/** Their fan, the one they built on /perfil or the one their login gives them; a silhouette while the profiles load. */
+function Fan({ p, look: { fans }, className }: { p: Viewer; look: Look; className?: string }) {
+  return <Torcedor3D aparencia={fans?.[p.login] ?? null} login={p.login} aguardando={!fans} className={className} />
 }
 
 /** Their rank's emblem, as by their name on the stream's stand. */
@@ -252,12 +251,12 @@ function AudienceSkeleton() {
  * The audience tab: how many watch, the ranking by Σ (the site's one ranking, as the minigames'), who comes to the
  * lives in numbers, the milestones as a timeline with each live's newcomers, and the stand of the dedicated one.
  */
-export function Audience({ T, S }: { T: Torcedor | null; S: Sigma | null }) {
+export function Audience({ S }: { S: Sigma | null }) {
   const [people, setPeople] = useState<Viewer[] | null>(null)
   const [failed, setFailed] = useState(false)
-  const [fans, setFans] = useState<Record<string, Choice> | null>(null)
+  const [fans, setFans] = useState<Record<string, SavedFan> | null>(null)
   const [last, setLast] = useState<{ dia: string | null; pessoas: { minutosLive: number }[] } | null>(null)
-  const look = { T, S, fans }
+  const look = { S, fans }
 
   const load = useCallback(() => {
     loadAudience().then(

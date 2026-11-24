@@ -200,7 +200,7 @@ export function ChristmasLights() {
   )
 }
 
-/** The stand's Santa hat (public/stream/torcedor.js), drawn on its own: for the mark in the header. */
+/** The stand's Santa hat (the fans' `touca`, public/stream/torcedor3d/vestir.js), drawn on its own: for the mark in the header. */
 export function SantaHat({ className }: { className?: string }) {
   return (
     <svg viewBox="3.6 -9.2 21 13.2" aria-hidden className={cn("pointer-events-none", className)}>

@@ -2,13 +2,12 @@
 
 import { ArrowUpRight, Car, Clapperboard, Globe, Lightbulb, Play, Radio, Sigma, Users, type LucideIcon } from "lucide-react"
 import Link from "next/link"
-import Script from "next/script"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { LifelinePhotoCard } from "@/components/lifeline/lifeline-photos"
 import { TwitchIcon, YouTubeIcon } from "@/components/site/brand-icons"
 import { DocPage, DocSection, docsLinks } from "@/components/site/docs"
 import { Badge, buttonClass, cardClass, EmptyState } from "@/components/site/ui"
-import { FanView } from "@/components/site/profile/fan-view"
+import { Torcedor3D } from "@/components/site/fan/torcedor-3d"
 import {
   FIRST_DAY,
   PEOPLE,
@@ -26,7 +25,7 @@ import {
 } from "@/content/changelog"
 import { channel } from "@/content/channel"
 import { channelPath } from "@/lib/channel"
-import { loadFans, type Choice, type Torcedor } from "@/lib/profile"
+import { loadFans, type SavedFan } from "@/lib/profile"
 import { HTML_LANG, LOCALE, localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import { ViewerName } from "@/components/site/viewer/viewer-name"
@@ -92,8 +91,7 @@ const GRID = "grid grid-cols-[2.5rem_1rem_1fr] gap-x-3"
 const RAIL_LEFT = "calc(2.5rem + 0.75rem + 0.5rem)"
 
 interface Fans {
-  T: Torcedor | null
-  fans: Record<string, Choice> | null
+  fans: Record<string, SavedFan> | null
 }
 
 /**
@@ -101,14 +99,14 @@ interface Fans {
  * changelog as a timeline like the personal page's, a day at a time, with pictures and clips that tilt, drag and open.
  */
 export function ChangelogPage() {
-  const [look, setLook] = useState<Fans>({ T: null, fans: null })
+  const [look, setLook] = useState<Fans>({ fans: null })
   const [filter, setFilter] = useState<Filter>(null)
 
   useEffect(() => {
     if (!LOGINS.length) return
     loadFans(LOGINS).then(
-      (fans) => setLook((look) => ({ ...look, fans })),
-      () => setLook((look) => ({ ...look, fans: {} })),
+      (fans) => setLook({ fans }),
+      () => setLook({ fans: {} }),
     )
   }, [])
 
@@ -128,11 +126,6 @@ export function ChangelogPage() {
 
   return (
     <>
-      {/* The same drawing as the stream's crowd; React hoists the stylesheet into the head. */}
-      {/* eslint-disable-next-line @next/next/no-css-tags */}
-      <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
-      <Script src="/stream/torcedor.js" onReady={() => setLook((look) => ({ ...look, T: window.Torcedor ?? null }))} />
-
       <DocPage
         trail={[{ label: T.title, href: channelPath() }]}
         title={R.title}
@@ -174,7 +167,8 @@ const STEP = { clipPath: "polygon(20px 0, calc(100% - 20px) 0, 100% 100%, 0 100%
  * fit, the rows as even as they can be (six in rows of five stand three and three), each on its own step.
  */
 function Community({ look }: { look: Fans }) {
-  const [moving, setMoving] = useState(-1)
+  // Whose turn it is to celebrate, and how many turns so far (a turn back to the same fan plays it again).
+  const [moving, setMoving] = useState({ at: -1, turn: 0 })
   const box = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
 
@@ -197,11 +191,14 @@ function Community({ look }: { look: Fans }) {
   for (let i = 0; i < SUGGESTIONS.length; i += perRow) rows.push(SUGGESTIONS.slice(i, i + perRow))
 
   useEffect(() => {
-    if (!look.T || SUGGESTIONS.length < 1 || matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    if (SUGGESTIONS.length < 1 || matchMedia("(prefers-reduced-motion: reduce)").matches) return
     let turn = 0
-    const timer = setInterval(() => setMoving(turn++ % SUGGESTIONS.length), 2400)
+    const timer = setInterval(() => {
+      turn++
+      setMoving({ at: (turn - 1) % SUGGESTIONS.length, turn })
+    }, 2400)
     return () => clearInterval(timer)
-  }, [look.T])
+  }, [])
 
   return (
     <DocSection id="torcida" n={n("torcida")} title={R.community.title} description={R.community.text}>
@@ -227,14 +224,14 @@ function Community({ look }: { look: Fans }) {
                         <PlatformIcon where={p.where} className="h-2.5 w-2.5 shrink-0" />
                         <span className="truncate">{p.name}</span>
                       </span>
-                      {look.T && (
-                        <FanView
-                          T={look.T}
-                          fan={look.T.normalizar(p.login ? (look.fans?.[p.login] ?? null) : null, p.login ?? p.name.toLowerCase())}
-                          move={r * perRow + j === moving ? "comemora" : undefined}
-                          className="h-full w-full"
-                        />
-                      )}
+                      <Torcedor3D
+                        aparencia={p.login ? (look.fans?.[p.login] ?? null) : null}
+                        login={p.login ?? p.name.toLowerCase()}
+                        aguardando={Boolean(p.login) && !look.fans}
+                        acoes={["festa"]}
+                        momento={r * perRow + j === moving.at ? { tipo: "festa", vez: moving.turn } : null}
+                        className="h-full w-full"
+                      />
                     </a>
                   </li>
                 )
@@ -400,16 +397,17 @@ function CreditLine({ credit, look, inverted }: { credit: Credit; look: Fans; in
         {...(p.login ? {} : { target: "_blank", rel: "noreferrer" })}
         className={cn("inline-flex items-center gap-1.5 font-medium", inverted ? "text-paper hover:underline" : "text-ink hover:text-klein")}
       >
-        {look.T && (
-          <span aria-hidden className={cn("relative inline-block h-[30px] w-[24px]", inverted ? "bg-paper/15" : "bg-klein/[0.08]")}>
-            <span className="absolute inset-x-0 bottom-0 h-1 bg-klein" />
-            <FanView
-              T={look.T}
-              fan={look.T.normalizar(p.login ? (look.fans?.[p.login] ?? null) : null, p.login ?? p.name.toLowerCase())}
-              className="absolute bottom-1 left-1/2 h-[22px] w-[15px] -translate-x-1/2"
-            />
-          </span>
-        )}
+        <span aria-hidden className={cn("relative inline-block h-[30px] w-[24px] overflow-hidden", inverted ? "bg-paper/15" : "bg-klein/[0.08]")}>
+          {/* Head and shoulders: at this size a whole bust would leave a face of a few pixels. */}
+          <Torcedor3D
+            aparencia={p.login ? (look.fans?.[p.login] ?? null) : null}
+            login={p.login ?? p.name.toLowerCase()}
+            aguardando={Boolean(p.login) && !look.fans}
+            quadro="alto"
+            className="absolute inset-x-0 bottom-1 top-0"
+          />
+          <span className="absolute inset-x-0 bottom-0 h-1 bg-klein" />
+        </span>
         {p.name}
         <PlatformIcon where={p.where} className="h-3.5 w-3.5 opacity-70" />
       </a>

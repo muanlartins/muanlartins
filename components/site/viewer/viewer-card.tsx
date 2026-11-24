@@ -4,10 +4,10 @@ import { ArrowRight, Flame } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState, type ReactNode } from "react"
 import { GameIcon } from "@/components/site/game/game-icon"
-import { FanView } from "@/components/site/profile/fan-view"
+import { Torcedor3D } from "@/components/site/fan/torcedor-3d"
 import { StandStrip } from "@/components/site/ui"
 import { channel } from "@/content/channel"
-import type { Sigma, SigmaStats, Torcedor } from "@/lib/profile"
+import type { Sigma, SigmaStats } from "@/lib/profile"
 import { LOCALE, localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 import { CARD_GAMES, cardColors, imageUrl, loadTwitchAvatar, viewerPath, type Card, type Look } from "@/lib/viewer"
@@ -38,8 +38,11 @@ export function cardPalette(from: string, to: string) {
   return { from, to, body: mix(to, NIGHT, 0.62), deep: mix(to, NIGHT, 0.8), ring: from }
 }
 
-/** Their photo: the one they sent, else their Twitch photo, else their fan from the shoulders up. */
-export function ViewerPhoto({ login, look, T, className, ring }: { login: string; look: Look | null | undefined; T: Torcedor | null; className?: string; ring?: string }) {
+/**
+ * Their photo: the one they sent, else their Twitch photo, else their fan from the shoulders up. (`T`, the 2D fan's kit,
+ * isn't needed since the fans are 3D; it's still taken so /perfil's callers keep compiling.)
+ */
+export function ViewerPhoto({ login, look, className, ring }: { login: string; look: Look | null | undefined; T?: unknown; className?: string; ring?: string }) {
   const file = look?.imagens?.foto
   const [avatar, setAvatar] = useState<string | null | undefined>(undefined)
   useEffect(() => {
@@ -52,11 +55,8 @@ export function ViewerPhoto({ login, look, T, className, ring }: { login: string
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt="" className="h-full w-full object-cover" />
       ) : (
-        T &&
         avatar === null && (
-          <div className="absolute left-1/2 top-[14%] h-[150%] w-[100%] -translate-x-1/2">
-            <FanView T={T} fan={T.normalizar(look?.aparencia ?? null, login)} className="h-full w-full" />
-          </div>
+          <Torcedor3D aparencia={look?.aparencia ?? null} login={login} aguardando={look === undefined} quadro="cabeca" className="absolute inset-x-0 top-[6%] h-full" />
         )
       )}
     </div>
@@ -64,15 +64,14 @@ export function ViewerPhoto({ login, look, T, className, ring }: { login: string
 }
 
 /** Their fan standing on a strip of the stand, as the live's crowd draws them: on the card, by their name. */
-function StandingFan({ login, look, T, strip, className }: { login: string; look: Look | null | undefined; T: Torcedor | null; strip: number; className?: string }) {
+function StandingFan({ login, look, strip, className }: { login: string; look: Look | null | undefined; strip: number; className?: string }) {
   return (
     <div className={cn("pointer-events-none", className)} aria-hidden>
+      <div className="absolute inset-x-[12%] top-0" style={{ bottom: strip * 0.7 }}>
+        <Torcedor3D aparencia={look?.aparencia ?? null} login={login} aguardando={look === undefined} className="h-full w-full" />
+      </div>
+      {/* After the fan: the strip covers the bust's base, as the live's riser does. */}
       <StandStrip height={strip} />
-      {T && (
-        <div className="absolute inset-x-[12%] top-0" style={{ bottom: strip * 0.7 }}>
-          <FanView T={T} fan={T.normalizar(look?.aparencia ?? null, login)} className="h-full w-full" />
-        </div>
-      )}
     </div>
   )
 }
@@ -137,7 +136,6 @@ export function ViewerCard({
   look,
   stats,
   primeira,
-  T,
   S,
   size = "page",
   preview,
@@ -149,7 +147,8 @@ export function ViewerCard({
   look: Look | null | undefined
   stats: SigmaStats | null | undefined
   primeira?: string | null
-  T: Torcedor | null
+  /** The 2D fan's kit: no longer needed (the fans are 3D), still taken so /perfil's callers keep compiling. */
+  T?: unknown
   S: Sigma | null
   size?: "page" | "pop"
   /** The card being edited on /perfil, over what's saved. */
@@ -169,14 +168,13 @@ export function ViewerCard({
   return (
     <div className={cn("cut relative overflow-hidden text-paper", className)} style={{ background: `linear-gradient(180deg, ${palette.body}, ${palette.deep})` }}>
       <Banner login={login} look={look} palette={palette} className={page ? "aspect-[3/1]" : "h-[92px]"}>
-        <StandingFan login={login} look={look} T={T} strip={page ? 18 : 11} className={cn("absolute bottom-0", page ? "right-4 h-[96px] w-[76px] sm:right-7 sm:h-[150px] sm:w-[112px]" : "right-3 h-[78px] w-[60px]")} />
+        <StandingFan login={login} look={look} strip={page ? 18 : 11} className={cn("absolute bottom-0", page ? "right-4 h-[96px] w-[76px] sm:right-7 sm:h-[150px] sm:w-[112px]" : "right-3 h-[78px] w-[60px]")} />
       </Banner>
 
       <div className={cn("relative", page ? "px-5 pb-5 sm:px-7 sm:pb-6" : "px-3.5 pb-3.5")}>
         <ViewerPhoto
           login={login}
           look={look}
-          T={T}
           ring={palette.body}
           className={cn("absolute", page ? "-top-14 left-5 h-28 w-28 sm:-top-16 sm:left-7 sm:h-32 sm:w-32" : "-top-9 left-3.5 h-[72px] w-[72px]")}
         />

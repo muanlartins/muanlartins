@@ -7,7 +7,7 @@ import { EmptyState, Ranking, Section, Skeleton, TabPanel, Tabs } from "@/compon
 import { channel } from "@/content/channel"
 import type { Races } from "@/lib/corrida"
 import type { Duels } from "@/lib/duelo"
-import type { Choice, Torcedor } from "@/lib/profile"
+import type { SavedFan } from "@/lib/profile"
 import { localize } from "@/lib/site"
 
 const text = localize(channel.minijogos)
@@ -28,20 +28,18 @@ function RankingSkeleton() {
 export function RankingSection({
   duels,
   races,
-  T: Fan,
   fans,
   login,
   skinOf,
 }: {
   duels: Duels | null | "error"
   races: Races | null | "error"
-  T: Torcedor | null
-  fans: Record<string, Choice> | null
+  fans: Record<string, SavedFan> | null
   login: string
   skinOf: (login: string) => string | null
 }) {
   const [game, setGame] = useState<Game>("duel")
-  const figure = (l: string, nome: string) => <FanFigure T={Fan} fans={fans} login={l} name={nome} />
+  const figure = (l: string) => <FanFigure fans={fans} login={l} />
   const labels = { showAll: T.showAll, showLess: T.showLess, you: T.you }
 
   return (
@@ -72,7 +70,7 @@ export function RankingSection({
                 label={`${T.title} · ${T.duel}`}
                 entries={duels.ranking.map((r) => ({
                   id: r.login,
-                  figure: figure(r.login, r.nome),
+                  figure: figure(r.login),
                   name: <Name login={r.login}>{r.nome}</Name>,
                   value: `${number(r.vitorias)} ${text.record.wins}`,
                   detail: `${percent(r.vitorias, r.partidas)} · ${number(r.partidas)} ${text.record.fights}`,
@@ -98,7 +96,7 @@ export function RankingSection({
               label={`${T.title} · ${T.race}`}
               entries={races.ranking.map((r) => ({
                 id: r.login,
-                figure: figure(r.login, r.nome),
+                figure: figure(r.login),
                 name: <Name login={r.login}>{r.nome}</Name>,
                 mark: <MarbleDot skin={skinOf(r.login)} size={14} />,
                 value: `${number(r.vitorias)} ${text.race.wins}`,

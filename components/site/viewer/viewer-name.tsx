@@ -5,7 +5,7 @@ import Script from "next/script"
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { createPortal } from "react-dom"
 import { ViewerCard } from "@/components/site/viewer/viewer-card"
-import type { Sigma, Torcedor } from "@/lib/profile"
+import type { Sigma } from "@/lib/profile"
 import { cn } from "@/lib/utils"
 import { isLogin, loadLook, loadPerson, viewerPath, type Look, type Person } from "@/lib/viewer"
 
@@ -20,10 +20,8 @@ export function ViewerName({ login, children, className }: { login: string; chil
   const [open, setOpen] = useState(false)
   const [look, setLook] = useState<Look | null | undefined>(undefined)
   const [person, setPerson] = useState<Person | null | undefined>(undefined)
-  const [loadedT, setT] = useState<Torcedor | null>(null)
   const [loadedS, setS] = useState<Sigma | null>(null)
   // Once open (in the browser), whatever another part of the page already loaded.
-  const T = loadedT ?? (open ? (window.Torcedor ?? null) : null)
   const S = loadedS ?? (open ? (window.Sigma ?? null) : null)
   const [place, setPlace] = useState<{ left: number; top?: number; bottom?: number }>({ left: 0 })
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -92,12 +90,8 @@ export function ViewerName({ login, children, className }: { login: string; chil
             onPointerEnter={() => clearTimeout(timer.current)}
             onPointerLeave={hide}
           >
-            {/* The same drawing as the stand's; React hoists the stylesheet into the head, and each script loads once. */}
-            {/* eslint-disable-next-line @next/next/no-css-tags */}
-            <link rel="stylesheet" href="/stream/torcedor.css" precedence="default" />
-            {!T && <Script src="/stream/torcedor.js" onReady={() => setT(window.Torcedor ?? null)} />}
             {!S && <Script src="/stream/sigma.js" onReady={() => setS(window.Sigma ?? null)} />}
-            <ViewerCard login={key} look={look} stats={person?.stats} primeira={person?.primeira} T={T} S={S} size="pop" />
+            <ViewerCard login={key} look={look} stats={person?.stats} primeira={person?.primeira} S={S} size="pop" />
           </div>,
           document.body,
         )}
