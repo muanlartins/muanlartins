@@ -148,9 +148,26 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
 - Shorts have their own profile and scene collection, "Shorts" (1080×1920; `brand/twitch/obs_shorts.py --apply`
   with OBS closed), and so do commented videos, "Vídeo" (1920×1080, folder `profiles\Video`;
   `brand/twitch/obs_video.py --apply`). RLR's studio switches to them to record and back; never switch while live.
+- **One game scene of each for every game** (Luan, 2026-11-24: "organiza as cenas", the day Valorant was archived):
+  "Jogo", "Lance ruim" and "VAR", in the order Começando, Conversa, Jogo, Lance ruim, VAR, Terapia, Já volto, Fim.
+  Jogo holds every game's capture and overlay; the game on screen is whichever's items are on: the Efeitos dock's
+  "Jogo na cena" (Rocket League: "Rocket League" + "Overlay · Jogo + chat"; Celeste: "Captura · Diversos" + "Overlay ·
+  Celeste + chat"; Outro jogo: "Captura · Diversos" + "Overlay · Diversos + chat"), or their eyes in OBS; the dock reads
+  it back from OBS (`SceneItemEnableStateChanged`) for F2, F4, F8, the VAR's settings and "Gravar jogo". Lance ruim
+  shows Jogo inside it (a nested scene) under the camera the dock zooms, so it follows the game by itself. One stand,
+  "Torcida", for every game. The paragraphs below about per-game scenes are the history; the docks still drive those
+  names, for the archived collection.
+- **Valorant is archived** (2026-11-24, Luan: the channel is all Rocket League now, Celeste on weekends): OBS's scene
+  collection "Valorant (arquivo)" is the whole "Live" collection as it was that day, with "Valorant + chat", "Lance
+  ruim · Valorant", "VAR · Valorant" and their sources (Scene Collection menu; never switch while live). "Live" kept
+  none of Valorant's (nor "Torcida · Diversos"); `obs.py` keeps their definitions (`ARCHIVED`). The Riot reader's
+  startup script went to `C:\Users\muanl\Documents\muanlartins-obs\arquivo\Valorant muanlartins.vbs`, and the
+  agents' rewards are off on Twitch (`arquivada` in the Efeitos dock's `REWARDS`) and off the Filtros dock
+  (`ARQUIVADOS` in `filtros/index.js`). Bringing it back: the startup script to Startup, Valorant's capture and overlay
+  as a fourth choice in Jogo (`JOGOS` in `efeitos.html`, `jogo` in `obs.py`), the flags emptied.
 - Luan's choice: Discord is hidden in the game scenes and Conversa, and the browser in the game scenes. One scene
   per game, always with the chat: "RL + chat" and "Valorant + chat" (2026-11-10: he dropped the ones without it,
-  "Jogo" and "Valorant", and "Jogo + chat" became "RL + chat"; the docks and pages go by these names).
+  "Jogo" and "Valorant", and "Jogo + chat" became "RL + chat"; until 2026-11-24 the docks and pages went by these names).
 - Any other game (Luan, 2026-11-14: "uma cena para jogos diversos, onde customizações específicas de jogo não se
   apliquem"): "Diversos + chat", with "Lance ruim · Diversos" and "VAR · Diversos" for F2 and F8 (the Efeitos dock's
   `div`). Its capture, "Captura · Diversos", is OBS's "any fullscreen application", so a new game needs no setup as
