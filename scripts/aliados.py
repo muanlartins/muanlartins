@@ -17,7 +17,8 @@ Videos\\Lives\\<date>\\Replays\\Partida NN - ….replay, for the players' names 
 - with --aliado "<in-game name>=<twitch login>" (only when Luan says they agreed), adds them to aliados.json, so the
   dock also tags them live from then on;
 - with --apply, writes each named teammate's `login` into the session's match (content/matches/<id>.json), found by
-  the numbers both keep (score, goals, assists, saves, shots). The site then shows them on the ranked page, in
+  the numbers both keep (score, goals, assists, saves, shots; the score within SCORE_SLACK when the dock's last reading
+  missed its final points and only one teammate fits). The site then shows them on the ranked page, in
   "Eu e os viewers que jogaram comigo" and on each match.
 
 The dock republishes a session only when it changes (a new match): if it ever does after this, run it again.
@@ -41,6 +42,7 @@ ALLIES = ROOT / "public" / "stream" / "aliados.json"
 SIGMA_API = "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"  # lib/profile.ts's SIGMA_API
 ME = "muanlartins"
 NUMBERS = ("score", "goals", "assists", "saves", "shots")
+SCORE_SLACK = 10
 
 
 def properties(path):
@@ -206,6 +208,11 @@ def main():
             if not login:
                 continue
             spots = [m for m in match.get("mates", []) if tuple(m.get(k, 0) for k in NUMBERS) == nums]
+            if not spots:
+                # The dock's last reading can miss the score's final points (11-23: 531 against the replay's 533):
+                # the rest equal and the score within a few points, if only one teammate fits.
+                spots = [m for m in match.get("mates", []) if tuple(m.get(k, 0) for k in NUMBERS[1:]) == nums[1:]
+                         and abs(m.get("score", 0) - nums[0]) <= SCORE_SLACK]
             if len(spots) != 1:
                 print(f"{title}: não achei {name} entre os companheiros da sessão pelos números")
                 continue
