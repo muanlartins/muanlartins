@@ -34,14 +34,27 @@ export function sessions(): Session[] {
     }))
 }
 
-/** Every published Valorant session (content/valorant/*.json), oldest first; none before the first. */
+/**
+ * Every published Valorant session (content/valorant/*.json), oldest first; none before the first. A match is counted
+ * once, in the first session that has it: the dock can publish again a match valorant.py already published off the
+ * stream (11-24 brought back 11-21's Summit match as a session of its own).
+ */
 export function valorantSessions(): ValorantSession[] {
   const folder = join(process.cwd(), "content", "valorant")
   if (!existsSync(folder)) return []
+  const seen = new Set<string>()
   return readdirSync(folder)
     .filter((file) => file.endsWith(".json"))
     .sort()
     .map((file) => JSON.parse(readFileSync(join(folder, file), "utf8")) as ValorantSession)
+    .map((session) => ({
+      ...session,
+      matches: session.matches.filter((match) => {
+        if (seen.has(match.id)) return false
+        seen.add(match.id)
+        return true
+      }),
+    }))
 }
 
 /** Every day of Luan's aim training (content/voltaic/<date>.json, from scripts/voltaic.py), oldest first; none before the first. */
