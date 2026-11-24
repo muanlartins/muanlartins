@@ -2772,7 +2772,7 @@
         last = now
         visitaTick(now)
         camera(now)
-        const camReady = camState === "aberta" && video.readyState >= 2 && video.videoWidth > 0
+        const camReady = camState === "aberta" && video.readyState >= 2 && video.videoWidth > 0 && camVivo()
         if (!showing || !camReady) {
           // Cleared once: a frame with nothing drawn gives OBS nothing new to take.
           if (!limpo) {
@@ -3024,7 +3024,24 @@
       let neededAt = -Infinity
       let frameSeen = -1
       let frameAt = 0
+      // A camera just opened sends black frames for a moment: drawn over OBS's own camera, a visit (Lance ruim's Sigma
+      // on 2026-11-24) blacked the screen out for a second. Nothing is drawn until a frame has a picture: each frame
+      // until then is shrunk to 8×8 and its light read.
+      let vivo = false
+      const amostra = document.createElement("canvas")
+      amostra.width = amostra.height = 8
+      const amostraCtx = amostra.getContext("2d", { willReadFrequently: true })
+      function camVivo() {
+        if (vivo) return true
+        amostraCtx.drawImage(video, 0, 0, 8, 8)
+        const d = amostraCtx.getImageData(0, 0, 8, 8).data
+        let soma = 0
+        for (let i = 0; i < d.length; i += 4) soma += d[i] + d[i + 1] + d[i + 2]
+        vivo = soma / (64 * 3) > 6
+        return vivo
+      }
       async function startCamera() {
+        vivo = false
         camState = "abrindo"
         try {
           camLabel = await openCamera()
@@ -3044,6 +3061,7 @@
         ;(camStream ?? video.srcObject)?.getTracks().forEach((t) => t.stop())
         camStream = null
         video.srcObject = null
+        vivo = false
         camState = "fechada"
       }
       /** Opens or lets go of the camera for this frame. */
