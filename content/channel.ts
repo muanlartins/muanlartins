@@ -43,7 +43,7 @@ export const channel = {
     livesNone: { pt: "As lives inteiras, com capítulos.", en: "Every stream in full, with chapters." },
     mural: { pt: "Quem manda Pix e quem mais assiste.", en: "Who sends a Pix and who watches the most." },
     commands: { pt: "O que dá pra fazer pelo chat.", en: "What you can do from the chat." },
-    sigma: { pt: "Os pontos de quem assiste: como ganhar e o que eles liberam.", en: "The points of whoever watches: how to earn them and what they unlock." },
+    sigma: { pt: "Os pontos de quem assiste: como ganhar e pra que servem.", en: "The points of whoever watches: how to earn them and what they're for." },
     backstage: { pt: "Como a marca, a live e o site são feitos.", en: "How the brand, the stream and the site are made." },
     /** "Novo: Estatísticas da partida na tela". */
     roadmap: { pt: "Novo: {t}", en: "New: {t}" },
@@ -192,15 +192,16 @@ export const channel = {
     sigma: {
       title: { pt: "Σ, os pontos do site", en: "Σ, the site's points" },
       text: {
-        pt: "Você ganha assistindo, acertando o VAR e mandando Pix. Como ganhar, os ranks e o que eles liberam estão na página deles.",
-        en: "You earn them by watching, getting the VAR right and sending Pix. How to earn them, the ranks and what they unlock are on their page.",
+        pt: "Você ganha assistindo, acertando o VAR e mandando Pix. Como ganhar, os ranks e pra que servem estão na página deles.",
+        en: "You earn them by watching, getting the VAR right and sending Pix. How to earn them, the ranks and what they're for are on their page.",
       },
       cta: { pt: "Ver os Σ", en: "See Σ" },
     },
   },
 
-  /** /canal/sigma: Σ, the site's points (public/stream/sigma.js): how they come, the ranks they make, what they unlock and
-   * where to see them. A documentation page, linked from the commands and the profile. Copy is a draft for Luan. */
+  /** /canal/sigma: Σ, the site's points (public/stream/sigma.js): how they come, the ranks they make, what they're for and
+   * where to see them. A documentation page, linked from the commands and the profile. Copy is a draft for Luan. Σ lock
+   * nothing (Luan, 2026-11-23): never "o que eles liberam"; exclusive items may come later, named only once they exist. */
   sigma: {
     title: { pt: "Σ, os pontos do site", en: "Σ, the site's points" },
     description: {
@@ -234,28 +235,35 @@ export const channel = {
         en: "In Valorant's scene, the same Σ show as Valorant's ranks: Gold 1 also starts at {n} Σ.",
       },
     },
-    unlocks: {
-      title: { pt: "O que eles liberam", en: "What they unlock" },
+    uses: {
+      title: { pt: "Pra que servem", en: "What they're for" },
+      rank: {
+        term: { pt: "Rank e emblema", en: "Rank and emblem" },
+        text: {
+          pt: "O emblema do seu rank aparece do lado do seu nome, na arquibancada e no seu cartão.",
+          en: "Your rank's emblem shows by your name, in the stand and on your card.",
+        },
+      },
+      /** The stand's 20 places: the most Σ in front and, with more in the chat, seated first (Luan, 2026-11-24). */
       stand: {
         term: { pt: "Lugar na arquibancada", en: "A place in the stand" },
         text: {
-          pt: "O seu rank fica ao lado do seu nome, e quem tem mais Σ fica mais na frente.",
-          en: "Your rank sits by your name, and whoever has more Σ stands further in front.",
+          pt: "Quem tem mais Σ fica mais na frente. São 20 lugares: com mais gente no chat, eles ficam com quem tem mais Σ.",
+          en: "Whoever has more Σ stands further in front. There are 20 places: with more people in the chat, they go to whoever has the most Σ.",
         },
       },
-      /** "{rank}" and "{n}": where free colours unlock. */
-      colors: {
-        term: { pt: "Cores livres", en: "Free colours" },
+      ranking: {
+        term: { pt: "Ranking da torcida", en: "The crowd's ranking" },
         text: {
-          pt: "A partir do {rank} ({n} Σ), o seu torcedor pode usar qualquer cor, não só as da paleta.",
-          en: "From {rank} ({n} Σ), your fan can wear any colour, not only the palette's.",
+          pt: "No mural, a torcida em ordem de Σ, com pódio pros três primeiros.",
+          en: "On the mural, the crowd in order of Σ, with a podium for the top three.",
         },
       },
       games: {
         term: { pt: "Minijogos", en: "Minigames" },
         text: {
-          pt: "O material da arma no duelo de bolinhas e o acabamento da sua bolinha na corrida.",
-          en: "Your weapon's material in the ball duel and your marble's finish in the race.",
+          pt: "O acabamento da sua bolinha na corrida segue o seu rank, e no duelo de bolinhas, se você não escolher o visual da arma, ele também segue. Só muda a aparência.",
+          en: "Your weapon's look in the ball duel and your marble's finish in the race follow your rank. Only the looks change.",
         },
       },
       dedication: {
@@ -271,6 +279,11 @@ export const channel = {
           pt: "Conectando o Discord no seu perfil, o seu rank vira cargo no servidor.",
           en: "Connect Discord on your profile and your rank becomes a role on the server.",
         },
+      },
+      /** Under the list: nothing waits for Σ. */
+      free: {
+        pt: "Montar o torcedor e o cartão, com qualquer cor, é pra todo mundo, sem precisar de Σ. Mais pra frente, os Σ podem liberar umas coisas exclusivas.",
+        en: "Building your fan and card, in any colour, is for everyone, no Σ needed. Later on, Σ may unlock a few exclusive things.",
       },
     },
     where: {

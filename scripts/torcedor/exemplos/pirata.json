@@ -1,0 +1,111 @@
+{
+ "pele": "#d29a6c",
+ "topo": "curto",
+ "franja": "nada",
+ "atras": "medio",
+ "cabC": "#17181d",
+ "chapeu": "bandana",
+ "chapC": "#e03131",
+ "chapC2": "#f4f5f7",
+ "barba": "cavanhaque",
+ "barbaC": "#17181d",
+ "sobr": "grossa",
+ "sobrC": "#17181d",
+ "boca": "dentes",
+ "fone": "brinco",
+ "foneC": "#ffd23f",
+ "roupa": "listras",
+ "cor": "#f4f5f7",
+ "detalhe": "#2b2f38",
+ "cinto": "faixa",
+ "cintoC": "#e03131",
+ "fes": "danca",
+ "desenhos": [
+  {
+   "f": "circulo",
+   "em": "rosto",
+   "c": "#17181d",
+   "x": -0.38,
+   "y": 0.02,
+   "t": 0.16
+  },
+  {
+   "f": "traco",
+   "em": "rosto",
+   "c": "#17181d",
+   "x": -0.62,
+   "y": 0.18,
+   "t": 0.22,
+   "r": 0.7
+  }
+ ],
+ "pecas": [
+  {
+   "f": "gota",
+   "c": "#e03131",
+   "x": 1.38,
+   "y": -1.08,
+   "z": 0.1,
+   "sx": 0.46,
+   "sy": 0.66,
+   "sz": 0.42,
+   "rz": 0,
+   "m": false,
+   "onde": "corpo"
+  },
+  {
+   "f": "bola",
+   "c": "#e03131",
+   "x": 1.38,
+   "y": -0.66,
+   "z": 0.14,
+   "sx": 0.4,
+   "sy": 0.4,
+   "sz": 0.4,
+   "rz": 0,
+   "m": false,
+   "onde": "corpo"
+  },
+  {
+   "f": "cone",
+   "c": "#ffd23f",
+   "x": 1.38,
+   "y": -0.71,
+   "z": 0.4,
+   "sx": 0.14,
+   "sy": 0.22,
+   "sz": 0.14,
+   "rx": 1.57,
+   "rz": 0,
+   "m": false,
+   "onde": "corpo"
+  },
+  {
+   "f": "placa",
+   "c": "#4dd4ff",
+   "x": 1.6,
+   "y": -1.1,
+   "z": 0.12,
+   "sx": 0.26,
+   "sy": 0.5,
+   "sz": 0.06,
+   "rz": 3.14,
+   "ry": 1.2,
+   "m": false,
+   "onde": "corpo"
+  },
+  {
+   "f": "bola",
+   "c": "#17181d",
+   "x": 1.48,
+   "y": -0.6,
+   "z": 0.3,
+   "sx": 0.07,
+   "sy": 0.07,
+   "sz": 0.07,
+   "rz": 0,
+   "m": false,
+   "onde": "corpo"
+  }
+ ]
+}

@@ -9,23 +9,22 @@
  *   !grito     their arrival shout, from /perfil, again     once every 30 s per person
  *   !ola       a wave across the whole stand, out from them one at a time for everyone, every 15 s
  *
- * The moves are classes on the fan's element (.pula, .danca, .ola, .comemora), drawn by torcedor.css; the page
- * calls Comandos.fim(el) when its .pose's animation ends, which takes them off. A name with accents counts as
- * without them (!dança is !danca).
+ * The moves are the page's to draw (both stands are arquibancada3d.js since the 3D fan): this file only says who
+ * moves how, and when they may. A name with accents counts as without them (!dança is !danca).
  *
- * Comandos.criar({ pessoa, todos, pausado, falar, frase }) gives comando(login, text), true when the text was
+ * Comandos.criar({ pessoa, pausado, falar, frase, mover, ola }) gives comando(login, text), true when the text was
  * one of these commands (moved or not, so the page knows not to show it as a balloon):
- *   pessoa(login)  → the person, with .el, their fan, or nothing
- *   todos()        → everyone in the stand, for the wave
- *   pausado()      → true while the stand is busy (a goal's party or mourning): commands wait
- *   falar(p, text) → a balloon over their fan
- *   frase(p)       → their arrival shout ("" when they have none)
+ *   pessoa(login)    → the person, when their fan is on the stand, or nothing
+ *   pausado()        → true while the stand is busy (a goal's party or mourning): commands wait
+ *   falar(p, text)   → their line at the rail
+ *   frase(p)         → their arrival shout ("" when they have none)
+ *   mover(p, move)   → "pula", "danca" or "comemora" (their own celebration)
+ *   ola(p)           → a wave out from them
  */
 window.Comandos = (() => {
   const ESPERA_MS = 8000
   const GRITO_MS = 30000
   const OLA_MS = 15000
-  const MOVES = ["pula", "danca", "ola", "comemora"]
 
   /** "!Dança agora" → "danca". */
   const nome = (texto) =>
@@ -37,28 +36,14 @@ window.Comandos = (() => {
       .normalize("NFD")
       .replace(/\p{M}/gu, "")
 
-  function criar({ pessoa, todos, pausado = () => false, falar = () => {}, frase = () => "" }) {
+  function criar({ pessoa, pausado = () => false, falar = () => {}, frase = () => "", mover = () => {}, ola: onda = () => {} }) {
     const vez = new Map() // `${login} ${group}` → when they last used one of the group
     let ultimaOla = 0
 
-    function mexer(p, classe) {
-      fim(p.el)
-      void p.el.offsetWidth
-      p.el.classList.add(classe, "foco")
-    }
-
     const ACOES = {
-      pula: { grupo: "mexe", espera: ESPERA_MS, fazer: (p) => mexer(p, "pula") },
-      danca: { grupo: "mexe", espera: ESPERA_MS, fazer: (p) => mexer(p, "danca") },
-      // Their own celebration, at once: in a stand it otherwise waits for its place in the ripple (--onda).
-      comemora: {
-        grupo: "mexe",
-        espera: ESPERA_MS,
-        fazer(p) {
-          mexer(p, "comemora")
-          p.el.style.setProperty("--onda", "0ms")
-        },
-      },
+      pula: { grupo: "mexe", espera: ESPERA_MS, fazer: (p) => mover(p, "pula") },
+      danca: { grupo: "mexe", espera: ESPERA_MS, fazer: (p) => mover(p, "danca") },
+      comemora: { grupo: "mexe", espera: ESPERA_MS, fazer: (p) => mover(p, "comemora") },
       grito: {
         espera: GRITO_MS,
         fazer(p) {
@@ -72,16 +57,7 @@ window.Comandos = (() => {
         fazer(p) {
           if (Date.now() - ultimaOla < OLA_MS) return false
           ultimaOla = Date.now()
-          const x0 = Number(p.el.style.getPropertyValue("--x"))
-          p.el.classList.add("foco")
-          for (const outro of todos()) {
-            const el = outro?.el
-            if (!el) continue
-            el.style.setProperty("--atraso-ola", `${Math.abs(Number(el.style.getPropertyValue("--x")) - x0) * 1.4}ms`)
-            el.classList.remove("ola")
-            void el.offsetWidth
-            el.classList.add("ola")
-          }
+          onda(p)
         },
       },
     }
@@ -91,7 +67,7 @@ window.Comandos = (() => {
       const acao = ACOES[qual]
       if (!acao) return false
       const p = pessoa(login)
-      if (!p?.el || pausado()) return true
+      if (!p || pausado()) return true
       const chave = `${p.login ?? login} ${acao.grupo ?? qual}`
       if (acao.espera && Date.now() - (vez.get(chave) || 0) < acao.espera) return true
       if (acao.fazer(p) !== false && acao.espera) vez.set(chave, Date.now())
@@ -99,11 +75,5 @@ window.Comandos = (() => {
     }
   }
 
-  /** A move ended: the fan back to standing, and back in the next goal's ripple. */
-  function fim(el) {
-    el.classList.remove(...MOVES)
-    el.style.removeProperty("--onda")
-  }
-
-  return { criar, fim, nome }
+  return { criar, nome }
 })()

@@ -87,7 +87,7 @@ One name per thing. When a word here differs from what a page says, the page is 
 | Rocket League's tiers | **the game's Portuguese names**, everywhere, titles too (Luan's call, 2026-11-21): Bronze, Prata, Ouro, Platina, Diamante, Campeão, Grande Campeão, Lenda Supersônica | Champion, Grand Champion, SSL |
 | A rank with its division | "Diamante 3, divisão 2"; compact "Diamante 3 · div. 2" | "Diamante 3 II" |
 | Rank points | **pontos** ("1.076 pontos"; "pts" only where space is tight) | MMR |
-| The channel's points | **Σ**, read "sigmas"; first mention on a page "Σ, os pontos do site"; plural: "seus Σ", "100 Σ" | pontos do canal (that's Twitch's), sigma points |
+| The channel's points | **Σ**, read "sigmas"; first mention on a page "Σ, os pontos do site"; plural: "seus Σ", "100 Σ"; what they do is **pra que servem** (rank, emblem, place in the stand and a seat in it when it's full, the crowd's ranking): they lock nothing (Luan, 2026-11-23), and what may come later stays unnamed ("umas coisas exclusivas") | pontos do canal (that's Twitch's), sigma points; "o que eles liberam", "libera no Ouro" |
 | Twitch's points | **os pontos do canal da Twitch** | pontos do canal alone |
 | Levels on the profile | **medalhas** | badges, conquistas |
 | The ideas page | **Roadmap**, with "Próximos passos" and "Já saiu" | Changelog |

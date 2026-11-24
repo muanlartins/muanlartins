@@ -1,13 +1,17 @@
 "use client"
 
+import { Torcedor3D, type Momento } from "@/components/site/fan/torcedor-3d"
 import { FanView } from "@/components/site/profile/fan-view"
 import { StandStrip } from "@/components/site/ui"
 import { profile } from "@/content/profile"
 import type { Fan, Torcedor } from "@/lib/profile"
+import type { Torcedor3D as Look3D } from "@/lib/torcedor3d"
 import { localize } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const text = localize(profile.preview)
+// The buttons' moments as the 3D fan plays them on the live's stand.
+const MOMENTO: Record<string, Momento> = { comemora: "festa", lamenta: "lamenta", chega: "chega" }
 
 export interface Thrown {
   id: number
@@ -24,6 +28,7 @@ export interface Thrown {
 export function FanStage({
   T,
   fan,
+  look,
   name,
   move,
   shout,
@@ -33,6 +38,8 @@ export function FanStage({
 }: {
   T: Torcedor
   fan: Fan
+  /** The 3D fan being made; the 2D one stands in only until it has loaded. */
+  look?: Look3D | null
   name: string
   move: string
   shout: string
@@ -49,7 +56,11 @@ export function FanStage({
           {shout && (
             <span className="absolute bottom-[calc(100%+62px)] left-1/2 z-10 w-max max-w-[13rem] -translate-x-1/2 bg-paper px-3 py-1.5 text-[15px] font-medium text-klein">{shout}</span>
           )}
-          <FanView T={T} fan={fan} move={move} className="h-full w-full" />
+          {look ? (
+            <Torcedor3D look={look} momento={MOMENTO[move] ? { tipo: MOMENTO[move] } : null} className="h-full w-full" />
+          ) : (
+            <FanView T={T} fan={fan} move={move} className="h-full w-full" />
+          )}
           {stickers.map((s) => (
             <span
               key={s.id}

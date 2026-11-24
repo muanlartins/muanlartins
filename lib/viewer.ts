@@ -7,7 +7,7 @@
  * mural (the Pix API), and what the site knows when it's built (/torcedor/dados.json: their ideas on the roadmap and the
  * matches they played with Luan).
  */
-import { loadFans, loadSigmas, PROFILE_API, rememberMe, SIGMA_API, signOut, SignedOut, type Choice, type Sigma, type SigmaStats } from "@/lib/profile"
+import { loadFans, loadSigmas, PROFILE_API, rememberMe, SIGMA_API, signOut, SignedOut, type SavedFan, type SigmaStats } from "@/lib/profile"
 
 /** Where someone's page is: every viewer has one, built or not (a login the build didn't know is drawn by the 404 page). */
 export const VIEWER_SLUG = "torcedor"
@@ -17,8 +17,8 @@ const LOGIN = /^[a-z0-9_]{1,25}$/
 export const isLogin = (login: string) => LOGIN.test(login)
 
 /**
- * The card's colours: a theme (a gradient behind their fan) or two of their own, "livre", once their Σ unlocks free
- * colours (sigma.js's COR_LIVRE, as the fan's colours). The first is the default.
+ * The card's colours: a theme (a gradient behind their fan) or two of their own, "livre", for everyone (Σ locks
+ * nothing, Luan, 2026-11-23). The first is the default.
  */
 export const THEMES = [
   { id: "klein", name: "Klein", colors: ["#002fa7", "#001447"] },
@@ -85,16 +85,16 @@ export const CARD_GAMES = [
   { id: "valorant", name: "Valorant" },
 ] as const
 
-/** The card's two colours, as it's drawn: free colours only once their Σ unlocks them. */
-export function cardColors(card: Card | null | undefined, sigma: number, S: Sigma | null): [string, string] {
-  if (card?.tema === FREE_THEME && card.cores && S && sigma >= S.COR_LIVRE) return card.cores
+/** The card's two colours, as it's drawn: their own two with "livre", else their theme's. */
+export function cardColors(card: Card | null | undefined): [string, string] {
+  if (card?.tema === FREE_THEME && card.cores) return card.cores
   const theme = THEMES.find((t) => t.id === card?.tema) ?? THEMES[0]
   return [theme.colors[0], theme.colors[1]]
 }
 
 /** Someone's look on the site: their fan, card, duel ball and pictures, any of them null when never saved. */
 export interface Look {
-  aparencia: Choice | null
+  aparencia: SavedFan | null
   cartao: Card | null
   duelo: { classe?: string; material?: string } | null
   imagens?: Images | null

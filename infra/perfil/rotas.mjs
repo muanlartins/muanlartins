@@ -1,6 +1,7 @@
 // The profile API's routes, apart from DynamoDB so a test can run them (index.test.mjs): index.mjs gives them the table.
 //
-// The table, keyed by login: aparencia (the fan for the stream's crowd, /perfil), id (their Twitch user id), em (when
+// The table, keyed by login: aparencia (the fan for the stream's crowd, /perfil; with t3, their 3D fan, beside the 2D
+// fields while the stand and the site still read those), id (their Twitch user id), em (when
 // the fan was saved), loadout and loadoutEm (their dream Valorant loadout, the inventory's builder), duelo (their ball
 // in the duel: its class and its weapon's material, /canal/minijogos), cartao (their card, the same everywhere on the
 // site and on top of their page, /torcedor/<login>: its colours, a line about them and their game) and, on the
@@ -14,7 +15,9 @@
 //           GET /duelistas?logins=a,b    the balls of whoever is in the duel (public/stream/duelo.html)
 //           GET /loadout?login=a         someone's dream loadout; the channel's also brings its game reading
 // Twitch:   GET /eu                      their fan, loadout, ball and card
-//           PUT /eu, DELETE /eu          their fan (deleting it keeps the loadout)
+//           PUT /eu, DELETE /eu          their fan (deleting it keeps the loadout). PUT's t3 is the 3D fan: a look
+//                                        (at most T3_MAX bytes of JSON; send enxugar's), null to drop it, or left
+//                                        out to keep the one saved, so the 2D editor never erases it
 //           PUT /eu/loadout, DELETE /eu/loadout
 //           PUT /eu/duelo, DELETE /eu/duelo
 //           PUT /eu/cartao, DELETE /eu/cartao
@@ -44,6 +47,7 @@
 import { FUSO, dataEm, ics, limpar, noChat, ocorrencias } from "./comum/agenda.mjs"
 import { daLive, json, LOGIN, out } from "./comum/http.mjs"
 import { filtrar } from "./filtro.mjs"
+import { enxugar, normalizar } from "./torcedor3d.mjs"
 
 export const CANAL = "muanlartins"
 
@@ -111,6 +115,16 @@ export function aparencia(a) {
   return o
 }
 
+// The 3D fan: public/stream/torcedor3d/esquema.js, linked here as ./torcedor3d.mjs, the very normalizar the overlays
+// and the site run, so what's kept is what they draw: only what differs from the default (enxugar). Any object is a
+// look (what it doesn't know falls back to the default); anything else isn't. The biggest look the schema allows is
+// about 8.3 KB of JSON at the very most (every field and list maxed), so the cap only turns junk away.
+export const T3_MAX = 10240
+export function t3(x) {
+  if (!x || typeof x !== "object" || Array.isArray(x)) return null
+  return enxugar(normalizar(x))
+}
+
 // Their ball in the duel: { classe, material }, either left out for the default (a class drawn each duel; the material
 // of their Σ rank). Only the shape is checked: duelo-motor.js knows the classes, and the overlay draws a material only
 // once their Σ has unlocked it.
@@ -122,8 +136,8 @@ export function duelo(d) {
 }
 
 // Their card: { tema, cores, sobre, pronomes, jogo }, any left out for the default. tema is one of the site's themes
-// (lib/viewer.ts) or "livre" with cores, two colours of their own, which the site draws only once their Σ unlocks free
-// colours (as the fan's); sobre is what they say about themselves and pronomes their pronouns, both through the word
+// (lib/viewer.ts) or "livre" with cores, any two colours of their own, whatever their Σ (Σ locks nothing, Luan,
+// 2026-11-23); sobre is what they say about themselves and pronomes their pronouns, both through the word
 // filter; jogo is their game, by the site's id. The banner and the photo aren't in it: they're saved apart (imagens).
 export function cartao(c) {
   const o = {}
@@ -432,6 +446,15 @@ export function rotas({ banco, usuario, chave, discord = null, agora = () => new
       const corpo = json(event)
       if (!corpo) return out(400, {})
       const a = aparencia(corpo)
+      if (corpo.t3 === undefined) {
+        const antes = (await banco.ler(v.login))?.aparencia?.t3
+        if (antes) a.t3 = antes
+      } else if (corpo.t3 !== null) {
+        if (Buffer.byteLength(JSON.stringify(corpo.t3)) > T3_MAX) return out(413, { erro: "Esse torcedor ficou grande demais pra salvar." })
+        const look = t3(corpo.t3)
+        if (!look) return out(400, { erro: "Não deu pra ler esse torcedor. Tenta de novo." })
+        a.t3 = look
+      }
       await banco.definir(v.login, { id: v.id, aparencia: a, em: agora })
       return out(200, { login: v.login, aparencia: a })
     }

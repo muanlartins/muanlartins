@@ -5,6 +5,7 @@
  * and the API checks it with Twitch on every call.
  */
 import { ORIGIN, profileSlug } from "@/lib/site"
+import type { Torcedor3DSalvo } from "@/lib/torcedor3d"
 import type { Card, Images } from "@/lib/viewer"
 
 /** The Twitch app (dev.twitch.tv/console); its redirect URLs are /perfil and /profile on both sites and localhost. */
@@ -22,6 +23,12 @@ const BACK_KEY = "twitch:volta"
 
 /** What a viewer chose; the options and their defaults are in public/stream/torcedor.js. */
 export type Choice = Record<string, unknown>
+/**
+ * Their fan as the profile API keeps it: the 2D fan's fields (torcedor.js) and, once they've saved one, their 3D fan
+ * (`t3`, only what differs from the default: lib/torcedor3d.ts). Without `t3`, torcedorDe() makes their 3D fan from
+ * the 2D one.
+ */
+export type SavedFan = Choice & { t3?: Torcedor3DSalvo }
 
 export interface Fan {
   cor: string
@@ -90,7 +97,6 @@ export interface Sigma {
   peso(sigma?: number): number
   /** Rocket League's ranks: [the Σ each starts at, its emblem's id], lowest first. */
   RL: [number, string][]
-  COR_LIVRE: number
   medalhas(stats: Partial<SigmaStats>, lingua?: "pt" | "en"): Badge[]
 }
 
@@ -150,7 +156,6 @@ export interface Torcedor {
   STICKERS_MAX: number
   padrao(login?: string): Fan
   normalizar(choice: Choice | Fan | null | undefined, login?: string): Fan
-  soPaleta(fan: Fan, login?: string): Fan
   figura(fan: Fan): string
   umEmoji(text: string): boolean
 }
@@ -308,7 +313,7 @@ async function call(method: string, token: string, body?: unknown) {
   if (!response.ok) throw new Error(String(response.status))
   const mine = (await response.json()) as {
     login: string
-    aparencia: Choice | null
+    aparencia: SavedFan | null
     cartao?: Card | null
     imagens?: Images | null
     discord?: { id: string; nome: string; em: string } | null
@@ -322,9 +327,9 @@ async function call(method: string, token: string, body?: unknown) {
 }
 
 /** The fans saved under these logins (the public side of the profile API); a login missing has none saved. */
-export async function loadFans(logins: string[]): Promise<Record<string, Choice>> {
+export async function loadFans(logins: string[]): Promise<Record<string, SavedFan>> {
   const unique = [...new Set(logins)]
-  const found: Record<string, Choice> = {}
+  const found: Record<string, SavedFan> = {}
   for (let i = 0; i < unique.length; i += 100) {
     const response = await fetch(`${PROFILE_API}/torcedores?logins=${unique.slice(i, i + 100).map(encodeURIComponent).join(",")}`)
     if (!response.ok) throw new Error(String(response.status))
@@ -334,5 +339,9 @@ export async function loadFans(logins: string[]): Promise<Record<string, Choice>
 }
 
 export const loadMine = (token: string) => call("GET", token)
-export const saveMine = (token: string, fan: Fan) => call("PUT", token, fan)
+/**
+ * Saves their fan: the 2D one, and their 3D one when `t3` is given (enxugar's; null drops it). Without `t3` the API
+ * keeps the 3D fan already saved.
+ */
+export const saveMine = (token: string, fan: Fan, t3?: Torcedor3DSalvo | null) => call("PUT", token, t3 === undefined ? fan : { ...fan, t3 })
 export const eraseMine = (token: string) => call("DELETE", token)

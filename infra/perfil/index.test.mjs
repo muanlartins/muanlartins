@@ -2,7 +2,8 @@
 
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { CANAL, rotas } from "./rotas.mjs"
+import { CANAL, rotas, T3_MAX } from "./rotas.mjs"
+import { CAMPOS, DESENHO, enxugar, MECHA, normalizar, PALETAS, PECA } from "./torcedor3d.mjs"
 
 const VANDAL = "18609205-4edb-5966-cff8-0fba0230ba1e"
 const AZUL = "6fb459fa-4368-7d20-106a-629db9825a2b"
@@ -188,6 +189,18 @@ test("the card: its theme, free colours, a filtered text, pronouns and the game;
   assert.equal((await chamar("PUT", "/eu/cartao", { corpo: {} })).status, 401)
 })
 
+// Σ locks nothing (Luan, 2026-11-23): the API never asks the Σ API, so a viewer with none keeps any colour they pick.
+test("any colour for anyone: off the palettes on the fan, the 3D fan and the card, kept and public, with no Σ at all", async () => {
+  const { chamar } = montar()
+  const [fora, outra] = ["#123456", "#abcdef"]
+  for (const p of Object.values(PALETAS)) assert.ok(!p.includes(fora) && !p.includes(outra))
+  assert.equal((await chamar("PUT", "/eu", { token: "bom", corpo: { cor: fora, detalhe: outra, t3: { cor: fora, cabC: outra } } })).status, 200)
+  assert.equal((await chamar("PUT", "/eu/cartao", { token: "bom", corpo: { tema: "livre", cores: [fora, outra] } })).status, 200)
+  const { fulano } = (await chamar("GET", "/cartoes", { query: { logins: "fulano" } })).body
+  assert.deepEqual([fulano.aparencia.cor, fulano.aparencia.detalhe, fulano.aparencia.t3.cor, fulano.aparencia.t3.cabC], [fora, outra, fora, outra])
+  assert.deepEqual(fulano.cartao, { tema: "livre", cores: [fora, outra] })
+})
+
 // A tiny WebP: "RIFF", its size, "WEBP" and padding past the 200 bytes the API asks for at least.
 const webp = (n = 400) => Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBP"), Buffer.alloc(n)])
 
@@ -228,4 +241,65 @@ test("the banner and the photo: saved apart, public by an id that never changes,
   assert.equal((await chamar("DELETE", "/canal/imagem/fulano/foto", { token: "bom" })).status, 403)
   assert.equal((await chamar("DELETE", "/canal/imagem/fulano/foto", { token: "canal" })).status, 200)
   assert.equal((await chamar("GET", "/eu", { token: "bom" })).body.imagens, null)
+})
+
+// The biggest look the schema allows: every field off its default, every list full, the longest frase and stickers.
+function maior() {
+  const longe = (c) =>
+    c.tipo === "num" ? (c.passo ? c.max : Math.round((c.min + (c.max - c.min) * 0.7777) * 1000) / 1000)
+    : c.tipo === "cor" ? "#123456"
+    : c.tipo === "sim" ? !c.padrao
+    : c.opcoes.map(([id]) => id).filter((id) => id !== c.padrao).sort((a, b) => b.length - a.length)[0]
+  const de = (campos) => Object.fromEntries(campos.map((c) => [c.k, longe(c)]))
+  const astronauta = "👨🏽‍🚀"
+  return enxugar(normalizar({
+    ...de(CAMPOS), pecas: Array(12).fill(de(PECA)), desenhos: Array(16).fill(de(DESENHO)), mechas: Array(16).fill(de(MECHA)),
+    time: "Red Bull Bragantino", frase: "🏆".repeat(30), stickers: { gol: Array(3).fill(astronauta), contra: Array(3).fill(astronauta) },
+  }))
+}
+
+test("the 3D fan (t3): normalized by the schema itself, public with the fan, kept when the 2D editor saves", async () => {
+  const { itens, chamar } = montar()
+  // As DynamoDB keeps it (no undefined values).
+  const guardado = () => JSON.parse(JSON.stringify(itens.get("fulano").aparencia))
+  const look = { topo: "afro", cabC: "#FF5C9A", larg: 9, lixo: true, pecas: [{ f: "cone", x: 0.5, y: 1.2, nada: 1 }, 3], frase: "  bora   luan  " }
+  const salvo = await chamar("PUT", "/eu", { token: "bom", corpo: { cor: "#00ff00", t3: look } })
+  assert.equal(salvo.status, 200)
+  // Only what differs from the default, colours in lower case, numbers inside their range, junk gone.
+  const esperado = { larg: 1.25, topo: "afro", cabC: "#ff5c9a", pecas: [{ f: "cone", x: 0.5, y: 1.2 }, {}], frase: "bora luan" }
+  assert.deepEqual(salvo.body.aparencia, { cor: "#00ff00", t3: esperado })
+  assert.deepEqual(guardado().t3, enxugar(normalizar(look)))
+  assert.deepEqual((await chamar("GET", "/eu", { token: "bom" })).body.aparencia.t3, esperado)
+  assert.deepEqual((await chamar("GET", "/torcedores", { query: { logins: "fulano" } })).body, { fulano: { cor: "#00ff00", t3: esperado } })
+  assert.deepEqual((await chamar("GET", "/cartoes", { query: { logins: "fulano" } })).body.fulano.aparencia.t3, esperado)
+  // The 2D editor sends no t3: the 3D fan stays, the 2D fields change.
+  await chamar("PUT", "/eu", { token: "bom", corpo: { cor: "#ff0000", frase: "oi" } })
+  assert.deepEqual(guardado(), { cor: "#ff0000", frase: "oi", t3: esperado })
+  // A look at every default is a 3D fan too; null drops it.
+  await chamar("PUT", "/eu", { token: "bom", corpo: { t3: {} } })
+  assert.deepEqual(guardado(), { t3: {} })
+  await chamar("PUT", "/eu", { token: "bom", corpo: { cor: "#ff0000", t3: null } })
+  assert.deepEqual(guardado(), { cor: "#ff0000" })
+})
+
+test("the 3D fan (t3): anything but an object is refused, and so is more than T3_MAX bytes", async () => {
+  const { itens, chamar } = montar()
+  const guardado = () => JSON.parse(JSON.stringify(itens.get("fulano").aparencia))
+  await chamar("PUT", "/eu", { token: "bom", corpo: { cor: "#00ff00", t3: { topo: "afro" } } })
+  for (const t3 of ["T1:eyJ0b3BvIjoiYWZybyJ9", 42, true, [{ topo: "careca" }]]) {
+    const r = await chamar("PUT", "/eu", { token: "bom", corpo: { cor: "#123456", t3 } })
+    assert.equal(r.status, 400, JSON.stringify(t3))
+  }
+  const grande = await chamar("PUT", "/eu", { token: "bom", corpo: { t3: { topo: "careca", frase: "x".repeat(T3_MAX) } } })
+  assert.equal(grande.status, 413)
+  // Nothing refused touched what was saved.
+  assert.deepEqual(guardado(), { cor: "#00ff00", t3: { topo: "afro" } })
+  // The biggest look the schema allows fits, and comes back whole.
+  const tudo = maior()
+  assert.ok(Buffer.byteLength(JSON.stringify(tudo)) <= T3_MAX)
+  const r = await chamar("PUT", "/eu", { token: "bom", corpo: { t3: tudo } })
+  assert.equal(r.status, 200)
+  assert.deepEqual(r.body.aparencia.t3, tudo)
+  assert.equal(r.body.aparencia.t3.pecas.length, 12)
+  assert.equal((await chamar("PUT", "/eu", { corpo: { t3: {} } })).status, 401)
 })
