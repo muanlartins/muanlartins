@@ -8,61 +8,77 @@ import { Arquibancada, type Lugar } from "@/components/site/fan/arquibancada"
 import type { Momento } from "@/components/site/fan/torcedor-3d"
 import type { Command } from "@/lib/commands"
 
-/** Made-up fans in the stand's presets (lib/torcedor3d.ts MODELOS) around "you", in the middle, who does what's picked. */
-const PEOPLE: [string, string][] = [
-  ["rafa", "Organizada"],
-  ["bia.lima", "Rainha"],
-  ["voce", "Punk"],
-  ["otto", "Robô"],
-  ["ceci", "Caramelo"],
+/**
+ * Made-up people filling the stand: two rows of ten, as the live seats them at most. Some in the stand's presets
+ * (lib/torcedor3d.ts MODELOS), the rest with the fan their name gives them; long names to show how the riser cuts them.
+ */
+const PEOPLE: [string, string?][] = [
+  ["capivara_cansada", "Organizada"],
+  ["bia", "Black power"],
+  ["torcedor_da_madrugada", "Gamer"],
+  ["nina"],
+  ["raul_aereo", "Tiozão"],
+  ["livia", "Rainha"],
+  ["mira_de_pao", "Robô"],
+  ["otto"],
+  ["teca", "Festeira"],
+  ["breno_bobo", "Barbudo"],
+  ["iara", "Elfa maga"],
+  ["sol"],
+  ["duda_gol", "Caramelo"],
+  ["tobias"],
+  ["malu_gamer", "De outro planeta"],
+  ["igor"],
+  ["lola_lulu", "Veterana"],
+  ["enzo", "Dragão"],
+  ["cida"],
 ]
-const YOU = 2
-/** The stand's commands (comandos.js) as the fan's moments; !ola goes along everyone. */
+/** The stand's commands (comandos.js) as the reader's fan's moments; !ola goes along everyone from them. */
 const MOVES: Record<string, Momento> = { pula: "pula", danca: "danca", comemora: "festa", grito: "grito" }
 
 /**
- * The stand's commands as a list, each a button that plays it on a row of sample fans drawn as the live's stand draws
- * them, with the same moves: "you" jump, dance, celebrate their own way or shout; !ola goes along everyone.
+ * The stand's commands as a list, each a button that plays it on the stand as the live draws it, full: "you" in the
+ * front row jump, dance, celebrate your own way or shout; !ola goes along everyone, out from you.
  */
 export function StandDemo({ commands, you, hint, shout, also, term }: { commands: Command[]; you: string; hint: string; shout: string; also: string; term: string }) {
   const [played, setPlayed] = useState<{ move: string; n: number } | null>(null)
   const play = (comando: string) => setPlayed((p) => ({ move: comando.slice(1), n: (p?.n ?? 0) + 1 }))
+  const tipo = played ? MOVES[played.move] : undefined
+
+  const me: Lugar = {
+    id: "voce",
+    voce: true,
+    nome: you,
+    fan: {
+      modelo: "Punk",
+      login: "voce",
+      acoes: ["pula", "danca", "festa", "grito", "ola"],
+      momento: tipo && played ? { tipo, vez: played.n } : null,
+    },
+    acima:
+      played?.move === "grito" ? (
+        // The live's chat balloon: paper, a navy edge, cut at 45°.
+        <motion.span
+          key={played.n}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: [0, 1, 1, 0], y: [6, 0, 0, -4] }}
+          transition={{ duration: 2.6, times: [0, 0.1, 0.85, 1] }}
+          className="cut-sm cut-edge relative block border-2 border-navy bg-paper px-3 py-1.5 text-[18px] font-medium whitespace-nowrap text-navy"
+        >
+          {shout}
+        </motion.span>
+      ) : undefined,
+  }
 
   return (
     <div className="space-y-4">
-      <div className="cut cut-edge relative h-[150px] overflow-hidden border border-line bg-paper/70">
+      {/* Wider than the text, into the gutters (brand/interface.md, "Layout"): ten seats a row with room for names. */}
+      <div className="cut relative -mx-6 h-[330px] overflow-hidden bg-navy">
         <Arquibancada
-          degrau={20}
-          folga={40}
-          lugares={PEOPLE.map(([login, modelo], i): Lugar => {
-            const mine = i === YOU
-            const tipo = played?.move === "ola" ? "ola" : mine && played ? MOVES[played.move] : undefined
-            return {
-              id: login,
-              voce: mine,
-              nome: mine ? you : login,
-              className: i === 0 || i === PEOPLE.length - 1 ? "hidden sm:block" : undefined,
-              fan: {
-                modelo,
-                login,
-                acoes: mine ? ["pula", "danca", "festa", "grito", "ola"] : ["ola"],
-                momento: tipo && played ? { tipo, vez: played.n, atraso: tipo === "ola" ? Math.abs(i - YOU) * 140 : 0 } : null,
-              },
-              acima:
-                mine && played?.move === "grito" ? (
-                  // The live's chat balloon: paper, a navy edge, cut at 45°.
-                  <motion.span
-                    key={played.n}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: [0, 1, 1, 0], y: [6, 0, 0, -4] }}
-                    transition={{ duration: 2.6, times: [0, 0.1, 0.85, 1] }}
-                    className="cut-sm cut-edge relative mb-1 block border border-navy bg-paper px-3 py-1 text-[14px] font-medium whitespace-nowrap text-navy"
-                  >
-                    {shout}
-                  </motion.span>
-                ) : undefined,
-            }
-          })}
+          frente
+          topo={44}
+          onda={played?.move === "ola" ? played.n : undefined}
+          lugares={[me, ...PEOPLE.map(([login, modelo]): Lugar => ({ id: login, nome: login, fan: { login, modelo, acoes: ["ola"] } }))]}
         />
       </div>
       <p className="text-[13px] text-muted">{hint}</p>

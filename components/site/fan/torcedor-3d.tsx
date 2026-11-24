@@ -125,8 +125,10 @@ function Silhueta({ quadro, pulsa }: { quadro: Quadro; pulsa: boolean }) {
 }
 
 /**
- * A fan in 3D, as the live's stand draws them, filling the box `className` gives it (its height sets the picture's;
- * the frame is wider than the old 2:3 figure and spills sideways, empty). Who: `aparencia` (what the profile API has:
+ * A fan in 3D, as the live's stand draws them, standing in the box `className` gives it. The whole frame keeps room
+ * over the head for hats and raised arms, so by default it's `escala` 1.25 times the box's height, standing on its
+ * bottom: the head then reaches the box's top as the 2D figure did, and the room spills over the box, empty (and
+ * sideways: the frame is wider than the old 2:3 figure). Who: `aparencia` (what the profile API has:
  * their `t3`, else their 2D fan's, made 3D from their `login`), or a `look`, or a preset by `modelo`. In December the
  * Santa hat goes on (`natal` forces it either way), as on the stand; nothing drawn here is ever saved.
  *
@@ -150,6 +152,7 @@ export function Torcedor3D({
   natal,
   arbitro,
   aguardando = false,
+  escala = quadro === "inteiro" ? 1.25 : 1,
   className,
 }: Omit<Quem, "natal" | "arbitro"> & {
   pose?: Pose
@@ -160,6 +163,8 @@ export function Torcedor3D({
   natal?: boolean
   arbitro?: boolean
   aguardando?: boolean
+  /** The frame's height over the box's. */
+  escala?: number
   className?: string
 }) {
   const december = useDecember()
@@ -182,10 +187,10 @@ export function Torcedor3D({
   useEffect(
     () =>
       medir(caixa.current!, (h) => {
-        // Device pixels, at most 2 a CSS pixel: past that nobody sees a difference, and memory does.
-        if (h > 0) setAltura(Math.min(640, Math.round(h * Math.min(2, devicePixelRatio || 1))))
+        // The frame's height in device pixels, at most 2 a CSS pixel: past that nobody sees a difference, and memory does.
+        if (h > 0) setAltura(Math.min(640, Math.round(h * escala * Math.min(2, devicePixelRatio || 1))))
       }),
-    [],
+    [escala],
   )
 
   useEffect(() => {
@@ -287,7 +292,7 @@ export function Torcedor3D({
       className={cn("relative", className)}
       {...(alt ? { role: "img", "aria-label": alt } : { "aria-hidden": true })}
     >
-      <div ref={corpo} className="absolute top-0 left-1/2 h-full" style={{ aspectRatio: `${f.w} / ${f.h}`, transform: BASE, transformOrigin: "50% 62%" }}>
+      <div ref={corpo} className="absolute bottom-0 left-1/2" style={{ height: `${escala * 100}%`, aspectRatio: `${f.w} / ${f.h}`, transform: BASE, transformOrigin: "50% 62%" }}>
         {!mostrada && <Silhueta quadro={quadro} pulsa={!falhou} />}
         {(Object.entries(por) as [Pose, Picture][]).map(([p, pic]) => (
           // eslint-disable-next-line @next/next/no-img-element -- a blob baked in the browser, already at its size
