@@ -1,7 +1,7 @@
 // Renders public/stream/transicao.html into public/stream/transicao.webm, the
 // OBS stinger: 60 fps, VP9 with transparency, at the OBS canvas size
 // (default 2560×1440; the page scales itself to it). A second argument renders
-// another stinger page the same way: transicao-var, the VAR's; transicao-terapia, Terapia's "Água" (at 1920).
+// another stinger page the same way: transicao-terapia, Terapia's "Água" (at 1920).
 //
 //   CHROME=/path/to/chrome node brand/twitch/transicao.mjs [width] [page]
 //

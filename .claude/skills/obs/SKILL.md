@@ -32,7 +32,11 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   of its frames to encoding lag (OBS's log: "number of skipped frames due to encoding lag"; obs.mjs's "encode skipped"
   is that counter, and "stream skipped" only network drops). Read `nvidia-smi.exe encodersessions` (one line per encode)
   and `--query-gpu=utilization.encoder` before adding any output, filter or replay buffer that encodes. The stream stays
-  p5 with its passes (what viewers see); everything that records goes p4 (`ENCODER_LEVE` in `obs.py`).
+  p5 with its passes (what viewers see), without look-ahead since 2026-11-23 (`"lookahead": false` in the profile's
+  `streamEncoder.json`; NVENC's default had it on, 8 frames: that live lost 1.0% of the main pipeline's frames to
+  encoding lag against 0.1–0.2% on the Source Record files, which have none); everything that records goes p4
+  (`ENCODER_LEVE` in `obs.py`). No replay buffer runs since 2026-11-24 (the VAR's, OBS's own and Source Record's on
+  "Gravar jogo", went with it).
 - Camera filters (`public/stream/filtros.html`): switched from the "Filtros" dock
   (`filtros-painel.html`, served from localhost:8126 too; `obs.py --apply` adds it with OBS closed), never by
   gestures (Luan, 2026-11-10). The dock (2026-11-12) has a dropdown with every filter by game (from the filters' folders, `filtros/index.js`, since
@@ -104,24 +108,21 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   (`intervalo.html?tela=comecando` without `?minutos`) counts down to the end of the opening break. Its header has the
   rules. The first break it runs by hand checks whether Twitch restarts its timer; if not, the dock turns the
   between-matches break off for good (its storage, `reinicia`).
-- When F2/F4/F8 or the sounds do nothing, check the docks first: OBS's log should show 4 websocket clients from
+- When F2/F4 or the sounds do nothing, check the docks first: OBS's log should show 4 websocket clients from
   127.0.0.1 within seconds of "Startup complete" (Partidas, Efeitos, Filtros, Anúncios). A dock that never connects
   died loading: open its URL with `#obs=x` in headless Chrome and look for a page error (on 11-10/11 Efeitos' top-level
   `const history` shadowed window.history, so the `#obs=` handling threw and F2/F4/F8 were dead until fb3ab5f). Then
   fire the trigger yourself (`TriggerMediaInputAction` RESTART on "Gatilho · …") and watch `CurrentProgramSceneChanged`.
 - obs-browser's `emit_event` goes through OBS's own data format, which keeps **only arrays of objects**: an array of
   strings or numbers in `event_data` reaches the pages empty (obs-websocket's `obs_data_set_json_array` skips every
-  non-object). On 11-11 the VAR's booth showed the question and the clock but no options, votes or line. Send such
-  state as JSON text (`{ estado: JSON.stringify(...) }`, read with `varDe()` in `stream.js`), and when testing a page,
+  non-object). On 11-11 the VAR's booth showed the question and the clock but no options, votes or line, and on
+  11-23 Conversa's end card read "undefined–undefined" for the match's score. Send such state as JSON text (the
+  Partidas dock's `{ dados: JSON.stringify(...) }`, read with `numerosDe()` in `numeros.js`), and when testing a page,
   pass the event through that rule rather than dispatching it raw. (BroadcastCustomEvent, dock to dock, stays JSON.)
-- The VAR plays its clip in `var.html`'s own `<video>` since 11-12 (the media source "VAR · replay" is retired:
-  `obs.py --apply` takes it out). The clip is the game alone: Source Record's replay buffer on each capture's
-  "Gravar jogo" (`REPLAY_JOGO` in `obs.py`: 20 s, `Replay <date> <time> jogo.mkv`, the same encoder as the game's
-  file), saved by the dock with `CallVendorRequest` `source-record` / `replay_buffer_save` `{ source: "<capture>" }`.
-  Source Record 0.4.8 sends no "saved" event, so `scripts/replay.py` (127.0.0.1:8794) watches Videos, remuxes the MKV
-  to MP4 (about a second) and serves it with byte ranges to the page and the dock. "Efeito · VAR" is also in "RL +
-  chat" and "Valorant + chat" (the mini player), with "controlar áudio pelo OBS" on. Turning Source Record's replay
-  on or changing its duration is a filter change: only with OBS closed (`obs.py --apply`), never while it records.
+- The VAR (F8: an instant replay voted by the chat, `var.html`, `scripts/replay.py`, Source Record's and OBS's replay
+  buffers, the "VAR · …" scenes and stinger) was retired on 2026-11-24 (Luan: "não acho que ele esteja funcionando
+  bem"); `obs.py --apply` takes out what's left of it (`RETIRED_SCENES`, `RETIRED_SOURCES`, `RETIRED_TRANSITIONS`)
+  and turns the profiles' Replay Buffer off.
 - OBS must always be started from a shortcut (all three carry `--enable-media-stream --use-fake-ui-for-media-stream`),
   never `obs64.exe` bare: on 2026-11-11 a Windows session restarted it bare and the camera filters lost the camera
   (`câmera NotAllowedError` every 5 s in the log). From WSL: `cmd.exe /c start "" "C:\Users\Public\Desktop\OBS Studio.lnk"`;
@@ -139,7 +140,7 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
 - **One "Gravar jogo" at a time** (2026-11-18): once a capture has been on screen its Source Record encodes until OBS
   closes, the replay buffer even with nothing recording and the game gone (black frames). So the Efeitos dock
   (`gravarSoOJogo` in `efeitos.html`) keeps on only the "Gravar jogo" of the game scene on screen, turning the others
-  off first (other scenes leave them as they are, so the VAR and the Jogo file go on between matches), and turns all
+  off first (other scenes leave them as they are, so the Jogo file goes on between matches), and turns all
   off once neither the stream nor the recording runs. Turning the filter off and on is the plugin's own stop/start (a
   file ends, a new one starts); changing its settings while it records is not (the 11-09 crash).
 - Source Record filters write files of their own while OBS records: "Gravar câmera" on Câmera (`… câmera.mkv`)
@@ -152,41 +153,49 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   per game, always with the chat: "RL + chat" and "Valorant + chat" (2026-11-10: he dropped the ones without it,
   "Jogo" and "Valorant", and "Jogo + chat" became "RL + chat"; the docks and pages go by these names).
 - Any other game (Luan, 2026-11-14: "uma cena para jogos diversos, onde customizações específicas de jogo não se
-  apliquem"): "Diversos + chat", with "Lance ruim · Diversos" and "VAR · Diversos" for F2 and F8 (the Efeitos dock's
-  `div`). Its capture, "Captura · Diversos", is OBS's "any fullscreen application", so a new game needs no setup as
+  apliquem"): "Diversos + chat" (the Efeitos dock's `div`). Its capture, "Captura · Diversos", is OBS's "any fullscreen application", so a new game needs no setup as
   long as it runs fullscreen or borderless (a windowed one: pick its window in the capture's properties); it has
-  "Gravar jogo" with the VAR's replay buffer like the others. Framed like every game scene (below);
+  "Gravar jogo" like the others. Framed like every game scene (below);
   `palco.html?jogo=diversos` (no rank or record; Celeste's numbers while its mod is connected) and `torcida.html?jogo=diversos`
   (the stand cheers no goals, saves, rounds or matches; Σ in Rocket League's ranks, as the site shows them; the chat,
-  arrivals, captions and the VAR as ever). The Partidas dock never cuts away from it (no matches to follow) and the
+  arrivals and captions as ever). The Partidas dock never cuts away from it (no matches to follow) and the
   Anúncios dock treats it as play. `obs.py --apply` copies the stand's `#chave=` from "Torcida" into the new
   source, never printing it.
 - Celeste has a scene of its own (2026-11-22, made live): "Celeste + chat · Diversos", over Diversos' own capture
-  and stand. Keep "Diversos" in its name: the Efeitos dock finds the game by it, for F2, F4, F8 and "Gravar jogo"; its
-  Lance ruim and VAR are Diversos'. Since every game is framed it's Diversos + chat without the keyboard.
+  and stand. Keep "Diversos" in its name: the Efeitos dock finds the game by it, for F2, F4 and "Gravar jogo". Since
+  every game is framed it's Diversos + chat without the keyboard.
 - **Every game scene is framed** (Luan, 2026-11-23, after Celeste's: one layout, room for the stand, nothing over the
-  game): RL + chat, Valorant + chat, Diversos + chat, Celeste's and the three Lance ruim (`GAMES`, `BAD_PLAYS` in
-  `obs.py`). The capture 1600×900 at (320, 0) with OBS's Area filter, the camera and Filtros 288×270 at (16, 774), the
+  game): RL + chat, Valorant + chat, Diversos + chat and Celeste's (`GAMES` in `obs.py`). The capture 1600×900 at
+  (320, 0) with OBS's Area filter, the camera and Filtros 288×270 at (16, 774) (in "Base · Câmera", below), the
   overlay `palco.html?jogo=…` (the sources keep their names: "Overlay · Jogo + chat" is Rocket League's), the stand
   moved to (348, 0), Pix at (0, 0) (`pix.html` puts its call in the column by the scene's name: a new game scene goes
-  in its `PALCO` list) and the alerts at (570, 130). `--apply` puts all of them in place (`PLACED`) and the overlays'
+  in its `PALCO` list) and the alerts at (570, 130) (both in "Base · Jogo"). `--apply` puts all of them in place (`PLACED`) and the overlays'
   URLs (`SOURCE_SETTINGS`); a scene laid out by hand goes back to this on the next `--apply`. Until that day the camera
   sat over the game at (44, 740), Valorant's at (44, 44) over the minimap, with `jogo.html` (the commented videos'
   frame still).
-- Effects (2026-11-07): scenes "Lance ruim" (cut in; the Efeitos dock zooms the camera and returns) and "Terapia"
-  (fade in), and the sounds: the browser source "Sons" (`public/stream/tocador.html`) plays them when the dock hears a
+- **The game scenes share their parts** (Luan, 2026-11-24: "todas possuem o mesmo layout, apenas adaptações por
+  jogo"): each game scene is its capture, "Base · Câmera" (Câmera and Filtros in the frame) under its overlay, its
+  stand, and "Base · Jogo" over it (Alertas, Pix, "Base · Sons" and, hidden, "Lance ruim"). "Base · Sons" (the "Sons"
+  player, the "Som · …" and "Gatilho · …" triggers) is nested in Conversa and Terapia too. Move the camera or the
+  alerts there once and every game follows; a new game scene is its capture, overlay and stand around the two bases.
+  `obs.py --apply` made the change (`nest`: each part gave way to its base where the first of them was), and the
+  bases took their items' places from RL + chat as OBS had them.
+- Effects (2026-11-07): "Lance ruim" (since 2026-11-24 a layer, the nested scene "Lance ruim" hidden at the top of
+  "Base · Jogo": the Efeitos dock sets its camera and filter where Base · Câmera has them, shows it, zooms them to the
+  whole screen while the filters make him Sigma, and hides it; until then a scene per game, cut in and out) and
+  "Terapia" (on its stinger "Água"), and the sounds: the browser source "Sons" (`public/stream/tocador.html`) plays them when the dock hears a
   hotkey restart its trigger, a media source "Som · …" with `gatilho.webm`, no sound at all (media sources play once when OBS loads, so
   real sounds there went off all at once). Hotkeys are on the F-row (Rocket League binds F1 and F10): F2 Lance ruim,
-  F3 Terapia, F4 back to the scene before (from an effect, the scene it came from; from Conversa or Já volto, the
+  F3 Terapia, F4 back to the scene before (from Terapia, the scene it came from; from Conversa or Já volto, the
   last scene before it; nothing in a game scene; never a fixed scene, Luan 2026-11-10), F5 palmas, F6 uuuh, F7 tambor.
-  F2 and F4 are triggers too ("Gatilho · …", since 2026-11-08), so the dock picks the scene; it reads the game from the
+  F2 and F4 are triggers too ("Gatilho · …", since 2026-11-08), so the dock decides; it reads the game from the
   scene names on screen, never a remembered one, and shows under its buttons where F4 would go. Lance ruim is only
   ever fired by hand. OBS's log lists every switch ("User switched to scene"), the dock's too: the place to see what
   F2/F4 did during a live.
-- Valorant (2026-11-08): scenes "Valorant + chat" and "Lance ruim · Valorant", Rocket League's with their
+- Valorant (2026-11-08): the scene "Valorant + chat", Rocket League's with its
   own capture "Captura · Valorant" (with "Gravar jogo"), "Overlay · Valorant + chat" and "Torcida · Valorant". Pix is
   the same source; pix.html moves its corner by the scene's name. `obs.py --apply` refuses a key OBS already uses. OBS's own
-  cut and fade have names in its language ("Cortar", "Esmaecer"); the dock finds them by kind.
+  fade has a name in its language ("Esmaecer"); the dock finds it by kind.
   `brand/twitch/obs.py --apply [--dry-run]` adds what's missing to the live collection without touching the rest.
 - Changes made by hand or by websocket should also land in `brand/twitch/obs.py`, which generates the scene
   collection (`python3 brand/twitch/obs.py [stinger path] [alerts URL] > muanlartins.json`; the alerts URL is a

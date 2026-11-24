@@ -22,7 +22,7 @@ export interface Command {
 }
 
 export interface CommandGroup {
-  id: "arquibancada" | "var" | "bot"
+  id: "arquibancada" | "bot"
   titulo: string
   texto: string
   nota?: string

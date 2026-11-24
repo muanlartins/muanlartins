@@ -9,17 +9,15 @@ import { cn } from "@/lib/utils"
 export function CommandName({ command, also, interactive = false }: { command: Command; also: string; interactive?: boolean }) {
   const shown = command.uso ?? command.comando
   const others = (command.apelidos ?? []).filter((a) => !shown.includes(a))
-  // "!1, !2 ou !3" → chips side by side, with the "ou" between them (the commas go: the chips already part them).
-  const parts = shown.split(/(, | ou )/)
+  // "!sigma ou !sigma @alguém" → chips side by side, with the "ou" between them.
+  const parts = shown.split(/( ou )/)
   return (
     <span className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
       {parts.map((part, i) =>
         i % 2 ? (
-          part === ", " ? null : (
-            <span key={i} className="text-[13px] text-muted">
-              {part.trim()}
-            </span>
-          )
+          <span key={i} className="text-[13px] text-muted">
+            {part.trim()}
+          </span>
         ) : (
           <CodeChip key={i} className={cn(interactive && "transition-colors group-hover:bg-klein group-hover:text-paper group-focus-visible:bg-klein group-focus-visible:text-paper")}>
             {part}

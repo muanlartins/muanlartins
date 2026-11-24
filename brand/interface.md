@@ -37,7 +37,7 @@ lighter because it's read longer; it isn't a different brand.
 | `line` | Klein 22% into ground | dividers, card edges. Inputs and anything that must be seen as a control use `line-strong` (Klein mixed in until it reaches 3:1 against the ground) |
 | `win` / `loss` | `#007645` / `#b53031` | results; `loss` is also **the** error colour. Small text in `win` on the ground is 4.4:1: use it at 14 px medium or larger |
 | `ouro` | `#ffd166` | first place, crowns, podiums, rewards, on dark grounds only (today typed by hand in the minigames: make it a token) |
-| `amarelo` | `#ffd23f` | the referee (VAR) and warnings on the live; one yellow, not three |
+| `amarelo` | `#ffd23f` | warnings on the live; one yellow, not three |
 
 Everything else on the overlays (the navy pane's alpha, the lattice) is a variable in `stream.css`, not retyped: the
 pane is `--pane` (navy .62, over the game) or `--pane-solid` (navy .92); the lattice is `--unit` 24 px and
@@ -71,14 +71,14 @@ atual`). A section's title is an h2.
 
 | Size | Use |
 |---|---|
-| 96–190 | display: Começando, Já volto, the VAR's word |
+| 96–190 | display: Começando, Já volto |
 | 48–64 | titles of a scene or a card (Vitória 3–1) |
 | 32 | big numbers, names in a banner |
 | 22–24 | chat, plates, eyebrows (`.eyebrow`: 22 px, 0.14em, Klein claro) |
 | 18 | names over fans, secondary lines |
 | 14 | small labels only (units, tiles' captions) |
 
-Banner words (GOOOL!, VAR, FIM DE JOGO) are uppercase and heavy (700); everything else 500–600.
+Banner words (GOOOL!, FIM DE JOGO) are uppercase and heavy (700); everything else 500–600.
 
 ## Layout
 

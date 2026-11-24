@@ -146,8 +146,8 @@ export const TIMES = V.TIMES as Time[]
 export const clube = V.clube as (nome: string) => Time | null
 /** Their team picked: a club's shirt goes on (they may change it after). */
 export const comTime = V.comTime as unknown as <T extends Torcedor3DSalvo>(look: T, nome: string) => T
-/** The referee's kit and Santa's hat, put on only to draw: never save what it returns. */
-export const vestir = V.vestir as unknown as (look: Torcedor3DSalvo, ocasiao?: { arbitro?: boolean; natal?: boolean }) => Torcedor3D
+/** Santa's hat, put on only to draw: never save what it returns. */
+export const vestir = V.vestir as unknown as (look: Torcedor3DSalvo, ocasiao?: { natal?: boolean }) => Torcedor3D
 /** Whether it's December in Brasília (the stand's Santa hat). */
 export const natal = V.natal as (agora?: number) => boolean
 

@@ -343,7 +343,7 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-10",
     tag: "live",
     title: "Filtros na câmera",
-    text: "Phoenix, Sova e Sage com as habilidades, Madeline e Badeline reagindo ao meu Celeste, ou a bola e os carros.",
+    text: "Phoenix, Sova e Sage com as habilidades, Madeline e Badeline reagindo ao meu Celeste, a bola, os carros ou o Sigma.",
     credits: [{ by: "woody_fdp" }, { by: "ccamara", about: "Pintura e decalques nos carros" }],
     media: [
       media("filtros-celeste", "Luan de Madeline na câmera, com o cabelo azul e o rastro vermelho do dash do Celeste"),
@@ -359,7 +359,7 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-10",
     tag: "live",
     title: "VAR",
-    text: "Num lance polêmico, o replay passa na tela e o chat vota o veredito. Quem acerta ganha 3 Σ.",
+    text: "Num lance polêmico, o replay passava na tela e o chat votava o veredito. Saiu da live em 24/11.",
     media: [
       media("var-com-replay", "O VAR no canto da live: o replay do lance em câmera lenta a 50% e, embaixo, a votação do chat com !1 ou !2"),
       media("var", "A cabine do VAR: o replay do gol no monitor, a câmera ao vivo e a votação do chat"),
@@ -420,8 +420,11 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-07",
     tag: "live",
     title: "Efeitos na live",
-    text: "Lance ruim dá zoom na minha cara, a Terapia acalma com respiração guiada, e os sons saem com os pontos do canal.",
-    media: [media("terapia-repaginada", "A cena da Terapia: Luan no meio do círculo de respiração, com os passos de um lado e o chat do outro", { video: true })],
+    text: "No Lance ruim a câmera toma a tela e eu viro Sigma, a Terapia acalma com respiração guiada, e os sons saem com os pontos do canal.",
+    media: [
+      media("lance-ruim-sigma", "Luan de Sigma no Lance ruim: em preto e branco, com o queixo quadrado, o pescoço largo e luz dura de lado"),
+      media("terapia-repaginada", "A cena da Terapia: Luan no meio do círculo de respiração, com os passos de um lado e o chat do outro", { video: true }),
+    ],
   },
   {
     id: "audiencia",

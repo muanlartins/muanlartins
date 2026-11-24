@@ -13,10 +13,10 @@
       The dock sends "muanlartins-filtro" through obs-browser's emit_event: { filtro: "<id>" } is the filter that
       should be on ("nenhum" for none; the dock repeats it every few seconds, so a reloaded page catches up), with
       its switches in opcoes ({ patrulha: true }: Sova's drone flying behind him), and { acao: "flash" } fires a
-      one-off. The Efeitos dock sends { visita: { filtro, acao } } for a viewer's channel points: that filter comes on
-      (over another or none), takes the ability once his face is found, and the dock's choice comes back when it's
-      over. One filter at a time. Every filter is a folder under filtros/ (filtros/index.js lists them in the
-      dock's order; filtros/README.md is how to make one): its entry for the dock and this page, and, when it does
+      one-off. The Efeitos dock sends { visita: { filtro, acao } } for a viewer's channel points (and for the Lance
+      ruim, Sigma's with `ate`, when the moment ends, in Date.now()'s ms): that filter comes on (over another or none),
+      takes the ability once his face is found, and the dock's choice comes back when it's over. One filter at a
+      time. Every filter is a folder under filtros/ (filtros/index.js lists them in the dock's order; filtros/README.md is how to make one): its entry for the dock and this page, and, when it does
       something of its own, a module handed the engine this page gives it (`motor`). The looks on his head and
       shoulders are filtros/visuais.js's entries: a Valorant model, found by its bones, or any model placed by
       numbers (`modo: "fixo"`), fitted on him with ?modo=<id>&ajuste (a panel with each piece's numbers that copies
@@ -83,6 +83,9 @@
               public/models/. ?carro=<cm across> (30), ?inclinacao=<degrees from above> (24),
               ?comprimento=<length kept, 0..1> (0.8), ?posicao=x,y,z (cm on the face) to tune.
         Celeste (2026-11-21, filtros/celeste/): Madeline's or Badeline's look on Luan, the game's moves on him, following the game through its mod.
+        Sigma (2026-11-24, filtros/sigma/): Luan as the Gigachad meme, in black and white, his jaw squared and his neck
+              and shoulders broadened. The Lance ruim's visit snaps it in for its moment (until `ate`); on as the
+              dock's filter, the moment (key L) only punches it.
       Kept here but off the dock (Luan, 2026-11-10: only Phoenix and the ball for now):
         Pop   (key 1): the body cut out, in blues, with fire coming off its outline, a pop-art burst behind
               that follows the head, flying shapes the hands push away; it comes in with shards.
@@ -2368,10 +2371,11 @@
         // Whatever comes on (the same one again too), the particles still flying go.
         vfx.clear()
       }
-      // A one-off, from the dock or a key: only for the filter that has it.
-      function acao(a) {
+      // A one-off, from the dock or a key: only for the filter that has it. A visit's other fields come with it
+      // (`extra`: the Lance ruim's `ate`).
+      function acao(a, extra) {
         const now = performance.now()
-        pluginOf(mode)?.acao?.(a, now)
+        pluginOf(mode)?.acao?.(a, now, extra)
         if (CARS[mode]) ({ demo, flip: flipCar })[a]?.(now)
       }
       // A viewer's channel points (the Efeitos dock's { visita: { filtro, acao } }): that filter comes on for the
@@ -2380,7 +2384,7 @@
       // rest).
       let dockFiltro = mode
       // The visit on the page's clock, moved on by tick(): waiting for him, the ability playing, leaving.
-      const visita = { filtro: null, acao: null, fase: null, desde: 0 }
+      const visita = { filtro: null, acao: null, extra: null, fase: null, desde: 0 }
       /** The visiting filter can take the ability: the camera open, his face found, the model loaded. */
       const prontoPara = (f) => camState === "aberta" && headSeen && !!(AGENTS[f] ?? CARS[f] ?? { ready: true }).ready && (pluginOf(f)?.pronto?.() ?? true)
       /** An ability of the filter on is still playing. */
@@ -2389,16 +2393,16 @@
         if (CARS[mode]) return CARS[mode].boom >= 0 || CARS[mode].flip >= 0
         return false
       }
-      function visitar({ filtro, acao: a }) {
+      function visitar({ filtro, acao: a, ...extra }) {
         if (!MODES.includes(filtro) || visita.filtro) return
-        Object.assign(visita, { filtro, acao: a, fase: "esperando", desde: performance.now() })
+        Object.assign(visita, { filtro, acao: a, extra, fase: "esperando", desde: performance.now() })
         if (mode !== filtro) setMode(filtro)
       }
       function visitaTick(now) {
         if (!visita.filtro) return
         const t = now - visita.desde
         if (visita.fase === "esperando" && (prontoPara(visita.filtro) || t > 8000)) {
-          acao(visita.acao)
+          acao(visita.acao, visita.extra)
           Object.assign(visita, { fase: "soltou", desde: now })
         } else if (visita.fase === "soltou" && t > 4000 && (!ocupado() || t > 30000)) {
           Object.assign(visita, { fase: "saindo", desde: now })
@@ -3088,6 +3092,8 @@
         get lastHands() { return lastHands },
         get headSeen() { return headSeen },
         get modo() { return mode },
+        // The filter on came only for a visit (not the Filtros dock's choice): it goes when the visit is over.
+        get deVisita() { return !!visita.filtro && visita.filtro === mode && dockFiltro !== mode },
         // The look on him now (visuais.js), and a colour for its material of that name (a filter's hair following
         // its game); false while there's no look or none of its materials has that name.
         get visual() { return AGENTS[mode]?.ready ? AGENTS[mode] : null },

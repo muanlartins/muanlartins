@@ -61,7 +61,7 @@
         top: 340px;
         height: 420px;
       }
-      /* Under the ball duel (duelo.html, ?duelo=1), which takes the VAR's mini player's corner, 640×360 at (1236, 92). */
+      /* Under the ball duel (duelo.html, ?duelo=1), which takes the top right corner, 640×360 at (1236, 92). */
       .game-chat.duelo {
         top: 472px;
         height: 264px;
@@ -106,14 +106,6 @@
         left: 32px;
       }
       .chat-pane.empty {
-        opacity: 0;
-      }
-      /* While the VAR's mini player is up (var.html, top right), its vote takes the chat's place (not the left one's). */
-      .game-chat {
-        transition: opacity 0.5s var(--ease);
-      }
-      .var-mini .game-chat:not(.valorant.duelo),
-      .var-mini .chat-pane:not(.valorant.duelo) {
         opacity: 0;
       }
       /* Over the game the cards need more ground to read on any arena. */
@@ -213,10 +205,6 @@
         }
         new MutationObserver(() => requestAnimationFrame(fit)).observe(box, { childList: true })
         chat(box, { keep: 45, max: 10 })
-        addEventListener("muanlartins-var", ({ detail }) => {
-          const v = varDe(detail)
-          if (v) document.querySelector(".stage").classList.toggle("var-mini", v.fase !== "fechado" && v.layout === "mini")
-        })
       }
     </script>
   </body>

@@ -150,18 +150,16 @@ export function Torcedor3D({
   quadro = "inteiro",
   alt = "",
   natal,
-  arbitro,
   aguardando = false,
   escala = quadro === "inteiro" ? 1.25 : 1,
   className,
-}: Omit<Quem, "natal" | "arbitro"> & {
+}: Omit<Quem, "natal"> & {
   pose?: Pose
   momento?: { tipo: Momento; vez?: number; atraso?: number } | null
   acoes?: Momento[]
   quadro?: Quadro
   alt?: string
   natal?: boolean
-  arbitro?: boolean
   aguardando?: boolean
   /** The frame's height over the box's. */
   escala?: number
@@ -179,8 +177,8 @@ export function Torcedor3D({
 
   // Who, as one string: the effects follow it, not the objects' identities.
   const quem = useMemo(
-    () => JSON.stringify({ aparencia: aparencia ?? null, login: login ?? "", look: look ?? null, modelo: modelo ?? "", natal: natal ?? december, arbitro: !!arbitro }),
-    [aparencia, login, look, modelo, natal, december, arbitro],
+    () => JSON.stringify({ aparencia: aparencia ?? null, login: login ?? "", look: look ?? null, modelo: modelo ?? "", natal: natal ?? december }),
+    [aparencia, login, look, modelo, natal, december],
   )
 
   useEffect(() => quandoVisivel(caixa.current!, () => setVisto(true)), [])

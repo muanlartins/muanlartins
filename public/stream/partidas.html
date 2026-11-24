@@ -1095,7 +1095,7 @@
       /**
        * The match on screen for numeros.js, as JSON text in `dados`: obs-websocket turns event_data into OBS's own
        * data, which keeps only arrays of objects, so the result's score ([3, 1]) reached Conversa empty and its end
-       * card read "undefined–undefined" (11-23), as the VAR's options once did.
+       * card read "undefined–undefined" (11-23).
        */
       function emitirNaTela() {
         emit("muanlartins-estatisticas", { dados: JSON.stringify({ ...naTela, mostrar: state.estatisticas }) })

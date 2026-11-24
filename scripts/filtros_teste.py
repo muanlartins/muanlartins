@@ -16,6 +16,11 @@ given with --video= (Y4M or MJPEG: `ffmpeg -ss 1500 -i "<live>/… Câmera.mkv" 
 the agents' looks, gestures and the body mask; a live's Câmera.mkv is already framed, so add --params=zoom=1
 (--params= adds anything to the page's URL: zoom=1&fundo=…).
 
+--visita=<s> sends each one-off as the Efeitos dock's visit does ({ visita: { filtro, acao, ate } }, `ate` s seconds
+after it's sent, as the Lance ruim's: `sigma lance:0.2,1,3,4.5 --visita=4`), and --escolha=<id> sets the Filtros dock's
+choice first (`nenhum`, as during a live with no filter on: the visit then opens the camera itself); Date.now follows
+the virtual clock too.
+
 A filter that follows a game (Celeste's, from the MuanlartinsLink mod) is tried with the game's stand-in:
 --jogo=celeste starts scripts/celeste-mod/simular.py step by step on a free port and points the page at it
 (?celeste-jogo=…); an argument starting with @ is then one of its steps (public/stream/celeste-sequencia.json's names)
@@ -56,7 +61,9 @@ JOGOS = {"celeste": (ROOT / "scripts/celeste-mod/simular.py", "celeste-jogo")}
 DEPS = Path.home() / ".local/lib/chromium-deps/root/usr/lib/x86_64-linux-gnu"
 CLOCK = """(() => {
   let vt = performance.now()
+  const v0 = vt, d0 = Date.now()
   performance.now = () => vt
+  Date.now = () => Math.round(d0 + vt - v0)
   const raf = window.requestAnimationFrame.bind(window)
   window.requestAnimationFrame = (cb) => raf(() => { vt += 1000 / 30; cb(vt) })
 })()"""
@@ -158,7 +165,7 @@ def step(base, name):
     return json.loads(urllib.request.urlopen(f"{base}/passo?nome={urllib.parse.quote(name)}", timeout=5).read())
 
 
-async def run(filtro, plan, video, params, seed, jogo=None):
+async def run(filtro, plan, video, params, seed, jogo=None, visita=None, escolha=None):
     port = serve()
     sim = None
     if jogo:
@@ -189,12 +196,21 @@ async def run(filtro, plan, video, params, seed, jogo=None):
         await page.wait_for_function("window.filtros && window.filtros.vfx && window.filtros.trackers", timeout=900000, polling=1000)
         await page.wait_for_timeout(5000)
         await page.evaluate(SOUNDS)
+        if escolha:
+            # The Filtros dock's choice, then long enough for the page to let go of the camera if it's none.
+            await page.evaluate(f"dispatchEvent(new CustomEvent('muanlartins-filtro', {{ detail: {{ filtro: {json.dumps(escolha)} }} }}))")
+            t = await page.evaluate("performance.now()")
+            await page.wait_for_function(f"performance.now() >= {t + 4000}", timeout=1800000, polling=200)
         t_start = await page.evaluate("performance.now()")
         for acao, times in plan:
             if acao.startswith("@"):
                 # The stand-in's step: the page hears it within a frame or so.
                 step(sim_base, acao[1:])
                 t0 = await page.evaluate("performance.now()")
+            elif visita is not None:
+                # As the Efeitos dock sends it (obs-browser's emit_event), with the moment's end.
+                v = f"{{ filtro: {json.dumps(filtro)}, acao: {json.dumps(acao)}, ate: Date.now() + {visita * 1000} }}"
+                t0 = await page.evaluate(f"(() => {{ dispatchEvent(new CustomEvent('muanlartins-filtro', {{ detail: {{ visita: {v} }} }})); return performance.now() }})()")
             else:
                 t0 = await page.evaluate(f"(() => {{ window.filtros.acao({json.dumps(acao)}); return performance.now() }})()")
             for s in times:
@@ -225,6 +241,8 @@ def main():
     params = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--params=")), "")
     seed = int(next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--semente=")), "1"))
     jogo = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--jogo=")), None)
+    visita = next((float(a.split("=", 1)[1]) for a in sys.argv[1:] if a.startswith("--visita=")), None)
+    escolha = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--escolha=")), None)
     if jogo and jogo not in JOGOS:
         raise SystemExit(f"--jogo= one of: {', '.join(JOGOS)}")
     if not args:
@@ -238,7 +256,7 @@ def main():
         plan.append((name, [float(t) for t in times.split(",")] if times else DEFAULT_TIMES))
     if any(a.startswith("@") for a, _ in plan) and not jogo:
         raise SystemExit("@steps need --jogo=")
-    asyncio.run(run(filtro, plan, video, params, seed, jogo))
+    asyncio.run(run(filtro, plan, video, params, seed, jogo, visita, escolha))
 
 
 if __name__ == "__main__":

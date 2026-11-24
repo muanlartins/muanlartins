@@ -17,11 +17,9 @@
 //   evento(tipo, { placa, ms, confete, de })   "gol" (their own celebrations rippling, flags, drum, the plate's
 //                              word, confetti), "deles" (a slump), "defesa" (a quick cheer), "ola" (from the left, or
 //                              from someone's login in `de`)
-//   mover(login, tipo)         "pula", "danca", "comemora" (their own), "lamenta"
+//   mover(login, tipo)         "pula", "danca", "comemora" (their own)
 //   falar(login, texto)        comes forward with the line in a balloon (three wait at most)
 //   dedicar(login, ms)         comes forward, arms up (a goal dedicated to them)
-//   cartao(login, n)           the VAR's vote card in their raised hand (0 takes it away; without n, the one they hold)
-//   arbitro(aberto)            everyone in the referee's kit (each fan baked again, the usual look kept for after)
 //   natal(sim)                 Santa's hat on everyone
 //   confete()                  confetti without a goal (a Christmas sub)
 //   altura(px), ocupada(), onde(login) → { x, y } (the top of their head), fotos(login), capacidade, medidas
@@ -48,9 +46,8 @@ const SELO_MAX = 28
 const KLEIN = "#002fa7"
 const CLARO = "#85a7ff"
 const PAPEL = "#f4f5f7"
-const AMARELO = "#ffd23f"
 // How long each move lasts (their own celebration as the 2D's did).
-const DURA = { pula: 2100, danca: 3600, lamenta: 3500 }
+const DURA = { pula: 2100, danca: 3600 }
 const FESTA_MS = { pula: 2000, danca: 2400, gira: 2200, acena: 2400, palmas: 2400, bananeira: 2200 }
 const entre = (x, a, b) => Math.min(b, Math.max(a, x))
 const suave = (a, b, x) => {
@@ -104,7 +101,6 @@ export function criarArquibancada(tela, opcoes = {}) {
   const falantes = []
   const papeis = []
   let caixas = []
-  let varAberto = false
   let comTouca = false
   let ultimo = performance.now()
   // desenho: ms to draw a frame (smoothed) and the longest; bytes: the pictures held.
@@ -118,8 +114,7 @@ export function criarArquibancada(tela, opcoes = {}) {
     .finally(() => {
       for (const f of todas.values()) f.corte = f.curto = null
     })
-  const conjunto = () => (varAberto ? "arbitro" : "normal")
-  const lookPara = (f, conj) => vestir(f.base, { arbitro: conj === "arbitro", natal: comTouca })
+  const lookPara = (f) => vestir(f.base, { natal: comTouca })
 
   // --- The rows ------------------------------------------------------------------------------------------------
   // For whoever is in, and how big a fan shows (k px a unit; the talker's K). Every row the same size: the stand keeps
@@ -184,8 +179,8 @@ export function criarArquibancada(tela, opcoes = {}) {
     const n = serie++
     return {
       login: d.login, nome: d.nome, canal: !!d.canal, emblema: null, base: null, chave: null, versao: 0,
-      // Pictures by kit: { fotos, px, feito }; zoom: the talker's sharper aceno and cima.
-      sets: {}, zoom: null, animar, chegou: null, saiu: null, mov: null, cartao: 0, x: null, pe: null, alvo: null,
+      // Pictures: { fotos, px, feito }; zoom: the talker's sharper aceno and cima.
+      assento: null, zoom: null, animar, chegou: null, saiu: null, mov: null, x: null, pe: null, alvo: null,
       // Breath: 3.4 to 5 s a cycle at its own phase; first blink somewhere in the first 6 s.
       folego: (2 * Math.PI) / (3400 + 1600 * acaso(n)), fase: 2 * Math.PI * acaso(n + 0.5), pisca: performance.now() + 6000 * acaso(n + 0.25), corte: null,
     }
@@ -210,8 +205,8 @@ export function criarArquibancada(tela, opcoes = {}) {
   function remover(f) {
     if (todas.get(f.login) === f) todas.delete(f.login)
     f.morto = true
-    for (const s of Object.values(f.sets)) soltar(s.fotos)
-    f.sets = {}
+    soltar(f.assento?.fotos)
+    f.assento = null
     largarZoom(f)
     for (let i = falas.length - 1; i >= 0; i--) if (falas[i].f === f) falas.splice(i, 1)
     if (foco?.f === f) foco = null
@@ -220,7 +215,7 @@ export function criarArquibancada(tela, opcoes = {}) {
   function contar() {
     let b = 0
     for (const f of todas.values()) {
-      for (const s of Object.values(f.sets)) b += bytes(s.fotos)
+      b += bytes(f.assento?.fotos)
       b += bytes(f.zoom?.fotos)
     }
     medidas.bytes = b
@@ -269,32 +264,31 @@ export function criarArquibancada(tela, opcoes = {}) {
   // --- Baking (fas3d.js's queue asks what's next) -----------------------------------------------------------------
   // What a fan's pictures need: 0 nothing, 1 none yet or an old look, 2 smaller than shown, 3 bigger.
   function falta(f) {
-    const s = f.sets[conjunto()]
+    const s = f.assento
     if (!s?.fotos || s.feito !== f.versao) return 1
     if (Math.abs(s.px / arranjo.px - 1) < 0.01) return 0
     return s.px < arranjo.px ? 2 : 3
   }
   const pxZoom = () => Math.max(1.3 * arranjo.foco, NITIDO * dpr)
-  const precisaZoom = (f) => !f.zoom || f.zoom.conj !== conjunto() || f.zoom.feito !== f.versao || f.zoom.px < pxZoom() * 0.99
-  const vale = (f, v, conj) => () => !f.morto && !f.saiu && f.versao === v && (conj === "normal" || varAberto)
+  const precisaZoom = (f) => !f.zoom || f.zoom.feito !== f.versao || f.zoom.px < pxZoom() * 0.99
+  const vale = (f, v) => () => !f.morto && !f.saiu && f.versao === v
 
   function proximo() {
-    const conj = conjunto()
     // Whoever is at the rail, or next in line for it, first: their seat's pictures if they just came (a chatter's first
     // line is also their arrival), then the sharper ones for the rail.
     const naFila = [foco?.f, ...falas.map((x) => x.f)].filter((f) => f && !f.morto && f.saiu == null)
     const chegando = naFila.find((f) => !fotosDe(f) && sentados.includes(f))
-    if (chegando) return assento(chegando, conj)
+    if (chegando) return assento(chegando)
     const quer = naFila.find(precisaZoom)
     if (quer) {
       const f = quer
       const v = f.versao
       const px = pxZoom()
       return {
-        look: lookPara(f, conj), poses: ["aceno", "cima"], px, valido: vale(f, v, conj),
+        look: lookPara(f), poses: ["aceno", "cima"], px, valido: vale(f, v),
         guardar(fotos) {
           largarZoom(f)
-          f.zoom = { conj, px, fotos, feito: v }
+          f.zoom = { px, fotos, feito: v }
           falantes.push(f)
           if (falantes.length > FALANTES) largarZoom(falantes[0])
           contar()
@@ -312,16 +306,16 @@ export function criarArquibancada(tela, opcoes = {}) {
         if (n === 1) break
       }
     }
-    return f ? assento(f, conj) : null
+    return f ? assento(f) : null
   }
-  function assento(f, conj) {
+  function assento(f) {
     const v = f.versao
     const px = arranjo.px
     return {
-      look: lookPara(f, conj), poses: POSES, px, valido: vale(f, v, conj),
+      look: lookPara(f), poses: POSES, px, valido: vale(f, v),
       guardar(fotos) {
-        soltar(f.sets[conj]?.fotos)
-        f.sets[conj] = { fotos, px, feito: v }
+        soltar(f.assento?.fotos)
+        f.assento = { fotos, px, feito: v }
         if (f.chegou == null) f.chegou = performance.now()
         contar()
       },
@@ -415,7 +409,7 @@ export function criarArquibancada(tela, opcoes = {}) {
     festa(m, d, f.base.fes, k)
   }
 
-  // Someone's own move from the chat (or the VAR's verdict).
+  // Someone's own move from the chat.
   function mexer(m, mv, d, f, k) {
     if (mv.tipo === "pula") {
       m.pose = "cima"
@@ -426,14 +420,6 @@ export function criarArquibancada(tela, opcoes = {}) {
       m.rot = Math.sin((2 * Math.PI * d) / 900) * 0.17
       m.dy = -5 * Math.abs(Math.sin((2 * Math.PI * d) / 900))
     } else if (mv.tipo === "comemora") festa(m, d, f.base.fes, k)
-    else if (mv.tipo === "lamenta") {
-      const s = entre(d / 300, 0, 1) * entre((mv.ate - mv.em - d) / 300, 0, 1)
-      if (s > 0.2) {
-        m.pose = "triste"
-        m.sombra = true
-      }
-      m.dy = 6 * s
-    }
   }
 
   function mover(f, x, agora, k) {
@@ -442,7 +428,6 @@ export function criarArquibancada(tela, opcoes = {}) {
     if (f.mov && agora >= f.mov.ate) f.mov = null
     if (f.mov) mexer(m, f.mov, agora - f.mov.em, f, k)
     else if (evento) agitar(m, x, agora, f, k)
-    if (f.cartao && m.pose === "parado") m.pose = "aceno"
     if (m.pose === "parado" && piscando(f, agora)) m.pose = "pisca"
     if (f.saiu != null) {
       // Leaving: sinks away.
@@ -534,7 +519,7 @@ export function criarArquibancada(tela, opcoes = {}) {
       g.lineJoin = "round"
     }
     const acesos = []
-    const aceso = (q) => q.f.mov && agora < q.f.mov.ate && q.f.mov.acende
+    const aceso = (q) => q.f.mov && agora < q.f.mov.ate
     for (const q of K > 1 ? visiveis(n) : todos) {
       if (aceso(q)) continue
       // Only names that come or go fade; the ones staying don't blink.
@@ -575,38 +560,12 @@ export function criarArquibancada(tela, opcoes = {}) {
       const c = curto(p, n, max)
       return { f: p, s: c.s, w: c.w, cx: entre(x, L + 8 + c.w / 2, D - 8 - c.w / 2) }
     })
-    const aceso = (q) => q.f.mov && agora < q.f.mov.ate && q.f.mov.acende
+    const aceso = (q) => q.f.mov && agora < q.f.mov.ate
     for (const q of qs) if (!aceso(q)) nome(q, y, !!f, false)
     for (const q of qs) if (aceso(q)) nome(q, y, false, true)
   }
 
-  // The VAR's card held up by the head, raised hand or not (a slumping voter keeps it up, clear of the names under them):
-  // referee yellow, the option's number.
-  function desenharCartao(f, x, pe, k, m) {
-    const w = Math.max(22, 0.95 * k)
-    const h = w * 1.25
-    const cx = x + 1.45 * k
-    const cy = pe + m.dy - 2.93 * k - 0.25 * k - h * 0.45
-    g.save()
-    g.globalAlpha = m.alpha
-    g.translate(cx, cy)
-    g.rotate(0.17)
-    cortado(-w / 2 + 2, -h / 2 + 2, w, h, 4, NAVY)
-    cortado(-w / 2 - 1.5, -h / 2 - 1.5, w + 3, h + 3, 5, NAVY)
-    cortado(-w / 2, -h / 2, w, h, 4, AMARELO)
-    g.font = FORTE
-    g.textAlign = "center"
-    g.textBaseline = "middle"
-    g.fillStyle = "#2b2f38"
-    g.fillText(String(f.cartao), 0, 1)
-    g.restore()
-  }
-
-  function fotosDe(f) {
-    const s = f.sets[conjunto()]
-    if (s?.fotos) return s.fotos
-    return f.sets.normal?.fotos ?? f.sets.arbitro?.fotos ?? null
-  }
+  const fotosDe = (f) => f.assento?.fotos ?? null
 
   function desenharFoto(foto, x, pe, k, m) {
     const w = FOTO.inteiro.w * k
@@ -691,7 +650,6 @@ export function criarArquibancada(tela, opcoes = {}) {
           g.drawImage(f.emblema.selo, f.x + m.dx - 1.34 * k - t * 0.2 - t / 2, f.pe + m.dy - 0.75 * k - t / 2, t, t)
           g.globalAlpha = 1
         }
-        if (f.cartao) desenharCartao(f, f.x + m.dx, f.pe, k, m)
         if (f.saiu == null && (f.chegou == null || agora - f.chegou > (f.animar ? 600 : 0))) lugares.push([f, f.x])
       }
 
@@ -708,7 +666,7 @@ export function criarArquibancada(tela, opcoes = {}) {
     if (foco && agora < foco.ate && foco.de) {
       const de = foco.de
       const fotos = fotosDe(foco.f)
-      const zoom = foco.f.zoom?.conj === conjunto() ? foco.f.zoom.fotos : null
+      const zoom = foco.f.zoom?.fotos ?? null
       const pose = foco.tipo === "fala" ? "aceno" : "cima"
       const base = H - 2
       const alvo = entre(de.x, 2.3 * K, W - 2.3 * K)
@@ -731,7 +689,6 @@ export function criarArquibancada(tela, opcoes = {}) {
       }
       const foto = zoom?.[pose2] ?? fotos?.[pose2] ?? (pose2 === pose ? null : zoom?.[pose]) ?? fotos?.[pose] ?? fotos?.parado
       if (foto) desenharFoto(foto, x, pe, kk, m)
-      if (foco.f.cartao) desenharCartao(foco.f, x, pe, kk, { ...m, pose })
       foco.rosto = { x, y: pe - 3.3 * kk, r: 1.15 * kk, topo: H - altura + 6 }
     }
 
@@ -751,10 +708,8 @@ export function criarArquibancada(tela, opcoes = {}) {
       g.stroke()
     }
     g.restore()
-    // The VAR's referee yellow on the rail while it's open.
-    g.fillStyle = varAberto ? AMARELO : PAPEL
-    g.fillRect(frente, y, W - 2 * frente, 2)
     g.fillStyle = PAPEL
+    g.fillRect(frente, y, W - 2 * frente, 2)
     for (let x = 56; x < W - 20; x += 94) g.fillRect(x, y, 3, frente)
     const palavra = evento?.placa && agora - evento.em < evento.ms ? evento.placa : sentados.length ? MARCA : CONVITE
     g.font = FORTE
@@ -972,19 +927,19 @@ export function criarArquibancada(tela, opcoes = {}) {
       const origem = de ? todas.get(de) : null
       evento = { tipo, em: agora, ms, placa, x0: origem ? origem.x : null }
       if (tipo === "gol" || tipo === "deles") {
-        for (const f of todas.values()) if (f.mov?.tipo !== "lamenta") f.mov = null
+        for (const f of todas.values()) f.mov = null
         if (foco?.tipo === "fala") foco.ate = Math.min(foco.ate, agora + 360)
       }
       if (tipo === "gol" && confete) soltarConfete()
     },
     confete: soltarConfete,
-    /** Their name lights up while they move (`acende`: a chat command's, not a crowd's verdict). */
-    mover(login, tipo, { acende = true } = {}) {
+    /** Their name lights up while they move. */
+    mover(login, tipo) {
       const f = todas.get(login)
       if (!f || f.saiu != null) return
       const agora = performance.now()
       const ms = tipo === "comemora" ? FESTA_MS[f.base.fes] ?? 2400 : DURA[tipo] ?? 2400
-      f.mov = { tipo, em: agora, ate: agora + ms, acende: acende && tipo !== "lamenta" }
+      f.mov = { tipo, em: agora, ate: agora + ms }
     },
     falar(login, texto) {
       const t = Array.from(String(texto).replace(/\s+/g, " ").trim())
@@ -993,26 +948,6 @@ export function criarArquibancada(tela, opcoes = {}) {
     },
     dedicar(login, ms = 5600) {
       aRail(todas.get(login), "", "dedica", ms)
-    },
-    /** Their card now (no n), or a new one. */
-    cartao(login, n) {
-      const f = todas.get(login)
-      if (n === undefined) return f?.cartao ?? 0
-      if (f) f.cartao = n || 0
-    },
-    arbitro(aberto) {
-      if (aberto === varAberto) return
-      varAberto = aberto
-      // Closed: the usual pictures are all still there, so the kit comes off at once and its pictures go.
-      if (!aberto)
-        for (const f of todas.values()) {
-          soltar(f.sets.arbitro?.fotos)
-          delete f.sets.arbitro
-          if (f.zoom?.conj === "arbitro") largarZoom(f)
-          f.cartao = 0
-        }
-      contar()
-      acordar()
     },
     natal(sim) {
       if (!!sim === comTouca) return

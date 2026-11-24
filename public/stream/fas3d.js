@@ -22,10 +22,10 @@ export const natal = () => new URLSearchParams(location.search).has("natal") || 
 
 /**
  * Someone's fan as drawn: their 3D look when they saved one, else their 2D one turned 3D (antigo.js), dressed for the
- * moment (the referee's kit while the VAR is open, Santa's hat in December). `aparencia` is what the profile API's
+ * moment (Santa's hat in December). `aparencia` is what the profile API's
  * /torcedores has for them (null for whoever never saved one). Free colours for everyone (Σ no longer locks them).
  */
-export const lookDe = (aparencia, login, { arbitro = false, touca = natal() } = {}) => vestir(torcedorDe(aparencia, login), { arbitro, natal: touca })
+export const lookDe = (aparencia, login, { touca = natal() } = {}) => vestir(torcedorDe(aparencia, login), { natal: touca })
 
 // The 3D shirt as the 2D one's fields (torcedor.js), for what still draws a shirt flat: the duel's ball
 // (duelo-arte.js) and the race's marble (bolinha.js). The way back of vestir.js's camisa2D, so a 2D fan turned 3D

@@ -51,7 +51,7 @@ and returns an object; every part is optional, and the engine calls each only wh
 |---|---|
 | `ligar(id)` | it comes on: `vfx.preload(EFEITOS)` |
 | `desligar()` | another comes on: stop everything (clear its particles, stop its loops, hide its meshes) |
-| `acao(id, now)` | a one-off from the dock, a key or a viewer's channel points (`visita`) |
+| `acao(id, now, extra)` | a one-off from the dock, a key or a visit (`visita`: a viewer's channel points, the Lance ruim); a visit's other fields come in `extra`: `ate`, when its moment ends (Date.now()'s epoch ms; Sigma's Lance ruim snaps in and is back to his plain picture by then, a late one still ends then, one after it does nothing) |
 | `opcoes(o)` | the dock's switches, every few seconds, whether it's on or not (so they're there when it comes on) |
 | `tecla(k)` | a key the entry doesn't map |
 | `quer(now)` | what it needs tracked this frame: `{ maos, rosto, ombros, corpo, tronco }` (`ombros: "sempre"` every frame, else ~15/s; `corpo` the body mask, only while an effect on his body needs it; a look on him has his face, hands and shoulders tracked anyway; `tronco` with `corpo`: also the mask without the chair behind him, in `uniforms.uTronco`, for what's painted on his clothes) |
@@ -61,7 +61,7 @@ and returns an object; every part is optional, and the engine calls each only wh
 | `mover(now, dt)` | every frame, just before every filter's particles move: what its particles follow (an orb in flight, a fireball in a hand), so they don't trail it by a frame (Phoenix's abilities) |
 | `atualizar(now, dt)` | every frame, after the particles have moved |
 | `desenhar(fase, r)` | its own drawing at its moment (below) |
-| `ocupado()` | an ability is still playing (a visit waits for it before leaving) |
+| `ocupado()` | an ability is still playing (a visit waits for it before leaving; with `ate`, until then) |
 | `pronto()` | it can take an ability (its meshes loaded) |
 | `hud()` | its line in `?debug`'s panel |
 | `estado` | what `?debug` puts in `window.filtros` for tests |
@@ -109,6 +109,8 @@ by elapsed seconds, so a slow frame can't skip a stage or a sound).
 - **Helpers**: `toEdge(p, dir, inset)` (where a ray from a point on the box leaves it, a little inside),
   `clamp01(v, lo, hi)` (0.05 to 0.95 by default: kept inside the box), `ease(t)` (a smooth step), `bez(a, c, b, k)`
   and `bezDir` (a quadratic curve's point and direction), `easeOutBack`.
+- **A visit**: `deVisita`, the filter on came only for a visit, not as the Filtros dock's choice, and goes when it's
+  over (Sigma stays plain until its Lance ruim then; as the dock's choice it stays on after `ate`).
 - `q` (the page's URL parameters), `fail(where, error)` (the `?debug` panel's errors).
 
 ### Drawing (`desenhar(fase, r)`)
@@ -117,7 +119,8 @@ The frame is drawn in a fixed order; a module draws its own things at its phase,
 `r.renderer.clearDepth()` then `r.renderer.render(scene, r.headCam)`:
 
 1. the camera (and his hair erased round a look)
-2. `"atras"`: behind him (Sova's drone passing behind, hidden by his body)
+2. `"atras"`: behind him (Sova's drone passing behind, hidden by his body; Sigma's whole box redrawn, warped and
+   graded, under everything that follows)
 3. a look's clothes, then his face and hands back over them; the look's hair, the ball or the car on his head (and
    his face or hands back over a look's hair when it asks: `behind`, `rostoPorCima`/`maosPorCima: "tudo"`)
 4. `"segurado"`: in his hands, over the look (Sova's bow; `r.maosPorCima()` draws his hands back over it)
@@ -213,7 +216,11 @@ the first one that needs the mask or the face runs without them. Gestures can be
 `?debug`'s `window.__hands(now)` returns `{ landmarks: [hand] }` in the hand tracker's place. A filter that follows a game takes
 `--jogo=<game>` (`JOGOS` in the script: Celeste's stand-in), and then `@<step>:<times>` arguments are the stand-in's
 steps (Celeste's: `@entra:1 @dash:0.12,0.35 @morte:0.35,1.4 @renasceu:0.4 @cap-5:2`, names in
-`public/stream/celeste-sequencia.json`). Look at
+`public/stream/celeste-sequencia.json`). A one-off that comes as a visit is
+tried as one: `--visita=<s>` sends each as the Efeitos dock does, with `ate` s seconds on, and `--escolha=nenhum` sets the
+Filtros dock's choice first, as during a live (Sigma's Lance ruim: `filtros_teste.py sigma
+lance:0.15,0.35,1,2,3,3.85,4.3 --visita=4 --escolha=nenhum --video=<clip>.y4m --params=zoom=1`; the page takes one
+visit at a time, so before another one-off give the first a last time past its `ate`: the next goes 3 s after it). Look at
 the contact sheet: placement and size on a 16:9 box, his face kept clear. Nobody has seen or heard it live until Luan
 tries it in OBS: say so.
 

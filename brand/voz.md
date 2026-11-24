@@ -110,7 +110,7 @@ the community's English where that's what everyone says (Half flip, Flip cancel)
 ## Formats
 
 - **Capitals:** sentence case for every title, tab, menu item and button ("Próxima live", "Monte o seu torcedor").
-  ALL CAPS only on the live's banner words (GOOOL!, VAR, FIM DE JOGO) and the thumbnails' plates (AO VIVO · 21/11).
+  ALL CAPS only on the live's banner words (GOOOL!, FIM DE JOGO) and the thumbnails' plates (AO VIVO · 21/11).
 - **Dates:** "21/11" (always two digits: "01/12"); with the weekday "sáb., 21/11"; in a sentence "21 de novembro";
   the long form "sábado, 21 de novembro". The year only where a list spans years or in legal text. Relative words
   when they're true at reading time (hoje, amanhã), never in static text built days earlier.

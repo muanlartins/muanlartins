@@ -9,10 +9,9 @@
       OBS: since 2026-11-20 in the "Conversa" scene, inside its overlay: conversa.html holds this page in an iframe
       (?vez) and has it take turns with the marble race in one box under the camera, one duel each turn, stopping
       where it is while the scene is off the air and passing the turn when its duel is over or nobody's there.
-      Until then it was the browser source "Duelo" in the game scenes, over the overlays and under the VAR's mini
-      player. Silent.
+      Until then it was the browser source "Duelo" in the game scenes, over the overlays, top right. Silent.
 
-      The ball duel (Lucca's idea, lucca_3098; Luan's rules, 2026-11-15): in the corner of the VAR's mini player, two
+      The ball duel (Lucca's idea, lucca_3098; Luan's rules, 2026-11-15): in a corner of the screen, two
       viewers in the chat drawn at random fight as balls with weapons, one duel after another, forever, with nobody
       joining or doing anything. The fight is duelo-motor.js (deterministic: a seed and two classes; the genre's
       physics since 2026-11-16, gravity and bounces in a square box); this page draws it. On the live (since
@@ -34,14 +33,13 @@
       the goal's dedication (more Σ, a little more chance: Sigma.peso), never the two of the duel before when there
       are four or more. Alone, the one viewer fights the channel's ball; nobody, the corner stays empty.
 
-      The VAR comes first: while one is open (the Efeitos dock's "muanlartins-var"), the duel stops where it is and
-      the corner is the VAR's; it carries on when the VAR closes. It also stops while the source is off the air.
+      It stops where it is while the source is off the air.
 
-      The box sits in the mini player's corner, 640×360 at (1236, 92): on the live, the arena of 280 (?tamanho= from
-      200 to 420) and its strip, 292×342 with its right edge on the mini player's, so at (1584, 92); with the columns,
-      the mini player's whole box. ?x= and ?y= move it (in Valorant OBS sets the source 238 px lower, under the
+      The box sits in the top right corner, 640×360 at (1236, 92): on the live, the arena of 280 (?tamanho= from
+      200 to 420) and its strip, 292×342 with its right edge on the box's, so at (1584, 92); with the columns,
+      the whole box. ?x= and ?y= move it (in Valorant OBS sets the source 238 px lower, under the
       killfeed). ?api= the profile API, ?sigma= the Σ API, ?canal= the channel. ?demo fills the chat with sample
-      people (keys: v the VAR opens and closes, n next duel, s someone leaves, j someone arrives); ?demo=1v1 has a
+      people (keys: n next duel, s someone leaves, j someone arrives); ?demo=1v1 has a
       single viewer; ?semente= fixes the first fight's seed, ?classes=machado,arco the classes (to try one; a blank
       side, as in ",arco", keeps its own); ?fundo=<image> puts a game screenshot behind.
 
@@ -129,7 +127,7 @@
         height: 360px;
       }
 
-      /* The band over the top edge, like the VAR's: what this is. */
+      /* The band over the top edge: what this is. */
       .faixa-titulo {
         position: absolute;
         left: -10px;
@@ -431,7 +429,7 @@
 
       /* The live's box since 2026-11-17 (Luan: "só o quadrado do jogo com o jogo rolando"): the arena alone, with the
          two names, their life and their class in a strip over it, the clock on the band and each ball's life inside it,
-         as the genre's videos show it. Its right edge is the mini player's (x 1876). --arena is the square's side on
+         as the genre's videos show it. Its right edge is the corner box's (x 1876). --arena is the square's side on
          screen (?tamanho=, 280 by default); ?completo brings the columns back. The site's player is this box too. */
       body.compacto .caixa {
         --arena: 280px;
@@ -766,7 +764,6 @@
       let lutadores = null // [{ login, nome, classe, sorteada, look, aparencia (the ball's shirt), material }]
       let fase = "vazio" // "apresenta" | "luta" | "resultado" | "vazio"
       let faseAte = 0
-      let varAberto = false
       let noAr = true
       // Taking turns with the race in the "Conversa" scene (conversa.html holds this page in an iframe, ?vez): it says
       // when this page's turn comes and when to stop where it is; this one says when its duel is over ("fim") or that
@@ -774,7 +771,7 @@
       const VEZ = params.has("vez") && parent !== window
       let minhaVez = !VEZ
       const avisar = (minijogo) => VEZ && parent.postMessage({ minijogo }, location.origin)
-      const pausado = () => varAberto || !noAr || !minhaVez
+      const pausado = () => !noAr || !minhaVez
 
       let pedidos = false
       async function proximo() {
@@ -1275,13 +1272,7 @@
         if (detail?.tipo === "noar") noArAte = detail.ligado ? Date.now() + 15000 : 0
       })
 
-      // --- The VAR comes first, and off the air nothing runs ------------------------------------------------------
-      addEventListener("muanlartins-var", ({ detail }) => {
-        const v = varDe(detail)
-        if (!v) return
-        varAberto = v.fase !== "fechado"
-        caixa.classList.toggle("escondida", varAberto || fase === "vazio" || fase === "espera")
-      })
+      // --- Off the air nothing runs --------------------------------------------------------------------------------
       addEventListener("obsSourceActiveChanged", ({ detail }) => (noAr = !!detail?.active))
       if (VEZ) {
         addEventListener("message", ({ data, origin, source }) => {
@@ -1297,7 +1288,7 @@
 
       // --- The chat, or the demo's ------------------------------------------------------------------------------
       if (TREINO || (params.has("site") && !DEMO)) {
-        // The site's player: no chat, and no VAR. Given the same login twice it shows nothing, never the live's chat.
+        // The site's player: no chat. Given the same login twice it shows nothing, never the live's chat.
       } else if (!DEMO) irc(apply, { membership: true })
       else {
         // Invented people.
@@ -1316,9 +1307,7 @@
           sigmas.set(login, [0, 40, 150, 420, 1000, 2200, 4800, 10000, 16000, 21000][i])
         })
         presentes.set(CHANNEL, CHANNEL)
-        let varTeste = false
         const keys = {
-          v: () => dispatchEvent(new CustomEvent("muanlartins-var", { detail: { fase: (varTeste = !varTeste) ? "votacao" : "fechado", layout: "mini" } })),
           n: () => luta && !luta.fim && (luta.bolas[1].hp = 0),
           s: () => presentes.delete(um_([...presentes.keys()].filter((l) => l !== CHANNEL))),
           j: () => presentes.set(`pessoa${presentes.size}`, `pessoa${presentes.size}`),

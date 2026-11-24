@@ -2,7 +2,7 @@
   "_sobre": [
     "Every way to take part in the live from the chat, in one place. Read by: the site's /canal/comandos (lib/commands.ts), the stand's tips, said by the channel's own fan (torcida.html, `dica`), scripts/comandos.py (StreamElements' commands, from `resposta`, and the Twitch panel's text).",
     "Each command: `comando` (how to type it), `apelidos` (other ways that work), `uso` (how to show it, when it takes something after it), `texto` (what it does, for the site and the panel), `dica` (a tip for the stand's balloon), `resposta` (the chat bot's answer: only these go to StreamElements; ${...} are its variables, customapi answers in plain text) and `espera` (the bot's cooldown in seconds, per person and for everyone; 15 and 5 when not given).",
-    "The stand's commands are comandos.js; the VAR's, var.html; the channel points' rewards, REWARDS in efeitos.html (keep `recompensas` the same: the dock copies a changed text to Twitch's reward by its title). `sigma` is how Σ come, for the site's /canal/sigma."
+    "The stand's commands are comandos.js; the channel points' rewards, REWARDS in efeitos.html (keep `recompensas` the same: the dock copies a changed text to Twitch's reward by its title). `sigma` is how Σ come, for the site's /canal/sigma."
   ],
   "pagina": "https://muanlartins.com.br/canal/comandos",
   "grupos": [
@@ -17,14 +17,6 @@
         { "comando": "!comemora", "texto": "Seu torcedor faz a comemoração que você escolheu no perfil.", "dica": "!comemora: a comemoração do seu perfil" },
         { "comando": "!grito", "texto": "Seu torcedor solta de novo o grito de chegada do seu perfil.", "dica": "!grito: seu grito de chegada, de novo" },
         { "comando": "!ola", "texto": "Começa uma ola que passa pela arquibancada inteira.", "dica": "!ola e a arquibancada inteira faz a ola" }
-      ]
-    },
-    {
-      "id": "var",
-      "titulo": "No VAR",
-      "texto": "Quando abre o VAR, o replay passa no canto da tela e quem decide é o chat. Empate vai pro sorteio.",
-      "comandos": [
-        { "comando": "!1", "apelidos": ["!2", "!3"], "uso": "!1, !2 ou !3", "texto": "Vota na opção com esse número. Quem vota no veredito do chat ganha 3 Σ." }
       ]
     },
     {
@@ -128,7 +120,6 @@
       { "quanto": "1 Σ", "como": "por minuto no chat com a live no ar" },
       { "quanto": "10 Σ", "como": "por live que você assiste" },
       { "quanto": "+5 Σ", "como": "por live seguida, até 50 a mais por live" },
-      { "quanto": "3 Σ", "como": "por acertar o veredito do VAR" },
       { "quanto": "10 Σ", "como": "por real mandado no Pix, entrando com a Twitch" }
     ]
   }

@@ -3,7 +3,7 @@
 // change; only the names shown do. Pure: no three.js, no DOM, so the same file runs in OBS's overlays, the site (its
 // bundler imports it), the tests and the profile API, which validates every saved look with this very normalizar
 // (infra/perfil/torcedor3d.mjs links it). The rest of the fan is beside it: boneco.js draws it, vestir.js dresses it
-// (club, VAR, December) and antigo.js turns the 2D fan into one. package.json here only tells Node these .js files are
+// (club, December) and antigo.js turns the 2D fan into one. package.json here only tells Node these .js files are
 // ES modules; browsers ignore it. scripts/torcedor3d.test.mjs pins the codes.
 const op = (k, nome, opcoes, padrao, extra = {}) => ({ k, nome, tipo: "op", opcoes, padrao: padrao ?? opcoes[0][0], ...extra })
 const num = (k, nome, min, max, padrao, extra = {}) => ({ k, nome, tipo: "num", min, max, padrao, ...extra })

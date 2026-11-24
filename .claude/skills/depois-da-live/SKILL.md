@@ -147,11 +147,10 @@ three pieces → `20-07-37 Live.mp4`, 2h06), and `Lives\<date>\partes.json` keep
 `live.py` uses to place the chapters (the minutes OBS was down aren't in the file). `videos.py <date> --apply`
 files only that day. Each match's replay is **copied**
 (the game lists them from its own folder) to `Videos\Lives\<date>\Replays\Partida NN - Vitória 5-4.replay`,
-matched to the dock's matches by score and save time. The VAR's clips (loose as
-`Replay 2026-11-05 14-32-10.mp4`, the stream from OBS's Replay Buffer, and `Replay 2026-11-05 14-32-10 jogo.mkv`, the
-game alone from Source Record's, since 11-12) go to `Videos\Lives\<date>\VAR\14-32-10 VAR.mp4` and
-`14-32-10 VAR jogo.mkv`: shots for a short (the game one is clean, without overlays). `replay.py` keeps its MP4 copies
-in `~/.cache/muanlartins/replays` for two days on its own. If Luan has a recording open in a browser (RLR's
+matched to the dock's matches by score and save time. The VAR's clips of the lives until 2026-11-24, when it was
+retired (loose as `Replay 2026-11-05 14-32-10.mp4`, the stream from OBS's Replay Buffer, and `Replay 2026-11-05
+14-32-10 jogo.mkv`, the game alone from Source Record's, since 11-12), go to `Videos\Lives\<date>\VAR\14-32-10 VAR.mp4`
+and `14-32-10 VAR jogo.mkv`: shots for a short (the game one is clean, without overlays). If Luan has a recording open in a browser (RLR's
 studio), moving it breaks that page's copy: tell him to add it again from the new place.
 
 ## 1b. Who played with him (Rocket League days)
