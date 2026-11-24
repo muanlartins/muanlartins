@@ -192,6 +192,10 @@ in_frame = {"pos": (16, 774), "bounds": (288, 270)}
 # scene's name).
 pix = browser("Pix", "pix.html")
 pix["settings"]["reroute_audio"] = True
+# Page permission 2 (read user information), so pix.html asks OBS for the scene on screen when it loads: with OBS's
+# default it learned it only from the next scene change, and until then put its corner outside the game scenes' column
+# (wider, over the game and the chat's top; seen 2026-11-24).
+pix["settings"]["webpage_control_level"] = 2
 pix.update(mixers=TRACK_LIVE, monitoring_type=MONITOR_AND_OUTPUT)
 # Where the talk scenes show pix.html: only its alert band (top: 132, centred), from x 410, where the call and the
 # goal at its top left have ended (from 320 their edge showed as a sliver).
@@ -260,7 +264,8 @@ FILTER_SETTINGS = {(name, "Gravar jogo"): {**ENCODER_LEVE, **SEM_REPLAY}
 FILTER_SETTINGS[("Câmera", "Gravar câmera")] = ENCODER_LEVE
 # And on sources it already has: the game overlays' URLs (no key in them): the keyboard and the mouse since 2026-11-20
 # (the chat under the ball duel, ?duelo=1, from 2026-11-15 until then).
-SOURCE_SETTINGS = {**{overlay["name"]: ({"url": overlay["settings"]["url"]}, {}) for overlay in
+SOURCE_SETTINGS = {"Pix": ({"webpage_control_level": 2}, {}),
+                   **{overlay["name"]: ({"url": overlay["settings"]["url"]}, {}) for overlay in
                       (game_chat_overlay, various_chat_overlay, valorant_chat_overlay, celeste_overlay)}}
 
 

@@ -74,7 +74,8 @@
       }
 
       /* The chat, always there: it covers nothing here. In December the goal's tree makes the corner over it taller;
-         with the keyboard, it ends over it. */
+         while the keyboard shows (the game in front), it ends over it, and otherwise it goes down to the camera
+         (Luan, 2026-11-24: no empty space under it), sliding as the keyboard comes and goes. */
       #chat {
         left: 16px;
         top: 296px;
@@ -83,11 +84,12 @@
         gap: 8px;
         -webkit-mask: linear-gradient(to bottom, transparent, #000 56px);
         mask: linear-gradient(to bottom, transparent, #000 56px);
+        transition: bottom 0.45s ease;
       }
       #chat.natal {
         top: 372px;
       }
-      .com-teclas #chat {
+      .com-teclas:has(#teclas.visivel) #chat {
         bottom: 491px;
       }
       #chat .message {
@@ -140,10 +142,11 @@
       #placa .rank small {
         font-size: 18px;
       }
+      /* 16 px so "Campeão I div II" fits its mode and points beside the day's record. */
       #placa .rank .points {
         display: inline;
-        margin-left: 10px;
-        font-size: 18px;
+        margin-left: 8px;
+        font-size: 16px;
       }
       #placa .line {
         flex: none;
