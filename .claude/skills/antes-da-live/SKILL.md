@@ -108,8 +108,9 @@ sound (`gatilho.webm`, see the `obs` skill). It only ever goes up within a sessi
 - OBS 33, profile "Live" ("Untitled" until 11-06), Advanced output. Recording: Hybrid MP4 (survives a crash, takes chapter marks),
   NVENC, tracks 1–4 (1 Tudo, 2 Microfone, 3 Jogo, 4 Discord); track 5 "Live" is the stream's. The camera also
   records to its own `… câmera.mkv` (Source Record filter "Gravar câmera").
-- Scenes: Começando, RL + chat, Valorant + chat, Diversos + chat (any other game: its capture takes whatever game is
-  fullscreen or borderless in front), Conversa, Já volto, Fim (and the effects' own). `brand/twitch/obs.py` generates the scene
+- Scenes (since 2026-11-24): Começando, Conversa, Jogo, Lance ruim, VAR, Terapia, Já volto, Fim. Jogo is every game:
+  pick the day's under "Jogo na cena" in the Efeitos dock (Rocket League, Celeste, Outro jogo; Outro's capture takes
+  whatever game is fullscreen or borderless in front) before going live. Valorant is archived (the `obs` skill). `brand/twitch/obs.py` generates the scene
   collection; anything added by hand in OBS (like the Spotify source) should also go there.
 - The sources Luan must hear (Alertas, Sons, Pix, Filtros) are on "Monitorar e enviar" (`monitoring_type` 2):
   Alertas was found off on 11-10 and again on 11-19, so he missed the follows' and subs' sounds. Check it

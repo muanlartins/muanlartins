@@ -174,12 +174,10 @@ def stand(name, page):
 crowd = stand("Torcida", "torcida.html")
 valorant_crowd = stand("Torcida · Valorant", "torcida.html?jogo=valorant")
 various_crowd = stand("Torcida · Diversos", "torcida.html?jogo=diversos")
-# Celeste's own scene (Luan, 2026-11-22, made during its first live), the first framed one: Celeste's 320×180 five
+# Celeste's overlay (Luan, 2026-11-22, made during its first live), the first framed one: Celeste's 320×180 five
 # screen pixels to each in the 1600×900 (OBS's Area filter keeps them whole from a 1920×1080 window too: six to five).
-# Since every game is framed it's Diversos + chat without the keyboard. Its name keeps "Diversos" on purpose: that's
-# how the Efeitos dock knows it for F2, F4, F8 and the game's recording, with Diversos' Lance ruim and VAR and the same
-# capture and stand.
-CELESTE = "Celeste + chat · Diversos"
+# Diversos' without the keyboard. It had its own scene, "Celeste + chat · Diversos", until 2026-11-24; now it's
+# Celeste in Jogo (below), on Diversos' capture.
 celeste_overlay = browser("Overlay · Celeste + chat", "palco.html?jogo=celeste")
 # Where the game scenes put the game, the stand (its page draws it from 596 to 1556: moved 348 px right, it's 944 to
 # 1904, in palco.html's band beside the game's plate and numbers) and the camera, as tall as the old 480×270, so Luan
@@ -241,8 +239,8 @@ mic = source("wasapi_input_capture", "Microfone", {"device_id": MIC}, mixers=EVE
 # Hotkeys are OBS's own, so they work with the game focused: the F-row, which Rocket League leaves free but for F1
 # (its console) and F10 (its stat graphs). F2 "Lance ruim", F3 "Terapia", F4 back to the scene before; the sounds
 # palmas, uuuh and tambor on F5, F6 and F7, the VAR on F8. `--apply` refuses a key that OBS already uses for something else.
-# F2 and F4 are triggers, so the dock picks the game's scene (Rocket League's or Valorant's); they were the scenes'
-# own hotkeys until 2026-11-08, which RETIRED unbinds.
+# F2 and F4 are triggers, so the dock picks the scene (Lance ruim; in the archived collection, the game's own); they
+# were the scenes' own hotkeys until 2026-11-08, which RETIRED unbinds.
 HOTKEYS = {"Terapia": "OBS_KEY_F3"}
 RETIRED = {("Lance ruim", "OBSBasic.SelectScene", "OBS_KEY_F2"), ("Jogo + chat", "OBSBasic.SelectScene", "OBS_KEY_F4")}
 # Sources taken out of a scene (and out of the collection, once no scene has them): the old end screen gave its place
@@ -336,22 +334,28 @@ in_calm = {"pos": (336, 76), "bounds": (1248, 702)}
 # The filters over the camera, shrunk with OBS's Area filter (made for scaling down: the 3D's edges stay smooth).
 filters_at = {name: {**box, "scale_filter": "area"} for name, box in
               {"game": in_frame, "talk": in_talk, "end": in_end, "calm": in_calm}.items()}
-# The game scenes and their Lance ruim, each with its capture, its overlay (palco.html for its game) and its stand.
-GAMES = {"RL + chat": (game, game_chat_overlay, crowd), "Valorant + chat": (valorant, valorant_chat_overlay, valorant_crowd),
-         "Diversos + chat": (various, various_chat_overlay, various_crowd), CELESTE: (various, celeste_overlay, various_crowd)}
-BAD_PLAYS = {"Lance ruim · RL": GAMES["RL + chat"], "Lance ruim · Valorant": GAMES["Valorant + chat"],
-             "Lance ruim · Diversos": GAMES["Diversos + chat"]}
+# The game scenes: one of each for every game since 2026-11-24 (Luan: "organiza as cenas", the day Valorant was
+# archived). "Jogo" holds every game's capture and overlay, and the game on screen is whichever's items are on: the
+# Efeitos dock's "Jogo na cena" (JOGOS in efeitos.html) or their eyes in OBS, Rocket League's by default. "Lance ruim"
+# shows Jogo inside it, under the camera the dock zooms, so it follows whatever game is on. "VAR" is the booth. Celeste
+# and any other game share Diversos' capture and the one stand (it cheers nothing a game doesn't send). Until then each
+# game had three scenes of its own ("RL + chat", "Lance ruim · RL", "VAR · Rocket League", the same for Valorant and
+# Diversos, and Celeste's "Celeste + chat · Diversos"): OBS's scene collection "Valorant (arquivo)" keeps them as they
+# were, and Valorant's sources above stay defined for when it comes back (a capture and an overlay more in Jogo).
+ARCHIVED = (valorant, valorant_chat_overlay, valorant_crowd, various_crowd)
+jogo = scene("Jogo", (game, GAME_AT), (various, GAME_AT), (camera, in_frame), (filters, filters_at["game"]),
+             (game_chat_overlay, {}), (various_chat_overlay, {}), (celeste_overlay, {}), (crowd, STAND_AT),
+             *alerts_in_frame, (pix, {}), (booth, {}))
+# Off until picked: the other games' capture and overlays.
+for each in jogo["settings"]["items"]:
+    each["visible"] = each["name"] not in (various["name"], various_chat_overlay["name"], celeste_overlay["name"])
 scenes = [
     scene("Começando", (starting, {})),
-    *[scene(name, (capture_, GAME_AT), (camera, in_frame), (filters, filters_at["game"]), (overlay, {}), (stand_, STAND_AT),
-            *alerts_in_frame, (pix, {}), (booth, {})) for name, (capture_, overlay, stand_) in GAMES.items()],
     scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
-    # Lance ruim: the game's scene, with the camera on top for the Efeitos dock to zoom.
-    *[scene(name, (capture_, GAME_AT), (overlay, {}), (stand_, STAND_AT), *alerts_in_frame, (pix, {}), (camera, in_frame),
-            (bad_play, {})) for name, (capture_, overlay, stand_) in BAD_PLAYS.items()],
-    scene("VAR · Rocket League", (camera, in_var_camera), (booth, {}), (crowd, {}), *alerts_in_game, (pix, {})),
-    scene("VAR · Valorant", (camera, in_var_camera), (booth, {}), (valorant_crowd, {}), *alerts_in_game, (pix, {})),
-    scene("VAR · Diversos", (camera, in_var_camera), (booth, {}), (various_crowd, {}), *alerts_in_game, (pix, {})),
+    jogo,
+    # Lance ruim: Jogo, with the camera on top for the Efeitos dock to zoom.
+    scene("Lance ruim", (jogo, {}), (camera, in_frame), (bad_play, {})),
+    scene("VAR", (camera, in_var_camera), (booth, {}), (crowd, {}), *alerts_in_game, (pix, {})),
     scene("Terapia", (camera, in_calm), (filters, filters_at["calm"]), (calm, {}), *alerts_in_calm,
           (pix, PIX_IN_CALM)),
     scene("Já volto", (back, {})),
@@ -359,13 +363,8 @@ scenes = [
 ]
 # Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
-HIDDEN = {"RL + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"},
-          "Lance ruim · RL": {"Discord", "Navegador"}, "Terapia": {"Discord"},
-          "Valorant + chat": {"Discord", "Navegador"}, "Lance ruim · Valorant": {"Discord", "Navegador"},
-          "VAR · Rocket League": {"Discord", "Navegador"}, "VAR · Valorant": {"Discord", "Navegador"},
-          CELESTE: {"Discord", "Navegador"},
-          "Diversos + chat": {"Discord", "Navegador"}, "Lance ruim · Diversos": {"Discord", "Navegador"},
-          "VAR · Diversos": {"Discord", "Navegador"}}
+HIDDEN = {"Jogo": {"Discord", "Navegador"}, "Conversa": {"Discord"}, "Lance ruim": {"Discord", "Navegador"},
+          "Terapia": {"Discord"}, "VAR": {"Discord", "Navegador"}}
 BREAKS = {"Começando", "Já volto", "Fim"}
 for each in scenes:
     extra = apps + ([] if each["name"] in BREAKS else sounds)
@@ -376,12 +375,12 @@ for each in scenes:
     each["settings"]["id_counter"] += len(extra)
     if each["name"] in HOTKEYS:
         each["hotkeys"] = {"OBSBasic.SelectScene": [{"key": HOTKEYS[each["name"]]}]}
-# The game fills the screen keeping its aspect ratio rather than cropping.
+# The games fill their box keeping their aspect ratio rather than cropping.
 for captured in scenes:
-    if captured["settings"]["items"][0]["name"] not in (game["name"], valorant["name"], various["name"]):
-        continue
-    captured["settings"]["items"][0]["bounds_type"] = BOUNDS_SCALE_INNER
-    captured["settings"]["items"][0]["bounds_crop"] = False
+    for each in captured["settings"]["items"]:
+        if each["name"] in (game["name"], valorant["name"], various["name"]):
+            each["bounds_type"] = BOUNDS_SCALE_INNER
+            each["bounds_crop"] = False
 
 # Software decoding: hardware VP9 decoders drop the alpha channel.
 stinger = {"id": "obs_stinger_transition", "name": "muanlartins", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "stinger")),
@@ -403,8 +402,8 @@ collection = {
     "current_scene": "Começando",
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
-    "sources": scenes + [game, valorant, various, camera, filters, game_chat_overlay, valorant_chat_overlay,
-                         various_chat_overlay, celeste_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm, booth] + apps + sounds
+    "sources": scenes + [game, various, camera, filters, game_chat_overlay,
+                         various_chat_overlay, celeste_overlay, chat_overlay, crowd, pix, starting, back, end, bad_play, calm, booth] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
@@ -443,8 +442,8 @@ SYNC = {"Filtros": {"settings": ["reroute_audio", "width", "height"], "fields": 
 # (2026-11-23): the game, the camera, the stand, Pix and the alerts.
 PLACED = {"Filtros", ("Terapia", "Câmera"), ("Terapia", "Pix"), ("Terapia", "Alertas"), ("Conversa", "Câmera"),
           ("Conversa", "Pix"), ("Conversa", "Alertas")} | {
-    (name, item_name) for name, (capture_, _, stand_) in {**GAMES, **BAD_PLAYS}.items()
-    for item_name in (capture_["name"], "Câmera", stand_["name"], "Pix", "Alertas")}
+    ("Jogo", item_name) for item_name in (game["name"], various["name"], "Câmera", crowd["name"], "Pix", "Alertas")} | {
+    ("Lance ruim", "Câmera")}
 PLACE_FIELDS = ["pos", "pos_rel", "scale", "scale_rel", "scale_ref", "align", "bounds_type", "bounds_align",
                 "bounds_crop", "bounds", "bounds_rel", "crop_left", "crop_top", "crop_right", "crop_bottom", "rot",
                 "scale_filter"]
