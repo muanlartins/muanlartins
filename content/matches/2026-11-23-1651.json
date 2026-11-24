@@ -775,7 +775,9 @@
         "division": 2,
         "mmr": 1105
       },
-      "replay": "/replays/2026-11-23/2026-11-23-14.replay"
+      "replay": "/replays/2026-11-23/2026-11-23-14.replay",
+      "points": -10,
+      "mmr": 1095
     },
     {
       "id": "656CC67411F1E795D89ADE92DD16B2E9",
@@ -827,7 +829,8 @@
         "mmr": 1105
       },
       "mmr": 1086,
-      "replay": "/replays/2026-11-23/2026-11-23-15.replay"
+      "replay": "/replays/2026-11-23/2026-11-23-15.replay",
+      "points": -9
     }
   ],
   "ranks": [
@@ -926,7 +929,7 @@
       "at": "2026-11-23T23:34:25.980Z",
       "mode": "3v3",
       "tier": "champion-1",
-      "division": 2,
+      "division": 1,
       "mmr": 1086
     }
   ]
