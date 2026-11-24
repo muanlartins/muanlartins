@@ -26,7 +26,7 @@ const SITE = "https://muanlartins.com.br"
 
 // --- what the server is -----------------------------------------------------------------------------------------------
 
-const DESCRICAO = "A comunidade do canal muanlartins: Rocket League e Valorant ao vivo na Twitch, e o que a gente aprende jogando."
+const DESCRICAO = "A comunidade do canal muanlartins: Rocket League ao vivo na Twitch, e o que a gente aprende jogando."
 
 // Top to bottom. "sub" is made by Discord's Twitch integration (Luan turns it on in the server's settings); the script
 // only names, colours and places it.
@@ -47,7 +47,8 @@ const TODOS = soma(
 )
 const SO_LEITURA = soma(P.enviar, P.enviarEmTopico, P.criarTopico, P.criarTopicoPrivado)
 
-// leitura: only the channel and the bot write there; so: only these roles see it (and Luan, the owner).
+// leitura: only the channel and the bot write there; so: only these roles see it (and Luan, the owner); arquivo: a
+// category kept as it was, to read: nobody but the moderation (and Luan) writes or joins its voice channels.
 const CATEGORIAS = [
   {
     chave: "comece",
@@ -65,7 +66,6 @@ const CATEGORIAS = [
     canais: [
       { chave: "geral", nome: "💬┃geral", topico: "Papo livre." },
       { chave: "clipes", nome: "🎬┃clipes-e-jogadas", topico: "Os seus clipes e as jogadas da live." },
-      { chave: "valorant", nome: "🎯┃valorant", topico: "Valorant: partidas, mira, agentes, dúvidas." },
       { chave: "rocket-league", nome: "🚗┃rocket-league", topico: "Rocket League: partidas, mecânicas, dúvidas." },
       { chave: "ideias", nome: "💡┃ideias", topico: `Ideias pro canal, pra live e pro site. As que viram coisa entram no roadmap com o seu nome: ${SITE}/canal/roadmap` },
       { chave: "subs", nome: "💜┃só-subs", topico: "Só pra quem é sub na Twitch.", so: ["sub", "moderacao"] },
@@ -76,7 +76,6 @@ const CATEGORIAS = [
     nome: "🔊 Voz",
     canais: [
       { chave: "resenha", nome: "🗣️ Resenha", voz: true },
-      { chave: "voz-valorant", nome: "🎯 Valorant", voz: true, limite: 5 },
       { chave: "voz-rocket-league", nome: "🚗 Rocket League", voz: true, limite: 3 },
       { chave: "assistindo", nome: "📺 Assistindo a live", voz: true },
     ],
@@ -86,6 +85,17 @@ const CATEGORIAS = [
     nome: "🛡️ Moderação",
     so: ["moderacao"],
     canais: [{ chave: "moderacao", nome: "🛡️┃moderação", topico: "Só a moderação vê. O AutoMod avisa aqui o que bloqueou." }],
+  },
+  // Valorant, archived on 2026-11-24 (the channel focused on Rocket League): its channels keep their history here. To
+  // bring it back, move them to Conversa and Voz again.
+  {
+    chave: "arquivo",
+    nome: "📦 Arquivo",
+    arquivo: true,
+    canais: [
+      { chave: "valorant", nome: "🎯┃valorant", topico: "Arquivado. Valorant: partidas, mira, agentes, dúvidas." },
+      { chave: "voz-valorant", nome: "🎯 Valorant", voz: true, limite: 5 },
+    ],
   },
 ]
 
@@ -100,7 +110,7 @@ const REGRAS = [
 const MENSAGENS = {
   "boas-vindas": [
     "# Boas-vindas à torcida!",
-    "Este é o servidor da comunidade do **muanlartins**: Rocket League e Valorant ao vivo na Twitch, aprendendo com o método científico, e vídeos no YouTube.",
+    "Este é o servidor da comunidade do **muanlartins**: Rocket League ao vivo na Twitch, aprendendo com o método científico, e vídeos no YouTube.",
     "",
     `🔴 **Lives:** <https://twitch.tv/muanlartins>. Quando a live abre, o aviso sai em <#lives>, e as próximas aparecem em **Eventos**, no topo da lista de canais. A agenda completa é a do site: <${SITE}/canal/agenda>`,
     "▶️ **YouTube:** <https://www.youtube.com/@muanlartins>",
@@ -248,6 +258,10 @@ function overwrites(item, categoria) {
     const todosAqui = lista.find((o) => o.id === G)
     if (todosAqui) todosAqui.deny = bits(BigInt(todosAqui.deny) | SO_LEITURA)
     else lista.push({ id: G, type: 0, allow: "0", deny: bits(SO_LEITURA) })
+  }
+  if (item.arquivo ?? categoria?.arquivo) {
+    lista.push({ id: G, type: 0, allow: "0", deny: bits(soma(SO_LEITURA, P.entrar)) })
+    if (cargo.moderacao && !String(cargo.moderacao).startsWith("<")) lista.push({ id: cargo.moderacao, type: 0, allow: bits(soma(SO_LEITURA, P.entrar)), deny: "0" })
   }
   return lista
 }

@@ -21,6 +21,7 @@ import { channel } from "@/content/channel"
 import { profile } from "@/content/profile"
 import { channelPath } from "@/lib/channel"
 import type { DiscordLink as Discord } from "@/lib/discord"
+import { isArchived } from "@/lib/game"
 import {
   canSave,
   eraseMine,
@@ -49,6 +50,9 @@ const text = localize(profile)
 const minigames = localize(channel.minijogos)
 type Status = "idle" | "saving" | "saved" | "erased" | "error" | "expired" | "big"
 const TABS = ["torcedor", "cartao", "bolinha", "contas", "sigma"] as const
+/** The dream loadout is Valorant's: while the game is archived (lib/game.ts), its card and the tab's "e loadout" hide. */
+const LOADOUT = !isArchived("valorant")
+const tabLabel = (id: (typeof TABS)[number]) => (id === "bolinha" && !LOADOUT ? text.tabs.bolinhaSo : text.tabs[id])
 type Tab = (typeof TABS)[number]
 
 // The 3D fan being built before going to Twitch, kept for the way back (the 2D one follows it).
@@ -98,7 +102,7 @@ const unsavedDot = <span role="img" aria-label={text.unsaved} title={text.unsave
 /**
  * The profile, as an editor in tabs: Torcedor (the 3D fan's editor, fan-editor.tsx: the fan turning beside its
  * controls, with the team, the arrival shout and the stickers), Cartão (banner, photo, colours, pronouns, about),
- * Bolinha e loadout (picked on their own pages), Contas (Twitch, Discord) and Σ e medalhas; on all but the first, their
+ * Bolinha e loadout (picked on their own pages; just Bolinha while Valorant is archived), Contas (Twitch, Discord) and Σ e medalhas; on all but the first, their
  * fan on a bit of the stand and their card stay in view beside it. The fan and the card are saved apart (PUT /eu with
  * the 3D fan as `t3`, PUT /eu/cartao); the pictures and Discord at once. Whoever has no 3D fan yet opens with their 2D
  * one turned 3D (torcedorDe), so nobody starts from scratch. Signed in, "Ver minha página" leads to their page.
@@ -444,11 +448,11 @@ export function ProfilePage() {
               label:
                 (id === "torcedor" && dirty && token) || (id === "cartao" && cardDirty) ? (
                   <>
-                    {text.tabs[id]}
+                    {tabLabel(id)}
                     {unsavedDot}
                   </>
                 ) : (
-                  text.tabs[id]
+                  tabLabel(id)
                 ),
             }))}
           />
@@ -556,19 +560,21 @@ export function ProfilePage() {
                     </span>
                   </span>
                 </CardLink>
-                <CardLink href={`${sectionPath("content")}/valorant/inventory#montar`} className="flex items-center gap-4">
-                  <span className="cut-sm grid h-16 w-16 shrink-0 place-items-center bg-navy text-paper">
-                    <GameIcon game="valorant" size={28} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-[15px] font-medium text-ink">{text.extras.loadout}</span>
-                    <span className="block text-[13px] text-muted">{weapons ? text.extras.loadoutCount.replace("{n}", String(weapons)) : text.extras.loadoutNone}</span>
-                    <span className="mt-1.5 inline-flex items-center gap-1.5 text-[15px] font-medium text-klein">
-                      {weapons ? text.extras.edit : text.extras.build}
-                      <ArrowRight aria-hidden className="h-4 w-4" />
+                {LOADOUT && (
+                  <CardLink href={`${sectionPath("content")}/valorant/inventory#montar`} className="flex items-center gap-4">
+                    <span className="cut-sm grid h-16 w-16 shrink-0 place-items-center bg-navy text-paper">
+                      <GameIcon game="valorant" size={28} />
                     </span>
-                  </span>
-                </CardLink>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[15px] font-medium text-ink">{text.extras.loadout}</span>
+                      <span className="block text-[13px] text-muted">{weapons ? text.extras.loadoutCount.replace("{n}", String(weapons)) : text.extras.loadoutNone}</span>
+                      <span className="mt-1.5 inline-flex items-center gap-1.5 text-[15px] font-medium text-klein">
+                        {weapons ? text.extras.edit : text.extras.build}
+                        <ArrowRight aria-hidden className="h-4 w-4" />
+                      </span>
+                    </span>
+                  </CardLink>
+                )}
               </TabPanel>
 
               <TabPanel idPrefix="perfil" id="contas" className={cn("space-y-3", tab !== "contas" && "hidden")}>

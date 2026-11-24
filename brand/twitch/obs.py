@@ -13,11 +13,10 @@ alerts. Import with Scene Collection → Import. Devices and the canvas below ar
 --apply merges instead of replacing: it adds to the collection OBS already has (and its secrets: the alerts URL,
 the overlays' keys) only what's missing here — sources, scenes, items in existing scenes, transitions, hotkeys
 not yet bound — and never changes or removes anything, but for the hotkeys in RETIRED, which it unbinds, the items in
-RETIRED_ITEMS, the scenes in RETIRED_SCENES, the sources in RETIRED_SOURCES and the transitions in
-RETIRED_TRANSITIONS, which it takes out, the settings in FILTER_SETTINGS, SOURCE_SETTINGS and SYNC, which it makes sure
-of, the place of the items in PLACED in each scene, and the game scenes' shared parts, which it moves into the base
-scenes (`nest`). It also turns the profile's Replay Buffer off, copies the sound effects (brand/twitch/sons/) next
-to the stinger and adds the "Efeitos", "Filtros" and "Anúncios" docks (and takes out the ones in RETIRED_DOCKS). OBS must
+RETIRED_ITEMS, the scenes in RETIRED_SCENES, the sources in RETIRED_SOURCES and the transitions in RETIRED_TRANSITIONS,
+which it takes out, the settings in FILTER_SETTINGS, SOURCE_SETTINGS and SYNC, which it makes sure of, the place of the
+items in PLACED in each scene, and "Lance ruim", which it makes a layer once (`layer`). It also turns the profiles'
+Replay Buffer off, copies the sound effects (brand/twitch/sons/) next to the stinger and adds the "Efeitos", "Filtros" and "Anúncios" docks (and takes out the ones in RETIRED_DOCKS). OBS must
 be closed: it rewrites these files when it exits.
 """
 import json
@@ -98,7 +97,7 @@ def scene(name, *items):
 
 
 # No replay buffer on the game's file since 2026-11-24: it kept the last 20 s for the VAR, which Luan retired then
-# ("não acho que ele esteja funcionando bem"), with OBS's own Replay Buffer (`apply` turns it off in the profile).
+# ("não acho que ele esteja funcionando bem"), with OBS's own Replay Buffer (`apply` turns it off in the profiles).
 SEM_REPLAY = {"replay_buffer": False}
 # The Source Record files' encoder, light (2026-11-18): the RTX 4070 has one video encoder, and each 1080p60 encode at
 # OBS's default p5 took ~21-24% of it; with the stream, the recording, two "Gravar jogo" and the camera's, the live lost
@@ -175,11 +174,10 @@ def stand(name, page):
 crowd = stand("Torcida", "torcida.html")
 valorant_crowd = stand("Torcida · Valorant", "torcida.html?jogo=valorant")
 various_crowd = stand("Torcida · Diversos", "torcida.html?jogo=diversos")
-# Celeste's own scene (Luan, 2026-11-22, made during its first live), the first framed one: Celeste's 320×180 five
+# Celeste's overlay (Luan, 2026-11-22, made during its first live), the first framed one: Celeste's 320×180 five
 # screen pixels to each in the 1600×900 (OBS's Area filter keeps them whole from a 1920×1080 window too: six to five).
-# Since every game is framed it's Diversos + chat without the keyboard. Its name keeps "Diversos" on purpose: that's
-# how the Efeitos dock knows it for F2, F4 and the game's recording, with the same capture and stand.
-CELESTE = "Celeste + chat · Diversos"
+# Diversos' without the keyboard. It had its own scene, "Celeste + chat · Diversos", until 2026-11-24; now it's
+# Celeste in Jogo (below), on Diversos' capture.
 celeste_overlay = browser("Overlay · Celeste + chat", "palco.html?jogo=celeste")
 # Where the game scenes put the game, the stand (its page draws it from 596 to 1556: moved 348 px right, it's 944 to
 # 1904, in palco.html's band beside the game's plate and numbers) and the camera, as tall as the old 480×270, so Luan
@@ -249,10 +247,9 @@ RETIRED = {("Lance ruim", "OBSBasic.SelectScene", "OBS_KEY_F2"), ("Jogo + chat",
 # On 2026-11-20 the duel left the game scenes and the race its own source: both play in Conversa's overlay, taking turns.
 RETIRED_ITEMS = {("Fim", "Tela · Fim"), ("RL + chat", "Duelo"), ("Valorant + chat", "Duelo"), ("Diversos + chat", "Duelo"),
                  ("Conversa", "Corrida")}
-# Whole scenes, sources and transitions taken out (2026-11-24): the VAR, retired by Luan, with its scenes, var.html,
-# F8's trigger and its stinger; and each game's "Lance ruim · …" scene, now one layer on top of every game scene.
-RETIRED_SCENES = {"VAR · Rocket League", "VAR · Valorant", "VAR · Diversos", "Lance ruim · RL", "Lance ruim · Valorant",
-                  "Lance ruim · Diversos"}
+# Whole scenes, sources and transitions taken out: the VAR (2026-11-24, retired by Luan) with its booth, var.html, F8's
+# trigger and its stinger.
+RETIRED_SCENES = {"VAR"}
 RETIRED_SOURCES = {"Efeito · VAR", "Gatilho · VAR", "VAR · replay"}
 RETIRED_TRANSITIONS = {"VAR"}
 # Settings `--apply` makes sure of on filters the collection already has (it only adds otherwise): no replay buffer on
@@ -263,8 +260,8 @@ FILTER_SETTINGS = {(name, "Gravar jogo"): {**ENCODER_LEVE, **SEM_REPLAY}
 FILTER_SETTINGS[("Câmera", "Gravar câmera")] = ENCODER_LEVE
 # And on sources it already has: the game overlays' URLs (no key in them): the keyboard and the mouse since 2026-11-20
 # (the chat under the ball duel, ?duelo=1, from 2026-11-15 until then).
-SOURCE_SETTINGS = {overlay["name"]: ({"url": overlay["settings"]["url"]}, {}) for overlay in
-                   (game_chat_overlay, various_chat_overlay, valorant_chat_overlay, celeste_overlay)}
+SOURCE_SETTINGS = {**{overlay["name"]: ({"url": overlay["settings"]["url"]}, {}) for overlay in
+                      (game_chat_overlay, various_chat_overlay, valorant_chat_overlay, celeste_overlay)}}
 
 
 def trigger(name, key):
@@ -288,9 +285,9 @@ player.update(monitoring_type=MONITOR_AND_OUTPUT, volume=0.7)
 sounds = [player] + [trigger(f"Som · {label}", key) for label, key in (
     ("Palmas", "OBS_KEY_F5"), ("Uuuh", "OBS_KEY_F6"), ("Tambor", "OBS_KEY_F7"))] + [
     trigger("Gatilho · Lance ruim", "OBS_KEY_F2"), trigger("Gatilho · Voltar ao jogo", "OBS_KEY_F4")]
-# "Lance ruim": a layer on top of every game scene (below), the camera and its filters in their frame with lance.html's
-# bars over them; the dock turns it on, zooms that camera to the whole screen while the filters make him Sigma, and
-# turns it off. The bars play each time it comes on, and the dock has "Sons" play the sting.
+# "Lance ruim": a layer hidden at the top of Jogo (below), the camera and its filters in their frame with lance.html's
+# bars over them; the dock shows it, zooms that camera to the whole screen while the filters make Luan Sigma, and hides
+# it. The bars play each time it comes on, and the dock has "Sons" play the sting.
 bad_play = browser("Efeito · Lance ruim", "lance.html", restart=True)
 # "Terapia": water, breathing and music made by the page (so on every track, and in Luan's headphones); it starts
 # over each time and stops off screen. Laid out around the middle since 2026-11-14 (a short's centre cut keeps it):
@@ -330,47 +327,42 @@ in_calm = {"pos": (336, 76), "bounds": (1248, 702)}
 # The filters over the camera, shrunk with OBS's Area filter (made for scaling down: the 3D's edges stay smooth).
 filters_at = {name: {**box, "scale_filter": "area"} for name, box in
               {"game": in_frame, "talk": in_talk, "end": in_end, "calm": in_calm}.items()}
-# The game scenes' shared parts (2026-11-24, Luan: "todas possuem o mesmo layout, apenas adaptações por jogo"), each
-# a scene nested in every game scene, so the layout changes in one place: "Base · Câmera", the camera and its filters
-# in the frame, under the game's overlay; "Base · Jogo", over the stand: the alerts, Pix, "Base · Sons" (the sounds'
-# player and the hotkeys' triggers, which Conversa and Terapia nest too) and, hidden, "Lance ruim", the camera again
-# with lance.html over it, which the Efeitos dock shows and zooms (each game had a "Lance ruim · …" scene until then).
-sounds_base = scene("Base · Sons", *[(s, {}) for s in sounds])
-camera_base = scene("Base · Câmera", (camera, in_frame), (filters, filters_at["game"]))
+# The game scenes: one of each for every game since 2026-11-24 (Luan: "organiza as cenas", the day Valorant was
+# archived). "Jogo" holds every game's capture and overlay, and the game on screen is whichever's items are on: the
+# Efeitos dock's "Jogo na cena" (JOGOS in efeitos.html) or their eyes in OBS, Rocket League's by default. "Lance ruim"
+# was a scene with Jogo inside it, under the camera the dock zooms, and "VAR" the booth; since that evening Lance ruim
+# is a layer hidden at the top of Jogo (Luan: "um momento de enfoque na câmera", with Sigma) and the VAR is gone. Celeste
+# and any other game share Diversos' capture and the one stand (it cheers nothing a game doesn't send). Until then each
+# game had three scenes of its own ("RL + chat", "Lance ruim · RL", "VAR · Rocket League", the same for Valorant and
+# Diversos, and Celeste's "Celeste + chat · Diversos"): OBS's scene collection "Valorant (arquivo)" keeps them as they
+# were, and Valorant's sources above stay defined for when it comes back (a capture and an overlay more in Jogo).
+ARCHIVED = (valorant, valorant_chat_overlay, valorant_crowd, various_crowd)
 bad_play_layer = scene("Lance ruim", (camera, in_frame), (filters, filters_at["game"]), (bad_play, {}))
-game_base = scene("Base · Jogo", *alerts_in_frame, (pix, {}), (sounds_base, {}), (bad_play_layer, {"visible": False}))
-NESTED = [sounds_base, camera_base, bad_play_layer, game_base]
-# Where each part sat in a game scene before it was nested, for `nest` (the first of them there marks the place).
-NESTED_PARTS = {"Base · Câmera": {"Câmera", "Filtros"},
-                "Base · Jogo": {"Alertas", "Pix", "Efeito · VAR", "Sons", "Gatilho · VAR",
-                                *(t["name"] for t in sounds)}}
-SOUND_PARTS = {"Sons", "Gatilho · VAR", *(t["name"] for t in sounds)}
-# The game scenes, each with its capture, its overlay (palco.html for its game) and its stand.
-GAMES = {"RL + chat": (game, game_chat_overlay, crowd), "Valorant + chat": (valorant, valorant_chat_overlay, valorant_crowd),
-         "Diversos + chat": (various, various_chat_overlay, various_crowd), CELESTE: (various, celeste_overlay, various_crowd)}
+jogo = scene("Jogo", (game, GAME_AT), (various, GAME_AT), (camera, in_frame), (filters, filters_at["game"]),
+             (game_chat_overlay, {}), (various_chat_overlay, {}), (celeste_overlay, {}), (crowd, STAND_AT),
+             *alerts_in_frame, (pix, {}), (bad_play_layer, {}))
+# Off until picked: the other games' capture and overlays; and the Lance ruim layer, until the dock shows it.
+for each in jogo["settings"]["items"]:
+    each["visible"] = each["name"] not in (various["name"], various_chat_overlay["name"], celeste_overlay["name"],
+                                           bad_play_layer["name"])
 scenes = [
     scene("Começando", (starting, {})),
-    *[scene(name, (capture_, GAME_AT), (camera_base, {}), (overlay, {}), (stand_, STAND_AT), (game_base, {}))
-      for name, (capture_, overlay, stand_) in GAMES.items()],
-    scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk,
-          (sounds_base, {})),
+    scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
+    jogo,
+    bad_play_layer,
     scene("Terapia", (camera, in_calm), (filters, filters_at["calm"]), (calm, {}), *alerts_in_calm,
-          (pix, PIX_IN_CALM), (sounds_base, {})),
+          (pix, PIX_IN_CALM)),
     scene("Já volto", (back, {})),
     scene("Fim", (camera, in_end), (filters, filters_at["end"]), (end, {})),
-    *NESTED,
 ]
 # Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
-HIDDEN = {"RL + chat": {"Discord", "Navegador"}, "Conversa": {"Discord"}, "Terapia": {"Discord"},
-          "Valorant + chat": {"Discord", "Navegador"}, CELESTE: {"Discord", "Navegador"},
-          "Diversos + chat": {"Discord", "Navegador"}}
+HIDDEN = {"Jogo": {"Discord", "Navegador"}, "Conversa": {"Discord"}, "Terapia": {"Discord"}}
 BREAKS = {"Começando", "Já volto", "Fim"}
 for each in scenes:
-    if any(each is n for n in NESTED):
-        continue
-    # The sounds come nested (Base · Sons, in Base · Jogo for the game scenes); the breaks have none.
-    extra = apps
+    if each is bad_play_layer:
+        continue  # a layer in Jogo, which has the sounds
+    extra = apps + ([] if each["name"] in BREAKS else sounds)
     added = [item(app, each["settings"]["id_counter"] + n + 1) for n, app in enumerate(extra)]
     for one in added:
         one["visible"] = one["name"] not in HIDDEN.get(each["name"], set())
@@ -378,12 +370,12 @@ for each in scenes:
     each["settings"]["id_counter"] += len(extra)
     if each["name"] in HOTKEYS:
         each["hotkeys"] = {"OBSBasic.SelectScene": [{"key": HOTKEYS[each["name"]]}]}
-# The game fills the screen keeping its aspect ratio rather than cropping.
+# The games fill their box keeping their aspect ratio rather than cropping.
 for captured in scenes:
-    if captured["settings"]["items"][0]["name"] not in (game["name"], valorant["name"], various["name"]):
-        continue
-    captured["settings"]["items"][0]["bounds_type"] = BOUNDS_SCALE_INNER
-    captured["settings"]["items"][0]["bounds_crop"] = False
+    for each in captured["settings"]["items"]:
+        if each["name"] in (game["name"], valorant["name"], various["name"]):
+            each["bounds_type"] = BOUNDS_SCALE_INNER
+            each["bounds_crop"] = False
 
 # Software decoding: hardware VP9 decoders drop the alpha channel.
 stinger = {"id": "obs_stinger_transition", "name": "muanlartins", "uuid": str(uuid.uuid5(uuid.NAMESPACE_URL, "stinger")),
@@ -399,8 +391,8 @@ collection = {
     "current_scene": "Começando",
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
-    "sources": scenes + [game, valorant, various, camera, filters, game_chat_overlay, valorant_chat_overlay,
-                         various_chat_overlay, celeste_overlay, chat_overlay, crowd, valorant_crowd, various_crowd, pix, starting, back, end, bad_play, calm] + apps + sounds
+    "sources": scenes + [game, various, camera, filters, game_chat_overlay,
+                         various_chat_overlay, celeste_overlay, chat_overlay, crowd, pix, starting, back, end, bad_play, calm] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
@@ -436,11 +428,11 @@ SYNC = {"Filtros": {"settings": ["reroute_audio", "width", "height"], "fields": 
 # Scene items OBS already has whose place `--apply` brings up to date: by name in every scene, or (scene, name) in
 # one. The camera filters over each scene's camera (2026-11-13; full screen before); Terapia laid out around the
 # middle (2026-11-14); Conversa's smaller camera with the minigames under it (2026-11-20); the game scenes framed
-# (2026-11-23): the game and the stand, and in their base scenes (2026-11-24) the camera, Pix and the alerts.
+# (2026-11-23): the game, the camera, the stand, Pix and the alerts.
 PLACED = {"Filtros", ("Terapia", "Câmera"), ("Terapia", "Pix"), ("Terapia", "Alertas"), ("Conversa", "Câmera"),
-          ("Conversa", "Pix"), ("Conversa", "Alertas"), ("Base · Câmera", "Câmera"), ("Lance ruim", "Câmera"),
-          ("Base · Jogo", "Pix"), ("Base · Jogo", "Alertas")} | {
-    (name, item_name) for name, (capture_, _, stand_) in GAMES.items() for item_name in (capture_["name"], stand_["name"])}
+          ("Conversa", "Pix"), ("Conversa", "Alertas")} | {
+    ("Jogo", item_name) for item_name in (game["name"], various["name"], "Câmera", crowd["name"], "Pix", "Alertas")} | {
+    ("Lance ruim", "Câmera")}
 PLACE_FIELDS = ["pos", "pos_rel", "scale", "scale_rel", "scale_ref", "align", "bounds_type", "bounds_align",
                 "bounds_crop", "bounds", "bounds_rel", "crop_left", "crop_top", "crop_right", "crop_bottom", "rot",
                 "scale_filter"]
@@ -530,7 +522,7 @@ def merge(live, new):
             if mine.get(key) != value:
                 mine[key] = value
                 added.append(f"{source_name}: {key} = {value}")
-    added += nest(live, by_name)
+    added += layer(live, by_name)
     uuids = {name: s["uuid"] for name, s in by_name.items()}
     for s in new["sources"]:
         if s["id"] != "scene":
@@ -575,48 +567,28 @@ def merge(live, new):
     return added
 
 
-def nest(live, by_name):
-    """Moves the game scenes' shared parts into the base scenes (2026-11-24), in a collection that still has them as
-    each scene's own items: in each game scene, the parts of a base scene give way to one item of it, where the first
-    of them was (so the camera stays under the overlay and the alerts over the stand); Conversa and Terapia get
-    "Base · Sons" for their sounds. The base scenes, new here, take their items' places from RL + chat as OBS has them
-    (Luan's hand changes kept), and "Lance ruim" its camera's and filters' from Base · Câmera. Returns what it did."""
-    done = []
-    first = by_name.get("RL + chat", {}).get("settings", {}).get("items", [])
-    for base in NESTED:
-        mine = by_name.get(base["name"])
-        if mine is not base:
-            continue  # OBS already had it: its places are its own
-        for it in base["settings"]["items"]:
-            there = next((i for i in first if i["name"] == it["name"]), None)
-            if there:
-                it.update({k: there[k] for k in PLACE_FIELDS if k in there})
-    for it in bad_play_layer["settings"]["items"]:
-        frame = next((i for i in camera_base["settings"]["items"] if i["name"] == it["name"]), None)
-        if frame and by_name.get("Lance ruim") is bad_play_layer:
-            it.update({k: frame[k] for k in PLACE_FIELDS if k in frame})
-
-    def into(scene_name, base_name, parts):
-        mine = by_name.get(scene_name)
-        items = (mine or {}).get("settings", {}).get("items", [])
-        at = next((k for k, i in enumerate(items) if i["name"] in parts), None)
-        if at is None or any(i["name"] == base_name for i in items):
-            return
-        mine["settings"]["id_counter"] = mine["settings"].get("id_counter", len(items)) + 1
-        base = next(s for s in NESTED if s["name"] == base_name)
-        one = item(base, mine["settings"]["id_counter"])
-        one["source_uuid"] = by_name[base_name]["uuid"]
-        gone = [i["name"] for i in items if i["name"] in parts]
-        mine["settings"]["items"] = [i for i in items[:at] if i["name"] not in parts] + [one] + \
-                                    [i for i in items[at:] if i["name"] not in parts]
-        done.append(f"{', '.join(gone)} → {base_name} na cena {scene_name}")
-
-    for scene_name in GAMES:
-        for base_name, parts in NESTED_PARTS.items():
-            into(scene_name, base_name, parts)
-    for scene_name in ("Conversa", "Terapia"):
-        into(scene_name, "Base · Sons", SOUND_PARTS)
-    return done
+def layer(live, by_name):
+    """Makes "Lance ruim" a layer (2026-11-24) in a collection where it's still a scene with Jogo inside it: it keeps
+    its camera and lance.html, gets the filters (placed as Jogo's) between them, and loses Jogo, the apps and the
+    sounds (Jogo has them); the new hidden item at the top of Jogo comes with the rest. Returns what it did."""
+    mine = by_name.get(bad_play_layer["name"])
+    items = (mine or {}).get("settings", {}).get("items", [])
+    if not any(i["name"] == jogo["name"] for i in items):
+        return []
+    keep = [i for i in items if i["name"] in (camera["name"], bad_play["name"])]
+    jogo_items = by_name.get(jogo["name"], {}).get("settings", {}).get("items", [])
+    filters_there = next((i for i in jogo_items if i["name"] == filters["name"]), None)
+    new_filters = item(filters, mine["settings"].get("id_counter", len(items)) + 1, **filters_at["game"])
+    new_filters["source_uuid"] = by_name[filters["name"]]["uuid"]
+    if filters_there:
+        new_filters.update({k: filters_there[k] for k in PLACE_FIELDS if k in filters_there})
+    mine["settings"]["id_counter"] = new_filters["id"]
+    mine["settings"]["items"] = [i for i in keep if i["name"] == camera["name"]] + [new_filters] + \
+                                [i for i in keep if i["name"] == bad_play["name"]]
+    for i in mine["settings"]["items"]:
+        i["visible"] = True
+    gone = [i["name"] for i in items if i not in keep]
+    return [f"Lance ruim virou camada: {', '.join(gone)} saíram, Filtros entrou"]
 
 
 def retire(live, by_name):

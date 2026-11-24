@@ -5,6 +5,9 @@ description: The routine after one of Luan's Twitch lives - file the recordings 
 
 # After a live
 
+> **Valorant is archived since 2026-11-24** (`AGENTS.md`, "Valorant (arquivado)"): its steps below (the Valorant
+> session, 4b's skins, the agents' tags) wait until it's back; the lives are Rocket League's, and Celeste's on weekends.
+
 The detailed history and the YouTube API setup are in `handoff/README.md` ("3. After each live"); this is
 the routine. Talk to Luan in pt-BR. `<date>` is the live's day, `YYYY-MM-DD`.
 

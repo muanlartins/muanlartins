@@ -11,7 +11,7 @@ import { PageIntro } from "@/components/site/page-intro"
 import { Badge, CardLink, Lattice, Section } from "@/components/site/ui"
 import { SHIPPED } from "@/content/changelog"
 import { channel } from "@/content/channel"
-import { games } from "@/content/projects"
+import { games, listedGames } from "@/content/projects"
 import { dayMonth } from "@/lib/agenda"
 import { channelPath } from "@/lib/channel"
 import { commands } from "@/lib/commands"
@@ -84,10 +84,11 @@ export async function ChannelHome({ lives }: { /** Newest first. */ lives: Live[
  * when it's next live: three side by side, one under the other on phones.
  */
 function Games() {
-  // Rocket League, Valorant and, third, every other game (Jogos diversos, components/site/diversos/entries.tsx).
+  // The listed games (Rocket League; an archived one, Valorant since 2026-11-24, isn't) and, last, every other game
+  // (Jogos diversos, components/site/diversos/entries.tsx).
   return (
-    <ul className={cn("grid gap-3", games.length + 1 >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
-      {games.map((game) => (
+    <ul className={cn("grid gap-3", listedGames.length + 1 >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
+      {listedGames.map((game) => (
         <li key={game.id}>
           <GameTile game={game.id} href={gamePath(game)} title={localize(game.title)} line={<GameNextLine game={game.id} />} />
         </li>

@@ -78,7 +78,7 @@
         {
           "comando": "!fundamentos",
           "texto": "Como estou aprendendo cada jogo, rank por rank.",
-          "resposta": "Como estou aprendendo cada jogo, rank por rank. Rocket League: https://muanlartins.com.br/conteudo/rocket-league/fundamentals · Valorant: https://muanlartins.com.br/conteudo/valorant/fundamentals"
+          "resposta": "Como estou aprendendo cada jogo, rank por rank. Rocket League: https://muanlartins.com.br/conteudo/rocket-league/fundamentals"
         },
         {
           "comando": "!site",
@@ -107,9 +107,6 @@
       { "nome": "Uuuh", "custo": 50, "texto": "O uuuh da torcida." },
       { "nome": "Tambor", "custo": 50, "texto": "Rufem os tambores." },
       { "nome": "Bebe água!", "custo": 50, "texto": "Eu paro e bebo água. Saúde!" },
-      { "nome": "Phoenix na câmera", "custo": 100, "texto": "Uma habilidade do Phoenix, ao acaso, na minha câmera." },
-      { "nome": "Sova na câmera", "custo": 100, "texto": "Uma habilidade do Sova, ao acaso, na minha câmera." },
-      { "nome": "Sage na câmera", "custo": 100, "texto": "Uma habilidade da Sage, ao acaso, na minha câmera." },
       { "nome": "Octane na câmera", "custo": 100, "texto": "O Octane na minha cabeça: um flip ou uma demolição." }
     ]
   },

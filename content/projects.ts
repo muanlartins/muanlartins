@@ -1,5 +1,6 @@
 import rocketLeagueHome from "@/content/rocket-league-home"
 import valorantHome from "@/content/valorant-home"
+import { isArchived } from "@/lib/game"
 import type { L10n, Locale } from "@/lib/site"
 
 /** Something of Luan's elsewhere, linked from a game: an app, a playlist. */
@@ -20,6 +21,9 @@ export const page = {
   },
 }
 
-/** The content page lists them (components/site/game/game-list.tsx); each gets a home at /conteudo/<id>, with its roadmap, its ranked record and its links (lib/game.ts). */
+/** Every game with a home at /conteudo/<id>, with its roadmap, its ranked record and its links (lib/game.ts), archived ones included: finding a game by id (an old live's, the agenda's) and building its pages go by this. */
 export const games = [rocketLeagueHome, valorantHome]
+
+/** The games the site lists and links (the content page, the channel's home, the games' menus): all but the archived (ARCHIVED_GAMES in lib/game.ts). */
+export const listedGames = games.filter((game) => !isArchived(game.id))
 

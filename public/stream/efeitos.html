@@ -8,15 +8,18 @@
       OBS: Custom browser dock (Docks → Custom Browser Docks), off stream; keep it docked where it stays visible,
       since a hidden dock's timers slow down. It drives the stream's effects through obs-websocket, like Partidas:
 
-      - Lance ruim (F2), a moment on the camera (Luan, 2026-11-24: "um momento de enfoque na câmera"): in a game
-        scene, the dock turns on "Lance ruim", a layer every game scene has on top (the nested scene "Lance ruim" at the
-        top of "Base · Jogo", brand/twitch/obs.py): the camera and its filters, set first where "Base · Câmera" puts
-        them in the game scenes, and lance.html's speed lines. It zooms that camera from its frame to the whole screen,
-        shakes it a little, holds 4 s, shrinks it back and turns the layer off: the game goes on under it and no scene
-        changes. Meanwhile the camera filters turn him into "Sigma" (filtros/sigma/: the Gigachad meme, in black and
-        white), as a visit (filtros.html's visita) that ends as the camera shrinks (`ate`, epoch ms), and tocador.html
-        plays its sting. Only by hand (Luan's choice, 2026-11-08): nothing fires it on its own. Until 2026-11-24 each
-        game had a "Lance ruim · …" scene of its own, which the dock cut to and back from.
+      Since 2026-11-24 the game is in one scene, "Jogo", for every game (the game picked under "Jogo na cena", or by the
+      eyes of its items in OBS: Rocket League, Celeste or another game). The archived collection ("Valorant (arquivo)")
+      keeps its per-game scenes (RL + chat, Valorant + chat, Diversos + chat), which this dock still finds by name, but
+      not Lance ruim's layer: there F2 does nothing.
+      - Lance ruim (F2), a moment on the camera (Luan, 2026-11-24: "um momento de enfoque na câmera"): in Jogo, the
+        dock turns on "Lance ruim", a nested scene hidden at the top of Jogo (brand/twitch/obs.py): the camera and its
+        filters, set first where Jogo has them, and lance.html's speed lines. It zooms that camera from its frame to the
+        whole screen, shakes it a little, holds 4 s, shrinks it back and turns the layer off: the game goes on under it
+        and no scene changes. Meanwhile the camera filters turn him into "Sigma" (filtros/sigma/: the Gigachad meme, in
+        black and white), as a visit (filtros.html's visita) that ends as the camera shrinks (`ate`, epoch ms), and
+        tocador.html plays its sting. Only by hand (Luan's choice, 2026-11-08): nothing fires it on its own. Until
+        2026-11-24 it was a scene the dock cut to and back from, one per game.
       - Terapia (F3): the calm scene (terapia.html), on its own stinger, "Água" (transicao-terapia.webm; a fade until
         2026-11-14, and still if OBS lacks it).
       - Voltar (F4): back to the scene before, faded (from Terapia, on "Água"): from Terapia the scene it came from;
@@ -180,6 +183,10 @@
       <button id="voltar">Voltar <kbd>F4</kbd></button>
     </div>
     <p class="note" id="volta"></p>
+    <div id="jogo-na-cena" style="display: none; margin-top: 8px">
+      <p class="note" style="margin: 0 0 4px">Jogo na cena</p>
+      <div class="segmentos" id="jogos"></div>
+    </div>
 
     <h2>Sons</h2>
     <div class="grid" id="sons"></div>
@@ -217,19 +224,32 @@
         val: { main: "Valorant + chat", scenes: ["Valorant + chat"] },
         div: { main: "Diversos + chat", scenes: ["Diversos + chat"] },
       }
+      // Since 2026-11-24 (Luan: "organiza as cenas", Valorant archived) the game is in one scene for every game, "Jogo",
+      // with the Lance ruim layer hidden at its top. The game in Jogo is which of its items are on (JOGOS), picked in
+      // this dock ("Jogo na cena") or with the eyes in OBS, and read back from OBS, never remembered. GAMES' scenes above
+      // stay for the archived collection ("Valorant (arquivo)").
+      const JOGO = "Jogo"
+      // What each choice turns on in Jogo (the others' items off), the game it counts as (the capture recorded):
+      // Celeste and any other game share Diversos' capture.
+      const JOGOS = {
+        rl: { nome: "Rocket League", jogo: "rl", itens: ["Rocket League", "Overlay · Jogo + chat"] },
+        celeste: { nome: "Celeste", jogo: "div", itens: ["Captura · Diversos", "Overlay · Celeste + chat"] },
+        outro: { nome: "Outro jogo", jogo: "div", itens: ["Captura · Diversos", "Overlay · Diversos + chat"] },
+      }
+      const ITENS_DO_JOGO = [...new Set(Object.values(JOGOS).flatMap((j) => j.itens))]
+      let noJogo = null // the choice whose overlay is on in Jogo, as OBS last said
       const BREAKS = ["Começando", "Já volto", "Fim"] // the scenes without the sounds (brand/twitch/obs.py)
       const EFFECTS = [TERAPIA]
       // A scene's game, by the table above, else by its name (a scene renamed in OBS still finds its game).
       const gameOf = (scene) =>
-        Object.keys(GAMES).find((g) => GAMES[g].scenes.includes(scene)) ??
-        (/valorant/i.test(scene ?? "") ? "val" : /^RL\b|rocket league/i.test(scene ?? "") ? "rl" : /diversos/i.test(scene ?? "") ? "div" : undefined)
+        scene === JOGO
+          ? JOGOS[noJogo ?? "rl"].jogo
+          : (Object.keys(GAMES).find((g) => GAMES[g].scenes.includes(scene)) ??
+            (/valorant/i.test(scene ?? "") ? "val" : /^RL\b|rocket league/i.test(scene ?? "") ? "rl" : /diversos/i.test(scene ?? "") ? "div" : undefined))
       const isGameScene = (scene) => !!gameOf(scene) && !EFFECTS.includes(scene)
       // F2 and F4: silent media sources, like the sounds', so the dock decides what they do.
       const GATILHOS = { "Gatilho · Lance ruim": () => lance(), "Gatilho · Voltar ao jogo": () => voltar() }
-      // The game scenes' shared parts (brand/twitch/obs.py): the camera in its frame, and on top the alerts, Pix, the
-      // sounds and the Lance ruim layer, which holds the camera again to zoom it.
-      const BASE_CAMERA = "Base · Câmera"
-      const BASE_JOGO = "Base · Jogo"
+      // The Lance ruim layer: a nested scene hidden at the top of Jogo, holding the camera again to zoom it.
       const LANCE = "Lance ruim"
       const CAMERA = "Câmera"
       const FILTROS = "Filtros"
@@ -269,6 +289,7 @@
       const TRANSITIONS = 1 << 4
       const OUTPUTS = 1 << 6
       const MEDIA = 1 << 8
+      const SCENE_ITEMS = 1 << 7
       const sha256 = async (text) => btoa(String.fromCharCode(...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))))
       function connect() {
         const ws = new WebSocket("ws://127.0.0.1:4455")
@@ -276,7 +297,7 @@
         ws.onmessage = async ({ data }) => {
           const { op, d } = JSON.parse(data)
           if (op === 0) {
-            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES | TRANSITIONS | OUTPUTS | MEDIA }
+            const identify = { rpcVersion: 1, eventSubscriptions: GENERAL | SCENES | TRANSITIONS | OUTPUTS | MEDIA | SCENE_ITEMS }
             if (d.authentication) {
               const { challenge, salt } = d.authentication
               identify.authentication = await sha256((await sha256(state.obsPassword + salt)) + challenge)
@@ -286,6 +307,7 @@
             ready = true
             status()
             await setup()
+            await lerJogo()
             const scene = await request("GetCurrentProgramScene")
             if (scene) changed(scene.sceneName)
             const stream = await request("GetStreamStatus")
@@ -299,6 +321,7 @@
             lanceDesligado()
           } else if (op === 5) {
             if (d.eventType === "CurrentProgramSceneChanged") changed(d.eventData.sceneName)
+            if (d.eventType === "SceneItemEnableStateChanged" && d.eventData.sceneName === JOGO) lerJogo()
             if (d.eventType === "SceneTransitionStarted") transitionStarted()
             if (d.eventType === "SceneTransitionEnded") transitionEnded()
             if (d.eventType === "MediaInputActionTriggered" && d.eventData.mediaAction.endsWith("RESTART")) triggered(d.eventData.inputName)
@@ -467,23 +490,23 @@
       const AJUSTAVEIS = ["positionX", "positionY", "rotation", "scaleX", "scaleY", "alignment", "boundsType", "boundsAlignment",
         "boundsWidth", "boundsHeight", "cropLeft", "cropRight", "cropTop", "cropBottom", "cropToBounds"]
       /**
-       * The Lance ruim layer's pieces: its camera and filter items, each with the frame the game scenes give the same
-       * source in Base · Câmera (so moving the camera there moves the zoom's start too), and the layer's own item.
+       * The Lance ruim layer's pieces: its camera and filter items, each with the frame Jogo gives the same source (so
+       * moving the camera there moves the zoom's start too), and the layer's own item in Jogo.
        */
       async function lancePecas() {
         const pecas = []
         for (const sourceName of [CAMERA, FILTROS]) {
-          const base = await request("GetSceneItemId", { sceneName: BASE_CAMERA, sourceName })
-          const got = base && (await request("GetSceneItemTransform", { sceneName: BASE_CAMERA, sceneItemId: base.sceneItemId }))
+          const base = await request("GetSceneItemId", { sceneName: JOGO, sourceName })
+          const got = base && (await request("GetSceneItemTransform", { sceneName: JOGO, sceneItemId: base.sceneItemId }))
           const it = await request("GetSceneItemId", { sceneName: LANCE, sourceName })
           if (!got || !it) continue
           const t = got.sceneItemTransform
           pecas.push({ id: it.sceneItemId, frame: Object.fromEntries(AJUSTAVEIS.filter((k) => k in t).map((k) => [k, t[k]])) })
         }
-        const camada = await request("GetSceneItemId", { sceneName: BASE_JOGO, sourceName: LANCE })
+        const camada = await request("GetSceneItemId", { sceneName: JOGO, sourceName: LANCE })
         return pecas.length && camada ? { pecas, camada: camada.sceneItemId } : null
       }
-      const camadaLigada = (p, on) => request("SetSceneItemEnabled", { sceneName: BASE_JOGO, sceneItemId: p.camada, sceneItemEnabled: on })
+      const camadaLigada = (p, on) => request("SetSceneItemEnabled", { sceneName: JOGO, sceneItemId: p.camada, sceneItemEnabled: on })
       const nosQuadros = (p) => Promise.all(p.pecas.map(({ id, frame }) => request("SetSceneItemTransform", { sceneName: LANCE, sceneItemId: id, sceneItemTransform: frame })))
       /** The layer off and its camera back in the frame: when the dock connects, in case one was cut short. */
       async function lanceDesligado() {
@@ -546,6 +569,35 @@
           if (current === TERAPIA && transitions.agua) switchWith("agua", to, 1100)
           else switchWith("fade", to, 1500)
         })
+      }
+
+      // --- The game in "Jogo" -------------------------------------------------------------------------------------
+      /** Which choice is on in Jogo, from OBS (none when the collection has no Jogo: the archived one). */
+      async function lerJogo() {
+        const lista = await request("GetSceneItemList", { sceneName: JOGO })
+        const itens = lista?.sceneItems ?? []
+        const ligado = (nome) => itens.some((i) => i.sourceName === nome && i.sceneItemEnabled)
+        noJogo = Object.keys(JOGOS).find((k) => ligado(JOGOS[k].itens.at(-1))) ?? null
+        $("jogo-na-cena").style.display = lista ? "" : "none"
+        for (const b of $("jogos").children) b.classList.toggle("active", b.dataset.valor === noJogo)
+        gravarSoOJogo()
+      }
+      /** Puts a game in Jogo (and so in Lance ruim, which shows Jogo): the others' items off first, then its own on. */
+      async function porJogo(k) {
+        const lista = await request("GetSceneItemList", { sceneName: JOGO })
+        if (!lista) return
+        const quer = new Set(JOGOS[k].itens)
+        const set = (i, on) => request("SetSceneItemEnabled", { sceneName: JOGO, sceneItemId: i.sceneItemId, sceneItemEnabled: on })
+        for (const i of lista.sceneItems) if (ITENS_DO_JOGO.includes(i.sourceName) && !quer.has(i.sourceName) && i.sceneItemEnabled) await set(i, false)
+        for (const i of lista.sceneItems) if (quer.has(i.sourceName) && !i.sceneItemEnabled) await set(i, true)
+        await lerJogo()
+      }
+      for (const [k, j] of Object.entries(JOGOS)) {
+        const b = document.createElement("button")
+        b.dataset.valor = k
+        b.textContent = j.nome
+        b.onclick = () => porJogo(k)
+        $("jogos").append(b)
       }
 
       $("lance").onclick = lance
@@ -617,9 +669,10 @@
         { title: "Uuuh", cost: 50, prompt: "O uuuh da torcida.", cooldown: 60, play: () => sound("uuuh") },
         { title: "Tambor", cost: 50, prompt: "Rufem os tambores.", cooldown: 60, play: () => sound("tambor") },
         { title: "Bebe água!", cost: 50, prompt: "Eu paro e bebo água. Saúde!", cooldown: 600, play: () => ready && !BREAKS.includes(current) },
-        { title: "Phoenix na câmera", cost: 100, prompt: "Uma habilidade do Phoenix, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("phoenix", ["blaze", "flash", "molotov", "ult"]) },
-        { title: "Sova na câmera", cost: 100, prompt: "Uma habilidade do Sova, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("sova", ["drone", "choque", "recon", "ult"]) },
-        { title: "Sage na câmera", cost: 100, prompt: "Uma habilidade da Sage, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("sage", ["barreira", "lentidao", "cura", "ult"]) },
+        // Valorant's agents, archived with the game on 2026-11-24: off on Twitch (hidden from viewers), kept here.
+        { title: "Phoenix na câmera", arquivada: true, cost: 100, prompt: "Uma habilidade do Phoenix, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("phoenix", ["blaze", "flash", "molotov", "ult"]) },
+        { title: "Sova na câmera", arquivada: true, cost: 100, prompt: "Uma habilidade do Sova, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("sova", ["drone", "choque", "recon", "ult"]) },
+        { title: "Sage na câmera", arquivada: true, cost: 100, prompt: "Uma habilidade da Sage, ao acaso, na minha câmera.", cooldown: 120, play: () => camera("sage", ["barreira", "lentidao", "cura", "ult"]) },
         { title: "Octane na câmera", cost: 100, prompt: "O Octane na minha cabeça: um flip ou uma demolição.", cooldown: 120, play: () => camera("octane", ["demo", "flip"]) },
       ]
       function sound(som) {
@@ -741,6 +794,12 @@
         if (!mine) return
         rewardIds.clear()
         for (const reward of REWARDS) {
+          // An archived one is turned off (gone from the viewers' list) and never made again.
+          if (reward.arquivada) {
+            const old = mine.data.find((r) => r.title === reward.title)
+            if (old?.is_enabled) await helix("PATCH", `/channel_points/custom_rewards?broadcaster_id=${tw.user.id}&id=${old.id}`, { is_enabled: false })
+            continue
+          }
           const want = {
             cost: reward.cost,
             prompt: reward.prompt,

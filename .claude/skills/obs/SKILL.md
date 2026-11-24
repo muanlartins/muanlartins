@@ -149,9 +149,28 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
 - Shorts have their own profile and scene collection, "Shorts" (1080×1920; `brand/twitch/obs_shorts.py --apply`
   with OBS closed), and so do commented videos, "Vídeo" (1920×1080, folder `profiles\Video`;
   `brand/twitch/obs_video.py --apply`). RLR's studio switches to them to record and back; never switch while live.
+- **One game scene of each for every game** (Luan, 2026-11-24: "organiza as cenas", the day Valorant was archived):
+  "Jogo" (with "Lance ruim" and "VAR" as scenes of their own that day; that evening Lance ruim became a layer inside
+  Jogo and the VAR was retired), in the order Começando, Conversa, Jogo, Terapia, Já volto, Fim (and "Lance ruim", the
+  layer's nested scene, after them).
+  Jogo holds every game's capture and overlay; the game on screen is whichever's items are on: the Efeitos dock's
+  "Jogo na cena" (Rocket League: "Rocket League" + "Overlay · Jogo + chat"; Celeste: "Captura · Diversos" + "Overlay ·
+  Celeste + chat"; Outro jogo: "Captura · Diversos" + "Overlay · Diversos + chat"), or their eyes in OBS; the dock reads
+  it back from OBS (`SceneItemEnableStateChanged`) for F2, F4 and "Gravar jogo". Lance ruim is a layer hidden at
+  the top of Jogo (below), so the game goes on under it whatever it is. One stand,
+  "Torcida", for every game. The paragraphs below about per-game scenes are the history; the docks still drive those
+  names, for the archived collection.
+- **Valorant is archived** (2026-11-24, Luan: the channel is all Rocket League now, Celeste on weekends): OBS's scene
+  collection "Valorant (arquivo)" is the whole "Live" collection as it was that day, with "Valorant + chat", "Lance
+  ruim · Valorant", "VAR · Valorant" and their sources (Scene Collection menu; never switch while live). "Live" kept
+  none of Valorant's (nor "Torcida · Diversos"); `obs.py` keeps their definitions (`ARCHIVED`). The Riot reader's
+  startup script went to `C:\Users\muanl\Documents\muanlartins-obs\arquivo\Valorant muanlartins.vbs`, and the
+  agents' rewards are off on Twitch (`arquivada` in the Efeitos dock's `REWARDS`) and off the Filtros dock
+  (`ARQUIVADOS` in `filtros/index.js`). Bringing it back: the startup script to Startup, Valorant's capture and overlay
+  as a fourth choice in Jogo (`JOGOS` in `efeitos.html`, `jogo` in `obs.py`), the flags emptied.
 - Luan's choice: Discord is hidden in the game scenes and Conversa, and the browser in the game scenes. One scene
   per game, always with the chat: "RL + chat" and "Valorant + chat" (2026-11-10: he dropped the ones without it,
-  "Jogo" and "Valorant", and "Jogo + chat" became "RL + chat"; the docks and pages go by these names).
+  "Jogo" and "Valorant", and "Jogo + chat" became "RL + chat"; until 2026-11-24 the docks and pages went by these names).
 - Any other game (Luan, 2026-11-14: "uma cena para jogos diversos, onde customizações específicas de jogo não se
   apliquem"): "Diversos + chat" (the Efeitos dock's `div`). Its capture, "Captura · Diversos", is OBS's "any fullscreen application", so a new game needs no setup as
   long as it runs fullscreen or borderless (a windowed one: pick its window in the capture's properties); it has
@@ -165,24 +184,18 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   and stand. Keep "Diversos" in its name: the Efeitos dock finds the game by it, for F2, F4 and "Gravar jogo". Since
   every game is framed it's Diversos + chat without the keyboard.
 - **Every game scene is framed** (Luan, 2026-11-23, after Celeste's: one layout, room for the stand, nothing over the
-  game): RL + chat, Valorant + chat, Diversos + chat and Celeste's (`GAMES` in `obs.py`). The capture 1600×900 at
-  (320, 0) with OBS's Area filter, the camera and Filtros 288×270 at (16, 774) (in "Base · Câmera", below), the
+  game): RL + chat, Valorant + chat, Diversos + chat and Celeste's then, "Jogo" since 2026-11-24. The capture 1600×900 at
+  (320, 0) with OBS's Area filter, the camera and Filtros 288×270 at (16, 774), the
   overlay `palco.html?jogo=…` (the sources keep their names: "Overlay · Jogo + chat" is Rocket League's), the stand
   moved to (348, 0), Pix at (0, 0) (`pix.html` puts its call in the column by the scene's name: a new game scene goes
-  in its `PALCO` list) and the alerts at (570, 130) (both in "Base · Jogo"). `--apply` puts all of them in place (`PLACED`) and the overlays'
+  in its `PALCO` list) and the alerts at (570, 130). `--apply` puts all of them in place (`PLACED`) and the overlays'
   URLs (`SOURCE_SETTINGS`); a scene laid out by hand goes back to this on the next `--apply`. Until that day the camera
   sat over the game at (44, 740), Valorant's at (44, 44) over the minimap, with `jogo.html` (the commented videos'
   frame still).
-- **The game scenes share their parts** (Luan, 2026-11-24: "todas possuem o mesmo layout, apenas adaptações por
-  jogo"): each game scene is its capture, "Base · Câmera" (Câmera and Filtros in the frame) under its overlay, its
-  stand, and "Base · Jogo" over it (Alertas, Pix, "Base · Sons" and, hidden, "Lance ruim"). "Base · Sons" (the "Sons"
-  player, the "Som · …" and "Gatilho · …" triggers) is nested in Conversa and Terapia too. Move the camera or the
-  alerts there once and every game follows; a new game scene is its capture, overlay and stand around the two bases.
-  `obs.py --apply` made the change (`nest`: each part gave way to its base where the first of them was), and the
-  bases took their items' places from RL + chat as OBS had them.
 - Effects (2026-11-07): "Lance ruim" (since 2026-11-24 a layer, the nested scene "Lance ruim" hidden at the top of
-  "Base · Jogo": the Efeitos dock sets its camera and filter where Base · Câmera has them, shows it, zooms them to the
-  whole screen while the filters make him Sigma, and hides it; until then a scene per game, cut in and out) and
+  Jogo with Câmera, Filtros and lance.html: the Efeitos dock sets its camera and filter where Jogo has them, shows it,
+  zooms them to the whole screen while the filters make him Sigma, and hides it; `obs.py --apply` made it one
+  (`layer`); until then a scene, per game and then with Jogo inside it, cut in and out) and
   "Terapia" (on its stinger "Água"), and the sounds: the browser source "Sons" (`public/stream/tocador.html`) plays them when the dock hears a
   hotkey restart its trigger, a media source "Som · …" with `gatilho.webm`, no sound at all (media sources play once when OBS loads, so
   real sounds there went off all at once). Hotkeys are on the F-row (Rocket League binds F1 and F10): F2 Lance ruim,

@@ -17,6 +17,7 @@ import { channel } from "@/content/channel"
 import { channelPath, livePath } from "@/lib/channel"
 import { loadRacer, loadRaces, RACE_ASPECT, raceUrl, type Race, type Racer } from "@/lib/corrida"
 import { loadDuelist, PLAYER_ASPECT, replayUrl, type Duelist, type Fight } from "@/lib/duelo"
+import { isArchived } from "@/lib/game"
 import { loadMural, type Mural, type MuralPix } from "@/lib/pix"
 import { keptMe, keptMeRaw, keptToken, loadMine, onMeChange, type Fan, type Sigma } from "@/lib/profile"
 import { LOCALE, localize, PIX_SLUG, profileSlug, sectionPath } from "@/lib/site"
@@ -57,6 +58,8 @@ const SHOWCASES = [
   { id: "loadout", wide: true },
 ] as const
 type ShowcaseId = (typeof SHOWCASES)[number]["id"]
+/** The dream loadout is Valorant's: while the game is archived (lib/game.ts) its showcase hides and isn't fetched. */
+const LOADOUT = !isArchived("valorant")
 
 /** The showcases shown, in order, each wide or half: a half with no half after it takes the whole row. */
 function arrange(shown: ShowcaseId[]) {
@@ -146,7 +149,10 @@ export function ViewerPage({ login: given }: { login: string }) {
   const fetchDuels = useCallback(() => loadDuelist(login).then((d) => setDuels(ok(d)), () => setDuels(failed)), [login])
   const fetchRaces = useCallback(() => loadRacer(login).then((r) => setRaces(ok(r)), () => setRaces(failed)), [login])
   const fetchMural = useCallback(() => loadMural().then((m) => setMural(ok(m)), () => setMural(failed)), [])
-  const fetchLoadout = useCallback(() => loadShowcase(login).then((l) => setLoadout(ok(l)), () => setLoadout(failed)), [login])
+  const fetchLoadout = useCallback(
+    () => (LOADOUT ? loadShowcase(login) : Promise.resolve(null)).then((l) => setLoadout(ok(l)), () => setLoadout(failed)),
+    [login],
+  )
   const retry = {
     person: () => (setPerson(loading), fetchPerson()),
     duels: () => (setDuels(loading), fetchDuels()),
@@ -211,7 +217,9 @@ export function ViewerPage({ login: given }: { login: string }) {
     loadout: loadout.state === "error" ? "error" : loadout.state === "ok" && loadout.value ? "full" : "empty",
   }
   // The channel's own page has no Σ of its own, nor dedications to itself.
-  const shown = SHOWCASES.map((s) => s.id).filter((id) => what[id] !== "empty" || (mine && !(login === CHANNEL && (id === "sigma" || id === "lives"))))
+  const shown = SHOWCASES.map((s) => s.id)
+    .filter((id) => LOADOUT || id !== "loadout")
+    .filter((id) => what[id] !== "empty" || (mine && !(login === CHANNEL && (id === "sigma" || id === "lives"))))
 
   const action = "cut-sm inline-flex items-center gap-1.5 px-3 py-1.5 text-[14px] font-medium transition-colors"
   const actions = (
