@@ -2,7 +2,7 @@
 
 import Script from "next/script"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { BarChart3, Flag, Lock, Play, Shuffle, Sparkles, Swords, Trophy, type LucideIcon } from "lucide-react"
+import { BarChart3, Flag, Play, Shuffle, Sparkles, Swords, Trophy, type LucideIcon } from "lucide-react"
 import { PageIntro } from "@/components/site/page-intro"
 import { ClassArt, duelKit, type DuelKit } from "@/components/site/minigames/class-art"
 import { className, DuelReplay, FightRow, FightsSection } from "@/components/site/minigames/fights"
@@ -174,7 +174,7 @@ export function MinigamesPage() {
   const fanOf = useCallback((who: string, choice?: Choice | null) => normalizar2D(choice ?? fans?.[who] ?? null, who), [fans])
   const mine = normalizar2D(myFan, login || NOBODY)
 
-  // What their Σ has unlocked: the channel, everything.
+  // Their rank's material, the one they wear when they pick none (the channel's, the top).
   const unlocked = useMemo(() => {
     if (login === CHANNEL) return MATERIALS.length - 1
     if (!S) return 0
@@ -321,24 +321,21 @@ export function MinigamesPage() {
                       <button type="button" onClick={() => pick({ material: undefined })} aria-pressed={!ball.material} title={text.yours.auto} aria-label={text.yours.auto} className={cn(pickClass(!ball.material), "grid h-14 w-14 place-items-center")}>
                         <Sparkles aria-hidden className="h-5 w-5 text-paper/80" />
                       </button>
-                      {MATERIALS.map((m, i) => {
-                        const locked = i > unlocked
-                        const label = locked ? `${materialName(m.id)} · ${fill(text.yours.locked, { n: number(startsAt(m.id)) })}` : materialName(m.id)
+                      {MATERIALS.map((m) => {
+                        const label = materialName(m.id)
                         return (
                           <button
                             key={m.id}
                             type="button"
-                            disabled={locked}
                             onClick={() => pick({ material: m.id })}
                             aria-pressed={ball.material === m.id}
                             title={label}
                             aria-label={label}
-                            className={cn(pickClass(ball.material === m.id), "grid h-14 w-14 place-items-center", locked && "cursor-not-allowed")}
+                            className={cn(pickClass(ball.material === m.id), "grid h-14 w-14 place-items-center")}
                           >
-                            <span className={cn(locked && "opacity-25 grayscale")}>
+                            <span>
                               <ClassArt kit={kit} classe={ball.classe ?? "espada"} material={m.id} fan={mine} size={50} />
                             </span>
-                            {locked && <Lock aria-hidden className="absolute h-4 w-4 text-paper/80" />}
                           </button>
                         )
                       })}
@@ -349,8 +346,6 @@ export function MinigamesPage() {
                         const effects = (["brilho", "rastro", "faiscas", "arco"] as const).filter((e) => e in m).map((e) => text.yours.effects[e])
                         return `${materialName(m.id)}: ${effects.length ? effects.join(", ") : text.yours.metal}. `
                       })()}
-                      {unlocked < MATERIALS.length - 1 &&
-                        fill(text.yours.next, { nome: materialName(MATERIALS[unlocked + 1].id), n: number(startsAt(MATERIALS[unlocked + 1].id)), s: number(sigma) })}
                     </p>
                   </div>
                 </div>

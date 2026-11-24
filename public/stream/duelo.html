@@ -714,13 +714,13 @@
       const tier = (id) => id.replace(/-\d$/, "")
       const ORDEM = Object.keys(MATERIAIS)
       const temMaterial = (id) => typeof id === "string" && Object.hasOwn(MATERIAIS, id)
-      // Their rank's, or a lower one they picked on the site; on the site's player, the one it gives.
+      // The one they picked on the site (any: Σ locks nothing, Luan 2026-11-24), else their rank's; on the site's player, the one it gives.
       function materialDe(login, i) {
         const dado = posicional("materiais")[i]
         if (TREINO && temMaterial(dado)) return dado
         const seu = temMaterial(tier(Sigma.ranque(sigma(login)).id)) ? tier(Sigma.ranque(sigma(login)).id) : "bronze"
         const quer = TREINO && dado === "*" ? null : duelistas.get(login)?.material
-        return temMaterial(quer) && ORDEM.indexOf(quer) <= ORDEM.indexOf(seu) ? quer : seu
+        return temMaterial(quer) ? quer : seu
       }
       // Their class: the one given (a test, a replay), the one they picked, or none (one is drawn).
       const temClasse = (id) => typeof id === "string" && Object.hasOwn(Duelo.CLASSES, id)

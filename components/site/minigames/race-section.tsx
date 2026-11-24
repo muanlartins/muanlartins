@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowRight, Lock, Play } from "lucide-react"
+import { ArrowRight, Play } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { Marble, MarbleDot, type MarbleKit } from "@/components/site/minigames/marble"
@@ -91,11 +91,10 @@ export function RaceSection({
                     <span
                       key={m.id}
                       title={`${finishName(m.id)}: ${effects(m.id)}`}
-                      className={cn("relative grid h-7 w-7 place-items-center rounded-full ring-2", k === unlocked ? "ring-ouro" : "ring-transparent", k > unlocked && "opacity-40")}
+                      className={cn("relative grid h-7 w-7 place-items-center rounded-full ring-2", k === unlocked ? "ring-ouro" : "ring-transparent")}
                       // Rocket League's tiers' colours, the race's own data (bolinha.js); the top one changes colour.
                       style={{ background: "arco" in m ? `conic-gradient(${MATERIALS.slice(2, 7).map((x) => x.cor).join(", ")}, ${MATERIALS[2].cor})` : m.cor }}
                     >
-                      {k > unlocked && <Lock aria-hidden className="h-3 w-3 text-navy" />}
                     </span>
                   ))}
                 </div>

@@ -262,7 +262,7 @@ export const channel = {
       games: {
         term: { pt: "Minijogos", en: "Minigames" },
         text: {
-          pt: "O visual da arma no duelo de bolinhas e o acabamento da sua bolinha na corrida seguem o seu rank. Só muda a aparência.",
+          pt: "O acabamento da sua bolinha na corrida segue o seu rank, e no duelo de bolinhas, se você não escolher o visual da arma, ele também segue. Só muda a aparência.",
           en: "Your weapon's look in the ball duel and your marble's finish in the race follow your rank. Only the looks change.",
         },
       },
