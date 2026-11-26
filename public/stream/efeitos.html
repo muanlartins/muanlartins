@@ -12,14 +12,17 @@
       eyes of its items in OBS: Rocket League, Celeste or another game). The archived collection ("Valorant (arquivo)")
       keeps its per-game scenes (RL + chat, Valorant + chat, Diversos + chat), which this dock still finds by name, but
       not Lance ruim's layer: there F2 does nothing.
-      - Lance ruim (F2), a moment on the camera (Luan, 2026-11-24: "um momento de enfoque na câmera"): in Jogo, the
-        dock turns on "Lance ruim", a nested scene hidden at the top of Jogo (brand/twitch/obs.py): the camera and its
-        filters, set first where Jogo has them, and lance.html's speed lines. It zooms that camera from its frame to the
-        whole screen, shakes it a little, holds 4 s, shrinks it back and turns the layer off: the game goes on under it
-        and no scene changes. Meanwhile the camera filters turn him into "Sigma" (filtros/sigma/: in black and white,
-        his face morphing into a portrait of himself as the Gigachad meme), as a visit (filtros.html's visita) that ends as the camera shrinks (`ate`, epoch ms), and
-        tocador.html plays its sting. Only by hand (Luan's choice, 2026-11-08): nothing fires it on its own. Until
-        2026-11-24 it was a scene the dock cut to and back from, one per game.
+      - John Rocket League (F2), a moment on the camera (Luan, 2026-11-24: "um momento de enfoque na câmera"; John
+        since 2026-11-26, in the Lance ruim's place): in Jogo, the dock turns on "Lance ruim" (OBS's names stay the
+        Lance ruim's), a nested scene hidden at the top of Jogo (brand/twitch/obs.py): the camera and its filters, set
+        first where Jogo has them, and lance.html's speed lines. It zooms that camera from its frame to the whole
+        screen, shakes it a little, holds 6 s, shrinks it back and turns the layer off: the game goes on under it and no
+        scene changes. Meanwhile the camera filters turn him into John Rocket League, his alter ego (filtros/john/: his
+        face on the art of himself huge with the Champion emblem burning, which powers up Saiyan-style: eyes on fire,
+        the emblem bursting, lightning), as a visit (filtros.html's visita) that ends as the camera shrinks (`ate`,
+        epoch ms), and tocador.html plays its sting (sons/john.wav, the art's video's own sound). Only by hand (Luan's
+        choice, 2026-11-08): nothing fires it on its own. Until 2026-11-24 it was a scene the dock cut to and back from,
+        one per game; until 2026-11-26 it turned him into Sigma (filtros/sigma/, still on the Filtros dock's list).
       - Terapia (F3): the calm scene (terapia.html), on its own stinger, "Água" (transicao-terapia.webm; a fade until
         2026-11-14, and still if OBS lacks it).
       - Voltar (F4): back to the scene before, faded (from Terapia, on "Água"): from Terapia the scene it came from;
@@ -34,7 +37,7 @@
       - Sons: palmas (F5), uuuh (F6) and tambor (F7). Each hotkey restarts a trigger in OBS, a media source
         "Som · …" playing a silent file (OBS plays every media source once when it loads, so real sounds there all
         went off at once); this dock hears the restart and has tocador.html, the "Sons" browser source, play the
-        sound. Lance ruim's sting plays the same way. Without the dock open, they're silent.
+        sound. John's sting plays the same way. Without the dock open, they're silent.
       The VAR (F8: an instant replay of the play, voted by the chat, from replay buffers OBS kept) was retired on
       2026-11-24 (Luan: "não acho que ele esteja funcionando bem"), with its scenes, var.html and scripts/replay.py.
 
@@ -178,7 +181,7 @@
 
     <h2>Cenas</h2>
     <div class="grid">
-      <button class="primary" id="lance">Lance ruim <kbd>F2</kbd></button>
+      <button class="primary" id="lance">John Rocket League <kbd>F2</kbd></button>
       <button id="terapia">Terapia <kbd>F3</kbd></button>
       <button id="voltar">Voltar <kbd>F4</kbd></button>
     </div>
@@ -253,7 +256,7 @@
       const LANCE = "Lance ruim"
       const CAMERA = "Câmera"
       const FILTROS = "Filtros"
-      const HOLD = 4000
+      const HOLD = 6000
       // Name on the button, OBS's trigger (a silent media source, brand/twitch/obs.py), its hotkey and the sound
       // tocador.html plays.
       const SONS = [
@@ -518,19 +521,19 @@
       }
 
       /**
-       * Sigma on the camera while it's big: a visit (filtros.html) that ends as the camera shrinks back, `ate` in
+       * John on the camera while it's big: a visit (filtros.html) that ends as the camera shrinks back, `ate` in
        * epoch ms, with `desde` the moment's start (the page's camera may take a moment to open, and its transformation
        * keeps to the sting's time). The page takes one visit at a time, so a viewer's ability on the camera waits for
        * the next one.
        */
-      function sigma(ate) {
+      function john(ate) {
         cameraLivre = Math.max(cameraLivre, ate + 2000)
-        const visita = { filtro: "sigma", acao: "lance", ate, desde: Date.now() }
+        const visita = { filtro: "john", acao: "lance", ate, desde: Date.now() }
         request("CallVendorRequest", { vendorName: "obs-browser", requestType: "emit_event", requestData: { event_name: "muanlartins-filtro", event_data: { visita } } })
       }
 
-      // Lance ruim (see the header): in a game scene, the layer on with the camera from its frame to the whole screen,
-      // a little past it (on his face), Sigma on him, and back; none outside a game.
+      // John (see the header): in a game scene, the layer on with the camera from its frame to the whole screen, a
+      // little past it, John on him, and back; none outside a game.
       async function lance() {
         if (zooming || !isGameScene(current)) return
         zooming = true
@@ -545,15 +548,15 @@
           const from = { positionX: f.positionX, positionY: f.positionY, boundsWidth: f.boundsWidth, boundsHeight: f.boundsHeight }
           const W = video.baseWidth
           const H = video.baseHeight
-          // A little past the screen's size, so no edge shows as it shakes; the top kept, so Sigma's jaw, neck and
-          // shoulders stay on screen (at 1.3, the face's zoom until 2026-11-24, the chin sat on the bottom edge).
+          // A little past the screen's size, so no edge shows as it shakes; the top kept, so John's hair and the
+          // emblem stay on screen (and Sigma's jaw did) (at 1.3, the face's zoom until 2026-11-24, the chin sat on the bottom edge).
           const Z = 1.12
           const to = { boundsWidth: W * Z, boundsHeight: H * Z, positionX: (W - W * Z) / 2, positionY: -(H * Z - H) * 0.25 }
           const started = performance.now()
-          // It shrinks back from HOLD - 300 ms for 280 ms: Sigma goes with it.
-          sigma(Date.now() + HOLD - 20)
+          // It shrinks back from HOLD - 300 ms for 280 ms: John goes with it.
+          john(Date.now() + HOLD - 20)
           await camadaLigada(p, true)
-          play("lance")
+          play("john")
           await animate(ids, from, to, 300, easeOutBack)
           await animate(ids, to, to, 450, (x) => x, 26 * (W / 1920))
           await wait(Math.max(0, HOLD - 300 - (performance.now() - started)))
