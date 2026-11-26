@@ -1,0 +1,15 @@
+{
+  "data": "2026-11-25",
+  "nome": "terapia",
+  "titulo": "Por que ele agarra todas?",
+  "descricao": "As duas últimas ranqueadas da live, 2v2 sem o pão: um 0 a 5 e, na seguinte, um momento terapia no meio da partida e uma virada que quase saiu.",
+  "partidas": [
+    7,
+    8
+  ],
+  "capitulos": {
+    "7": "Agora é seriedade",
+    "8": "Momento terapia"
+  },
+  "publicar": "2026-11-28T21:00:00-03:00"
+}

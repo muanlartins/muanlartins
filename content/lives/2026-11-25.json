@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-25",
+  "game": "rocket-league",
+  "video": "",
+  "length": "3:04:25",
+  "summary": {
+    "pt": "2v2 ranqueado com o pão: 3 vitórias em 4, a última na prorrogação. Depois, uma farra com a torcida: casual com o Exponja e partidas privadas com quem estava na live, com narração minha e de quem estava assistindo, e a arquibancada batendo recorde. No fim, dois 1v1 (caí em Platina 1) e duas derrotas no 2v2 sem o pão: de Diamante 3 I (996) a Diamante 3 I (988).",
+    "en": "Ranked 2v2 with pão: 3 wins in 4, the last in overtime. Then a party with the crowd: casual with Exponja and private matches with whoever was on the live, narrated by me and by people watching, with a record crowd in the stand. At the end, two 1v1s (I landed in Platinum 1) and two 2v2 losses without pão: from Diamond 3 I (996) to Diamond 3 I (988)."
+  },
+  "youtube": {
+    "title": "Isso não é normal! Jogando com a torcida | Rocket League ao vivo",
+    "publish_at": "2026-11-30T19:00:00-03:00",
+    "thumb": {
+      "quadro": "2b",
+      "segundo": 4364.25,
+      "texto": "ISSO NÃO|É NORMAL",
+      "emblema": false
+    }
+  },
+  "chapters": [
+    { "at": "0:00", "title": { "pt": "Começo: treinando o speedflip", "en": "Start: practising the speed flip" } },
+    { "at": "11:24", "match": "260B781611F1E91DF38395A934694FB4" },
+    { "at": "18:34", "match": "25E82C3E11F1E91ED67AE3A178296A08" },
+    { "at": "26:13", "match": "39C03E4E11F1E91FE47A49869535D834" },
+    { "at": "33:19", "match": "376D3F5611F1E920578F6791DD3FA561" },
+    { "at": "41:10", "title": { "pt": "Casual com o Exponja e o pão", "en": "Casual with Exponja and pão" } },
+    { "at": "1:00:19", "title": { "pt": "Partidas privadas com a torcida", "en": "Private matches with the crowd" } },
+    { "at": "1:12:13", "title": { "pt": "3v3 da torcida, com a minha narração", "en": "The crowd's 3v3, with my commentary" } },
+    { "at": "1:21:41", "title": { "pt": "2v2 privado: eu contra a torcida", "en": "Private 2v2: me against the crowd" } },
+    { "at": "2:06:50", "title": { "pt": "Montando o meu carro", "en": "Building my car" } },
+    { "at": "2:20:41", "match": "37FC566411F1E92FC706E3B0C72D623C" },
+    { "at": "2:28:52", "match": "5A38FCFE11F1E9301FABF1B918155A90" },
+    { "at": "2:36:23", "match": "66AEFB4011F1E931F093A3B68B8FE5C7" },
+    { "at": "2:43:20", "match": "6140A44611F1E9326A553E9886B9BEA2" },
+    { "at": "2:52:02", "title": { "pt": "Saideira casual", "en": "One last casual" } },
+    { "at": "3:01:52", "title": { "pt": "Créditos", "en": "Credits" } }
+  ]
+}

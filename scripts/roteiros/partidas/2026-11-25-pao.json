@@ -1,0 +1,17 @@
+{
+  "data": "2026-11-25",
+  "nome": "pao",
+  "titulo": "O que é isso que a gente tá presenciando?",
+  "descricao": "2v2 ranqueado com o pão: uma derrota pra aquecer, uma vitória por 2 a 1 com a minha gata de olho na minha pizza e, na última, 4 a 3 com um gol meu na prorrogação.",
+  "partidas": [
+    2,
+    3,
+    4
+  ],
+  "capitulos": {
+    "2": "Tampa o olho que foi feio",
+    "3": "A gata quer a minha pizza",
+    "4": "Meu gol na prorrogação"
+  },
+  "publicar": "2026-11-27T12:00:00-03:00"
+}

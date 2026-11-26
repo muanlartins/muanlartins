@@ -1,0 +1,15 @@
+{
+  "data": "2026-11-25",
+  "nome": "covarde",
+  "titulo": "Eu prefiro perder do que ser covarde",
+  "descricao": "Dois 1v1 ranqueados de saideira, pra ver o quanto eu evoluí: perdi os dois, caí em Platina 1 e ganhei um alter ego, o John Rocket League.",
+  "partidas": [
+    5,
+    6
+  ],
+  "capitulos": {
+    "5": "Este é John Rocket League",
+    "6": "Eu não sou covarde"
+  },
+  "publicar": "2026-11-27T21:00:00-03:00"
+}
