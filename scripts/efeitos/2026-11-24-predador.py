@@ -9,7 +9,7 @@ frame) over a scenario in the lower half. Evelin is never pictured: she is the l
 - O predador (stretch 0, "ela tá claramente só brincando comigo, como um predador que só… acaricia sua presa"): a
   nature documentary. He sits in a golden savanna (warm grade, grain, a documentary card "LUAN MARTINS · presa");
   below, a lioness toying with a tiny rabbit (Gemini; her raised arm cut out and turned about the elbow here, so it
-  sways and then pats the rabbit on "acaricia sua presa"), her card "EVELYN · predadora". On "acaricia" the camera
+  sways and then pats the rabbit on "acaricia sua presa"), her card "EVELIN · predadora". On "acaricia" the camera
   cuts to him with rabbit ears under a lioness's paw (Gemini, from his own frame), trembling. Savanna ambience, a
   purr.
 - A aula (stretch 1): the hype first. "Ela tá aquecida… flip reset na boca do gol. Delayed ainda." plays the game's
@@ -18,16 +18,16 @@ frame) over a scenario in the lower half. Evelin is never pictured: she is the l
   white. Then the cringe: the lower half is a chalkboard where "Prof. Luan" writes his lesson on Rocket League's
   techniques as he says it; on "você já sabia tudo" a red stamp "ELA JÁ SABIA TUDO" slams across it and every line
   gets a check; on "por que você me deixou falar?" the lights go down to a spotlight and he shrinks (a slide whistle),
-  blushing; on "extremamente vergonhoso" he is the photoreal him hiding in his shirt, bright red, still tiny.
+  blushing; on "extremamente vergonhoso" he shrinks further, bright red (his real camera all through: round 2).
 - A reverência (stretch 2): "Que que é isso? O que que é isso?" pushes into the sky where her ball is, with focus
   lines; then "não, eu não vou nem tocar na bola" turns the lower half into her car's winner celebration (the game's,
   after the semifinal) in slow motion, golden, with rays and sparkles and a choir, and he sits in the same gold; on
-  "me desculpa por respirar o mesmo ar que você" he bows (Gemini, from his frame), bobbing like "we're not worthy".
+  "me desculpa por respirar o mesmo ar que você" he bows, his real camera dipping on each word like "we're not worthy".
 - Jack, a estripadora (stretch 3): a horror film. He sits in foggy Victorian London (cold grade, drifting fog, a
   flicker); below, the fog hides a street until lightning on "Jack, o Estripador" shows a top-hat silhouette with a
-  blade ("EVELYN, A ESTRIPADORA"). On "ela vem" his car (cut out of the game) rolls into the street, "corta" and
-  "partes" slash it, and in his pause after "é isso" it falls apart in three pieces. On "vítima de um predador" he is
-  the photoreal horror victim screaming, under a stinger.
+  blade ("EVELIN, A ESTRIPADORA"). On "ela vem" his car (cut out of the game) rolls into the street, "corta" and
+  "partes" slash it, and in his pause after "é isso" it falls apart in three pieces. On "vítima de um predador" his own frame with
+  his hands on his face (from "Jack, o Estripador") freezes, keyed into the street, under a stinger.
 
 The stretches come in with this module's own whip (the roteiro's "entrada" is "seco": the scenes replace whole halves
 after destaque's transitions would have run). Every sound is synthesised here, but the stream's uuuh and palmas and
@@ -355,7 +355,7 @@ def setup(ctx):
     S["sav_cam"] = grade(cv2.GaussianBlur(cover(sav[0:520, 380:1024], W, CAM_H), (0, 0), 16), (1.04, 0.98, 0.9))
     S["presa"] = cover(load(ctx, "presa.png"), W, CAM_H, interp=cv2.INTER_AREA)
     S["card_luan"] = card(ctx, "LUAN MARTINS", "presa · espécie em perigo")
-    S["card_evelyn"] = card(ctx, "EVELYN", "predadora · topo da cadeia alimentar")
+    S["card_evelyn"] = card(ctx, "EVELIN", "predadora · topo da cadeia alimentar")
     S["vin_cam"] = vignette(CAM_H, W, W / 2, CAM_H * 0.62, 0.55)
     S["vin_bot"] = vignette(1080, W, W / 2, 560, 0.5)
     # A aula
@@ -368,11 +368,9 @@ def setup(ctx):
     S["sublinha"] = chalk_text(ctx, "_" * 17, 70)
     S["carimbo"] = stamp(ctx, ["ELA JÁ SABIA", "TUDO"])
     S["check"] = check_mark()
-    S["vergonha"] = chave(cover(load(ctx, "vergonha.png"), W, CAM_H, interp=cv2.INTER_AREA), False)
     S["spot"] = spotlight(W, CAM_H)
     # A reverência
     S["celeb"] = (*frames_of(ctx, "celebracao", CELEB_J[0] - 0.05, CELEB_J[1] + 0.05), CELEB_J[0] - 0.05)
-    S["reverencia"] = chave(cover(load(ctx, "reverencia.png"), W, CAM_H, interp=cv2.INTER_AREA), False)
     S["ouro_cam"] = gold_bg(W, CAM_H)
     S["linhas"] = focus_lines(W, 1080)
     S["brilhos"] = [(S["rng"].uniform(80, 1000), S["rng"].uniform(60, 1000), S["rng"].uniform(0, 3),
@@ -381,9 +379,10 @@ def setup(ctx):
     lon = load(ctx, "londres.png")
     S["lon"] = cover(lon, W, 1080, z=1.0, interp=cv2.INTER_AREA)
     S["lon_cam"] = grade(cv2.GaussianBlur(cover(lon[0:640, 0:1024], W, CAM_H), (0, 0), 5), sat=0.6)
-    S["vitima"] = cover(load(ctx, "vitima.png"), W, CAM_H, interp=cv2.INTER_AREA)
+    # the scream: his own frame with his hands on his face (Câmera.mkv 8620.0, "Jack, o Estripador"), keyed into the street
+    S["vitima"] = chave(load(ctx, "vitima-real.png"))
     S["neblina"] = fog_texture(S["rng"], 1600, 1400)
-    S["lbl_jack"] = card(ctx, "EVELYN, A ESTRIPADORA", "Londres, 1888 · Rocket League, 2026")
+    S["lbl_jack"] = card(ctx, "EVELIN, A ESTRIPADORA", "Londres, 1888 · Rocket League, 2026")
     S["carro"] = car_pieces(ctx)
     S["vin_horror"] = vignette(1080, W, W / 2, 520, 0.75)
     y, x = np.mgrid[0:1080, 0:W].astype(np.float32)
@@ -591,23 +590,19 @@ def beat_aula(f, o, t, ctx):
         return
     u = ease((t - ENCOLHE[0]) / (ENCOLHE[1] - ENCOLHE[0]))
     dim = ease((t - ENCOLHE[0]) / 0.18)
-    if t < VERGONHA:
+    if True:  # his real camera all through (round 2: the hiding-in-the-shirt picture is out)
         a, fg = chave(f[:CAM_H])
-        blush = 0.55 * u
+        late = ease((t - VERGONHA) / 0.5) if t >= VERGONHA else 0.0
+        blush = 0.6 * u + 0.4 * late
         fgu = fg
         skin = (fg[..., 0] > fg[..., 2] + 25) & (fg[..., 0] > 90)
         fgu = fg.copy()
-        fgu[..., 0] = np.where(skin, np.minimum(255, fg[..., 0] * (1 + 0.35 * blush)), fg[..., 0])
-        fgu[..., 1] = np.where(skin, fg[..., 1] * (1 - 0.3 * blush), fg[..., 1])
-        fgu[..., 2] = np.where(skin, fg[..., 2] * (1 - 0.3 * blush), fg[..., 2])
-        s = 1 - 0.42 * u
+        fgu[..., 0] = np.where(skin, np.minimum(255, fg[..., 0] * (1 + 0.45 * blush) + 30 * blush), fg[..., 0])
+        fgu[..., 1] = np.where(skin, fg[..., 1] * (1 - 0.45 * blush), fg[..., 1])
+        fgu[..., 2] = np.where(skin, fg[..., 2] * (1 - 0.45 * blush), fg[..., 2])
+        s = 1 - 0.42 * u - 0.12 * ease((t - VERGONHA) / 1.6) * (t >= VERGONHA)
+        s *= 1 + kick(t - VERGONHA, 0.05, 0.06)
         person, alpha = fgu, a
-    else:
-        x = t - VERGONHA
-        s = 0.58 - 0.06 * min(1, x / 2.0)
-        a, fg = S["vergonha"]
-        person, alpha = fg, a
-        s *= 1 + kick(x, 0.08, 0.06)
     m = np.float32([[s, 0, (1 - s) * W / 2], [0, s, (1 - s) * CAM_H]])
     tremble = (2.5 * math.sin(t * 120), 1.5 * math.cos(t * 95)) if t >= VERGONHA else (0, 0)
     m[0, 2] += tremble[0]
@@ -616,8 +611,8 @@ def beat_aula(f, o, t, ctx):
     pa = cv2.warpAffine(alpha, m, (W, CAM_H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
     klein = f[:CAM_H].astype(np.float32)
     bg = (klein * (1 - dim) + S["spot"].astype(np.float32) * dim)
-    if t < VERGONHA:  # the camera's own background where he no longer is: keep its Klein until the lights go
-        a0, _ = chave(f[:CAM_H])
+    if True:  # the camera's own background where he no longer is: keep its Klein until the lights go
+        a0 = a
         bg = bg * (1 - a0[..., None]) + (S["spot"].astype(np.float32) * dim + klein * (1 - dim) * 0.0 +
                                          np.array((0, 46, 166), np.float32) * (1 - dim)) * a0[..., None]
     lit = 0.65 + 0.35 * dim  # he stays lit by the spot
@@ -666,16 +661,18 @@ def beat_musty(f, o, t, ctx):
         fg = grade(fg.astype(np.uint8), (1.1, 1.0, 0.82), (10, 4, -8)).astype(np.float32)
         top = over(S["ouro_cam"], fg, a)
     else:
-        a, fg = S["reverencia"]
+        # round 2: the bow on his real camera: on each word he dips (down, squashed, a little bigger: leaning in)
+        a, fg = chave(f[:CAM_H])
         fg = grade(fg.astype(np.uint8), (1.1, 1.0, 0.82), (10, 4, -8)).astype(np.float32)
-        dy = 0.0
+        k = 0.0
         for bt in BOWS:
             xb = t - bt
             if 0 <= xb < 0.5:
-                dy = max(dy, 70 * math.sin(math.pi * xb / 0.5))
-        m = np.float32([[1, 0, 0], [0, 1, dy]])
+                k = max(k, math.sin(math.pi * xb / 0.5))
+        sx, sy = 1 + 0.06 * k, 1 - 0.1 * k
+        m = np.float32([[sx, 0, (1 - sx) * W / 2], [0, sy, (1 - sy) * CAM_H + 150 * k]])
         fg = cv2.warpAffine(fg, m, (W, CAM_H), borderMode=cv2.BORDER_REPLICATE)
-        a = cv2.warpAffine(a, m, (W, CAM_H), borderMode=cv2.BORDER_REPLICATE)
+        a = cv2.warpAffine(a, m, (W, CAM_H), borderMode=cv2.BORDER_CONSTANT)
         top = over(S["ouro_cam"], fg, a)
         flash(top, kick(t - DESCULPA, 0.4, 0.06), (255, 236, 190))
     r = rays(W, CAM_H, W / 2, -80, x, n=10, strength=0.22)
@@ -701,10 +698,13 @@ def beat_jack(f, o, t, ctx):
         top = zoom(top, 1 + 0.03 * (t - 8614.0) / 14, (W / 2, CAM_H * 0.6))
     else:
         x = t - VITIMA
-        top = grade(S["vitima"], (0.95, 1.0, 1.08), sat=0.8, contrast=1.08)
-        z = 1 + kick(x, 0.2, 0.08) + 0.06 * min(1, x / 1.8)
+        va, vfg = S["vitima"]
+        vfg = grade(vfg.astype(np.uint8), (0.88, 0.97, 1.12), (-4, 2, 10), sat=0.45, contrast=1.15).astype(np.float32)
+        bg = blend(S["lon_cam"], np.full_like(S["lon_cam"], (150, 170, 190)), fog_at(t, W, CAM_H, (55, -8)) * 0.4)
+        top = over(bg, vfg, va)
+        z = 1.12 + kick(x, 0.2, 0.08) + 0.08 * min(1, x / 1.8)
         amp = kick(x, 14, 0.12) + 2.0
-        top = zoom(top, z, (W * 0.55, CAM_H * 0.55), amp * math.sin(x * 110), amp * math.cos(x * 93))
+        top = zoom(top, z, (W * 0.55, CAM_H * 0.62), amp * math.sin(x * 110), amp * math.cos(x * 93))
         red = 0.25 * (0.5 + 0.5 * math.sin(x * 9)) * min(1, x / 0.1)
         v = 1 - S["vin_cam"]
         top = np.clip(top.astype(np.float32) * (1 - v[..., None] * red * 2) +

@@ -5,7 +5,8 @@
  "post": "Ela jogava 'mal'… era uma predadora 🦁🔪 #rocketleague",
  "filtro": false,
  "trocas": {
-  "Brincando": "brincando"
+  "Brincando": "brincando",
+  "Evelyn": "Evelin"
  },
  "destaques": [
   "predador",
@@ -18,25 +19,29 @@
   {
    "de": 8353.31,
    "ate": 8364.06,
-   "camera": "jogo"
+   "camera": "jogo",
+   "filtro": false
   },
   {
    "de": 8433.27,
    "ate": 8450.53,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 8471.09,
    "ate": 8482.54,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 8613.99,
    "ate": 8630.02,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   }
  ],
  "titulo": {

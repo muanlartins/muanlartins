@@ -517,7 +517,8 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `Lives\2026-11-09\Sh
     failed: photoreal close-ups of his face (a commentator screaming, him turning round in a street, him hiding in his
     shirt). So: his real camera keyed off its Klein first, with props tracked on him; a pose he never made keeps the made
     body with his real face put back by `scripts/rosto_real.py` (a real frame with the same expression and angle,
-    `--procurar` to find it); and a picture that doesn't read as him beside a real frame is dropped.
+    `--procurar` to find it); and a picture that doesn't read as him beside a real frame is dropped. (The real camera first and
+    `rosto_real.py` are the fix being tried in round 2, not yet seen by Luan: keep or drop them by his verdict on it.)
   - **The camera box can freeze:** on 11-24 the live's camera box (the filter page's copy) froze for 0.5–1.5 s at times
     while Câmera.mkv kept moving, and `hd_camera`, which lays the box over Câmera.mkv wherever they differ, put his
     frozen face over the moving one. On a stretch with no costume on, `"filtro": false`; with one, check the camera half

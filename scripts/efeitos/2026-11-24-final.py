@@ -47,7 +47,8 @@ RAMPS = [
     ([8885.60, 8886.10, 8887.10, 8887.60], [8885.60, 8886.40, 8886.75, 8887.60], 0),  # the flick off her hood
     ([9149.90, 9150.30, 9151.30, 9151.70], [9149.90, 9150.60, 9151.00, 9151.70], 2),  # the aerial's last touch
 ]
-CUTINS = [(8891.30, 8893.75, "grito", 0), (9159.08, 9161.05, "senhores", 2)]  # photoreal him, live s, stretch
+CUTINS = [(8891.30, 8893.75, "grito", 0), (9159.08, 9161.05, "senhores", 2)]  # punch-ins on his real camera
+HAND_ON_MOUTH = (9158.6, 9161.1)  # his hand over his mouth: the mic goes behind it
 CHANTS = [([8892.62, 8893.38, 8894.10], 0), ([9159.70, 9160.42, 9161.10], 2)]  # "QUE BOLA!", live s
 TORCIDA = [(GOL1 + 0.15, 8880.85, 0, "yevelin_"), (8892.35, 8894.1, 0, "yevelin_"), (GOL2 + 0.15, 9144.3, 2, "yevelin_"),
            (9158.95, 9161.05, 2, "yevelin_"), (9260.25, 9263.96, 3, "hartz_ws")]
@@ -520,6 +521,20 @@ def headset_layer(ctx):
     return np.dstack([e, (np.clip(a, 0, 1) * 255).astype(np.uint8)]), b
 
 
+def face_centre(o, ctx):
+    """His face's middle in the camera's half (after DROP), from the headset's track."""
+    k, live = where(o, ctx)
+    got = S["tracks"].get(k)
+    if got is None:
+        return ctx.W / 2, ctx.CAM_H * 0.62
+    tr, cs = got
+    i = min(max(int(round((o - ctx.clock.starts[k]) * ctx.FPS)), 0), len(tr) - 1)
+    m = tr[i].reshape(2, 3).copy()
+    m[:, 2] *= 2
+    x, y = m @ np.array([575.0, 560.0, 1.0])
+    return float(x), float(y) + DROP
+
+
 def draw_headset(cam, o, ctx):
     k, live = where(o, ctx)
     got = S["tracks"].get(k)
@@ -546,6 +561,10 @@ def draw_headset(cam, o, ctx):
     top = cv2.warpAffine(S["band_zone"], m, (ctx.W, ctx.CAM_H), flags=cv2.INTER_NEAREST) > 0
     hand = (skin & top).astype(np.float32)
     hand = cv2.GaussianBlur(cv2.dilate(hand, np.ones((5, 5), np.uint8)), (0, 0), 2)
+    if HAND_ON_MOUTH[0] <= live < HAND_ON_MOUTH[1]:  # the boom mic behind his hand
+        low = np.zeros_like(top)
+        low[int(m[1, 2]) + 600:, :] = True
+        hand = np.maximum(hand, cv2.GaussianBlur((skin & low).astype(np.float32), (0, 0), 2))
     a = a * (1 - np.clip(hand * 1.4, 0, 1)) * sure
     a3 = a[..., None]
     cam[:] = (cam.astype(np.float32) * (1 - a3) + warped[..., :3].astype(np.float32) * a3).astype(np.uint8)
@@ -718,17 +737,8 @@ def setup(ctx):
             S["tracks"][kk] = track_stretch(ctx, kk, ref_g, (fx0, fy0, fx1, fy1))
         except Exception as e:  # a stretch the tracker can't hold: no headset there
             print(f"  headset: trecho {kk} sem rastreio ({e})")
-    # the photoreal cut-ins: him (keyed) over the booth
-    S["cutin"] = {}
-    for name in ("grito", "senhores"):
-        im = np.array(Image.open(ctx.VIDEOS / PARTES / f"eu-{name}.png").convert("RGBA"))
-        im = cv2.resize(im, (1066, 600), interpolation=cv2.INTER_AREA)  # his mouth above the captions
-        cols = im[..., 3][:, 390:676].max(axis=1) > 128  # his head's top, in the middle columns
-        top = int(np.nonzero(cols)[0][0])
-        canvas = S["cabine"].astype(np.uint8).copy()
-        over(canvas, im, (W - im.shape[1]) / 2, 400 - top)
-        canvas[min(CH, 400 - top + im.shape[0]):] = canvas[min(CH, 400 - top + im.shape[0]) - 1]
-        S["cutin"][name] = canvas
+    y, x = np.mgrid[0:CH, 0:W].astype(np.float32)
+    S["spot"] = np.clip(np.hypot((x - W / 2) / (W * 0.5), (y - CH * 0.6) / (CH * 0.55)) - 0.45, 0, 1)
     # the dressing
     S["bug"], S["dot"] = sprite_bug(ctx)
     S["replay"] = sprite_replay(ctx)
@@ -811,21 +821,24 @@ def antes(f, o, ctx):
     ramp(f, o, ctx)
     # the camera's half: the booth, the headset; or the photoreal cut-in
     cam = f[:CH]
-    cut = next(((a, b, n) for a, b, n, kk in CUTINS if kk == k and a <= live < b), None)
+    # his real camera, always (round 2, Luan: the photoreal fills deformed his face): the booth, the tracked headset;
+    # on the two "que bola" a punch into his face with a flash and a shake
+    draw_headset(cam, o, ctx)
+    cam[:] = booth(cam, o)
+    flashing_bulbs(cam, o)
+    cut = next(((a, b) for a, b, n, kk in CUTINS if kk == k and a <= live < b + 0.3), None)
     if cut:
-        a, b, n = cut
-        pic = S["cutin"][n].copy()
+        a, b = cut
         x = live - a
-        z = 1.0 + 0.22 * math.exp(-x / 0.12) + 0.05 * x
+        cx, cy = face_centre(o, ctx)
+        k_in = ease_out(x / 0.08) * (1 - ease_io((live - b) / 0.3))
+        z = 1 + (0.32 + 0.12 * math.exp(-x / 0.1) + 0.03 * x) * k_in
         r = np.random.default_rng(int(o * 30))
-        sh = 14 * math.exp(-x / 0.35)
-        punch(pic, z, W / 2, CH * 0.45, r.uniform(-sh, sh), r.uniform(-sh, sh))
-        cam[:] = pic
-        flash(cam, 0.8 * math.exp(-x / 0.06))
-    else:
-        draw_headset(cam, o, ctx)
-        cam[:] = booth(cam, o)
-        flashing_bulbs(cam, o)
+        sh = 16 * math.exp(-x / 0.35) * k_in
+        punch(cam, z, cx, cy, r.uniform(-sh, sh), r.uniform(-sh, sh))
+        flash(cam, 0.75 * math.exp(-x / 0.06))
+        # the spotlight: the booth dims round him
+        cam[:] = (cam.astype(np.float32) * (1 - 0.35 * k_in * S["spot"])[..., None]).astype(np.uint8)
     # the goals: the game's own flash pushed further, a shake on everything
     for g, kk, strong in ((GOL1, 0, 1.0), (GOL1R, 0, 0.6), (GOL2, 2, 1.0), (GOL2R, 2, 0.7)):
         if kk != k:

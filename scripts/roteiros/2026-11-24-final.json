@@ -7,31 +7,36 @@
    "de": 8877.45,
    "ate": 8894.1,
    "camera": "jogo",
-   "seco": "de"
+   "seco": "de",
+   "filtro": false
   },
   {
    "de": 8896.95,
    "ate": 8902.2,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 9131.1,
    "ate": 9161.05,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 9258.8,
    "ate": 9263.8,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   }
  ],
  "jogo": "rocket-league",
  "trocas": {
   "kickoff": "kick-off",
-  "para": "pra"
+  "para": "pra",
+  "Evelyn": "Evelin"
  },
  "corrigir": [
   [
