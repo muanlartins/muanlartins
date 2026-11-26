@@ -1,4 +1,5 @@
 import { cidadeAbandonada } from "@/components/site/celeste/historia/cidade-abandonada"
+import { cordilheiraDourada } from "@/components/site/celeste/historia/cordilheira-dourada"
 import { oJogo } from "@/components/site/celeste/historia/o-jogo"
 import { prologo } from "@/components/site/celeste/historia/prologo"
 import { resortCelestial } from "@/components/site/celeste/historia/resort-celestial"
@@ -22,6 +23,7 @@ const CHAPTERS: StoryPage[] = [
   { slug: "cidade-abandonada", area: 1, title: "Cidade Abandonada", story: cidadeAbandonada },
   { slug: "terreno-antigo", area: 2, title: "Terreno Antigo", story: terrenoAntigo },
   { slug: "resort-celestial", area: 3, title: "Resort Celestial", story: resortCelestial },
+  { slug: "cordilheira-dourada", area: 4, title: "Cordilheira Dourada", story: cordilheiraDourada },
 ]
 
 /** The chapters he has finished, so the ones with a page now. */

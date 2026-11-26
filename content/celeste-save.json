@@ -2,17 +2,18 @@
   "slot": 1,
   "start": "2026-11-22",
   "baseline": {"picoCompletes": 1},
-  "read": "2026-11-22",
+  "read": "2026-11-24",
   "assist": false,
   "variants": false,
-  "seen": [0, 1, 2, 3, 4],
-  "totals": {"deaths": 107, "seconds": 5019, "dashes": 1005, "strawberries": 39, "red": 39, "golden": 0, "hearts": 1, "cassettes": 1},
-  "achievements": ["CH1", "CH2", "CH3", "HEART1", "STRB1", "CASS"],
+  "seen": [0, 1, 2, 3, 4, 5],
+  "totals": {"deaths": 178, "seconds": 7427, "dashes": 1482, "strawberries": 57, "red": 57, "golden": 0, "hearts": 1, "cassettes": 1},
+  "achievements": ["CH1", "CH2", "CH3", "CH4", "HEART1", "STRB1", "CASS"],
   "sides": {
     "0/A": {"deaths": 0, "seconds": 151, "red": 0},
     "1/A": {"deaths": 27, "seconds": 1248, "red": 16},
     "2/A": {"deaths": 13, "seconds": 1122, "red": 9},
-    "3/A": {"deaths": 67, "seconds": 2498, "red": 14}
+    "3/A": {"deaths": 67, "seconds": 2498, "red": 14},
+    "4/A": {"deaths": 71, "seconds": 2408, "red": 18}
   },
   "done": {
     "0/A": {"date": "2026-11-22", "live": "2026-11-22"},
@@ -20,9 +21,11 @@
     "1/heart": {"date": "2026-11-22", "live": "2026-11-22"},
     "2/A": {"date": "2026-11-22", "live": "2026-11-22"},
     "3/A": {"date": "2026-11-22", "live": "2026-11-22"},
-    "3/cassette": {"date": "2026-11-22", "live": "2026-11-22"}
+    "3/cassette": {"date": "2026-11-22", "live": "2026-11-22"},
+    "4/A": {"date": "2026-11-24", "live": "2026-11-24"}
   },
   "history": [
-    {"date": "2026-11-22", "deaths": 107, "seconds": 5019, "strawberries": 39}
+    {"date": "2026-11-22", "deaths": 107, "seconds": 5019, "strawberries": 39},
+    {"date": "2026-11-24", "deaths": 178, "seconds": 7427, "strawberries": 57}
   ]
 }

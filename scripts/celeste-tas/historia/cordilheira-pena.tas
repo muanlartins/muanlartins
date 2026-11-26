@@ -1,0 +1,13 @@
+# História: cordilheira-pena (still for its story page): the gondola scene, confirm pressed through its boxes to Theo's breathing exercise
+# Pictures: with DEMO_DE=1500, update 1980 (TAS frame 3480), parada.webp; with DEMO_DE=4000, update 1500 (TAS frame 5500), pena.webp.
+# DEMO_DE (the recorder's first frame) keeps the raw files small: $env:DEMO_DE before rodar.ps1.
+console load 4 14830 -4652
+   1
+
+#Start
+ 120
+  90,R
+Repeat 450
+   6,O
+   6
+EndRepeat
