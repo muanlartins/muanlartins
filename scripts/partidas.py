@@ -118,8 +118,12 @@ MARK = "(corte da live)"
 # Epic's Fan Content Policy (1.10) asks for this line on videos of its games that may carry ads.
 EPIC = ("Portions of the materials used are trademarks and/or copyrighted works of Epic Games, Inc. All rights reserved "
         "by Epic. This material is not official and is not endorsed by Epic.")
-TAGS = ["rocket league", "rocket league 3v3", "rocket league ranked", "rocket league ranqueada", "rocket league pt-br",
-        "rocket league brasil", "rocket league gameplay", "3v3 ranqueado", "muanlartins"]
+
+
+def tags(mode: str) -> list[str]:
+    """The video's tags, by the mode of its first match (11-25 had 2v2 and 1v1 videos)."""
+    return ["rocket league", f"rocket league {mode}", "rocket league ranked", "rocket league ranqueada",
+            "rocket league pt-br", "rocket league brasil", "rocket league gameplay", f"{mode} ranqueado", "muanlartins"]
 
 
 def seconds(text: str) -> float:
@@ -438,6 +442,8 @@ def title(roteiro):
     tier = first.get("rank", {}).get("tier", "")
     base, _, number = tier.rpartition("-")
     rank = f"{ranks[base][0]} {number}" if base in ranks and number.isdigit() else ranks.get(tier, ("",))[0]
+    if tier == "unranked":  # the brand's table has it in English (11-25's 1v1 placements)
+        rank = "Sem ranque"
     return " ".join(part for part in (f"{roteiro.get('titulo', '')} | Rocket League", first.get("mode", ""), rank, MARK)
                     if part)
 
@@ -446,13 +452,14 @@ def youtube_record(roteiro, marks, path):
     """A first YouTube record for youtube.py video (the id comes after Luan uploads it)."""
     date = roteiro["data"]
     day = f"{date[8:10]}/{date[5:7]}"
+    mode = session(date)[0]["matches"][roteiro["partidas"][0] - 1].get("mode", "3v3")
     lines = [roteiro.get("descricao", ""), "",
              f"Corte da live de {day}, com as partidas inteiras. Todas as lives: https://muanlartins.com.br/canal/lives",
              "Minhas ranqueadas: https://muanlartins.com.br/conteudo/rocket-league/ranked",
              "Ao vivo na Twitch: https://www.twitch.tv/muanlartins", "A comunidade no Discord: https://discord.gg/q5qxT7Pw2E",
              "", *[f"{clock(t)} {name}" for t, name in marks],
-             "", EPIC, "", "#RocketLeague #RocketLeagueBrasil #3v3"]
-    record = {"id": "", "title": title(roteiro), "description": "\n".join(lines).strip(), "tags": TAGS,
+             "", EPIC, "", f"#RocketLeague #RocketLeagueBrasil #{mode}"]
+    record = {"id": "", "title": title(roteiro), "description": "\n".join(lines).strip(), "tags": tags(mode),
               "thumbnail": f"brand/youtube/thumbnails/{date}-{roteiro['nome']}.jpg", "playlist": PLAYLIST,
               "captions": f"Lives/{date}/Cortes/{date} {roteiro['nome']}.srt",
               **({"publish_at": roteiro["publicar"]} if roteiro.get("publicar") else {})}
