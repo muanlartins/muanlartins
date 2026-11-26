@@ -1,0 +1,35 @@
+{
+  "data": "2026-11-24",
+  "nome": "narrador",
+  "partidas": [
+    4,
+    5,
+    6
+  ],
+  "trechos": {
+    "4": [
+      "1:30:54",
+      "1:38:03.2",
+      "Derrota 2-3"
+    ],
+    "5": [
+      "1:43:42",
+      "1:51:08.2",
+      "Vitória 2-1 (partida privada)"
+    ],
+    "6": [
+      "1:52:22",
+      "2:00:31.2",
+      "Derrota 3-5 (partida privada)"
+    ]
+  },
+  "modo": "casual e partida privada",
+  "capitulos": {
+    "4": "Os caras amassaram a gente",
+    "5": "Partida privada com a live",
+    "6": "Gol do Fluminense!"
+  },
+  "titulo": "Virei narrador da minha própria live",
+  "descricao": "TODO (Luan): a última casual e as partidas privadas com a galera da live, a segunda comigo de narrador.",
+  "publicar": "2026-11-27T12:00:00-03:00"
+}

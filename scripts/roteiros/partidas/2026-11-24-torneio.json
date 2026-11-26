@@ -1,0 +1,43 @@
+{
+  "data": "2026-11-24",
+  "nome": "torneio",
+  "partidas": [
+    7,
+    8,
+    10
+  ],
+  "trechos": {
+    "7": [
+      "2:10:23",
+      "2:15:52.2",
+      "Vitória 7-0 (quartas)"
+    ],
+    "8": [
+      "2:16:08",
+      "2:23:27.2",
+      "Derrota 1-3 (semifinal)"
+    ],
+    "10": [
+      "2:27:01",
+      "2:34:20.2",
+      "A final"
+    ]
+  },
+  "modo": "1v1: torneio da live",
+  "capitulos": {
+    "7": "O prêmio e as quartas",
+    "8": "A semifinal",
+    "10": "A final, com narração"
+  },
+  "inicio": {
+    "7": "2:07:35"
+  },
+  "fim": {
+    "7": "2:15:59",
+    "8": "2:26:00.5",
+    "10": "2:37:24"
+  },
+  "titulo": "Fiz um torneio com a live e fui humilhado na semi",
+  "descricao": "TODO (Luan): torneio 1v1 com oito da live, valendo um date night de sushi. Ganhei a quartas de 7 a 0 e caí na semi.",
+  "publicar": "2026-11-26T19:00:00-03:00"
+}
