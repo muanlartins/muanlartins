@@ -43,8 +43,14 @@ CREDITS = {"celeste": "Celeste é um jogo da Maddy Makes Games, com trilha de Le
                       "equipe do jogo."}
 
 
-def game_of(date):
-    game_id = json.loads((LIVES / f"{date}.json").read_text()).get("game")
+def game_of(date, at=0.0):
+    """The game of content/diversos.json the live was playing at `at` (a Live.mp4 second): the live's own, or the one
+    its last chapter with a "game" before `at` switched to (11-24: Rocket League, then Celeste's chapter 4)."""
+    live = json.loads((LIVES / f"{date}.json").read_text())
+    game_id = live.get("game")
+    for chapter in sorted(live.get("chapters", []), key=lambda c: seconds(c["at"])):
+        if chapter.get("game") and seconds(chapter["at"]) <= at:
+            game_id = chapter["game"]
     game = next((g for g in other_games() if g["id"] == game_id), None)
     if not game:
         sys.exit(f"A live de {date} não é de um jogo de content/diversos.json: pras partidas, partidas.py.")
@@ -109,7 +115,7 @@ def main():
     args = parser.parse_args()
     roteiro = json.loads(Path(args.roteiro).read_text())
     date, nome = roteiro["data"], roteiro["nome"]
-    game = game_of(date)
+    game = game_of(date, seconds(roteiro["de"]))
     parts, listed, total, problems = plan(roteiro)
     start, end = parts[1]["from"], parts[1]["to"]
     heading = title(roteiro, game)

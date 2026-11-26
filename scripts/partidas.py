@@ -23,6 +23,15 @@ the dock's events and approved by Luan; everything else is fixed here:
       "publicar": "2026-11-18T21:00:00-03:00"            # when YouTube publishes it
     }
 
+A day without the dock's session (11-24: only casual and private matches, which the dock doesn't publish) names its
+matches itself, with the mode for the title in place of the session's mode and rank:
+
+      "trechos": {"3": ["1:25:18", "1:30:09", "Vitória 4-0"]},   # each match: its kickoff, its end, the result
+      "modo": "3v3 casual",                                      # "… | Rocket League 3v3 casual (corte da live)"
+
+Their start and end stand where the dock's would: the start is the kickoff (the stinger into the game, when the dock
+switched, comes a few seconds before), the end the final whistle (the dock cuts to Conversa ~5.5 s after it).
+
 The video is the intro, the matches and the outro, each joined to the next by **the live's own transition**
 (transicao.webm, the stinger OBS plays between scenes: 1.32 s, the screen covered at 0.6 s), so it looks like the
 stream changing scene. Nothing else is added: no cold open, no cards, no zooms. Luan, 2026-11-18, on the first
@@ -165,8 +174,12 @@ def goals(log):
     return found
 
 
-def matches(date):
-    """[{n, match, start, end, goals}] with start/end as Live.mp4 seconds."""
+def matches(date, roteiro=None):
+    """[{n, match, start, end, goals}] with start/end as Live.mp4 seconds (from the roteiro's "trechos" when the day
+    has no session)."""
+    if roteiro and roteiro.get("trechos"):
+        return [{"n": int(n), "match": {"texto": texto}, "start": seconds(a), "end": seconds(b), "goals": []}
+                for n, (a, b, texto) in sorted(roteiro["trechos"].items(), key=lambda kv: int(kv[0]))]
     record, events = session(date)
     out = []
     for n, m in enumerate(record["matches"], 1):
@@ -176,6 +189,8 @@ def matches(date):
 
 
 def result(m):
+    if "texto" in m:
+        return m["texto"]
     word = {"win": "Vitória", "loss": "Derrota"}.get(m["result"], m["result"])
     return f"{word} {m['score'][0]}-{m['score'][1]}{' na prorrogação' if m.get('overtime') else ''}"
 
@@ -266,7 +281,7 @@ def plan(roteiro):
     date = roteiro["data"]
     live = recording(date, "Live")
     gaps = pauses(date)
-    day = {p["n"]: p for p in matches(date)}
+    day = {p["n"]: p for p in matches(date, roteiro)}
     parts, problems = [{"kind": "intro", "label": "intro", "from": 0.0, "to": duration(INTRO)}], []
     jumps = [seconds(t) for t in roteiro.get("saltos", [])]
     for n in roteiro["partidas"]:
@@ -416,6 +431,8 @@ def title(roteiro):
     """The hook, then the game, the mode and the rank going into the video's first match (Luan, 11-18: the title should
     say the format and the rank), and that it's cut from a live (11-19): "Minha gata desligou o PC no meio da ranqueada |
     Rocket League 3v3 Diamante 3 (corte da live)"."""
+    if roteiro.get("modo"):
+        return " ".join(part for part in (f"{roteiro.get('titulo', '')} | Rocket League", roteiro["modo"], MARK) if part)
     first = session(roteiro["data"])[0]["matches"][roteiro["partidas"][0] - 1]
     ranks, _ = brand_tables()
     tier = first.get("rank", {}).get("tier", "")
