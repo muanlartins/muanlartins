@@ -1,0 +1,120 @@
+{
+ "live": "2026-11-24",
+ "nome": "narrando a final",
+ "post": "Fui eliminado… então narrei a final 🎙️⚽ #rocketleague",
+ "trechos": [
+  {
+   "de": 8877.45,
+   "ate": 8894.1,
+   "camera": "jogo",
+   "seco": "de"
+  },
+  {
+   "de": 8896.95,
+   "ate": 8902.2,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 9131.1,
+   "ate": 9161.05,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 9258.8,
+   "ate": 9263.8,
+   "camera": "jogo",
+   "entrada": "seco"
+  }
+ ],
+ "jogo": "rocket-league",
+ "trocas": {
+  "kickoff": "kick-off",
+  "para": "pra"
+ },
+ "corrigir": [
+  [
+   8893.087,
+   "meus senhores!"
+  ],
+  [
+   8901.33,
+   "kick-off."
+  ],
+  [
+   9144.327,
+   "musty."
+  ],
+  [
+   9158.118,
+   "contrapé."
+  ],
+  [
+   9158.548,
+   ""
+  ],
+  [
+   8901.2,
+   "É"
+  ],
+  [
+   8891.02,
+   "manda,"
+  ],
+  [
+   8885.33,
+   "capô,"
+  ],
+  [
+   8886.787,
+   "tap,"
+  ],
+  [
+   8889.21,
+   "Deus!"
+  ],
+  [
+   9260.82,
+   "dito,"
+  ]
+ ],
+ "palavras": [
+  [
+   8879.27,
+   8879.85,
+   "Nossa"
+  ],
+  [
+   8879.85,
+   8880.95,
+   "senhora!"
+  ],
+  [
+   8881.6,
+   8882.65,
+   "Caralho!"
+  ]
+ ],
+ "sem_legenda": [
+  [
+   8901.82,
+   8902.8
+  ]
+ ],
+ "destaques": [
+  "bola",
+  "capô",
+  "double",
+  "flip",
+  "deus",
+  "jogada",
+  "musty",
+  "senhores",
+  "kick-off",
+  "partida",
+  "caralho"
+ ],
+ "extra": "scripts/efeitos/2026-11-24-final.py",
+ "capa": 8893.0
+}

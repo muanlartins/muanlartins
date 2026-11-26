@@ -1,0 +1,193 @@
+{
+ "live": "2026-11-24",
+ "nome": "jogando com um ex-SSL",
+ "jogo": "rocket-league",
+ "filtro": false,
+ "extra": "scripts/efeitos/2026-11-24-capeta.py",
+ "post": "Joguei com um ex-SSL e ele é o capeta 😈🔥 #rocketleague",
+ "destaques": [
+  "inferno",
+  "capeta",
+  "chute",
+  "obra-prima",
+  "peito",
+  "dormir",
+  "absurdo"
+ ],
+ "trechos": [
+  {
+   "de": 5165.7,
+   "ate": 5171.2,
+   "camera": "jogo"
+  },
+  {
+   "de": 5149.8,
+   "ate": 5164.6,
+   "camera": "jogo",
+   "entrada": "zoom"
+  },
+  {
+   "de": 5243.2,
+   "ate": 5270.9,
+   "camera": "jogo"
+  }
+ ],
+ "titulo": {
+  "linhas": [
+   "JOGANDO COM",
+   "UM EX-SSL"
+  ],
+  "de": 5165.75,
+  "ate": 5168.6,
+  "trecho": 0
+ },
+ "capa": 5167.3,
+ "trocas": {
+  "Hartz": "Hearts"
+ },
+ "corrigir": [
+  [
+   5168.55,
+   "pro"
+  ],
+  [
+   5168.72,
+   ""
+  ],
+  [
+   5162.98,
+   "Enterra!"
+  ],
+  [
+   5163.01,
+   ""
+  ],
+  [
+   5163.51,
+   "Enterra!"
+  ],
+  [
+   5163.65,
+   ""
+  ],
+  [
+   5245.51,
+   "Nossa!"
+  ],
+  [
+   5247.75,
+   ""
+  ],
+  [
+   5250.36,
+   "obra-prima."
+  ],
+  [
+   5264.48,
+   "Que domínio,"
+  ]
+ ],
+ "palavras": [
+  [
+   5249.02,
+   5249.3,
+   "Cara,"
+  ]
+ ],
+ "impactos": [
+  {
+   "em": 5156.25,
+   "onde": "camera",
+   "soco": {
+    "z": 1.28,
+    "entra": 4,
+    "segura": 2.3,
+    "sai": 10,
+    "centro": [
+     540,
+     420
+    ]
+   }
+  },
+  {
+   "em": 5243.85,
+   "onde": "jogo",
+   "soco": {
+    "z": 1.9,
+    "entra": 8,
+    "segura": 1.9,
+    "sai": 14,
+    "centro": [
+     530,
+     470
+    ]
+   }
+  },
+  {
+   "em": 5245.2,
+   "onde": "jogo",
+   "flash": "branco",
+   "forca": 0.55,
+   "flash_tau": 0.06,
+   "tremor": 10
+  },
+  {
+   "em": 5266.5,
+   "onde": "camera",
+   "soco": {
+    "z": 1.3,
+    "entra": 4,
+    "segura": 1.25,
+    "sai": 10,
+    "centro": [
+     560,
+     700
+    ]
+   }
+  },
+  {
+   "em": 5257.95,
+   "onde": "jogo",
+   "soco": {
+    "z": 1.35,
+    "entra": 6,
+    "segura": 0.9,
+    "sai": 12,
+    "centro": [
+     560,
+     380
+    ]
+   },
+   "flash": "branco",
+   "forca": 0.35,
+   "flash_tau": 0.05
+  }
+ ],
+ "sons": [
+  [
+   5245.2,
+   "impact-boom",
+   -10
+  ],
+  [
+   5245.25,
+   "palmas",
+   -16
+  ],
+  [
+   5249.3,
+   "coro",
+   -17
+  ],
+  [
+   5266.5,
+   "pop",
+   -14
+  ],
+  [
+   5257.95,
+   "hit",
+   -13
+  ]
+ ]
+}

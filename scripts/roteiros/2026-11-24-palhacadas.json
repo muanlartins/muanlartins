@@ -1,0 +1,288 @@
+{
+ "live": "2026-11-24",
+ "nome": "palhaçadas da live",
+ "jogo": "rocket-league",
+ "filtro": false,
+ "extra": "scripts/efeitos/2026-11-24-palhacadas.py",
+ "trechos": [
+  {
+   "de": 9412.5,
+   "ate": 9417.8,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 9437.3,
+   "ate": 9439.65,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 9441.45,
+   "ate": 9443.9,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 9452.3,
+   "ate": 9460.95,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 9475.6,
+   "ate": 9484.8,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 12155.2,
+   "ate": 12159.95,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 12166.5,
+   "ate": 12169.9,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 12178.25,
+   "ate": 12187.2,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 12189.75,
+   "ate": 12192.4,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 12357.85,
+   "ate": 12360.4,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 12364.4,
+   "ate": 12382.07,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  },
+  {
+   "de": 12387.2,
+   "ate": 12393.1,
+   "camera": "conversa",
+   "baixo": "palco",
+   "entrada": "seco"
+  }
+ ],
+ "trocas": {
+  "goducha.": "gorducha.",
+  "goducha": "gorducha",
+  "arranho": "arranhão",
+  "Só": "só",
+  "Péssima": "péssima",
+  "x1": "X1,",
+  "gorducha": "gorducha.",
+  "ah": "Ah,"
+ },
+ "corrigir": [
+  [
+   9437.46,
+   "Ai,"
+  ],
+  [
+   9437.49,
+   "que"
+  ],
+  [
+   9441.62,
+   ""
+  ],
+  [
+   9443.33,
+   "ir."
+  ],
+  [
+   9443.36,
+   "Você"
+  ],
+  [
+   9443.39,
+   "tá"
+  ],
+  [
+   9455.42,
+   "Como"
+  ],
+  [
+   9459.06,
+   "se"
+  ],
+  [
+   9481.37,
+   "mundo..."
+  ],
+  [
+   9481.67,
+   ""
+  ],
+  [
+   9482.68,
+   "só"
+  ],
+  [
+   9482.71,
+   "se"
+  ],
+  [
+   9482.74,
+   "todo"
+  ],
+  [
+   9483.55,
+   "junto,"
+  ],
+  [
+   12159.43,
+   "iogurte."
+  ],
+  [
+   12166.73,
+   "croc,"
+  ],
+  [
+   12166.9,
+   "croc."
+  ],
+  [
+   12184.65,
+   ""
+  ],
+  [
+   12185.13,
+   ""
+  ],
+  [
+   12185.37,
+   ""
+  ],
+  [
+   12185.54,
+   ""
+  ],
+  [
+   12186.02,
+   ""
+  ],
+  [
+   12186.05,
+   ""
+  ],
+  [
+   12191.16,
+   ""
+  ],
+  [
+   12191.9,
+   ""
+  ]
+ ],
+ "palavras": [
+  [
+   9437.85,
+   9438.2,
+   "gostoso"
+  ],
+  [
+   9439.26,
+   9439.32,
+   "me"
+  ],
+  [
+   9439.32,
+   9439.5,
+   "dá."
+  ],
+  [
+   9443.55,
+   9443.75,
+   "livre."
+  ],
+  [
+   12359.75,
+   12360.05,
+   "Gerais."
+  ],
+  [
+   12185.12,
+   12185.3,
+   "Não,"
+  ],
+  [
+   12185.3,
+   12185.62,
+   "esqueci"
+  ],
+  [
+   12185.62,
+   12185.72,
+   "de"
+  ],
+  [
+   12185.72,
+   12186.02,
+   "tapar"
+  ],
+  [
+   12186.02,
+   12186.12,
+   "a"
+  ],
+  [
+   12186.12,
+   12186.45,
+   "boca."
+  ],
+  [
+   12191.12,
+   12191.5,
+   "péssima"
+  ],
+  [
+   12191.5,
+   12192.0,
+   "propaganda."
+  ],
+  [
+   9475.8,
+   9475.95,
+   "Ele"
+  ]
+ ],
+ "destaques": [
+  "gorducha",
+  "arranhão",
+  "Bolt",
+  "junto",
+  "croc",
+  "boca",
+  "propaganda",
+  "psst"
+ ],
+ "capa": 9417.6
+}

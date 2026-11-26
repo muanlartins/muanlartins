@@ -1,0 +1,187 @@
+{
+ "live": "2026-11-24",
+ "nome": "vítima de um predador",
+ "jogo": "rocket-league",
+ "post": "Ela jogava 'mal'… era uma predadora 🦁🔪 #rocketleague",
+ "filtro": false,
+ "trocas": {
+  "Brincando": "brincando"
+ },
+ "destaques": [
+  "predador",
+  "presa",
+  "vergonhoso",
+  "estripador",
+  "vítima"
+ ],
+ "trechos": [
+  {
+   "de": 8353.31,
+   "ate": 8364.06,
+   "camera": "jogo"
+  },
+  {
+   "de": 8433.27,
+   "ate": 8450.53,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 8471.09,
+   "ate": 8482.54,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 8613.99,
+   "ate": 8630.02,
+   "camera": "jogo",
+   "entrada": "seco"
+  }
+ ],
+ "titulo": {
+  "linhas": [
+   "VÍTIMA DE UM",
+   "PREDADOR"
+  ],
+  "de": 8353.4,
+  "ate": 8355.9,
+  "trecho": 0
+ },
+ "corrigir": [
+  [
+   8362.26,
+   "tipo,"
+  ],
+  [
+   8362.86,
+   ""
+  ],
+  [
+   8363.74,
+   ""
+  ],
+  [
+   8433.47,
+   "Ela tá"
+  ],
+  [
+   8436.39,
+   "Que"
+  ],
+  [
+   8439.32,
+   "Delayed"
+  ],
+  [
+   8439.72,
+   "ainda."
+  ],
+  [
+   8441.14,
+   "E"
+  ],
+  [
+   8443.84,
+   "League,"
+  ],
+  [
+   8445.31,
+   "Porra,"
+  ],
+  [
+   8446.96,
+   "tudo."
+  ],
+  [
+   8447.26,
+   "Por"
+  ],
+  [
+   8447.88,
+   "falar?"
+  ],
+  [
+   8448.22,
+   "Isso"
+  ],
+  [
+   8471.29,
+   "Que"
+  ],
+  [
+   8474.21,
+   ""
+  ],
+  [
+   8475.01,
+   "se ela"
+  ],
+  [
+   8614.19,
+   ""
+  ],
+  [
+   8616.95,
+   "entretenimento…"
+  ],
+  [
+   8617.79,
+   ""
+  ],
+  [
+   8618.97,
+   "sei lá,"
+  ],
+  [
+   8619.53,
+   "Jack,"
+  ],
+  [
+   8619.8,
+   "o"
+  ],
+  [
+   8356.79,
+   "comigo,"
+  ],
+  [
+   8476.34,
+   "musty"
+  ]
+ ],
+ "palavras": [
+  [
+   8362.62,
+   8363.08,
+   "acaricia"
+  ],
+  [
+   8363.08,
+   8363.38,
+   "sua"
+  ],
+  [
+   8363.38,
+   8363.76,
+   "presa."
+  ],
+  [
+   8614.19,
+   8614.32,
+   "o"
+  ],
+  [
+   8614.32,
+   8615.14,
+   "entretenimento"
+  ],
+  [
+   8619.95,
+   8620.33,
+   "Estripador,"
+  ]
+ ],
+ "capa": 8628.45,
+ "extra": "scripts/efeitos/2026-11-24-predador.py"
+}

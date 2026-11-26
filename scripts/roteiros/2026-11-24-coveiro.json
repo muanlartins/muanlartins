@@ -1,0 +1,227 @@
+{
+ "live": "2026-11-24",
+ "nome": "se fazendo de morta",
+ "jogo": "rocket-league",
+ "post": "Ela tava se fazendo de morta 💀 #rocketleague",
+ "extra": "scripts/efeitos/2026-11-24-coveiro.py",
+ "destaques": [
+  "deus",
+  "morta",
+  "morto",
+  "coveiro",
+  "nick",
+  "ponto",
+  "craque",
+  "sacana",
+  "três",
+  "flip-resets",
+  "catarro",
+  "lixo"
+ ],
+ "trechos": [
+  {
+   "de": 8241.32,
+   "ate": 8243.77,
+   "camera": "jogo"
+  },
+  {
+   "de": 6448.9,
+   "ate": 6457.2,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 8163.67,
+   "ate": 8176.7,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 8223.09,
+   "ate": 8227.7,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 8244.0,
+   "ate": 8257.75,
+   "camera": "jogo",
+   "entrada": "seco"
+  },
+  {
+   "de": 8281.27,
+   "ate": 8290.76,
+   "camera": "jogo",
+   "entrada": "seco"
+  }
+ ],
+ "titulo": {
+  "linhas": [
+   "ELA TAVA SE",
+   "FAZENDO DE MORTA"
+  ],
+  "de": 8241.35,
+  "ate": 8243.75,
+  "trecho": 0,
+  "y": 770,
+  "tamanho": 104
+ },
+ "corrigir": [
+  [
+   8241.55,
+   "Deus!"
+  ],
+  [
+   6451.05,
+   "você…"
+  ],
+  [
+   6451.22,
+   ""
+  ],
+  [
+   6452.05,
+   "você"
+  ],
+  [
+   6452.08,
+   "tava"
+  ],
+  [
+   6452.29,
+   "se fazendo"
+  ],
+  [
+   6453.3,
+   "morta"
+  ],
+  [
+   6456.1,
+   "é"
+  ],
+  [
+   6456.9,
+   ""
+  ],
+  [
+   8223.29,
+   "Cara,"
+  ],
+  [
+   8224.3,
+   "com…"
+  ],
+  [
+   8224.99,
+   ""
+  ],
+  [
+   8225.02,
+   ""
+  ],
+  [
+   8225.14,
+   ""
+  ],
+  [
+   8227.23,
+   "tomar…"
+  ],
+  [
+   8250.32,
+   "Ô, Evelyn,"
+  ],
+  [
+   8251.43,
+   "sacana."
+  ],
+  [
+   8252.756,
+   "tava"
+  ],
+  [
+   8282.93,
+   "resets."
+  ],
+  [
+   8283.43,
+   ""
+  ],
+  [
+   8284.58,
+   "E ela"
+  ],
+  [
+   8287.42,
+   ""
+  ],
+  [
+   8287.45,
+   "como"
+  ],
+  [
+   6449.88,
+   "Evelyn,"
+  ],
+  [
+   6450.24,
+   "então"
+  ],
+  [
+   6455.71,
+   "coveiro,"
+  ],
+  [
+   8163.87,
+   "Meu"
+  ],
+  [
+   8174.276,
+   "é…"
+  ],
+  [
+   8172.626,
+   "final,"
+  ]
+ ],
+ "palavras": [
+  [
+   8281.47,
+   8281.62,
+   "Foram"
+  ],
+  [
+   8286.05,
+   8286.32,
+   "quem…"
+  ]
+ ],
+ "impactos": [
+  {
+   "em": 8242.47,
+   "onde": "jogo",
+   "soco": {
+    "z": 1.12,
+    "entra": 4,
+    "segura": 0.5,
+    "sai": 12
+   },
+   "trecho": 0
+  }
+ ],
+ "zoom": [
+  {
+   "de": 8244.0,
+   "ate": 8251.75,
+   "onde": "camera",
+   "z": 1.16,
+   "trecho": 4
+  }
+ ],
+ "sem_legenda": [
+  [
+   8241.0,
+   8243.8
+  ]
+ ]
+}
