@@ -26,9 +26,14 @@ Lives come every day and an hour of them is tens of GB, so the material goes onc
   thumbnail, shorts and commented videos), or, oldest day first, when the disk would otherwise have less than FREE_GB
   free: kept as long as there's room. The Live recording only once its YouTube video (content/lives/<date>.json) is
   processed and as long as the file, never before.
-- the videos of a live's matches (Videos\\Partidas\\<date> <nome>.mp4, partidas.py) once their YouTube video
+- the videos of a live's matches (Lives\\<date>\\Cortes\\<date> <nome>.mp4, partidas.py) once their YouTube video
   (content/videos/<date>-<nome>.json's id) is processed and as long as the file: they're only the upload.
-Replays are small and stay. Deleting is for good (no Recycle Bin): --clean alone only lists.
+Replays are small and stay, and so do the live's reels (Lives\\<date>\\Shorts) and thumbnails. Deleting is for good (no
+Recycle Bin): --clean alone only lists.
+
+Since 2026-11-26 everything of a live is in its folder (the map is in windows.py and the `faxina` skill); a run also
+files what's still in the old places (Videos\\Partidas, Shorts\\prontos's reels, Shorts\\candidatos, Shorts\\Partes and
+Comentados\\Partes) into the new ones, leaving alone anything changed in the last ten minutes.
 """
 
 import argparse
@@ -41,12 +46,19 @@ from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from content import LIVES as PAGES, sessions
-from windows import VIDEOS, home
+from windows import LIVES, PARTES, VIDEOS, cortes_dir, home, shorts_dir
 
 TIME_ZONE = ZoneInfo("America/Sao_Paulo")
 
-LIVES = VIDEOS / "Lives"
-PARTIDAS = VIDEOS / "Partidas"
+# Where things went before 2026-11-26, when the Videos folder became one folder per live (windows.py has the map):
+# files left there (another branch's scripts, an old render) are filed into the new places by a normal run.
+OLD_CUTS = VIDEOS / "Partidas"
+OLD_READY = VIDEOS / "Shorts" / "prontos"
+OLD_CANDIDATES = VIDEOS / "Shorts" / "candidatos"
+OLD_PARTS = {VIDEOS / "Shorts" / "Partes": PARTES / "Shorts", VIDEOS / "Comentados" / "Partes": PARTES / "Vídeos"}
+LIVE_SHORT = re.compile(r"^(\d{4}-\d{2}-\d{2}) (?:destaque|clipe|live) - ")  # not a studio take ("<date> <time> - …")
+DATED = re.compile(r"^(\d{4}-\d{2}-\d{2})[ -]")
+IN_USE = 600  # s: a file changed this recently may still be written (a render, an agent's assets)
 DEMOS = [home() / "OneDrive" / "Documents" / "My Games" / "Rocket League" / "TAGame" / folder for folder in ("DemosEpic", "Demos")]
 LOOSE = re.compile(r"^(\d{4}-\d{2}-\d{2}) (\d{2}-\d{2}-\d{2})(?: (câmera|jogo))?\.(mp4|mkv|mov)$")
 KINDS = {None: "Live", "câmera": "Câmera", "jogo": "Jogo"}
@@ -178,8 +190,10 @@ def expendable():
             gone += [(file, "dia marcado como feito") for file in sorted(kept)]
         elif kept:
             material.append((folder.name, sorted(kept)))
-    # The videos of a live's matches (partidas.py): only the upload, once YouTube has each whole.
-    for file in sorted(PARTIDAS.glob("????-??-?? *.mp4")) if PARTIDAS.exists() else []:
+    # The videos of a live's matches (partidas.py, capitulos.py): only the upload, once YouTube has each whole.
+    for file in sorted(LIVES.glob("????-??-??/Cortes/????-??-?? *.mp4")) if LIVES.exists() else []:
+        if file.stem.endswith("(renderizando)"):
+            continue
         record = PAGES.parent / "videos" / f"{file.stem[:10]}-{file.stem[11:]}.json"
         video = json.loads(record.read_text()).get("id") if record.exists() else None
         if not video:
@@ -263,6 +277,34 @@ def join(sources, target):
         source.unlink()
 
 
+def old_layout():
+    """(source, target) for what still sits where the Videos folder kept it before 2026-11-26."""
+    def busy(path):
+        times = [path.stat().st_mtime, *(f.stat().st_mtime for f in path.rglob("*"))] if path.is_dir() else \
+            [path.stat().st_mtime]
+        return time.time() - max(times) < IN_USE
+
+    found = []
+    if OLD_CUTS.exists():
+        for file in sorted(OLD_CUTS.iterdir()):
+            if (day := DATED.match(file.name)) and "(renderizando)" not in file.name:
+                found.append((file, cortes_dir(day.group(1)) / file.name))
+    if OLD_READY.exists():
+        for file in sorted(OLD_READY.iterdir()):
+            if day := LIVE_SHORT.match(file.name):
+                found.append((file, shorts_dir(day.group(1)) / file.name))
+    if OLD_CANDIDATES.exists():
+        for file in sorted(OLD_CANDIDATES.iterdir()):
+            if day := DATED.match(file.name):
+                found.append((file, shorts_dir(day.group(1)) / file.name))
+    for old, new in OLD_PARTS.items():
+        for path in sorted(old.iterdir()) if old.exists() else []:
+            day = re.match(r"^(\d{4}-\d{2}-\d{2})-(.+)$", path.name) if path.is_dir() else None
+            # a reel's own folder (named for its roteiro) goes to its live; the shared pieces to Videos\Partes
+            found.append((path, shorts_dir(day.group(1)) / "Partes" / day.group(2) if day else new / path.name))
+    return [(s, t) for s, t in found if not busy(s)]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--apply", action="store_true", help="move and copy, or delete (without it, only show)")
@@ -337,6 +379,20 @@ def main():
         if args.apply:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
+    for source, target in old_layout():
+        if args.day and args.day not in str(target.relative_to(VIDEOS)):
+            continue
+        if target.exists():
+            print(f"keep  {source.relative_to(VIDEOS)}: já existe {target.relative_to(VIDEOS)}")
+            continue
+        print(f"move  {source.relative_to(VIDEOS)}  →  {target.relative_to(VIDEOS)}")
+        if args.apply:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            source.rename(target)
+    if args.apply:
+        for old in (OLD_CUTS, OLD_CANDIDATES, *OLD_PARTS):
+            if old.exists() and not any(old.iterdir()):
+                old.rmdir()
     if not args.apply:
         print("(nada mudou: rode com --apply)")
 

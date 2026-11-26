@@ -11,7 +11,7 @@ camera-<date>.json. With the transcript and `valorant_kills.py` that's where the
 
 The list is JSON, `[[n, start, end, "label"], ...]` in Live.mp4 seconds. Each candidate is cut raw from Live.mp4,
 picture and sound together as they are (Live.mp4 is in step), with its number top right and "mm:ss · label" bottom
-right, 1280×720, into `Videos\\Shorts\\candidatos\\<date> live - candidatos.mp4`. The pieces are named by their
+right, 1280×720, into `Videos\\Lives\\<date>\\Shorts\\<date> live - candidatos.mp4`. The pieces are named by their
 recipe in ~/.cache/muanlartins/edicao/candidatos-<date>/, so a rerun with a changed list cuts only what changed (keep
 the list at ~/.cache/muanlartins/edicao/candidatos-<date>.json). Luan answers with numbers; then
 one short per pick with `clipe.py` (the `estudio` skill, "Highlights da live").
@@ -29,7 +29,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cortes import parts  # noqa: E402
 from edicao import FFMPEG, WORK  # noqa: E402
-from windows import VIDEOS, to_windows  # noqa: E402
+from windows import VIDEOS, shorts_dir, to_windows  # noqa: E402
 
 RATE, WW, HH = 10, 480, 270
 
@@ -120,7 +120,7 @@ def reel(date, folder, items):
         pieces.append(piece)
         print(f"{n:2d}  {b - a:4.1f} s  {label}")
     (work / "lista.txt").write_text("".join(f"file '{p.name}'\n" for p in pieces))
-    out = VIDEOS / "Shorts" / "candidatos" / f"{date} live - candidatos.mp4"
+    out = shorts_dir(date) / f"{date} live - candidatos.mp4"
     out.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run([str(FFMPEG), "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", "lista.txt", "-c", "copy",
                     "-movflags", "+faststart", str(out)], check=True, cwd=work)

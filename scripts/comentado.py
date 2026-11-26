@@ -7,10 +7,10 @@ The take is Videos\\Comentados\\<date> <time> comentado.mp4 (or its "(com jogo)"
 back by som_do_jogo.py, which is preferred when it exists). The video is, in order:
 
 1. the hook: the strongest few seconds, picked by Luan (--gancho, in the take's time), ending on a quick flash;
-2. the intro, recorded once (Videos\\Comentados\\Partes\\intro.mp4);
+2. the intro, recorded once (Videos\\Partes\\Vídeos\\intro.mp4);
 3. the commentary: the whole take, trimmed to just before his first word and just after his last (the microphone's
    silence), so the start of the take (setting up the studio) and the end (stopping OBS) go;
-4. the outro, recorded once and edited by montagem.py (Partes\\outro-editado.mp4), which leaves room for YouTube's
+4. the outro, recorded once and edited by montagem.py (Videos\\Partes\\Vídeos\\outro-editado.mp4), which leaves room for YouTube's
    end screen.
 
 Sound: track 1 (his voice and, in the "(com jogo)" copy, the game under it), levelled to -14 LUFS; --bip covers a
@@ -26,10 +26,10 @@ import subprocess
 from pathlib import Path
 
 from live import FFMPEG
-from windows import TEMP, VIDEOS, run, to_windows
+from windows import PARTES, TEMP, VIDEOS, run, to_windows
 
 COMMENTED = VIDEOS / "Comentados"
-PARTS = COMMENTED / "Partes"
+PARTS = PARTES / "Vídeos"
 READY = COMMENTED / "prontos"
 INTRO = PARTS / "intro.mp4"
 OUTRO = PARTS / "outro-editado.mp4"

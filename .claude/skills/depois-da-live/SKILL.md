@@ -302,7 +302,7 @@ schedule and policy; its editing advice was overruled by him.
    say the rank again.
 2. **Plan, then render**: `partidas.py <roteiro>` prints each match's edges (with his mic's level there: all should be
    pauses, ≤ -60 dB; `!` lines say where none was found) and the chapters; then `--apply`: ~5 min per video (NVENC),
-   ~4 GB, `Videos\Partidas\<date> <nome>.mp4`, and `content/videos/<date>-<nome>.json` for YouTube (id empty,
+   ~4 GB, `Videos\Lives\<date>\Cortes\<date> <nome>.mp4`, and `content/videos/<date>-<nome>.json` for YouTube (id empty,
    description with the chapters, Epic's disclaimer and links, `publish_at` from the roteiro's `publicar`), and its
    captions beside the video (`<date> <nome>.srt`: the live's transcript in each match's piece, the intro's and
    outro's words; `--legendas` writes only them for a video already made). Each match

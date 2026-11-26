@@ -19,7 +19,7 @@ their sound ~0.9 s behind their own picture. So Jogo.mp4 and Câmera.mkv are fir
 
 Layout: 1080×1920, camera 1080×840 on top, the game's middle square 1080×1080 (native pixels, HUD included) below.
 No captions on the plays, no effects, no sound effects: the reaction is the content. Sound: the live's mix (track 1,
-what the VOD plays), -14 LUFS, true peak under -1.5 dBFS. Out: Videos\\Shorts\\prontos\\<live> clipe - <nome>.mp4.
+what the VOD plays), -14 LUFS, true peak under -1.5 dBFS. Out: Videos\\Lives\\<live>\\Shorts\\<live> clipe - <nome>.mp4.
 """
 import json
 import subprocess
@@ -31,7 +31,7 @@ from PIL import Image, ImageDraw, ImageFilter
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cortes import camera_lag, camera_sound, material, offset, picture_lag  # noqa: E402
 from edicao import BRANCO, WORK, font  # noqa: E402
-from windows import VIDEOS  # noqa: E402
+from windows import shorts_dir  # noqa: E402
 
 W, H, CAM_H, GAME_H = 1080, 1920, 840, 1080
 CAM_CROP = (270, 0, 870, 676)  # in Câmera.mkv's 1280×720: around his head and the costume, above the box's site bar
@@ -217,7 +217,8 @@ def main():
     norm = (f"loudnorm=I=-14:TP=-1.5:LRA=11:measured_I={m['input_i']}:measured_TP={m['input_tp']}:"
             f"measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}:"
             f"linear=true,aresample=192000,alimiter=limit=0.7:attack=1:release=80:level=false,aresample=48000")
-    out = VIDEOS / "Shorts" / "prontos" / f"{roteiro['live']} clipe - {roteiro['nome']}.mp4"
+    out = shorts_dir(roteiro["live"]) / f"{roteiro['live']} clipe - {roteiro['nome']}.mp4"
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.parent.mkdir(parents=True, exist_ok=True)
     ffmpeg("-i", "video.mp4", "-i", "som-cru.wav", "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", norm,
            "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-shortest", str(out), cwd=work)

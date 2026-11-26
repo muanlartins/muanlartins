@@ -17,7 +17,7 @@ The roteiro's "capa" says what goes in it, every time a Live.mp4 second:
 - "emblema": a rank's picture from brand/youtube/thumbnails/ranks/ (e.g. "diamond-3"), glowing under the hook.
 - "etiqueta": the small Klein plate at the top (default "DA LIVE · dd/mm").
 
-Writes Videos\\Shorts\\prontos\\<live> destaque - <nome> (capa).jpg next to the short (destaque.py calls it when the
+Writes Videos\\Lives\\<live>\\Shorts\\<live> destaque - <nome> (capa).jpg next to the short (destaque.py calls it when the
 roteiro has a "capa" like this), for Instagram's cover and YouTube's thumbnail.
 """
 import argparse
@@ -32,7 +32,7 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cortes import camera_sound, material, offset  # noqa: E402
-from windows import VIDEOS  # noqa: E402
+from windows import VIDEOS, shorts_dir  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 import thumb  # noqa: E402  the thumbnails' own drawing: the cutout, the outline, the plate, the type
@@ -134,7 +134,8 @@ def compose(roteiro, out=None):
         sticker = sticker.resize((round(sticker.width * st["altura"] / sticker.height), st["altura"]), Image.LANCZOS)
         cover.alpha_composite(sticker, (round(st["x"] - sticker.width / 2), round(st["y"] - sticker.height / 2)))
 
-    target = out or VIDEOS / "Shorts" / "prontos" / f"{date} destaque - {roteiro['nome']} (capa).jpg"
+    target = out or shorts_dir(date) / f"{date} destaque - {roteiro['nome']} (capa).jpg"
+    target.parent.mkdir(parents=True, exist_ok=True)
     cover.convert("RGB").save(target, quality=90, optimize=True)
     print(target)
     return target

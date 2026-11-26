@@ -17,7 +17,7 @@ becomes a short, the same way every time:
   the play and the camera, each word appearing as it's said, in Klein claro with a glow while it's the one being said,
   then white; a pause or the end of a sentence starts the next block, and a block's layout is set once, so words don't
   shift as they come in; names stay as said, and --troca fixes a word whisper gets wrong ("Enlabs=Aim Lab");
-- levelled to -14 LUFS, the shorts' outro (Videos\\Shorts\\Partes\\outro-editado.mp4, montagem.py) after it;
+- levelled to -14 LUFS, the shorts' outro (Videos\\Partes\\Shorts\\outro-editado.mp4, montagem.py) after it;
 - encoded for Instagram and YouTube Shorts (H.264, AAC, the index up front) as
   Videos\\Shorts\\prontos\\<date> <time> - <play>.mp4. Over 60 s is said, not cut.
 
@@ -37,7 +37,7 @@ import time
 from pathlib import Path
 
 from live import FFMPEG, HALLUCINATIONS, WHISPER
-from windows import TEMP, VIDEOS, run, to_windows
+from windows import PARTES, TEMP, VIDEOS, run, to_windows
 
 SHORTS = VIDEOS / "Shorts"
 READY = SHORTS / "prontos"
@@ -46,7 +46,7 @@ FONT = Path(__file__).resolve().parent.parent / "brand" / "fonts" / "SpaceGrotes
 # Where the captions sit: the line between the play and the camera (obs_shorts.py's STAGE).
 SEAM = 1056
 STAGE = (1080, 1056)
-OUTRO = SHORTS / "Partes" / "outro-editado.mp4"
+OUTRO = PARTES / "Shorts" / "outro-editado.mp4"
 LOCKUP = Path(__file__).resolve().parent.parent / "brand" / "logo" / "lockup.svg"
 LOGO_AT = (0, 1104)  # montagem.py's: over the camera's cut "anlartins"
 KLEIN = "0x002FA7"
@@ -235,14 +235,14 @@ def plan(titles=None):
             yield take, start, end, title, READY / f"{found[1]} {found[2]} - {name}.mp4"
 
 
-CLIPS = SHORTS / "Partes" / "clipes"
+CLIPS = PARTES / "Shorts" / "clipes"
 DAY = 24 * 3600
 
 
 def top_over(spec):
     """--topo "10-39=live-pix.mp4@0": from take second 10 to 39, the top shows that clip (from its second 0) instead;
     "39-41=@45" shows the take's own top from its second 45 (skipping a tab switch). Clips are looked up in
-    Videos\\Shorts\\Partes\\clipes. "12-56-21:10-39=…" limits it to that take (by its time). Returns (take or "",
+    Videos\\Partes\\Shorts\\clipes. "12-56-21:10-39=…" limits it to that take (by its time). Returns (take or "",
     from, to, file or None, its second)."""
     span, what = spec.split("=", 1)
     take, _, span = span.rpartition(":")

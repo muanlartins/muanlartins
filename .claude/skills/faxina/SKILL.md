@@ -1,6 +1,6 @@
 ---
 name: faxina
-description: Cleaning Luan's Videos folder on the stream PC (C:\Users\muanl\Videos) - what each folder holds, what stays for good, what goes and when, and how to delete safely. Use when he asks to free space, clean or scan Videos, or when the disk runs short before a live.
+description: Luan's Videos folder on the stream PC (C:\Users\muanl\Videos) - its map (one folder per live: recordings, Cortes, Shorts, Thumb), what each folder holds, what stays for good, what goes and when, and how to delete safely. Use to know where a live's files go, when he asks to free space, clean or scan Videos, or when the disk runs short before a live.
 ---
 
 # Cleaning the Videos folder
@@ -15,7 +15,7 @@ Talk to him in pt-BR.
 1. `node scripts/obs.mjs`: not live, not recording (a file OBS is writing must not be touched).
 2. `du -sh /mnt/c/Users/muanl/Videos/*/` and a listing of every file in each folder (size, date): look at all of
    them, not only what the scripts know about.
-3. `scripts/.venv/bin/python scripts/videos.py --clean` lists what goes from `Lives` and `Partidas` and why (it
+3. `scripts/.venv/bin/python scripts/videos.py --clean` lists what goes from `Lives` (recordings and `Cortes`) and why (it
    checks on YouTube that each video is processed and as long as its file before letting a file go). Days whose
    thumbnail, match videos and shorts are done get `python3 scripts/videos.py --done <date>` first.
    A Celeste day stays whole (Live, Jogo, Câmera): Luan keeps them for the produced videos (his call, 2026-11-22). The
@@ -27,18 +27,49 @@ Talk to him in pt-BR.
    delete except `videos.py --clean --apply` and the steps that delete after a verified copy.
 6. Tell him the free space after (`df -h /mnt/c`); under ~150 GB before a live is a warning.
 
+## The map: one folder per live (since 2026-11-26)
+
+Luan, 2026-11-26: "a organização da pasta vídeos não deveria ser melhor e ser por live? … a gente se perde". So
+everything a live produces sits in its folder, and the top level has only four things of the channel's:
+
+```
+Videos\
+├── Lives\<date>\                 one live, everything of it
+│   ├── <hh-mm-ss> Live.mp4 · Jogo.mp4 · Câmera.mkv · partes.json · .feito    the recordings (videos.py)
+│   ├── Replays\ · VAR\ · Legendas\                                         the game's replays, VAR clips, captions
+│   ├── Thumb\                     thumbnail sheets, drafts and the chosen ones (thumb.py)
+│   ├── Cortes\                    the long videos cut from it, <date> <nome>.mp4 + .srt (partidas.py, capitulos.py)
+│   └── Shorts\                    its reels and covers (destaque.py, clipe.py, capa.py), the candidates reel
+│       └── Partes\<reel>\         each reel's own pictures, 3D renders, voices (the effects module's ctx.partes)
+├── Partes\                       what every video reuses
+│   ├── Vídeos\                    intro, outro (and raws, scripts) of the long videos (comentado.py, partidas.py)
+│   └── Shorts\                    the shorts' outro, figurinhas, clipes
+├── Shorts\                       only the studio's takes (OBS's Shorts profile records here) and prontos\, their edits
+├── Comentados\                   only the studio's commented takes and prontos\, their edits
+└── NVIDIA\, Captures\            Windows' and GeForce's own, not the channel's
+```
+
+The paths are in one place, `scripts/windows.py` (`LIVES`, `PARTES`, `live_dir`, `cortes_dir`, `shorts_dir`,
+`reel_parts`): a new script takes them from there, never writes `VIDEOS / "…"` by hand. `videos.py --apply` also
+files anything still in the old places (Videos\Partidas, the live reels in Shorts\prontos, Shorts\candidatos,
+Shorts\Partes, Comentados\Partes), leaving alone what changed in the last ten minutes, so a branch with the old
+scripts can't scatter things again for long. Roteiros name pictures relative to Videos
+(`"arquivo": "Lives/2026-11-20/Shorts/Partes/gata/aureola.png"`, `"Partes/Shorts/figurinhas/…"`).
+
 ## What each folder holds
 
 | Where | What | Stays / goes |
 | --- | --- | --- |
 | `Lives\<date>\` `… Live.mp4` | the stream's recording (VOD source, the shorts' clock, thumb.py's mic) | goes with the day (`--done`, or oldest first under 200 GB free), and only once its YouTube video is processed whole: `videos.py` checks |
 | `Lives\<date>\` `… Jogo.mp4`, `… Câmera.mkv`, `VAR\` | the game alone, the camera alone, the VAR's clips: shorts and thumbnails | go with the day, as above |
-| `Lives\<date>\Replays\`, `Thumb\`, `partes.json`, `.feito` | replays (MB), thumbnail sheets and drafts, where the pieces join | stay (small; the studio lists days from the replays) |
-| `Partidas\<date> <nome>.mp4` | the videos of a live's matches (`partidas.py`), ~5 GB each | go once uploaded and processed whole: `videos.py --clean` checks the id in `content/videos/` |
-| `Partidas\<date> <nome>.srt` | their captions (KB), uploaded by `youtube.py video` | stay: small, and a re-upload of the captions needs them |
-| `Comentados\Partes\`, `Shorts\Partes\` | the intro, outros and their raws, clips reused by shorts | **stay**: every video uses them |
-| `Comentados\prontos\`, `Shorts\prontos\` | finished, published videos and covers | stay unless Luan says otherwise (his backup) |
-| `Shorts\candidatos\` | numbered reels for him to pick moments | go once the shorts from them are made |
+| `Lives\<date>\Replays\`, `Thumb\`, `Legendas\`, `partes.json`, `.feito` | replays (MB), thumbnail sheets and drafts, where the pieces join | stay (small; the studio lists days from the replays) |
+| `Lives\<date>\Cortes\<date> <nome>.mp4` | the videos of a live's matches and Celeste chapters, ~4 GB each | go once uploaded and processed whole: `videos.py --clean` checks the id in `content/videos/` |
+| `Lives\<date>\Cortes\<date> <nome>.srt` | their captions (KB), uploaded by `youtube.py video` | stay: small, and a re-upload of the captions needs them |
+| `Lives\<date>\Shorts\` reels and `(capa).jpg` | the live's finished reels | stay unless Luan says otherwise (his backup) |
+| `Lives\<date>\Shorts\<date> live - candidatos.mp4` | the numbered reel he picks moments from | goes once the reels from it are made |
+| `Lives\<date>\Shorts\Partes\<reel>\` | a reel's generated pictures (some paid: Gemini), renders, voices | stay while the reel may be redone; the 3D frame sequences (`3d-*`) can go once it's published |
+| `Partes\Vídeos\`, `Partes\Shorts\` | the intro, outros and their raws, stickers, clips | **stay**: every video uses them |
+| `Comentados\prontos\`, `Shorts\prontos\` | the studio's finished videos and shorts | stay unless Luan says otherwise |
 | `Shorts\` loose takes | studio takes (`shorts.py`) | `shorts.py --apply` deletes a take once its shorts exist; others: ask |
 | loose `2026-… .mp4/.mkv` in `Videos\` | OBS's files before `videos.py` files them | never delete a recent one: `videos.py` joins and files them. Stubs of a few KB from a recording that failed to start (11-12 16-45-28: 734 B and 111 KB) can go once checked with ffprobe (no duration) |
 | `%LOCALAPPDATA%\VALORANT\Saved\Demos\*.vrf` (outside Videos) | Valorant's replays, 50–100 MB each, downloaded after each match by `mira_auto.py` for the aim page | a match's file can go once `content/mira-ranked/` on main has its id (or `mira_ranked.py` skipped it as another account's); one a patch kept out (`mira-auto.json` says `patch`) stays until vrfkit reads it. Ask before deleting |

@@ -328,7 +328,7 @@ def head(live):
 def setup(ctx):
     S["place"] = ctx.place
     st, sp = ctx.clock.starts, ctx.clock.spans
-    partes = ctx.VIDEOS / "Shorts" / "Partes" / "gata"
+    partes = ctx.partes
     # the logo on the virtual background, from a frame where he sits still and nothing covers it
     ref = frames_of(ctx.work / "limpo.mp4", round(short(8987.0, 1, ctx) * ctx.FPS), 1, ctx, (0, ctx.CAM_H))[0]
     c = ref.astype(np.int16)

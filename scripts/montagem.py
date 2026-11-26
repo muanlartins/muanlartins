@@ -4,7 +4,7 @@
     python3 scripts/montagem.py --apply    # make them (again, over the old ones)
 
 Luan records the parts in OBS (brand/twitch/obs_video.py's scene "Intro e outro", obs_shorts.py's "Final"); they live
-in Videos\\Comentados\\Partes and Videos\\Shorts\\Partes, the raws as "… (bruto).mp4". This adds what's on screen, the
+in Videos\\Partes\\Vídeos and Videos\\Partes\\Shorts, the raws as "… (bruto).mp4". This adds what's on screen, the
 same way every time:
 
 - **Long outro** (1920×1080): his voice alone; "twitch.tv/muanlartins" as he says "dá uma conferida lá",
@@ -35,14 +35,14 @@ import subprocess
 from pathlib import Path
 
 from live import FFMPEG
-from windows import TEMP, VIDEOS, run, to_windows
+from windows import PARTES, TEMP, VIDEOS, run, to_windows
 
 ROOT = Path(__file__).resolve().parent.parent
 FONT = ROOT / "brand" / "fonts" / "SpaceGrotesk.ttf"
 LOCKUP = ROOT / "brand" / "logo" / "lockup.svg"
 MARK = ROOT / "public" / "brand" / "mark-small-clear.svg"
-PARTS = VIDEOS / "Comentados" / "Partes"
-SHORT_PARTS = VIDEOS / "Shorts" / "Partes"
+PARTS = PARTES / "Vídeos"
+SHORT_PARTS = PARTES / "Shorts"
 
 KLEIN, CLARO, BRANCO = "#002fa7", "#85a7ff", "#f4f5f7"
 # On a Klein ground the live's frame darkens its band to navy (frame()'s `fill`), so it still reads as a frame.

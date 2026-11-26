@@ -137,7 +137,7 @@
     "fundo": 3428.9,
     "texto": "4K SEM|RISADINHA",
     "figurinha": {
-      "arquivo": "Shorts/Partes/figurinhas/peixe-aberto.png",
+      "arquivo": "Partes/Shorts/figurinhas/peixe-aberto.png",
       "x": 830,
       "y": 1080,
       "altura": 470
@@ -145,7 +145,7 @@
   },
   "figurinhas": [
     {
-      "arquivo": "Shorts/Partes/figurinhas/peixe-fechado.png",
+      "arquivo": "Partes/Shorts/figurinhas/peixe-fechado.png",
       "de": 3416.3,
       "ate": 3418.45,
       "x": 850,
@@ -155,17 +155,17 @@
         [
           3416.4,
           3416.9,
-          "Shorts/Partes/figurinhas/peixe-aberto.png"
+          "Partes/Shorts/figurinhas/peixe-aberto.png"
         ],
         [
           3417.6,
           3418.1,
-          "Shorts/Partes/figurinhas/peixe-aberto.png"
+          "Partes/Shorts/figurinhas/peixe-aberto.png"
         ]
       ]
     },
     {
-      "arquivo": "Shorts/Partes/figurinhas/peixe-fechado.png",
+      "arquivo": "Partes/Shorts/figurinhas/peixe-fechado.png",
       "de": 3428.3,
       "ate": 3429.7,
       "x": 850,
@@ -175,7 +175,7 @@
         [
           3428.4,
           3429.0,
-          "Shorts/Partes/figurinhas/peixe-aberto.png"
+          "Partes/Shorts/figurinhas/peixe-aberto.png"
         ]
       ]
     }

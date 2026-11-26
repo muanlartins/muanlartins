@@ -3,7 +3,7 @@
     scripts/.venv/bin/python scripts/cortes.py scripts/roteiros/<file>.py --palavras    # what he says, in live s
     scripts/.venv/bin/python scripts/cortes.py scripts/roteiros/<file>.py --quadros 0.5,3.2   # stills, to check
     scripts/.venv/bin/python scripts/cortes.py scripts/roteiros/<file>.py --ate 8 --rapido    # a quick look
-    scripts/.venv/bin/python scripts/cortes.py scripts/roteiros/<file>.py               # the short, in prontos
+    scripts/.venv/bin/python scripts/cortes.py scripts/roteiros/<file>.py               # the short, in Lives\\<live>\\Shorts
 
 The sources are the live's folder (Videos\\Lives\\<date>, see the `estudio` skill): Live.mp4 for his camera as the
 live showed it (the 480×270 box at the top left, with the camera filters drawn on it, which Câmera.mkv doesn't have)
@@ -884,11 +884,12 @@ class Corte:
                   f"− {s['imagem']:.3f} s pela imagem ({s['imagem_q']:.2f}); câmera do Live.mp4 como está")
 
     def finish(self, main):
-        ready = self.videos / "Shorts" / "prontos"
+        from windows import shorts_dir
+        ready = shorts_dir(self.mod.LIVE)
         ready.mkdir(parents=True, exist_ok=True)
         out = ready / f"{self.mod.LIVE} live - {self.mod.NOME}.mp4"
         shutil.copy(main, out)
-        print(f"prontos\\{out.name}")
+        print(out)
 
 
 def main():

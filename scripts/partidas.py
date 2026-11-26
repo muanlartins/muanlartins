@@ -39,7 +39,7 @@ version (a montage of best moments, the intro's first sentence only, hard cuts, 
 "os cortes ficaram HORRÍVEIS… até a intro sofreu e ficou cortada"; he asked for the matches with the intro and the
 outro, and a transition like the live's between them.
 
-1. **The intro**, whole (Videos\\Comentados\\Partes\\intro.mp4).
+1. **The intro**, whole (Videos\\Partes\\Vídeos\\intro.mp4).
 2. **The matches**, whole, from Live.mp4 (the stream as it went out: game, camera, chat, the crowd). Each starts just
    after the stinger the recording itself has when the dock switched to the game (found by the Klein covering the
    screen, 4 to 10 s before the dock's start), at a pause of his microphone, so the countdown and the kickoff are
@@ -59,7 +59,7 @@ Sound: Live.mp4's track 1 (everything: game, his voice, Discord; never the music
 part levelled to -14 LUFS like the intro and outro (loudnorm, as comentado.py). The recording itself is quiet: on
 11-17 track 1 measured -41 LUFS with peaks at -17 dBFS, so one gain for the whole video would have meant +27 dB
 and 10 dB of limiting on every explosion. Picture: 1080p60 as recorded, NVENC on Windows. Writes
-Videos\\Partidas\\<date> <nome>.mp4 and prints the chapters (YouTube needs each at least 10 s). With --apply it also
+Videos\\Lives\\<date>\\Cortes\\<date> <nome>.mp4 and prints the chapters (YouTube needs each at least 10 s). With --apply it also
 writes the YouTube record, content/videos/<date>-<nome>.json, when it's missing (never over one), and the captions
 beside the video, <date> <nome>.srt (the live's transcript inside each match's piece, and the intro's and outro's
 words; out of the repository, since they have the other players' names as said), which youtube.py video uploads as
@@ -81,10 +81,9 @@ from content import LIVES, ROOT, brand_tables  # noqa: E402
 from live import FFMPEG  # noqa: E402
 from youtube import srt  # noqa: E402
 from thumb import STEP, TIME_ZONE, frame, in_file, loudness, recording, wall  # noqa: E402
-from windows import TEMP, VIDEOS, home, run, to_windows  # noqa: E402
+from windows import PARTES, TEMP, VIDEOS, cortes_dir, home, run, to_windows  # noqa: E402
 
-OUT = VIDEOS / "Partidas"
-PARTS = VIDEOS / "Comentados" / "Partes"
+PARTS = PARTES / "Vídeos"
 INTRO, OUTRO = PARTS / "intro.mp4", PARTS / "outro-editado.mp4"
 # The live's stinger (brand/twitch/obs.py: transition_point 600 ms), VP9 with transparency at 2560×1440.
 STINGER = home() / "Documents" / "muanlartins-obs" / "transicao.webm"
@@ -417,7 +416,7 @@ def render(roteiro, parts, out):
     graph.append("[c]alimiter=limit=0.89:level=false[a]")  # a last guard for the peaks (-1 dBTP)
     script = TEMP / "partidas-grafo.txt"
     script.write_text(";\n".join(graph), encoding="utf-8")
-    OUT.mkdir(exist_ok=True)
+    out.parent.mkdir(parents=True, exist_ok=True)
     temp = out.with_name(out.stem + " (renderizando).mp4")
     run(FFMPEG / "ffmpeg.exe", "-hide_banner", "-loglevel", "error", "-stats", "-y", *args,
         "-/filter_complex", to_windows(script), "-map", "[v]", "-map", "[a]",
@@ -454,7 +453,7 @@ def youtube_record(roteiro, marks, path):
              "", EPIC, "", "#RocketLeague #RocketLeagueBrasil #3v3"]
     record = {"id": "", "title": title(roteiro), "description": "\n".join(lines).strip(), "tags": TAGS,
               "thumbnail": f"brand/youtube/thumbnails/{date}-{roteiro['nome']}.jpg", "playlist": PLAYLIST,
-              "captions": f"Partidas/{date} {roteiro['nome']}.srt",
+              "captions": f"Lives/{date}/Cortes/{date} {roteiro['nome']}.srt",
               **({"publish_at": roteiro["publicar"]} if roteiro.get("publicar") else {})}
     path.write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
 
@@ -489,20 +488,20 @@ def main():
     short = [name for (t, name), (u, _) in zip(marks, [*marks[1:], (total, "")]) if u - t < 10]
     for problem in problems + [f"capítulo com menos de 10 s: {name}" for name in short]:
         print(f"! {problem}")
-    out = OUT / f"{roteiro['data']} {roteiro['nome']}.mp4"
+    out = cortes_dir(roteiro["data"]) / f"{roteiro['data']} {roteiro['nome']}.mp4"
     subtitles = out.with_suffix(".srt")
     if args.legendas:
         lines = captions(roteiro, parts)
         subtitles.write_text(srt(lines), encoding="utf-8")
-        print(f"\nlegendas: Videos\\Partidas\\{subtitles.name} ({len(lines)} falas)")
+        print(f"\nlegendas: {out.parent.relative_to(VIDEOS)}/{subtitles.name} ({len(lines)} falas)")
         return
     if not args.apply:
-        print(f"\n→ Videos\\Partidas\\{out.name} (nada foi feito: rode com --apply)")
+        print(f"\n→ {out.parent.relative_to(VIDEOS)}/{out.name} (nada foi feito: rode com --apply)")
         return
     render(roteiro, parts, out)
-    print(f"feito: Videos\\Partidas\\{out.name} ({duration(out) / 60:.1f} min)")
+    print(f"feito: {out.parent.relative_to(VIDEOS)}/{out.name} ({duration(out) / 60:.1f} min)")
     subtitles.write_text(srt(captions(roteiro, parts)), encoding="utf-8")
-    print(f"legendas: Videos\\Partidas\\{subtitles.name}")
+    print(f"legendas: {out.parent.relative_to(VIDEOS)}/{subtitles.name}")
     record = ROOT / "content" / "videos" / f"{roteiro['data']}-{roteiro['nome']}.json"
     if not record.exists():
         youtube_record(roteiro, marks, record)

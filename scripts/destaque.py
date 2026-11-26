@@ -4,7 +4,7 @@ clipe.py's picture: his camera on top (sharp, with the filter's costume and flas
 Live.mp4 as the clock.
 
     scripts/.venv/bin/python scripts/destaque.py scripts/roteiros/<file>.json --palavras   # his words, in live s
-    scripts/.venv/bin/python scripts/destaque.py scripts/roteiros/<file>.json             # the short, in prontos
+    scripts/.venv/bin/python scripts/destaque.py scripts/roteiros/<file>.json             # the short, in Lives\\<live>\\Shorts
 
 The roteiro is JSON and every time in it is a Live.mp4 second:
 - "jogo": "valorant" (default) or "rocket-league": where the game scenes put his camera's box, until 2026-11-22;
@@ -56,7 +56,7 @@ The roteiro is JSON and every time in it is a Live.mp4 second:
   later stretch's seconds takes everything there (11-20: the laser sticker meant for the end stayed on the whole short).
 - A stretch's own "filtro": false (11-20) takes Câmera.mkv alone on top there: after the filter was switched off,
   or where the live's camera box is covered (a stinger as the scene switches) and would be read as a costume.
-- "outro": true joins the shorts' outro (the site's call, Partes\\outro-editado.mp4) after it. Off by default since
+- "outro": true joins the shorts' outro (the site's call, Videos\\Partes\\Shorts\\outro-editado.mp4) after it. Off by default since
   2026-11-20 (Luan: "pode tirar a outro dos shorts, não sei se faz muito sentido mais").
 - "extra": "scripts/efeitos/<file>.py" (11-20): a short's own effects in Python, beside the roteiro, so a gag needs no
   change here. The module may define `setup(ctx)` (once: load pictures, render a 3D sequence…), `antes(f, o, ctx)`
@@ -65,7 +65,8 @@ The roteiro is JSON and every time in it is a Live.mp4 second:
   mono float32 array at ctx.SR, dB)], mixed like the transitions' sounds. `f` is the 1080×1920 RGB frame (numpy,
   edit it in place or return a new one), `o` the short's second; `ctx` has roteiro, clock (`clock.out(live_s, k)`
   maps a live second into stretch k), W, H, CAM_H (the camera's half ends there), GAME_H, FPS, SR, VIDEOS, ROOT, work
-  (the cache folder), the helpers place, animate, ease, title_sprite and sound, and the channel's look: grotesk(size,
+  (the cache folder), partes (the reel's own pictures and renders: Videos\\Lives\\<live>\\Shorts\\Partes\\<slug>,
+  the roteiro's name without the date; create it before writing), the helpers place, animate, ease, title_sprite and sound, and the channel's look: grotesk(size,
   weight) (Space Grotesk), plate(draw, x, y, w, h, fill) (the plate cut at 45°) and cores (klein, klein_escuro,
   klein_claro, branco, noite). Since 11-21 captions and titles are drawn in that look (Luan, three times: "mais
   elegante / atrativo e dentro da identidade visual do canal"); a module's own texts should be too, unless the joke
@@ -95,7 +96,7 @@ from cortes import camera_lag, camera_sound, material, offset, picture_lag  # no
 from edicao import FPS, SR, WORK, animate, ass_time, ease, pauses, place, plain, snap  # noqa: E402
 from edicao import lowpass, svf_bandpass  # noqa: E402
 from edicao import sfx as synth  # noqa: E402
-from windows import VIDEOS  # noqa: E402
+from windows import PARTES, VIDEOS, reel_parts, shorts_dir  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 FONTS = ROOT / ".claude" / "skills" / "short-editing" / "engine" / "fonts"
@@ -115,7 +116,7 @@ FOLGA = (0.2, 0.3)  # the quiet kept before his first word and after his last (e
 LONGE = 0.1  # and an edge never closer than this to the speech on its other side
 AJUSTE = 2.5  # how far an edge may move to reach a pause
 TRANSICAO = (0.12, 0.2)  # a transition's seconds before and after its cut
-OUTRO = VIDEOS / "Shorts" / "Partes" / "outro-editado.mp4"  # the site's call (montagem.py), after the short
+OUTRO = PARTES / "Shorts" / "outro-editado.mp4"  # the site's call (montagem.py), after the short
 OURO, FOGO, BRANCO = (255, 201, 60), (255, 106, 26), (255, 255, 255)
 # The channel's identity (brand/README.md), as the live's captions and the thumbnails have it (Luan, 11-21: captions
 # and texts "mais elegante / atrativo e dentro da identidade visual do canal"): Space Grotesk Bold, Branco, Klein
@@ -921,7 +922,8 @@ def main():
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         ctx = SimpleNamespace(roteiro=roteiro, clock=clock, W=W, H=H, CAM_H=CAM_H, GAME_H=GAME_H, FPS=FPS, SR=SR,
-                              VIDEOS=VIDEOS, ROOT=ROOT, work=work, place=place, animate=animate, ease=ease,
+                              VIDEOS=VIDEOS, ROOT=ROOT, work=work,
+                              partes=reel_parts(roteiro["live"], Path(args.roteiro).stem), place=place, animate=animate, ease=ease,
                               title_sprite=title_sprite, sound=sound, grotesk=grotesk, plate=plate,
                               cores={"klein": KLEIN, "klein_escuro": KLEIN_DARK, "klein_claro": KLEIN_CLARO,
                                      "branco": PAPER, "noite": NOITE})
@@ -954,7 +956,8 @@ def main():
     norm = (f"loudnorm=I=-14:TP=-1.5:LRA=11:measured_I={m['input_i']}:measured_TP={m['input_tp']}:"
             f"measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}:"
             f"linear=true,aresample=192000,alimiter=limit=0.7:attack=1:release=80:level=false,aresample=48000")
-    out = VIDEOS / "Shorts" / "prontos" / f"{roteiro['live']} destaque - {roteiro['nome']}.mp4"
+    out = shorts_dir(roteiro["live"]) / f"{roteiro['live']} destaque - {roteiro['nome']}.mp4"
+    out.parent.mkdir(parents=True, exist_ok=True)
     if roteiro.get("outro", False):  # the site's call after it (11-12 to 11-20 by default; Luan dropped it 11-20)
         # the levelled sound written whole first: loudnorm holds ~3 s back, and muxing it with the video under
         # -shortest dropped them (11-12: the Diamante's and the ace's last 3 s before the outro came out silent)

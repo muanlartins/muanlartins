@@ -21,7 +21,7 @@ The roteiro holds what takes judgment, picked by Claude from the transcript and 
     }
 
 The plan stops on an edge that cuts his speech or a mark out of order. With --apply it writes
-Videos\\Partidas\\<date> <nome>.mp4 and .srt (so videos.py --clean frees them as it does the matches') and, when it's
+Videos\\Lives\\<date>\\Cortes\\<date> <nome>.mp4 and .srt (so videos.py --clean frees them as it does the matches') and, when it's
 missing, the YouTube record content/videos/<date>-<nome>.json. Nothing is deleted.
 """
 
@@ -35,7 +35,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import partidas  # noqa: E402
 from content import LIVES, ROOT, other_games  # noqa: E402
-from partidas import INTRO, MARK, OUT, OUTRO, QUIET, clock, duration, level_at, seconds, stamp  # noqa: E402
+from partidas import INTRO, MARK, OUTRO, QUIET, clock, duration, level_at, seconds, stamp  # noqa: E402
+from windows import cortes_dir  # noqa: E402
 from youtube import SITE, srt  # noqa: E402
 
 # The line each game's videos end their description with.
@@ -103,7 +104,7 @@ def youtube_record(roteiro, game, listed):
             f"{low} português", "corte da live", "muanlartins"]
     return {"id": "", "title": title(roteiro, game), "description": "\n".join(lines), "tags": tags,
             "thumbnail": f"brand/youtube/thumbnails/{date}-{roteiro['nome']}.jpg",
-            "playlist": f"{name}: cortes da live", "captions": f"Partidas/{date} {roteiro['nome']}.srt",
+            "playlist": f"{name}: cortes da live", "captions": f"Lives/{date}/Cortes/{date} {roteiro['nome']}.srt",
             **({"publish_at": roteiro["publicar"]} if roteiro.get("publicar") else {})}
 
 
@@ -126,15 +127,15 @@ def main():
         print(f"{clock(t)} {name}")
     if problems:
         sys.exit("\n".join(f"! {p}" for p in problems))
-    out = OUT / f"{date} {nome}.mp4"
+    out = cortes_dir(date) / f"{date} {nome}.mp4"
     if not (args.apply or args.legendas):
-        print(f"→ Videos\\Partidas\\{out.name} (nada foi feito: rode com --apply)")
+        print(f"→ {out} (nada foi feito: rode com --apply)")
         return
     if args.apply:
         partidas.render(roteiro, parts, out)
-        print(f"feito: Videos\\Partidas\\{out.name} ({duration(out) / 60:.1f} min)")
+        print(f"feito: {out} ({duration(out) / 60:.1f} min)")
     else:
-        OUT.mkdir(exist_ok=True)
+        out.parent.mkdir(parents=True, exist_ok=True)
     lines = partidas.captions(roteiro, parts)
     out.with_suffix(".srt").write_text(srt(lines), encoding="utf-8")
     print(f"legendas: {len(lines)} falas")

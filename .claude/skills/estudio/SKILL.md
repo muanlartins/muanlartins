@@ -46,6 +46,13 @@ Luan points at reels he likes, measure them (cuts per second, layout, captions, 
 
 ## Where things are
 
+- **Everything a live makes stays in its folder** (since 2026-11-26; the map is the `faxina` skill's, the paths
+  `scripts/windows.py`'s): its reels and covers in `Videos\Lives\<date>\Shorts\` (destaque.py, clipe.py, capa.py
+  write there), the candidates reel beside them, each reel's generated pictures and renders in
+  `Shorts\Partes\<reel>\` (an effects module gets it as `ctx.partes`, the roteiro's name without the date: write
+  your assets there, never in a shared folder), its long cuts in `Cortes\`. What every short reuses (the outro,
+  `figurinhas`, `clipes`) is in `Videos\Partes\Shorts\`; `Videos\Shorts\` holds only the studio's takes and their
+  edits (`prontos`).
 - The live's folder (after `depois-da-live`): `C:\Users\muanl\Videos\Lives\<date>\` with
   `<hh-mm-ss> Live.mp4` (1080p60, webcam and overlays baked in at the bottom-left, tracks 1 Tudo, 2 Microfone,
   3 Jogo, 4 Discord), `<hh-mm-ss> Câmera.mkv` (the webcam alone), `<hh-mm-ss> Jogo.mp4` (the game alone, from
@@ -115,7 +122,7 @@ history): Shorts collection, scene **"Navegador"**. Brave in full screen (F11) o
 the site zoomed to 250 % so it takes its phone layout; OBS shows that monitor's middle 1440×1408 (where a video in
 full screen lands; a page shows its middle) where the play goes,
 his camera under it, Brave's sound on track 3. Tabs switch with Ctrl+Tab or Ctrl+1…9. Clips of the lives (the
-crowd's goal, a Pix alert) are cut to `Videos\Shorts\Partes\clipes` or opened on the live's YouTube VOD at their
+crowd's goal, a Pix alert) are cut to `Videos\Partes\Shorts\clipes` or opened on the live's YouTube VOD at their
 second. One take per short; `scripts/.venv/bin/python scripts/shorts.py --apply --sem-barras [--gancho "…"]` (a page
 that sits still must not be read as browser bars). `--topo "0-39=live-pix.mp4@3"` puts a clip (from
 `clipes`, from its second 3) in the top from take second 0 to 39, over the tab switching, while his camera and voice go
@@ -272,7 +279,7 @@ stretches, 42.7 s).
   glare and fire tests are Phoenix's: Sova (bow, Recon Bolt, owl) and the cars (Octane, Fennec, the ball, flips,
   "explode a cabeça") don't show in them, so for those lives the transcript and `momentos.py` lead.
 - **Luan picks the moments before any edit** (11-11): a candidates reel cut raw from Live.mp4, numbered with a
-  one-line label each (`scripts/candidatos.py <date> lista.json` → `Videos\Shorts\candidatos\<date> live -
+  one-line label each (`scripts/candidatos.py <date> lista.json` → `Videos\Lives\<date>\Shorts\<date> live -
   candidatos.mp4`), and the list in the message; he answers with numbers. Keep the list in
   `~/.cache/muanlartins/edicao/candidatos-<date>.json` (the scratchpad dies with WSL) and each window a few seconds
   before the play, so he sees what the reaction is about. His picks from 21 on 11-09: the bang in the
@@ -288,7 +295,7 @@ stretches, 42.7 s).
 The high-dopamine highlight: clipe.py's picture (his sharp camera with the filter's costume on top, the game's
 square below, Live.mp4 the clock) with the edit turned up. First one: "a bang do Phoenix",
 `scripts/roteiros/2026-11-09-phoenix.json` (the template; its docstring-like keys are in `destaque.py`'s header):
-Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 destaque - a bang do Phoenix.mp4`.
+Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `Lives\2026-11-09\Shorts\2026-11-09 destaque - a bang do Phoenix.mp4`.
 
 - **Shape:** the hook first (the IRL bang, "Quer que faça a bang? Puf!", under the title "BANGANDO DE PHOENIX IRL"
   slammed in on the game's half), then the moments in the live's order, each whole enough to read (2-5 s, a
@@ -379,7 +386,7 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
   frame swept left with motion blur, 0.12 s out and 0.2 s in, and a whoosh peaking on the cut), `zoom` (punched in
   and out with a white flash, a short whoosh and a hit: into the punchline), `flash` (with a pop) or `seco`. They
   sit on the whole frame, under the captions.
-- **The outro:** `Videos\Shorts\Partes\outro-editado.mp4` (montagem.py, 4.3 s) is joined after the short unless the
+- **The outro:** `Videos\Partes\Shorts\outro-editado.mp4` (montagem.py, 4.3 s) is joined after the short unless the
   roteiro says `"outro": false`. The levelled sound is written whole (`som.wav`) before the join: muxed with the video
   under `-shortest`, loudnorm's ~3 s lookahead was dropped and the last 3 s before the outro came out silent (11-12).
   Check the end's level on every render with an outro.
@@ -417,7 +424,7 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
   2, 3 and 4, so: a goldfish with his round glasses, curly hair and moustache, drawn by Gemini's image model
   (`gemini-3.1-flash-image`, his key in `%USERPROFILE%\.config\muanlartins\gemini-chave.txt`; a text prompt only,
   no photo of him; then the same image with the mouth closed; on flat green, keyed with a white sticker outline into
-  `Videos\Shorts\Partes\figurinhas\`). Each beat: a `"soco"` on the camera (1.7 about a `"centro"` that lands his
+  `Videos\Partes\Shorts\figurinhas\`). Each beat: a `"soco"` on the camera (1.7 about a `"centro"` that lands his
   mouth on the left), the sticker on the right (`"figurinhas"`, swapping to the open mouth over the ranges his mouth
   is open), a `bloop` per opening; on the last kill this replaces the game's punch (never both halves moving). Stock
   meme pictures are someone's copyright: draw our own. The cover takes the sticker too (`capa.figurinha`).
@@ -438,7 +445,7 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `prontos\2026-11-09 
   - **Stickers, all in the fish's style:** one base drawn from a text prompt (him electrocuted: curly hair standing,
     round glasses, moustache), then every other one as an edit of it (the same picture as an X-ray skeleton, with a
     broom, with laser eyes, an owl in its style), so they match; on flat green, keyed (green minus max(r, b), despill)
-    into `Videos\Shorts\Partes\figurinhas\`. The electrocution swaps the two pictures every 0.12 s with `"choque"`
+    into `Videos\Partes\Shorts\figurinhas\`. The electrocution swaps the two pictures every 0.12 s with `"choque"`
     flickering the camera's half and a `zap`.
   - **Names on screen:** I blurred the opponents' rows, the goal cards and the notices; Luan, 11-20: "não precisa
     omitir os jogadores do outro time igual você fez não! Esquece isso." The game's own screens stay as they are in
@@ -559,7 +566,7 @@ camera filling the frame) and put on every video: the match's strongest 5–10 s
 channel's idea, the series), the commentary, the outro (the lives, the site) with ~20 s at the end for YouTube's end
 screen. Nothing that ages (no "today", rank or dates). Shorts get no intro, only a 3–5 s outro of their own, recorded in the Shorts collection's scene "Final" (the camera where "Short" has it, the top plain Klein: the edit fills it with the lives' tech in motion). Luan
 records them and writes the words; Claude edits: trims the silences, levels to −14 LUFS, and adds what's on
-screen (callouts, the tech, the hooks). The parts live in `Videos\Comentados\Partes` (`intro.mp4`, `outro.mp4`, raws
+screen (callouts, the tech, the hooks). The parts live in `Videos\Partes\Vídeos` (`intro.mp4`, `outro.mp4`, raws
 kept as `… (bruto).mp4`). The outros' edit is `scripts/montagem.py --apply` (its docstring has the recipe; a re-recorded part
 needs its word timings measured again with whisper `-ml 1`, `POSES` picks his poses from a live's `Câmera.mkv`
 and `SITE` is the shorts' list of what's on the site, Luan's to edit).

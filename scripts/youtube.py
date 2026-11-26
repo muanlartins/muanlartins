@@ -368,6 +368,10 @@ def video(args):
           f"{record['description']}\n\nTags: {', '.join(tags)}\n")
     thumbnail = ROOT / record["thumbnail"] if record.get("thumbnail") else None
     captions_file = VIDEOS / record["captions"] if record.get("captions") else Path("/nonexistent")
+    if record.get("captions", "").startswith("Partidas/") and not captions_file.exists():
+        # Records written before 2026-11-26, when the long videos moved into their live's folder (windows.py)
+        name = captions_file.name
+        captions_file = VIDEOS / "Lives" / name[:10] / "Cortes" / name
     if args.dry_run:
         print(f"Thumbnail: {record.get('thumbnail', '—')} · playlist: {record.get('playlist', '—')} · "
               f"legendas: {captions_file.name if captions_file.exists() else '—'}")

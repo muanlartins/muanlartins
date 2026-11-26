@@ -28,7 +28,7 @@ So the broom is real 3D (three.js in headless Chromium, built from primitives: a
   speed per frame; a straw slap; squeaks for each ant hit; plastic clicks as they bounce; a wet splat; bells;
   birds).
 
-The 3D renders once, in setup, into Videos\\Shorts\\Partes\\formiguinhas\\3d-<recipe hash> (PNG sequences with
+The 3D renders once, in setup, into Videos\\Lives\\2026-11-20\\Shorts\\Partes\\formiguinhas\\3d-<recipe hash> (PNG sequences with
 alpha, and a still of the sweep that becomes the cover's sticker, Partes\\formiguinhas\\capa-vassoura.png), and is
 reused while CENA and DRIVER stay the same.
 """
@@ -682,7 +682,7 @@ await browser.close();
 
 def render3d(ctx):
     key = hashlib.sha1((CENA + DRIVER).encode()).hexdigest()[:8]
-    out = ctx.VIDEOS / "Shorts" / "Partes" / SLUG / f"3d-{key}"
+    out = ctx.partes / f"3d-{key}"
     if (out / "pronto.txt").exists():
         return out
     src = ctx.work / f"3d-{key}"

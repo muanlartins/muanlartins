@@ -30,7 +30,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-PARTES = "Shorts/Partes/hat-trick"
+PARTES = "Lives/2026-11-20/Shorts/Partes/hat-trick"
 TEASER, GOL1, FIM = 0, 1, 4  # the stretches (the teaser replays the end's seconds)
 CORUJA = (1448.36, 1449.62)  # live s: the Gigachad cut in on "onde a coruja dorme"
 REVEAL = 1586.70  # the last stretch's first frame: the costume's gone

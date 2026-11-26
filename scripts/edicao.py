@@ -969,7 +969,7 @@ class Edit:
             return
         full = ready / f"{date} {clock} - {self.mod.NOME} (com outro).mp4"
         outro = self.work / "outro.mp4"
-        shutil.copy(self.videos / "Shorts" / "Partes" / "outro-editado.mp4", outro)
+        shutil.copy(self.videos / "Partes" / "Shorts" / "outro-editado.mp4", outro)
         joined = self.work / "com-outro.mp4"
         ffmpeg("-y", "-i", str(main), "-i", str(outro), "-filter_complex",
                "[0:v]fps=60,format=yuv420p,setsar=1[a];[1:v]fps=60,format=yuv420p,setsar=1[b];"

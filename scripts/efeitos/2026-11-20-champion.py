@@ -30,7 +30,7 @@ from PIL import Image, ImageDraw, ImageFont
 from edicao import svf_bandpass
 
 S = {}  # everything setup builds: pictures, shards, the beats' short seconds
-PARTES = "Shorts/Partes/champion"
+PARTES = "Lives/2026-11-20/Shorts/Partes/champion"
 PIXEL = ".claude/skills/short-editing/engine/fonts/GeistPixel-Square.woff2"
 ROXO, CIANO = (0.72, 0.45, 1.0), (0.35, 0.85, 1.0)
 
