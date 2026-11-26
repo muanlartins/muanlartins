@@ -11,8 +11,9 @@
       "Som · …" that plays a silent file, since OBS plays every media source once when it loads, and a sound that
       went off then would go off all at once. The bad play's sting plays as its scene goes live, and the VAR's whistle as it opens.
 
-      The files: palmas.wav is a public-domain recording (brand/README.md says which), the rest are made by sons.js
-      (brand/twitch/sons.mjs renders them). ?som=palmas plays one on a click, to try it in a browser.
+      The files: palmas.wav is a public-domain recording (brand/README.md says which), john.wav is the sound of
+      John Rocket League's video (made for Luan and posted in the Discord server, 2026-11-26; 0.9 to 6.9 s, faded), the
+      rest are made by sons.js (brand/twitch/sons.mjs renders them; its lance, Sigma's sting, is no longer played). ?som=palmas plays one on a click, to try it in a browser.
     -->
     <style>
       html,
@@ -24,7 +25,7 @@
   </head>
   <body>
     <script>
-      const SONS = ["palmas", "uuuh", "tambor", "lance"]
+      const SONS = ["palmas", "uuuh", "tambor", "john"]
       const ctx = new AudioContext()
       const out = ctx.createGain()
       out.connect(ctx.destination)

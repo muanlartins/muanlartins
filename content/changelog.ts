@@ -343,9 +343,10 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-10",
     tag: "live",
     title: "Filtros na câmera",
-    text: "Phoenix, Sova e Sage com as habilidades, Madeline e Badeline reagindo ao meu Celeste, a bola, os carros ou o Sigma.",
+    text: "Phoenix, Sova e Sage com as habilidades, Madeline e Badeline reagindo ao meu Celeste, a bola, os carros, o Sigma ou o John Rocket League.",
     credits: [{ by: "woody_fdp" }, { by: "ccamara", about: "Pintura e decalques nos carros" }],
     media: [
+      media("filtros-john", "Luan de John Rocket League na câmera: o rosto dele no alter ego bombadão, com o emblema do Champion pegando fogo roxo na mão"),
       media("filtros-celeste", "Luan de Madeline na câmera, com o cabelo azul e o rastro vermelho do dash do Celeste"),
       media("filtros-celeste-cidade", "Luan de Badeline com os olhos vermelhos, na frente da Cidade Abandonada do Celeste nevando"),
       media("filtros-phoenix", "Luan com o cabelo e a jaqueta do Phoenix na câmera da live", { video: true }),
@@ -420,9 +421,9 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-07",
     tag: "live",
     title: "Efeitos na live",
-    text: "No Lance ruim a câmera toma a tela e eu viro Sigma, a Terapia acalma com respiração guiada, e os sons saem com os pontos do canal.",
+    text: "No Lance ruim a câmera toma a tela e eu viro o John Rocket League, a Terapia acalma com respiração guiada, e os sons saem com os pontos do canal.",
     media: [
-      media("lance-ruim-sigma", "Luan virando Sigma no Lance ruim: em preto e branco, o rosto dele vira o retrato de Gigachad, que toma a tela", { video: true }),
+      media("lance-ruim-john", "Luan virando John Rocket League no Lance ruim: os olhos acendem em roxo e o emblema do Champion explode em luz", { video: true }),
       media("terapia-repaginada", "A cena da Terapia: Luan no meio do círculo de respiração, com os passos de um lado e o chat do outro", { video: true }),
     ],
   },

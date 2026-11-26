@@ -7,12 +7,12 @@
     <!--
       OBS: Browser source, 1920×1080, on top of the "Lance ruim" layer, "Restart when the source becomes active",
       so its moment plays from the start each time the layer comes on: the "Efeitos" dock (efeitos.html) zooms the
-      camera from its frame to the whole screen for 4 s while the camera filters turn Luan into Sigma. This page is
+      camera from its frame to the whole screen for 6 s while the camera filters turn Luan into John Rocket League. This page is
       the shock at its start, as in anime: a flash, then black speed lines rushing in from the edges toward the
       middle, redrawn a dozen times a second so they shiver, leaving the face clear. They rush out again just before
-      the sound's drop (?linhas=, seconds, default 0.75), when Sigma's portrait slams up to fill the screen (lines
-      held over it for the whole moment read as black smudges). No words. Its sound is the Efeitos dock's (sons.js,
-      lance). ?demo replays it every 6 s.
+      the sound's first hit (?linhas=, seconds, default 1.1), when John's picture opens out to fill the screen (lines
+      held over it for the whole moment read as black smudges; 0.75 s for Sigma's drop until 2026-11-26). No words.
+      Its sound is the Efeitos dock's (sons/john.wav). ?demo replays it every 6 s.
     -->
     <style>
       canvas,
@@ -46,7 +46,7 @@
     </main>
     <script src="stream.js"></script>
     <script>
-      const SECONDS = Number(params.get("linhas")) || 0.75
+      const SECONDS = Number(params.get("linhas")) || 1.1
       const W = 1920
       const H = 1080
       const el = document.getElementById("stage")
