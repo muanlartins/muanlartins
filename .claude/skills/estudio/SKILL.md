@@ -505,6 +505,30 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `Lives\2026-11-09\Sh
   ±2 semitones, σ 30 ms, 220-4200 Hz, claps, 1.8 s echo; no recordings); the shock is a photoreal him electrocuted
   ↔ X-ray; "alegria de pobre dura pouco" is him ostentando (crown, chains, money rain) → record scratch, grey →
   him drenched and sad in the rain. A bouncing on-brand text swaps two pre-drawn plates (Branco, Klein) per beat.
+- **Round of 11-24 (seven reels, one agent each, shared brief `~/.cache/muanlartins/ferramentas/brief-shorts-2026-11-24.md`
+  and its round 2): Luan, 2026-11-26: "em geral, essa primeira rodada ficou EXCELENTE!"** His picks came as themes, not
+  single moments (a guest's best plays; a viewer who turned out to be a top player and every joke about it; the
+  narrated final; a best-of of gags): clowning gets the camera, a costume or a scene under him; plays and his excited
+  reactions get a hype edit. What he taught that round:
+  - **His face in AI pictures:** "o meu rosto fica visivelmente deformado em relação ao eu de verdade. Fotos realistas
+    transformando o rosto geralmente não funcionam bem." Image models redraw the face even when told to keep it. What
+    worked: fantasy scenes where he plays a character (him as a gravedigger, him with bunny ears under a lioness's paw:
+    "ficou muito bom!") and effects on his real camera (a red blush and spotlight on "extremamente vergonhoso"). What
+    failed: photoreal close-ups of his face (a commentator screaming, him turning round in a street, him hiding in his
+    shirt). So: his real camera keyed off its Klein first, with props tracked on him; a pose he never made keeps the made
+    body with his real face put back by `scripts/rosto_real.py` (a real frame with the same expression and angle,
+    `--procurar` to find it); and a picture that doesn't read as him beside a real frame is dropped.
+  - **The camera box can freeze:** on 11-24 the live's camera box (the filter page's copy) froze for 0.5–1.5 s at times
+    while Câmera.mkv kept moving, and `hd_camera`, which lays the box over Câmera.mkv wherever they differ, put his
+    frozen face over the moving one. On a stretch with no costume on, `"filtro": false`; with one, check the camera half
+    for identical faces while he talks (a sheet 0.1 s apart against Câmera.mkv).
+  - **Names as their nick spells them:** whisper wrote "Evelyn"; her nick says Evelin. A viewer's or player's name in
+    captions and texts follows how they write it (the nick, the chat login), not whisper's guess.
+  - **Find the right play before counting it:** a "three flip resets" counter went on the goal before the one he meant;
+    read his lines after each goal ("Foram três flip-resets") and check the touches on the replay of that goal.
+  - **Never cut his trailing line into the play** ("eu acho que eu vou tomar…" runs straight into what he feared).
+  - **Gemini costs money and the credits ran out mid-round** (R$ 30, then R$ 50 more): an image budget per agent in the
+    brief (2–4), counted with the failed calls, and the photoreal face edits mostly unnecessary now (above).
 - **Still open:** music (none yet); the outro's effect on retention once a few shorts have their numbers.
 
 **The effects-heavy edit (`scripts/cortes.py`, rejected 11-11):** five picks chopped into 14 stretches in 34 s,
