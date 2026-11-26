@@ -18,18 +18,21 @@
   {
    "de": 5165.7,
    "ate": 5171.2,
-   "camera": "jogo"
+   "camera": "jogo",
+   "filtro": false
   },
   {
    "de": 5149.8,
    "ate": 5164.6,
    "camera": "jogo",
-   "entrada": "zoom"
+   "entrada": "zoom",
+   "filtro": false
   },
   {
    "de": 5243.2,
    "ate": 5270.9,
-   "camera": "jogo"
+   "camera": "jogo",
+   "filtro": false
   }
  ],
  "titulo": {

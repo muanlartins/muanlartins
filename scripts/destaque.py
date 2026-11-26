@@ -881,7 +881,8 @@ def main():
     args = ap.parse_args()
     roteiro = json.loads(Path(args.roteiro).read_text(encoding="utf-8"))
     live, game, camera, table = material(roteiro)
-    work = WORK / f"destaque-{Path(args.roteiro).stem}"
+    slug = Path(args.roteiro).stem  # kept apart: the stretch loop below reuses the name `args`
+    work = WORK / f"destaque-{slug}"
     work.mkdir(parents=True, exist_ok=True)
     trechos = bordas(live, roteiro["trechos"])
     clock = Clock(trechos)
@@ -923,7 +924,7 @@ def main():
         spec.loader.exec_module(module)
         ctx = SimpleNamespace(roteiro=roteiro, clock=clock, W=W, H=H, CAM_H=CAM_H, GAME_H=GAME_H, FPS=FPS, SR=SR,
                               VIDEOS=VIDEOS, ROOT=ROOT, work=work,
-                              partes=reel_parts(roteiro["live"], Path(args.roteiro).stem), place=place, animate=animate, ease=ease,
+                              partes=reel_parts(roteiro["live"], slug), place=place, animate=animate, ease=ease,
                               title_sprite=title_sprite, sound=sound, grotesk=grotesk, plate=plate,
                               cores={"klein": KLEIN, "klein_escuro": KLEIN_DARK, "klein_claro": KLEIN_CLARO,
                                      "branco": PAPER, "noite": NOITE})

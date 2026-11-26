@@ -419,7 +419,7 @@ def setup(ctx):
     rosto = feio[130:810, 250:930]  # the Sigma's face, without the camera's logo
     S["feio"] = cv2.resize(rosto, (G, G), interpolation=cv2.INTER_CUBIC)
     S["horrivel"] = P.stamp_sprite(["HORRÍVEL"], size=130, angle=-10)
-    S["caxumba"] = np.array(Image.open(ctx.VIDEOS / PARTES / "caxumba.png").convert("RGB").resize((1080, 840),
+    S["caxumba"] = np.array(Image.open(ctx.VIDEOS / PARTES / "caxumba-real.png").convert("RGB").resize((1080, 840),
                                                                                                   Image.LANCZOS))
     S["laudo"] = laudo(G, cv2.resize(rosto, (300, 300), interpolation=cv2.INTER_AREA))
     S["caxumba_stamp"] = P.stamp_sprite(["CAXUMBA"], size=120, angle=-6)

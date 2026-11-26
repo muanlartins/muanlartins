@@ -835,7 +835,7 @@ def antes(f, o, ctx):
         z = 1 + (0.32 + 0.12 * math.exp(-x / 0.1) + 0.03 * x) * k_in
         r = np.random.default_rng(int(o * 30))
         sh = 16 * math.exp(-x / 0.35) * k_in
-        punch(cam, z, cx, cy, r.uniform(-sh, sh), r.uniform(-sh, sh))
+        punch(cam, z, cx, cy, r.uniform(-sh, sh), r.uniform(-sh, sh) - 90 * k_in)  # his mouth above the captions
         flash(cam, 0.75 * math.exp(-x / 0.06))
         # the spotlight: the booth dims round him
         cam[:] = (cam.astype(np.float32) * (1 - 0.35 * k_in * S["spot"])[..., None]).astype(np.uint8)

@@ -542,7 +542,7 @@ def setup(ctx):
     S["estadio"] = cv2.GaussianBlur(cover(lg[:560, :400], W, CAM_H, 0.5, 0.3), (0, 0), 5)
     S["placar"] = placar(GAME_H)
     S["placar_nota"] = placar_nota()
-    S["largada"] = cover(load("largada.png"), GAME_H, GAME_H)
+    S["largada"] = cover(load("largada-real.png"), GAME_H, GAME_H)  # his real face put back (rosto_real.py, frame 9481.0)
     S["bolt_titulo"] = label_plate("USAIN BOLT NUNCA|CORREU COMIGO", 66)
     S["junto_titulo"] = label_plate("SÓ SE TODO MUNDO|CORRER JUNTO", 66)
     S["linhas"] = rng.uniform(0, 1, (90, 3))
@@ -561,7 +561,8 @@ def setup(ctx):
     bh = load("psiu-virada.png")[:, 680:]
     S["bh_top"] = cv2.GaussianBlur(cover(bh, W, CAM_H, 0.5, 0.35), (0, 0), 5)
     S["bh"] = skyline(GAME_H)
-    S["virada"] = cover(load("psiu-virada.png"), GAME_H, GAME_H)
+    rua = load("psiu-virada.png")[:, 680:]  # the street's right side (no one in it)
+    S["rua"] = cv2.GaussianBlur(cover(np.hstack([rua[:, ::-1], rua]), GAME_H, GAME_H, 0.5, 0.4), (0, 0), 3)
     S["psiu_spr"] = psiu_sprite()
     S["psiu_titulo"] = label_plate("O FENÔMENO DO|PSIU EM MINAS", 66)
     S["interroga"] = interroga_sprite()
@@ -1092,12 +1093,35 @@ def rings(img, o, t0, cx, cy, every=0.33, life=1.3, color=(255, 255, 255)):
     img[:] = mix(img, over, 0.8)
 
 
+RUA = 1.7  # his camera's half scaled into the lower half, its foot on the frame's foot: his head about 440 px down
+
+
+def na_rua(raw, x):
+    """The lower half: his real camera (raw, the camera's half before any key) keyed off the Klein and laid big over
+    the street, pushing in a little."""
+    a = matte(raw, "conversa")
+    fg = raw.astype(np.float32)
+    m = np.maximum(fg[..., 0], fg[..., 1])
+    fg[..., 2] = np.where(a < 0.98, np.minimum(fg[..., 2], m + 22), fg[..., 2])
+    k = RUA * (1.04 - 0.04 * ease_out(x / 0.4) + 0.02 * min(1.0, x / 6))
+    w, h = int(raw.shape[1] * k), int(raw.shape[0] * k)
+    fg = cv2.resize(fg, (w, h), interpolation=cv2.INTER_LINEAR)
+    a = cv2.resize(a, (w, h), interpolation=cv2.INTER_LINEAR)[..., None]
+    x0, y0 = (w - 1080) // 2, h - 1080
+    fg, a = fg[y0:y0 + 1080, x0:x0 + 1080], a[y0:y0 + 1080, x0:x0 + 1080]
+    out = fg * a + S["rua"].astype(np.float32) * (1 - a)
+    low = np.clip(out, 0, 255).astype(np.uint8)
+    flash(low, kick(x, 0.6, 0.06))
+    return low
+
+
 def psiu(f, o, ctx):
     W, CAM_H = ctx.W, ctx.CAM_H
     st = ctx.clock.starts
     if not (o >= st[9]):
         return
     top = f[:CAM_H]
+    raw = top.copy()
     top[:] = over_bg(top, S["bh_top"], "conversa", wrap=0.2)
     v, g = T(VIRA), T(GRAF)
     if o < v:
@@ -1107,12 +1131,13 @@ def psiu(f, o, ctx):
         if o >= a:
             rings(low, min(o, b + 1.2), a, ORIGEM[0] - pan, ORIGEM[1])
         f[CAM_H:] = low
-    elif o < g:
+    elif o < g:  # his real camera keyed into the street, big, as he turns round; the city above
         x = o - v
-        z = 1.15 - 0.12 * ease_out(x / 0.35) + 0.03 * min(1, x / 5)
-        low = warp(S["virada"], z, 640, 420)
-        flash(low, kick(x, 0.6, 0.06))
-        f[CAM_H:] = low
+        f[CAM_H:] = na_rua(raw, x)
+        pan = 80 + 40 * min(1.0, x / 6)
+        sky = S["bh"][120:120 + CAM_H, int(pan):int(pan) + W].copy()
+        flash(sky, kick(x, 0.5, 0.06))
+        top[:] = sky
     else:
         low = S["grafico"].copy()
         x = o - g
@@ -1158,7 +1183,7 @@ def psiu_depois(f, o, ctx):
             x = o - v - d0
             if x >= 0:
                 sc = back(x / 0.15) if x < 0.15 else 1 + 0.04 * math.sin(x * 6 + d0 * 20)
-                blit(f, S["interroga"], 640 + dx, CAM_H + 560 + dy, sc * 0.8, min(1.0, x / 0.05), angle=ang)
+                blit(f, S["interroga"], 540 + dx * 1.4, CAM_H + 560 + dy, sc * 0.9, min(1.0, x / 0.05), angle=ang)
         for i, t in enumerate(PSSTS):  # small psst bubbles in the shopping
             x = o - T(t)
             if 0 <= x < 0.9:

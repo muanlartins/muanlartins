@@ -362,12 +362,7 @@ def setup(ctx):
     S["emblem_horns"] = emblem_sprite(ctx, horns=True)
     S["frame"], S["frame_hole"] = gilded_frame(640, 400)
     S["plaque"] = plaque(ctx)
-    # Luan kneeling in worship (Gemini's edit of his own camera frame at live 5170, keyed): before the painting
-    kn = Image.open(ctx.VIDEOS / "Lives/2026-11-24/Shorts/Partes/capeta/joelhos.png").convert("RGBA")
-    kh = 610
-    kn = np.array(kn.resize((round(kn.width * kh / kn.height), kh), Image.LANCZOS)).astype(np.float32)
-    kn[..., :3] = np.clip(kn[..., :3] * np.array((1.06, 0.97, 0.9), np.float32), 0, 255)  # the museum's warm light
-    S["joelhos"] = kn.astype(np.uint8)
+
     S["wall"] = museum_wall(W, H - CAM_H)
     S["bed"] = sleeping_ball(380)
     S["zzz"] = [zzz_sprite(ctx, s) for s in (70, 96, 124)]
@@ -597,16 +592,21 @@ def museum(f, o, live, ctx):
     canvas = np.clip(canvas, 0, 255).astype(np.uint8)
     pl = S["plaque"]
     place_rgba(canvas, pl, fx0 + fr.shape[1] / 2, fy0 + fr.shape[0] + 70, 1.0, 1.0)
-    kn = S["joelhos"]
+    # Luan himself in the museum, hand on his forehead in awe: his real camera (the short's own top half this
+    # frame), keyed off the Klein, standing at the painting's left (round 2: the made kneeling still redrew his face,
+    # and rosto_real.py found no face in its profile to put his back)
+    cam = f[:ctx.CAM_H]
+    a = matte(cam)
+    y0c, y1c, x0c, x1c = 300, ctx.CAM_H, 150, 990
+    cut = np.dstack([cam[y0c:y1c, x0c:x1c].astype(np.float32), (1 - a[y0c:y1c, x0c:x1c]) * 255])
+    over = cut[..., 2] - np.maximum(cut[..., 0], cut[..., 1])
+    cut[..., 2] -= np.clip(over, 0, None) * 0.85  # the Klein's spill on his edges
+    cut[..., :3] *= np.array((1.08, 0.98, 0.9), np.float32)  # the museum's warm light
+    cut = np.clip(cut, 0, 255).astype(np.uint8)
     slide = 1 - (1 - min(1.0, max(0.0, (x - 0.1) / 0.3))) ** 3
-    bow = 2.5 * math.sin(x * 4.5)  # rocking in worship
-    floor = gh * 0.9 + 40
-    shadow = np.zeros((60, 360, 4), np.uint8)
-    cv2.ellipse(shadow, (180, 30), (160, 22), 0, 0, 360, (0, 0, 0, 150), -1, lineType=cv2.LINE_AA)
-    shadow = cv2.GaussianBlur(shadow, (0, 0), 8)
-    kx = -260 + (210 + 260) * slide
-    place_rgba(canvas, shadow, kx + 20, floor - 8, 1.0, slide)
-    place_rgba(canvas, kn, kx, floor - kn.shape[0] / 2, 1.0, 1.0, bow)
+    k = 0.78
+    ch, cw = cut.shape[0] * k, cut.shape[1] * k
+    place_rgba(canvas, cut, -cw / 2 + (175 + cw / 2) * slide - 40, gh - ch / 2 + 2, k, 1.0)
     # in: the painting drops onto the wall with a bounce; the whole half fades through
     drop = (1 - inn) * -120 + 14 * math.sin(min(1.0, x / 0.4) * math.pi) * (x < 0.4)
     canvas = warp(canvas, 1.0, W / 2, gh / 2, 0, drop) if abs(drop) > 0.5 else canvas

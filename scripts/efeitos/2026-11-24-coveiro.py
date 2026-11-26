@@ -1,25 +1,26 @@
 """Se fazendo de morta (2026-11-24): Evelin ("EVLINN." in the game) played modestly all afternoon, then destroyed Luan in
-the live's 1v1 semifinal with flip resets. Luan's direction (11-26): "quando for palhaçada, foco na câmera e na edição
-com um filtro ou uma brincadeira (coveiro…) e um cenário embaixo; quando for foco na jogada, edição de hype".
+the live's 1v1 semifinal. Luan's direction (11-26): "quando for palhaçada, foco na câmera e na edição com um filtro ou
+uma brincadeira (coveiro…) e um cenário embaixo; quando for foco na jogada, edição de hype".
 
-The stretches (roteiro): 0 the hook (the goal going in and "DEUS! MEU DEUS!"), 1 the private match hours before ("você
-tava se fazendo de morta pra comer o cu do coveiro, é isso?"), 2 before the semi ("olha o nick dela… Evelyn ponto no
-final"), 3 the kickoff ("eu acho que eu vou tomar…"), 4 the goal's replay and "Ô Evelyn, tu é muito sacana. Tu
-literalmente tava se fazendo de morto pra comer a porra do cu do coveiro", 5 "Foram três flip-resets. E ela jogou a bola
-pra mim como quem joga, tipo, catarro no lixo".
+Round 2 (Luan, 11-26): no cut at "eu acho que eu vou tomar…" (the kickoff plays on into her first goal); the three flip
+resets are the NEXT play (she carries the ball through the air by his goal, three touches under it, and flicks it to
+him: no goal), so they're counted there and only there; "Evelin" with an I; Câmera.mkv alone on top (the live's camera
+box froze at times).
 
-- Clowning (1 and the end of 4): his camera's Klein keyed out for a moonlit cemetery (three.js, `Partes/…/3d`), him
-  graded to moonlight with a lantern's warm side, mist in front; below, the cemetery: her car (the Octane in black with
-  cyan neon edges, as hers) belly up on her own grave, "AQUI JAZ EVLINN.", lilies on it, a wheel twitching; its
-  headlights blink on at "coveiro" (a wink). In 4 the same, then it flips onto its wheels at "comer", eyes on, and a
-  tombstone "AQUI JAZ LUAN" falls out of the sky at "coveiro"; his half gets a shovel and "O COVEIRO".
-- Hype (4 and 5): the replay (her car's camera) re-timed: real speed into each touch, slow motion through it (frames
-  interpolated to 240 fps, `replay-240.mp4`), each touch marked with a punch, a flash, a shock ring and the counter
-  "FLIP RESET 1/2/3" in the channel's look (a chime a note higher each), the goal at speed; in 5 the three touches again
-  in a row as he says "três flip-resets", the shot in slow motion, then a steel trash can with LUAN on it taking the ball
-  like snot (3D), the lid clanging shut.
-- The nick (2): the semifinal's own screens (Jogo.mp4) held: "SEMIFINAL · JOGO 1/1", then "MUANLARTINS X EVLINN."
-  pushed in to the nick and its dot circled on "ponto no final".
+The stretches (roteiro): 0 the hook (the flight zoomed, "Não, não, não! Que que é isso? O que é isso?"), 1 the private
+match hours before ("você tava se fazendo de morta pra comer o cu do coveiro, é isso?"), 2 the semi from its kickoff to
+her first goal, 3 "Tu literalmente tava se fazendo de morto pra comer a porra do cu do coveiro", 4 the flip resets:
+"Ah, não…", the flight, "Foram três flip-resets", "E ela jogou a bola pra mim como quem joga, tipo, catarro no lixo".
+
+- Clowning (1 and 3): his camera's Klein keyed out for a moonlit cemetery (three.js, `Partes/coveiro/3d`), him graded to
+  moonlight with a lantern's warm side, mist in front; below, her car (the Octane in black with cyan neon edges, as
+  hers) belly up on her own grave, "AQUI JAZ EVLINN.", a wheel twitching, headlights winking at "coveiro". In 3 it
+  flips onto its wheels at "comer", a tombstone "AQUI JAZ LUAN" falls at "coveiro", and the camera's half cuts to him
+  as a gravedigger (`coveiro.png`, Gemini's edit of his own frame, kept as made: Luan liked it).
+- Hype (0 and 4): the game's half zooms 1.5× onto the ball (the ball camera keeps it near x 965); each of her three
+  touches gets a punch, a flash, a shock ring and the counter "FLIP RESET 1/2/3" in the channel's look (a chime a note
+  higher each); on "três flip-resets" the touches again in slow motion (`aerial-240.mp4`, interpolated) and "3 FLIP
+  RESETS"; the flick to him slow; then a steel trash can with LUAN on it taking the ball like snot (3D).
 
 Every transition is drawn here (the roteiro's stretches are all "seco"), after the halves are swapped.
 """
@@ -36,32 +37,36 @@ from PIL import Image, ImageDraw, ImageFilter
 
 SLUG = "2026-11-24-coveiro"
 JOGO = "Lives/2026-11-24/15-15-16 Jogo.mp4"
-HOOK, COVA, NICK, KICK, REPLAY, RECAP = range(6)  # the stretches
+HOOK, COVA, KICK, COVEIRO, FLIPS = range(5)  # the stretches
 KEY_KLEIN = (0, 46, 166)
 
-# --- the replay (Jogo.mp4's own seconds: the replay is a picture of its own, re-timed here)
-R0 = 8246.4  # replay-240.mp4's first frame
-TOUCH = (8248.70, 8249.95, 8250.30)  # her touches under the ball (read off frames: the ball's size turning, wheels up)
-SHOT, GOAL = 8250.65, 8251.0  # the flip into it, the goal's first frame
-CONTACT = (530, 675)  # where car meets ball in the replay's square, all three
-# the re-timing: (from, to, speed) in replay seconds, smoothed; the stretch starts at R_START
-R_START = 8246.95
-SPEEDS = [(8246.95, 8248.40, 1.0), (8248.40, 8248.95, 0.33), (8248.95, 8249.75, 1.15), (8249.75, 8250.45, 0.4),
-          (8250.45, 8251.0, 0.6), (8251.0, 8256.0, 1.0)]
-CEMITERIO_4 = 8251.75  # live s: the cemetery comes in (after "sacana.")
+# --- the flip resets (round 2, Luan: the NEXT play after the goal, not the goal's): she takes the ball up the wall by
+# his goal and carries it through the air, three touches under it, then flicks it to him ("como quem joga catarro no
+# lixo"); no goal. Live seconds (Jogo.mp4 is the live's second − 0.22 here); read off his camera's view at 30 fps,
+# zoomed on the ball (the ball camera keeps it near x 965 of the game's 1920).
+RESET = (8276.17, 8277.19, 8278.47)  # her three touches under the ball (the car meeting it, a spark)
+TOSS = 8280.10  # the flick to him
+ZOOM_IN, ZOOM_OUT = (8273.40, 8273.80), (8280.60, 8281.00)  # live s: the game's half zooms onto the ball and back
+ZZ = 1.5  # Jogo's (605, 40, 720, 720) blown up to the square: the game's half zoomed about P_ZOOM
+P_ZOOM = (555.0, 120.0)
+# the ball (Jogo.mp4's x, y) every ~0.27 s through the air, for the rings at the contacts
+BALL = [(8273.50, 912, 408), (8273.77, 922, 422), (8274.30, 922, 264), (8274.83, 941, 298), (8275.10, 960, 350),
+        (8275.37, 960, 418), (8275.63, 970, 422), (8275.90, 998, 370), (8276.17, 984, 336), (8276.43, 960, 346),
+        (8276.70, 960, 326), (8276.97, 970, 298), (8277.23, 974, 298), (8277.50, 960, 302), (8277.77, 960, 312),
+        (8278.03, 960, 336), (8278.30, 970, 350), (8278.57, 960, 350), (8278.83, 960, 456), (8279.10, 950, 470),
+        (8279.37, 960, 442), (8279.63, 960, 298), (8279.90, 960, 326)]
+A0 = 8275.4  # aerial-240.mp4's first frame, in Jogo.mp4's seconds (Jogo's (605, 40, 720, 720), at 240 fps)
+JOGO_LAG = 0.22  # Jogo.mp4's second = the live's − this (sincronia.json: +shift −lag)
+CEMITERIO_4 = 8251.89  # live s: the cemetery, from the stretch's start ("Tu literalmente…")
 # --- live seconds of his words that things land on
 MORTA, COVEIRO1 = 6453.30, 6455.69
 COMER, COVEIRO2 = 8255.75, 8257.03
-REVELA = 8255.58  # live s: the gravedigger cuts in ("pra comer…")
-OLHA, PONTO = 8166.50, 8171.78
-TRES = (8281.30, 8281.90, 8282.50)  # the three touches again, from "Foram" (each 0.6 s)
-TRES_STAMP = 8283.10
-JOGOU = 8284.40  # the shot again, slow, to the goal
+REVELA = 8255.58  # the gravedigger cuts in ("pra comer…")
+GOL1 = 8242.47  # the first goal's explosion (the kickoff stretch)
+TRES = (8281.30, 8282.05, 8282.80)  # "Foram três flip-resets": the three touches again, slow (0.75 s each)
+TRES_STAMP = 8283.55
+JOGOU = 8284.40  # the flick again, slow
 LIXO0, CATARRO, LIXO = 8286.50, 8289.19, 8290.00  # the trash can: comes in, the flick, the ball drops in
-# the semifinal's screens in Jogo.mp4
-SEMI_CARD, BANNER = 8219.2, 8222.6
-DOT = (832, 549)  # the nick's dot in the banner's square
-NICK_BOX = (652, 521, 839, 557)
 
 
 def Pt(*a):
@@ -132,8 +137,8 @@ class Frames:
         return self.cache[i]
 
 
-class Replay:
-    """replay-240.mp4 read forwards (a seek only when going back), by replay second."""
+class Aerial:
+    """aerial-240.mp4 read forwards (a seek only when going back), by Jogo.mp4's second, blown up to the square."""
 
     def __init__(self, path):
         self.path = str(path)
@@ -143,7 +148,7 @@ class Replay:
         self.n = int(cv2.VideoCapture(self.path).get(cv2.CAP_PROP_FRAME_COUNT))
 
     def at(self, t):
-        i = min(self.n - 1, max(0, int(round((t - R0) * 240))))
+        i = min(self.n - 1, max(0, int(round((t - A0) * 240))))
         if self.cap is None or i < self.i:
             self.cap = cv2.VideoCapture(self.path)
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, i)
@@ -154,18 +159,15 @@ class Replay:
                 break
             self.i += 1
             self.img = im
-        return cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB)
+        return cv2.resize(cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB), (1080, 1080), interpolation=cv2.INTER_CUBIC)
 
 
-def retime():
-    """The replay's re-timing: [(window second, replay second)] from the smoothed speeds."""
-    dc = 1 / 1000
-    cs = np.arange(SPEEDS[0][0], SPEEDS[-1][1], dc)
-    sp = np.array([next(s for a, b, s in SPEEDS if a <= c < b + 1e-9) for c in cs])
-    k = int(0.12 / dc)
-    sp = np.convolve(np.pad(sp, k, mode="edge"), np.ones(2 * k + 1) / (2 * k + 1), mode="valid")
-    w = np.concatenate([[0], np.cumsum(dc / sp[:-1])])
-    return w, cs
+def ball_at(live):
+    """The ball's centre in the zoomed square at a live second."""
+    t = live - JOGO_LAG
+    x = np.interp(t, [b[0] for b in BALL], [b[1] for b in BALL])
+    y = np.interp(t, [b[0] for b in BALL], [b[2] for b in BALL])
+    return ZZ * x - 907.5, ZZ * y - 60.0
 
 
 # ---------------------------------------------------------------------------------------------------- assets
@@ -178,12 +180,12 @@ def partes(ctx):
 
 
 def interpolated(ctx):
-    out = partes(ctx) / "replay-240.mp4"
+    out = partes(ctx) / "aerial-240.mp4"
     if not out.exists():
-        print("  coveiro: o replay a 240 fps…", flush=True)
-        tmp = ctx.work / "replay-240.tmp.mp4"
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{R0}", "-i", str(ctx.VIDEOS / JOGO), "-t", "6.2", "-an",
-                        "-vf", "crop=1080:1080:420:0,minterpolate=fps=240:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:"
+        print("  coveiro: o voo a 240 fps…", flush=True)
+        tmp = ctx.work / "aerial-240.tmp.mp4"
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{A0}", "-i", str(ctx.VIDEOS / JOGO), "-t", "5.1", "-an",
+                        "-vf", "crop=720:720:605:40,minterpolate=fps=240:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:"
                         "vsbmc=1", "-c:v", "libx264", "-crf", "14", "-preset", "fast", str(tmp)], check=True)
         subprocess.run(["cp", str(tmp), str(out)], check=True)
     return out
@@ -357,17 +359,14 @@ def mist_layer(W, H, seed=3):
 
 def setup(ctx):
     s = ctx.__dict__
-    clock = ctx.clock
-    sp = clock.spans
-    # the 3D's cues, in each scene's own seconds
+    sp = ctx.clock.spans
     cova_t0 = sp[COVA][0]
-    lev_t0 = CEMITERIO_4
     cues = [
         {"modo": "cova", "dur": round(sp[COVA][1] - cova_t0 + 0.1, 3),
          "cues": {"twitch": round(MORTA + 0.6 - cova_t0, 3), "on": round(COVEIRO1 - cova_t0, 3)}},
-        {"modo": "levanta", "dur": round(sp[REPLAY][1] - lev_t0 + 0.1, 3),
-         "cues": {"flip": round(COMER - lev_t0, 3), "slam": round(COVEIRO2 - lev_t0, 3)}},
-        {"modo": "lixo", "dur": round(sp[RECAP][1] - LIXO0 + 0.1, 3),
+        {"modo": "levanta", "dur": round(sp[COVEIRO][1] - CEMITERIO_4 + 0.1, 3),
+         "cues": {"flip": round(COMER - CEMITERIO_4, 3), "slam": round(COVEIRO2 - CEMITERIO_4, 3)}},
+        {"modo": "lixo", "dur": round(sp[FLIPS][1] - LIXO0 + 0.1, 3),
          "cues": {"flick": round(CATARRO - LIXO0, 3), "land": round(LIXO - LIXO0, 3)}},
     ]
     d3 = render3d(ctx, cues)
@@ -375,27 +374,15 @@ def setup(ctx):
     s["fx_lev"] = Frames(d3, "levanta")
     s["fx_lixo"] = Frames(d3, "lixo")
     s["fx_fundo"] = cv2.cvtColor(cv2.imread(str(d3 / "fundo.png")), cv2.COLOR_BGR2RGB).astype(np.float32)
-    pa = rgba(d3 / "pa.png")
-    ys, xs = np.nonzero(pa[..., 3] > 4)
-    pa = cv2.resize(pa[ys.min():ys.max() + 1, xs.min():xs.max() + 1], None, fx=0.62, fy=0.62,
-                    interpolation=cv2.INTER_AREA).astype(np.float32)
-    g = pa[..., :3].mean(axis=2, keepdims=True)
-    pa[..., :3] = np.clip((pa[..., :3] * 0.5 + g * 0.5) * np.array([0.8, 0.85, 1.05], np.float32) * 0.85, 0, 255)
-    s["fx_pa"] = pa.astype(np.uint8)
     s["fx_mist"] = mist_layer(ctx.W, ctx.CAM_H)
     cov = Image.open(partes(ctx) / "coveiro.png").convert("RGB").resize((ctx.W, ctx.CAM_H), Image.LANCZOS)
     s["fx_cov_img"] = np.array(cov)
-    s["fx_replay"] = Replay(interpolated(ctx))
-    s["fx_retime"] = retime()
+    s["fx_aerial"] = Aerial(interpolated(ctx))
     s["fx_count"] = counter_sprites(ctx)
     s["fx_coveiro"] = label_sprite(ctx, "O COVEIRO", 66, arrow=True)
     s["fx_antes"] = label_sprite(ctx, "HORAS ANTES", 54)
-    s["fx_semi"] = cv2.cvtColor(read_frame(ctx.VIDEOS / JOGO, SEMI_CARD), cv2.COLOR_BGR2RGB)[:, 420:1500]
-    s["fx_banner"] = cv2.cvtColor(read_frame(ctx.VIDEOS / JOGO, BANNER), cv2.COLOR_BGR2RGB)[:, 420:1500]
+    s["fx_semi"] = label_sprite(ctx, "SEMIFINAL", 54)
     s["fx_logo"] = None
-    w, c = s["fx_retime"]
-    goal_w = float(np.interp(GOAL, c, w))
-    print(f"  coveiro: no replay o gol cai em {goal_w:.2f} s do trecho (live {sp[REPLAY][0] + goal_w:.2f})")
 
 
 def read_frame(path, t):
@@ -420,26 +407,38 @@ def logo_mask(ctx, top):
 # ---------------------------------------------------------------------------------------------------- the halves
 
 
-def game_replay(ctx, c, tw):
-    """The replay's square at replay second c, with each touch's punch, flash and ring (tw: seconds since each touch
-    in the short's time, for the decays)."""
-    img = ctx.__dict__["fx_replay"].at(c).copy()
-    z, fl = 1.0, 0.0
-    for x in tw:
-        z *= 1 + kick(x, 0.09, 0.12)
-        fl = max(fl, kick(x, 0.55, 0.05))
-    img = warp(img, z, *CONTACT)
-    flash(img, fl)
+def zoomed(half, z):
+    """The game's half zoomed onto the ball (z from 1 to ZZ about P_ZOOM)."""
+    if z <= 1.001:
+        return half
+    k = (z - 1) / (ZZ - 1)
+    return warp(half, z, P_ZOOM[0] * k + 540 * (1 - k), P_ZOOM[1] * k + 540 * (1 - k))
+
+
+def zoom_level(L):
+    if L < ZOOM_IN[0] or L > ZOOM_OUT[1]:
+        return 1.0
+    if L < ZOOM_IN[1]:
+        return 1 + (ZZ - 1) * smooth((L - ZOOM_IN[0]) / (ZOOM_IN[1] - ZOOM_IN[0]))
+    if L > ZOOM_OUT[0]:
+        return 1 + (ZZ - 1) * (1 - smooth((L - ZOOM_OUT[0]) / (ZOOM_OUT[1] - ZOOM_OUT[0])))
+    return ZZ
+
+
+def mark(img, x, at):
+    """A touch's punch and flash on the square, x seconds after it, about the contact `at`."""
+    z = 1 + kick(x, 0.08, 0.12)
+    img = warp(img, z, *at)
+    flash(img, kick(x, 0.45, 0.05))
     return img
 
 
-def rings(f, ctx, tw, y0):
+def rings(f, ctx, x, at, y0):
     cnt = ctx.__dict__["fx_count"]
-    for x in tw:
-        if 0 <= x < 0.35:
-            u = x / 0.35
-            ctx.place(f, cnt["anel"], CONTACT[0], y0 + CONTACT[1], 0.4 + 1.6 * u, (1 - u) ** 1.5)
-            ctx.place(f, cnt["anel2"], CONTACT[0], y0 + CONTACT[1], 0.25 + 1.1 * u, (1 - u))
+    if 0 <= x < 0.35:
+        u = x / 0.35
+        ctx.place(f, cnt["anel"], at[0], y0 + at[1], 0.3 + 1.2 * u, (1 - u) ** 1.5)
+        ctx.place(f, cnt["anel2"], at[0], y0 + at[1], 0.2 + 0.9 * u, (1 - u))
 
 
 def counter(f, ctx, n, x, y):
@@ -449,109 +448,97 @@ def counter(f, ctx, n, x, y):
     ctx.place(f, cnt, ctx.W / 2, y, sc, min(1.0, x / 0.04 + 0.2))
 
 
+def contact(live):
+    bx, by = ball_at(live)
+    return bx, by + 34
+
+
+def live_flight(f, ctx, L, count):
+    """The flight as it happened, zoomed: each touch marked; the count shown when `count`."""
+    CAM_H = ctx.CAM_H
+    z = zoom_level(L)
+    half = zoomed(f[CAM_H:], z)
+    past = [r for r in RESET if L >= r]
+    if past and z > 1.4:
+        half = mark(half, L - past[-1], contact(past[-1]))
+    if L >= TOSS and z > 1.4:
+        half = mark(half, L - TOSS, ball_at(TOSS))
+    f[CAM_H:] = half
+    if past and z > 1.4:
+        rings(f, ctx, L - past[-1], contact(past[-1]), CAM_H)
+        if count:
+            counter(f, ctx, len(past), L - past[-1], CAM_H + 120)
+
+
 def antes(f, o, ctx):
     s = ctx.__dict__
     W, CAM_H = ctx.W, ctx.CAM_H
     k, L = where(o, ctx)
     sp = ctx.clock.spans
-    if k == COVA:
+    if k == HOOK:
+        live_flight(f, ctx, L, False)
+    elif k == COVA:
         top = f[:CAM_H]
-        s["fx_t"] = L
         f[:CAM_H] = moonlit(top, s["fx_fundo"], s["fx_mist"], L, logo_mask(ctx, top))
         f[CAM_H:] = s["fx_cova"].at(L - sp[COVA][0])
         x = L - sp[COVA][0]
         if 0.25 < x < 2.6:  # "hours before"
             a = min(1.0, (x - 0.25) / 0.12) * min(1.0, (2.6 - x) / 0.2)
             blend(f, s["fx_antes"], 70, CAM_H + 60, a)
-    elif k == NICK:
-        g = s["fx_semi"] if L < OLHA else s["fx_banner"]
-        if L < OLHA:
-            z = 1 + 0.06 * (L - sp[NICK][0]) / (OLHA - sp[NICK][0])
-            img = warp(g, z, 540, 540)
-        else:
-            # pushed in to the nick, then closer to the dot on "ponto"
-            nx, ny = (NICK_BOX[0] + NICK_BOX[2]) / 2, (NICK_BOX[1] + NICK_BOX[3]) / 2
-            u = smooth((L - OLHA) / 0.6)
-            v = smooth((L - (PONTO - 0.1)) / 0.4)
-            z = 1 + 1.0 * u + 0.45 * v
-            cx, cy = nx + (DOT[0] - nx) * v, ny + (DOT[1] - ny) * v
-            # the point lands at the square's middle: p = (m' - z·m) / (1 - z)
-            tx, ty = 540, 520
-            px, py = (tx - z * cx) / (1 - z), (ty - z * cy) / (1 - z)
-            img = warp(g, z, px, py)
-            if L >= PONTO:  # the dot circled
-                u2 = min(1.0, (L - PONTO) / 0.35)
-                circ = circle_sprite(52, 9, (255, 70, 60), u2)
-                img = img.copy()
-                dx, dy = tx + (DOT[0] - cx) * z, ty + (DOT[1] - cy) * z
-                blend(img, circ, dx - circ.shape[1] / 2, dy - circ.shape[0] / 2)
-            if L > PONTO - 0.1:  # suspicion: the edges darken
-                vg = s.setdefault("fx_vin", vignette(1080, 1080))
-                img = (img.astype(np.float32) * (1 - 0.55 * smooth((L - PONTO + 0.1) / 0.5) * vg[..., None])).astype(
-                    np.uint8)
-        f[CAM_H:] = img
-    elif k == REPLAY:
-        w0 = o - ctx.clock.starts[REPLAY]
-        if L < CEMITERIO_4:
-            wt, ct = s["fx_retime"]
-            c = float(np.interp(w0, wt, ct))
-            touch_w = [float(np.interp(t, ct, wt)) for t in TOUCH]
-            tw = [w0 - x for x in touch_w]
-            img = game_replay(ctx, c, tw)
-            goal_w = float(np.interp(GOAL, ct, wt))
-            flash(img, kick(w0 - goal_w, 0.85, 0.09))
+    elif k == KICK:
+        x = L - sp[KICK][0]
+        if 0.3 < x < 2.8:
+            a = min(1.0, (x - 0.3) / 0.12) * min(1.0, (2.8 - x) / 0.2)
+            blend(f, s["fx_semi"], 70, CAM_H + 150, a)
+    elif k == COVEIRO:
+        top = f[:CAM_H]
+        f[:CAM_H] = moonlit(top, s["fx_fundo"], s["fx_mist"], L, logo_mask(ctx, top))
+        f[CAM_H:] = s["fx_lev"].at(L - CEMITERIO_4)
+        x = L - REVELA
+        if x >= 0:  # the gravedigger: him as a character (Gemini's edit of his own frame), cutting in
+            z = 1 + 0.05 * min(1.0, x / 2.2) + kick(x, 0.14, 0.08)
+            amp = kick(x, 10, 0.09)
+            top = warp(s["fx_cov_img"], z, 540, 330, amp * math.sin(x * 120), amp * math.cos(x * 95))
+            top = top.astype(np.float32)
+            top += (np.random.default_rng(int(x * 60)).normal(0, 7, top.shape[:2]))[..., None]
+            top *= 0.92 + 0.08 * math.sin(L * 13.1) * math.sin(L * 7.3 + 1)
+            top = np.clip(top, 0, 255).astype(np.uint8)
+            flash(top, kick(x, 0.8, 0.06))
+            f[:CAM_H] = top
+        x = L - COVEIRO2
+        if x >= 0:  # "O COVEIRO", pointing at him
+            lab = s["fx_coveiro"]
+            sc = 1 + 0.5 * (1 - smooth(x / 0.1)) if x < 0.1 else 1.0
+            ctx.place(f, lab, 800, 210 + lab.shape[0] / 2, sc, min(1.0, x / 0.05 + 0.3))
+    elif k == FLIPS:
+        if L < TRES[0]:
+            live_flight(f, ctx, L, True)
+        elif L < TRES_STAMP:  # the three touches again, slow, counted
+            i = min(2, int((L - TRES[0]) / 0.75))
+            x = L - TRES[i]
+            r = RESET[i] - JOGO_LAG
+            img = s["fx_aerial"].at(r + 0.35 * (x - 0.15))
+            at = contact(RESET[i])
+            img = mark(img, x - 0.15, at)
             f[CAM_H:] = img
-            rings(f, ctx, tw, CAM_H)
-            n = sum(1 for x in tw if x >= 0)
-            if n and w0 < goal_w + 0.6:
-                counter(f, ctx, n, tw[n - 1], CAM_H + 120)
-        else:
-            top = f[:CAM_H]
-            f[:CAM_H] = moonlit(top, s["fx_fundo"], s["fx_mist"], L, logo_mask(ctx, top))
-            f[CAM_H:] = s["fx_lev"].at(L - CEMITERIO_4)
-            x = L - REVELA
-            if x >= 0:  # the gravedigger: him, photoreal (Gemini's edit of his own frame), cutting in
-                z = 1 + 0.05 * min(1.0, x / 2.2) + kick(x, 0.14, 0.08)
-                amp = kick(x, 10, 0.09)
-                top = warp(s["fx_cov_img"], z, 540, 330, amp * math.sin(x * 120), amp * math.cos(x * 95))
-                top = top.astype(np.float32)
-                top += (np.random.default_rng(int(x * 60)).normal(0, 7, top.shape[:2]))[..., None]
-                top *= 0.92 + 0.08 * math.sin(L * 13.1) * math.sin(L * 7.3 + 1)
-                top = np.clip(top, 0, 255).astype(np.uint8)
-                flash(top, kick(x, 0.8, 0.06))
-                f[:CAM_H] = top
-            x = L - COVEIRO2
-            if x >= 0:  # "O COVEIRO", pointing at him
-                lab = s["fx_coveiro"]
-                sc = 1 + 0.5 * (1 - smooth(x / 0.1)) if x < 0.1 else 1.0
-                ctx.place(f, lab, 800, 210 + lab.shape[0] / 2, sc, min(1.0, x / 0.05 + 0.3))
-    elif k == RECAP:
-        if L < LIXO0:
-            if L < TRES_STAMP:
-                i = min(2, max(0, int((L - TRES[0]) / 0.6)))
-                x = L - TRES[i]
-                c = TOUCH[i] + 0.4 * (min(x, 0.6) - 0.12)
-                tw = [L - (TRES[j] + 0.12) for j in range(3) if j <= i]
-                img = game_replay(ctx, c, [tw[-1]])
-                f[CAM_H:] = img
-                rings(f, ctx, [tw[-1]], CAM_H)
-                n = sum(1 for x in tw if x >= 0)
-                if n:
-                    counter(f, ctx, n, tw[n - 1], CAM_H + 120)
-            elif L < JOGOU:
-                img = game_replay(ctx, TOUCH[2] + 0.12, [])
-                img = (img.astype(np.float32) * 0.6).astype(np.uint8)
-                f[CAM_H:] = img
-                x = L - TRES_STAMP
-                cnt = s["fx_count"]["tres"]
-                sc = 1 + 0.7 * (1 - smooth(x / 0.12)) if x < 0.12 else 1.0
-                ctx.place(f, cnt, W / 2, CAM_H + 540, sc, min(1.0, x / 0.05 + 0.2))
-            else:  # the shot, slow, to the goal
-                c = 8250.40 + (L - JOGOU) * 0.34
-                img = game_replay(ctx, min(c, 8251.25), [])
-                gw = JOGOU + (GOAL - 8250.40) / 0.34
-                flash(img, kick(L - gw, 0.8, 0.09))
-                f[CAM_H:] = img
+            rings(f, ctx, x - 0.15, at, CAM_H)
+            n = i + (1 if x >= 0.15 else 0)
+            if n:
+                counter(f, ctx, n, x - 0.15 if x >= 0.15 else x + 0.75 - 0.15, CAM_H + 120)
+        elif L < JOGOU:
+            img = s["fx_aerial"].at(RESET[2] - JOGO_LAG + 0.2)
+            f[CAM_H:] = (img.astype(np.float32) * 0.55).astype(np.uint8)
+            x = L - TRES_STAMP
+            cnt = s["fx_count"]["tres"]
+            sc = 1 + 0.7 * (1 - smooth(x / 0.12)) if x < 0.12 else 1.0
+            ctx.place(f, cnt, W / 2, CAM_H + 540, sc, min(1.0, x / 0.05 + 0.2))
+        elif L < LIXO0:  # the flick to him, slow
+            t = TOSS - JOGO_LAG - 0.33 + (L - JOGOU) * 0.36
+            img = s["fx_aerial"].at(min(t, A0 + 5.05))
+            tw = (TOSS - JOGO_LAG - 0.33) + 0  # the flick lands at JOGOU + 0.33 / 0.36
+            x = L - (JOGOU + 0.33 / 0.36)
+            img = mark(img, x, ball_at(TOSS))
+            f[CAM_H:] = img
         else:
             f[CAM_H:] = s["fx_lixo"].at(L - LIXO0)
     transition(f, o, ctx)
@@ -566,7 +553,7 @@ def vignette(w, h):
 
 # ---------------------------------------------------------------------------------------------------- transitions
 
-ENTRADAS = {COVA: "zoom", NICK: "whip", KICK: "whip", REPLAY: "zoom", RECAP: "whip"}
+ENTRADAS = {COVA: "zoom", KICK: "whip", COVEIRO: "zoom", FLIPS: "whip"}
 
 
 def transition(f, o, ctx):
@@ -811,10 +798,8 @@ def suspense(SR):
 def sons(ctx):
     SR, clock = ctx.SR, ctx.clock
     st, sp = clock.starts, clock.spans
-    s = ctx.__dict__
     out = []
-    # transitions' sounds (destaque's own, redone since the stretches are "seco")
-    for k, kind in ENTRADAS.items():
+    for k, kind in ENTRADAS.items():  # destaque's transition sounds, redone (the stretches are "seco")
         o = st[k]
         if kind == "whip":
             out.append((o - 0.42 * 0.62, "whoosh", -10))
@@ -823,48 +808,38 @@ def sons(ctx):
 
     def at(live, k):
         return clock.out(live, k)
-    # the hook: the goal going in
-    out += [(0.0, "whoosh_curto", -16), (at(8242.47, HOOK), impact(SR, 1.3), -9), (at(8242.47, HOOK), "impact-boom", -13)]
-    # the cemetery (1): wind, an owl, the bell on "morta", the wink at "coveiro", a sting on "é isso?"
+    notes = (1046.5, 1318.5, 1568.0, 2093.0)
+    # the hook: in on the flight, the flick to him
+    out += [(0.0, "whoosh_curto", -16), (at(TOSS, HOOK), impact(SR, 1.0), -12)]
+    # the cemetery (1): wind, an owl, the bell on "morta", the wink at "coveiro"
     out.append((st[COVA], wind(SR, sp[COVA][1] - sp[COVA][0]), -24))
     out.append((st[COVA] + 0.6, owl(SR), -22))
     out.append((at(MORTA, COVA), bell(SR), -20))
     out.append((at(COVEIRO1, COVA), chirp(SR), -18))
-    # the nick: the push, the marker round the dot, three low stabs
-    out.append((at(OLHA, NICK) - 0.1, "whoosh_curto", -16))
-    out.append((at(PONTO, NICK), marker(SR), -18))
-    out.append((at(PONTO, NICK) + 0.05, suspense(SR), -15))
-    # the replay: a riser into the first touch, the slow-motion whoom, a hit and a chime a note higher per touch
-    wt, ct = s["fx_retime"]
-    t0 = st[REPLAY]
-    touch_o = [t0 + float(np.interp(t, ct, wt)) for t in TOUCH]
-    goal_o = t0 + float(np.interp(GOAL, ct, wt))
-    out.append((t0 + 0.1, riser(SR, touch_o[0] - t0 - 0.1), -17))
-    notes = (1046.5, 1318.5, 1568.0, 2093.0)
-    for i, o in enumerate(touch_o):
-        out += [(o, impact(SR, 0.8), -11), (o + 0.02, chime(SR, notes[:i + 2]), -16)]
-        if i != 2:
-            out.append((o - 0.15, whoom(SR, 0.6), -19))
-    out += [(goal_o, impact(SR, 1.4), -8), (goal_o, "impact-boom", -12), (goal_o + 0.05, "uuuh", -18)]
-    # the cemetery (4): wind, the engine at "comer", the stone slamming at "coveiro" with the organ
-    lev = at(CEMITERIO_4, REPLAY)
-    out.append((lev, wind(SR, sp[REPLAY][1] - CEMITERIO_4 + 0.5, 5), -24))
-    out.append((at(REVELA, REPLAY), impact(SR, 0.9), -14))
-    out.append((at(COMER, REPLAY), rev(SR), -16))
-    out.append((at(COMER, REPLAY) + 0.5, chirp(SR), -20))
-    out.append((at(COVEIRO2, REPLAY), stone(SR), -10))
-    out.append((at(COVEIRO2, REPLAY) - 0.02, organ(SR, [(440.0, 880.0), (392.0, 784.0), (440.0, 880.0),
+    # the kickoff into the first goal
+    out += [(at(GOL1, KICK), impact(SR, 1.3), -10), (at(GOL1, KICK), "impact-boom", -13), (at(GOL1, KICK) + 0.05, "uuuh", -19)]
+    # the cemetery (4): wind, the gravedigger's sting, the engine, the stone and the organ on "coveiro"
+    out.append((st[COVEIRO], wind(SR, sp[COVEIRO][1] - sp[COVEIRO][0] + 0.5, 5), -24))
+    out.append((at(REVELA, COVEIRO), impact(SR, 0.9), -14))
+    out.append((at(COMER, COVEIRO), rev(SR), -16))
+    out.append((at(COMER, COVEIRO) + 0.5, chirp(SR), -20))
+    out.append((at(COVEIRO2, COVEIRO), stone(SR), -10))
+    out.append((at(COVEIRO2, COVEIRO) - 0.02, organ(SR, [(440.0, 880.0), (392.0, 784.0), (440.0, 880.0),
                                                           (293.66, 349.23, 440.0, 587.33)],
                                                      [0.09, 0.09, 0.32, 0.9]), -17))
-    # the recap: a hit and the chime for each touch, the stamp, the shot's goal
+    # the flight: a riser into the first touch, a hit and a chime a note higher per touch, the flick
+    out.append((at(ZOOM_IN[0], FLIPS), riser(SR, RESET[0] - ZOOM_IN[0]), -19))
+    for i, r in enumerate(RESET):
+        out += [(at(r, FLIPS), impact(SR, 0.8), -12), (at(r, FLIPS) + 0.02, chime(SR, notes[:i + 2]), -16)]
+    out.append((at(TOSS, FLIPS), impact(SR, 0.9), -14))
+    # "três flip-resets": the touches again, slow
     for i, live in enumerate(TRES):
-        out += [(at(live + 0.12, RECAP), impact(SR, 0.7), -13), (at(live + 0.12, RECAP), chime(SR, notes[:i + 2]), -17)]
-    out += [(at(TRES_STAMP, RECAP), impact(SR, 1.2), -10), (at(TRES_STAMP, RECAP), "palmas", -18)]
-    gw = JOGOU + (GOAL - 8250.40) / 0.34
-    if gw < LIXO0:
-        out.append((at(gw, RECAP), impact(SR, 1.0), -14))
-    out.append((at(JOGOU, RECAP) - 0.1, whoom(SR, 0.6), -19))
+        o = at(live + 0.15, FLIPS)
+        out += [(o - 0.12, whoom(SR, 0.5), -21), (o, impact(SR, 0.7), -13), (o, chime(SR, notes[:i + 2]), -17)]
+    out += [(at(TRES_STAMP, FLIPS), impact(SR, 1.2), -10), (at(TRES_STAMP, FLIPS), "palmas", -18)]
+    out.append((at(JOGOU, FLIPS) - 0.1, whoom(SR, 0.6), -19))
+    out.append((at(JOGOU + 0.33 / 0.36, FLIPS), impact(SR, 0.8), -15))
     # the trash can: the spit as the ball flies, the lid clanging
-    out.append((at(CATARRO, RECAP), spit(SR), -14))
-    out.append((at(LIXO + 0.08, RECAP), clang(SR), -13))
+    out.append((at(CATARRO, FLIPS), spit(SR), -14))
+    out.append((at(LIXO + 0.08, FLIPS), clang(SR), -13))
     return out

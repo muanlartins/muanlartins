@@ -10,84 +10,96 @@
    "ate": 9417.8,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 9437.3,
    "ate": 9439.65,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 9441.45,
    "ate": 9443.9,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 9452.3,
    "ate": 9460.95,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 9475.6,
    "ate": 9484.8,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 12155.2,
    "ate": 12159.95,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 12166.5,
    "ate": 12169.9,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 12178.25,
    "ate": 12187.2,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 12189.75,
    "ate": 12192.4,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 12357.85,
    "ate": 12360.4,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 12364.4,
    "ate": 12382.07,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 12387.2,
    "ate": 12393.1,
    "camera": "conversa",
    "baixo": "palco",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   }
  ],
  "trocas": {
@@ -98,7 +110,8 @@
   "Péssima": "péssima",
   "x1": "X1,",
   "gorducha": "gorducha.",
-  "ah": "Ah,"
+  "ah": "Ah,",
+  "Evelyn": "Evelin"
  },
  "corrigir": [
   [

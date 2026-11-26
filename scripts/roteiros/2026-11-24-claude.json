@@ -9,38 +9,44 @@
    "de": 10904.41,
    "ate": 10913.8,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 10916.4,
    "ate": 10922.2,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 10946.6,
    "ate": 10952.2,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 10960.0,
    "ate": 10980.95,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   },
   {
    "de": 10988.85,
    "ate": 10995.85,
    "camera": "jogo",
-   "entrada": "seco"
+   "entrada": "seco",
+   "filtro": false
   }
  ],
  "trocas": {
   "Claudio": "Cláudio",
   "Cláudia": "Cláudio",
   "cachumba": "caxumba",
-  "estou": "tô"
+  "estou": "tô",
+  "Evelyn": "Evelin"
  },
  "corrigir": [
   [
