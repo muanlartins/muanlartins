@@ -783,7 +783,7 @@ def whip(f, o, ctx):
     the right."""
     W, H = ctx.W, ctx.H
     before, after = 0.12, 0.2
-    for c in ctx.clock.starts[1:]:
+    for c in ctx.clock.starts[1:-1]:  # the cuts between stretches (not the short's end)
         x = o - c
         if not -before <= x < after:
             continue
@@ -1001,7 +1001,7 @@ def sons(ctx):
     out = lambda live, k: clock.out(live, k)  # noqa: E731
     s0, s1 = clock.starts[DOC], clock.starts[AULA]
     s3, end = clock.starts[JACK], clock.length
-    res = [(c - 0.42 * 0.62, "whoosh", -11) for c in clock.starts[1:]]  # the whips
+    res = [(c - 0.42 * 0.62, "whoosh", -11) for c in clock.starts[1:-1]]  # the whips
     res += [
         # O predador
         (s0, "impact-boom", -12),

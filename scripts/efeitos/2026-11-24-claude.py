@@ -200,16 +200,16 @@ def laudo(size, foto):
     d.rectangle((cxr - 12, cyr - 34, cxr + 12, cyr + 34), fill=(255, 255, 255))
     d.rectangle((cxr - 34, cyr - 12, cxr + 34, cyr + 12), fill=(255, 255, 255))
     d.text((x0 + 130, y0 + 55), "LAUDO MÉDICO", font=big, fill=(255, 255, 255), anchor="lm")
-    ph = Image.fromarray(foto).resize((300, 300), Image.LANCZOS)
-    im.paste(ph, (x0 + 40, y0 + 150))
-    d.rectangle((x0 + 40, y0 + 150, x0 + 340, y0 + 450), outline=(40, 40, 50), width=4)
+    ph = Image.fromarray(foto).resize((270, 270), Image.LANCZOS)
+    im.paste(ph, (x0 + 40, y0 + 135))
+    d.rectangle((x0 + 40, y0 + 135, x0 + 310, y0 + 405), outline=(40, 40, 50), width=4)
     tx = x0 + 380
-    d.text((tx, y0 + 160), "PACIENTE", font=sm, fill=(120, 120, 130))
-    d.text((tx, y0 + 200), "LUAN MARTINS", font=mid, fill=(20, 20, 30))
-    d.text((tx, y0 + 290), "CAUSA", font=sm, fill=(120, 120, 130))
-    d.text((tx, y0 + 330), "FILTRO SIGMA", font=mid, fill=(20, 20, 30))
-    d.text((tx, y0 + 385), "DO CLÁUDIO", font=mid, fill=(20, 20, 30))
-    d.text((x0 + 40, y0 + 470), "DIAGNÓSTICO", font=sm, fill=(120, 120, 130))
+    d.text((tx, y0 + 140), "PACIENTE", font=sm, fill=(120, 120, 130))
+    d.text((tx, y0 + 180), "LUAN MARTINS", font=mid, fill=(20, 20, 30))
+    d.text((tx, y0 + 250), "CAUSA", font=sm, fill=(120, 120, 130))
+    d.text((tx, y0 + 290), "FILTRO SIGMA", font=mid, fill=(20, 20, 30))
+    d.text((tx, y0 + 342), "DO CLÁUDIO", font=mid, fill=(20, 20, 30))
+    d.text((x0 + 40, y0 + 440), "DIAGNÓSTICO", font=sm, fill=(120, 120, 130))
     return np.array(im)
 
 
@@ -422,7 +422,7 @@ def setup(ctx):
     S["caxumba"] = np.array(Image.open(ctx.VIDEOS / PARTES / "caxumba-real.png").convert("RGB").resize((1080, 840),
                                                                                                   Image.LANCZOS))
     S["laudo"] = laudo(G, cv2.resize(rosto, (300, 300), interpolation=cv2.INTER_AREA))
-    S["caxumba_stamp"] = P.stamp_sprite(["CAXUMBA"], size=120, angle=-6)
+    S["caxumba_stamp"] = P.stamp_sprite(["CAXUMBA"], size=100, angle=-6)
     S["klein"] = fundo_klein(G)
     S["c_feliz"] = claude_sprite(560, "feliz")
     S["c_suando"] = claude_sprite(560, "suando")
@@ -603,7 +603,7 @@ def depois(f, o, ctx):
         x = o - p
         P.blit(f, S["t_claudio"], W / 2, CAM_H + 180, P.back(x / 0.22) if x < 0.22 else 1.0, min(1.0, x / 0.06))
     if c <= o < st[2]:
-        P.stamp_in(f, S["caxumba_stamp"], W / 2 + 120, CAM_H + 745, o, c + 0.25)
+        P.stamp_in(f, S["caxumba_stamp"], W / 2 + 90, CAM_H + 755, o, c + 0.25)
     if st[2] <= o < st[3]:
         x = o - st[2]
         P.blit(f, S["t_confio"], W / 2, CAM_H + 180, P.back(x / 0.22) if x < 0.22 else 1.0, min(1.0, x / 0.06))
