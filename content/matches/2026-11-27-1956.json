@@ -1,0 +1,76 @@
+{
+  "id": "2026-11-27-1956",
+  "start": "2026-11-27T22:47:45.402Z",
+  "end": "2026-11-27T22:56:07.825Z",
+  "startRanks": {
+    "3v3": {
+      "tier": "champion-1",
+      "division": 2,
+      "mmr": 1123
+    },
+    "2v2": {
+      "tier": "diamond-3",
+      "division": 2,
+      "mmr": 1032
+    },
+    "1v1": {
+      "tier": "platinum-1",
+      "division": 1,
+      "mmr": 627
+    }
+  },
+  "outputs": [],
+  "matches": [
+    {
+      "id": "86326DBA11F1EAB40C949A9CC1DCC6E9",
+      "start": "2026-11-27T22:47:45.402Z",
+      "at": "2026-11-27T22:56:07.825Z",
+      "mode": "2v2",
+      "playlist": 11,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        0,
+        10
+      ],
+      "overtime": false,
+      "me": {
+        "score": 92,
+        "goals": 0,
+        "assists": 0,
+        "saves": 0,
+        "shots": 1,
+        "touches": 28,
+        "demos": 1
+      },
+      "mates": [
+        {
+          "score": 276,
+          "goals": 0,
+          "assists": 0,
+          "saves": 1,
+          "shots": 4,
+          "touches": 47,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "diamond-3",
+        "division": 2,
+        "mmr": 1032
+      },
+      "points": -9,
+      "mmr": 1023
+    }
+  ],
+  "ranks": [
+    {
+      "at": "2026-11-27T22:56:57.235Z",
+      "mode": "2v2",
+      "tier": "diamond-3",
+      "division": 2,
+      "mmr": 1023
+    }
+  ]
+}
