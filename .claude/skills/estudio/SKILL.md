@@ -562,7 +562,9 @@ shears frames when the crop width is odd.
   tabs it opens and to **stop before the final button** (Agendar, Compartilhar, Publicar) and report; the click is
   Luan's OK. Caption with "link na bio" instead of URLs, same times as YouTube. Several reels at once (11-26,
   Luan: no back and forth per reel): one run opens a Reel composer tab per reel with its caption pasted (the field is
-  there before any video) and leaves the tabs open; Luan attaches each video and cover, sets the time and schedules.
+  there before any video) **and its date and time already set**, and leaves the tabs open; Luan attaches each video
+  and cover and schedules. Do it all in that one run: a later run can't reach the tabs (each run sees only its own
+  tab group; on 11-26 a second run to set the times found none, and Luan set them by hand).
   The composer ticks the Facebook Page too: tell him, it's his call. A run that lands on the Meta login page stops:
   he signs in, then run it again. The same route reads YouTube Studio
   (checked 11-12: the scheduled short, signed in). The old handoff files (`Downloads\handoff-instagram-<…>.md`,
