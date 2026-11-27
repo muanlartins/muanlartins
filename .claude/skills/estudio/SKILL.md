@@ -554,6 +554,8 @@ shears frames when the crop width is odd.
   `scripts/.venv/bin/python scripts/youtube.py video content/videos/<file>.json --dry-run`, then without
   `--dry-run`: it sets the metadata and schedules; YouTube publishes by itself. A reel with photoreal AI edits of
   him gets `"synthetic": true` (YouTube's altered-content label; 11-24's, Luan's call). Titles: 100 characters at most.
+  Link `/canal/lives`, not the live's own page: a live whose VOD is scheduled stays off the site until a build after
+  its `publish_at` (`lib/lives-files.ts`), so the page is a 404 while the reels go out (11-24's, fixed after the fact).
 - **Instagram:** scheduled in Meta Business Suite in Luan's own browser (Brave, signed in). Since 11-12 that needs
   no handoff: from WSL, run the Windows Claude Code headless with only the Claude in Chrome tools,
   `cd /mnt/c/Users/muanl && ./.local/bin/claude.exe -p --chrome --permission-mode bypassPermissions --tools ""

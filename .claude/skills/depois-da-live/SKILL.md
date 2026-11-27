@@ -23,7 +23,9 @@ fim!"). It isn't over until the end's list is done, or each item left says why a
   1. **YouTube:** every file Luan uploaded set and scheduled with `youtube.py` (the videos, the reels, the VOD after
      the last of them, 3), checked through the API (each `publishAt`).
   2. **Instagram:** the reels' tabs ready in one run, times set (the `estudio` skill, "Publishing shorts").
-  3. **Release** (5), with the VOD's id in the live's page.
+  3. **Release** (5), with the VOD's id in the live's page. A VOD held back by `youtube.publish_at` keeps the
+     live's page off the site until a build after that moment (no build runs by itself): say so in the report, and
+     link the reels and videos to `/canal/lives`, not to that page.
   4. **The disk freed** (4): the cut videos once YouTube has them whole, the candidates reel, the 3D frame folders,
      and the day's recordings (`--done`; on a Celeste day only the part that isn't Celeste, "A Celeste day", 7).
   5. **The report:** what's scheduled when, what was freed and the space left, and what waits on whom.
