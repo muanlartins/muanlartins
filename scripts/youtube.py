@@ -357,9 +357,10 @@ def live(args):
 
 def video(args):
     """Sets a commented video or a short from its record in content/videos/ (id, title, description, tags, and
-    optionally thumbnail, playlist, privacy, and captions: an .srt under Videos, kept out of the repository since it
-    has what he says, other players' names included): Gaming, pt-BR, not for kids, no altered content. Privacy stays
-    as it is unless the record says otherwise."""
+    optionally thumbnail, playlist, privacy, synthetic (photoreal AI edits: YouTube's altered-content label), and
+    captions: an .srt under Videos, kept out of the repository since it has what he says, other players' names
+    included): Gaming, pt-BR, not for kids, altered content only when the record says so. Privacy stays as it is
+    unless the record says otherwise."""
     record = json.loads(Path(args.record).read_text())
     video_id, tags = record["id"], record["tags"]
     publish_at = record["publish_at"] if record.get("publish_at") and ahead(record["publish_at"]) else None
@@ -387,7 +388,9 @@ def video(args):
     snippet.pop("localized", None)
     status = {key: value for key, value in current["status"].items()
               if key in ("embeddable", "license", "publicStatsViewable", "publishAt", "privacyStatus")}
-    status.update(selfDeclaredMadeForKids=False, containsSyntheticMedia=False)
+    # "synthetic": true for a video with photoreal AI edits of him (YouTube's altered-content label; 11-24's reels:
+    # him with mumps, as a bride, at the blocks; Luan, 2026-11-26, had them marked)
+    status.update(selfDeclaredMadeForKids=False, containsSyntheticMedia=bool(record.get("synthetic")))
     if record.get("privacy"):
         status["privacyStatus"] = record["privacy"]
     # Scheduled: private until publish_at (ISO with offset, e.g. "2026-11-07T18:00:00-03:00"), then YouTube publishes it;
