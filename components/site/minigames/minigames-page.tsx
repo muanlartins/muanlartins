@@ -187,6 +187,9 @@ export function MinigamesPage() {
     [marbles, fans],
   )
 
+  // Whom a ball is: what the profile API has for them (their own, signed in), for their head on it (estudio.ts's bola).
+  const whoOf = useCallback((who: string) => ({ aparencia: (who === login ? myFan : null) ?? fans?.[who] ?? null, login: who }), [fans, login, myFan])
+
   const dirty = !same(ball, saved)
   const pick = (patch: Ball) => {
     setBall((b) => clean({ ...b, ...patch }))
@@ -477,7 +480,7 @@ export function MinigamesPage() {
           </div>
         </Section>
 
-        <RaceSection S={S} kit={marbles} races={races} login={login} fan={login ? (mine as unknown as Record<string, unknown>) : null} sigma={sigma} skinOf={skinOf} />
+        <RaceSection S={S} kit={marbles} races={races} login={login} fan={login ? (mine as unknown as Record<string, unknown>) : null} sigma={sigma} skinOf={skinOf} whoOf={whoOf} />
 
         <RankingSection duels={duels} races={races} fans={fans} login={login} skinOf={skinOf} />
 

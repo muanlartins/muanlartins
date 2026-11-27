@@ -549,7 +549,7 @@ export function ProfilePage() {
                 </CardLink>
                 <CardLink href={`${channelPath("minijogos")}#corrida`} className="flex items-center gap-4">
                   <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-navy">
-                    <Marble kit={mkit} fan={fan as unknown as Record<string, unknown>} rankId={S && stats ? S.ranque(stats.sigma).id : undefined} size={56} />
+                    <Marble kit={mkit} fan={fan as unknown as Record<string, unknown>} who={look ? { look } : null} rankId={S && stats ? S.ranque(stats.sigma).id : undefined} size={56} />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[15px] font-medium text-ink">{text.extras.race}</span>

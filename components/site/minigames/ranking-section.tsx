@@ -98,7 +98,7 @@ export function RankingSection({
                 id: r.login,
                 figure: figure(r.login),
                 name: <Name login={r.login}>{r.nome}</Name>,
-                mark: <MarbleDot skin={skinOf(r.login)} size={14} />,
+                mark: <MarbleDot skin={skinOf(r.login)} who={{ aparencia: fans?.[r.login] ?? null, login: r.login }} size={14} />,
                 value: `${number(r.vitorias)} ${text.race.wins}`,
                 detail: `${number(r.podios)} ${text.race.podiums} · ${number(r.corridas)} ${text.race.races}`,
                 mine: r.login === login,

@@ -20,8 +20,9 @@
       videos show it; nothing crosses its wall. With the columns (the site's player, or ?completo), the arena sits in
       the middle of a wider box with each fighter in a column by it (their fan, life, class, what its ability has
       grown to and what it does). Either way every ability shows on the balls themselves (the poison's bubbles, the
-      stun's stars, the katana's slices, the Punho's trail, the Martelo's glowing head). Each ball wears its viewer's
-      shirt from their 3D fan (/perfil; fas3d.js's camisaPlana, any colour since the 3D fan) and fights with the class they picked on
+      stun's stars, the katana's slices, the Punho's trail, the Martelo's glowing head). Each ball is its viewer's 3D fan's
+      head made round (since 2026-11-26: fas3d.js's bola seen from the front, bolinha.js's disco, its life on its bottom
+      edge; baked before the duel starts; their shirt, fas3d.js's camisaPlana, only if it doesn't come) and fights with the class they picked on
       /canal/minijogos (the profile API's /duelistas), or one drawn each duel if they didn't. Its weapon's material is
       their Σ rank, or a lower one they picked there: Σ never makes a ball stronger, only better looking.
 
@@ -604,8 +605,9 @@
     <script src="sigma.js"></script>
     <script src="duelo-motor.js"></script>
     <script src="duelo-arte.js"></script>
+    <script src="bolinha.js"></script>
     <script type="module">
-      import { camisaPlana, lookDe, poseDaFesta, retrato } from "./fas3d.js"
+      import { bola as bolaDe, bolas as bolasDe, camisaPlana, lookDe, poseDaFesta, retrato } from "./fas3d.js"
       import { MODELOS, sortear as dado } from "./torcedor3d/esquema.js"
 
       const caixa = document.querySelector(".caixa")
@@ -707,6 +709,17 @@
       // Their 3D fan (their look from /perfil, or their 2D one turned 3D; in December, or with ?natal, Santa's hat, as
       // in the stand and the credits), and its shirt flat for the ball.
       const fa = (login) => lookDe(escolhas.get(login) ?? null, login)
+      // Their ball baked ahead (fas3d.js's bola, the fan's head made round), while nothing's being played: whoever is
+      // in the chat has theirs before their turn comes, instead of their shirt for the first seconds.
+      const assadas = new Set()
+      setInterval(async () => {
+        if (fase === "luta" || fase === "carregando") return
+        const novos = [...presentes.keys()].filter((l) => l !== CHANNEL && !assadas.has(l)).slice(0, 40)
+        if (!novos.length) return
+        novos.forEach((l) => assadas.add(l))
+        await pedir(novos)
+        for (const l of novos) bolaDe(fa(l))
+      }, 15000)
 
       const MATERIAIS = DueloArte.MATERIAIS
       const tier = (id) => id.replace(/-\d$/, "")
@@ -799,7 +812,7 @@
         const sorteio = crypto.getRandomValues(new Uint32Array(2))
         const classes = escolhidas.map((c, i) => c ?? Duelo.IDS[sorteio[i] % Duelo.IDS.length])
         const nomes = posicional("nomes")
-        lutadores = par.map((login, i) => ({
+        const estes = par.map((login, i) => ({
           login,
           nome: (TREINO && nomes[i]) || (presentes.get(login) ?? (login === CHANNEL ? "muanlartins" : login)),
           classe: classes[i],
@@ -809,7 +822,16 @@
           materialId: materialDe(login, i),
           ranque: Sigma.ranque(sigma(login)),
         }))
-        for (const l of lutadores) l.material = MATERIAIS[l.materialId]
+        // The ball is their head made round (fas3d.js's bola, seen from the front), and the duel starts only once both
+        // are baked (Luan, 2026-11-27); their shirt if one didn't come, then the head whenever it does.
+        const mapas = await bolasDe(estes.map((l) => l.look))
+        lutadores = estes
+        estes.forEach((l, i) => {
+          l.material = MATERIAIS[l.materialId]
+          const vestir = (mapa) => mapa && lutadores === estes && (l.disco = Bolinha.disco(mapa, 96))
+          if (mapas[i]) vestir(mapas[i])
+          else bolaDe(l.look).then(vestir)
+        })
         luta = Duelo.criar(semente, classes[0], classes[1])
         vestirPlacar()
         mostrarApresentacao()
@@ -976,14 +998,17 @@
             ctx.stroke()
           }
         }
-        ctx.beginPath()
-        ctx.arc(0, 0, bola.r, 0, Math.PI * 2)
-        ctx.fillStyle = a.cor
-        ctx.fill()
-        ctx.save()
-        ctx.clip()
-        DueloArte.padrao(ctx, bola.r, a)
-        ctx.restore()
+        if (l.disco) ctx.drawImage(l.disco, -bola.r, -bola.r, bola.r * 2, bola.r * 2)
+        else {
+          ctx.beginPath()
+          ctx.arc(0, 0, bola.r, 0, Math.PI * 2)
+          ctx.fillStyle = a.cor
+          ctx.fill()
+          ctx.save()
+          ctx.clip()
+          DueloArte.padrao(ctx, bola.r, a)
+          ctx.restore()
+        }
         // Poisoned: a purple tint, deeper with each stack.
         if (bola.envenenado) {
           ctx.globalAlpha = Math.min(0.5, 0.12 + bola.envenenado * 0.04)
@@ -1015,17 +1040,19 @@
         ctx.arc(0, 0, bola.r - 1, 0, Math.PI * 2)
         ctx.stroke()
         // In the live's box, its life inside it, as the genre's videos show it.
+        // With the face on the ball, the number sits on its bottom edge, under the mouth.
         if (COMPACTO) {
           const vida = String(Math.max(0, Math.ceil(bola.hp)))
-          ctx.font = `700 ${vida.length > 2 ? 14 : 17}px "Space Grotesk"`
+          const y = l.disco ? bola.r * 0.78 : 1
+          ctx.font = `700 ${l.disco ? (vida.length > 2 ? 11 : 13) : vida.length > 2 ? 14 : 17}px "Space Grotesk"`
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
           ctx.lineJoin = "round"
           ctx.lineWidth = 4
           ctx.strokeStyle = CONTORNO
-          ctx.strokeText(vida, 0, 1)
+          ctx.strokeText(vida, 0, y)
           ctx.fillStyle = "#f4f5f7"
-          ctx.fillText(vida, 0, 1)
+          ctx.fillText(vida, 0, y)
           ctx.textBaseline = "alphabetic"
         }
         ctx.restore()

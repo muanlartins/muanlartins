@@ -13,9 +13,11 @@
 
       The marble race (Lucca's idea, lucca_3098; Luan's rules, 2026-11-17), in 3D since 2026-11-17 (Luan: the point of
       Marbles is the 3D and the mess the maps make): when the scene goes on air, a race starts by itself with everyone in
-      the chat, nobody joining or doing anything, one marble each made from their fan (bolinha.js: their 3D fan's shirt,
-      its colours and pattern, flat through fas3d.js's camisaPlana; the finish their Σ unlocks). The race is corrida-motor.js (deterministic: a seed and how many run, a course
-      of obstacles built from the seed); this page draws it with three.js in a box where the scene's topic is (the box
+      the chat, nobody joining or doing anything, one marble each made from their fan: since 2026-11-26 their 3D fan's
+      head made round (fas3d.js's bola, baked ahead for whoever is in the chat), its face turned to the camera and
+      rocking as it goes (?rolar rolls it over instead), baked before the start (their shirt, bolinha.js, only if one doesn't come); the finish their Σ
+      unlocks. The race is corrida-motor.js (deterministic: a seed and how many run, a map and a course of obstacles
+      built from the seed; ?mapa=classica|fabrica|fliperama|templo tries one, never recorded); this page draws it with three.js in a box where the scene's topic is (the box
       takes its place while a race runs), with a camera following the leaders, the top five on the left, everyone's
       place on a strip at the bottom and the podium at the end, the first three as their 3D fans (fas3d.js). One race each time the scene comes on; off the air (the
       scene left before the end) the race is dropped.
@@ -314,7 +316,7 @@
     <script src="bolinha.js"></script>
     <script type="module">
       import * as THREE from "three"
-      import { camisaPlana, lookDe, poseDaFesta, retrato } from "./fas3d.js"
+      import { bola as bolaDe, bolas as bolasDe, camisaPlana, lookDe, poseDaFesta, retrato } from "./fas3d.js"
       import { MODELOS, sortear as dado } from "./torcedor3d/esquema.js"
 
       const caixa = document.querySelector(".caixa")
@@ -397,6 +399,17 @@
       const sigma = (login) => (login === CHANNEL ? Sigma.RL.at(-1)[0] : sigmas.get(login) ?? 0)
       // Their 3D fan, as the stand draws it (in December with Santa's hat), and its shirt flat for the marble.
       const fa = (login) => lookDe(escolhas.get(login) ?? null, login)
+      // Their ball baked ahead (fas3d.js's bola, the fan's head made round), while nothing's being played: whoever is
+      // in the chat has theirs before their turn comes, instead of their shirt for the first seconds.
+      const assadas = new Set()
+      setInterval(async () => {
+        if (fase === "correndo" || fase === "carregando") return
+        const novos = [...presentes.keys()].filter((l) => l !== CHANNEL && !assadas.has(l)).slice(0, 40)
+        if (!novos.length) return
+        novos.forEach((l) => assadas.add(l))
+        await pedir(novos)
+        for (const l of novos) bolaDe(fa(l))
+      }, 15000)
 
       // --- The 3D scene ---------------------------------------------------------------------------------------------
       const renderer = new THREE.WebGLRenderer({ canvas: cena, antialias: true, alpha: true })
@@ -418,8 +431,24 @@
       sol.shadow.bias = -0.0005
       scene.add(sol, sol.target)
 
+      // Each map's colours (corrida-motor.js's MAPAS): the floor and the pieces that are its own. The ground, the sky and
+      // the pieces every map shares stay the channel's.
+      const CORES = {
+        classica: { piso: 0x3d6bff, brilho: 0x0a1d66, parede: 0xc8d8ff },
+        fabrica: { piso: 0x56607a, brilho: 0x141a2e, parede: 0xd7dbe6 },
+        fliperama: { piso: 0x5a2fd0, brilho: 0x220a66, parede: 0xffc8f0 },
+        templo: { piso: 0xc9925a, brilho: 0x4a2408, parede: 0xffe6c2 },
+      }
       const MATERIAIS = {
         piso: new THREE.MeshStandardMaterial({ color: 0x3d6bff, roughness: 0.55, metalness: 0.05, emissive: 0x0a1d66, emissiveIntensity: 0.6 }),
+        alcapao: new THREE.MeshStandardMaterial({ color: 0x8a5a2e, roughness: 0.7, emissive: 0x2a1204, emissiveIntensity: 0.5 }),
+        martelo: new THREE.MeshStandardMaterial({ color: 0x9aa3b5, roughness: 0.45, metalness: 0.4 }),
+        haste: new THREE.MeshStandardMaterial({ color: 0x6b4a2a, roughness: 0.8 }),
+        pistao: new THREE.MeshStandardMaterial({ color: 0xffb547, roughness: 0.3, metalness: 0.5, emissive: 0x6a3a00, emissiveIntensity: 0.4 }),
+        batedor: new THREE.MeshStandardMaterial({ color: 0xff4fd8, roughness: 0.25, emissive: 0xa0108a, emissiveIntensity: 0.8 }),
+        defletor: new THREE.MeshStandardMaterial({ color: 0x4dd4ff, roughness: 0.3, emissive: 0x0a6a8a, emissiveIntensity: 0.6 }),
+        divisoria: new THREE.MeshStandardMaterial({ color: 0xb8a48a, roughness: 0.8 }),
+        impulso: new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }),
         parede: new THREE.MeshStandardMaterial({ color: 0xc8d8ff, roughness: 0.3, transparent: true, opacity: 0.16, depthWrite: false }),
         portao: new THREE.MeshStandardMaterial({ color: 0xff4d5e, roughness: 0.4 }),
         braco: new THREE.MeshStandardMaterial({ color: 0xffb547, roughness: 0.35, emissive: 0x6a3a00, emissiveIntensity: 0.5 }),
@@ -450,6 +479,30 @@
         return t
       }
 
+      // A boost pad's arrows, scrolling along it.
+      function setas() {
+        const c = document.createElement("canvas")
+        c.width = 64
+        c.height = 64
+        const g = c.getContext("2d")
+        g.fillStyle = "rgb(255 210 63 / 0.9)"
+        for (const y of [8, 40]) {
+          g.beginPath()
+          g.moveTo(10, y)
+          g.lineTo(32, y + 14)
+          g.lineTo(54, y)
+          g.lineTo(54, y + 9)
+          g.lineTo(32, y + 23)
+          g.lineTo(10, y + 9)
+          g.fill()
+        }
+        const t = new THREE.CanvasTexture(c)
+        t.wrapS = t.wrapT = THREE.RepeatWrapping
+        t.colorSpace = THREE.SRGBColorSpace
+        return t
+      }
+      MATERIAIS.impulso.map = setas()
+
       const base = new THREE.Matrix4()
       function poseCaixa(mesh, p) {
         base.makeBasis(new THREE.Vector3(p.ux, p.uy, p.uz), new THREE.Vector3(p.vx, p.vy, p.vz), new THREE.Vector3(p.wx, p.wy, p.wz))
@@ -462,9 +515,24 @@
         if (mundo) scene.remove(mundo)
         mundo = new THREE.Group()
         moveis = []
+        const cores = CORES[p.mapa] ?? CORES.classica
+        MATERIAIS.piso.color.setHex(cores.piso)
+        MATERIAIS.piso.emissive.setHex(cores.brilho)
+        MATERIAIS.parede.color.setHex(cores.parede)
         for (const peca of p.pecas) {
           let mesh
-          if (peca.t === "caixa") {
+          if (peca.t === "zona") {
+            // A boost pad: arrows flat on the floor, pointing along it.
+            const tex = MATERIAIS.impulso.map
+            tex.repeat.set(peca.hz, peca.hx)
+            mesh = new THREE.Mesh(new THREE.PlaneGeometry(peca.hz * 2, peca.hx * 2), MATERIAIS.impulso)
+            mesh.matrixAutoUpdate = false
+            // The plane's x across (w), its y along (u), facing up (v), just over the floor.
+            base.makeBasis(new THREE.Vector3(peca.wx, peca.wy, peca.wz), new THREE.Vector3(peca.ux, peca.uy, peca.uz), new THREE.Vector3(peca.vx, peca.vy, peca.vz))
+            base.setPosition(peca.cx + peca.vx * 0.03, peca.cy + peca.vy * 0.03, peca.cz)
+            mesh.matrix.copy(base)
+            mesh.renderOrder = 1
+          } else if (peca.t === "caixa") {
             const geo = new THREE.BoxGeometry(peca.hx * 2, peca.hy * 2, peca.hz * 2)
             mesh = new THREE.Mesh(geo, MATERIAIS[peca.papel] ?? MATERIAIS.piso)
             mesh.matrixAutoUpdate = false
@@ -475,12 +543,24 @@
               mesh.add(linhas)
             } else if (peca.papel === "parede") mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), bordaParede))
             else mesh.castShadow = true
-            if (peca.gira || peca.move || peca.ate !== undefined) moveis.push([peca, mesh])
+            if (peca.balanca) {
+              // The hammer's arm, up to its pivot (it doesn't hit anything: only the head does).
+              const L = peca.balanca.L
+              const haste = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, L, 8), MATERIAIS.haste)
+              haste.position.set(0, peca.hy + L / 2, 0)
+              mesh.add(haste)
+            }
+            if (peca.gira || peca.move || peca.balanca || peca.abre || peca.ate !== undefined) moveis.push([peca, mesh])
           } else {
             const altura = Math.hypot(peca.bx - peca.ax, peca.by - peca.ay, peca.bz - peca.az)
             mesh = new THREE.Mesh(new THREE.CylinderGeometry(peca.r, peca.r, altura, 18), MATERIAIS[peca.papel] ?? MATERIAIS.pino)
             mesh.position.set((peca.ax + peca.bx) / 2, (peca.ay + peca.by) / 2, (peca.az + peca.bz) / 2)
             mesh.castShadow = true
+            if (peca.sobe) {
+              // A post that pops up: a unit tall, stretched to where it is each frame.
+              mesh.geometry = new THREE.CylinderGeometry(peca.r, peca.r, 1, 18)
+              moveis.push([peca, mesh])
+            }
           }
           mundo.add(mesh)
         }
@@ -520,12 +600,30 @@
           const map = new THREE.CanvasTexture(tela)
           map.colorSpace = THREE.SRGBColorSpace
           const fim = Bolinha.acabamento(Sigma.ranque(sigma(c.login)).id)
-          const material = new THREE.MeshPhysicalMaterial({ map, roughness: 0.22, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.15 })
+          const material = new THREE.MeshPhysicalMaterial({ map, roughness: 0.4, metalness: 0, clearcoat: 0.7, clearcoatRoughness: 0.2 })
+          // Their head made round (fas3d.js's bola), baked before the start (largar); the shirt if it didn't come, then
+          // the head whenever it does. Baked once a look, so the next race (and the duel) has it at once.
+          const corrida0 = corrida
+          const vestir = (mapa) => {
+            if (!mapa || corrida !== corrida0) return
+            const cabeca = new THREE.CanvasTexture(mapa)
+            cabeca.colorSpace = THREE.SRGBColorSpace
+            cabeca.anisotropy = 4
+            material.map.dispose()
+            material.map = cabeca
+            material.needsUpdate = true
+            c.miniatura = Bolinha.disco(mapa, 48).toDataURL()
+            lideresAntes = ""
+          }
+          if (c.mapa) vestir(c.mapa)
+          else bolaDe(c.look).then(vestir)
           if (fim.brilho) {
             material.emissive = new THREE.Color(c.aparencia.cor)
             material.emissiveIntensity = 0.35
           }
           const mesh = new THREE.Mesh(esfera, material)
+          // The face (the map's quarter, +z) looking back up the course, at the camera, until it starts rolling.
+          mesh.rotation.y = -Math.PI / 2
           mesh.castShadow = true
           scene.add(mesh)
           // The trail, from Diamante up: ghosts of where it just was.
@@ -544,7 +642,7 @@
       // --- A race ---------------------------------------------------------------------------------------------------
       let corrida = null // the engine's state
       let corredores = [] // marble i → { login, nome, aparencia }
-      let fase = "parada" // parada · correndo · chegada · podio
+      let fase = "parada" // parada · carregando (the balls baking) · correndo · chegada · podio
       let acumulado = 0
       let ultimo = 0
       let chamadas = 0
@@ -556,7 +654,24 @@
       }
 
       // The course's name, from what it has most of.
-      const NOMES = { pinos: "Chuva de Pinos", moinho: "Moinhos", funil: "Funil", ponte: "Ponte Sem Grade", vale: "Vale dos Para-choques", salto: "Salto", degraus: "Escadaria" }
+      const NOMES = {
+        pinos: "Chuva de Pinos",
+        moinho: "Moinhos",
+        funil: "Funil",
+        ponte: "Ponte Sem Grade",
+        vale: "Vale dos Para-choques",
+        salto: "Salto",
+        degraus: "Escadaria",
+        esteira: "Esteiras",
+        pistoes: "Pistões",
+        cruz: "Cruzetas",
+        fliper: "Batedores",
+        lancador: "Lançador",
+        zigue: "Zigue-zague",
+        pendulos: "Martelos",
+        alcapao: "Alçapões",
+        bifurcacao: "Atalho",
+      }
       function nomeDaPista(p) {
         const conta = {}
         for (const m of p.modulos) if (NOMES[m.tipo]) conta[m.tipo] = (conta[m.tipo] ?? 0) + 1
@@ -564,7 +679,8 @@
           .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
           .slice(0, 2)
           .map(([t]) => NOMES[t])
-        return top.join(" e ")
+        // The map first (corrida-motor.js's MAPAS), then what this course has most of.
+        return `${Corrida.MAPAS[p.mapa]?.nome ?? ""} · ${top.join(" e ")}`
       }
 
       // Taking turns with the duel in the "Conversa" scene (conversa.html holds this page in an iframe, ?vez): it says
@@ -574,10 +690,15 @@
       let pausada = false
       const avisar = (minijogo) => VEZ && parent.postMessage({ minijogo }, location.origin)
 
+      let ultimoMapa = null
+      let preparo = null // the start being got ready (r in the demo can start another while one waits for its balls)
       async function largar() {
         if (fase !== "parada") return
         let logins
         let semente = sementeNova()
+        // A map drawn each race (the seed's, corrida-motor.js's mapaDe), never the one just raced: another seed until
+        // it differs. Any seed is a fair one, so the record (the seed alone) still checks out.
+        if (!params.has("semente")) while (Corrida.mapaDe(semente) === ultimoMapa) semente = sementeNova()
         if (REPLAY) {
           logins = REPLAY
         } else {
@@ -597,10 +718,20 @@
           logins.sort()
         }
         if (logins.length < 2) return avisar("vazio")
+        // Until every ball is ready (below), nothing else starts one.
+        fase = "carregando"
+        const esta = (preparo = {})
         await pedir(logins.filter((l) => l !== CHANNEL))
         const nomes = (params.get("nomes") ?? "").split(",")
-        corredores = logins.map((login, i) => ({ login, nome: (REPLAY && nomes[i]?.trim()) || presentes.get(login) || login, look: fa(login), aparencia: camisaPlana(fa(login)) }))
-        corrida = Corrida.criar(semente, corredores.length)
+        const novos = logins.map((login, i) => ({ login, nome: (REPLAY && nomes[i]?.trim()) || presentes.get(login) || login, look: fa(login), aparencia: camisaPlana(fa(login)) }))
+        // The race starts only with every head on its ball (Luan, 2026-11-27), not in shirts for its first seconds.
+        const mapas = await bolasDe(novos.map((c) => c.look))
+        if (esta !== preparo) return
+        novos.forEach((c, i) => (c.mapa = mapas[i]))
+        corredores = novos
+        // ?mapa= tries a map whatever the seed's (never recorded: the record is the seed alone).
+        corrida = Corrida.criar(semente, corredores.length, MAPA_FORCADO)
+        ultimoMapa = corrida.pista.mapa
         montarPista(corrida.pista)
         montarBolas(corredores)
         mapa.textContent = nomeDaPista(corrida.pista)
@@ -785,10 +916,14 @@
         sol.target.position.copy(foco)
       }
 
+      // ?rolar: the marbles roll over as they did before their faces (their nape most of the time).
+      const ROLAR = params.has("rolar")
+      const MAPA_FORCADO = params.get("mapa") || undefined
       const eixo = new THREE.Vector3()
       const giro = new THREE.Quaternion()
       function moverBolas(dt, agora) {
         const c = corrida
+        MATERIAIS.impulso.map.offset.y = -(agora / 400) % 1
         for (const b of c.bolas) {
           const m = bolas3d[b.i]
           const longe = b.fora || b.espera
@@ -799,12 +934,21 @@
             continue
           }
           m.mesh.position.set(b.x, b.y, b.z)
-          // Rolling: about up × velocity, as far as it went.
           const vh = Math.hypot(b.vx, b.vz)
-          if (vh > 0.01) {
-            eixo.set(b.vz / vh, 0, -b.vx / vh)
-            giro.setFromAxisAngle(eixo, (vh * dt) / Corrida.RAIO)
-            m.mesh.quaternion.premultiply(giro)
+          if (ROLAR) {
+            // Rolling: about up × velocity, as far as it went.
+            if (vh > 0.01) {
+              eixo.set(b.vz / vh, 0, -b.vx / vh)
+              giro.setFromAxisAngle(eixo, (vh * dt) / Corrida.RAIO)
+              m.mesh.quaternion.premultiply(giro)
+            }
+          } else {
+            // The face to the camera (a head rolling over shows its nape most of the time, and nobody finds their
+            // marble), rocking as if it rolled: nodding with the way it went, leaning into its turns.
+            m.andou = (m.andou ?? 0) + (vh * dt) / Corrida.RAIO
+            m.mesh.lookAt(camera.position)
+            m.mesh.rotateX(Math.sin(m.andou * 0.9) * Math.min(0.35, vh * 0.05))
+            m.mesh.rotateZ(Math.max(-0.5, Math.min(0.5, -b.vz * 0.08)))
           }
           if (m.fim.arco) m.mesh.material.emissive.setHSL(((agora / 3000) % 1 + b.i * 0.07) % 1, 0.9, 0.5)
           if (m.rastro.length) {
@@ -818,7 +962,14 @@
           }
         }
         for (const [peca, mesh] of moveis) {
-          if (peca.ate !== undefined) {
+          if (peca.sobe) {
+            const h = peca.by - peca.ay
+            mesh.scale.y = h
+            mesh.position.y = (peca.ay + peca.by) / 2
+          } else if (peca.abre) {
+            // A trapdoor drops a little and fades while it's open.
+            mesh.visible = !peca.aberta
+          } else if (peca.ate !== undefined) {
             // The gate sinks out of the way.
             const t = Math.min(1, Math.max(0, (c.tique - peca.ate) / (0.4 * Corrida.HZ)))
             mesh.visible = t < 1
@@ -880,7 +1031,7 @@
       // --- The record: each race that ends while the stream is on, to the Σ API ---------------------------------
       let noArAte = 0
       function registrar() {
-        if (DEMO || REPLAY || !CHAVE || !SIGMA_API || Date.now() > noArAte) return
+        if (DEMO || REPLAY || MAPA_FORCADO || !CHAVE || !SIGMA_API || Date.now() > noArAte) return
         const corpo = {
           versao: Corrida.VERSAO,
           semente: corrida.semente,
