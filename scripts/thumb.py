@@ -80,7 +80,11 @@ def pieces(date, kind):
     listed = json.loads(listing.read_text()) if listing.exists() else {}
     if kind in listed:
         return [(datetime.fromisoformat(p["inicio"]), p["em"], p["segundos"]) for p in listed[kind]]
-    file = next(folder(date).glob(f"* {kind}.*"))
+    file = next(folder(date).glob(f"* {kind}.*"), None)
+    if file is None:
+        # A day whose game recording isn't filed yet (11-26: no room on the disk to remux it): no pieces, so
+        # in_file says it wasn't recording and the background comes from Live.mp4.
+        return []
     return [(datetime.fromisoformat(f"{date}T{file.name[:8].replace('-', ':')}"), 0.0, 1e9)]
 
 
