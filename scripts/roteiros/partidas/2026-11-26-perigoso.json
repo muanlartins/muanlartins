@@ -1,0 +1,17 @@
+{
+  "data": "2026-11-26",
+  "nome": "perigoso",
+  "titulo": "Tá vendo como eu tô ficando mais perigoso?",
+  "descricao": "2v2 ranqueado em duo com o Duolingo: 5 a 1 com os cinco gols dele, 4 a 1 com um gol meu desviando do bump e 4 a 0 com um golaço que me deixou com as mãos na cabeça.",
+  "partidas": [
+    6,
+    7,
+    8
+  ],
+  "capitulos": {
+    "6": "O Duolingo fez os cinco",
+    "7": "Desviei do bump",
+    "8": "E golaço! Meu Deus"
+  },
+  "publicar": "2026-11-29T19:00:00-03:00"
+}

@@ -1,0 +1,17 @@
+{
+  "data": "2026-11-26",
+  "nome": "suporte",
+  "titulo": "Sou um bom jogador de suporte",
+  "descricao": "3v3 ranqueado com o JK e o Duolingo: 5 a 0, uma vitória na prorrogação contra caras que já eram Champion 2 e um 3 a 0 comigo de terceiro homem.",
+  "partidas": [
+    10,
+    11,
+    12
+  ],
+  "capitulos": {
+    "10": "5 a 0",
+    "11": "Na prorrogação, contra Champion 2",
+    "12": "Eu de terceiro homem"
+  },
+  "publicar": "2026-11-30T12:00:00-03:00"
+}

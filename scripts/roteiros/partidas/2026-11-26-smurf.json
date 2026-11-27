@@ -1,0 +1,17 @@
+{
+  "data": "2026-11-26",
+  "nome": "smurf",
+  "titulo": "Eu só tô caindo com smurf hoje",
+  "descricao": "2v2 ranqueado solo, caindo com smurf atrás de smurf: um 2 a 0 contra caras com mecânica demais pro Diamante 3, um gol contra no fim com direito a duelo de honra, e uma virada nos últimos minutos.",
+  "partidas": [
+    1,
+    2,
+    4
+  ],
+  "capitulos": {
+    "1": "Mecânica demais pro Diamante 3",
+    "2": "Um gol contra e um duelo de honra",
+    "4": "A virada no fim"
+  },
+  "publicar": "2026-11-29T15:00:00-03:00"
+}
