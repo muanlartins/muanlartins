@@ -11,16 +11,17 @@ import { test } from "node:test"
 createRequire(import.meta.url)("../public/stream/corrida-motor.js")
 const Corrida = globalThis.Corrida
 
-// [seed, marbles, steps, the order they crossed]
+// [seed, marbles, steps, the order they crossed], a race on each map
 const DOURADAS = [
-  [1, 5, 5175, [3, 2, 4, 0, 1]],
-  [7, 12, 5706, [6, 4, 2, 0, 5, 8, 1, 10, 3, 11, 7, 9]],
-  [2026, 25, 5807, [10, 3, 4, 7, 2, 11, 9, 23, 15, 12, 17, 6, 18, 19, 16, 24, 13, 1, 0, 5, 22, 8, 14, 20, 21]],
-  [42, 2, 8442, [1, 0]],
+  [1, 5, 5010, [2, 1, 4, 0, 3]], // classica
+  [7, 12, 5920, [0, 5, 1, 9, 6, 7, 4, 11, 10, 3, 2, 8]], // fliperama
+  [2026, 25, 7426, [8, 9, 2, 14, 17, 0, 16, 1, 10, 20, 23, 15, 21, 13, 12, 24, 18, 11, 5, 6, 4, 3, 22, 7, 19]], // fabrica
+  [42, 2, 4331, [1, 0]], // fliperama
+  [3, 9, 6296, [4, 3, 1, 0, 5, 6, 2, 8, 7]], // templo
 ]
 
-test("the golden races end as they did (rules of VERSAO 2, the 3D course)", () => {
-  assert.equal(Corrida.VERSAO, 2)
+test("the golden races end as they did (rules of VERSAO 3: the maps, the course's pockets gone)", () => {
+  assert.equal(Corrida.VERSAO, 3)
   for (const [semente, quantos, tiques, ordem] of DOURADAS) {
     const r = Corrida.simular(semente, quantos)
     assert.deepEqual([r.tiques, r.ordem], [tiques, ordem], `seed ${semente}, ${quantos} marbles`)
@@ -41,9 +42,9 @@ test("every race ends: everyone placed, the first across in under a minute and a
   }
 })
 
-test("the course goes forwards and never steps up into a marble's way between modules", () => {
-  for (let semente = 1; semente < 40; semente++) {
-    const { modulos, chegada } = Corrida.pista(semente, 20)
+test("the course goes forwards and never steps up into a marble's way between modules, on every map", () => {
+  for (const mapa of Object.keys(Corrida.MAPAS)) for (let semente = 1; semente < 25; semente++) {
+    const { modulos, chegada } = Corrida.pista(semente, 20, mapa)
     for (let i = 1; i < modulos.length; i++) {
       assert.ok(modulos[i].x0 >= modulos[i - 1].x0, `seed ${semente}, module ${i}`)
       assert.ok(modulos[i].y0 <= modulos[i - 1].y1 + 1e-9, `seed ${semente}: ${modulos[i].tipo} starts above where ${modulos[i - 1].tipo} ends`)
@@ -65,4 +66,32 @@ test("the order changes on the way: the leader after 8 s doesn't just win", () =
     if (c.ordem[0] === lider) ganhou++
   }
   assert.ok(ganhou <= corridas * 0.5, `the leader after 8 s won ${ganhou} of ${corridas}`)
+})
+
+test("the seed draws every map", () => {
+  const vistos = new Set()
+  for (let semente = 0; semente < 200; semente++) vistos.add(Corrida.mapaDe(semente))
+  assert.deepEqual([...vistos].sort(), Object.keys(Corrida.MAPAS).sort())
+})
+
+// A pocket (a peg under the next module's slanting walls, a bumper by a wall, a post dead on the middle line) holds a
+// marble until the engine lifts it out: each was found by counting those lifts, module by module.
+test("no module holds marbles: on every map, hardly a stuck marble needs lifting out", () => {
+  for (const mapa of Object.keys(Corrida.MAPAS)) {
+    const presos = {}
+    for (const semente of [11, 12, 13]) {
+      const c = Corrida.criar(semente, 20, mapa)
+      while (!c.fim) {
+        const antes = c.bolas.map((b) => b.parado)
+        Corrida.passo(c)
+        c.bolas.forEach((b, i) => {
+          if (antes[i] > Corrida.HZ && b.parado === 0 && !b.espera) {
+            const tipo = c.pista.modulos[b.modulo].tipo
+            presos[tipo] = (presos[tipo] ?? 0) + 1
+          }
+        })
+      }
+    }
+    for (const [tipo, n] of Object.entries(presos)) assert.ok(n <= 3, `${mapa}: ${n} marbles lifted out of ${tipo} in 3 races`)
+  }
 })

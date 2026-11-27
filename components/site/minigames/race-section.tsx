@@ -3,6 +3,7 @@
 import { ArrowRight, Play } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+import type { Quem } from "@/components/site/fan/estudio"
 import { Marble, MarbleDot, type MarbleKit } from "@/components/site/minigames/marble"
 import { fill, Name, number, when } from "@/components/site/minigames/shared"
 import { Button, cardClass, Dialog, EmptyState, Fold, Section, Skeleton } from "@/components/site/ui"
@@ -21,7 +22,7 @@ const R = text.race
 // The finishes, the duel's weapon materials (bolinha.js): Platina up glows, Diamante up leaves a trail, Campeão up sparkles.
 const FINISHES = MATERIALS.map((m) => m.id)
 // The rules' version the player draws (public/stream/corrida-motor.js's VERSAO): an older race can't be replayed.
-const RULES = 2
+const RULES = 3
 /** How many of the latest races the page lists. */
 const LATEST = 4
 
@@ -38,6 +39,7 @@ export function RaceSection({
   fan,
   sigma,
   skinOf,
+  whoOf,
 }: {
   S: Sigma | null
   kit: MarbleKit | null
@@ -46,6 +48,7 @@ export function RaceSection({
   fan: Record<string, unknown> | null
   sigma: number
   skinOf: (login: string) => string | null
+  whoOf: (login: string) => Quem
 }) {
   const [replay, setReplay] = useState<Race | null>(null)
   const list = races && races !== "error" ? races : null
@@ -78,7 +81,7 @@ export function RaceSection({
             <p className="mt-2 text-[13px] text-paper/70">{latest ? fill(R.player.replay, { n: latest.logins.length, d: shortDate(latest.em) }) : R.player.demo}</p>
           </div>
           <div className="grid items-center gap-5 border-t border-paper/10 p-5 sm:grid-cols-[auto_1fr]">
-            <div className="grid min-h-[132px] place-items-center"><Marble kit={kit} fan={fan ?? (padrao2D(login || "eu") as unknown as Record<string, unknown>)} rankId={rank?.id} size={132} /></div>
+            <div className="grid min-h-[132px] place-items-center"><Marble kit={kit} fan={fan ?? (padrao2D(login || "eu") as unknown as Record<string, unknown>)} who={login ? whoOf(login) : null} rankId={rank?.id} size={132} /></div>
             <div className="space-y-3">
               <div>
                 <p className="eyebrow text-ouro">{R.yours.title}</p>
@@ -126,7 +129,7 @@ export function RaceSection({
                     {r.ordem.slice(0, 3).map((i, k) => (
                       <li key={i} className="flex items-center gap-2">
                         <span className={cn("w-6 text-right font-semibold tabular-nums", k === 0 ? "text-ouro" : "text-paper/55")}>{k + 1}º</span>
-                        <MarbleDot skin={skinOf(r.logins[i])} size={16} />
+                        <MarbleDot skin={skinOf(r.logins[i])} who={whoOf(r.logins[i])} kit={kit} size={16} />
                         <Name login={r.logins[i]} className={cn("truncate", k === 0 ? "font-medium" : "text-paper/80")}>
                           {r.nomes[i]}
                         </Name>

@@ -1888,6 +1888,52 @@ export const FOTO = {
   alto: { x: 0, y: 0.3, w: 3.6, h: 4.4 },
   olhos: { x: 0, y: -0.04, w: 1.18, h: 1.34 }, // close enough to see a pupil
 }
+
+/**
+ * The marble's look (Luan, 2026-11-26: the minigames' ball as the fan's head, "completamente redonda"): the head made a
+ * sphere (its width, height, squareness, chin, cheeks, forehead and muzzle back to round, its size and tilt to the
+ * default), everything else the fan's own. What sticks out of it (hair, a hat, ears, horns) is then pressed onto the
+ * sphere by the photographer's bola(): what you'd see looking at the head from straight out along each direction.
+ */
+export const redonda = (a) => ({ ...a, larg: 1, alt: 1, quadr: 0, queixo: 0, bochecha: 0, testa: 0, focinho: 0, tam: 1, incl: 0, giro: 0 })
+
+// The marble's picture: the head seen from its centre out, the farthest surface along each direction (so a hat's top
+// covers the hair, the hair the scalp), flat colours, into a cube; then the cube unwrapped as the sphere's map
+// (three's SphereGeometry: longitude across from −x, latitude down from the top), with a navy line wherever one piece
+// meets another, as the outlines do on the fan.
+const BOLA_VERT = `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`
+const BOLA_FRAG = `
+  precision highp float;
+  uniform samplerCube cor;
+  uniform samplerCube ids;
+  uniform float traco;
+  uniform vec3 navy;
+  varying vec2 vUv;
+  const float PI = 3.141592653589793;
+  vec3 dirDe(vec2 uv) {
+    float phi = uv.x * 2.0 * PI;
+    float theta = (1.0 - uv.y) * PI;
+    return vec3(-cos(phi) * sin(theta), cos(theta), sin(phi) * sin(theta));
+  }
+  vec3 srgb(vec3 c) {
+    c = clamp(c, 0.0, 1.0);
+    return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), c));
+  }
+  void main() {
+    vec3 d = dirDe(vUv);
+    vec3 c = textureCube(cor, d).rgb;
+    vec3 id = textureCube(ids, d).rgb;
+    vec3 t1 = abs(d.y) > 0.999 ? vec3(1.0, 0.0, 0.0) : normalize(cross(d, vec3(0.0, 1.0, 0.0)));
+    vec3 t2 = cross(d, t1);
+    float borda = 0.0;
+    for (int k = 0; k < 8; k++) {
+      float a = float(k) * PI / 4.0;
+      vec3 o = textureCube(ids, normalize(d + (t1 * cos(a) + t2 * sin(a)) * traco)).rgb;
+      if (dot(o, o) > 0.0 && dot(id, id) > 0.0 && distance(o, id) > 0.002) borda = 1.0;
+    }
+    gl_FragColor = vec4(srgb(mix(c, navy, borda)), 1.0);
+  }`
+
 // Built on the first picture, not on import: the site's build imports this in Node, where there's no WebGL.
 function montarFotografo() {
   const render = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true })
@@ -1965,7 +2011,149 @@ function montarFotografo() {
     return { x, y, w: Math.max(n, entre(cima(((x1 + 1) / 2) * w), 0, w) - x), h: Math.max(n, entre(cima(((1 - y0) / 2) * h), 0, h) - y) }
   }
 
+  // --- The marble -----------------------------------------------------------------------------------------------
+  let bolaKit = null
+  function kitDaBola() {
+    if (bolaKit) return bolaKit
+    const LADO = 256
+    const cor = new THREE.WebGLCubeRenderTarget(LADO, { type: THREE.HalfFloatType, generateMipmaps: false })
+    const ids = new THREE.WebGLCubeRenderTarget(LADO, { magFilter: THREE.NearestFilter, minFilter: THREE.NearestFilter, generateMipmaps: false })
+    const cubo = new THREE.CubeCamera(0.01, 30, cor)
+    const plano = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.ShaderMaterial({
+        vertexShader: BOLA_VERT,
+        fragmentShader: BOLA_FRAG,
+        uniforms: { cor: { value: cor.texture }, ids: { value: ids.texture }, traco: { value: 0.022 }, navy: { value: new THREE.Color(NAVY) } },
+        depthTest: false,
+        depthWrite: false,
+      }),
+    )
+    plano.frustumCulled = false
+    const cenaPlana = new THREE.Scene()
+    cenaPlana.add(plano)
+    const cenaBola = new THREE.Scene()
+    bolaKit = { cor, ids, cubo, cenaPlana, cenaBola, cameraPlana: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1) }
+    return bolaKit
+  }
+  /**
+   * The fan made a marble, from its centre out (redonda: the head a sphere): only the head and what rides on it, each
+   * piece with two flat materials, its colour (and map: the face) and an id of its own; the outlines and see-through
+   * pieces (lenses) left out. Returns what draws each pass and what puts the fan back.
+   */
+  function prepararBola(b) {
+    const cabeca = b.ancoras.cabeca
+    const naCabeca = new Set()
+    cabeca.traverse((o) => naCabeca.add(o))
+    const pecas = []
+    b.raiz.traverse((o) => {
+      if (!o.isMesh) return
+      const m = o.material
+      const contornoDe = m.isMeshBasicMaterial && m.side === THREE.BackSide
+      const vidro = m.transparent && m.opacity < 0.6
+      if (!naCabeca.has(o) || contornoDe || vidro || !o.visible) return
+      const n = pecas.length + 1
+      const plana = { side: THREE.DoubleSide, depthFunc: THREE.GreaterDepth }
+      pecas.push({
+        o,
+        original: m,
+        cor: new THREE.MeshBasicMaterial({ color: m.color ?? new THREE.Color("#ffffff"), map: m.map ?? null, vertexColors: !!m.vertexColors, ...plana }),
+        id: new THREE.MeshBasicMaterial({ color: new THREE.Color(((n * 37) % 251) / 255, ((n * 91) % 241) / 255, ((n * 13 + 128) % 255) / 255), ...plana }),
+      })
+    })
+    const escondidos = []
+    b.raiz.traverse((o) => {
+      if (o.isMesh && o.visible && !pecas.some((p) => p.o === o)) {
+        o.visible = false
+        escondidos.push(o)
+      }
+    })
+    return {
+      vestir: (qual) => pecas.forEach((p) => (p.o.material = p[qual])),
+      desfazer() {
+        // Not disposed: three would drop their programs and compile them again for the next marble (as desmontar).
+        pecas.forEach((p) => (p.o.material = p.original))
+        escondidos.forEach((o) => (o.visible = true))
+      },
+    }
+  }
+  /** One cube pass of the marble: clears to depth 0 so the farthest surface wins (GreaterDepth). */
+  function passeDaBola(k, b, alvo, fundo) {
+    k.cubo.renderTarget = alvo
+    k.cenaBola.add(b.raiz)
+    const depth = render.state.buffers.depth
+    const corAntes = render.getClearColor(new THREE.Color())
+    const alfaAntes = render.getClearAlpha()
+    render.setScissorTest(false)
+    render.setClearColor(fundo, 1)
+    depth.setClear(0)
+    k.cubo.update(render, k.cenaBola)
+    depth.setClear(1)
+    render.setClearColor(corAntes, alfaAntes)
+    k.cenaBola.remove(b.raiz)
+  }
+  /** The cubes unwrapped into the canvas's bottom-left w × h; returns how far down the canvas it starts. */
+  function desenrolar(k, w, h) {
+    render.getSize(tamanho)
+    if (w > tamanho.x || h > tamanho.y) render.setSize(Math.max(w, tamanho.x), Math.max(h, tamanho.y), false)
+    render.getSize(tamanho)
+    render.setRenderTarget(null)
+    render.setViewport(0, 0, w, h)
+    render.setScissor(0, 0, w, h)
+    render.setScissorTest(true)
+    render.render(k.cenaPlana, k.cameraPlana)
+    return tamanho.y - h
+  }
+  /** A marble's map, step by step (each a few ms): build, colour cube, id cube, unwrap. */
+  function passosDaBola(a, altura, traco) {
+    const k = kitDaBola()
+    const look = redonda(a)
+    let b = null
+    let prep = null
+    let etapa = 0
+    return {
+      get montado() { return !!b },
+      passo() {
+        if (etapa === 0) {
+          b = criarBoneco(look, { qualidade: 0.5, traco })
+          b.pose("parado")
+          b.raiz.updateMatrixWorld(true)
+          prep = prepararBola(b)
+        } else if (etapa === 1) {
+          prep.vestir("cor")
+          passeDaBola(k, b, k.cor, new THREE.Color(look.pele))
+        } else if (etapa === 2) {
+          prep.vestir("id")
+          passeDaBola(k, b, k.ids, new THREE.Color(0, 0, 0))
+        } else {
+          const w = altura * 2
+          const dy = desenrolar(k, w, altura)
+          prep.desfazer()
+          desmontar(b)
+          return { x: 0, y: dy, w, h: altura }
+        }
+        etapa++
+        return null
+      },
+      largar() {
+        if (prep) prep.desfazer()
+        if (b) desmontar(b)
+      },
+    }
+  }
+
   return {
+    /** The marble's map at once, a canvas 2h × h (the site, the tools): the fan's head made round, see redonda. */
+    bola(a, { altura = 256, traco = 0.04 } = {}) {
+      const s = passosDaBola(a, altura, traco)
+      let r = null
+      while (!(r = s.passo()));
+      const c = document.createElement("canvas")
+      c.width = r.w
+      c.height = r.h
+      c.getContext("2d").drawImage(render.domElement, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h)
+      return c
+    },
     /** Whole-frame canvases at once (the editor's thumbnails, the gallery). */
     tirar(a, poses, { altura = 260, quadro = "inteiro", traco = 0.06, giro = 0 } = {}) {
       const w = largura(FOTO[quadro], altura)
@@ -1993,6 +2181,29 @@ function montarFotografo() {
      * the face and shirt maps fall to their mipmaps, the outline thins to a faint line).
      */
     sessao(a, poses, { px, quadro = "inteiro", traco = 0.06, fino = 260 / 5.3 }) {
+      if (quadro === "bola") {
+        // The marble's map, `px` tall and twice as wide, as the one picture "bola": { img, x: 0, y: 0, W, H }.
+        const altura = Math.max(16, Math.round(px))
+        const s = passosDaBola(a, altura, 0.04)
+        let pronto = null
+        return {
+          px,
+          get montado() { return s.montado },
+          get pronto() { return pronto },
+          esperando: false,
+          passo() {
+            const r = s.passo()
+            if (!r) return false
+            pronto = createImageBitmap(render.domElement, r.x, r.y, r.w, r.h).then((img) => ({ bola: { img, x: 0, y: 0, W: r.w, H: r.h } }))
+            return true
+          },
+          largar() {
+            if (pronto) return
+            s.largar()
+            pronto = Promise.resolve({})
+          },
+        }
+      }
       const q = FOTO[quadro]
       const altura = Math.max(8, Math.round(px * q.h))
       const W = largura(q, altura)
@@ -2053,10 +2264,13 @@ const abrir = () => (estudio ??= montarFotografo())
  *   sessao(look, poses, { px, quadro, traco, fino }) → a session baked one small step per passo(), so no frame pays
  *     for a whole fan: { passo() → true once done, pronto (a promise of { [pose]: { img, x, y, W, H } }), montado,
  *     esperando, largar(), px }. Each picture is an ImageBitmap cut to the fan, with where it sits in the whole frame.
+ *   bola(look, { altura }) → a canvas 2h × h, the fan as a marble (its head made round, wrapped as a sphere's map);
+ *     sessao(look, ["bola"], { px: h, quadro: "bola" }) bakes the same step by step, as the picture "bola".
  *   preparar() makes the canvas now, so the first picture doesn't pay for it.
  */
 export const fotografo = {
   tirar: (...args) => abrir().tirar(...args),
+  bola: (...args) => abrir().bola(...args),
   sessao: (...args) => abrir().sessao(...args),
   preparar: () => void abrir(),
 }

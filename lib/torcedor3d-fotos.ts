@@ -50,6 +50,8 @@ export interface Fotografo {
   tirar(look: Torcedor3D, poses: Pose[], opcoes?: { altura?: number; quadro?: Quadro; traco?: number; giro?: number }): Partial<Record<Pose, HTMLCanvasElement>>
   /** `px` is pixels per head unit (the stand's 17 to 63 px heads are about 8 to 30). */
   sessao(look: Torcedor3D, poses: Pose[], opcoes: { px: number; quadro?: Quadro; traco?: number; fino?: number }): Sessao
+  /** The minigames' ball: the fan's head made round, as a sphere's map 2h × h (three's SphereGeometry mapping). */
+  bola(look: Torcedor3D, opcoes?: { altura?: number; traco?: number }): HTMLCanvasElement
   /** Makes the WebGL canvas now, so the first picture doesn't pay for it. */
   preparar(): void
 }

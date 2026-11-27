@@ -235,11 +235,13 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-18",
     tag: "live",
     title: "Corrida de bolinhas",
-    text: "Entre as partidas, todo mundo do chat corre numa pista 3D nova a cada corrida, com a bolinha do seu torcedor.",
+    text: "Entre as partidas, todo mundo do chat corre numa pista 3D sorteada entre quatro mapas, com a cabeça do seu torcedor como bolinha.",
     href: "/canal/minijogos",
     credits: [{ by: "lucca_3098" }],
     media: [
-      media("corrida-de-bolinhas", "A corrida 3D embaixo da câmera: a largada no portão, os moinhos, a ponte sem grade, o campo de pinos, a chegada e o pódio", { video: true }),
+      media("corrida-templo", "No mapa Templo, as bolinhas com a cabeça de cada torcedor saem do portão e descem a escadaria", { video: true }),
+      media("corrida-fliperama", "No Fliperama, as cabeças rolam pela pista roxa rumo aos batedores rosa"),
+      media("corrida-fabrica", "Na Fábrica, as bolinhas descem a esteira cinza em direção à ponte sem grade"),
     ],
   },
   {
@@ -263,7 +265,7 @@ export const SHIPPED: Shipped[] = [
     href: "/canal/minijogos",
     credits: [{ by: "lucca_3098" }],
     media: [
-      media("duelo-na-conversa", "O duelo embaixo da câmera, na cena de conversa: Katana contra Machado, cada um com o seu torcedor, a vida e o que a classe faz ao lado da arena"),
+      media("duelo-com-cabecas", "Arco contra Arco: cada bolinha é a cabeça do torcedor de quem luta, com o torcedor inteiro ao lado da vida"),
       media("duelo-com-fisica", "A bolinha de Punho, atordoada pela Clava, fica parada com estrelas na cabeça e as luvas apagadas", { video: true }),
       media("minijogos-com-cara-de-jogo", "A tela de seleção no site: a arena, a ficha da Adaga com as barras e os visuais da arma, e as classes embaixo"),
     ],

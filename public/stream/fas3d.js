@@ -27,8 +27,8 @@ export const natal = () => new URLSearchParams(location.search).has("natal") || 
  */
 export const lookDe = (aparencia, login, { touca = natal() } = {}) => vestir(torcedorDe(aparencia, login), { natal: touca })
 
-// The 3D shirt as the 2D one's fields (torcedor.js), for what still draws a shirt flat: the duel's ball
-// (duelo-arte.js) and the race's marble (bolinha.js). The way back of vestir.js's camisa2D, so a 2D fan turned 3D
+// The 3D shirt as the 2D one's fields (torcedor.js), for what still draws a shirt flat: the minigames' ball while its
+// head (bola, below) bakes, its colour on the race's strip and trail, the duel's side. The way back of vestir.js's camisa2D, so a 2D fan turned 3D
 // gives back its very shirt; a 3D pattern the 2D never had falls to the nearest.
 const PLANA = { lisa: "lisa", listras: "listras", listrado: "listrado", faixa: "faixa", metade: "meio", tricolor: "tricolor", xadrez: "listras", malha: "listrado", chevron: "faixa", degrade: "meio", manto: "lisa" }
 export function camisaPlana(a) {
@@ -219,6 +219,50 @@ function pedir(p) {
     return p ?? null
   }, 10)
   acordar()
+}
+
+// --- A fan as a marble ----------------------------------------------------------------------------------------------
+// The minigames' ball (Luan, 2026-11-26: the fan's head, made round): boneco.js's bola, baked in the oven like any
+// picture, as a canvas 2h × h to wrap on a sphere (the race, the site) or to see from the front (bolinha.js's disco: the
+// duel, the race's lists). One per look and size for the whole page: a viewer in the race and then in the duel is
+// baked once.
+const assadas = new Map()
+/** Someone's marble map (a promise of a canvas, or null if it failed); the look as lookDe draws it. */
+export function bola(look, { altura = 128 } = {}) {
+  const chave = altura + JSON.stringify(look)
+  if (assadas.has(chave)) return assadas.get(chave)
+  const pronta = new Promise((resolver) => {
+    pedir({
+      look,
+      poses: ["bola"],
+      px: altura,
+      quadro: "bola",
+      valido: () => true,
+      guardar(f) {
+        const img = f.bola?.img
+        if (!img) return resolver(null)
+        const c = document.createElement("canvas")
+        c.width = img.width
+        c.height = img.height
+        c.getContext("2d").drawImage(img, 0, 0)
+        img.close()
+        resolver(c)
+      },
+    })
+  })
+  assadas.set(chave, pronta)
+  if (assadas.size > 120) assadas.delete(assadas.keys().next().value)
+  return pronta
+}
+
+/**
+ * Everyone's marble maps at once, for a minigame to start only with every head on its ball (Luan, 2026-11-27): an
+ * array of canvases, null where one failed or wasn't ready after `ms` (the oven stuck or missing: that one plays in its
+ * shirt rather than holding the game up).
+ */
+export function bolas(looks, { altura = 128, ms = 20000 } = {}) {
+  const prazo = new Promise((r) => setTimeout(r, ms))
+  return Promise.all(looks.map((look) => Promise.race([bola(look, { altura }), prazo.then(() => null)])))
 }
 
 // What the 2D celebrations (torcedor.css's .comemora, data-comemoracao) show in 3D: the moves are the 2D's, on the

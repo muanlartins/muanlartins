@@ -63,6 +63,32 @@ export async function vestido(chave: string): Promise<{ look: Look; codigo: stri
   return v
 }
 
+// The minigames' ball (boneco.js's bola: the fan's head made round), as the live's race and duel draw it: one map per
+// person and size for the page, baked one a frame (each ~20–80 ms, once).
+const bolas = new Map<string, Promise<HTMLCanvasElement | null>>()
+let filaBola: Promise<unknown> = Promise.resolve()
+/** Someone's ball, as a sphere's map 2h × h (bolinha.js's disco draws it flat); null without WebGL. */
+export function bola(q: Quem, altura = 128): Promise<HTMLCanvasElement | null> {
+  const chave = `${altura}|${JSON.stringify(q)}`
+  let p = bolas.get(chave)
+  if (!p) {
+    p = filaBola.then(async () => {
+      const [, F2] = await carregar()
+      const { look } = await vestido(JSON.stringify(q))
+      await new Promise((r) => requestAnimationFrame(r))
+      try {
+        return F2.fotografo.bola(look, { altura })
+      } catch {
+        return null
+      }
+    })
+    filaBola = p.catch(() => null)
+    bolas.set(chave, p)
+    if (bolas.size > 300) bolas.delete(bolas.keys().next().value!)
+  }
+  return p
+}
+
 /** A fan's pictures at one frame and size, by pose; `usos` counts the <Torcedor3D>s showing them. */
 interface Entrada {
   fotos: Map<Pose, Promise<Picture>>

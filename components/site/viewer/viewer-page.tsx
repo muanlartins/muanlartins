@@ -6,6 +6,7 @@ import Script from "next/script"
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react"
 import { GameIcon } from "@/components/site/game/game-icon"
 import { ClassArt, duelKit, type DuelKit } from "@/components/site/minigames/class-art"
+import type { Quem } from "@/components/site/fan/estudio"
 import { Marble, marbleKit, type MarbleKit } from "@/components/site/minigames/marble"
 import { MedalGrid } from "@/components/site/profile/badges"
 import { loadShowcase, LoadoutTiles, type Showcase as Loadout } from "@/components/site/viewer/loadout-showcase"
@@ -295,6 +296,7 @@ export function ViewerPage({ login: given }: { login: string }) {
             error={state === "error" ? errorLine(retry.races) : null}
             recent={recent}
             fan={fan}
+            who={{ aparencia: look?.aparencia ?? null, login }}
             mkit={mkit}
             rankId={S && stats ? S.ranque(stats.sigma).id : undefined}
             onReplay={setReplay}
@@ -545,6 +547,7 @@ function RaceShowcase({
   error,
   recent,
   fan,
+  who,
   mkit,
   rankId,
   onReplay,
@@ -554,6 +557,7 @@ function RaceShowcase({
   error: ReactNode
   recent: Record<string, Race>
   fan: Fan | null
+  who: Quem
   mkit: MarbleKit | null
   rankId?: string
   onReplay: OnReplay
@@ -570,7 +574,7 @@ function RaceShowcase({
         <>
           <div className="flex items-center gap-4">
             <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-navy">
-              {fan && <Marble kit={mkit} fan={fan as unknown as Record<string, unknown>} rankId={rankId} size={56} />}
+              {fan && <Marble kit={mkit} fan={fan as unknown as Record<string, unknown>} who={who} rankId={rankId} size={56} />}
             </span>
             <p className="text-[13px] text-muted tabular-nums">
               {[
