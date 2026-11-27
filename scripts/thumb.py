@@ -257,7 +257,7 @@ def cutout(picture, filtered=False):
     # The camera's background carries the lockup at the top centre, in Branco and Klein claro: off, but not his
     # hands when he raises them over it (skin is never a neutral white).
     hh, ww = alpha.shape
-    zone = (slice(int(hh * 0.05), int(hh * 0.19)), slice(int(ww * 0.37), int(ww * 0.64)))
+    zone = (slice(int(hh * 0.05), int(hh * 0.30)), slice(int(ww * 0.37), int(ww * 0.64)))
     zr, zg, zb = r[zone], g[zone], b[zone]
     lockup = ((np.minimum(np.minimum(zr, zg), zb) > 150) & (np.maximum(np.maximum(zr, zg), zb) - np.minimum(np.minimum(zr, zg), zb) < 45)) | (zb > np.maximum(zr, zg) + 45)
     alpha[zone][lockup] = 0
