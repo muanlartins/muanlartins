@@ -491,6 +491,11 @@ def main():
     short = [name for (t, name), (u, _) in zip(marks, [*marks[1:], (total, "")]) if u - t < 10]
     for problem in problems + [f"capítulo com menos de 10 s: {name}" for name in short]:
         print(f"! {problem}")
+    # YouTube refuses a title over 100 characters (2026-11-24's torneio, 102, found only at the upload)
+    if len(title(roteiro)) > 100:
+        print(f"! título com {len(title(roteiro))} caracteres, o YouTube aceita 100: encurte o titulo ou o modo")
+        if args.apply:
+            sys.exit(1)
     out = cortes_dir(roteiro["data"]) / f"{roteiro['data']} {roteiro['nome']}.mp4"
     subtitles = out.with_suffix(".srt")
     if args.legendas:
