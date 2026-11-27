@@ -37,6 +37,7 @@ import time
 from pathlib import Path
 
 from live import FFMPEG, HALLUCINATIONS, WHISPER
+from publicar import fora_do_ar
 from windows import PARTES, TEMP, VIDEOS, run, to_windows
 
 SHORTS = VIDEOS / "Shorts"
@@ -323,6 +324,8 @@ def main():
     parser.add_argument("--sem-barras", action="store_true",
                         help="don't look for browser bars (takes from the \"Navegador\" scene: the site, still)")
     args = parser.parse_args()
+    if args.apply:
+        fora_do_ar()
     titles = dict(n.split("=", 1) for n in args.nome)
     fixes = [tuple(t.split("=", 1)) for t in args.troca]
     # Takes whose shorts were all made a day ago or more: reviewed by now, they go at the end (a fresh short keeps its

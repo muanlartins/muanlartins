@@ -26,6 +26,7 @@ import subprocess
 from pathlib import Path
 
 from live import FFMPEG
+from publicar import fora_do_ar
 from windows import PARTES, TEMP, VIDEOS, run, to_windows
 
 COMMENTED = VIDEOS / "Comentados"
@@ -77,6 +78,8 @@ def main():
     parser.add_argument("--capitulo", action="append", default=[], help='"17:15 O gol" (take time)')
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
+    if args.apply:
+        fora_do_ar()
 
     take = args.take if args.take.is_absolute() else COMMENTED / args.take
     with_game = take.with_name(f"{take.stem} (com jogo).mp4")

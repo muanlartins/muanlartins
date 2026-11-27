@@ -35,6 +35,7 @@ import subprocess
 from pathlib import Path
 
 from live import FFMPEG
+from publicar import fora_do_ar
 from windows import PARTES, TEMP, VIDEOS, run, to_windows
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -379,6 +380,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--apply", action="store_true", help="make them (without it, only show)")
     args = parser.parse_args()
+    if args.apply:
+        fora_do_ar()
     for source, out in [(LONG_IN, LONG_OUT), (SHORT_RAW, SHORT_OUT)]:
         print(f"{'ok   ' if source.exists() else 'falta'} {source.name}  →  {out.parent.parent.name}\\{out.parent.name}\\{out.name}")
     for camera, at, pose in POSES:

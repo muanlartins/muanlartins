@@ -36,6 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import partidas  # noqa: E402
 from content import LIVES, ROOT, other_games  # noqa: E402
 from partidas import INTRO, MARK, OUTRO, QUIET, clock, duration, level_at, seconds, stamp  # noqa: E402
+from publicar import fora_do_ar  # noqa: E402
 from windows import cortes_dir  # noqa: E402
 from youtube import SITE, srt  # noqa: E402
 
@@ -114,6 +115,8 @@ def main():
     parser.add_argument("--apply", action="store_true", help="render the video and write its captions")
     parser.add_argument("--legendas", action="store_true", help="only write the captions")
     args = parser.parse_args()
+    if args.apply:
+        fora_do_ar()
     roteiro = json.loads(Path(args.roteiro).read_text())
     date, nome = roteiro["data"], roteiro["nome"]
     game = game_of(date, seconds(roteiro["de"]))

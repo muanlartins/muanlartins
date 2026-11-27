@@ -96,6 +96,7 @@ from cortes import camera_lag, camera_sound, material, offset, picture_lag  # no
 from edicao import FPS, SR, WORK, animate, ass_time, ease, pauses, place, plain, snap  # noqa: E402
 from edicao import lowpass, svf_bandpass  # noqa: E402
 from edicao import sfx as synth  # noqa: E402
+from publicar import fora_do_ar  # noqa: E402
 from windows import PARTES, VIDEOS, reel_parts, shorts_dir  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -879,6 +880,7 @@ def main():
     ap.add_argument("roteiro")
     ap.add_argument("--palavras", action="store_true")
     args = ap.parse_args()
+    fora_do_ar()
     roteiro = json.loads(Path(args.roteiro).read_text(encoding="utf-8"))
     live, game, camera, table = material(roteiro)
     slug = Path(args.roteiro).stem  # kept apart: the stretch loop below reuses the name `args`

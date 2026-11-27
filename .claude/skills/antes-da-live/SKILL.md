@@ -19,6 +19,11 @@ story Luan posts by hand (the automatic one was dropped on 2026-11-19).
 WSL shares the CPU with the game and OBS. On 2026-11-05 headless WebGL (swiftshader) tests plus dev servers
 made his stream stutter: OBS skipped hundreds of frames and he felt it in the game and "even the network".
 
+The render scripts check by themselves since 2026-11-26 (`fora_do_ar()` in `scripts/publicar.py`, called at the
+start of destaque, clipe, cortes, edicao, candidatos, and of partidas, capitulos, comentado, montagem and shorts with
+`--apply`): with OBS streaming they exit before rendering. On 2026-11-26 a reel agent read `live: yes` and rendered
+anyway, twice, into his live (OBS: 14% of frames skipped to encoding lag). A new script that renders calls it too.
+
 - First check: `node scripts/obs.mjs` (prints live/recording, fps, skipped frames, CPU, and the profile: it
   warns when OBS stayed on the studio's Shorts or Vídeo profile, which would stream the wrong thing). If `live: yes`:
   - only code edits, `tsc`, lint and light reads;

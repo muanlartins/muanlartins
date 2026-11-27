@@ -3,12 +3,13 @@ stream, and mira_auto.py, for the aim's training and matches): whether Luan is l
 repository on GitHub, as the Partidas dock does with its token, here with the `gh` CLI's sign-in on this PC. A file put
 on main is a release; `por_varios` puts several in one commit, so one release.
 
-    from publicar import ao_vivo, ler, listar, por, por_varios
+    from publicar import ao_vivo, fora_do_ar, ler, listar, por, por_varios
 """
 import base64
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 REPO = "muanlartins/muanlartins"
@@ -24,6 +25,14 @@ def ao_vivo() -> bool:
         return False
     first = (out or "").splitlines()[:1]
     return bool(first) and first[0].startswith("live:") and not first[0].startswith("live: no")
+
+
+def fora_do_ar() -> None:
+    """Stops a render while Luan is live: it takes the CPU and the one NVENC the stream needs (2026-11-24's reels:
+    two renders ran into his next live, and OBS skipped 14% of its frames to encoding lag). A rule agents read wasn't
+    enough, so the scripts check themselves."""
+    if ao_vivo():
+        sys.exit("O Luan está ao vivo: nada de render agora. Rode de novo quando a live acabar.")
 
 
 def _gh(*args, entrada: str | None = None) -> subprocess.CompletedProcess:

@@ -29,6 +29,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cortes import parts  # noqa: E402
 from edicao import FFMPEG, WORK  # noqa: E402
+from publicar import fora_do_ar  # noqa: E402
 from windows import VIDEOS, shorts_dir, to_windows  # noqa: E402
 
 RATE, WW, HH = 10, 480, 270
@@ -133,6 +134,7 @@ def main():
     parser.add_argument("lista", nargs="?", type=Path, help="the candidates, [[n, start, end, label], ...]")
     parser.add_argument("--camera", action="store_true", help="scan the live's camera box")
     args = parser.parse_args()
+    fora_do_ar()
     folder = VIDEOS / "Lives" / args.data
     if args.camera:
         camera(args.data, folder)

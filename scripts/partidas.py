@@ -81,6 +81,7 @@ from content import LIVES, ROOT, brand_tables  # noqa: E402
 from live import FFMPEG  # noqa: E402
 from youtube import srt  # noqa: E402
 from thumb import STEP, TIME_ZONE, frame, in_file, loudness, recording, wall  # noqa: E402
+from publicar import fora_do_ar  # noqa: E402
 from windows import PARTES, TEMP, VIDEOS, cortes_dir, home, run, to_windows  # noqa: E402
 
 PARTS = PARTES / "Vídeos"
@@ -464,6 +465,8 @@ def main():
     parser.add_argument("--apply", action="store_true", help="render the video (and write its captions)")
     parser.add_argument("--legendas", action="store_true", help="only write the captions of a video already made")
     args = parser.parse_args()
+    if args.apply:
+        fora_do_ar()
     if re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.what):
         overview(args.what)
         return

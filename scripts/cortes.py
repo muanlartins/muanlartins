@@ -40,6 +40,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
+from publicar import fora_do_ar
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from edicao import (BLOCK_CHARS, BRANCO, CLARO, FFMPEG, FONT, FPS, H, KLEIN, RNG, SPRITES, SR, W, WORK, animate,
@@ -901,6 +902,7 @@ def main():
     parser.add_argument("--palavras", action="store_true", help="print the words with their live and short seconds")
     parser.add_argument("--som", action="store_true", help="only the sound again, under the last render")
     args = parser.parse_args()
+    fora_do_ar()
     corte = Corte(args.roteiro, fast=args.rapido)
     if args.palavras:
         for a, b, w in corte.words:

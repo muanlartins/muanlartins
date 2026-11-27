@@ -31,6 +31,7 @@ from PIL import Image, ImageDraw, ImageFilter
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cortes import camera_lag, camera_sound, material, offset, picture_lag  # noqa: E402
 from edicao import BRANCO, WORK, font  # noqa: E402
+from publicar import fora_do_ar  # noqa: E402
 from windows import shorts_dir  # noqa: E402
 
 W, H, CAM_H, GAME_H = 1080, 1920, 840, 1080
@@ -186,6 +187,7 @@ def piece(live, game, camera, out, t, jogo_at, cam_at, box=BOX):
 
 
 def main():
+    fora_do_ar()
     roteiro = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
     live, game, camera, table = material(roteiro)
     work = WORK / f"clipe-{roteiro['live']}-{Path(sys.argv[1]).stem}"

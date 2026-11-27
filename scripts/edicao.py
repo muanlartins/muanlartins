@@ -46,6 +46,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from publicar import fora_do_ar
 
 ROOT = Path(__file__).resolve().parent.parent
 FONT = ROOT / "brand" / "fonts" / "SpaceGrotesk.ttf"
@@ -991,6 +992,7 @@ def main():
     parser.add_argument("--palavras", action="store_true", help="print the words with their seconds in the short")
     parser.add_argument("--outro", action="store_true", help="also write a copy with the shorts' outro after it")
     args = parser.parse_args()
+    fora_do_ar()
     edit = Edit(args.roteiro, fast=args.rapido)
     if args.palavras:
         for a, b, w in edit.words:
