@@ -552,14 +552,19 @@ shears frames when the crop width is odd.
   description with the site page of the subject, Twitch, the Discord (`https://discord.gg/q5qxT7Pw2E`, as "A comunidade
   no Discord") and the site, tags, `publish_at` ISO with -03:00), then
   `scripts/.venv/bin/python scripts/youtube.py video content/videos/<file>.json --dry-run`, then without
-  `--dry-run`: it sets the metadata and schedules; YouTube publishes by itself.
+  `--dry-run`: it sets the metadata and schedules; YouTube publishes by itself. A reel with photoreal AI edits of
+  him gets `"synthetic": true` (YouTube's altered-content label; 11-24's, Luan's call). Titles: 100 characters at most.
 - **Instagram:** scheduled in Meta Business Suite in Luan's own browser (Brave, signed in). Since 11-12 that needs
   no handoff: from WSL, run the Windows Claude Code headless with only the Claude in Chrome tools,
   `cd /mnt/c/Users/muanl && ./.local/bin/claude.exe -p --chrome --permission-mode bypassPermissions --tools ""
   --output-format text "<task>"` (from a Windows folder; the permission mode lets it answer the extension's site
   prompts as his interactive sessions do, and `--tools ""` leaves it nothing but the browser). Tell it to close the
   tabs it opens and to **stop before the final button** (Agendar, Compartilhar, Publicar) and report; the click is
-  Luan's OK. Caption with "link na bio" instead of URLs, same times as YouTube. The same route reads YouTube Studio
+  Luan's OK. Caption with "link na bio" instead of URLs, same times as YouTube. Several reels at once (11-26,
+  Luan: no back and forth per reel): one run opens a Reel composer tab per reel with its caption pasted (the field is
+  there before any video) and leaves the tabs open; Luan attaches each video and cover, sets the time and schedules.
+  The composer ticks the Facebook Page too: tell him, it's his call. A run that lands on the Meta login page stops:
+  he signs in, then run it again. The same route reads YouTube Studio
   (checked 11-12: the scheduled short, signed in). The old handoff files (`Downloads\handoff-instagram-<…>.md`,
   `Videos\Shorts\prontos\para-postar.md`) hold the steps if a session in Windows does it instead.
 - If something here is missing, the long-running Claude session named `muanlartins` (see `ListAgents`) has the
