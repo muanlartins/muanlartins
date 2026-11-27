@@ -1,125 +1,44 @@
 {
   "date": "2026-11-24",
   "game": "rocket-league",
-  "video": "",
+  "video": "2aURrSfoqO4",
   "length": "4:43:17",
   "summary": {
     "pt": "Sem ranqueada: treino de speed flip, casuais com um ex-SSL, partidas privadas e um torneio 1v1 com a galera da live (ganhei as quartas de 7 a 0 e caí na semi), e no fim o capítulo 4 de Celeste, Golden Ridge, em 71 mortes.",
     "en": "No ranked: speed flip practice, casual matches with a former SSL, private matches and a 1v1 tournament with the stream (I won the quarterfinal 7-0 and lost the semi), and at the end Celeste's chapter 4, Golden Ridge, in 71 deaths."
   },
-  "chapters": [
-    {
-      "at": "0:00",
-      "title": {
-        "pt": "Começo",
-        "en": "Start"
-      }
-    },
-    {
-      "at": "2:30",
-      "title": {
-        "pt": "Treino de speed flip",
-        "en": "Speed flip practice"
-      }
-    },
-    {
-      "at": "1:06:26",
-      "title": {
-        "pt": "Casual com um ex-SSL",
-        "en": "Casual with a former SSL"
-      }
-    },
-    {
-      "at": "1:25:13",
-      "title": {
-        "pt": "3v3 casual",
-        "en": "Casual 3v3"
-      }
-    },
-    {
-      "at": "1:43:39",
-      "title": {
-        "pt": "Partida privada com a live",
-        "en": "Private match with the stream"
-      }
-    },
-    {
-      "at": "1:52:19",
-      "title": {
-        "pt": "Eu de narrador",
-        "en": "Me as the commentator"
-      }
-    },
-    {
-      "at": "2:00:37",
-      "title": {
-        "pt": "Montando o torneio",
-        "en": "Setting up the tournament"
-      }
-    },
-    {
-      "at": "2:10:17",
-      "title": {
-        "pt": "Torneio: as quartas",
-        "en": "Tournament: quarterfinal"
-      }
-    },
-    {
-      "at": "2:16:03",
-      "title": {
-        "pt": "Torneio: a semifinal",
-        "en": "Tournament: semifinal"
-      }
-    },
-    {
-      "at": "2:26:56",
-      "title": {
-        "pt": "Torneio: a final, narrada",
-        "en": "Tournament: the final, with commentary"
-      }
-    },
-    {
-      "at": "2:43:26",
-      "title": {
-        "pt": "Mais casuais",
-        "en": "More casual matches"
-      }
-    },
-    {
-      "at": "3:08:00",
-      "title": {
-        "pt": "A premiação e o papo",
-        "en": "The prizes and the chat"
-      }
-    },
-    {
-      "at": "3:29:40",
-      "title": {
-        "pt": "Tour pelo site",
-        "en": "A tour of the site"
-      }
-    },
-    {
-      "at": "3:50:52",
-      "game": "celeste",
-      "title": {
-        "pt": "Abrindo Celeste",
-        "en": "Opening Celeste"
-      }
-    },
-    {
-      "at": "3:59:02",
-      "title": {
-        "pt": "Capítulo 4: Golden Ridge",
-        "en": "Chapter 4: Golden Ridge"
-      }
-    },
-    {
-      "at": "4:39:50",
-      "title": {
-        "pt": "Os créditos",
-        "en": "The credits"
-      }
+  "youtube": {
+    "title": "Torneio 1v1 da live, um ex-SSL e o capítulo 4 de Celeste | Rocket League e Celeste ao vivo",
+    "publish_at": "2026-12-02T15:00:00-03:00",
+    "thumb": {
+      "quadro": "9142.0",
+      "segundo": 9142.0,
+      "texto": "TORNEIO COM|UM EX-SSL",
+      "emblema": false,
+      "recorte": [
+        26,
+        786,
+        268,
+        244
+      ]
     }
+  },
+  "chapters": [
+    { "at": "0:00", "title": { "pt": "Começo", "en": "Start" } },
+    { "at": "2:30", "title": { "pt": "Treino de speed flip", "en": "Speed flip practice" } },
+    { "at": "1:06:26", "title": { "pt": "Casual com um ex-SSL", "en": "Casual with a former SSL" } },
+    { "at": "1:25:13", "title": { "pt": "3v3 casual", "en": "Casual 3v3" } },
+    { "at": "1:43:39", "title": { "pt": "Partida privada com a live", "en": "Private match with the stream" } },
+    { "at": "1:52:19", "title": { "pt": "Eu de narrador", "en": "Me as the commentator" } },
+    { "at": "2:00:37", "title": { "pt": "Montando o torneio", "en": "Setting up the tournament" } },
+    { "at": "2:10:17", "title": { "pt": "Torneio: as quartas", "en": "Tournament: quarterfinal" } },
+    { "at": "2:16:03", "title": { "pt": "Torneio: a semifinal", "en": "Tournament: semifinal" } },
+    { "at": "2:26:56", "title": { "pt": "Torneio: a final, narrada", "en": "Tournament: the final, with commentary" } },
+    { "at": "2:43:26", "title": { "pt": "Mais casuais", "en": "More casual matches" } },
+    { "at": "3:08:00", "title": { "pt": "A premiação e o papo", "en": "The prizes and the chat" } },
+    { "at": "3:29:40", "title": { "pt": "Tour pelo site", "en": "A tour of the site" } },
+    { "at": "3:50:52", "game": "celeste", "title": { "pt": "Abrindo Celeste", "en": "Opening Celeste" } },
+    { "at": "3:59:02", "title": { "pt": "Capítulo 4: Golden Ridge", "en": "Chapter 4: Golden Ridge" } },
+    { "at": "4:39:50", "title": { "pt": "Os créditos", "en": "The credits" } }
   ]
 }

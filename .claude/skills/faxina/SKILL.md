@@ -19,7 +19,9 @@ Talk to him in pt-BR.
    checks on YouTube that each video is processed and as long as its file before letting a file go). Days whose
    thumbnail, match videos and shorts are done get `python3 scripts/videos.py --done <date>` first.
    A Celeste day stays whole (Live, Jogo, Câmera): Luan keeps them for the produced videos (his call, 2026-11-22). The
-   script doesn't know, so look for one in its list before `--apply` (`depois-da-live`, "A Celeste day").
+   script doesn't know, so look for one in its list before `--apply` (`depois-da-live`, "A Celeste day"). A day
+   that was another game before Celeste keeps only the Celeste part of each file, cut once the rest has done its job
+   (11-24: 124 GB down to ~13 GB; the steps are "A Celeste day", 7).
 4. Everything else by the table below. Deleting is for good (no Recycle Bin from WSL): show Luan the list with sizes
    unless he already asked for this cleaning in so many words (11-17: "tudo que não for mais ser utilizado e
    deletar"), and even then ask about anything the table doesn't cover.

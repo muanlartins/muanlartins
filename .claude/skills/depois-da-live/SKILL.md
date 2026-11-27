@@ -11,6 +11,23 @@ description: The routine after one of Luan's Twitch lives - file the recordings 
 The detailed history and the YouTube API setup are in `handoff/README.md` ("3. After each live"); this is
 the routine. Talk to Luan in pt-BR. `<date>` is the live's day, `YYYY-MM-DD`.
 
+## The session, start to end
+
+An after-live session has a beginning, a middle and an end (Luan, 2026-11-27: "Essa sessão tem que ter início meio e
+fim!"). It isn't over until the end's list is done, or each item left says why and who has it:
+
+- **Start:** it's over (0), the material filed (1, 1b, 1c), the live's page and transcript (2).
+- **Middle:** the videos cut (2c, or a Celeste day's chapters), the reels (the `estudio` skill), every thumbnail
+  (2b), the records in `content/videos/`, the schedule (Luan approves the table once).
+- **End:**
+  1. **YouTube:** every file Luan uploaded set and scheduled with `youtube.py` (the videos, the reels, the VOD after
+     the last of them, 3), checked through the API (each `publishAt`).
+  2. **Instagram:** the reels' tabs ready in one run, times set (the `estudio` skill, "Publishing shorts").
+  3. **Release** (5), with the VOD's id in the live's page.
+  4. **The disk freed** (4): the cut videos once YouTube has them whole, the candidates reel, the 3D frame folders,
+     and the day's recordings (`--done`; on a Celeste day only the part that isn't Celeste, "A Celeste day", 7).
+  5. **The report:** what's scheduled when, what was freed and the space left, and what waits on whom.
+
 ## A day of another game ("Jogos diversos", since 2026-11-21)
 
 Any game besides Rocket League and Valorant (Celeste first; the OBS scene "Diversos + chat") is on the site at
@@ -100,7 +117,13 @@ What the first one taught, on top of the list above:
    `--da-live 26,786,268,244 --trecho 25:20-1:57:20`. Look at each draft's cutout.
 7. **Don't free it.** Luan keeps the Celeste days' recordings (Live, Jogo, Câmera) for the produced videos of his
    trajectory (his call, 2026-11-22). So no `--done` for a Celeste day and none of its files in a `--clean`, which
-   doesn't know this: read its list before `--apply`.
+   doesn't know this: read its list before `--apply` (on 11-27 it listed 11-22's and 11-24's Celeste files "to keep
+   200 GB free"). **A day that was something else before Celeste** (11-24: Rocket League, then chapter 4) keeps only
+   the Celeste part: once that part's thumbnails are made (Jogo, Câmera) and the VOD is processed whole (Live), cut
+   each file from a keyframe a little before Celeste with `ffmpeg -ss <s> -i <file> -map 0 -c copy` (find the
+   keyframe with `ffprobe -skip_frame nokey`; Jogo's piece starts at its `partes.json` `em`), name the copy for its new
+   wall-clock start (`19-00-06 Câmera.mkv`: the tools place frames by the name's clock), rewrite `partes.json` for
+   the one piece left, check the copy's length and its last frames, then `rm` the original by its exact path.
 8. **Release only with the video's id** in the live's page (`live.py <date> --video <id>`): without it the page
    embeds an empty player. Push only the day's commits: check `git log origin/main..main` for others waiting his OK.
 9. **What he said on the air about the channel's things** (the filter, the overlay, the site, ideas) goes in the
@@ -110,7 +133,9 @@ What the first one taught, on top of the list above:
    renders: the intro, the chapter whole, the outro, as 2c. The Prologue goes with chapter 1. Edges: in a pause of
    his microphone, from after the file select (its names stay out), each video up to where he moves on to the next
    chapter, the ad break left to the VOD. Marks: the chapter's story moments, checked on frames. Titles: his line as
-   the hook. Thumbnails as 2c's, with the filter (`--folha capitulo-<n> --da-live 26,786,268,244`), picking is his.
+   the hook. Thumbnails as 2c's, with the filter (`--folha capitulo-<n> --da-live 26,786,268,244`), one each, Claude's pick.
+   The VOD's from the stream too, without `--folha` (that makes the plate CORTE DA LIVE): `--quadro <Live.mp4 second>
+   --da-live 26,786,268,244` keeps AO VIVO; every game scene has the camera in that box since 11-23.
    Schedule as 2c's, and the live's `youtube.publish_at` at least a day after the last one.
 11. **No shorts from a Celeste live** (Luan, 2026-11-22, said twice): he records Celeste's shorts by hand, about the
    game's concepts. Don't scan the live for moments and don't make a candidates reel.
@@ -236,12 +261,15 @@ day is marked `--done`, which comes after the thumbnail and the shorts.
 
 The sheet is his twelve strongest reactions (the microphone track's loudest moments, the transcript's "meu Deus",
 "que isso", "golaço", laughs, his goals from the dock, the VAR's plays), three camera frames each (`7a`, `7b`, `7c`)
-with what he said there. **Picking is Luan's** (judgment only where it beats a rule):
+with what he said there. **One thumbnail, picked by Claude and used** (Luan, 2026-11-27: "não precisa fazer Thumbs
+A e B… eu geralmente sempre escolho a A que você sugere… sempre fazer uma e já usar direto"; until then he picked
+from two or three drafts):
 
-1. Render two or three drafts with `--saida "Videos\Lives\<date>\Thumb\rascunho A.jpg"`, look at each, and ask him
-   which, with the title, in one question (the drafts' paths in the question: the dialog hides the rest). Favour a
-   big, readable emotion (laughing, an arm up after a goal, hands on the head, a hand over the mouth) over a
-   talking face or one looking down.
+1. Pick the frame and the hook, render it, look at it (the cutout's edges, the plate, nothing repeated from the day's
+   other thumbnails) and use it. Tell him which in the report; he asks for another when he wants one. Favour a big,
+   readable emotion (laughing, an arm up after a goal, hands on the head, a hand over the mouth) over a talking face
+   or one looking down, and a frame where he's whole inside the camera's box: an arm cut by the box's edge outlines
+   as a straight line (11-24's VOD, from the stream).
 2. The hook is 2 to 4 words, uppercase, `LINHA 1|LINHA 2` (the second on the Branco plate): the day's story (`SUBI
    PRO|DIAMANTE 3` with `--emblema` when it climbed) or **his own line from the live** (`VÃO HUMILHAR|A GENTE`, said at
    15:43 on 11-11). Never a teammate's or opponent's name.
@@ -313,7 +341,7 @@ schedule and policy; its editing advice was overruled by him.
    match end>` makes a sheet of that stretch; drafts with `--folha <nome> --quadro 7b --texto "…" --saida
    "Videos\Lives\<date>\Thumb\rascunho <nome> A.jpg"` (the plate says CORTE DA LIVE · dd/mm by itself with
    `--folha`; a Live.mp4 second works as `--quadro` too, and a frame from elsewhere in the live is fine when it
-   tells the story better: 11-17's cat video uses the cat in his lap from match 12); the pick goes to `brand/youtube/thumbnails/<date>-<nome>.jpg`. Picking is Luan's.
+   tells the story better: 11-17's cat video uses the cat in his lap from match 12); it goes straight to `brand/youtube/thumbnails/<date>-<nome>.jpg` (one per video, Claude's pick, as 2b).
 4. **Publish**: Luan uploads the three files in Studio (private) and the ids go into the records; since 11-20 two or
    three a day at different hours, from the day after the live (Luan: "dado o ritmo de produção… 2 ou 3 vídeos por
    dia dos cortes, em horários diferentes", with more shorts too and his produced videos, the analyses, starting;

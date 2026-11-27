@@ -14,8 +14,8 @@ with a hook of two to four words. YouTube decides what to show people by who cli
 The candidates are his strongest reactions, where the microphone's own track (Live.mp4's second audio) was loudest,
 the transcript's exclamations ("meu Deus", "que isso", "golaço", laughs), his goals (the dock's event log) and the
 VAR's plays. Each gets three frames of the camera recording (a, b, c: 0.6 s apart) on a numbered sheet,
-Videos\\Lives\\<date>\\Thumb\\candidatos.jpg, with what he said there. Luan picks a frame and the hook; picking is
-his (the `depois-da-live` skill), the rest is fixed:
+Videos\\Lives\\<date>\\Thumb\\candidatos.jpg, with what he said there. Claude picks a frame and the hook and uses
+it, one thumbnail (Luan, 2026-11-27; the `depois-da-live` skill), the rest is fixed:
 
 - The camera recording already has the brand's Klein background in place of the room, so he's cut out by keying
   the blue (no model), with a Branco outline and a shadow, his head about a third of the height, on the right.
