@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <title>Palco · muanlartins</title>
     <link rel="stylesheet" href="stream.css" />
+    <script type="importmap">
+      { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js" } }
+    </script>
     <!--
       OBS: Browser source, 1920×1080, in every game scene (RL + chat, Valorant + chat, Diversos + chat, Celeste +
       chat · Diversos and their Lance ruim), above the capture and the camera. The game is framed, never covered:
@@ -14,7 +17,8 @@
       The game is 1600×900 at (320, 0): Celeste's 320×180 five screen pixels to each, so its pixels stay whole;
       Rocket League and Valorant shrunk from 1920×1080. The rest is the Klein ground:
       - a column on the left, 288 wide from x 16: pix.html's call and goal on top (they move there by the scene's
-        name), the chat, the keyboard and the mouse (?teclas=1, teclas.js, shrunk to the column), and the camera,
+        name), the chat, the keyboard and the mouse (?teclas=1, teclas.js, shrunk to the column) with the channel's
+        3D fan behind them, its head over the box (teclas-torcedor.js; ?torcedor=0 leaves it out), and the camera,
         288×270 at (16, 774), with the site on its plate;
       - a band under the game: the game's plate and numbers from 336 to 928, and the stand from 944 to 1904
         (torcida.html, moved 348 px right in OBS), with room for its four rows.
@@ -91,6 +95,10 @@
       }
       .com-teclas:has(#teclas.visivel) #chat {
         bottom: 491px;
+      }
+      /* The fan's head rises about 80 px over the box (once it's drawn: teclas-torcedor.js marks the box). */
+      .com-teclas:has(#teclas.visivel.com-torcedor) #chat {
+        bottom: 575px;
       }
       #chat .message {
         padding: 8px 12px 9px;
@@ -289,14 +297,15 @@
           })
       }
 
-      // The keyboard and the mouse (?teclas=1), over the camera; the chat ends above them.
+      // The keyboard and the mouse (?teclas=1), over the camera, the channel's fan behind them; the chat ends above.
       const qualTeclado = params.get("teclas")
       if (qualTeclado) {
         const teclado = document.getElementById("teclas")
         teclado.hidden = false
+        const torcedor = params.get("torcedor") !== "0"
         document.querySelector(".stage").classList.add("com-teclas")
         const jogo = qualTeclado !== "1" ? qualTeclado : { valorant: "valorant", "rocket-league": "rocket-league" }[JOGO] ?? "outro"
-        teclas(teclado, { jogo, demo: DEMO })
+        teclas(teclado, { jogo, demo: DEMO, torcedor })
       }
     </script>
   </body>

@@ -7,7 +7,7 @@
 # it only answers on 127.0.0.1:8796, as server-sent events: one JSON line per change, the state at once to whoever
 # connects, a ping every 15 s.
 #
-#   {"foco":true,"processo":"VALORANT-Win64-Shipping","teclas":["SHIFT","W"],"botoes":["L"],"rodaCima":3,"rodaBaixo":1}
+#   {"foco":true,"processo":"RocketLeague","teclas":["SHIFT","W"],"botoes":["L"],"rodaCima":3,"rodaBaixo":1,"movX":-1240,"movY":310}
 #
 # Privacy first: only the keys the overlay draws ever go out (MOSTRAR), and only while a game is the window in front
 # ("foco"): Valorant or Rocket League, or any window covering its whole screen without a title bar (a game in Diversos)
@@ -15,8 +15,10 @@
 # empty, so nothing typed outside a game ever leaves; leaving the game drops whatever was held, so no key sticks. Only
 # the overlays may read it (the site's origin, or localhost for a demo; tools with no Origin, like curl.exe, too): any
 # other page open in a browser gets a 403, so no website can listen in. The wheel counts its ticks up and down
-# (rodaCima, rodaBaixo, which only grow) so the page sees each one. The mouse's movement is ignored (a gaming mouse
-# sends it 1000 times a second: only a change in what's shown is sent).
+# (rodaCima, rodaBaixo, which only grow) so the page sees each one. The mouse's movement (since 2026-11-28, for the
+# channel's fan holding the mouse, teclas-torcedor.js) goes as running totals of its counts, movX and movY, summed
+# only while a game is in front and sent at most 30 times a second (a gaming mouse reports 1000): how far it moved,
+# never where the pointer is.
 #
 # A second copy finds the port taken and quits quietly. -Todos skips the game check, to try it from a terminal.
 param([switch]$Todos)
@@ -84,6 +86,8 @@ namespace Muan {
     static readonly SortedSet<string> teclas = new SortedSet<string>(StringComparer.Ordinal);
     static readonly bool[] botoes = new bool[5];
     static long rodaCima, rodaBaixo;
+    static long movX, movY;
+    static bool mexeu;
     static bool foco;
     static string processo = "";
     static IntPtr janelaAntes = IntPtr.Zero;
@@ -96,7 +100,7 @@ namespace Muan {
     static readonly BlockingCollection<string> fila = new BlockingCollection<string>();
     // Held here so the garbage collector never takes the window (and with it the raw input) or the clock.
     static Janela janela;
-    static System.Windows.Forms.Timer relogio;
+    static System.Windows.Forms.Timer relogio, passo;
 
     class Janela : NativeWindow {
       public Janela() {
@@ -174,7 +178,12 @@ namespace Muan {
         Mandar();
       } else if (tipo == RIM_TYPEMOUSE) {
         ushort flags = BitConverter.ToUInt16(buffer, h + 4);
-        if (flags == 0) return; // movement only
+        // Relative movement (not a tablet's or a remote desktop's absolute position), while a game is in front.
+        if ((BitConverter.ToUInt16(buffer, h) & 1) == 0 && foco) {
+          int dx = BitConverter.ToInt32(buffer, h + 12), dy = BitConverter.ToInt32(buffer, h + 16);
+          if (dx != 0 || dy != 0) { movX += dx; movY += dy; mexeu = true; }
+        }
+        if (flags == 0) return; // movement only: the clock below sends it
         OlharFrente(false);
         if (!foco) return;
         for (int i = 0; i < 5; i++) {
@@ -229,7 +238,8 @@ namespace Muan {
         s.Append('"').Append(BOTOES[i]).Append('"');
         primeira = false;
       }
-      s.Append("],\"rodaCima\":").Append(rodaCima).Append(",\"rodaBaixo\":").Append(rodaBaixo).Append('}');
+      s.Append("],\"rodaCima\":").Append(rodaCima).Append(",\"rodaBaixo\":").Append(rodaBaixo);
+      s.Append(",\"movX\":").Append(movX).Append(",\"movY\":").Append(movY).Append('}');
       return s.ToString();
     }
 
@@ -339,6 +349,9 @@ namespace Muan {
       relogio = new System.Windows.Forms.Timer { Interval = 250 };
       relogio.Tick += (s, e) => { OlharFrente(true); Mandar(); };
       relogio.Start();
+      passo = new System.Windows.Forms.Timer { Interval = 33 };
+      passo.Tick += (s, e) => { if (mexeu) { mexeu = false; Mandar(); } };
+      passo.Start();
       Application.Run();
     }
   }
