@@ -1779,6 +1779,105 @@ export function criarBoneco(a, { qualidade = 1, traco = 0.04 } = {}) {
   for (const l of [-1, 1]) braco(bracos.palmas, l, V(l * (W + 0.05), -1.85, 0.6), V(l * 0.16, -1.2, 1.1))
   for (const g of Object.values(bracos)) raiz.add(g)
 
+  /**
+   * An arm that moves every frame (the keyboard overlay's typing, teclas.js): the same pieces as braco(), with its own
+   * materials (so a page can clip the bust and not the arms), placed by apontar(hand) with a two-bone reach from the
+   * shoulder. Lengths in the fan's units; past its reach the arm stretches, as a cartoon's does.
+   */
+  function bracoVivo(l, { L1 = 1.25, L2 = 1.5, estica = 1.6 } = {}) {
+    const grupo = new THREE.Group()
+    raiz.add(grupo)
+    const borda = guardar(new THREE.MeshBasicMaterial({ color: NAVY, side: THREE.BackSide }))
+    const esf = guardar(bola(1))
+    const segs = []
+    const juntas = []
+    const seg = (c, r0, r1, linha = traco) => {
+      const geo = guardar(new THREE.CylinderGeometry(r1 / r0, 1, 1, 14))
+      const m = new THREE.Mesh(geo, material(c, {}))
+      const f = linha ? new THREE.Mesh(geo, borda) : null
+      grupo.add(m)
+      if (f) grupo.add(f)
+      const s = { m, f, r0, linha }
+      segs.push(s)
+      return s
+    }
+    const junta = (c, r, linha = traco) => {
+      const m = new THREE.Mesh(esf, material(c, {}))
+      const f = linha ? new THREE.Mesh(esf, borda) : null
+      grupo.add(m)
+      if (f) grupo.add(f)
+      const j = { m, f, r, linha }
+      juntas.push(j)
+      return j
+    }
+    const Y = V(0, 1, 0)
+    const meio = V(0, 0, 0)
+    const dir = V(0, 0, 0)
+    const q = new THREE.Quaternion()
+    const entre = (s, de, ate) => {
+      dir.subVectors(ate, de)
+      const len = Math.max(1e-4, dir.length())
+      q.setFromUnitVectors(Y, dir.divideScalar(len))
+      meio.addVectors(de, ate).multiplyScalar(0.5)
+      for (const [o, extra] of [[s.m, 0], [s.f, s.linha]]) {
+        if (!o) continue
+        o.position.copy(meio)
+        o.quaternion.copy(q)
+        o.scale.set(s.r0 + extra, len + extra, s.r0 + extra)
+      }
+    }
+    const em = (j, p) => {
+      j.m.position.copy(p)
+      j.m.scale.setScalar(j.r)
+      if (j.f) { j.f.position.copy(p); j.f.scale.setScalar(j.r + j.linha) }
+    }
+    const cima = seg(corManga, 0.24 * km, 0.2 * km)
+    const cot = junta(comPunho && !longa ? a.pele : corManga, 0.2 * km, 0)
+    const ante = longa ? seg(corManga, 0.18 * km, 0.16 * km) : seg(a.pele, 0.17, 0.14)
+    const punhoS = comPunho ? seg(corPunho, longa ? 0.175 * km : 0.225, longa ? 0.175 * km : 0.225) : null
+    const pulsoS = longa ? seg(a.pele, 0.14, 0.14) : null
+    const maoJ = junta(a.pele, 0.21)
+
+    const ombroP = V(l * W * 0.74, ombro - 0.5, 0)
+    const polo = V(l * 1, -0.7, -0.6).normalize()
+    const cotovelo = V(0, 0, 0)
+    const ao = V(0, 0, 0)
+    const lado = V(0, 0, 0)
+    const pulso = V(0, 0, 0)
+    const tmpA = V(0, 0, 0)
+    const tmpB = V(0, 0, 0)
+    /** Puts the hand at `mao` (in the fan's own axes); `achata` squashes it, for a press. */
+    function apontar(mao, achata = 0) {
+      ao.subVectors(mao, ombroP)
+      const d = Math.max(0.05, ao.length())
+      ao.divideScalar(d)
+      const k = Math.min(estica, Math.max(1, d / (L1 + L2 - 0.02)))
+      const l1 = L1 * k, l2 = L2 * k
+      const dd = Math.min(d, l1 + l2 - 0.01)
+      const x = (l1 * l1 - l2 * l2 + dd * dd) / (2 * dd)
+      const h = Math.sqrt(Math.max(0, l1 * l1 - x * x))
+      lado.copy(polo).addScaledVector(ao, -polo.dot(ao)).normalize()
+      cotovelo.copy(ombroP).addScaledVector(ao, x).addScaledVector(lado, h)
+      const fim = tmpA.copy(ombroP).addScaledVector(ao, d)
+      entre(cima, ombroP, cotovelo)
+      em(cot, cotovelo)
+      if (longa) {
+        pulso.copy(fim).lerp(cotovelo, 0.24)
+        entre(ante, cotovelo, pulso)
+        if (punhoS) entre(punhoS, tmpB.copy(pulso).lerp(cotovelo, 0.2), V(0, 0, 0).copy(pulso).lerp(fim, 0.1))
+        entre(pulsoS, pulso, fim)
+      } else {
+        entre(ante, cotovelo, fim)
+        if (punhoS) entre(punhoS, tmpB.copy(ombroP).lerp(cotovelo, 0.76), V(0, 0, 0).copy(ombroP).lerp(cotovelo, 0.97))
+      }
+      em(maoJ, fim)
+      maoJ.m.scale.set(0.21 * (1 + achata * 0.25), 0.21 * (1 - achata * 0.3), 0.21)
+      if (maoJ.f) maoJ.f.scale.set((0.21 + traco) * (1 + achata * 0.25), (0.21 + traco) * (1 - achata * 0.3), 0.21 + traco)
+    }
+    apontar(V(l * (W + 0.3), -2.2, 0.8))
+    return { grupo, apontar, ombro: ombroP }
+  }
+
   function item(pai, m) {
     if (a.mao === "bandeira") {
       const topo = m.clone().add(V(0.05, 1.35, 0))
@@ -1876,7 +1975,12 @@ export function criarBoneco(a, { qualidade = 1, traco = 0.04 } = {}) {
     if (nome === "cima") punho[-1].position.copy(punho[1].position).multiply(V(-1, 1, 1))
   }
   pose()
-  return { raiz, pose, pecas, ancoras, seguir, descartar: () => lixo.forEach((x) => x.dispose()) }
+  /** Only the face (the arms left as they are): for a page that moves the arms itself. */
+  function emocao(e = "normal") {
+    if (!rostos[e]) rostos[e] = guardar(pintarRosto(a, e, qualidade))
+    peleMat.map = rostos[e]
+  }
+  return { raiz, pose, pecas, ancoras, seguir, cabeca, bracos, repouso, emocao, bracoVivo, descartar: () => lixo.forEach((x) => x.dispose()) }
 }
 
 // One renderer for every picture: the stand never runs 3D, it shows what this drew once.

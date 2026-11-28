@@ -196,9 +196,12 @@ export const SHIPPED: Shipped[] = [
     date: "2026-11-20",
     tag: "live",
     title: "Teclado e mouse na tela",
-    text: "As teclas e os cliques que eu aperto aparecem do lado da câmera, no Valorant, no Rocket League e nos outros jogos.",
+    text: "As teclas e os cliques que eu aperto aparecem do lado da câmera, com o meu torcedor digitando, segurando o mouse e comemorando os gols.",
     credits: [{ by: "erikmd01" }],
-    media: [media("teclado-e-mouse", "O teclado e o mouse acima da câmera: W e A acesos e o clique esquerdo do mouse apertado", { video: true })],
+    media: [
+      media("teclado-e-mouse-torcedor", "O torcedor do canal atrás do teclado: a mão esquerda no W aceso e a direita segurando o mouse", { video: true }),
+      media("teclado-e-mouse", "O teclado e o mouse acima da câmera: W e A acesos e o clique esquerdo do mouse apertado", { video: true }),
+    ],
   },
   {
     id: "servidor-do-discord",
