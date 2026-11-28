@@ -112,6 +112,13 @@ const media = (name: string, alt: string, { video = false, portrait = false } = 
  */
 export const UPCOMING: Upcoming[] = [
   {
+    id: "sorteio-da-torcida",
+    status: "agora",
+    tag: "live",
+    title: "Sorteio de partidas da torcida",
+    text: "Manda !jogar e entra no sorteio: os times, ou a chave do torneio, saem na roleta da live.",
+  },
+  {
     id: "celeste-lore",
     status: "proximo",
     tag: "live",
