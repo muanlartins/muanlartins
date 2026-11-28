@@ -1,0 +1,501 @@
+{
+ "live": "2026-11-26",
+ "nome": "8 vitórias seguidas",
+ "jogo": "rocket-league",
+ "filtro": false,
+ "extra": "scripts/efeitos/2026-11-26-destaque.py",
+ "post": "Comecei o dia caindo com smurf… e emendei 8 vitórias seguidas 🔥 #rocketleague",
+ "arquivos": {
+  "live": "/home/muanl/.cache/muanlartins/edicao/destaque-2026-11-26-destaque/src/2026-11-26 14-30-30 Live.mp4",
+  "jogo": "/home/muanl/.cache/muanlartins/edicao/destaque-2026-11-26-destaque/src/2026-11-26 14-30-30 Live.mp4",
+  "camera": "/home/muanl/.cache/muanlartins/edicao/destaque-2026-11-26-destaque/src/2026-11-26 14-30-31 Câmera.mkv"
+ },
+ "trechos": [
+  {
+   "de": 9941.9,
+   "ate": 9944.15,
+   "camera": "jogo",
+   "baixo": [
+    670,
+    0,
+    900,
+    900
+   ],
+   "seco": true
+  },
+  {
+   "de": 8380.2,
+   "ate": 8387.2,
+   "camera": "jogo",
+   "baixo": [
+    670,
+    0,
+    900,
+    900
+   ]
+  },
+  {
+   "de": 8394.0,
+   "ate": 8404.14,
+   "camera": "jogo",
+   "baixo": [
+    670,
+    0,
+    900,
+    900
+   ]
+  },
+  {
+   "de": 9939.4,
+   "ate": 9949.2,
+   "camera": "jogo",
+   "baixo": [
+    670,
+    0,
+    900,
+    900
+   ]
+  },
+  {
+   "de": 9253.6,
+   "ate": 9267.8,
+   "camera": "jogo",
+   "baixo": [
+    670,
+    0,
+    900,
+    900
+   ]
+  },
+  {
+   "de": 9270.2,
+   "ate": 9273.4,
+   "camera": "jogo",
+   "baixo": [
+    670,
+    0,
+    900,
+    900
+   ],
+   "entrada": "zoom"
+  }
+ ],
+ "titulo": {
+  "linhas": [
+   "8 vitórias seguidas"
+  ],
+  "de": 9941.95,
+  "ate": 9944.15,
+  "y": 1010,
+  "tamanho": 100,
+  "trecho": 0
+ },
+ "rotulos": [
+  {
+   "linhas": [
+    "John",
+    "Rocket League"
+   ],
+   "de": 8402.62,
+   "ate": 8404.14,
+   "y": 760,
+   "tamanho": 112,
+   "trecho": 2
+  }
+ ],
+ "sem_legenda": [
+  [
+   8402.5,
+   8404.2
+  ]
+ ],
+ "destaques": [
+  "passe",
+  "bounce",
+  "golaço",
+  "pariu",
+  "concentração",
+  "lindo",
+  "senhora"
+ ],
+ "impactos": [
+  {
+   "em": 9942.08,
+   "onde": "jogo",
+   "flash": "branco",
+   "forca": 0.6,
+   "flash_tau": 0.07,
+   "chute": 0.1,
+   "trecho": 0
+  },
+  {
+   "em": 8383.45,
+   "onde": "jogo",
+   "flash": "branco",
+   "forca": 0.6,
+   "flash_tau": 0.06,
+   "chute": 0.1,
+   "trecho": 1
+  },
+  {
+   "em": 8384.24,
+   "onde": "camera",
+   "soco": {
+    "z": 1.22,
+    "entra": 4,
+    "segura": 1.0,
+    "sai": 10
+   },
+   "trecho": 1
+  },
+  {
+   "em": 9942.08,
+   "onde": "jogo",
+   "flash": "branco",
+   "forca": 0.65,
+   "flash_tau": 0.07,
+   "tremor": 12,
+   "soco": {
+    "z": 1.14,
+    "entra": 5,
+    "segura": 0.45,
+    "sai": 14,
+    "centro": [
+     380,
+     720
+    ]
+   },
+   "trecho": 3
+  },
+  {
+   "em": 9944.3,
+   "onde": "camera",
+   "soco": {
+    "z": 1.24,
+    "entra": 4,
+    "segura": 1.3,
+    "sai": 10
+   },
+   "trecho": 3
+  },
+  {
+   "em": 9260.25,
+   "onde": "jogo",
+   "flash": "branco",
+   "forca": 0.65,
+   "flash_tau": 0.07,
+   "tremor": 12,
+   "soco": {
+    "z": 1.14,
+    "entra": 5,
+    "segura": 0.45,
+    "sai": 14,
+    "centro": [
+     480,
+     700
+    ]
+   },
+   "trecho": 4
+  },
+  {
+   "em": 9260.55,
+   "onde": "camera",
+   "soco": {
+    "z": 1.22,
+    "entra": 4,
+    "segura": 1.4,
+    "sai": 10
+   },
+   "trecho": 4
+  }
+ ],
+ "zoom": [
+  {
+   "de": 9939.6,
+   "ate": 9942.08,
+   "onde": "jogo",
+   "z": 1.12,
+   "centro": [
+    420,
+    650
+   ],
+   "trecho": 3
+  },
+  {
+   "de": 9258.2,
+   "ate": 9260.25,
+   "onde": "jogo",
+   "z": 1.12,
+   "centro": [
+    480,
+    650
+   ],
+   "trecho": 4
+  }
+ ],
+ "sons": [
+  [
+   9942.08,
+   "impact-boom",
+   -8,
+   {
+    "trecho": 0
+   }
+  ],
+  [
+   8383.45,
+   "impact-boom",
+   -9,
+   {
+    "trecho": 1
+   }
+  ],
+  [
+   8383.5,
+   "palmas",
+   -17,
+   {
+    "trecho": 1
+   }
+  ],
+  [
+   8384.24,
+   "pop",
+   -15,
+   {
+    "trecho": 1
+   }
+  ],
+  [
+   8402.62,
+   "impact-boom",
+   -10,
+   {
+    "trecho": 2
+   }
+  ],
+  [
+   9942.08,
+   "riser",
+   -12,
+   "fim",
+   {
+    "trecho": 3
+   }
+  ],
+  [
+   9942.08,
+   "impact-boom",
+   -7,
+   {
+    "trecho": 3
+   }
+  ],
+  [
+   9942.08,
+   "hit",
+   -12,
+   {
+    "trecho": 3
+   }
+  ],
+  [
+   9942.2,
+   "palmas",
+   -15,
+   {
+    "trecho": 3
+   }
+  ],
+  [
+   9944.3,
+   "pop",
+   -15,
+   {
+    "trecho": 3
+   }
+  ],
+  [
+   9260.25,
+   "riser",
+   -12,
+   "fim",
+   {
+    "trecho": 4
+   }
+  ],
+  [
+   9260.25,
+   "impact-boom",
+   -6,
+   {
+    "trecho": 4
+   }
+  ],
+  [
+   9260.25,
+   "hit",
+   -12,
+   {
+    "trecho": 4
+   }
+  ],
+  [
+   9260.35,
+   "palmas",
+   -14,
+   {
+    "trecho": 4
+   }
+  ],
+  [
+   9260.55,
+   "pop",
+   -15,
+   {
+    "trecho": 4
+   }
+  ]
+ ],
+ "trocas": {},
+ "corrigir": [
+  [
+   9942.49,
+   "Caralho,"
+  ],
+  [
+   8383.72,
+   "passe!"
+  ],
+  [
+   8384.87,
+   "passe!"
+  ],
+  [
+   8385.26,
+   ""
+  ],
+  [
+   8385.77,
+   ""
+  ],
+  [
+   8386.04,
+   ""
+  ],
+  [
+   8386.7,
+   ""
+  ],
+  [
+   8394.17,
+   ""
+  ],
+  [
+   8395.52,
+   ""
+  ],
+  [
+   8395.82,
+   ""
+  ],
+  [
+   8396.14,
+   ""
+  ],
+  [
+   8396.46,
+   ""
+  ],
+  [
+   9945.61,
+   "Que concentração!"
+  ],
+  [
+   9259.1,
+   "mesmo."
+  ],
+  [
+   9267.37,
+   ""
+  ],
+  [
+   9270.39,
+   "Nossa"
+  ],
+  [
+   9271.13,
+   "senhora!"
+  ],
+  [
+   8386.73,
+   ""
+  ],
+  [
+   9945.66,
+   ""
+  ],
+  [
+   9256.32,
+   "legal."
+  ]
+ ],
+ "palavras": [
+  [
+   8385.77,
+   8385.91,
+   "Que"
+  ],
+  [
+   8385.91,
+   8386.18,
+   "leitura"
+  ],
+  [
+   8386.18,
+   8386.3,
+   "de"
+  ],
+  [
+   8386.3,
+   8386.85,
+   "bounce!"
+  ],
+  [
+   8394.14,
+   8394.75,
+   "Nossa"
+  ],
+  [
+   8395.13,
+   8395.86,
+   "senhora!"
+  ],
+  [
+   8395.88,
+   8396.12,
+   "Toma"
+  ],
+  [
+   8396.12,
+   8396.4,
+   "essa"
+  ],
+  [
+   8396.4,
+   8396.62,
+   "aqui,"
+  ],
+  [
+   8396.62,
+   8396.95,
+   "então."
+  ]
+ ],
+ "capa": {
+  "quadro": 9945.0,
+  "origem": "camera",
+  "fundo": "live",
+  "texto": "8 VITÓRIAS|SEGUIDAS"
+ }
+}
