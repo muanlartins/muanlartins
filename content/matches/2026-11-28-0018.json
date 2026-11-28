@@ -1,0 +1,375 @@
+{
+  "id": "2026-11-28-0018",
+  "start": "2026-11-28T03:11:24.531Z",
+  "end": "2026-11-28T03:52:05.636Z",
+  "startRanks": {
+    "3v3": {
+      "tier": "champion-1",
+      "division": 2,
+      "mmr": 1123
+    },
+    "2v2": {
+      "tier": "diamond-3",
+      "division": 2,
+      "mmr": 1023
+    },
+    "1v1": {
+      "tier": "platinum-1",
+      "division": 1,
+      "mmr": 627
+    }
+  },
+  "outputs": [],
+  "matches": [
+    {
+      "id": "5D145B4E11F1EAD9B03A02AF8F6C9447",
+      "start": "2026-11-28T03:11:24.531Z",
+      "at": "2026-11-28T03:18:04.621Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        1,
+        4
+      ],
+      "overtime": false,
+      "me": {
+        "score": 403,
+        "goals": 1,
+        "assists": 0,
+        "saves": 2,
+        "shots": 3,
+        "touches": 35,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 162,
+          "goals": 0,
+          "assists": 0,
+          "saves": 2,
+          "shots": 1,
+          "touches": 15,
+          "demos": 0
+        },
+        {
+          "score": 166,
+          "goals": 0,
+          "assists": 1,
+          "saves": 0,
+          "shots": 1,
+          "touches": 22,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "champion-1",
+        "division": 2,
+        "mmr": 1123
+      },
+      "points": -9,
+      "mmr": 1114
+    },
+    {
+      "id": "62B9FE2211F1EADA19205086FF785CE7",
+      "start": "2026-11-28T03:18:43.687Z",
+      "at": "2026-11-28T03:24:46.086Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        1,
+        2
+      ],
+      "overtime": false,
+      "me": {
+        "score": 341,
+        "goals": 0,
+        "assists": 0,
+        "saves": 1,
+        "shots": 4,
+        "touches": 31,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 365,
+          "goals": 1,
+          "assists": 0,
+          "saves": 1,
+          "shots": 2,
+          "touches": 27,
+          "demos": 0
+        },
+        {
+          "score": 142,
+          "goals": 0,
+          "assists": 1,
+          "saves": 0,
+          "shots": 1,
+          "touches": 21,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "champion-1",
+        "division": 2,
+        "mmr": 1114
+      },
+      "points": -9,
+      "mmr": 1105
+    },
+    {
+      "id": "4BDBE56611F1EADB071E87AB6D2CEACB",
+      "start": "2026-11-28T03:25:14.498Z",
+      "at": "2026-11-28T03:31:20.390Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        1,
+        2
+      ],
+      "overtime": false,
+      "me": {
+        "score": 216,
+        "goals": 0,
+        "assists": 0,
+        "saves": 2,
+        "shots": 0,
+        "touches": 28,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 479,
+          "goals": 1,
+          "assists": 0,
+          "saves": 3,
+          "shots": 1,
+          "touches": 29,
+          "demos": 0
+        },
+        {
+          "score": 144,
+          "goals": 0,
+          "assists": 0,
+          "saves": 1,
+          "shots": 1,
+          "touches": 20,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "champion-1",
+        "division": 2,
+        "mmr": 1105
+      },
+      "points": -9,
+      "mmr": 1096
+    },
+    {
+      "id": "345E73C611F1EADCCA8913B0B66CE599",
+      "start": "2026-11-28T03:31:43.869Z",
+      "at": "2026-11-28T03:39:02.383Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        2,
+        5
+      ],
+      "overtime": false,
+      "me": {
+        "score": 172,
+        "goals": 0,
+        "assists": 0,
+        "saves": 1,
+        "shots": 3,
+        "touches": 23,
+        "demos": 1
+      },
+      "mates": [
+        {
+          "score": 218,
+          "goals": 1,
+          "assists": 0,
+          "saves": 0,
+          "shots": 2,
+          "touches": 27,
+          "demos": 0
+        },
+        {
+          "score": 290,
+          "goals": 1,
+          "assists": 1,
+          "saves": 0,
+          "shots": 2,
+          "touches": 32,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "champion-1",
+        "division": 2,
+        "mmr": 1096
+      },
+      "points": -9,
+      "mmr": 1087
+    },
+    {
+      "id": "535BDA2411F1EADD5B7B439494C3705E",
+      "start": "2026-11-28T03:39:52.550Z",
+      "at": "2026-11-28T03:46:48.262Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        2,
+        4
+      ],
+      "overtime": false,
+      "me": {
+        "score": 262,
+        "goals": 1,
+        "assists": 0,
+        "saves": 1,
+        "shots": 2,
+        "touches": 40,
+        "demos": 2
+      },
+      "mates": [
+        {
+          "score": 359,
+          "goals": 1,
+          "assists": 1,
+          "saves": 1,
+          "shots": 1,
+          "touches": 22,
+          "demos": 0
+        },
+        {
+          "score": 156,
+          "goals": 0,
+          "assists": 0,
+          "saves": 2,
+          "shots": 0,
+          "touches": 22,
+          "demos": 0
+        }
+      ],
+      "rank": {
+        "tier": "champion-1",
+        "division": 1,
+        "mmr": 1087
+      },
+      "points": -10,
+      "mmr": 1077
+    },
+    {
+      "id": "6667D5D611F1EADED4FA319BE376B073",
+      "start": "2026-11-28T03:47:32.067Z",
+      "at": "2026-11-28T03:52:05.636Z",
+      "mode": "3v3",
+      "playlist": 13,
+      "ranked": true,
+      "result": "loss",
+      "left": false,
+      "score": [
+        0,
+        4
+      ],
+      "overtime": false,
+      "me": {
+        "score": 229,
+        "goals": 0,
+        "assists": 0,
+        "saves": 1,
+        "shots": 0,
+        "touches": 21,
+        "demos": 0
+      },
+      "mates": [
+        {
+          "score": 68,
+          "goals": 0,
+          "assists": 0,
+          "saves": 1,
+          "shots": 0,
+          "touches": 12,
+          "demos": 0
+        },
+        {
+          "score": 136,
+          "goals": 0,
+          "assists": 0,
+          "saves": 2,
+          "shots": 0,
+          "touches": 14,
+          "demos": 1
+        }
+      ],
+      "rank": {
+        "tier": "champion-1",
+        "division": 1,
+        "mmr": 1077
+      },
+      "points": -8,
+      "mmr": 1069
+    }
+  ],
+  "ranks": [
+    {
+      "at": "2026-11-28T03:18:25.967Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 2,
+      "mmr": 1114
+    },
+    {
+      "at": "2026-11-28T03:25:07.614Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 2,
+      "mmr": 1105
+    },
+    {
+      "at": "2026-11-28T03:31:40.251Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 2,
+      "mmr": 1096
+    },
+    {
+      "at": "2026-11-28T03:39:24.808Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 1,
+      "mmr": 1087
+    },
+    {
+      "at": "2026-11-28T03:47:09.431Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 1,
+      "mmr": 1077
+    },
+    {
+      "at": "2026-11-28T03:52:22.102Z",
+      "mode": "3v3",
+      "tier": "champion-1",
+      "division": 1,
+      "mmr": 1069
+    }
+  ]
+}
