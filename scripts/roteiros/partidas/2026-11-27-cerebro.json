@@ -1,0 +1,17 @@
+{
+  "data": "2026-11-27",
+  "nome": "cerebro",
+  "titulo": "Mecânica mil, cérebro zero",
+  "descricao": "Três vitórias seguidas no 2v2 ranqueado com o Duolingo: 5 a 2, uma revanche ganha na prorrogação e um 3 a 2 em que os caras reclamaram de smurf.",
+  "partidas": [
+    10,
+    11,
+    12
+  ],
+  "capitulos": {
+    "10": "Mecânica mil, cérebro zero",
+    "11": "Eu quero revanche",
+    "12": "Os caras reclamaram de smurf"
+  },
+  "publicar": "2026-12-03T21:00:00-03:00"
+}

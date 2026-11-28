@@ -1,0 +1,17 @@
+{
+  "data": "2026-11-27",
+  "nome": "porteiro",
+  "titulo": "Eu sou o porteiro do Champion",
+  "descricao": "2v2 ranqueado com o Duolingo, que é Grand Champion, numa conta secundária: o jogo me jogou contra uns caras esquisitos, duas derrotas seguidas e, na terceira, uma virada por 7 a 4.",
+  "partidas": [
+    2,
+    3,
+    4
+  ],
+  "capitulos": {
+    "2": "Uns caras esquisitos",
+    "3": "Tamo lutando pelo Champion",
+    "4": "O porteiro do Champion"
+  },
+  "publicar": "2026-12-02T21:00:00-03:00"
+}

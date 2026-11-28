@@ -62,7 +62,8 @@
         "tier": "platinum-1",
         "division": 1,
         "mmr": 627
-      }
+      },
+      "replay": "/replays/2026-11-27/2026-11-27-01.replay"
     },
     {
       "id": "2BA2E67011F1EA93F1750B95284E6B98",
@@ -105,7 +106,8 @@
         "mmr": 1006
       },
       "mmr": 998,
-      "points": -8
+      "points": -8,
+      "replay": "/replays/2026-11-27/2026-11-27-02.replay"
     },
     {
       "id": "3296CE0A11F1EA94F31FA985A16C56D0",
@@ -139,7 +141,8 @@
           "saves": 1,
           "shots": 7,
           "touches": 76,
-          "demos": 1
+          "demos": 1,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -148,7 +151,8 @@
         "mmr": 998
       },
       "mmr": 993,
-      "points": -5
+      "points": -5,
+      "replay": "/replays/2026-11-27/2026-11-27-03.replay"
     },
     {
       "id": "3EDBCB8811F1EA95DDD3CBB36FA86103",
@@ -182,7 +186,8 @@
           "saves": 1,
           "shots": 8,
           "touches": 63,
-          "demos": 0
+          "demos": 0,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -191,7 +196,8 @@
         "mmr": 993
       },
       "mmr": 1003,
-      "points": 10
+      "points": 10,
+      "replay": "/replays/2026-11-27/2026-11-27-04.replay"
     },
     {
       "id": "6950025C11F1EA968A29DF8BE8FBC013",
@@ -225,7 +231,8 @@
           "saves": 4,
           "shots": 3,
           "touches": 69,
-          "demos": 0
+          "demos": 0,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -234,7 +241,8 @@
         "mmr": 1003
       },
       "mmr": 1016,
-      "points": 13
+      "points": 13,
+      "replay": "/replays/2026-11-27/2026-11-27-05.replay"
     },
     {
       "id": "8F182A5E11F1EA97A4D55BAC381B22F2",
@@ -268,7 +276,8 @@
           "saves": 1,
           "shots": 6,
           "touches": 93,
-          "demos": 0
+          "demos": 0,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -277,7 +286,8 @@
         "mmr": 1016
       },
       "mmr": 1011,
-      "points": -5
+      "points": -5,
+      "replay": "/replays/2026-11-27/2026-11-27-06.replay"
     },
     {
       "id": "C535C06411F1EA9830F8638A613B6737",
@@ -311,7 +321,8 @@
           "saves": 1,
           "shots": 5,
           "touches": 82,
-          "demos": 0
+          "demos": 0,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -320,7 +331,8 @@
         "mmr": 1011
       },
       "mmr": 1023,
-      "points": 12
+      "points": 12,
+      "replay": "/replays/2026-11-27/2026-11-27-07.replay"
     },
     {
       "id": "B8EFCD2611F1EA996CAFFDA85D03616E",
@@ -354,7 +366,8 @@
           "saves": 2,
           "shots": 4,
           "touches": 88,
-          "demos": 0
+          "demos": 0,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -363,7 +376,8 @@
         "mmr": 1023
       },
       "mmr": 1018,
-      "points": -5
+      "points": -5,
+      "replay": "/replays/2026-11-27/2026-11-27-08.replay"
     },
     {
       "id": "E6224EA811F1EA9ABB6214B6327FF865",
@@ -397,7 +411,8 @@
           "saves": 0,
           "shots": 5,
           "touches": 87,
-          "demos": 1
+          "demos": 1,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -406,7 +421,8 @@
         "mmr": 1018
       },
       "mmr": 1013,
-      "points": -5
+      "points": -5,
+      "replay": "/replays/2026-11-27/2026-11-27-09.replay"
     },
     {
       "id": "1A49624C11F1EA9CB5C405B582CFBEB3",
@@ -440,7 +456,8 @@
           "saves": 3,
           "shots": 6,
           "touches": 81,
-          "demos": 0
+          "demos": 0,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -449,7 +466,8 @@
         "mmr": 1013
       },
       "mmr": 1025,
-      "points": 12
+      "points": 12,
+      "replay": "/replays/2026-11-27/2026-11-27-10.replay"
     },
     {
       "id": "2794DE1211F1EA9D88C0DFA2A264708C",
@@ -483,7 +501,8 @@
           "saves": 2,
           "shots": 7,
           "touches": 99,
-          "demos": 0
+          "demos": 0,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -492,7 +511,8 @@
         "mmr": 1025
       },
       "mmr": 1037,
-      "points": 12
+      "points": 12,
+      "replay": "/replays/2026-11-27/2026-11-27-11.replay"
     },
     {
       "id": "B89E752A11F1EA9ECC4C038893407916",
@@ -526,7 +546,8 @@
           "saves": 1,
           "shots": 5,
           "touches": 47,
-          "demos": 0
+          "demos": 0,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -535,7 +556,8 @@
         "mmr": 1037
       },
       "mmr": 1049,
-      "points": 12
+      "points": 12,
+      "replay": "/replays/2026-11-27/2026-11-27-12.replay"
     },
     {
       "id": "8513CA9211F1EA9F02542193DDA89CDC",
@@ -569,7 +591,8 @@
           "saves": 2,
           "shots": 4,
           "touches": 68,
-          "demos": 0
+          "demos": 0,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -578,7 +601,8 @@
         "mmr": 1049
       },
       "mmr": 1043,
-      "points": -6
+      "points": -6,
+      "replay": "/replays/2026-11-27/2026-11-27-13.replay"
     },
     {
       "id": "7F1D7BBE11F1EAA0A3B2A092E5965C19",
@@ -612,7 +636,8 @@
           "saves": 1,
           "shots": 6,
           "touches": 94,
-          "demos": 0
+          "demos": 0,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -621,7 +646,8 @@
         "mmr": 1043
       },
       "mmr": 1037,
-      "points": -6
+      "points": -6,
+      "replay": "/replays/2026-11-27/2026-11-27-14.replay"
     },
     {
       "id": "D38944D411F1EAA1999E5CAEEB511BAF",
@@ -655,7 +681,8 @@
           "saves": 1,
           "shots": 5,
           "touches": 76,
-          "demos": 1
+          "demos": 1,
+          "login": "duoiinggoo"
         }
       ],
       "rank": {
@@ -664,7 +691,8 @@
         "mmr": 1037
       },
       "mmr": 1032,
-      "points": -5
+      "points": -5,
+      "replay": "/replays/2026-11-27/2026-11-27-15.replay"
     }
   ],
   "ranks": [

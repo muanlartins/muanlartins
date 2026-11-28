@@ -1,0 +1,110 @@
+{
+  "date": "2026-11-27",
+  "game": "rocket-league",
+  "video": "",
+  "length": "3:12:50",
+  "summary": {
+    "pt": "Começou com uma farra com a torcida: partidas privadas com o Esponja, o primo dele e quem estava na live. Depois, um 1v1 ranqueado (vitória por 3 a 1) e 14 partidas de 2v2 ranqueado com o Duolingo, que é Grand Champion, contra Champions 2 e 3: 6 vitórias e 8 derrotas, de Diamante 3 II (1006) a Diamante 3 II (1032), com pico de 1049.",
+    "en": "It started as a party with the crowd: private matches with Esponja, his cousin and whoever was on the live. Then a ranked 1v1 (a 3-1 win) and 14 ranked 2v2 matches with Duolingo, a Grand Champion, against Champions 2 and 3: 6 wins and 8 losses, from Diamond 3 II (1006) to Diamond 3 II (1032), peaking at 1049."
+  },
+  "youtube": {
+    "title": "Esse é o nível do Champion 3? | Rocket League ao vivo",
+    "publish_at": "2026-12-05T19:00:00-03:00",
+    "thumb": {
+      "quadro": "4a",
+      "segundo": 2858.9,
+      "texto": "ESSE É O|CHAMPION 3?",
+      "emblema": false
+    }
+  },
+  "chapters": [
+    {
+      "at": "0:00",
+      "title": {
+        "pt": "Começo: treinando air dribble",
+        "en": "Start: practicing air dribbles"
+      }
+    },
+    {
+      "at": "18:20",
+      "title": {
+        "pt": "Casual com o Esponja e o primo dele",
+        "en": "Casual with Esponja and his cousin"
+      }
+    },
+    {
+      "at": "26:12",
+      "title": {
+        "pt": "Partidas privadas com a torcida",
+        "en": "Private matches with the crowd"
+      }
+    },
+    {
+      "at": "1:14:14",
+      "match": "92BFA43411F1EA9282670287A47CA8FD"
+    },
+    {
+      "at": "1:18:33",
+      "match": "2BA2E67011F1EA93F1750B95284E6B98"
+    },
+    {
+      "at": "1:25:59",
+      "match": "3296CE0A11F1EA94F31FA985A16C56D0"
+    },
+    {
+      "at": "1:33:24",
+      "match": "3EDBCB8811F1EA95DDD3CBB36FA86103"
+    },
+    {
+      "at": "1:41:49",
+      "match": "6950025C11F1EA968A29DF8BE8FBC013"
+    },
+    {
+      "at": "1:50:03",
+      "match": "8F182A5E11F1EA97A4D55BAC381B22F2"
+    },
+    {
+      "at": "1:58:36",
+      "match": "C535C06411F1EA9830F8638A613B6737"
+    },
+    {
+      "at": "2:05:26",
+      "match": "B8EFCD2611F1EA996CAFFDA85D03616E"
+    },
+    {
+      "at": "2:13:50",
+      "match": "E6224EA811F1EA9ABB6214B6327FF865"
+    },
+    {
+      "at": "2:22:29",
+      "match": "1A49624C11F1EA9CB5C405B582CFBEB3"
+    },
+    {
+      "at": "2:29:59",
+      "match": "2794DE1211F1EA9D88C0DFA2A264708C"
+    },
+    {
+      "at": "2:41:17",
+      "match": "B89E752A11F1EA9ECC4C038893407916"
+    },
+    {
+      "at": "2:46:56",
+      "match": "8513CA9211F1EA9F02542193DDA89CDC"
+    },
+    {
+      "at": "2:53:54",
+      "match": "7F1D7BBE11F1EAA0A3B2A092E5965C19"
+    },
+    {
+      "at": "3:03:31",
+      "match": "D38944D411F1EAA1999E5CAEEB511BAF"
+    },
+    {
+      "at": "3:10:36",
+      "title": {
+        "pt": "Fim",
+        "en": "The end"
+      }
+    }
+  ]
+}
