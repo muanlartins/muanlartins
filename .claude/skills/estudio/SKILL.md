@@ -530,6 +530,20 @@ Luan's picks 7, 12, 13, 15 and 21 in ten stretches, 33.5 s, `Lives\2026-11-09\Sh
   - **Never cut his trailing line into the play** ("eu acho que eu vou tomar…" runs straight into what he feared).
   - **Gemini costs money and the credits ran out mid-round** (R$ 30, then R$ 50 more): an image budget per agent in the
     brief (2–4), counted with the failed calls, and the photoreal face edits mostly unnecessary now (above).
+- **The 11-26 highlights reel ("8 vitórias seguidas", `2026-11-26-destaque.*`, three rounds; Luan: "tá perfeito
+  agora"):**
+  - **A highlights reel of "jogadas" is his own plays.** Round 1 had a teammate's golden goal and him talking about the
+    opponents' rank, and he cut both: "achei que os 3 clipes eram de jogadas minhas". Label each candidate with whose
+    play it is (his goal, his pass, a mate's goal), checked on the picture before the list goes to him.
+  - **Never show his face twice.** The John filter split face-on-top/emblem-below read as "bugado". A filter stretch
+    keeps the normal layout, with the filter as the live showed it.
+  - **A stretch where the live has no game under the camera must not freeze the lower half.** The F2/Lance ruim scene
+    covers the game, and a frozen game with the scene's blue box "fica bugado". Fill it with an animation of the
+    channel's own: on 11-26, the hat-trick reel's black-and-white Gigachad poses with the pixel shades, swapping on
+    `john.wav`'s hits, graded purple.
+  - **A day without Jogo.mp4** (deleted for disk on 11-27): the lower half is the live's 900×900 game middle at 1.2×.
+    It's sharp, with the HUD a bit soft. `material()` needs OBS-style names, so `"arquivos"` points at symlinks in
+    `~/.cache/muanlartins/edicao/destaque-<date>-<slug>/src/` (not /tmp: a reboot wipes it).
 - **Still open:** music (none yet); the outro's effect on retention once a few shorts have their numbers.
 
 **The effects-heavy edit (`scripts/cortes.py`, rejected 11-11):** five picks chopped into 14 stretches in 34 s,
