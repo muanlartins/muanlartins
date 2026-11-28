@@ -1,11 +1,11 @@
 {
   "date": "2026-11-26",
   "game": "rocket-league",
-  "video": "",
+  "video": "IgoDDPrJ1Ew",
   "length": "4:19:45",
   "summary": {
-    "pt": "TODO (Luan, rascunho): Começo com speedflip, papo com o Exponja e privadas com a torcida (Dropshot e basquete). Na 2v2 solo só caí com smurf: 1 vitória em 4. Em duo com o Duolingo, 4 de 4; e no 3v3 com o JK e o Duolingo, mais 4 de 4, uma na prorrogação: Campeão 1 II de 1086 a 1123. No fim, 1v1, 2v2 e 3v3 da torcida, com a minha narração.",
-    "en": "TODO (Luan, draft): Speed flip practice, a chat with Exponja and private matches with the crowd (Dropshot and Hoops) to start. Solo 2v2 was all smurfs: 1 win in 4. In a duo with Duolingo, 4 out of 4; and in 3v3 with JK and Duolingo, 4 more out of 4, one in overtime: Champion 1 II from 1086 to 1123. To end, the crowd's 1v1s, 2v2 and 3v3, with my commentary."
+    "pt": "Começo com speedflip, papo com o Exponja e privadas com a torcida (Dropshot e basquete). Na 2v2 solo só caí com smurf: 1 vitória em 4. Em duo com o Duolingo, 4 de 4; e no 3v3 com o JK e o Duolingo, mais 4 de 4, uma na prorrogação: Campeão 1 II de 1086 a 1123. No fim, 1v1, 2v2 e 3v3 da torcida, com a minha narração.",
+    "en": "Speed flip practice, a chat with Exponja and private matches with the crowd (Dropshot and Hoops) to start. Solo 2v2 was all smurfs: 1 win in 4. In a duo with Duolingo, 4 out of 4; and in 3v3 with JK and Duolingo, 4 more out of 4, one in overtime: Champion 1 II from 1086 to 1123. To end, the crowd's 1v1s, 2v2 and 3v3, with my commentary."
   },
   "youtube": {
     "title": "8 vitórias seguidas! 9 vitórias em 12 jogos | Rocket League ao vivo",
@@ -18,123 +18,27 @@
     }
   },
   "chapters": [
-    {
-      "at": "0:00",
-      "title": {
-        "pt": "Começo: speedflip e papo com o Exponja",
-        "en": "Start: speed flip and a chat with Exponja"
-      }
-    },
-    {
-      "at": "27:00",
-      "title": {
-        "pt": "2v2 privado com a torcida",
-        "en": "Private 2v2 with the crowd"
-      }
-    },
-    {
-      "at": "38:40",
-      "title": {
-        "pt": "Dropshot com a torcida",
-        "en": "Dropshot with the crowd"
-      }
-    },
-    {
-      "at": "46:30",
-      "title": {
-        "pt": "Basquete com a torcida",
-        "en": "Hoops with the crowd"
-      }
-    },
-    {
-      "at": "54:30",
-      "title": {
-        "pt": "Mais privadas com a torcida",
-        "en": "More private matches with the crowd"
-      }
-    },
-    {
-      "at": "1:33:15",
-      "match": "11F7AFC011F1E9CC826772BEA47CA8FD"
-    },
-    {
-      "at": "1:39:35",
-      "match": "F5794E8E11F1E9CC039C2ABFEF58DF76"
-    },
-    {
-      "at": "1:48:27",
-      "match": "2ED0105E11F1E9CEF31FF4A1A16C56D0"
-    },
-    {
-      "at": "2:00:48",
-      "match": "EA390C2811F1E9CFA7CA39B9685B11B8"
-    },
-    {
-      "at": "2:09:47",
-      "match": "2E1DC41411F1E9D138B7A28A93F5F544"
-    },
-    {
-      "at": "2:17:50",
-      "match": "4B794C7611F1E9D2889BDFBFF4BC8AE2"
-    },
-    {
-      "at": "2:25:40",
-      "match": "665F624A11F1E9D36CAFF7895D03616E"
-    },
-    {
-      "at": "2:31:39",
-      "match": "3CBEA7B011F1E9D49E0D54928BF616A9"
-    },
-    {
-      "at": "2:39:12",
-      "match": "48DD9CF811F1E9D5E47A2DAF9535D834"
-    },
-    {
-      "at": "2:46:44",
-      "match": "585AB2E611F1E9D6AAB6B7A5AABD8C0B"
-    },
-    {
-      "at": "2:54:27",
-      "match": "6BB6FCEA11F1E9D7CC4120926B37926C"
-    },
-    {
-      "at": "3:04:00",
-      "match": "C07A03DE11F1E9D85E1918BF87866E61"
-    },
-    {
-      "at": "3:10:00",
-      "title": {
-        "pt": "Papo depois das ranqueadas",
-        "en": "Chatting after the ranked matches"
-      }
-    },
-    {
-      "at": "3:17:30",
-      "title": {
-        "pt": "1v1 da torcida, com a minha narração",
-        "en": "The crowd's 1v1s, with my commentary"
-      }
-    },
-    {
-      "at": "3:54:00",
-      "title": {
-        "pt": "2v2 e 3v3 da torcida, narrados",
-        "en": "The crowd's 2v2 and 3v3, with commentary"
-      }
-    },
-    {
-      "at": "4:11:00",
-      "title": {
-        "pt": "Despedida",
-        "en": "Goodbye"
-      }
-    },
-    {
-      "at": "4:16:00",
-      "title": {
-        "pt": "Créditos",
-        "en": "Credits"
-      }
-    }
+    { "at": "0:00", "title": { "pt": "Começo: speedflip e papo com o Exponja", "en": "Start: speed flip and a chat with Exponja" } },
+    { "at": "27:00", "title": { "pt": "2v2 privado com a torcida", "en": "Private 2v2 with the crowd" } },
+    { "at": "38:40", "title": { "pt": "Dropshot com a torcida", "en": "Dropshot with the crowd" } },
+    { "at": "46:30", "title": { "pt": "Basquete com a torcida", "en": "Hoops with the crowd" } },
+    { "at": "54:30", "title": { "pt": "Mais privadas com a torcida", "en": "More private matches with the crowd" } },
+    { "at": "1:33:15", "match": "11F7AFC011F1E9CC826772BEA47CA8FD" },
+    { "at": "1:39:35", "match": "F5794E8E11F1E9CC039C2ABFEF58DF76" },
+    { "at": "1:48:27", "match": "2ED0105E11F1E9CEF31FF4A1A16C56D0" },
+    { "at": "2:00:48", "match": "EA390C2811F1E9CFA7CA39B9685B11B8" },
+    { "at": "2:09:47", "match": "2E1DC41411F1E9D138B7A28A93F5F544" },
+    { "at": "2:17:50", "match": "4B794C7611F1E9D2889BDFBFF4BC8AE2" },
+    { "at": "2:25:40", "match": "665F624A11F1E9D36CAFF7895D03616E" },
+    { "at": "2:31:39", "match": "3CBEA7B011F1E9D49E0D54928BF616A9" },
+    { "at": "2:39:12", "match": "48DD9CF811F1E9D5E47A2DAF9535D834" },
+    { "at": "2:46:44", "match": "585AB2E611F1E9D6AAB6B7A5AABD8C0B" },
+    { "at": "2:54:27", "match": "6BB6FCEA11F1E9D7CC4120926B37926C" },
+    { "at": "3:04:00", "match": "C07A03DE11F1E9D85E1918BF87866E61" },
+    { "at": "3:10:00", "title": { "pt": "Papo depois das ranqueadas", "en": "Chatting after the ranked matches" } },
+    { "at": "3:17:30", "title": { "pt": "1v1 da torcida, com a minha narração", "en": "The crowd's 1v1s, with my commentary" } },
+    { "at": "3:54:00", "title": { "pt": "2v2 e 3v3 da torcida, narrados", "en": "The crowd's 2v2 and 3v3, with commentary" } },
+    { "at": "4:11:00", "title": { "pt": "Despedida", "en": "Goodbye" } },
+    { "at": "4:16:00", "title": { "pt": "Créditos", "en": "Credits" } }
   ]
 }
