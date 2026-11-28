@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pareamento · painel · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: a custom browser dock (Docks → Custom Browser Docks), for Luan only: #chave=<the Σ key>, like the Pix dock
+      (brand/twitch/obs.py adds it with the stand's key). ?sigma= points it at another Σ API (a local stand-in).
+
+      The viewers' matches (Luan, 2026-11-28; infra/sigma/pareamento.mjs has the rules): the chat's !jogar puts someone
+      on the list and !sair takes them off; here Luan sees it, takes off whoever isn't there any more (or adds someone
+      by hand), picks one of the formats the list allows (the first is the suggestion: Luan plays when one more closes
+      the teams) and draws. The "Sorteio" scene (sorteio.html) plays the draw as a roulette and shows the teams or the
+      bracket. Luan makes the private match in the game himself, then marks each match's winner here (5 Σ to each of
+      its viewers; Desfazer takes a wrong click back). Before any match, "Sortear de novo" draws again from the same
+      list, without whoever is ticked as gone. Encerrar takes the draw off the scene; the list is whoever typed !jogar
+      since. Each team's first drawn names it (!time) and picks its colour (!cor) from the chat; here Luan can too.
+      "Mostrar a roleta de novo" replays the draw on the scene (through the browser's storage, which OBS's docks and
+      sources share).
+    -->
+    <style>
+      html,
+      body {
+        overflow: auto;
+        background: var(--navy);
+      }
+      body {
+        padding: 14px;
+        font-size: 15px;
+        line-height: 1.35;
+      }
+      h2 {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 18px 0 8px;
+        color: var(--klein-claro);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      h2 small,
+      .vazio,
+      .dica {
+        color: rgb(244 245 247 / 0.55);
+        font-size: 12px;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+      h3 {
+        margin: 12px 0 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: rgb(244 245 247 / 0.75);
+      }
+      p {
+        margin: 0;
+      }
+      .status::before {
+        content: "";
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 6px;
+        border-radius: 50%;
+        background: #ff5a5a;
+      }
+      .status.on::before {
+        background: var(--klein-claro);
+      }
+      .status {
+        color: rgb(244 245 247 / 0.6);
+        font-size: 12px;
+      }
+      .erro {
+        margin-top: 6px;
+        color: #ffcc4d;
+        font-size: 13px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+      }
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .lista li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 4px 0;
+        border-bottom: 1px solid rgb(133 167 255 / 0.18);
+      }
+      .lista li:last-child {
+        border-bottom: 0;
+      }
+      .formatos label {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 6px 0;
+        cursor: pointer;
+      }
+      .formatos small {
+        display: block;
+        color: rgb(244 245 247 / 0.55);
+        font-size: 12px;
+      }
+      .time {
+        padding: 8px 0 8px 10px;
+        border-left: 4px solid var(--cor, var(--klein-claro));
+        margin-bottom: 8px;
+      }
+      .time .quem {
+        margin-top: 4px;
+        font-size: 13px;
+        color: rgb(244 245 247 / 0.8);
+      }
+      .time .quem label {
+        margin-right: 10px;
+        white-space: nowrap;
+      }
+      .partida {
+        padding: 6px 0;
+        border-bottom: 1px solid rgb(133 167 255 / 0.18);
+      }
+      .partida .lados {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+      .partida button.ganhou {
+        border-color: var(--klein-claro);
+        background: var(--klein);
+        font-weight: 600;
+      }
+      .campeao {
+        margin: 8px 0;
+        padding: 8px 10px;
+        border: 1px solid #ffd166;
+        color: #ffd166;
+        font-weight: 600;
+      }
+      select,
+      input,
+      button {
+        font: inherit;
+        font-size: 14px;
+        color: var(--paper);
+        background: rgb(0 47 167 / 0.45);
+        border: 1px solid rgb(133 167 255 / 0.4);
+        padding: 5px 8px;
+      }
+      input[type="radio"],
+      input[type="checkbox"] {
+        padding: 0;
+      }
+      input::placeholder {
+        color: rgb(244 245 247 / 0.5);
+      }
+      select option {
+        background: var(--navy);
+      }
+      button {
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--klein-claro);
+      }
+      button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      button.principal {
+        background: var(--klein);
+        border-color: var(--klein-claro);
+        font-weight: 600;
+      }
+      input.nome-time {
+        width: 150px;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="status" id="status">Conectando…</p>
+    <p class="erro" id="erro" hidden></p>
+
+    <section id="sec-sorteio" hidden>
+      <h2>Sorteio na tela <small id="s-formato"></small></h2>
+      <div id="campeao"></div>
+      <div id="times"></div>
+      <h3 id="t-partidas">Partidas</h3>
+      <div id="partidas"></div>
+      <div class="row" style="margin-top: 10px">
+        <button type="button" id="roleta">Mostrar a roleta de novo</button>
+        <button type="button" id="refazer">Sortear de novo</button>
+        <button type="button" id="encerrar">Encerrar sorteio</button>
+      </div>
+      <p class="dica" id="refazer-dica" style="margin-top: 6px">Marca quem saiu antes de sortear de novo. Só antes da primeira partida.</p>
+    </section>
+
+    <h2>Na lista <small id="n-lista"></small></h2>
+    <ul class="lista" id="lista"></ul>
+    <form class="row" id="adicionar" style="margin-top: 8px">
+      <input id="a-login" maxlength="25" placeholder="login da Twitch" required />
+      <button>Adicionar</button>
+      <button type="button" id="limpar">Limpar lista</button>
+    </form>
+
+    <h2>Formato</h2>
+    <div class="formatos" id="formatos"></div>
+    <div class="row" style="margin-top: 8px">
+      <button type="button" class="principal" id="sortear">Sortear</button>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(location.search)
+      // The stack's SigmaApiUrl; ?sigma= points it elsewhere.
+      const API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
+      const CHAVE = new URLSearchParams(location.hash.slice(1)).get("chave")
+      const DONO = "muanlartins"
+      const $ = (id) => document.getElementById(id)
+      function el(tag, props = {}, ...filhos) {
+        const e = Object.assign(document.createElement(tag), props)
+        e.append(...filhos)
+        return e
+      }
+      const botao = (texto, acao, props = {}) => el("button", { type: "button", textContent: texto, onclick: acao, ...props })
+
+      let estado = null
+      let escolhido = null // the format picked: its tam
+      const saiu = new Set() // drawn players ticked as gone, for a redraw
+
+      async function pedir(corpo) {
+        const r = await fetch(API + "/pareamento", {
+          method: corpo ? "POST" : "GET",
+          headers: corpo ? { "x-chave": CHAVE, "content-type": "application/json" } : {},
+          body: corpo && JSON.stringify(corpo),
+          cache: "no-store",
+        })
+        const j = await r.json().catch(() => ({}))
+        if (r.status === 401) throw new Error("a chave do Σ não confere (#chave= na URL do dock)")
+        if (!r.ok) throw new Error(j.erro || `erro ${r.status}`)
+        return j
+      }
+      function erro(texto) {
+        $("erro").hidden = !texto
+        $("erro").textContent = texto || ""
+      }
+      async function agir(corpo, b) {
+        if (b) b.disabled = true
+        try {
+          mostrar(await pedir(corpo))
+          erro("")
+        } catch (e) {
+          erro(`Não deu: ${e.message}`)
+        } finally {
+          if (b) b.disabled = false
+        }
+      }
+      // Destructive buttons: "… mesmo? Clica de novo".
+      function confirmar(b, texto, acao) {
+        const original = b.textContent
+        b.onclick = () => {
+          if (b.dataset.armado) {
+            delete b.dataset.armado
+            b.textContent = original
+            acao()
+            return
+          }
+          b.dataset.armado = "1"
+          b.textContent = texto
+          setTimeout(() => {
+            delete b.dataset.armado
+            b.textContent = original
+          }, 3000)
+        }
+      }
+
+      function descreve(f) {
+        const tipo = f.tipo === "partida" ? "uma partida" : `torneio de ${f.times} times, ${f.partidas} partidas`
+        const extra = [f.luan ? "eu jogo" : "eu narro", f.sobram ? `sobram ${f.sobram} na lista` : ""].filter(Boolean).join(" · ")
+        return [`${f.tam}v${f.tam} · ${tipo}`, extra]
+      }
+
+      // Round names, from the final back.
+      function rodada(r, total) {
+        if (total === 1) return "Partida"
+        const atras = total - 1 - r
+        return ["Final", "Semifinal", "Quartas de final"][atras] ?? `Rodada ${r + 1}`
+      }
+
+      // Redrawn only when what it shows changed, so a field being typed in isn't wiped by the poll.
+      let ultimo = ""
+      function mostrar(e) {
+        estado = e
+        const chave = JSON.stringify([e.inscritos, e.formatos, e.sorteio])
+        if (chave === ultimo) return
+        ultimo = chave
+        lista(e)
+        formatos(e)
+        sorteio(e)
+      }
+
+      function lista(e) {
+        $("n-lista").textContent = e.inscritos.length ? `${e.inscritos.length} ${e.inscritos.length === 1 ? "pessoa" : "pessoas"}` : ""
+        const ul = $("lista")
+        ul.replaceChildren(
+          ...(e.inscritos.length
+            ? e.inscritos.map((i) => el("li", {}, el("span", { textContent: i.nome }), botao("Tirar", (ev) => agir({ acao: "tirar", login: i.login }, ev.target))))
+            : [el("li", { className: "vazio", textContent: "Ninguém na lista. No chat: !jogar" })]),
+        )
+      }
+
+      function formatos(e) {
+        const caixa = $("formatos")
+        if (!e.formatos.some((f) => f.tam === escolhido)) escolhido = e.formatos[0]?.tam ?? null
+        caixa.replaceChildren(
+          ...(e.formatos.length
+            ? e.formatos.map((f, n) => {
+                const [linha, extra] = descreve(f)
+                const radio = el("input", { type: "radio", name: "formato", checked: f.tam === escolhido, onchange: () => (escolhido = f.tam) })
+                return el("label", {}, radio, el("span", {}, linha + (n === 0 ? " (sugerido)" : ""), el("small", { textContent: extra })))
+              })
+            : [el("p", { className: "vazio", textContent: "Pelo menos uma pessoa na lista pra sortear." })]),
+        )
+        const aberto = e.sorteio && e.sorteio.campeao === null
+        $("sortear").disabled = !e.formatos.length || !!aberto
+        $("sortear").title = aberto ? "Encerra o sorteio na tela antes" : ""
+      }
+
+      function sorteio(e) {
+        const s = e.sorteio
+        $("sec-sorteio").hidden = !s
+        if (!s) return
+        const [linha, extra] = descreve({ ...s.formato, partidas: s.formato.times - 1, sobram: 0 })
+        $("s-formato").textContent = `${linha} · ${extra}`
+        const nomeTime = (t) => s.times[t]?.nome ?? "–"
+        $("campeao").replaceChildren(...(s.campeao !== null ? [el("p", { className: "campeao", textContent: `${s.formato.tipo === "torneio" ? "Campeão" : "Venceu"}: ${nomeTime(s.campeao)}` })] : []))
+        // The teams: name, colour, players (a box to tick whoever left, for a redraw).
+        const comecou = s.partidas.some((p) => !p.bye && p.vencedor !== null)
+        $("times").replaceChildren(
+          ...s.times.map((t, i) => {
+            const cor = e.cores.find((c) => c.id === t.cor)
+            const nome = el("input", { className: "nome-time", value: t.nome, maxLength: 24 })
+            const salvar = botao("Salvar", (ev) => agir({ acao: "nomear", time: i, nome: nome.value }, ev.target))
+            const cores = el("select", { onchange: (ev) => agir({ acao: "colorir", time: i, cor: ev.target.value }) }, ...e.cores.map((c) => el("option", { value: c.id, textContent: c.nome, selected: c.id === t.cor })))
+            const quem = el(
+              "p",
+              { className: "quem" },
+              ...t.logins.map((l) => {
+                const nomeDele = (s.nomes[l] ?? l) + (l === t.capitao && s.formato.tam > 1 ? " (escolhe nome e cor)" : "")
+                if (l === DONO || comecou) return el("label", { textContent: nomeDele })
+                const caixa = el("input", { type: "checkbox", checked: saiu.has(l), onchange: (ev) => (ev.target.checked ? saiu.add(l) : saiu.delete(l)) })
+                return el("label", { title: "Saiu: fica fora se sortear de novo" }, caixa, " " + nomeDele)
+              }),
+            )
+            const div = el("div", { className: "time" }, el("div", { className: "row" }, nome, salvar, cores), quem)
+            div.style.setProperty("--cor", cor?.hex ?? "")
+            return div
+          }),
+        )
+        // The matches, by round; byes left out.
+        const rodadas = Math.max(...s.partidas.map((p) => p.rodada)) + 1
+        $("t-partidas").textContent = s.formato.tipo === "partida" ? "Partida" : "Partidas"
+        const caixa = $("partidas")
+        caixa.replaceChildren()
+        for (let r = 0; r < rodadas; r++) {
+          const desta = s.partidas.filter((p) => p.rodada === r && !p.bye)
+          if (!desta.length) continue
+          if (rodadas > 1) caixa.append(el("h3", { textContent: rodada(r, rodadas) }))
+          for (const p of desta) {
+            const div = el("div", { className: "partida" })
+            if (p.a === null || p.b === null) {
+              div.append(el("p", { className: "vazio", textContent: `${p.a !== null ? nomeTime(p.a) : "a definir"} × ${p.b !== null ? nomeTime(p.b) : "a definir"}` }))
+            } else {
+              const lado = (l) => {
+                const b = botao(`${nomeTime(p[l])} venceu`, (ev) => agir({ acao: "vencer", partida: p.id, lado: l }, ev.target), { className: p.vencedor === p[l] ? "ganhou" : "" })
+                b.disabled = p.vencedor !== null
+                return b
+              }
+              div.append(el("p", { textContent: `${nomeTime(p.a)} × ${nomeTime(p.b)}` }))
+              const lados = el("div", { className: "lados" }, lado("a"), lado("b"))
+              if (p.vencedor !== null) {
+                const d = botao("Desfazer", () => agir({ acao: "desfazer", partida: p.id }))
+                confirmar(d, "Desfazer mesmo? Clica de novo", () => agir({ acao: "desfazer", partida: p.id }))
+                lados.append(d)
+              }
+              div.append(lados)
+            }
+            caixa.append(div)
+          }
+        }
+        $("refazer").disabled = comecou
+        $("refazer-dica").hidden = comecou
+        for (const l of [...saiu]) if (!s.ordem.includes(l)) saiu.delete(l)
+      }
+
+      $("sortear").onclick = (ev) => agir({ acao: "sortear", formato: { tam: escolhido } }, ev.target)
+      // A redraw keeps the team size if the shorter list still allows it (else the API takes its suggestion).
+      $("refazer").onclick = (ev) => {
+        const s = estado?.sorteio
+        if (s) agir({ acao: "refazer", tirar: [...saiu], formato: { tam: s.formato.tam } }, ev.target)
+      }
+      confirmar($("encerrar"), "Encerrar mesmo? Clica de novo", () => agir({ acao: "encerrar" }))
+      confirmar($("limpar"), "Limpar mesmo? Clica de novo", () => agir({ acao: "limpar" }))
+      $("roleta").onclick = () => {
+        if (estado?.sorteio) localStorage.setItem("pareamento:roleta", JSON.stringify({ id: estado.sorteio.id, em: Date.now() }))
+      }
+      $("adicionar").onsubmit = (ev) => {
+        ev.preventDefault()
+        const login = $("a-login").value.trim()
+        agir({ acao: "adicionar", login, nome: login }).then(() => ($("a-login").value = ""))
+      }
+
+      async function ler() {
+        try {
+          mostrar(await pedir())
+          $("status").textContent = CHAVE ? "Conectado" : "Falta #chave= na URL: dá pra ver, não pra mexer"
+          $("status").classList.toggle("on", !!CHAVE)
+        } catch (e) {
+          $("status").textContent = `Sem conexão com a API do Σ (${e.message})`
+          $("status").classList.remove("on")
+        }
+      }
+      ler()
+      setInterval(ler, 3000)
+    </script>
+  </body>
+</html>

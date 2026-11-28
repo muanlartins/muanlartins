@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Sorteio · muanlartins</title>
+    <link rel="stylesheet" href="stream.css" />
+    <!--
+      OBS: the "Sorteio" scene's overlay (brand/twitch/obs.py), over the camera at Conversa's place but smaller, with
+      the chat under it. The viewers' matches (Luan, 2026-11-28; the rules are infra/sigma/pareamento.mjs): the list,
+      the draw and the bracket come from the Σ API (GET /pareamento, every 2 s), which the chat's !jogar and the
+      "Pareamento" dock (pareamento.html) change.
+
+      - Nobody drawn yet: the call (!jogar), who's on the list as their ball (their fan's head made round, fas3d.js's
+        bola seen from the front, bolinha.js's disco) and what the list makes right now (the API's first format).
+      - A new draw: the roulette. Its teams' places open empty; a reel of everyone on the draw's list spins, slows and
+        stops on each drawn one in turn (ticks as the balls pass), who flies into their team's place. When the draw
+        has Luan in, his stop says so. A draw made more than 90 s before the page saw it isn't played, only shown;
+        the dock's "Mostrar a roleta de novo" plays it again (through the browser's storage, `pareamento:roleta`).
+      - Then the teams: one match is the two teams face to face as their 3D fans; a tournament is the bracket, the
+        winners lit as the dock marks them, and the champion over it. The ticks are made here (WebAudio), on the
+        stream and in Luan's headphones like the stand's narrator.
+
+      ?sigma= the Σ API, ?api= the profile API (the fans' looks). To try it without the stream: `node
+      infra/sigma/local/servidor.mjs` serves the Σ API's matches on http://localhost:8132 over a table in memory
+      (its header has the commands), and ?sigma=http://localhost:8132 points this page and the dock at it.
+      Copy is a draft for Luan.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.182.0/build/three.module.js"
+        }
+      }
+    </script>
+    <style>
+      :root {
+        --ouro: #ffd166;
+        --cut-24: polygon(24px 0, 100% 0, 100% calc(100% - 24px), calc(100% - 24px) 100%, 0 100%, 0 24px);
+        --cut-12: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+      }
+      .ground {
+        clip-path: path(evenodd, "M0 0H1920V1080H0Z M64 64H704V424H64Z");
+      }
+      .hole {
+        position: absolute;
+        left: 64px;
+        top: 64px;
+        width: 640px;
+        height: 360px;
+      }
+      #plate {
+        left: 48px;
+        top: 414px;
+      }
+      .lado {
+        position: absolute;
+        left: 64px;
+        top: 500px;
+        width: 640px;
+        height: 516px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .lado .eyebrow {
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgb(133 167 255 / 0.4);
+      }
+      #chat {
+        position: relative;
+        flex: 1;
+      }
+      .painel {
+        position: absolute;
+        left: 768px;
+        top: 64px;
+        width: 1088px;
+        height: 952px;
+      }
+      .vista {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.5s var(--ease),
+          visibility 0s 0.5s;
+      }
+      .vista.on {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.5s var(--ease);
+      }
+      .titulo {
+        margin: 6px 0 0;
+        font-size: 64px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+      .sub {
+        margin: 12px 0 0;
+        font-size: 28px;
+        color: rgb(244 245 247 / 0.8);
+      }
+      .comando {
+        display: inline-block;
+        padding: 0 14px;
+        background: var(--paper);
+        color: var(--klein);
+        clip-path: var(--cut-12);
+      }
+
+      /* The list: the balls of whoever typed !jogar. */
+      .bolas {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 22px 12px;
+        margin-top: 40px;
+        align-content: start;
+      }
+      .bola {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        animation: chegar 0.6s var(--ease) both;
+      }
+      .bola canvas,
+      .bola .sem {
+        width: 96px;
+        height: 96px;
+      }
+      .bola .sem {
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--navy);
+        font-size: 40px;
+        font-weight: 600;
+      }
+      .bola span {
+        max-width: 100%;
+        overflow: hidden;
+        font-size: 18px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      @keyframes chegar {
+        from {
+          opacity: 0;
+          transform: translateY(16px) scale(0.8);
+        }
+      }
+      .mais {
+        margin-top: 20px;
+        font-size: 24px;
+        color: rgb(244 245 247 / 0.7);
+      }
+      .ninguem {
+        margin-top: 40px;
+        padding: 40px;
+        border: 1.5px dashed rgb(133 167 255 / 0.45);
+        font-size: 30px;
+        font-weight: 500;
+      }
+
+      /* The roulette. */
+      .rolo {
+        position: relative;
+        height: 196px;
+        margin-top: 28px;
+        overflow: hidden;
+        background: var(--navy);
+        clip-path: var(--cut-24);
+      }
+      .rolo::before,
+      .rolo::after {
+        content: "";
+        position: absolute;
+        z-index: 2;
+        left: 50%;
+        width: 0;
+        height: 0;
+        translate: -50% 0;
+        border: 18px solid transparent;
+      }
+      .rolo::before {
+        top: 0;
+        border-top-color: var(--klein-claro);
+      }
+      .rolo::after {
+        bottom: 0;
+        border-bottom-color: var(--klein-claro);
+      }
+      .fita {
+        position: absolute;
+        top: 0;
+        left: 0;
+        display: flex;
+        height: 100%;
+        will-change: transform;
+      }
+      .cartao {
+        flex: none;
+        width: 150px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition:
+          transform 0.4s var(--ease),
+          opacity 0.4s var(--ease);
+      }
+      .cartao canvas,
+      .cartao .sem {
+        width: 104px;
+        height: 104px;
+      }
+      .cartao .sem {
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--klein);
+        font-size: 44px;
+        font-weight: 600;
+      }
+      .cartao span {
+        max-width: 140px;
+        overflow: hidden;
+        font-size: 20px;
+        font-weight: 500;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .fita.parou .cartao {
+        opacity: 0.35;
+      }
+      .fita.parou .cartao.alvo {
+        opacity: 1;
+        transform: scale(1.18);
+      }
+      .anuncio {
+        height: 52px;
+        margin-top: 14px;
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-align: center;
+        text-transform: uppercase;
+        opacity: 0;
+        transition: opacity 0.3s var(--ease);
+      }
+      .anuncio.on {
+        opacity: 1;
+      }
+
+      /* The teams' places, during the roulette. */
+      .vagas {
+        display: grid;
+        gap: 16px;
+        margin-top: 18px;
+        align-content: start;
+      }
+      .vaga-time {
+        padding: 14px 16px 16px;
+        background: rgb(0 20 71 / 0.62);
+        border-left: 8px solid var(--cor);
+        clip-path: var(--cut-12);
+      }
+      .vaga-time h3 {
+        margin: 0 0 10px;
+        font-size: 24px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .vaga-time .lugares {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .lugar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+        height: 56px;
+        flex: 1 1 140px;
+      }
+      .lugar .oco {
+        flex: none;
+        width: 52px;
+        height: 52px;
+        border: 2px dashed rgb(133 167 255 / 0.5);
+        border-radius: 50%;
+      }
+      .lugar canvas,
+      .lugar .sem {
+        flex: none;
+        width: 52px;
+        height: 52px;
+      }
+      .lugar .sem {
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--klein);
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .lugar span {
+        overflow: hidden;
+        font-size: 19px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .voando {
+        position: absolute;
+        z-index: 10;
+        pointer-events: none;
+        transition: transform 0.7s var(--ease);
+      }
+
+      /* One match: the two teams face to face. */
+      .confronto {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: start;
+        gap: 24px;
+        margin-top: 36px;
+      }
+      .vs {
+        align-self: center;
+        font-size: 64px;
+        font-weight: 700;
+        color: var(--klein-claro);
+      }
+      .equipe {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        transition: opacity 0.6s var(--ease);
+      }
+      .equipe.perdeu {
+        opacity: 0.4;
+      }
+      .equipe .nome-time {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0;
+        padding: 10px 16px;
+        background: rgb(0 20 71 / 0.62);
+        border-left: 10px solid var(--cor);
+        clip-path: var(--cut-12);
+        font-size: 40px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+      .equipe .fas {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        height: 330px;
+      }
+      .fa {
+        position: relative;
+        flex: 1;
+        max-width: 160px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+      .fa .pose {
+        position: relative;
+        flex: 1;
+      }
+      .fa span {
+        margin-top: 8px;
+        overflow: hidden;
+        font-size: 20px;
+        font-weight: 500;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .equipe .nome-time .nome {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .venceu {
+        flex: none;
+        padding: 4px 14px;
+        background: var(--ouro);
+        color: var(--navy);
+        clip-path: var(--cut-12);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+      .rodape {
+        margin-top: auto;
+        font-size: 22px;
+        color: rgb(244 245 247 / 0.75);
+      }
+
+      /* A tournament: the bracket. */
+      .campeao {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-top: 22px;
+        padding: 14px 20px;
+        background: var(--navy);
+        border-left: 10px solid var(--ouro);
+        clip-path: var(--cut-12);
+        animation: chegar 0.8s var(--ease) both;
+      }
+      .campeao .rotulo {
+        color: var(--ouro);
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      .campeao .quem {
+        font-size: 36px;
+        font-weight: 600;
+      }
+      .campeao .fas {
+        display: flex;
+        gap: 4px;
+        height: 96px;
+        margin-left: auto;
+      }
+      .campeao .fa {
+        width: 80px;
+      }
+      .chave {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 1fr;
+        gap: 28px;
+        flex: 1;
+        margin-top: 22px;
+        min-height: 0;
+      }
+      .coluna {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .coluna h3 {
+        margin: 0 0 10px;
+        color: var(--klein-claro);
+        font-size: 20px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .jogos {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        flex: 1;
+        gap: 12px;
+      }
+      .jogo {
+        background: rgb(0 20 71 / 0.62);
+        clip-path: var(--cut-12);
+      }
+      .jogo .lado-jogo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-left: 8px solid var(--cor, rgb(133 167 255 / 0.3));
+        transition: opacity 0.6s var(--ease);
+      }
+      .jogo .lado-jogo + .lado-jogo {
+        border-top: 1px solid rgb(133 167 255 / 0.2);
+      }
+      .jogo .lado-jogo.perdeu {
+        opacity: 0.4;
+      }
+      .jogo .lado-jogo.ganhou .time-nome::after {
+        content: " ✓";
+        color: var(--ouro);
+      }
+      .jogo .discos {
+        display: flex;
+        flex: none;
+      }
+      .jogo .discos canvas,
+      .jogo .discos .sem {
+        width: 34px;
+        height: 34px;
+        margin-right: -8px;
+      }
+      .jogo .discos .sem {
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--klein);
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .jogo .texto {
+        min-width: 0;
+        margin-left: 8px;
+      }
+      .jogo .time-nome {
+        overflow: hidden;
+        font-size: 21px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .jogo .jogadores {
+        overflow: hidden;
+        font-size: 18px;
+        color: rgb(244 245 247 / 0.7);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .jogo .definir {
+        padding: 14px 12px;
+        font-size: 19px;
+        color: rgb(244 245 247 / 0.5);
+      }
+      .jogo.direto {
+        background: transparent;
+        border: 1.5px dashed rgb(133 167 255 / 0.3);
+      }
+      .jogo.direto .jogadores {
+        font-style: normal;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <div class="ground"></div>
+      <div class="hole"></div>
+      <div id="plate"></div>
+      <aside class="lado">
+        <p class="eyebrow">Chat</p>
+        <div id="chat"></div>
+      </aside>
+      <section class="painel">
+        <div class="vista" id="v-lista">
+          <p class="eyebrow">Sorteio da torcida</p>
+          <p class="titulo">Quer jogar? Manda <span class="comando">!jogar</span></p>
+          <p class="sub" id="l-conta"></p>
+          <div class="bolas" id="l-bolas"></div>
+          <p class="mais" id="l-mais"></p>
+        </div>
+        <div class="vista" id="v-roleta">
+          <p class="eyebrow" id="r-formato">Sorteando</p>
+          <div class="rolo"><div class="fita" id="fita"></div></div>
+          <p class="anuncio" id="anuncio"></p>
+          <div class="vagas" id="vagas"></div>
+        </div>
+        <div class="vista" id="v-times">
+          <p class="eyebrow" id="t-eyebrow"></p>
+          <p class="sub" id="t-formato" style="margin-top: 6px"></p>
+          <div id="t-corpo" style="display: contents"></div>
+          <p class="rodape" id="t-rodape"></p>
+        </div>
+      </section>
+    </main>
+    <script src="stream.js"></script>
+    <script src="bolinha.js"></script>
+    <script type="module">
+      import { bola as bolaDe, lookDe, retrato } from "./fas3d.js"
+
+      const SIGMA_API = params.get("sigma") ?? "https://p1rblei1o9.execute-api.us-east-1.amazonaws.com"
+      const API = params.get("api") ?? "https://wtpv8afsak.execute-api.us-east-1.amazonaws.com"
+      const DONO = "muanlartins"
+      const $ = (id) => document.getElementById(id)
+      const espera = (ms) => new Promise((r) => setTimeout(r, ms))
+      function el(tag, props = {}, ...filhos) {
+        const e = Object.assign(document.createElement(tag), props)
+        e.append(...filhos)
+        return e
+      }
+
+      const border = frame(document.querySelector(".hole"), { band: 16, fill: "#001447" })
+      const attention = plate($("plate"), `muanlartins<span class="accent">.com.br</span>`)
+      alternate(5, attention, border.glint)
+      chat($("chat"))
+
+      // --- The fans: their looks from the profile API, their balls baked once ------------------------------------
+      const aparencias = new Map()
+      const pedidos = new Set()
+      async function carregar(logins) {
+        const novos = [...new Set(logins)].filter((l) => !pedidos.has(l))
+        if (!novos.length) return
+        novos.forEach((l) => pedidos.add(l))
+        for (let i = 0; i < novos.length; i += 100) {
+          const lote = novos.slice(i, i + 100)
+          const r = await fetch(`${API}/torcedores?logins=${lote.join(",")}`).then((x) => (x.ok ? x.json() : null)).catch(() => null)
+          for (const l of lote) aparencias.set(l, r?.[l] ?? null)
+        }
+      }
+      const look = (login) => lookDe(aparencias.get(login) ?? null, login)
+      const discos = new Map()
+      /** Someone's ball from the front, `px` across (a promise of a canvas, or null). */
+      function disco(login, px) {
+        const chave = `${login}@${px}`
+        if (!discos.has(chave)) discos.set(chave, bolaDe(look(login)).then((mapa) => (mapa ? Bolinha.disco(mapa, px) : null)).catch(() => null))
+        return discos.get(chave)
+      }
+      /** A ball in `caixa`: their initial at once, the ball once it's baked (copied, so one bake serves every place). */
+      function bolaEm(caixa, login, nome, px) {
+        const sem = el("div", { className: "sem", textContent: (nome || login).slice(0, 1).toUpperCase() })
+        caixa.prepend(sem)
+        disco(login, px).then((c) => {
+          if (!c || !sem.isConnected) return
+          const copia = el("canvas", { width: c.width, height: c.height })
+          copia.getContext("2d").drawImage(c, 0, 0)
+          sem.replaceWith(copia)
+        })
+      }
+
+      // --- Sound: a tick per ball passing, a chord when the reel stops ----------------------------------------------
+      let audio = null
+      function som(freq, ms, volume = 0.06, tipo = "triangle") {
+        try {
+          audio ??= new AudioContext()
+          const o = audio.createOscillator()
+          const g = audio.createGain()
+          o.type = tipo
+          o.frequency.value = freq
+          const t = audio.currentTime
+          g.gain.setValueAtTime(volume, t)
+          g.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000)
+          o.connect(g).connect(audio.destination)
+          o.start(t)
+          o.stop(t + ms / 1000 + 0.02)
+        } catch {}
+      }
+      const tique = () => som(1250, 35, 0.05, "square")
+      const parou = () => [523, 659, 784].forEach((f, i) => setTimeout(() => som(f, 420, 0.07), i * 70))
+
+      // --- The views -----------------------------------------------------------------------------------------------
+      let vistaAtual = null
+      function vista(id) {
+        if (vistaAtual === id) return
+        vistaAtual = id
+        for (const v of document.querySelectorAll(".vista")) v.classList.toggle("on", v.id === `v-${id}`)
+      }
+      const descreve = (f) => {
+        const tipo = f.tipo === "partida" ? `${f.tam}v${f.tam}` : `torneio de ${f.tam}v${f.tam}, ${f.times} times`
+        return `${tipo} · ${f.luan ? "eu jogo" : "eu narro"}`
+      }
+      const nomeDe = (s, l) => (l === DONO ? "Luan" : s.nomes[l] ?? l)
+      const corDe = (e, id) => e.cores.find((c) => c.id === id)?.hex ?? "#85a7ff"
+
+      // The list: the balls of whoever is on it, and what it makes now.
+      const MOSTRA = 28
+      let listaVista = ""
+      function lista(e) {
+        const chave = JSON.stringify(e.inscritos.map((i) => i.login))
+        const f = e.formatos[0]
+        const n = e.inscritos.length
+        $("l-conta").textContent = !n ? "" : `${n} na lista${f ? ` · do jeito que está: ${descreve(f)}${f.sobram ? `, sobram ${f.sobram}` : ""}` : ""}`
+        if (chave === listaVista) return
+        listaVista = chave
+        carregar(e.inscritos.map((i) => i.login))
+        const caixa = $("l-bolas")
+        const ja = new Map([...caixa.children].map((c) => [c.dataset.login, c]))
+        caixa.replaceChildren(
+          ...e.inscritos.slice(0, MOSTRA).map((i) => {
+            if (ja.has(i.login)) return ja.get(i.login)
+            const b = el("div", { className: "bola" }, el("span", { textContent: i.nome }))
+            b.dataset.login = i.login
+            bolaEm(b, i.login, i.nome, 96)
+            return b
+          }),
+        )
+        if (!n) caixa.replaceChildren(el("p", { className: "ninguem", textContent: "Ninguém na lista ainda. O primeiro pode ser você." }))
+        caixa.style.display = n ? "" : "block"
+        $("l-mais").textContent = n > MOSTRA ? `e mais ${n - MOSTRA}` : ""
+      }
+
+      // The teams' places: one box per team, a dashed place per player.
+      function vagas(e, s) {
+        const caixa = $("vagas")
+        caixa.style.gridTemplateColumns = `repeat(${s.times.length <= 2 ? 2 : 4}, 1fr)`
+        caixa.replaceChildren(
+          ...s.times.map((t, i) => {
+            const box = el("div", { className: "vaga-time" }, el("h3", { textContent: s.formato.tam === 1 ? `Vaga ${i + 1}` : `Time ${i + 1}` }))
+            box.style.setProperty("--cor", corDe(e, t.cor))
+            box.append(el("div", { className: "lugares" }, ...t.logins.map(() => el("div", { className: "lugar" }, el("div", { className: "oco" })))))
+            return box
+          }),
+        )
+      }
+      const lugarDe = (s, k) => {
+        const t = Math.floor(k / s.formato.tam)
+        return $("vagas").children[t]?.querySelectorAll(".lugar")[k % s.formato.tam]
+      }
+
+      // Where an element is on the 1920×1080 stage (the stage is scaled to the source).
+      function noPalco(elemento) {
+        const palco = document.querySelector(".stage").getBoundingClientRect()
+        const k = palco.width / 1920
+        const r = elemento.getBoundingClientRect()
+        return { x: (r.left - palco.left) / k, y: (r.top - palco.top) / k, w: r.width / k, h: r.height / k }
+      }
+
+      let giro = 0 // bumped to cancel a roulette in progress
+      const CARTAO = 150
+      /** The reel spins `ms` and stops on `alvo`, the rest drawn from `restantes`. */
+      async function girar(s, alvo, restantes, ms, meu) {
+        const fita = $("fita")
+        fita.classList.remove("parou")
+        // The last one is a single ball, already in place.
+        const N = ms ? Math.max(28, Math.round(ms / 70)) : 1
+        const k = ms ? N - 4 : 0
+        const outros = restantes.filter((l) => l !== alvo)
+        const r = () => outros[Math.floor(Math.random() * outros.length)] ?? alvo
+        const quem = Array.from({ length: N }, (_, i) => (i === k ? alvo : r()))
+        fita.replaceChildren(
+          ...quem.map((l, i) => {
+            const c = el("div", { className: `cartao${i === k ? " alvo" : ""}` }, el("span", { textContent: nomeDe(s, l) }))
+            bolaEm(c, l, nomeDe(s, l), 104)
+            return c
+          }),
+        )
+        const largura = 1088
+        const fim = -(k * CARTAO + CARTAO / 2 - largura / 2) + (Math.random() - 0.5) * 60
+        const inicio = performance.now()
+        let ultimo = -1
+        await new Promise((pronto) => {
+          function quadro(agora) {
+            if (meu !== giro) return pronto()
+            const p = ms ? Math.min(1, (agora - inicio) / ms) : 1
+            const x = fim * (1 - Math.pow(1 - p, 4))
+            fita.style.transform = `translateX(${x}px)`
+            const sob = Math.floor((-x + largura / 2) / CARTAO)
+            if (sob !== ultimo) {
+              ultimo = sob
+              tique()
+            }
+            if (p < 1) requestAnimationFrame(quadro)
+            else pronto()
+          }
+          requestAnimationFrame(quadro)
+        })
+        fita.classList.add("parou")
+        parou()
+        return fita.children[k]
+      }
+
+      /** The drawn ball flies from the reel into its place. */
+      async function voar(cartao, lugar, s, login) {
+        const de = noPalco(cartao.querySelector("canvas, .sem"))
+        const para = noPalco(lugar.querySelector(".oco"))
+        const ball = el("div", { className: "voando" })
+        Object.assign(ball.style, { left: `${de.x}px`, top: `${de.y}px`, width: `${de.w}px`, height: `${de.h}px` })
+        const origem = cartao.querySelector("canvas, .sem")
+        ball.append(origem.cloneNode(true))
+        if (origem.tagName === "CANVAS") ball.firstChild.getContext("2d").drawImage(origem, 0, 0)
+        ball.firstChild.style.width = ball.firstChild.style.height = "100%"
+        document.querySelector(".stage").append(ball)
+        await espera(30)
+        ball.style.transform = `translate(${para.x - de.x}px, ${para.y - de.y}px) scale(${para.w / de.w})`
+        await espera(720)
+        ball.remove()
+        lugar.replaceChildren(el("span", { textContent: nomeDe(s, login) }))
+        bolaEm(lugar, login, nomeDe(s, login), 52)
+      }
+
+      const anunciar = (texto) => {
+        $("anuncio").textContent = texto
+        $("anuncio").classList.toggle("on", !!texto)
+      }
+
+      async function roleta(e, s) {
+        const meu = ++giro
+        vista("roleta")
+        $("r-formato").textContent = `Sorteando · ${descreve(s.formato)}`
+        anunciar("")
+        const lista = [...s.inscritos.map((i) => i.login), ...(s.formato.luan ? [DONO] : [])]
+        await carregar(lista)
+        vagas(e, s)
+        // Every ball ready before the reel moves (a few seconds at most; whoever isn't shows their initial).
+        await Promise.race([Promise.all(lista.map((l) => disco(l, 104))), espera(6000)])
+        if (meu !== giro) return
+        const restantes = new Set(lista)
+        const n = s.ordem.length
+        for (let i = 0; i < n; i++) {
+          const alvo = s.ordem[i]
+          const ms = (i === 0 ? 1200 : 0) + (n <= 6 ? 3200 : n <= 12 ? 2200 : 1400)
+          anunciar("")
+          // The last one is no surprise: the reel shows them still, without spinning.
+          const cartao = await girar(s, alvo, [...restantes], restantes.size === 1 ? 0 : ms, meu)
+          if (meu !== giro) return
+          anunciar(alvo === DONO ? "Eu entro pra fechar os times" : restantes.size === 1 ? `E fecha com ${nomeDe(s, alvo)}` : nomeDe(s, alvo))
+          await espera(alvo === DONO ? 1600 : n <= 12 ? 900 : 500)
+          await voar(cartao, lugarDe(s, i), s, alvo)
+          restantes.delete(alvo)
+          if (meu !== giro) return
+        }
+        anunciar(s.formato.tipo === "partida" ? "Times fechados!" : "Chave fechada!")
+        await espera(2200)
+        if (meu !== giro) return
+        // The state as it is now: names, colours or a result may have changed during the roulette.
+        const agora = atual?.sorteio?.id === s.id ? atual : e
+        times(agora, agora.sorteio, true)
+      }
+
+      // --- The teams: one match face to face, or the bracket ---------------------------------------------------------
+      // Standing, and the poses their celebration shows when their team wins (fas3d.js's poseDaFesta).
+      const POSES = ["parado", "cima", "aceno", "palmas"]
+      let timesDe = null // the draw the face-to-face is built for (its 3D fans are baked once)
+      const retratos = []
+      function largar() {
+        retratos.splice(0).forEach((r) => r.largar())
+      }
+      function rodada(r, total) {
+        if (total === 1) return "Partida"
+        return ["Final", "Semifinal", "Quartas de final"][total - 1 - r] ?? `Rodada ${r + 1}`
+      }
+
+      function times(e, s, forcar = false) {
+        vista("times")
+        mostrado = JSON.stringify(s)
+        const tipo = s.formato.tipo
+        $("t-eyebrow").textContent = tipo === "partida" ? "Partida da torcida" : "Torneio da torcida"
+        $("t-formato").textContent = descreve(s.formato)
+        const decidiu = s.partidas.some((p) => !p.bye && p.vencedor !== null)
+        $("t-rodape").textContent = s.campeao !== null ? "" : !decidiu && s.formato.tam > 1 ? "O primeiro sorteado de cada time escolhe o nome e a cor: !time e !cor" : ""
+        if (tipo === "partida") return confronto(e, s, forcar)
+        timesDe = null
+        largar()
+        chave(e, s)
+      }
+
+      function confronto(e, s, forcar) {
+        const corpo = $("t-corpo")
+        const p = s.partidas[0]
+        const mesmo = timesDe === s.id && !forcar && corpo.querySelector(".confronto")
+        if (!mesmo) {
+          largar()
+          timesDe = s.id
+          const lado = (t) =>
+            el(
+              "div",
+              { className: "equipe" },
+              el("p", { className: "nome-time" }, el("span", { className: "nome" })),
+              el(
+                "div",
+                { className: "fas" },
+                ...s.times[t].logins.map((l) => {
+                  const pose = el("div", { className: "pose" })
+                  const fa = el("div", { className: "fa" }, pose, el("span", { textContent: nomeDe(s, l) }))
+                  requestAnimationFrame(() => retratos.push(retrato(pose, look(l), { poses: POSES, quadro: "inteiro" })))
+                  return fa
+                }),
+              ),
+            )
+          corpo.replaceChildren(el("div", { className: "confronto" }, lado(0), el("div", { className: "vs", textContent: "×" }), lado(1)))
+        }
+        // What changes in place: the names, the colours, the result.
+        const equipes = corpo.querySelectorAll(".equipe")
+        equipes.forEach((eq, t) => {
+          eq.querySelector(".nome-time .nome").textContent = s.times[t].nome
+          eq.querySelector(".nome-time").style.setProperty("--cor", corDe(e, s.times[t].cor))
+          eq.classList.toggle("perdeu", p.vencedor !== null && p.vencedor !== t)
+          eq.querySelector(".venceu")?.remove()
+          if (p.vencedor === t) {
+            eq.querySelector(".nome-time").append(el("span", { className: "venceu", textContent: "VENCEU" }))
+            retratos.filter((r) => eq.contains(r.tela)).forEach((r) => r.festa(Infinity))
+          }
+        })
+      }
+
+      function chave(e, s) {
+        const corpo = $("t-corpo")
+        const total = Math.max(...s.partidas.map((p) => p.rodada)) + 1
+        const lado = (p, l) => {
+          const t = p[l]
+          if (t === null) return el("div", { className: "definir", textContent: "a definir" })
+          const time = s.times[t]
+          const discos = el("div", { className: "discos" })
+          time.logins.forEach((login) => bolaEm(discos, login, nomeDe(s, login), 34))
+          const div = el(
+            "div",
+            { className: `lado-jogo${p.vencedor === null || p.bye ? "" : p.vencedor === t ? " ganhou" : " perdeu"}` },
+            discos,
+            el("div", { className: "texto" }, el("div", { className: "time-nome", textContent: time.nome }), ...(s.formato.tam > 1 ? [el("div", { className: "jogadores", textContent: time.logins.map((x) => nomeDe(s, x)).join(", ") })] : [])),
+          )
+          div.style.setProperty("--cor", corDe(e, time.cor))
+          return div
+        }
+        const colunas = []
+        for (let r = 0; r < total; r++) {
+          const jogos = s.partidas
+            .filter((p) => p.rodada === r)
+            .map((p) => {
+              if (p.bye) {
+                const t = p.a ?? p.b
+                const j = el("div", { className: "jogo direto" }, lado({ ...p, a: t }, "a"))
+                j.querySelector(".texto")?.append(el("div", { className: "jogadores", textContent: "passa direto" }))
+                return j
+              }
+              return el("div", { className: "jogo" }, lado(p, "a"), lado(p, "b"))
+            })
+          colunas.push(el("div", { className: "coluna" }, el("h3", { textContent: rodada(r, total) }), el("div", { className: "jogos" }, ...jogos)))
+        }
+        const filhos = []
+        if (s.campeao !== null) {
+          const time = s.times[s.campeao]
+          const fas = el("div", { className: "fas" })
+          for (const l of time.logins) {
+            const pose = el("div", { className: "pose" })
+            fas.append(el("div", { className: "fa" }, pose))
+            requestAnimationFrame(() => {
+              const r = retrato(pose, look(l), { poses: POSES, quadro: "inteiro" })
+              r.festa(Infinity)
+              retratos.push(r)
+            })
+          }
+          const banner = el("div", { className: "campeao" }, el("span", { className: "rotulo", textContent: "CAMPEÃO" }), el("span", { className: "quem", textContent: time.nome }), fas)
+          banner.style.borderLeftColor = corDe(e, time.cor)
+          filhos.push(banner)
+        }
+        filhos.push(el("div", { className: "chave" }, ...colunas))
+        corpo.replaceChildren(...filhos)
+      }
+
+      // --- Following the API ---------------------------------------------------------------------------------------
+      const vistos = new Set() // draws already played as a roulette here
+      let mostrado = "" // the draw as the teams' view last drew it
+      let atual = null
+      async function ler() {
+        let e
+        try {
+          const r = await fetch(`${SIGMA_API}/pareamento`, { cache: "no-store" })
+          if (!r.ok) return
+          e = await r.json()
+        } catch {
+          return
+        }
+        atual = e
+        const s = e.sorteio
+        if (!s) {
+          giro++
+          timesDe = null
+          largar()
+          vista("lista")
+          lista(e)
+          return
+        }
+        const recente = Date.now() - Date.parse(s.em) < 90_000
+        if (!vistos.has(s.id)) {
+          vistos.add(s.id)
+          await carregar([...s.ordem])
+          if (recente) return void roleta(e, s)
+          return times(e, s, true)
+        }
+        // A roulette in progress isn't interrupted by the polls; once it's done, changes (names, winners) show.
+        if (vistaAtual === "times" && JSON.stringify(s) !== mostrado) times(e, s)
+      }
+      ler()
+      setInterval(ler, 2000)
+
+      // The dock's "Mostrar a roleta de novo".
+      addEventListener("storage", (ev) => {
+        if (ev.key !== "pareamento:roleta" || !atual?.sorteio) return
+        const pedido = JSON.parse(ev.newValue || "{}")
+        if (pedido.id === atual.sorteio.id) roleta(atual, atual.sorteio)
+      })
+    </script>
+  </body>
+</html>

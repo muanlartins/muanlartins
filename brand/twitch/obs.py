@@ -307,6 +307,17 @@ bad_play = browser("Efeito · Lance ruim", "lance.html", restart=True)
 calm = browser("Tela · Terapia", "terapia.html", restart=True)
 calm["settings"].update(reroute_audio=True, shutdown=True)
 calm.update(monitoring_type=MONITOR_AND_OUTPUT)
+# "Sorteio": the viewers' matches (sorteio.html, 2026-11-28; infra/sigma/pareamento.mjs): the list of whoever typed
+# !jogar, the draw as a roulette, then the teams or the tournament's bracket, as the "Pareamento" dock (below) runs it.
+# The camera at the top left, smaller than Conversa's (the page frames it at 640×360), the chat under it. The roulette's
+# ticks are the page's own, on the stream and in Luan's headphones like the stand's narrator. Pix and the alerts sit on
+# the camera as in Conversa, shrunk to its width.
+draw = browser("Overlay · Sorteio", "sorteio.html")
+draw["settings"]["reroute_audio"] = True
+draw.update(monitoring_type=MONITOR_AND_OUTPUT)
+in_draw = {"pos": (64, 64), "bounds": (640, 360)}
+alerts_in_draw = [(alerts, {"pos": (64, 64), "bounds": (640, 116)})] if alerts else []
+pix_in_draw = (pix, {"pos": (64, 244), "crop": PIX_BAND, "bounds": (640, 181)})
 # The ball duel (duelo.html, 2026-11-15) and the marble race (corrida.html, 2026-11-17), Lucca's ideas: since
 # 2026-11-20 (Luan: the game scenes were getting crowded) both play in Conversa, taking turns in one box under the
 # camera, inside its overlay (conversa.html holds each in an iframe); until then the duel had a source of its own in the
@@ -338,7 +349,7 @@ in_end = {"pos": (64, 64), "bounds": (1280, 720)}
 in_calm = {"pos": (336, 76), "bounds": (1248, 702)}
 # The filters over the camera, shrunk with OBS's Area filter (made for scaling down: the 3D's edges stay smooth).
 filters_at = {name: {**box, "scale_filter": "area"} for name, box in
-              {"game": in_frame, "talk": in_talk, "end": in_end, "calm": in_calm}.items()}
+              {"game": in_frame, "talk": in_talk, "end": in_end, "calm": in_calm, "draw": in_draw}.items()}
 # The game scenes: one of each for every game since 2026-11-24 (Luan: "organiza as cenas", the day Valorant was
 # archived). "Jogo" holds every game's capture and overlay, and the game on screen is whichever's items are on: the
 # Efeitos dock's "Jogo na cena" (JOGOS in efeitos.html) or their eyes in OBS, Rocket League's by default. "Lance ruim"
@@ -360,6 +371,7 @@ for each in jogo["settings"]["items"]:
 scenes = [
     scene("Começando", (starting, {})),
     scene("Conversa", (camera, in_talk), (filters, filters_at["talk"]), (chat_overlay, {}), *alerts_in_talk, pix_in_talk),
+    scene("Sorteio", (camera, in_draw), (filters, filters_at["draw"]), (draw, {}), *alerts_in_draw, pix_in_draw),
     jogo,
     bad_play_layer,
     scene("Terapia", (camera, in_calm), (filters, filters_at["calm"]), (calm, {}), *alerts_in_calm,
@@ -369,7 +381,7 @@ scenes = [
 ]
 # Luan's choice: Discord stays out of the game and talk scenes (and so out of the recording's track 4 there), and the
 # browser out of the game scenes; they're kept as hidden items, ready to switch on.
-HIDDEN = {"Jogo": {"Discord", "Navegador"}, "Conversa": {"Discord"}, "Terapia": {"Discord"}}
+HIDDEN = {"Jogo": {"Discord", "Navegador"}, "Conversa": {"Discord"}, "Sorteio": {"Discord"}, "Terapia": {"Discord"}}
 BREAKS = {"Começando", "Já volto", "Fim"}
 for each in scenes:
     if each is bad_play_layer:
@@ -404,7 +416,7 @@ collection = {
     "current_program_scene": "Começando",
     "scene_order": [{"name": s["name"]} for s in scenes],
     "sources": scenes + [game, various, camera, filters, game_chat_overlay,
-                         various_chat_overlay, celeste_overlay, chat_overlay, crowd, pix, starting, back, end, bad_play, calm] + apps + sounds
+                         various_chat_overlay, celeste_overlay, chat_overlay, draw, crowd, pix, starting, back, end, bad_play, calm] + apps + sounds
                + ([alerts] if alerts else []),
     "groups": [],
     "AuxAudioDevice1": mic,
@@ -424,12 +436,16 @@ OBS = Path("/mnt/c/Users/muanl/AppData/Roaming/obs-studio")
 # The collection OBS has open (Luan renamed it "Live" on 11-07), from its user.ini.
 LIVE = OBS / "basic/scenes" / re.search(r"^SceneCollectionFile=(.+)$", (OBS / "user.ini").read_text(encoding="utf-8-sig"), re.M)[1].strip()
 # The docks this adds: Efeitos and Anúncios (Twitch's ad breaks), from the site, and Filtros (the camera filters'
-# switches), served from this working copy like filtros.html itself.
+# switches), served from this working copy like filtros.html itself; and Pareamento (the viewers' matches, 2026-11-28),
+# which needs the stand's Σ key instead of OBS's password: it takes torcida.html's (DOCK_KEYS, never printed).
 DOCKS = [
     ("Efeitos", f"{SITE}/efeitos.html"),
     ("Filtros", "http://localhost:8126/stream/filtros-painel.html"),
     ("Anúncios", f"{SITE}/anuncios.html"),
+    ("Pareamento", f"{SITE}/pareamento.html"),
 ]
+# Docks whose URL carries the Σ key from the page OBS has it on, in place of OBS's password.
+DOCK_KEYS = {"Pareamento": "torcida.html"}
 # Docks this takes out: "Ads", a local PowerShell server's page that Anúncios replaced (2026-11-11).
 RETIRED_DOCKS = ["Ads"]
 
@@ -650,9 +666,9 @@ def keyed(live, new):
                  and s["settings"]["url"].split("#")[0].split("?")[0] == page), None)
 
 
-def add_docks():
-    """Our docks in OBS's custom browser docks, each with the websocket password in its URL (never printed).
-    Returns what it changed."""
+def add_docks(live):
+    """Our docks in OBS's custom browser docks, each with the websocket password in its URL, or the Σ key for the ones
+    in DOCK_KEYS (never printed). Returns what it changed."""
     ini = OBS / "user.ini"
     text = ini.read_text(encoding="utf-8-sig")
     line = re.search(r"^ExtraBrowserDocks=(.*)$", text, re.M)
@@ -663,12 +679,21 @@ def add_docks():
     if not missing and not retired:
         return []
     password = json.loads((OBS / "plugin_config/obs-websocket/config.json").read_text())["server_password"]
-    docks += [{"title": title, "url": f"{url}#obs={password}", "uuid": str(uuid.uuid4())} for title, url in missing]
+
+    def fragment(title):
+        if title not in DOCK_KEYS:
+            return f"obs={password}"
+        return next((s["settings"]["url"].split("#", 1)[1] for s in live["sources"]
+                     if s.get("id") == "browser_source" and "#" in s["settings"].get("url", "")
+                     and s["settings"]["url"].split("#")[0].split("?")[0].endswith("/" + DOCK_KEYS[title])), None)
+    keyless = [title for title, _ in missing if fragment(title) is None]
+    missing = [d for d in missing if d[0] not in keyless]
+    docks += [{"title": title, "url": f"{url}#{fragment(title)}", "uuid": str(uuid.uuid4())} for title, url in missing]
     value = "ExtraBrowserDocks=" + json.dumps(docks, ensure_ascii=False, separators=(",", ":"))
     # A function as the replacement, so re.sub leaves the value's backslashes alone.
     text = re.sub(r"^ExtraBrowserDocks=.*$", lambda _: value, text, count=1, flags=re.M) if line else text.replace("[BasicWindow]\n", f"[BasicWindow]\n{value}\n", 1)
     ini.write_text(text, encoding="utf-8")
-    return [title for title, _ in missing] + [f"{d['title']} (tirado)" for d in retired]
+    return [title for title, _ in missing] + [f"{d['title']} (tirado)" for d in retired] + [f"{t} (sem a chave do Σ: não adicionado)" for t in keyless]
 
 
 def clashes(live):
@@ -719,7 +744,7 @@ def apply(dry=False):
         if webm.exists():
             shutil.copy(webm, sons.parent / webm.name)
             print(f"{name} copiado para {sons.parent}")
-    print(f"docks: {', '.join(docks)}" if (docks := add_docks()) else "os docks já estavam lá")
+    print(f"docks: {', '.join(docks)}" if (docks := add_docks(live)) else "os docks já estavam lá")
     print(f"Replay Buffer desligado no perfil {', '.join(off)}" if (off := replay_buffer_off()) else "Replay Buffer já estava desligado")
     print(f"cópias de antes: {LIVE.name}.antes-{stamp}, user.ini.antes-{stamp}")
 

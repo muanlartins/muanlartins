@@ -48,6 +48,33 @@
           "espera": [30, 3]
         },
         {
+          "comando": "!jogar",
+          "texto": "Entra no sorteio das partidas da torcida. A cada sorteio a lista começa de novo.",
+          "dica": "!jogar: entra no sorteio das partidas da torcida",
+          "resposta": "${customapi.https://p1rblei1o9.execute-api.us-east-1.amazonaws.com/jogar.txt?login=${user.name}&nome=${user}}",
+          "espera": [10, 0]
+        },
+        {
+          "comando": "!sair",
+          "texto": "Sai do sorteio das partidas da torcida.",
+          "resposta": "${customapi.https://p1rblei1o9.execute-api.us-east-1.amazonaws.com/sair.txt?login=${user.name}&nome=${user}}",
+          "espera": [10, 0]
+        },
+        {
+          "comando": "!time",
+          "uso": "!time e o nome",
+          "texto": "Dá nome ao seu time no sorteio, se você foi o primeiro sorteado dele.",
+          "resposta": "${customapi.https://p1rblei1o9.execute-api.us-east-1.amazonaws.com/time.txt?login=${user.name}&nome=${user}&texto=${queryescape ${1:}}}",
+          "espera": [5, 0]
+        },
+        {
+          "comando": "!cor",
+          "uso": "!cor e a cor",
+          "texto": "Escolhe a cor do seu time no sorteio, se você foi o primeiro sorteado dele.",
+          "resposta": "${customapi.https://p1rblei1o9.execute-api.us-east-1.amazonaws.com/cor.txt?login=${user.name}&nome=${user}&texto=${queryescape ${1:}}}",
+          "espera": [5, 0]
+        },
+        {
           "comando": "!agenda",
           "apelidos": ["!proxima"],
           "texto": "Quando é a próxima live e de qual jogo.",

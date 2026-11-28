@@ -31,6 +31,11 @@
 // A viewer's page (/torcedor/<login>): POST /dedicatoria comes from the crowd overlay with the key, each goal (a win
 // in Valorant) the stand dedicates to someone (dedicatorias.mjs), and GET /pessoa?login=a is public: their Σ and
 // streak as /sigmas has them, their first live and the dedications.
+// The viewers' matches (pareamento.mjs keeps the list and the draw, in the item "#pareamento"): GET /jogar.txt,
+// /sair.txt, /time.txt and /cor.txt (?login=&nome=&texto=) are the chat bot's !jogar, !sair, !time and !cor, like
+// !sigma; GET /pareamento is public, the list, the formats it allows and the draw, for the "Sorteio" scene and the dock;
+// POST /pareamento comes from the "Pareamento" dock with the key: draw, redraw, mark a match's winner (5 Σ to each of
+// its viewers), name a team, end the draw, add or take someone off the list.
 
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { BatchGetCommand, DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb"
@@ -39,6 +44,7 @@ import { quem } from "./comum/twitch.mjs"
 import * as Corridas from "./corrida.mjs"
 import { anotarDedicatoria, dedicatoria } from "./dedicatorias.mjs"
 import { anotar, cedo, deViewer, doViewer, Duelo, GERAL, luta, repetida, resumo, textoDuelo } from "./duelo.mjs"
+import * as Pareamento from "./pareamento.mjs"
 import { textoSigma } from "./texto.mjs"
 
 const db = DynamoDBDocumentClient.from(new DynamoDBClient({}))
@@ -259,6 +265,39 @@ async function duelo(event) {
   return out(200, { id: l.id, vencedor: l.vencedor, motivo: l.motivo, segundos: l.segundos })
 }
 
+// The viewers' matches' item, for pareamento.mjs: written only on the version read; Σ added to (or taken from) logins.
+const pareamento = {
+  ler: async () => (await ler([Pareamento.ITEM]))[Pareamento.ITEM] ?? null,
+  async gravar(estado, antes) {
+    try {
+      // UpdateItem, the one write the function may make (infra/site.yml), setting every field of the state.
+      await db.send(
+        new UpdateCommand({
+          TableName: T,
+          Key: { login: Pareamento.ITEM },
+          ConditionExpression: antes === null ? "attribute_not_exists(versao)" : "versao = :antes",
+          UpdateExpression: "SET versao = :v, dia = :d, inscritos = :i, sorteio = :s, anteriores = :a",
+          ExpressionAttributeValues: {
+            ":v": estado.versao,
+            ":d": estado.dia,
+            ":i": estado.inscritos,
+            ":s": estado.sorteio,
+            ":a": estado.anteriores,
+            ...(antes === null ? {} : { ":antes": antes }),
+          },
+        }),
+      )
+      return true
+    } catch (e) {
+      if (e.name === "ConditionalCheckFailedException") return false
+      throw e
+    }
+  },
+  somar: (logins, n) =>
+    Promise.all(logins.map((login) => db.send(new UpdateCommand({ TableName: T, Key: { login }, UpdateExpression: "ADD sigma :n", ExpressionAttributeValues: { ":n": n } })))),
+}
+const PAREAMENTO_TXT = { "/jogar.txt": "jogar", "/sair.txt": "sair", "/time.txt": "time", "/cor.txt": "cor" }
+
 export async function handler(event) {
   const metodo = event.requestContext.http.method
   const caminho = event.rawPath
@@ -333,6 +372,20 @@ export async function handler(event) {
     const itens = await ler(login ? [Corridas.GERAL, login] : [Corridas.GERAL])
     const r = out(200, login ? Corridas.deViewer(login, itens[login]?.corridas, itens[Corridas.GERAL]) : Corridas.resumo(itens[Corridas.GERAL]))
     return { ...r, headers: { ...r.headers, "cache-control": "public, max-age=15" } }
+  }
+  if (metodo === "GET" && PAREAMENTO_TXT[caminho]) {
+    const linha = await Pareamento.comandoDoChat(pareamento, PAREAMENTO_TXT[caminho], event.queryStringParameters || {}, DONO)
+    return { statusCode: 200, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" }, body: linha }
+  }
+  if (metodo === "GET" && caminho === "/pareamento") {
+    const r = out(200, Pareamento.publico(await pareamento.ler()))
+    return { ...r, headers: { ...r.headers, "cache-control": "no-store" } }
+  }
+  if (metodo === "POST" && caminho === "/pareamento") {
+    if (!daLive(event)) return out(401, {})
+    const corpo = json(event)
+    if (!corpo) return out(400, {})
+    return out(...(await Pareamento.acaoDoDock(pareamento, corpo, DONO)))
   }
   if (metodo === "POST" && caminho === "/corrida") return correu(event)
   if (metodo === "POST" && caminho === "/duelo") return duelo(event)
