@@ -17,8 +17,11 @@ An after-live session has a beginning, a middle and an end (Luan, 2026-11-27: "E
 fim!"). It isn't over until the end's list is done, or each item left says why and who has it:
 
 - **Start:** it's over (0), the material filed (1, 1b, 1c), the live's page and transcript (2).
-- **Middle:** the videos cut (2c, or a Celeste day's chapters), the reels (the `estudio` skill), every thumbnail
-  (2b), the records in `content/videos/`, the schedule (Luan approves the table once).
+- **Middle:** the videos cut (2c, or a Celeste day's chapters), the reels (the `estudio` skill, "Highlights da
+  live": `momentos.py`, then the candidates reel with `candidatos.py`, and Luan's picks; a Celeste day has none, "A
+  Celeste day", 11), every thumbnail (2b), the records in `content/videos/`, the schedule (Luan approves the table
+  once). **The candidates reel is made before the disk is freed** (End, 4): it's cut from `Live.mp4`, and the reels
+  from `Live.mp4`, `Câmera` and `Jogo`.
 - **End:**
   1. **YouTube:** every file Luan uploaded set and scheduled with `youtube.py` (the videos, the reels, the VOD after
      the last of them, 3), checked through the API (each `publishAt`).
@@ -26,8 +29,11 @@ fim!"). It isn't over until the end's list is done, or each item left says why a
   3. **Release** (5), with the VOD's id in the live's page. A VOD held back by `youtube.publish_at` keeps the
      live's page off the site until a build after that moment (no build runs by itself): say so in the report, and
      link the reels and videos to `/canal/lives`, not to that page.
-  4. **The disk freed** (4): the cut videos once YouTube has them whole, the candidates reel, the 3D frame folders,
-     and the day's recordings (`--done`; on a Celeste day only the part that isn't Celeste, "A Celeste day", 7).
+  4. **The disk freed** (4), **only after the reels' candidates** (Middle): the cut videos once YouTube has them
+     whole, the candidates reel, the 3D frame folders, and the day's recordings (`--done`; on a Celeste day only the
+     part that isn't Celeste, "A Celeste day", 7). Never `--done` a Rocket League day whose candidates reel wasn't
+     made, nor offer Luan the cleanup while it's missing: say it's still to do. 11-27 was freed before it and the
+     live went without reels (Luan, 2026-11-28: "antes da limpeza, precisamos gerar os candidatos de reels").
   5. **The report:** what's scheduled when, what was freed and the space left, and what waits on whom.
 
 ## A day of another game ("Jogos diversos", since 2026-11-21)
@@ -352,8 +358,8 @@ schedule and policy; its editing advice was overruled by him.
    off its pages until a build after that moment, so its page never embeds a private video; the hourly
    `.github/workflows/lives-agendadas.yml` runs that build once the moment passes). Then
    `youtube.py video content/videos/<date>-<nome>.json --dry-run`, show him, apply (it makes the playlist "Rocket
-   League: cortes da live" the first time, and uploads the captions as the lives' are). The end screen (last 10 s,
-   over the outro) is set in Studio by hand: the API can't. A slot that passes before he uploads (11-18: the noon
+   League: cortes da live" the first time, and uploads the captions as the lives' are). **No end screens**, on any
+   video (Luan, 2026-11-28: he won't set them up): don't list them as a step or a pending item. A slot that passes before he uploads (11-18: the noon
    slot went by; he picked 21:00 the same day) is his call: change `publicar` and `publish_at`. Once a video is out,
    running `youtube.py` again leaves its status alone (a `publish_at` already past is skipped, since setting it
    would make the video private).
@@ -403,6 +409,12 @@ scripts/.venv/bin/python scripts/videos.py --clean            # lists what goes,
 scripts/.venv/bin/python scripts/videos.py --clean --apply    # deletes it, for good
 python3 scripts/videos.py --done <date>                        # after that day's thumbnail, match videos and shorts
 ```
+
+- **Before any of it, the reels' candidates** (Luan, 2026-11-28): on a Rocket League day, `--done` and a `--clean`
+  that would take the day's recordings wait until `candidatos.py` has made the candidates reel and Luan has picked
+  (the `estudio` skill, "Highlights da live"), and the picked reels are rendered. The candidates and the reels are
+  cut from `Live.mp4`, `Câmera` and `Jogo`, and nothing comes back: on 11-27 the day was freed first and that live
+  had no reels. If the candidates are missing when the rest is done, the report says so; the cleanup waits.
 
 - A day's `Live.mp4`, `Jogo`, `Câmera` and `VAR` clips go together when the day is marked `--done`; otherwise they
   stay as long as there's room, and only when the disk would have less than 200 GB free (`FREE_GB`, what a live

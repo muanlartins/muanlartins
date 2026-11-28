@@ -59,7 +59,8 @@ Luan points at reels he likes, measure them (cuts per second, layout, captions, 
   11-06 on: what the studio plays for shorts and commented videos, so Luan's camera goes on top only once) and `Replays\Partida NN - ….replay`.
 - They don't last: `Live.mp4` (once it's on YouTube), `Jogo` and `Câmera` go when the day is marked done or, oldest
   first, when the disk runs short (`depois-da-live`, "Free the disk"). After a day's shorts and commented videos,
-  `python3 scripts/videos.py --done <date>`.
+  `python3 scripts/videos.py --done <date>`, never before its candidates reel (Luan, 2026-11-28: "antes da limpeza,
+  precisamos gerar os candidatos de reels").
 - The session: `content/matches/<id>.json` (`outputs`: when the recording started; each match's `start` and
   `at`) and `<id>.events.json` (each match's log: kickoffs, goals with km/h, shots, saves, demos, touches; players
   as roles `me`, `mate1`, `opp2`).

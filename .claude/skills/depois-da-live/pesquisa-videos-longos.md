@@ -156,7 +156,8 @@ about *his* audience, and it matches the observed RL format.
 - **Chapters [PLATFORM].** First timestamp 00:00, at least 3 in ascending order, each at least 10 s
   ([Help 9884579](https://support.google.com/youtube/answer/9884579)). Neutral names, as SpookyLuke uses ("Game 1"), so
   no score spoilers.
-- **End screens and playlists.** Set end screens in Studio: the Data API has no end-screen endpoint (no doc found, only
+- **End screens and playlists.** *(Luan, 2026-11-28: no end screens on any video, he won't set them up; the
+  playlists still hold.)* Set end screens in Studio: the Data API has no end-screen endpoint (no doc found, only
   unanswered requests). Use "Best for viewer", the series playlist and Subscribe; all stay valid without later edits.
   Create one playlist for the edits, separate from "Rocket League ao vivo".
 - **Shorts → long.** **[PLATFORM]** In Studio, a Short's "Related video" makes a clickable link to any video on the

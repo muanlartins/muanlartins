@@ -17,7 +17,9 @@ Talk to him in pt-BR.
    them, not only what the scripts know about.
 3. `scripts/.venv/bin/python scripts/videos.py --clean` lists what goes from `Lives` (recordings and `Cortes`) and why (it
    checks on YouTube that each video is processed and as long as its file before letting a file go). Days whose
-   thumbnail, match videos and shorts are done get `python3 scripts/videos.py --done <date>` first.
+   thumbnail, match videos and shorts are done get `python3 scripts/videos.py --done <date>` first. A Rocket League
+   day without its reels' candidates reel (`candidatos.py`) is not done: its recordings stay until the candidates are
+   made and picked (Luan, 2026-11-28; `depois-da-live`, "Free the disk").
    A Celeste day stays whole (Live, Jogo, Câmera): Luan keeps them for the produced videos (his call, 2026-11-22). The
    script doesn't know, so look for one in its list before `--apply` (`depois-da-live`, "A Celeste day"). A day
    that was another game before Celeste keeps only the Celeste part of each file, cut once the rest has done its job
