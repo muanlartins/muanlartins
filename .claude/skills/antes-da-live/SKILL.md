@@ -65,6 +65,16 @@ anyway, twice, into his live (OBS: 14% of frames skipped to encoding lag). A new
    Claude's own jobs first: `ps aux --sort=-%cpu | head`); growing "encode skipped" = the encoder can't keep up;
    "stream skipped"/congestion = the network.
 2. Stop Claude's heavy jobs (not the narrator), check again, and tell Luan what it was with the numbers.
+3. The game freezing and the camera dropping late in a live (2026-11-27's diagnosis, not the GPU) is C: filling: the
+   Kingston NV2 falls to ~20 MB/s at 100% busy. Read it on Windows:
+   `Get-CimInstance Win32_PerfFormattedData_PerfDisk_PhysicalDisk -Filter "Name='_Total'"` (`PercentIdleTime`,
+   `DiskWriteBytesPersec`) and `df -h /mnt/c`. Suspend (never kill) Claude's ffmpeg/remux jobs with ntdll's
+   `NtSuspendProcess` on the Windows PID, and resume them with `NtResumeProcess` after the live.
+
+## Before he goes live: free space
+
+At least 300 GB free plus what the live will write (Luan, 2026-11-27): ~420 GB with the AV1 recordings. Less: tell
+him before he starts, and run the faxina skill. No remux, render or copy on C: while he's live.
 
 ## Before he goes live: OBS's audio buffering
 

@@ -27,7 +27,10 @@ Talk to him in pt-BR.
    deletar"), and even then ask about anything the table doesn't cover.
 5. `rm -v -- "<exact path>"` per file, never `rm -rf` on a variable or a pattern you haven't listed; scripts never
    delete except `videos.py --clean --apply` and the steps that delete after a verified copy.
-6. Tell him the free space after (`df -h /mnt/c`); under ~150 GB before a live is a warning.
+6. Tell him the free space after (`df -h /mnt/c`). **Luan's rule (2026-11-27): before a live, at least 300 GB free
+   plus what the live will write** (~115 GB for 3h since the recordings went AV1 that day; ~200 GB in H.264), so
+   ~420 GB; less is a warning. Why: C: is a Kingston NV2 (DRAM-less), and as it filled during the lives its writes
+   fell to ~20 MB/s at 100% busy, which froze the game and dropped the camera in the second half of the lives.
 
 ## The map: one folder per live (since 2026-11-26)
 

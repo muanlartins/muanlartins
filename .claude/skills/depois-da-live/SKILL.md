@@ -412,7 +412,8 @@ python3 scripts/videos.py --done <date>                        # after that day'
   skill), and before 11-06 it's the studio's only copy of the matches. It never goes before its YouTube video is
   processed and as long as the file (checked through the API), not even for space.
 - Replays stay (a few MB). Show Luan the list before `--apply`: nothing comes back.
-- Free space under ~150 GB before a live: tell him. The rest of the Videos folder (shorts' candidates, OBS's
+- Free space under ~420 GB before a live (Luan's rule since 2026-11-27: 300 GB plus what the live writes, ~115 GB
+  in AV1; the `faxina` skill has why): tell him. The rest of the Videos folder (shorts' candidates, OBS's
   stubs, the match videos) is in the `faxina` skill.
 
 ## 4b. Valorant's skins (Valorant days)

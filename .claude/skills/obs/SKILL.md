@@ -22,8 +22,13 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
 - Audio tracks are a bitmask per input (`SetInputAudioTracks` with `{"1": true, …, "6": false}`): 1 Tudo,
   2 Microfone, 3 Jogo, 4 Discord go to the recording; 5 "Live" is the stream's only. Music (the "Spotify" source)
   is on 5 alone.
-- The main recording: Hybrid MP4, NVENC CQP 22 (`recordEncoder.json` in the profile; 18 until 11-06, measured
-  under 1 VMAF point apart and ~40% smaller), preset p4, single pass, no look-ahead, no AQ since 2026-11-18. Change it
+- The main recording and "Gravar jogo" are **AV1** since 2026-11-27 (profile's `RecEncoder=obs_nvenc_av1_tex`,
+  `"profile": "main"` in `recordEncoder.json`; the filter's `"encoder": "nvenc_av1"`, `SOURCE_RECORD_AV1` in `obs.py`):
+  a 3h live wrote ~200 GB in H.264 and the Kingston NV2 (C:) slowed to ~20 MB/s as it filled, freezing the game in the
+  second half of the lives. Measured on a live's Rocket League, AV1 at the same CQP (OBS multiplies AV1's by 4) is 56% of
+  H.264's size, at the same encoder load (~17% at p4). Câmera's stays H.264 CQP 18. Never switch codec in the middle
+  of a day: `videos.py`'s join stream-copies a day's pieces. Before, the main recording: Hybrid MP4, NVENC CQP 22
+  (`recordEncoder.json` in the profile; 18 until 11-06, measured under 1 VMAF point apart and ~40% smaller), preset p4, single pass, no look-ahead, no AQ since 2026-11-18. Change it
   only with OBS closed. OBS's NVENC (`obs_nvenc_h264_tex`) reads `preset` and `adaptive_quantization`; `preset2` and
   `psycho_aq` are the old encoder's keys and do nothing (until 11-18 every encode ran at the default p5 that way).
 - **The video encoder is the budget.** The RTX 4070 has one NVENC; each 1080p60 H.264 encode takes, measured
@@ -144,7 +149,7 @@ node scripts/obs.mjs '[["GetSceneList", {}], ["GetInputList", {}]]'
   off once neither the stream nor the recording runs. Turning the filter off and on is the plugin's own stop/start (a
   file ends, a new one starts); changing its settings while it records is not (the 11-09 crash).
 - Source Record filters write files of their own while OBS records: "Gravar câmera" on Câmera (`… câmera.mkv`)
-  and "Gravar jogo" on Rocket League (`… jogo.mkv`, the game without camera or overlays, CQP 22, its own sound;
+  and "Gravar jogo" on Rocket League (`… jogo.mkv`, the game without camera or overlays, AV1 CQP 22 since 2026-11-27, its own sound;
   added 2026-11-05). `videos.py` files both.
 - Shorts have their own profile and scene collection, "Shorts" (1080×1920; `brand/twitch/obs_shorts.py --apply`
   with OBS closed), and so do commented videos, "Vídeo" (1920×1080, folder `profiles\Video`;

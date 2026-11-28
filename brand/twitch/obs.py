@@ -108,6 +108,13 @@ SEM_REPLAY = {"replay_buffer": False}
 ENCODER_LEVE = {"preset": "p4", "multipass": "disabled", "lookahead": False, "adaptive_quantization": False}
 
 
+# The game's file in AV1 since 2026-11-27 (the main recording too, the profile's RecEncoder): a 3h live wrote ~200 GB in
+# H.264 and C:'s SSD slowed to ~20 MB/s as it filled, freezing the game late in the lives. Measured on a live's
+# Rocket League: NVENC AV1 at the same CQP (OBS multiplies AV1's by 4) 56% of the size, the encoder's load the same
+# (~17% at p4). The RLR studio plays it in the browser (HEVC it might not). The camera's stays H.264 (8 GB a live).
+SOURCE_RECORD_AV1 = {"encoder": "nvenc_av1", "profile": "main"}
+
+
 # The game also goes to a file of its own while recording, without camera or overlays (the Source Record plugin), for
 # vertical shorts and commented videos; with its own sound. CQP 22: it's material for cuts, and space adds up daily.
 def capture(name, window=None):
@@ -117,8 +124,8 @@ def capture(name, window=None):
                   mixers=EVERYWHERE | TRACK_GAME, filters=[
         source("source_record_filter", "Gravar jogo", {
             "record_mode": 3, "path": "C:\\Users\\muanl\\Videos", "filename_formatting": "%CCYY-%MM-%DD %hh-%mm-%ss jogo",
-            "rec_format": "mkv", "encoder": "nvenc", "rate_control": "CQP", "cqp": 22, "keyint_sec": 2, "profile": "high",
-            "different_audio": False, **ENCODER_LEVE, **SEM_REPLAY}),
+            "rec_format": "mkv", "rate_control": "CQP", "cqp": 22, "keyint_sec": 2,
+            "different_audio": False, **SOURCE_RECORD_AV1, **ENCODER_LEVE, **SEM_REPLAY}),
     ])
 
 
@@ -259,7 +266,7 @@ RETIRED_TRANSITIONS = {"VAR"}
 # Settings `--apply` makes sure of on filters the collection already has (it only adds otherwise): no replay buffer on
 # each capture's "Gravar jogo" (the VAR's, until 2026-11-24), and the light encoder on every Source Record filter. Never
 # change them while OBS records (the obs skill). Which "Gravar jogo" is on is the Efeitos dock's: only the game on screen's.
-FILTER_SETTINGS = {(name, "Gravar jogo"): {**ENCODER_LEVE, **SEM_REPLAY}
+FILTER_SETTINGS = {(name, "Gravar jogo"): {**SOURCE_RECORD_AV1, **ENCODER_LEVE, **SEM_REPLAY}
                    for name in ("Rocket League", "Captura · Valorant", "Captura · Diversos")}
 FILTER_SETTINGS[("Câmera", "Gravar câmera")] = ENCODER_LEVE
 # And on sources it already has: the game overlays' URLs (no key in them): the keyboard and the mouse since 2026-11-20
